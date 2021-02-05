@@ -5,13 +5,13 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"math/big"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/ElrondNetwork/elastic-indexer-go/templatesConfig/noKibana"
+	"github.com/ElrondNetwork/elastic-indexer-go/templatesConfig/withKibana"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/statistics"
 	"github.com/ElrondNetwork/elrond-go/data"
@@ -515,68 +515,68 @@ func getDecodedResponseMultiGet(response objectsMap) map[string]bool {
 }
 
 // GetElasticTemplatesAndPolicies will return elastic templates and policies
-func GetElasticTemplatesAndPolicies(path string, useKibana bool) (map[string]*bytes.Buffer, map[string]*bytes.Buffer, error) {
+func GetElasticTemplatesAndPolicies(useKibana bool) (map[string]*bytes.Buffer, map[string]*bytes.Buffer, error) {
 	indexTemplates := make(map[string]*bytes.Buffer)
 	indexPolicies := make(map[string]*bytes.Buffer)
-	var err error
-
-	indexes := []string{"opendistro", txIndex, blockIndex, miniblocksIndex, tpsIndex, ratingIndex, roundIndex, validatorsIndex, accountsIndex, accountsHistoryIndex}
-	for _, index := range indexes {
-		indexTemplates[index], err = getTemplateByIndex(path, index)
-		if err != nil {
-			return nil, nil, err
-		}
-	}
 
 	if useKibana {
-		indexesPolicies := []string{txPolicy, blockPolicy, miniblocksPolicy, ratingPolicy, roundPolicy, validatorsPolicy, accountsHistoryPolicy}
-		for _, indexPolicy := range indexesPolicies {
-			indexPolicies[indexPolicy], err = getPolicyByIndex(path, indexPolicy)
-			if err != nil {
-				return nil, nil, err
-			}
-		}
+		indexTemplates = getTemplatesKibana()
+		indexPolicies = getPolicies()
+
+		return indexTemplates, indexPolicies, nil
 	}
+
+	indexTemplates = getTemplatesNoKibana()
 
 	return indexTemplates, indexPolicies, nil
 }
 
-func getTemplateByIndex(path string, index string) (*bytes.Buffer, error) {
-	indexTemplate := &bytes.Buffer{}
+func getTemplatesKibana() map[string]*bytes.Buffer {
+	indexTemplates := make(map[string]*bytes.Buffer)
 
-	fileName := fmt.Sprintf("%s.json", index)
-	filePath := filepath.Join(path, fileName)
-	fileBytes, err := ioutil.ReadFile(filePath)
-	if err != nil {
-		return nil, fmt.Errorf("getTemplateByIndex: %w, path %s, error %s", ErrReadTemplatesFile, filePath, err.Error())
-	}
+	indexTemplates["opendistro"] = withKibana.OpenDistro.ToBuffer()
+	indexTemplates[txIndex] = withKibana.Transactions.ToBuffer()
+	indexTemplates[blockIndex] = withKibana.Blocks.ToBuffer()
+	indexTemplates[miniblocksIndex] = withKibana.Miniblocks.ToBuffer()
+	indexTemplates[tpsIndex] = withKibana.TPS.ToBuffer()
+	indexTemplates[ratingIndex] = withKibana.Rating.ToBuffer()
+	indexTemplates[roundIndex] = withKibana.Rounds.ToBuffer()
+	indexTemplates[validatorsIndex] = withKibana.Validators.ToBuffer()
+	indexTemplates[accountsIndex] = withKibana.Accounts.ToBuffer()
+	indexTemplates[accountsHistoryIndex] = withKibana.AccountsHistory.ToBuffer()
 
-	indexTemplate.Grow(len(fileBytes))
-	_, err = indexTemplate.Write(fileBytes)
-	if err != nil {
-		return nil, fmt.Errorf("getTemplateByIndex: %w, path %s, error %s", ErrWriteToBuffer, filePath, err.Error())
-	}
-
-	return indexTemplate, nil
+	return indexTemplates
 }
 
-func getPolicyByIndex(path string, index string) (*bytes.Buffer, error) {
-	indexPolicy := &bytes.Buffer{}
+func getTemplatesNoKibana() map[string]*bytes.Buffer {
+	indexTemplates := make(map[string]*bytes.Buffer)
 
-	fileName := fmt.Sprintf("%s.json", index)
-	filePath := filepath.Join(path, fileName)
-	fileBytes, err := ioutil.ReadFile(filePath)
-	if err != nil {
-		return nil, fmt.Errorf("getPolicyByIndex: %w, path %s, error %s", ErrReadPolicyFile, filePath, err.Error())
-	}
+	indexTemplates["opendistro"] = noKibana.OpenDistro.ToBuffer()
+	indexTemplates[txIndex] = noKibana.Transactions.ToBuffer()
+	indexTemplates[blockIndex] = noKibana.Blocks.ToBuffer()
+	indexTemplates[miniblocksIndex] = noKibana.Miniblocks.ToBuffer()
+	indexTemplates[tpsIndex] = noKibana.TPS.ToBuffer()
+	indexTemplates[ratingIndex] = noKibana.Rating.ToBuffer()
+	indexTemplates[roundIndex] = noKibana.Rounds.ToBuffer()
+	indexTemplates[validatorsIndex] = noKibana.Validators.ToBuffer()
+	indexTemplates[accountsIndex] = noKibana.Accounts.ToBuffer()
+	indexTemplates[accountsHistoryIndex] = noKibana.AccountsHistory.ToBuffer()
 
-	indexPolicy.Grow(len(fileBytes))
-	_, err = indexPolicy.Write(fileBytes)
-	if err != nil {
-		return nil, fmt.Errorf("getPolicyByIndex: %w, path %s, error %s", ErrWriteToBuffer, filePath, err.Error())
-	}
+	return indexTemplates
+}
 
-	return indexPolicy, nil
+func getPolicies() map[string]*bytes.Buffer {
+	indexesPolicies := make(map[string]*bytes.Buffer)
+
+	indexesPolicies[txPolicy] = withKibana.TransactionsPolicy.ToBuffer()
+	indexesPolicies[blockPolicy] = withKibana.BlocksPolicy.ToBuffer()
+	indexesPolicies[miniblocksPolicy] = withKibana.MiniblocksPolicy.ToBuffer()
+	indexesPolicies[ratingPolicy] = withKibana.RatingPolicy.ToBuffer()
+	indexesPolicies[roundPolicy] = withKibana.RoundsPolicy.ToBuffer()
+	indexesPolicies[validatorsPolicy] = withKibana.ValidatorsPolicy.ToBuffer()
+	indexesPolicies[accountsHistoryPolicy] = withKibana.AccountsHistoryPolicy.ToBuffer()
+
+	return indexesPolicies
 }
 
 func stringValueToBigInt(strValue string) *big.Int {

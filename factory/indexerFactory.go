@@ -2,8 +2,6 @@ package factory
 
 import (
 	"fmt"
-	"path"
-
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"
@@ -13,11 +11,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go/process"
 	"github.com/ElrondNetwork/elrond-go/sharding"
 	"github.com/elastic/go-elasticsearch/v7"
-)
-
-const (
-	withKibanaFolder = "withKibana"
-	noKibanaFolder   = "noKibana"
 )
 
 // ArgsIndexerFactory holds all dependencies required by the data indexer factory in order to create
@@ -93,14 +86,7 @@ func createElasticProcessor(args *ArgsIndexerFactory) (indexer.ElasticProcessor,
 		return nil, err
 	}
 
-	var templatesPath string
-	if args.Options.UseKibana {
-		templatesPath = path.Join("../elasticIndexTemplates", withKibanaFolder)
-	} else {
-		templatesPath = path.Join("../elasticIndexTemplates", noKibanaFolder)
-	}
-
-	indexTemplates, indexPolicies, err := indexer.GetElasticTemplatesAndPolicies(templatesPath, args.Options.UseKibana)
+	indexTemplates, indexPolicies, err := indexer.GetElasticTemplatesAndPolicies(args.Options.UseKibana)
 	if err != nil {
 		return nil, err
 	}
