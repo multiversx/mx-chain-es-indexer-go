@@ -24,7 +24,7 @@ type dataIndexer struct {
 }
 
 // NewDataIndexer will create a new data indexer
-func NewDataIndexer(arguments ArgDataIndexer) (Indexer, error) {
+func NewDataIndexer(arguments ArgDataIndexer) (*dataIndexer, error) {
 	err := checkIndexerArgs(arguments)
 	if err != nil {
 		return nil, err
