@@ -9,6 +9,4 @@ require (
 	github.com/stretchr/testify v1.7.0
 )
 
-replace (
-	github.com/ElrondNetwork/elrond-go  => /home/mihai/go/src/github.com/ElrondNetwork/elrond-go
-)
+replace github.com/ElrondNetwork/elrond-go => /home/mihai/go/src/github.com/ElrondNetwork/elrond-go

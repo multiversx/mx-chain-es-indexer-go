@@ -6,14 +6,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
 	"io/ioutil"
 	"math/big"
 	"strconv"
 	"testing"
 
+	"github.com/ElrondNetwork/elastic-indexer-go/mock"
+	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
 	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/core/mock"
 	"github.com/ElrondNetwork/elrond-go/data"
 	dataBlock "github.com/ElrondNetwork/elrond-go/data/block"
 	"github.com/ElrondNetwork/elrond-go/data/receipt"
@@ -458,7 +458,7 @@ func TestElasticsearch_saveRoundInfoRequestError(t *testing.T) {
 func TestUpdateMiniBlock(t *testing.T) {
 	t.Skip("test must run only if you have an elasticsearch server on address http://localhost:9200")
 
-	indexTemplates, indexPolicies, _ := GetElasticTemplatesAndPolicies("./testdata/noKibana", false)
+	indexTemplates, indexPolicies, _ := GetElasticTemplatesAndPolicies(false)
 	dbClient, _ := NewElasticClient(elasticsearch.Config{
 		Addresses: []string{"http://localhost:9200"},
 	})

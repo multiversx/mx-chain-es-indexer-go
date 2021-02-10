@@ -3,9 +3,9 @@ package indexer
 import (
 	"context"
 	"errors"
-	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
 	"time"
 
+	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-go/core/check"
 )

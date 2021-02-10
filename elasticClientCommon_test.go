@@ -3,12 +3,12 @@ package indexer
 import (
 	"errors"
 	"fmt"
-	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"io"
 	"net/http"
 	"strings"
 	"testing"
 
+	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
