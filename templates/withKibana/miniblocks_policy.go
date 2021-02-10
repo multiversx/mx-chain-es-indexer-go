@@ -1,5 +1,6 @@
 package withKibana
 
+// MiniblocksPolicy will hold the configuration for the miniblocks index policy
 var MiniblocksPolicy = Object{
 	"policy": Object{
 		"description":   "Open distro policy for the miniblocks elastic index.",

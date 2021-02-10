@@ -1,8 +1,9 @@
 package withKibana
 
-var BlocksPolicy = Object{
+// RatingPolicy will hold the configuration for the ratings index policy
+var RatingPolicy = Object{
 	"policy": Object{
-		"description":   "Open distro policy for the blocks elastic index.",
+		"description":   "Open distro policy for the ratings elastic index.",
 		"default_state": "hot",
 		"states": Array{
 			Object{
@@ -10,7 +11,7 @@ var BlocksPolicy = Object{
 				"actions": Array{
 					Object{
 						"rollover": Object{
-							"min_size": "60gb",
+							"min_size": "20gb",
 						},
 					},
 				},
@@ -18,7 +19,7 @@ var BlocksPolicy = Object{
 					Object{
 						"state_name": "warm",
 						"conditions": Object{
-							"min_size": "60gb",
+							"min_size": "20gb",
 						},
 					},
 				},
@@ -32,7 +33,7 @@ var BlocksPolicy = Object{
 						},
 					},
 				},
-				"transitions": Object{},
+				"transitions": Array{},
 			},
 		},
 	},

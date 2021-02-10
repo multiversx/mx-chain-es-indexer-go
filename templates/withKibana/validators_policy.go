@@ -1,8 +1,9 @@
 package withKibana
 
-var TransactionsPolicy = Object{
+// ValidatorsPolicy will hold the configuration for the validators index policy
+var ValidatorsPolicy = Object{
 	"policy": Object{
-		"description":   "Open distro policy for the transactions elastic index.",
+		"description":   "Open distro policy for the validators elastic index.",
 		"default_state": "hot",
 		"states": Array{
 			Object{
@@ -10,7 +11,7 @@ var TransactionsPolicy = Object{
 				"actions": Array{
 					Object{
 						"rollover": Object{
-							"min_size": "85gb",
+							"min_size": "20gb",
 						},
 					},
 				},
@@ -18,7 +19,7 @@ var TransactionsPolicy = Object{
 					Object{
 						"state_name": "warm",
 						"conditions": Object{
-							"min_size": "85gb",
+							"min_size": "20gb",
 						},
 					},
 				},

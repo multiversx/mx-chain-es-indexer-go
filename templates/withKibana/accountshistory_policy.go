@@ -1,5 +1,6 @@
 package withKibana
 
+// AccountsHistoryPolicy will hold the configuration for the accountshistory index policy
 var AccountsHistoryPolicy = Object{
 	"policy": Object{
 		"description":   "Open distro policy for the accountshistory elastic index.",

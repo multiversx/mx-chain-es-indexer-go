@@ -6,7 +6,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
 
-// DatabaseWriterStub --
+// DatabaseWriterStub -
 type DatabaseWriterStub struct {
 	DoRequestCalled     func(req *esapi.IndexRequest) error
 	DoBulkRequestCalled func(buff *bytes.Buffer, index string) error
@@ -14,7 +14,7 @@ type DatabaseWriterStub struct {
 	DoMultiGetCalled    func(query map[string]interface{}, index string) (map[string]interface{}, error)
 }
 
-// DoRequest --
+// DoRequest -
 func (dwm *DatabaseWriterStub) DoRequest(req *esapi.IndexRequest) error {
 	if dwm.DoRequestCalled != nil {
 		return dwm.DoRequestCalled(req)
@@ -22,7 +22,7 @@ func (dwm *DatabaseWriterStub) DoRequest(req *esapi.IndexRequest) error {
 	return nil
 }
 
-// DoBulkRequest --
+// DoBulkRequest -
 func (dwm *DatabaseWriterStub) DoBulkRequest(buff *bytes.Buffer, index string) error {
 	if dwm.DoBulkRequestCalled != nil {
 		return dwm.DoBulkRequestCalled(buff, index)
@@ -30,7 +30,7 @@ func (dwm *DatabaseWriterStub) DoBulkRequest(buff *bytes.Buffer, index string) e
 	return nil
 }
 
-// DoMultiGet --
+// DoMultiGet -
 func (dwm *DatabaseWriterStub) DoMultiGet(query map[string]interface{}, index string) (map[string]interface{}, error) {
 	if dwm.DoMultiGetCalled != nil {
 		return dwm.DoMultiGetCalled(query, index)
@@ -39,7 +39,7 @@ func (dwm *DatabaseWriterStub) DoMultiGet(query map[string]interface{}, index st
 	return nil, nil
 }
 
-// DoBulkRemove -
+// DoBulkRemove
 func (dwm *DatabaseWriterStub) DoBulkRemove(index string, hashes []string) error {
 	if dwm.DoBulkRemoveCalled != nil {
 		return dwm.DoBulkRemoveCalled(index, hashes)
@@ -48,7 +48,7 @@ func (dwm *DatabaseWriterStub) DoBulkRemove(index string, hashes []string) error
 	return nil
 }
 
-// CheckAndCreateIndex --
+// CheckAndCreateIndex -
 func (dwm *DatabaseWriterStub) CheckAndCreateIndex(_ string) error {
 	return nil
 }

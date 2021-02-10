@@ -1,11 +1,12 @@
 package noKibana
 
-var Transactions = Object{
+// Blocks will hold the configuration for the blocks index
+var Blocks = Object{
 	"index_patterns": Array{
-		"transactions-*",
+		"blocks-*",
 	},
 	"settings": Object{
-		"number_of_shards":   5,
+		"number_of_shards":   3,
 		"number_of_replicas": 0,
 		"index": Object{
 			"sort.field": Array{
@@ -16,7 +17,6 @@ var Transactions = Object{
 			},
 		},
 	},
-
 	"mappings": Object{
 		"properties": Object{
 			"nonce": Object{

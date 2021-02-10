@@ -1,5 +1,6 @@
-package noKibana
+package withKibana
 
+// TPS will hold the configuration for the tps index
 var TPS = Object{
 	"index_patterns": Array{
 		"tps-*",

@@ -1,5 +1,6 @@
 package withKibana
 
+// Rounds will hold the configuration for the rounds index
 var Rounds = Object{
 	"index_patterns": Array{
 		"rounds-*",

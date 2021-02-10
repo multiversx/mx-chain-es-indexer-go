@@ -1,8 +1,9 @@
 package withKibana
 
-var ValidatorsPolicy = Object{
+// RoundsPolicy will hold the configuration for the rounds index policy
+var RoundsPolicy = Object{
 	"policy": Object{
-		"description":   "Open distro policy for the validators elastic index.",
+		"description":   "Open distro policy for the rounds elastic index.",
 		"default_state": "hot",
 		"states": Array{
 			Object{
@@ -10,7 +11,7 @@ var ValidatorsPolicy = Object{
 				"actions": Array{
 					Object{
 						"rollover": Object{
-							"min_size": "20gb",
+							"min_size": "60gb",
 						},
 					},
 				},
@@ -18,7 +19,7 @@ var ValidatorsPolicy = Object{
 					Object{
 						"state_name": "warm",
 						"conditions": Object{
-							"min_size": "20gb",
+							"min_size": "60gb",
 						},
 					},
 				},

@@ -2,6 +2,7 @@ package factory
 
 import (
 	"fmt"
+
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"

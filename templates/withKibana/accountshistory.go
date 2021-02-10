@@ -1,5 +1,6 @@
 package withKibana
 
+// AccountsHistory will hold the configuration for the accountshistory index
 var AccountsHistory = Object{
 	"index_patterns": Array{
 		"accountshistory-*",

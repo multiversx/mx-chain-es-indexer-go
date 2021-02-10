@@ -1,5 +1,6 @@
 package withKibana
 
+// Validators will hold the configuration for the validators index
 var Validators = Object{
 	"index_patterns": Array{
 		"validators-*",

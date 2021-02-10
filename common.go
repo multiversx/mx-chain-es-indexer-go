@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/templatesConfig/noKibana"
-	"github.com/ElrondNetwork/elastic-indexer-go/templatesConfig/withKibana"
+	"github.com/ElrondNetwork/elastic-indexer-go/templates/noKibana"
+	"github.com/ElrondNetwork/elastic-indexer-go/templates/withKibana"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/statistics"
 	"github.com/ElrondNetwork/elrond-go/data"

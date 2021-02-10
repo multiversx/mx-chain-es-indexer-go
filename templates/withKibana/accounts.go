@@ -1,12 +1,13 @@
 package withKibana
 
 import (
-	"github.com/ElrondNetwork/elastic-indexer-go/templatesConfig"
+	"github.com/ElrondNetwork/elastic-indexer-go/templates"
 )
 
-type Object = templatesConfig.Object
-type Array = templatesConfig.Array
+type Object = templates.Object
+type Array = templates.Array
 
+// Accounts will hold the configuration for the accounts index
 var Accounts = Object{
 	"index_patterns": Array{
 		"accounts-*",

@@ -1,8 +1,9 @@
 package withKibana
 
-var RoundsPolicy = Object{
+// TransactionsPolicy will hold the configuration for the transactions index policy
+var TransactionsPolicy = Object{
 	"policy": Object{
-		"description":   "Open distro policy for the rounds elastic index.",
+		"description":   "Open distro policy for the transactions elastic index.",
 		"default_state": "hot",
 		"states": Array{
 			Object{
@@ -10,7 +11,7 @@ var RoundsPolicy = Object{
 				"actions": Array{
 					Object{
 						"rollover": Object{
-							"min_size": "60gb",
+							"min_size": "85gb",
 						},
 					},
 				},
@@ -18,7 +19,7 @@ var RoundsPolicy = Object{
 					Object{
 						"state_name": "warm",
 						"conditions": Object{
-							"min_size": "60gb",
+							"min_size": "85gb",
 						},
 					},
 				},

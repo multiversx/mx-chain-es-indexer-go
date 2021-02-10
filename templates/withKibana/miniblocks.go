@@ -1,5 +1,6 @@
 package withKibana
 
+// Miniblocks will hold the configuration for the miniblocks index
 var Miniblocks = Object{
 	"index_patterns": Array{
 		"miniblocks-*",

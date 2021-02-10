@@ -1,5 +1,6 @@
-package noKibana
+package withKibana
 
+// OpenDistro will hold the configuration for the opendistro
 var OpenDistro = Object{
 	"index_patterns": Array{
 		".opendistro-*",

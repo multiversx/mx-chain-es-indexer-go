@@ -1,14 +1,13 @@
-package withKibana
+package noKibana
 
-var Blocks = Object{
+// Transactions will hold the configuration for the transactions index
+var Transactions = Object{
 	"index_patterns": Array{
-		"blocks-*",
+		"transactions-*",
 	},
 	"settings": Object{
-		"number_of_shards":                                 3,
-		"number_of_replicas":                               0,
-		"opendistro.index_state_management.policy_id":      "blocks_policy",
-		"opendistro.index_state_management.rollover_alias": "blocks",
+		"number_of_shards":   5,
+		"number_of_replicas": 0,
 		"index": Object{
 			"sort.field": Array{
 				"timestamp", "nonce",
@@ -18,6 +17,7 @@ var Blocks = Object{
 			},
 		},
 	},
+
 	"mappings": Object{
 		"properties": Object{
 			"nonce": Object{

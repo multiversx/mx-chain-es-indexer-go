@@ -1,8 +1,9 @@
 package noKibana
 
-var Miniblocks = Object{
+// TPS will hold the configuration for the tps index
+var TPS = Object{
 	"index_patterns": Array{
-		"miniblocks-*",
+		"tps-*",
 	},
 	"settings": Object{
 		"number_of_shards":   3,
