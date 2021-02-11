@@ -39,7 +39,7 @@ func (dwm *DatabaseWriterStub) DoMultiGet(query map[string]interface{}, index st
 	return nil, nil
 }
 
-// DoBulkRemove
+// DoBulkRemove -
 func (dwm *DatabaseWriterStub) DoBulkRemove(index string, hashes []string) error {
 	if dwm.DoBulkRemoveCalled != nil {
 		return dwm.DoBulkRemoveCalled(index, hashes)
