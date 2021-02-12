@@ -1,9 +1,9 @@
 package indexer
 
 import (
+	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"
-	"github.com/ElrondNetwork/elrond-go/core/indexer/workItems"
 	"github.com/ElrondNetwork/elrond-go/core/statistics"
 	"github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/state"
@@ -24,7 +24,7 @@ type dataIndexer struct {
 }
 
 // NewDataIndexer will create a new data indexer
-func NewDataIndexer(arguments ArgDataIndexer) (Indexer, error) {
+func NewDataIndexer(arguments ArgDataIndexer) (*dataIndexer, error) {
 	err := checkIndexerArgs(arguments)
 	if err != nil {
 		return nil, err

@@ -4,7 +4,7 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/ElrondNetwork/elrond-go/core/indexer/workItems"
+	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
 )
 
 // Transaction is a structure containing all the fields that need

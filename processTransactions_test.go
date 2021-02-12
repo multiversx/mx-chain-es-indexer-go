@@ -3,12 +3,12 @@ package indexer
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/ElrondNetwork/elastic-indexer-go/disabled"
+	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"math/big"
 	"testing"
 
 	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/core/indexer/disabled"
-	"github.com/ElrondNetwork/elrond-go/core/mock"
 	"github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/block"
 	"github.com/ElrondNetwork/elrond-go/data/receipt"

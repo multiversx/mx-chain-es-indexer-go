@@ -6,9 +6,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	indexer "github.com/ElrondNetwork/elastic-indexer-go"
+	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/core/indexer"
-	"github.com/ElrondNetwork/elrond-go/core/mock"
 	"github.com/ElrondNetwork/elrond-go/testscommon/economicsmocks"
 	"github.com/stretchr/testify/require"
 )
@@ -28,7 +28,6 @@ func createMockIndexerFactoryArgs() *ArgsIndexerFactory {
 		NodesCoordinator:         &mock.NodesCoordinatorMock{},
 		AddressPubkeyConverter:   &mock.PubkeyConverterMock{},
 		ValidatorPubkeyConverter: &mock.PubkeyConverterMock{},
-		TemplatesPath:            "../testdata",
 		Options:                  &indexer.Options{},
 		EnabledIndexes:           []string{"blocks", "transactions", "miniblocks", "tps", "validators", "round", "accounts", "rating"},
 		AccountsDB:               &mock.AccountsStub{},

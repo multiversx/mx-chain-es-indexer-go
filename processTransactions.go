@@ -6,8 +6,8 @@ import (
 	"math/big"
 	"strings"
 
+	"github.com/ElrondNetwork/elastic-indexer-go/disabled"
 	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/core/indexer/disabled"
 	"github.com/ElrondNetwork/elrond-go/core/vmcommon"
 	"github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/block"

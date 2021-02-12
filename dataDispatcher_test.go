@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ElrondNetwork/elrond-go/core/indexer/workItems"
-	"github.com/ElrondNetwork/elrond-go/core/mock"
+	"github.com/ElrondNetwork/elastic-indexer-go/mock"
+	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
 	"github.com/stretchr/testify/require"
 )
 

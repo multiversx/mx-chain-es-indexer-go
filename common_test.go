@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/core/mock"
 	"github.com/ElrondNetwork/elrond-go/core/vmcommon"
 	"github.com/ElrondNetwork/elrond-go/data/block"
 	"github.com/ElrondNetwork/elrond-go/data/rewardTx"

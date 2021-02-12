@@ -2,22 +2,17 @@ package factory
 
 import (
 	"fmt"
-	"path"
 
+	indexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"
-	"github.com/ElrondNetwork/elrond-go/core/indexer"
+	indexerInterface "github.com/ElrondNetwork/elrond-go/core/indexer"
 	"github.com/ElrondNetwork/elrond-go/data/state"
 	"github.com/ElrondNetwork/elrond-go/hashing"
 	"github.com/ElrondNetwork/elrond-go/marshal"
 	"github.com/ElrondNetwork/elrond-go/process"
 	"github.com/ElrondNetwork/elrond-go/sharding"
 	"github.com/elastic/go-elasticsearch/v7"
-)
-
-const (
-	withKibanaFolder = "withKibana"
-	noKibanaFolder   = "noKibana"
 )
 
 // ArgsIndexerFactory holds all dependencies required by the data indexer factory in order to create
@@ -35,7 +30,6 @@ type ArgsIndexerFactory struct {
 	NodesCoordinator         sharding.NodesCoordinator
 	AddressPubkeyConverter   core.PubkeyConverter
 	ValidatorPubkeyConverter core.PubkeyConverter
-	TemplatesPath            string
 	Options                  *indexer.Options
 	EnabledIndexes           []string
 	Denomination             int
@@ -45,7 +39,7 @@ type ArgsIndexerFactory struct {
 }
 
 // NewIndexer will create a new instance of Indexer
-func NewIndexer(args *ArgsIndexerFactory) (indexer.Indexer, error) {
+func NewIndexer(args *ArgsIndexerFactory) (indexerInterface.Indexer, error) {
 	err := checkDataIndexerParams(args)
 	if err != nil {
 		return nil, err
@@ -94,14 +88,7 @@ func createElasticProcessor(args *ArgsIndexerFactory) (indexer.ElasticProcessor,
 		return nil, err
 	}
 
-	var templatesPath string
-	if args.Options.UseKibana {
-		templatesPath = path.Join(args.TemplatesPath, withKibanaFolder)
-	} else {
-		templatesPath = path.Join(args.TemplatesPath, noKibanaFolder)
-	}
-
-	indexTemplates, indexPolicies, err := indexer.GetElasticTemplatesAndPolicies(templatesPath, args.Options.UseKibana)
+	indexTemplates, indexPolicies, err := indexer.GetElasticTemplatesAndPolicies(args.Options.UseKibana)
 	if err != nil {
 		return nil, err
 	}
