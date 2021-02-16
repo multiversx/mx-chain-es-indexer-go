@@ -1,6 +1,7 @@
 package indexer
 
 import (
+	"github.com/ElrondNetwork/elastic-indexer-go/types"
 	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"
@@ -14,17 +15,26 @@ import (
 	"github.com/ElrondNetwork/elrond-go/sharding"
 )
 
+// ArgDataIndexer is a structure that is used to store all components that are needed to create a indexer
+type ArgDataIndexer struct {
+	ShardCoordinator   sharding.Coordinator
+	Marshalizer        marshal.Marshalizer
+	EpochStartNotifier sharding.EpochStartEventNotifier
+	NodesCoordinator   sharding.NodesCoordinator
+	DataDispatcher     DispatcherHandler
+	ElasticProcessor   ElasticProcessor
+}
+
 type dataIndexer struct {
 	isNilIndexer     bool
 	dispatcher       DispatcherHandler
 	coordinator      sharding.NodesCoordinator
 	elasticProcessor ElasticProcessor
-	options          *Options
 	marshalizer      marshal.Marshalizer
 }
 
 // NewDataIndexer will create a new data indexer
-func NewDataIndexer(arguments ArgDataIndexer) (*dataIndexer, error) {
+func NewDataIndexer(arguments ArgDataIndexer) (Indexer, error) {
 	err := checkIndexerArgs(arguments)
 	if err != nil {
 		return nil, err
@@ -36,7 +46,6 @@ func NewDataIndexer(arguments ArgDataIndexer) (*dataIndexer, error) {
 		coordinator:      arguments.NodesCoordinator,
 		elasticProcessor: arguments.ElasticProcessor,
 		marshalizer:      arguments.Marshalizer,
-		options:          arguments.Options,
 	}
 
 	if arguments.ShardCoordinator.SelfId() == core.MetachainShardId {
@@ -87,23 +96,11 @@ func (di *dataIndexer) epochStartEventHandler() epochStart.ActionHandler {
 }
 
 // SaveBlock saves the block info in the queue to be sent to elastic
-func (di *dataIndexer) SaveBlock(
-	bodyHandler data.BodyHandler,
-	headerHandler data.HeaderHandler,
-	txPool map[string]data.TransactionHandler,
-	signersIndexes []uint64,
-	notarizedHeadersHashes []string,
-	headerHash []byte,
-) {
+func (di *dataIndexer) SaveBlock(args *types.ArgsSaveBlockData) {
 	wi := workItems.NewItemBlock(
 		di.elasticProcessor,
 		di.marshalizer,
-		bodyHandler,
-		headerHandler,
-		txPool,
-		signersIndexes,
-		notarizedHeadersHashes,
-		headerHash,
+		args,
 	)
 	di.dispatcher.Add(wi)
 }
@@ -124,13 +121,13 @@ func (di *dataIndexer) RevertIndexedBlock(header data.HeaderHandler, body data.B
 }
 
 // SaveRoundsInfo will save data about a slice of rounds in elasticsearch
-func (di *dataIndexer) SaveRoundsInfo(roundsInfo []workItems.RoundInfo) {
+func (di *dataIndexer) SaveRoundsInfo(roundsInfo []*types.RoundInfo) {
 	wi := workItems.NewItemRounds(di.elasticProcessor, roundsInfo)
 	di.dispatcher.Add(wi)
 }
 
 // SaveValidatorsRating will save all validators rating info to elasticsearch
-func (di *dataIndexer) SaveValidatorsRating(indexID string, validatorsRatingInfo []workItems.ValidatorRatingInfo) {
+func (di *dataIndexer) SaveValidatorsRating(indexID string, validatorsRatingInfo []*types.ValidatorRatingInfo) {
 	wi := workItems.NewItemRating(
 		di.elasticProcessor,
 		indexID,

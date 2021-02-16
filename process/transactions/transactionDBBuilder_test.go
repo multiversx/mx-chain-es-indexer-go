@@ -1,7 +1,6 @@
-package indexer
+package transactions
 
 import (
-	"bytes"
 	"encoding/hex"
 	"fmt"
 	"math/big"
@@ -9,6 +8,7 @@ import (
 	"time"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
+	"github.com/ElrondNetwork/elastic-indexer-go/types"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/vmcommon"
 	"github.com/ElrondNetwork/elrond-go/data/block"
@@ -20,10 +20,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func createCommonProcessor() commonProcessor {
-	return commonProcessor{
-		addressPubkeyConverter:   mock.NewPubkeyConverterMock(32),
-		validatorPubkeyConverter: mock.NewPubkeyConverterMock(32),
+func createCommonProcessor() txDBBuilder {
+	return txDBBuilder{
+		addressPubkeyConverter: mock.NewPubkeyConverterMock(32),
 		txFeeCalculator: &economicsmocks.EconomicsHandlerStub{
 			ComputeTxFeeBasedOnGasUsedCalled: func(tx process.TransactionWithFeeHandler, gasUsed uint64) *big.Int {
 				return big.NewInt(100)
@@ -33,6 +32,7 @@ func createCommonProcessor() commonProcessor {
 			},
 		},
 		shardCoordinator: &mock.ShardCoordinatorMock{},
+		esdtProc:         newEsdtTransactionHandler(),
 	}
 }
 
@@ -63,7 +63,7 @@ func TestGetMoveBalanceTransaction(t *testing.T) {
 		SndUserName: []byte("snd"),
 	}
 
-	expectedTx := &Transaction{
+	expectedTx := &types.Transaction{
 		Hash:             hex.EncodeToString(txHash),
 		MBHash:           hex.EncodeToString(mbHash),
 		Nonce:            tx.Nonce,
@@ -80,7 +80,7 @@ func TestGetMoveBalanceTransaction(t *testing.T) {
 		Signature:        hex.EncodeToString(tx.Signature),
 		Timestamp:        time.Duration(header.GetTimeStamp()),
 		Status:           status,
-		rcvAddrBytes:     []byte("receiver"),
+		RcvAddrBytes:     []byte("receiver"),
 		Fee:              "100",
 		ReceiverUserName: []byte("rcv"),
 		SenderUserName:   []byte("snd"),
@@ -109,9 +109,10 @@ func TestGetTransactionByType_SC(t *testing.T) {
 		RcvAddr:    rcvAddr,
 		CallType:   vmcommon.CallType(1),
 	}
+	header := &block.Header{TimeStamp: 100}
 
-	scRes := cp.convertScResultInDatabaseScr(scHash, smartContractRes)
-	expectedTx := ScResult{
+	scRes := cp.convertScResultInDatabaseScr(scHash, smartContractRes, header)
+	expectedTx := &types.ScResult{
 		Nonce:        nonce,
 		Hash:         hex.EncodeToString([]byte(scHash)),
 		PreTxHash:    hex.EncodeToString(txHash),
@@ -122,6 +123,7 @@ func TestGetTransactionByType_SC(t *testing.T) {
 		Value:        "<nil>",
 		RelayedValue: "<nil>",
 		CallType:     "1",
+		Timestamp:    time.Duration(100),
 	}
 
 	require.Equal(t, expectedTx, scRes)
@@ -142,7 +144,7 @@ func TestGetTransactionByType_RewardTx(t *testing.T) {
 	status := "Success"
 
 	resultTx := cp.buildRewardTransaction(rwdTx, txHash, mbHash, mb, header, status)
-	expectedTx := &Transaction{
+	expectedTx := &types.Transaction{
 		Hash:     hex.EncodeToString(txHash),
 		MBHash:   hex.EncodeToString(mbHash),
 		Round:    round,
@@ -154,21 +156,4 @@ func TestGetTransactionByType_RewardTx(t *testing.T) {
 	}
 
 	require.Equal(t, expectedTx, resultTx)
-}
-
-func TestPrepareBufferMiniblocks(t *testing.T) {
-	var buff bytes.Buffer
-
-	meta := []byte("test1")
-	serializedData := []byte("test2")
-
-	buff = prepareBufferMiniblocks(buff, meta, serializedData)
-
-	var expectedBuff bytes.Buffer
-	serializedData = append(serializedData, "\n"...)
-	expectedBuff.Grow(len(meta) + len(serializedData))
-	_, _ = expectedBuff.Write(meta)
-	_, _ = expectedBuff.Write(serializedData)
-
-	require.Equal(t, expectedBuff, buff)
 }

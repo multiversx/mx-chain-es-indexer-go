@@ -1,13 +1,14 @@
-package indexer
+package transactions
 
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/ElrondNetwork/elastic-indexer-go/disabled"
-	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"math/big"
 	"testing"
 
+	"github.com/ElrondNetwork/elastic-indexer-go/disabled"
+	"github.com/ElrondNetwork/elastic-indexer-go/mock"
+	"github.com/ElrondNetwork/elastic-indexer-go/types"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/block"
@@ -15,11 +16,66 @@ import (
 	"github.com/ElrondNetwork/elrond-go/data/rewardTx"
 	"github.com/ElrondNetwork/elrond-go/data/smartContractResult"
 	"github.com/ElrondNetwork/elrond-go/data/transaction"
-	processTransaction "github.com/ElrondNetwork/elrond-go/process/transaction"
 	"github.com/ElrondNetwork/elrond-go/testscommon/economicsmocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestAddToAlteredAddresses(t *testing.T) {
+	t.Parallel()
+
+	sender := "senderAddress"
+	receiver := "receiverAddress"
+	tokenIdentifier := "Test-token"
+	tx := &types.Transaction{
+		Sender:              sender,
+		Receiver:            receiver,
+		EsdtValue:           "123",
+		EsdtTokenIdentifier: tokenIdentifier,
+	}
+	alteredAddress := make(map[string]*types.AlteredAccount)
+	selfShardID := uint32(0)
+	mb := &block.MiniBlock{}
+
+	addToAlteredAddresses(tx, alteredAddress, mb, selfShardID, false)
+
+	alterdAccount, ok := alteredAddress[receiver]
+	require.True(t, ok)
+	require.Equal(t, &types.AlteredAccount{
+		IsESDTOperation: true,
+		TokenIdentifier: tokenIdentifier,
+	}, alterdAccount)
+
+	alterdAccount, ok = alteredAddress[sender]
+	require.True(t, ok)
+	require.Equal(t, &types.AlteredAccount{
+		IsSender:        true,
+		IsESDTOperation: true,
+		TokenIdentifier: tokenIdentifier,
+	}, alterdAccount)
+}
+
+func TestIsSCRForSenderWithGasUsed(t *testing.T) {
+	t.Parallel()
+
+	txHash := "txHash"
+	nonce := uint64(10)
+	sender := "sender"
+
+	tx := &types.Transaction{
+		Hash:   txHash,
+		Nonce:  nonce,
+		Sender: sender,
+	}
+	sc := &types.ScResult{
+		Data:      []byte("@6f6b@something"),
+		Nonce:     nonce + 1,
+		Receiver:  sender,
+		PreTxHash: txHash,
+	}
+
+	require.True(t, isSCRForSenderWithRefund(sc, tx))
+}
 
 func TestPrepareTransactionsForDatabase(t *testing.T) {
 	t.Parallel()
@@ -108,47 +164,60 @@ func TestPrepareTransactionsForDatabase(t *testing.T) {
 		},
 	}
 	header := &block.Header{}
-	txPool := map[string]data.TransactionHandler{
-		string(txHash1):  tx1,
-		string(txHash2):  tx2,
-		string(txHash3):  tx3,
-		string(txHash4):  tx4,
-		string(txHash5):  tx5,
-		string(rTx1Hash): rTx1,
-		string(rTx2Hash): rTx2,
-		string(recHash1): rec1,
-		string(recHash2): rec2,
-		string(scHash1):  scResult1,
-		string(scHash2):  scResult2,
-		string(scHash3):  scResult3,
+
+	pool := &types.Pool{
+		Txs: map[string]data.TransactionHandler{
+			string(txHash1): tx1,
+			string(txHash2): tx2,
+			string(txHash3): tx3,
+			string(txHash4): tx4,
+		},
+		Scrs: map[string]data.TransactionHandler{
+			string(scHash1): scResult1,
+			string(scHash2): scResult2,
+			string(scHash3): scResult3,
+		},
+		Rewards: map[string]data.TransactionHandler{
+			string(rTx1Hash): rTx1,
+			string(rTx2Hash): rTx2,
+		},
+		Invalid: map[string]data.TransactionHandler{
+			string(txHash5): tx5,
+		},
+		Receipts: map[string]data.TransactionHandler{
+			string(recHash1): rec1,
+			string(recHash2): rec2,
+		},
 	}
 
-	txDbProc := newTxDatabaseProcessor(
-		&mock.HasherMock{},
-		&mock.MarshalizerMock{},
-		&mock.PubkeyConverterMock{},
+	txDbProc := NewTransactionsProcessor(
 		&mock.PubkeyConverterMock{},
 		&economicsmocks.EconomicsHandlerStub{},
 		false,
 		&mock.ShardCoordinatorMock{},
+		false,
+		disabled.NewNilTxLogsProcessor(),
+		&mock.HasherMock{},
+		&mock.MarshalizerMock{},
 	)
 
-	transactions, _ := txDbProc.prepareTransactionsForDatabase(body, header, txPool, 0)
-	assert.Equal(t, 7, len(transactions))
+	results := txDbProc.PrepareTransactionsForDatabase(body, header, pool)
+	assert.Equal(t, 7, len(results.Transactions))
 
 }
 
 func TestPrepareTxLog(t *testing.T) {
 	t.Parallel()
 
-	txDbProc := newTxDatabaseProcessor(
-		&mock.HasherMock{},
-		&mock.MarshalizerMock{},
-		&mock.PubkeyConverterMock{},
+	txDbProc := NewTransactionsProcessor(
 		&mock.PubkeyConverterMock{},
 		&economicsmocks.EconomicsHandlerStub{},
 		false,
 		&mock.ShardCoordinatorMock{},
+		false,
+		disabled.NewNilTxLogsProcessor(),
+		&mock.HasherMock{},
+		&mock.MarshalizerMock{},
 	)
 
 	scAddr := []byte("addr")
@@ -167,9 +236,9 @@ func TestPrepareTxLog(t *testing.T) {
 			},
 		},
 	}
-	expectedTxLog := TxLog{
-		Address: txDbProc.addressPubkeyConverter.Encode(scAddr),
-		Events: []Event{
+	expectedTxLog := &types.TxLog{
+		Address: txDbProc.txBuilder.addressPubkeyConverter.Encode(scAddr),
+		Events: []types.Event{
 			{
 				Address:    hex.EncodeToString(addr),
 				Identifier: hex.EncodeToString(identifier),
@@ -225,50 +294,57 @@ func TestRelayedTransactions(t *testing.T) {
 	}
 
 	header := &block.Header{}
-	txPool := map[string]data.TransactionHandler{
-		string(txHash1): tx1,
-		string(scHash1): scResult1,
-		string(scHash2): scResult2,
-		string(scHash3): scResult3,
+
+	pool := &types.Pool{
+		Txs: map[string]data.TransactionHandler{
+			string(txHash1): tx1,
+		},
+		Scrs: map[string]data.TransactionHandler{
+			string(scHash1): scResult1,
+			string(scHash2): scResult2,
+			string(scHash3): scResult3,
+		},
 	}
 
-	txDbProc := newTxDatabaseProcessor(
-		&mock.HasherMock{},
-		&mock.MarshalizerMock{},
-		&mock.PubkeyConverterMock{},
+	txDbProc := NewTransactionsProcessor(
 		&mock.PubkeyConverterMock{},
 		&economicsmocks.EconomicsHandlerStub{},
 		false,
 		&mock.ShardCoordinatorMock{},
+		false,
+		disabled.NewNilTxLogsProcessor(),
+		&mock.HasherMock{},
+		&mock.MarshalizerMock{},
 	)
 
-	transactions, _ := txDbProc.prepareTransactionsForDatabase(body, header, txPool, 0)
-	assert.Equal(t, 1, len(transactions))
-	assert.Equal(t, 3, len(transactions[0].SmartContractResults))
-	assert.Equal(t, transaction.TxStatusSuccess.String(), transactions[0].Status)
+	results := txDbProc.PrepareTransactionsForDatabase(body, header, pool)
+	assert.Equal(t, 1, len(results.Transactions))
+	assert.Equal(t, 3, len(results.Transactions[0].SmartContractResults))
+	assert.Equal(t, transaction.TxStatusSuccess.String(), results.Transactions[0].Status)
 }
 
 func TestSetTransactionSearchOrder(t *testing.T) {
 	t.Parallel()
 	txHash1 := []byte("txHash1")
-	tx1 := &Transaction{}
+	tx1 := &types.Transaction{}
 
 	txHash2 := []byte("txHash2")
-	tx2 := &Transaction{}
+	tx2 := &types.Transaction{}
 
-	txPool := map[string]*Transaction{
+	txPool := map[string]*types.Transaction{
 		string(txHash1): tx1,
 		string(txHash2): tx2,
 	}
 
-	txDbProc := newTxDatabaseProcessor(
-		&mock.HasherMock{},
-		&mock.MarshalizerMock{},
-		&mock.PubkeyConverterMock{},
+	txDbProc := NewTransactionsProcessor(
 		&mock.PubkeyConverterMock{},
 		&economicsmocks.EconomicsHandlerStub{},
 		false,
 		&mock.ShardCoordinatorMock{},
+		false,
+		disabled.NewNilTxLogsProcessor(),
+		&mock.HasherMock{},
+		&mock.MarshalizerMock{},
 	)
 
 	transactions := txDbProc.setTransactionSearchOrder(txPool)
@@ -284,61 +360,7 @@ func TestSetTransactionSearchOrder(t *testing.T) {
 	assert.True(t, txPoolHasSearchOrder(transactions, 1))
 }
 
-func TestGetGasUsedFromReceipt_RefundedGas(t *testing.T) {
-	t.Parallel()
-
-	gasPrice := uint64(1000)
-	gasLimit := uint64(10000)
-	recValue := big.NewInt(10000)
-	txHash := []byte("tx-hash")
-	rec := &receipt.Receipt{
-		Value:   recValue,
-		SndAddr: nil,
-		Data:    []byte(processTransaction.RefundGasMessage),
-		TxHash:  txHash,
-	}
-	tx := &Transaction{
-		Hash: hex.EncodeToString(txHash),
-
-		GasPrice: gasPrice,
-		GasLimit: gasLimit,
-	}
-
-	expectedGasUsed := uint64(9990)
-
-	gasUsed := getGasUsedFromReceipt(rec, tx)
-	assert.Equal(t, expectedGasUsed, gasUsed)
-}
-
-func TestGetGasUsedFromReceipt_DataError(t *testing.T) {
-	t.Parallel()
-
-	gasPrice := uint64(1000)
-	gasLimit := uint64(10000)
-	recValue := big.NewInt(100000)
-	txHash := []byte("tx-hash")
-	rec := &receipt.Receipt{
-		Value:   recValue,
-		SndAddr: nil,
-		Data:    []byte("error"),
-		TxHash:  txHash,
-	}
-	tx := &Transaction{
-		Hash: hex.EncodeToString(txHash),
-
-		GasPrice: gasPrice,
-		GasLimit: gasLimit,
-	}
-
-	expectedGasUsed := uint64(100)
-
-	gasUsed := getGasUsedFromReceipt(rec, tx)
-	assert.Equal(t, expectedGasUsed, gasUsed)
-}
-
 func TestAlteredAddresses(t *testing.T) {
-	selfShardID := uint32(0)
-
 	expectedAlteredAccounts := make(map[string]struct{})
 	// addresses marked with a comment should be added to the altered addresses map
 
@@ -432,13 +454,20 @@ func TestAlteredAddresses(t *testing.T) {
 	}
 
 	hdr := &block.Header{}
-	txPool := map[string]data.TransactionHandler{
-		string(tx1Hash):    tx1,
-		string(tx2Hash):    tx2,
-		string(rwdTx1Hash): rwdTx1,
-		string(rwdTx2Hash): rwdTx2,
-		string(scr1Hash):   scr1,
-		string(scr2Hash):   scr2,
+
+	pool := &types.Pool{
+		Txs: map[string]data.TransactionHandler{
+			string(tx1Hash): tx1,
+			string(tx2Hash): tx2,
+		},
+		Scrs: map[string]data.TransactionHandler{
+			string(scr1Hash): scr1,
+			string(scr2Hash): scr2,
+		},
+		Rewards: map[string]data.TransactionHandler{
+			string(rwdTx1Hash): rwdTx1,
+			string(rwdTx2Hash): rwdTx2,
+		},
 	}
 
 	shardCoordinator := &mock.ShardCoordinatorMock{
@@ -452,23 +481,21 @@ func TestAlteredAddresses(t *testing.T) {
 		},
 	}
 
-	txLogProc := disabled.NewNilTxLogsProcessor()
-	txProc := &txDatabaseProcessor{
-		commonProcessor: &commonProcessor{
-			addressPubkeyConverter: mock.NewPubkeyConverterMock(32),
-			txFeeCalculator:        &economicsmocks.EconomicsHandlerStub{},
-			shardCoordinator:       shardCoordinator,
-		},
-		marshalizer:      &mock.MarshalizerMock{},
-		hasher:           &mock.HasherMock{},
-		txLogsProcessor:  txLogProc,
-		shardCoordinator: shardCoordinator,
-	}
+	txDbProc := NewTransactionsProcessor(
+		mock.NewPubkeyConverterMock(32),
+		&economicsmocks.EconomicsHandlerStub{},
+		false,
+		shardCoordinator,
+		false,
+		disabled.NewNilTxLogsProcessor(),
+		&mock.HasherMock{},
+		&mock.MarshalizerMock{},
+	)
 
-	_, alteredAddresses := txProc.prepareTransactionsForDatabase(body, hdr, txPool, selfShardID)
-	require.Equal(t, len(expectedAlteredAccounts), len(alteredAddresses))
+	results := txDbProc.PrepareTransactionsForDatabase(body, hdr, pool)
+	require.Equal(t, len(expectedAlteredAccounts), len(results.AlteredAccounts))
 
-	for addrActual := range alteredAddresses {
+	for addrActual := range results.AlteredAccounts {
 		_, found := expectedAlteredAccounts[addrActual]
 		if !found {
 			assert.Fail(t, fmt.Sprintf("address %s not found", addrActual))
@@ -476,7 +503,7 @@ func TestAlteredAddresses(t *testing.T) {
 	}
 }
 
-func txPoolHasSearchOrder(txPool map[string]*Transaction, searchOrder uint32) bool {
+func txPoolHasSearchOrder(txPool map[string]*types.Transaction, searchOrder uint32) bool {
 	for _, tx := range txPool {
 		if tx.SearchOrder == searchOrder {
 			return true
@@ -486,19 +513,19 @@ func txPoolHasSearchOrder(txPool map[string]*Transaction, searchOrder uint32) bo
 	return false
 }
 
-func TestIsSCRForSenderWithGasUsed(t *testing.T) {
+func TestCheckGasUsedTooMuchGasProvidedCase(t *testing.T) {
 	t.Parallel()
 
 	txHash := "txHash"
 	nonce := uint64(10)
 	sender := "sender"
 
-	tx := &Transaction{
+	tx := &types.Transaction{
 		Hash:   txHash,
 		Nonce:  nonce,
 		Sender: sender,
 	}
-	sc := ScResult{
+	sc := &types.ScResult{
 		Data:      []byte("@6f6b@something"),
 		Nonce:     nonce + 1,
 		Receiver:  sender,
@@ -511,14 +538,15 @@ func TestIsSCRForSenderWithGasUsed(t *testing.T) {
 func TestCheckGasUsedInvalidTransaction(t *testing.T) {
 	t.Parallel()
 
-	txProc := newTxDatabaseProcessor(
-		&mock.HasherMock{},
-		&mock.MarshalizerMock{},
-		&mock.PubkeyConverterMock{},
-		&mock.PubkeyConverterMock{},
+	txDbProc := NewTransactionsProcessor(
+		mock.NewPubkeyConverterMock(32),
 		&economicsmocks.EconomicsHandlerStub{},
 		false,
 		&mock.ShardCoordinatorMock{},
+		false,
+		disabled.NewNilTxLogsProcessor(),
+		&mock.HasherMock{},
+		&mock.MarshalizerMock{},
 	)
 
 	txHash1 := []byte("txHash1")
@@ -547,27 +575,32 @@ func TestCheckGasUsedInvalidTransaction(t *testing.T) {
 
 	header := &block.Header{}
 
-	txPool := map[string]data.TransactionHandler{
-		string(txHash1):  tx1,
-		string(recHash1): rec1,
+	pool := &types.Pool{
+		Invalid: map[string]data.TransactionHandler{
+			string(txHash1): tx1,
+		},
+		Receipts: map[string]data.TransactionHandler{
+			string(recHash1): rec1,
+		},
 	}
 
-	txs, _ := txProc.prepareTransactionsForDatabase(body, header, txPool, 0)
-	require.Len(t, txs, 1)
-	require.Equal(t, tx1.GasLimit, txs[0].GasUsed)
+	results := txDbProc.PrepareTransactionsForDatabase(body, header, pool)
+	require.Len(t, results.Transactions, 1)
+	require.Equal(t, tx1.GasLimit, results.Transactions[0].GasUsed)
 }
 
 func TestCheckGasUsedRelayedTransaction(t *testing.T) {
 	t.Parallel()
 
-	txProc := newTxDatabaseProcessor(
-		&mock.HasherMock{},
-		&mock.MarshalizerMock{},
-		&mock.PubkeyConverterMock{},
-		&mock.PubkeyConverterMock{},
+	txDbProc := NewTransactionsProcessor(
+		mock.NewPubkeyConverterMock(32),
 		&economicsmocks.EconomicsHandlerStub{},
 		false,
 		&mock.ShardCoordinatorMock{},
+		false,
+		disabled.NewNilTxLogsProcessor(),
+		&mock.HasherMock{},
+		&mock.MarshalizerMock{},
 	)
 
 	txHash1 := []byte("txHash1")
@@ -596,12 +629,16 @@ func TestCheckGasUsedRelayedTransaction(t *testing.T) {
 
 	header := &block.Header{}
 
-	txPool := map[string]data.TransactionHandler{
-		string(txHash1):    tx1,
-		string(scResHash1): scRes1,
+	pool := &types.Pool{
+		Txs: map[string]data.TransactionHandler{
+			string(txHash1): tx1,
+		},
+		Scrs: map[string]data.TransactionHandler{
+			string(scResHash1): scRes1,
+		},
 	}
 
-	txs, _ := txProc.prepareTransactionsForDatabase(body, header, txPool, 0)
-	require.Len(t, txs, 1)
-	require.Equal(t, tx1.GasLimit, txs[0].GasUsed)
+	results := txDbProc.PrepareTransactionsForDatabase(body, header, pool)
+	require.Len(t, results.Transactions, 1)
+	require.Equal(t, tx1.GasLimit, results.Transactions[0].GasUsed)
 }

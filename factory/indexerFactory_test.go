@@ -8,6 +8,7 @@ import (
 
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
+	"github.com/ElrondNetwork/elastic-indexer-go/process"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/testscommon/economicsmocks"
 	"github.com/stretchr/testify/require"
@@ -28,7 +29,7 @@ func createMockIndexerFactoryArgs() *ArgsIndexerFactory {
 		NodesCoordinator:         &mock.NodesCoordinatorMock{},
 		AddressPubkeyConverter:   &mock.PubkeyConverterMock{},
 		ValidatorPubkeyConverter: &mock.PubkeyConverterMock{},
-		Options:                  &indexer.Options{},
+		TemplatesPath:            "../testdata",
 		EnabledIndexes:           []string{"blocks", "transactions", "miniblocks", "tps", "validators", "round", "accounts", "rating"},
 		AccountsDB:               &mock.AccountsStub{},
 		TransactionFeeCalculator: &economicsmocks.EconomicsHandlerStub{},
@@ -59,7 +60,7 @@ func TestNewIndexerFactory(t *testing.T) {
 				args.AddressPubkeyConverter = nil
 				return args
 			},
-			exError: indexer.ErrNilPubkeyConverter,
+			exError: process.ErrNilPubkeyConverter,
 		},
 		{
 			name: "NilValidatorPubkeyConverter",
@@ -68,7 +69,7 @@ func TestNewIndexerFactory(t *testing.T) {
 				args.ValidatorPubkeyConverter = nil
 				return args
 			},
-			exError: indexer.ErrNilPubkeyConverter,
+			exError: process.ErrNilPubkeyConverter,
 		},
 		{
 			name: "NilMarshalizer",
@@ -113,7 +114,7 @@ func TestNewIndexerFactory(t *testing.T) {
 				args.AccountsDB = nil
 				return args
 			},
-			exError: indexer.ErrNilAccountsDB,
+			exError: process.ErrNilAccountsDB,
 		},
 		{
 			name: "EmptyUrl",
@@ -125,13 +126,22 @@ func TestNewIndexerFactory(t *testing.T) {
 			exError: core.ErrNilUrl,
 		},
 		{
-			name: "NilEconomicsHandler",
+			name: "NilTransactionFeeCalculator",
 			argsFunc: func() *ArgsIndexerFactory {
 				args := createMockIndexerFactoryArgs()
 				args.TransactionFeeCalculator = nil
 				return args
 			},
 			exError: core.ErrNilTransactionFeeCalculator,
+		},
+		{
+			name: "NilHardCoordinator",
+			argsFunc: func() *ArgsIndexerFactory {
+				args := createMockIndexerFactoryArgs()
+				args.ShardCoordinator = nil
+				return args
+			},
+			exError: process.ErrNilShardCoordinator,
 		},
 		{
 			name: "All arguments ok",

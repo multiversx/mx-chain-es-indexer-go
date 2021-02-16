@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
+	"github.com/ElrondNetwork/elastic-indexer-go/types"
 	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
 	"github.com/ElrondNetwork/elrond-go/data/state"
 	"github.com/stretchr/testify/require"
@@ -14,7 +15,7 @@ func TestItemAccounts_Save(t *testing.T) {
 	called := false
 	itemAccounts := workItems.NewItemAccounts(
 		&mock.ElasticProcessorStub{
-			SaveAccountsCalled: func(_ []state.UserAccountHandler) error {
+			SaveAccountsCalled: func(_ []*types.AccountEGLD) error {
 				called = true
 				return nil
 			},
@@ -32,7 +33,7 @@ func TestItemAccounts_SaveAccountsShouldErr(t *testing.T) {
 	localErr := errors.New("local err")
 	itemAccounts := workItems.NewItemAccounts(
 		&mock.ElasticProcessorStub{
-			SaveAccountsCalled: func(_ []state.UserAccountHandler) error {
+			SaveAccountsCalled: func(_ []*types.AccountEGLD) error {
 				return localErr
 			},
 		},

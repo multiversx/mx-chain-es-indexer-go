@@ -13,8 +13,10 @@ var Accounts = Object{
 		"accounts-*",
 	},
 	"settings": Object{
-		"number_of_shards":   3,
-		"number_of_replicas": 0,
+		"number_of_shards":                                 3,
+		"number_of_replicas":                               0,
+		"opendistro.index_state_management.policy_id":      "accounts_policy",
+		"opendistro.index_state_management.rollover_alias": "accounts",
 	},
 	"mappings": Object{
 		"properties": Object{

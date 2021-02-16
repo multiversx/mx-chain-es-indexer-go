@@ -1,4 +1,4 @@
-package indexer
+package client
 
 import (
 	"bytes"
@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/ElrondNetwork/elastic-indexer-go/types"
+	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
@@ -15,6 +17,10 @@ import (
 const errPolicyAlreadyExists = "document already exists"
 
 type responseErrorHandler func(res *esapi.Response) error
+
+var log = logger.GetOrCreate("indexer/client")
+
+type objectsMap = map[string]interface{}
 
 type elasticClient struct {
 	elasticBaseUrl string
@@ -101,7 +107,8 @@ func (ec *elasticClient) DoBulkRequest(buff *bytes.Buffer, index string) error {
 }
 
 // DoMultiGet wil do a multi get request to elaticsearch server
-func (ec *elasticClient) DoMultiGet(obj objectsMap, index string) (objectsMap, error) {
+func (ec *elasticClient) DoMultiGet(hashes []string, index string) (objectsMap, error) {
+	obj := getDocumentsByIDsQuery(hashes)
 	body, err := encode(obj)
 	if err != nil {
 		return nil, err
@@ -200,7 +207,7 @@ func (ec *elasticClient) PolicyExists(policy string) bool {
 		Header:     res.Header,
 	}
 
-	existsRes := &kibanaResponse{}
+	existsRes := &types.KibanaResponse{}
 	err = parseResponse(response, existsRes, kibanaResponseErrorHandler)
 	if err != nil {
 		log.Warn("elasticClient.PolicyExists",
@@ -278,7 +285,7 @@ func (ec *elasticClient) createPolicy(policyName string, policy *bytes.Buffer) e
 		Header:     res.Header,
 	}
 
-	existsRes := &kibanaResponse{}
+	existsRes := &types.KibanaResponse{}
 	err = parseResponse(response, existsRes, kibanaResponseErrorHandler)
 	if err != nil {
 		return err
