@@ -43,7 +43,7 @@ type ArgsIndexerFactory struct {
 }
 
 // NewIndexer will create a new instance of Indexer
-func NewIndexer(args *ArgsIndexerFactory) (indexer.Indexer, error) {
+func NewIndexer(args *ArgsIndexerFactory) (process.Indexer, error) {
 	err := checkDataIndexerParams(args)
 	if err != nil {
 		return nil, err
