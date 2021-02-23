@@ -138,9 +138,9 @@ type AccountInfo struct {
 
 // AccountBalanceHistory represents an entry in the user accounts balances history
 type AccountBalanceHistory struct {
-	Address   string `json:"address"`
-	Timestamp int64  `json:"timestamp"`
-	Balance   string `json:"balance"`
+	Address   string        `json:"address"`
+	Timestamp time.Duration `json:"timestamp"`
+	Balance   string        `json:"balance"`
 }
 
 // ValidatorsRatingInfo is a structure containing validators information

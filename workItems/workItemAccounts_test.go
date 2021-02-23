@@ -14,11 +14,12 @@ func TestItemAccounts_Save(t *testing.T) {
 	called := false
 	itemAccounts := workItems.NewItemAccounts(
 		&mock.ElasticProcessorStub{
-			SaveAccountsCalled: func(_ []state.UserAccountHandler) error {
+			SaveAccountsCalled: func(_ uint64, _ []state.UserAccountHandler) error {
 				called = true
 				return nil
 			},
 		},
+		0,
 		[]state.UserAccountHandler{},
 	)
 	require.False(t, itemAccounts.IsInterfaceNil())
@@ -32,10 +33,11 @@ func TestItemAccounts_SaveAccountsShouldErr(t *testing.T) {
 	localErr := errors.New("local err")
 	itemAccounts := workItems.NewItemAccounts(
 		&mock.ElasticProcessorStub{
-			SaveAccountsCalled: func(_ []state.UserAccountHandler) error {
+			SaveAccountsCalled: func(_ uint64, _ []state.UserAccountHandler) error {
 				return localErr
 			},
 		},
+		0,
 		[]state.UserAccountHandler{},
 	)
 	require.False(t, itemAccounts.IsInterfaceNil())
