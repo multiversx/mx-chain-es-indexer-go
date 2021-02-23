@@ -41,5 +41,5 @@ type saveValidatorsIndexer interface {
 }
 
 type saveAccountsIndexer interface {
-	SaveAccounts(accounts []state.UserAccountHandler) error
+	SaveAccounts(blockTimestamp uint64, accounts []state.UserAccountHandler) error
 }

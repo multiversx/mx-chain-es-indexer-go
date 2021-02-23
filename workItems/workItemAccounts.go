@@ -3,24 +3,27 @@ package workItems
 import "github.com/ElrondNetwork/elrond-go/data/state"
 
 type itemAccounts struct {
-	indexer  saveAccountsIndexer
-	accounts []state.UserAccountHandler
+	indexer        saveAccountsIndexer
+	blockTimestamp uint64
+	accounts       []state.UserAccountHandler
 }
 
 // NewItemAccounts will create a new instance of itemAccounts
 func NewItemAccounts(
 	indexer saveAccountsIndexer,
+	blockTimestamp uint64,
 	accounts []state.UserAccountHandler,
 ) WorkItemHandler {
 	return &itemAccounts{
-		indexer:  indexer,
-		accounts: accounts,
+		indexer:        indexer,
+		accounts:       accounts,
+		blockTimestamp: blockTimestamp,
 	}
 }
 
 // Save will save information about an account
 func (wiv *itemAccounts) Save() error {
-	err := wiv.indexer.SaveAccounts(wiv.accounts)
+	err := wiv.indexer.SaveAccounts(wiv.blockTimestamp, wiv.accounts)
 	if err != nil {
 		log.Warn("itemAccounts.Save",
 			"could not index account",
