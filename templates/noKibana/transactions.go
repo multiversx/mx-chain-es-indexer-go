@@ -7,7 +7,7 @@ var Transactions = Object{
 	},
 	"settings": Object{
 		"number_of_shards":   5,
-		"number_of_replicas": 0,
+		"number_of_replicas": 1,
 		"index": Object{
 			"sort.field": Array{
 				"timestamp", "nonce",

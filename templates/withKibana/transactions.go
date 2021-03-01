@@ -7,7 +7,7 @@ var Transactions = Object{
 	},
 	"settings": Object{
 		"number_of_shards":                                 5,
-		"number_of_replicas":                               0,
+		"number_of_replicas":                               1,
 		"opendistro.index_state_management.policy_id":      "transactions_policy",
 		"opendistro.index_state_management.rollover_alias": "transactions",
 		"index": Object{
