@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"math/big"
 
+	"github.com/ElrondNetwork/elastic-indexer-go/types"
 	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
 	"github.com/ElrondNetwork/elrond-go/core/statistics"
 	"github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/block"
-	"github.com/ElrondNetwork/elrond-go/data/state"
 	"github.com/ElrondNetwork/elrond-go/process"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
@@ -27,13 +27,14 @@ type ElasticProcessor interface {
 	SaveHeader(header data.HeaderHandler, signersIndexes []uint64, body *block.Body, notarizedHeadersHashes []string, txsSize int) error
 	RemoveHeader(header data.HeaderHandler) error
 	RemoveMiniblocks(header data.HeaderHandler, body *block.Body) error
+	RemoveTransactions(header data.HeaderHandler, body *block.Body) error
 	SaveMiniblocks(header data.HeaderHandler, body *block.Body) (map[string]bool, error)
-	SaveTransactions(body *block.Body, header data.HeaderHandler, txPool map[string]data.TransactionHandler, selfShardID uint32, mbsInDb map[string]bool) error
-	SaveValidatorsRating(index string, validatorsRatingInfo []workItems.ValidatorRatingInfo) error
-	SaveRoundsInfo(infos []workItems.RoundInfo) error
+	SaveTransactions(body *block.Body, header data.HeaderHandler, pool *types.Pool, mbsInDb map[string]bool) error
+	SaveValidatorsRating(index string, validatorsRatingInfo []*types.ValidatorRatingInfo) error
+	SaveRoundsInfo(infos []*types.RoundInfo) error
 	SaveShardValidatorsPubKeys(shardID, epoch uint32, shardValidatorsPubKeys [][]byte) error
 	SetTxLogsProcessor(txLogsProc process.TransactionLogProcessorDatabase)
-	SaveAccounts(accounts []state.UserAccountHandler) error
+	SaveAccounts(accountsEGLD []*types.AccountEGLD) error
 	IsInterfaceNil() bool
 }
 

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
+	"github.com/ElrondNetwork/elastic-indexer-go/types"
 	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
 	"github.com/stretchr/testify/require"
 )
@@ -41,13 +42,13 @@ func TestDataDispatcher_StartIndexDataClose(t *testing.T) {
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	elasticProc := &mock.ElasticProcessorStub{
-		SaveRoundsInfoCalled: func(infos []workItems.RoundInfo) error {
+		SaveRoundsInfoCalled: func(infos []*types.RoundInfo) error {
 			called = true
 			wg.Done()
 			return nil
 		},
 	}
-	dispatcher.Add(workItems.NewItemRounds(elasticProc, []workItems.RoundInfo{}))
+	dispatcher.Add(workItems.NewItemRounds(elasticProc, []*types.RoundInfo{}))
 	wg.Wait()
 
 	require.True(t, called)
@@ -67,7 +68,7 @@ func TestDataDispatcher_Add(t *testing.T) {
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	elasticProc := &mock.ElasticProcessorStub{
-		SaveRoundsInfoCalled: func(infos []workItems.RoundInfo) error {
+		SaveRoundsInfoCalled: func(infos []*types.RoundInfo) error {
 			if calledCount < 2 {
 				atomic.AddUint32(&calledCount, 1)
 				return fmt.Errorf("%w: wrapped error", ErrBackOff)
@@ -80,7 +81,7 @@ func TestDataDispatcher_Add(t *testing.T) {
 	}
 
 	start := time.Now()
-	dispatcher.Add(workItems.NewItemRounds(elasticProc, []workItems.RoundInfo{}))
+	dispatcher.Add(workItems.NewItemRounds(elasticProc, []*types.RoundInfo{}))
 	wg.Wait()
 
 	timePassed := time.Since(start)
@@ -103,7 +104,7 @@ func TestDataDispatcher_AddWithErrorShouldRetryTheReprocessing(t *testing.T) {
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	elasticProc := &mock.ElasticProcessorStub{
-		SaveRoundsInfoCalled: func(infos []workItems.RoundInfo) error {
+		SaveRoundsInfoCalled: func(infos []*types.RoundInfo) error {
 			if calledCount < 2 {
 				atomic.AddUint32(&calledCount, 1)
 				return errors.New("generic error")
@@ -116,7 +117,7 @@ func TestDataDispatcher_AddWithErrorShouldRetryTheReprocessing(t *testing.T) {
 	}
 
 	start := time.Now()
-	dispatcher.Add(workItems.NewItemRounds(elasticProc, []workItems.RoundInfo{}))
+	dispatcher.Add(workItems.NewItemRounds(elasticProc, []*types.RoundInfo{}))
 	wg.Wait()
 
 	timePassed := time.Since(start)

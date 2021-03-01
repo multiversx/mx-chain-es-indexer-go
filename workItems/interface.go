@@ -1,10 +1,10 @@
 package workItems
 
 import (
+	"github.com/ElrondNetwork/elastic-indexer-go/types"
 	"github.com/ElrondNetwork/elrond-go/core/statistics"
 	"github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/block"
-	"github.com/ElrondNetwork/elrond-go/data/state"
 )
 
 // WorkItemHandler defines the interface for item that needs to be saved in elasticsearch database
@@ -16,11 +16,11 @@ type WorkItemHandler interface {
 type saveBlockIndexer interface {
 	SaveHeader(header data.HeaderHandler, signersIndexes []uint64, body *block.Body, notarizedHeadersHashes []string, txsSize int) error
 	SaveMiniblocks(header data.HeaderHandler, body *block.Body) (map[string]bool, error)
-	SaveTransactions(body *block.Body, header data.HeaderHandler, txPool map[string]data.TransactionHandler, selfShardID uint32, mbsInDb map[string]bool) error
+	SaveTransactions(body *block.Body, header data.HeaderHandler, pool *types.Pool, mbsInDb map[string]bool) error
 }
 
 type saveRatingIndexer interface {
-	SaveValidatorsRating(index string, validatorsRatingInfo []ValidatorRatingInfo) error
+	SaveValidatorsRating(index string, validatorsRatingInfo []*types.ValidatorRatingInfo) error
 }
 
 type removeIndexer interface {
@@ -29,7 +29,7 @@ type removeIndexer interface {
 }
 
 type saveRounds interface {
-	SaveRoundsInfo(infos []RoundInfo) error
+	SaveRoundsInfo(infos []*types.RoundInfo) error
 }
 
 type saveTpsBenchmark interface {
@@ -41,5 +41,5 @@ type saveValidatorsIndexer interface {
 }
 
 type saveAccountsIndexer interface {
-	SaveAccounts(accounts []state.UserAccountHandler) error
+	SaveAccounts(accounts []*types.AccountEGLD) error
 }

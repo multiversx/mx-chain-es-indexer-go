@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/ElrondNetwork/elastic-indexer-go/disabled"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
+	"github.com/ElrondNetwork/elastic-indexer-go/types"
+
 	"math/big"
 	"testing"
 
@@ -167,9 +169,9 @@ func TestPrepareTxLog(t *testing.T) {
 			},
 		},
 	}
-	expectedTxLog := TxLog{
+	expectedTxLog := types.TxLog{
 		Address: txDbProc.addressPubkeyConverter.Encode(scAddr),
-		Events: []Event{
+		Events: []types.Event{
 			{
 				Address:    hex.EncodeToString(addr),
 				Identifier: hex.EncodeToString(identifier),
@@ -251,12 +253,12 @@ func TestRelayedTransactions(t *testing.T) {
 func TestSetTransactionSearchOrder(t *testing.T) {
 	t.Parallel()
 	txHash1 := []byte("txHash1")
-	tx1 := &Transaction{}
+	tx1 := &types.Transaction{}
 
 	txHash2 := []byte("txHash2")
-	tx2 := &Transaction{}
+	tx2 := &types.Transaction{}
 
-	txPool := map[string]*Transaction{
+	txPool := map[string]*types.Transaction{
 		string(txHash1): tx1,
 		string(txHash2): tx2,
 	}
@@ -297,7 +299,7 @@ func TestGetGasUsedFromReceipt_RefundedGas(t *testing.T) {
 		Data:    []byte(processTransaction.RefundGasMessage),
 		TxHash:  txHash,
 	}
-	tx := &Transaction{
+	tx := &types.Transaction{
 		Hash: hex.EncodeToString(txHash),
 
 		GasPrice: gasPrice,
@@ -323,7 +325,7 @@ func TestGetGasUsedFromReceipt_DataError(t *testing.T) {
 		Data:    []byte("error"),
 		TxHash:  txHash,
 	}
-	tx := &Transaction{
+	tx := &types.Transaction{
 		Hash: hex.EncodeToString(txHash),
 
 		GasPrice: gasPrice,
@@ -476,7 +478,7 @@ func TestAlteredAddresses(t *testing.T) {
 	}
 }
 
-func txPoolHasSearchOrder(txPool map[string]*Transaction, searchOrder uint32) bool {
+func txPoolHasSearchOrder(txPool map[string]*types.Transaction, searchOrder uint32) bool {
 	for _, tx := range txPool {
 		if tx.SearchOrder == searchOrder {
 			return true
@@ -493,12 +495,12 @@ func TestIsSCRForSenderWithGasUsed(t *testing.T) {
 	nonce := uint64(10)
 	sender := "sender"
 
-	tx := &Transaction{
+	tx := &types.Transaction{
 		Hash:   txHash,
 		Nonce:  nonce,
 		Sender: sender,
 	}
-	sc := ScResult{
+	sc := types.ScResult{
 		Data:      []byte("@6f6b@something"),
 		Nonce:     nonce + 1,
 		Receiver:  sender,

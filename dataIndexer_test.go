@@ -11,6 +11,7 @@ import (
 
 	"github.com/ElrondNetwork/elastic-indexer-go/disabled"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
+	"github.com/ElrondNetwork/elastic-indexer-go/types"
 	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-go/core"
@@ -154,8 +155,11 @@ func TestDataIndexer_SaveBlock(t *testing.T) {
 	}
 	ei, _ := NewDataIndexer(arguments)
 
-	ei.SaveBlock(&dataBlock.Body{MiniBlocks: []*dataBlock.MiniBlock{}}, nil,
-		nil, nil, nil, []byte("hash"))
+	args := &types.ArgsSaveBlockData{
+		Body:       &dataBlock.Body{MiniBlocks: []*dataBlock.MiniBlock{}},
+		HeaderHash: []byte("hash"),
+	}
+	ei.SaveBlock(args)
 	require.True(t, called)
 }
 
@@ -173,7 +177,7 @@ func TestDataIndexer_SaveRoundInfo(t *testing.T) {
 	ei, _ := NewDataIndexer(arguments)
 	_ = ei.Close()
 
-	ei.SaveRoundsInfo([]workItems.RoundInfo{})
+	ei.SaveRoundsInfo([]*types.RoundInfo{})
 	require.True(t, called)
 }
 
@@ -209,7 +213,7 @@ func TestDataIndexer_SaveValidatorsRating(t *testing.T) {
 	}
 	ei, _ := NewDataIndexer(arguments)
 
-	ei.SaveValidatorsRating("ID", []workItems.ValidatorRatingInfo{
+	ei.SaveValidatorsRating("ID", []*types.ValidatorRatingInfo{
 		{Rating: 1}, {Rating: 2},
 	})
 	require.True(t, called)
@@ -410,7 +414,15 @@ func testCreateIndexer(t *testing.T) {
 		body.MiniBlocks[0].ReceiverShardID = 2
 		body.MiniBlocks[0].SenderShardID = 1
 
-		di.SaveBlock(body, header, txsPool, signers, []string{"aaaaa", "bbbb"}, []byte("hash"))
+		args := &types.ArgsSaveBlockData{
+			HeaderHash:             []byte("hash"),
+			Body:                   body,
+			Header:                 header,
+			SignersIndexes:         signers,
+			NotarizedHeadersHashes: []string{"aaaaa", "bbbb"},
+			TransactionsPool:       &types.Pool{Txs: txsPool},
+		}
+		di.SaveBlock(args)
 	}
 
 	time.Sleep(100 * time.Second)

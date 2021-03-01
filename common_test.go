@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
+	"github.com/ElrondNetwork/elastic-indexer-go/types"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/vmcommon"
 	"github.com/ElrondNetwork/elrond-go/data/block"
@@ -63,7 +64,7 @@ func TestGetMoveBalanceTransaction(t *testing.T) {
 		SndUserName: []byte("snd"),
 	}
 
-	expectedTx := &Transaction{
+	expectedTx := &types.Transaction{
 		Hash:             hex.EncodeToString(txHash),
 		MBHash:           hex.EncodeToString(mbHash),
 		Nonce:            tx.Nonce,
@@ -80,7 +81,7 @@ func TestGetMoveBalanceTransaction(t *testing.T) {
 		Signature:        hex.EncodeToString(tx.Signature),
 		Timestamp:        time.Duration(header.GetTimeStamp()),
 		Status:           status,
-		rcvAddrBytes:     []byte("receiver"),
+		RcvAddrBytes:     []byte("receiver"),
 		Fee:              "100",
 		ReceiverUserName: []byte("rcv"),
 		SenderUserName:   []byte("snd"),
@@ -111,7 +112,7 @@ func TestGetTransactionByType_SC(t *testing.T) {
 	}
 
 	scRes := cp.convertScResultInDatabaseScr(scHash, smartContractRes)
-	expectedTx := ScResult{
+	expectedTx := types.ScResult{
 		Nonce:        nonce,
 		Hash:         hex.EncodeToString([]byte(scHash)),
 		PreTxHash:    hex.EncodeToString(txHash),
@@ -142,7 +143,7 @@ func TestGetTransactionByType_RewardTx(t *testing.T) {
 	status := "Success"
 
 	resultTx := cp.buildRewardTransaction(rwdTx, txHash, mbHash, mb, header, status)
-	expectedTx := &Transaction{
+	expectedTx := &types.Transaction{
 		Hash:     hex.EncodeToString(txHash),
 		MBHash:   hex.EncodeToString(mbHash),
 		Round:    round,

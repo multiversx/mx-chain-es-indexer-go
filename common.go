@@ -12,6 +12,7 @@ import (
 
 	"github.com/ElrondNetwork/elastic-indexer-go/templates/noKibana"
 	"github.com/ElrondNetwork/elastic-indexer-go/templates/withKibana"
+	"github.com/ElrondNetwork/elastic-indexer-go/types"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/statistics"
 	"github.com/ElrondNetwork/elrond-go/data"
@@ -36,7 +37,7 @@ func prepareGeneralInfo(tpsBenchmark statistics.TPSBenchmark) bytes.Buffer {
 	var buff bytes.Buffer
 
 	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s", "_type" : "%s" } }%s`, metachainTpsDocID, tpsIndex, "\n"))
-	generalInfo := TPS{
+	generalInfo := types.TPS{
 		LiveTPS:               tpsBenchmark.LiveTPS(),
 		PeakTPS:               tpsBenchmark.PeakTPS(),
 		NrOfShards:            tpsBenchmark.NrOfShards(),
@@ -74,7 +75,7 @@ func serializeShardInfo(shardInfo statistics.ShardStatistic) ([]byte, []byte) {
 		shardTpsDocIDPrefix, shardInfo.ShardID(), tpsIndex, "\n"))
 
 	bigTxCount := big.NewInt(int64(shardInfo.AverageBlockTxCount()))
-	shardTPS := TPS{
+	shardTPS := types.TPS{
 		ShardID:               shardInfo.ShardID(),
 		LiveTPS:               shardInfo.LiveTPS(),
 		PeakTPS:               shardInfo.PeakTPS(),
@@ -103,11 +104,11 @@ func (cm *commonProcessor) buildTransaction(
 	mb *block.MiniBlock,
 	header data.HeaderHandler,
 	txStatus string,
-) *Transaction {
+) *types.Transaction {
 	gasUsed := cm.txFeeCalculator.ComputeGasLimit(tx)
 	fee := cm.txFeeCalculator.ComputeTxFeeBasedOnGasUsed(tx, gasUsed)
 
-	return &Transaction{
+	return &types.Transaction{
 		Hash:             hex.EncodeToString(txHash),
 		MBHash:           hex.EncodeToString(mbHash),
 		Nonce:            tx.Nonce,
@@ -127,7 +128,7 @@ func (cm *commonProcessor) buildTransaction(
 		Fee:              fee.String(),
 		ReceiverUserName: tx.RcvUserName,
 		SenderUserName:   tx.SndUserName,
-		rcvAddrBytes:     tx.RcvAddr,
+		RcvAddrBytes:     tx.RcvAddr,
 	}
 }
 
@@ -138,8 +139,8 @@ func (cm *commonProcessor) buildRewardTransaction(
 	mb *block.MiniBlock,
 	header data.HeaderHandler,
 	txStatus string,
-) *Transaction {
-	return &Transaction{
+) *types.Transaction {
+	return &types.Transaction{
 		Hash:          hex.EncodeToString(txHash),
 		MBHash:        hex.EncodeToString(mbHash),
 		Nonce:         0,
@@ -158,13 +159,13 @@ func (cm *commonProcessor) buildRewardTransaction(
 	}
 }
 
-func (cm *commonProcessor) convertScResultInDatabaseScr(scHash string, sc *smartContractResult.SmartContractResult) ScResult {
+func (cm *commonProcessor) convertScResultInDatabaseScr(scHash string, sc *smartContractResult.SmartContractResult) types.ScResult {
 	relayerAddr := ""
 	if len(sc.RelayerAddr) > 0 {
 		relayerAddr = cm.addressPubkeyConverter.Encode(sc.RelayerAddr)
 	}
 
-	return ScResult{
+	return types.ScResult{
 		Hash:           hex.EncodeToString([]byte(scHash)),
 		Nonce:          sc.Nonce,
 		GasLimit:       sc.GasLimit,
@@ -186,7 +187,7 @@ func (cm *commonProcessor) convertScResultInDatabaseScr(scHash string, sc *smart
 
 func serializeBulkMiniBlocks(
 	hdrShardID uint32,
-	bulkMbs []*Miniblock,
+	bulkMbs []*types.Miniblock,
 	getAlreadyIndexedItems func(hashes []string, index string) (map[string]bool, error),
 ) (bytes.Buffer, map[string]bool) {
 	var err error
@@ -251,7 +252,7 @@ func prepareBufferMiniblocks(buff bytes.Buffer, meta, serializedData []byte) byt
 }
 
 func serializeTransactions(
-	transactions []*Transaction,
+	transactions []*types.Transaction,
 	selfShardID uint32,
 	_ func(hashes []string, index string) (map[string]bool, error),
 	mbsHashInDB map[string]bool,
@@ -299,7 +300,7 @@ func serializeTransactions(
 	return buffSlice, nil
 }
 
-func serializeAccounts(accounts map[string]*AccountInfo) ([]bytes.Buffer, error) {
+func serializeAccounts(accounts map[string]*types.AccountInfo) ([]bytes.Buffer, error) {
 	var err error
 
 	var buff bytes.Buffer
@@ -341,7 +342,7 @@ func serializeAccounts(accounts map[string]*AccountInfo) ([]bytes.Buffer, error)
 	return buffSlice, nil
 }
 
-func serializeAccountsHistory(accounts map[string]*AccountBalanceHistory) ([]bytes.Buffer, error) {
+func serializeAccountsHistory(accounts map[string]*types.AccountBalanceHistory) ([]bytes.Buffer, error) {
 	var err error
 
 	var buff bytes.Buffer
@@ -384,7 +385,7 @@ func serializeAccountsHistory(accounts map[string]*AccountBalanceHistory) ([]byt
 }
 
 func prepareSerializedDataForATransaction(
-	tx *Transaction,
+	tx *types.Transaction,
 	selfShardID uint32,
 	_ bool,
 ) ([]byte, []byte, error) {
@@ -457,11 +458,11 @@ func prepareSerializedDataForATransaction(
 	return metaData, serializedData, nil
 }
 
-func isRelayedTx(tx *Transaction) bool {
+func isRelayedTx(tx *types.Transaction) bool {
 	return strings.HasPrefix(string(tx.Data), "relayedTx") && len(tx.SmartContractResults) > 0
 }
 
-func prepareSerializedAccountInfo(address string, account *AccountInfo) ([]byte, []byte, error) {
+func prepareSerializedAccountInfo(address string, account *types.AccountInfo) ([]byte, []byte, error) {
 	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, address, "\n"))
 	serializedData, err := json.Marshal(account)
 	if err != nil {
@@ -474,7 +475,7 @@ func prepareSerializedAccountInfo(address string, account *AccountInfo) ([]byte,
 	return meta, serializedData, nil
 }
 
-func prepareSerializedAccountBalanceHistory(address string, account *AccountBalanceHistory) ([]byte, []byte, error) {
+func prepareSerializedAccountBalanceHistory(address string, account *types.AccountBalanceHistory) ([]byte, []byte, error) {
 	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, address, "\n"))
 	serializedData, err := json.Marshal(account)
 	if err != nil {
@@ -487,11 +488,11 @@ func prepareSerializedAccountBalanceHistory(address string, account *AccountBala
 	return meta, serializedData, nil
 }
 
-func isCrossShardDstMe(tx *Transaction, selfShardID uint32) bool {
+func isCrossShardDstMe(tx *types.Transaction, selfShardID uint32) bool {
 	return tx.SenderShard != tx.ReceiverShard && tx.ReceiverShard == selfShardID
 }
 
-func isIntraShardOrInvalid(tx *Transaction, selfShardID uint32) bool {
+func isIntraShardOrInvalid(tx *types.Transaction, selfShardID uint32) bool {
 	return (tx.SenderShard == tx.ReceiverShard && tx.ReceiverShard == selfShardID) || tx.Status == transaction.TxStatusInvalid.String()
 }
 

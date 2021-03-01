@@ -9,7 +9,7 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
+	"github.com/ElrondNetwork/elastic-indexer-go/types"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"
 	"github.com/ElrondNetwork/elrond-go/core/statistics"
@@ -318,6 +318,12 @@ func (ei *elasticProcessor) RemoveMiniblocks(header data.HeaderHandler, body *bl
 	return ei.elasticClient.DoBulkRemove(miniblocksIndex, encodedMiniblocksHashes)
 }
 
+// RemoveTransactions will remove transaction that are in miniblock from the elasticsearch server
+func (ei *elasticProcessor) RemoveTransactions(header data.HeaderHandler, body *block.Body) error {
+	// TODO next PR will come with the implementation of this method
+	return nil
+}
+
 // SetTxLogsProcessor will set tx logs processor
 func (ei *elasticProcessor) SetTxLogsProcessor(txLogsProc process.TransactionLogProcessorDatabase) {
 	ei.txLogsProcessor = txLogsProc
@@ -342,15 +348,15 @@ func (ei *elasticProcessor) SaveMiniblocks(header data.HeaderHandler, body *bloc
 func (ei *elasticProcessor) SaveTransactions(
 	body *block.Body,
 	header data.HeaderHandler,
-	txPool map[string]data.TransactionHandler,
-	selfShardID uint32,
+	pool *types.Pool,
 	mbsInDb map[string]bool,
 ) error {
 	if !ei.isIndexEnabled(txIndex) {
 		return nil
 	}
 
-	txs, alteredAccounts := ei.prepareTransactionsForDatabase(body, header, txPool, selfShardID)
+	selfShardID := ei.shardCoordinator.SelfId()
+	txs, alteredAccounts := ei.prepareTransactionsForDatabase(body, header, pool.AllTxs(), selfShardID)
 	buffSlice, err := serializeTransactions(txs, selfShardID, ei.getExistingObjMap, mbsInDb)
 	if err != nil {
 		return err
@@ -397,14 +403,14 @@ func (ei *elasticProcessor) SaveShardStatistics(tpsBenchmark statistics.TPSBench
 }
 
 // SaveValidatorsRating will save validators rating
-func (ei *elasticProcessor) SaveValidatorsRating(index string, validatorsRatingInfo []workItems.ValidatorRatingInfo) error {
+func (ei *elasticProcessor) SaveValidatorsRating(index string, validatorsRatingInfo []*types.ValidatorRatingInfo) error {
 	if !ei.isIndexEnabled(ratingIndex) {
 		return nil
 	}
 
 	var buff bytes.Buffer
 
-	infosRating := ValidatorsRatingInfo{ValidatorsInfos: validatorsRatingInfo}
+	infosRating := types.ValidatorsRatingInfo{ValidatorsInfos: validatorsRatingInfo}
 
 	marshalizedInfoRating, err := json.Marshal(&infosRating)
 	if err != nil {
@@ -436,7 +442,7 @@ func (ei *elasticProcessor) SaveShardValidatorsPubKeys(shardID, epoch uint32, sh
 
 	var buff bytes.Buffer
 
-	shardValPubKeys := ValidatorsPublicKeys{
+	shardValPubKeys := types.ValidatorsPublicKeys{
 		PublicKeys: make([]string, 0, len(shardValidatorsPubKeys)),
 	}
 	for _, validatorPk := range shardValidatorsPubKeys {
@@ -467,7 +473,7 @@ func (ei *elasticProcessor) SaveShardValidatorsPubKeys(shardID, epoch uint32, sh
 }
 
 // SaveRoundsInfo will prepare and save information about a slice of rounds in elasticsearch server
-func (ei *elasticProcessor) SaveRoundsInfo(infos []workItems.RoundInfo) error {
+func (ei *elasticProcessor) SaveRoundsInfo(infos []*types.RoundInfo) error {
 	if !ei.isIndexEnabled(roundIndex) {
 		return nil
 	}
@@ -475,7 +481,7 @@ func (ei *elasticProcessor) SaveRoundsInfo(infos []workItems.RoundInfo) error {
 	var buff bytes.Buffer
 
 	for _, info := range infos {
-		serializedRoundInfo, meta := serializeRoundInfo(info)
+		serializedRoundInfo, meta := serializeRoundInfo(*info)
 
 		buff.Grow(len(meta) + len(serializedRoundInfo))
 		_, err := buff.Write(meta)
@@ -529,24 +535,32 @@ func (ei *elasticProcessor) indexAlteredAccounts(accounts map[string]struct{}) e
 		return nil
 	}
 
-	return ei.SaveAccounts(accountsToIndex)
+	accountsEGLD := make([]*types.AccountEGLD, len(accountsToIndex))
+	for idx, account := range accountsToIndex {
+		accountsEGLD[idx] = &types.AccountEGLD{
+			Account:  account,
+			IsSender: false,
+		}
+	}
+
+	return ei.SaveAccounts(accountsEGLD)
 }
 
 // SaveAccounts will prepare and save information about provided accounts in elasticsearch server
-func (ei *elasticProcessor) SaveAccounts(accounts []state.UserAccountHandler) error {
+func (ei *elasticProcessor) SaveAccounts(accts []*types.AccountEGLD) error {
 	if !ei.isIndexEnabled(accountsIndex) {
 		return nil
 	}
 
-	accountsMap := make(map[string]*AccountInfo)
-	for _, userAccount := range accounts {
-		balanceAsFloat := ei.computeBalanceAsFloat(userAccount.GetBalance())
-		acc := &AccountInfo{
-			Nonce:      userAccount.GetNonce(),
-			Balance:    userAccount.GetBalance().String(),
+	accountsMap := make(map[string]*types.AccountInfo)
+	for _, userAccount := range accts {
+		balanceAsFloat := ei.computeBalanceAsFloat(userAccount.Account.GetBalance())
+		acc := &types.AccountInfo{
+			Nonce:      userAccount.Account.GetNonce(),
+			Balance:    userAccount.Account.GetBalance().String(),
 			BalanceNum: balanceAsFloat,
 		}
-		address := ei.addressPubkeyConverter.Encode(userAccount.AddressBytes())
+		address := ei.addressPubkeyConverter.Encode(userAccount.Account.AddressBytes())
 		accountsMap[address] = acc
 	}
 
@@ -566,15 +580,15 @@ func (ei *elasticProcessor) SaveAccounts(accounts []state.UserAccountHandler) er
 	return ei.saveAccountsHistory(accountsMap)
 }
 
-func (ei *elasticProcessor) saveAccountsHistory(accountsInfoMap map[string]*AccountInfo) error {
+func (ei *elasticProcessor) saveAccountsHistory(accountsInfoMap map[string]*types.AccountInfo) error {
 	if !ei.isIndexEnabled(accountsHistoryIndex) {
 		return nil
 	}
 
 	currentTimestamp := time.Now().Unix()
-	accountsMap := make(map[string]*AccountBalanceHistory)
+	accountsMap := make(map[string]*types.AccountBalanceHistory)
 	for address, userAccount := range accountsInfoMap {
-		acc := &AccountBalanceHistory{
+		acc := &types.AccountBalanceHistory{
 			Address:   address,
 			Balance:   userAccount.Balance,
 			Timestamp: currentTimestamp,

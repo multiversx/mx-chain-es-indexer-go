@@ -16,6 +16,11 @@ const errPolicyAlreadyExists = "document already exists"
 
 type responseErrorHandler func(res *esapi.Response) error
 
+type kibanaResponse struct {
+	Ok    bool   `json:"ok"`
+	Error string `json:"error,omitempty"`
+}
+
 type elasticClient struct {
 	elasticBaseUrl string
 	es             *elasticsearch.Client
