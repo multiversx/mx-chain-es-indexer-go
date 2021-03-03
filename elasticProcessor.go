@@ -371,7 +371,7 @@ func (ei *elasticProcessor) SaveTransactions(
 		}
 	}
 
-	return ei.indexAlteredAccounts(alteredAccounts)
+	return ei.indexAlteredAccounts(header.GetTimeStamp(), alteredAccounts)
 }
 
 // SaveShardStatistics will prepare and save information about a shard statistics in elasticsearch server
@@ -498,7 +498,7 @@ func (ei *elasticProcessor) SaveRoundsInfo(infos []*types.RoundInfo) error {
 	return ei.elasticClient.DoBulkRequest(&buff, roundIndex)
 }
 
-func (ei *elasticProcessor) indexAlteredAccounts(accounts map[string]struct{}) error {
+func (ei *elasticProcessor) indexAlteredAccounts(blockTimestamp uint64, accounts map[string]struct{}) error {
 	if !ei.isIndexEnabled(accountsIndex) {
 		return nil
 	}
@@ -543,11 +543,11 @@ func (ei *elasticProcessor) indexAlteredAccounts(accounts map[string]struct{}) e
 		}
 	}
 
-	return ei.SaveAccounts(accountsEGLD)
+	return ei.SaveAccounts(blockTimestamp, accountsEGLD)
 }
 
 // SaveAccounts will prepare and save information about provided accounts in elasticsearch server
-func (ei *elasticProcessor) SaveAccounts(accts []*types.AccountEGLD) error {
+func (ei *elasticProcessor) SaveAccounts(blockTimestamp uint64, accts []*types.AccountEGLD) error {
 	if !ei.isIndexEnabled(accountsIndex) {
 		return nil
 	}
@@ -577,23 +577,22 @@ func (ei *elasticProcessor) SaveAccounts(accts []*types.AccountEGLD) error {
 		}
 	}
 
-	return ei.saveAccountsHistory(accountsMap)
+	return ei.saveAccountsHistory(blockTimestamp, accountsMap)
 }
 
-func (ei *elasticProcessor) saveAccountsHistory(accountsInfoMap map[string]*types.AccountInfo) error {
+func (ei *elasticProcessor) saveAccountsHistory(blockTimestamp uint64, accountsInfoMap map[string]*types.AccountInfo) error {
 	if !ei.isIndexEnabled(accountsHistoryIndex) {
 		return nil
 	}
 
-	currentTimestamp := time.Now().Unix()
 	accountsMap := make(map[string]*types.AccountBalanceHistory)
 	for address, userAccount := range accountsInfoMap {
 		acc := &types.AccountBalanceHistory{
 			Address:   address,
 			Balance:   userAccount.Balance,
-			Timestamp: currentTimestamp,
+			Timestamp: time.Duration(blockTimestamp),
 		}
-		addressKey := fmt.Sprintf("%s_%d", address, currentTimestamp)
+		addressKey := fmt.Sprintf("%s_%d", address, blockTimestamp)
 		accountsMap[addressKey] = acc
 	}
 

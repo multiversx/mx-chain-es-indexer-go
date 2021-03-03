@@ -6,18 +6,21 @@ import (
 )
 
 type itemAccounts struct {
-	indexer  saveAccountsIndexer
-	accounts []state.UserAccountHandler
+	indexer        saveAccountsIndexer
+	blockTimestamp uint64
+	accounts       []state.UserAccountHandler
 }
 
 // NewItemAccounts will create a new instance of itemAccounts
 func NewItemAccounts(
 	indexer saveAccountsIndexer,
+	blockTimestamp uint64,
 	accounts []state.UserAccountHandler,
 ) WorkItemHandler {
 	return &itemAccounts{
-		indexer:  indexer,
-		accounts: accounts,
+		indexer:        indexer,
+		accounts:       accounts,
+		blockTimestamp: blockTimestamp,
 	}
 }
 
@@ -31,7 +34,7 @@ func (wiv *itemAccounts) Save() error {
 		}
 	}
 
-	err := wiv.indexer.SaveAccounts(accountsEGLD)
+	err := wiv.indexer.SaveAccounts(wiv.blockTimestamp, accountsEGLD)
 	if err != nil {
 		log.Warn("itemAccounts.Save",
 			"could not index account",

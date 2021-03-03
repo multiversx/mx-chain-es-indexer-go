@@ -21,7 +21,7 @@ type ElasticProcessorStub struct {
 	SaveRoundsInfoCalled             func(infos []*types.RoundInfo) error
 	SaveShardValidatorsPubKeysCalled func(shardID, epoch uint32, shardValidatorsPubKeys [][]byte) error
 	SetTxLogsProcessorCalled         func(txLogsProc process.TransactionLogProcessorDatabase)
-	SaveAccountsCalled               func(acc []*types.AccountEGLD) error
+	SaveAccountsCalled               func(timestamp uint64, acc []*types.AccountEGLD) error
 }
 
 // SaveShardStatistics -
@@ -112,9 +112,9 @@ func (eim *ElasticProcessorStub) SetTxLogsProcessor(txLogsProc process.Transacti
 }
 
 // SaveAccounts -
-func (eim *ElasticProcessorStub) SaveAccounts(acc []*types.AccountEGLD) error {
+func (eim *ElasticProcessorStub) SaveAccounts(timestamp uint64, acc []*types.AccountEGLD) error {
 	if eim.SaveAccountsCalled != nil {
-		return eim.SaveAccountsCalled(acc)
+		return eim.SaveAccountsCalled(timestamp, acc)
 	}
 
 	return nil

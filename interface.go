@@ -34,7 +34,7 @@ type ElasticProcessor interface {
 	SaveRoundsInfo(infos []*types.RoundInfo) error
 	SaveShardValidatorsPubKeys(shardID, epoch uint32, shardValidatorsPubKeys [][]byte) error
 	SetTxLogsProcessor(txLogsProc process.TransactionLogProcessorDatabase)
-	SaveAccounts(accountsEGLD []*types.AccountEGLD) error
+	SaveAccounts(blockTimestamp uint64, accountsEGLD []*types.AccountEGLD) error
 	IsInterfaceNil() bool
 }
 
