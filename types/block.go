@@ -66,7 +66,7 @@ func (p *Pool) AllTxs() map[string]data.TransactionHandler {
 	allTxs := make(map[string]data.TransactionHandler)
 
 	sliceMaps := []map[string]data.TransactionHandler{
-		p.Txs, p.Scrs, p.Receipts, p.Invalid, p.Receipts,
+		p.Txs, p.Scrs, p.Receipts, p.Invalid, p.Rewards,
 	}
 
 	for _, txsMap := range sliceMaps {

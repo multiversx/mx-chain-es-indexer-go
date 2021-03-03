@@ -1,6 +1,10 @@
 package types
 
-import "github.com/ElrondNetwork/elrond-go/data/state"
+import (
+	"time"
+
+	"github.com/ElrondNetwork/elrond-go/data/state"
+)
 
 // AccountInfo holds (serializable) data about an account
 type AccountInfo struct {
@@ -15,11 +19,11 @@ type AccountInfo struct {
 
 // AccountBalanceHistory represents an entry in the user accounts balances history
 type AccountBalanceHistory struct {
-	Address         string `json:"address"`
-	Timestamp       int64  `json:"timestamp"`
-	Balance         string `json:"balance"`
-	TokenIdentifier string `json:"token,omitempty"`
-	IsSender        bool   `json:"isSender,omitempty"`
+	Address         string        `json:"address"`
+	Timestamp       time.Duration `json:"timestamp"`
+	Balance         string        `json:"balance"`
+	TokenIdentifier string        `json:"token,omitempty"`
+	IsSender        bool          `json:"isSender,omitempty"`
 }
 
 // AccountEGLD is a structure that is needed for EGLD accounts

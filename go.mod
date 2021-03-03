@@ -9,4 +9,4 @@ require (
 	github.com/stretchr/testify v1.7.0
 )
 
-replace github.com/ElrondNetwork/elrond-go v1.1.28-0.20210217095315-1dac606233cf => /home/mihai/go/src/github.com/ElrondNetwork/elrond-go
+replace github.com/ElrondNetwork/elrond-go v1.1.28-0.20210223140840-1bf7cdc66a37 => /home/mihai/go/src/github.com/ElrondNetwork/elrond-go
