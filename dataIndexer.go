@@ -7,6 +7,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go/core/check"
 	"github.com/ElrondNetwork/elrond-go/core/statistics"
 	"github.com/ElrondNetwork/elrond-go/data"
+	"github.com/ElrondNetwork/elrond-go/data/indexer"
 	"github.com/ElrondNetwork/elrond-go/data/state"
 	"github.com/ElrondNetwork/elrond-go/epochStart"
 	"github.com/ElrondNetwork/elrond-go/epochStart/notifier"
@@ -88,7 +89,7 @@ func (di *dataIndexer) epochStartEventHandler() epochStart.ActionHandler {
 }
 
 // SaveBlock saves the block info in the queue to be sent to elastic
-func (di *dataIndexer) SaveBlock(args *types.ArgsSaveBlockData) {
+func (di *dataIndexer) SaveBlock(args *indexer.ArgsSaveBlockData) {
 	wi := workItems.NewItemBlock(
 		di.elasticProcessor,
 		di.marshalizer,
@@ -113,17 +114,36 @@ func (di *dataIndexer) RevertIndexedBlock(header data.HeaderHandler, body data.B
 }
 
 // SaveRoundsInfo will save data about a slice of rounds in elasticsearch
-func (di *dataIndexer) SaveRoundsInfo(roundsInfo []*types.RoundInfo) {
-	wi := workItems.NewItemRounds(di.elasticProcessor, roundsInfo)
+func (di *dataIndexer) SaveRoundsInfo(roundsInfo []*indexer.RoundInfo) {
+	roundsInfoE := make([]*types.RoundInfo, 0)
+	for _, info := range roundsInfo {
+		roundsInfoE = append(roundsInfoE, &types.RoundInfo{
+			Index:            info.Index,
+			SignersIndexes:   info.SignersIndexes,
+			BlockWasProposed: info.BlockWasProposed,
+			ShardId:          info.ShardId,
+			Timestamp:        info.Timestamp,
+		})
+	}
+
+	wi := workItems.NewItemRounds(di.elasticProcessor, roundsInfoE)
 	di.dispatcher.Add(wi)
 }
 
 // SaveValidatorsRating will save all validators rating info to elasticsearch
-func (di *dataIndexer) SaveValidatorsRating(indexID string, validatorsRatingInfo []*types.ValidatorRatingInfo) {
+func (di *dataIndexer) SaveValidatorsRating(indexID string, validatorsRatingInfo []*indexer.ValidatorRatingInfo) {
+	valRatingInfo := make([]*types.ValidatorRatingInfo, 0)
+	for _, info := range validatorsRatingInfo {
+		valRatingInfo = append(valRatingInfo, &types.ValidatorRatingInfo{
+			PublicKey: info.PublicKey,
+			Rating:    info.Rating,
+		})
+	}
+
 	wi := workItems.NewItemRating(
 		di.elasticProcessor,
 		indexID,
-		validatorsRatingInfo,
+		valRatingInfo,
 	)
 	di.dispatcher.Add(wi)
 }

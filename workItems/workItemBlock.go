@@ -3,11 +3,11 @@ package workItems
 import (
 	"fmt"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/types"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-go/core/check"
 	"github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/block"
+	"github.com/ElrondNetwork/elrond-go/data/indexer"
 	"github.com/ElrondNetwork/elrond-go/marshal"
 )
 
@@ -16,14 +16,14 @@ var log = logger.GetOrCreate("core/indexer/workItems")
 type itemBlock struct {
 	indexer       saveBlockIndexer
 	marshalizer   marshal.Marshalizer
-	argsSaveBlock *types.ArgsSaveBlockData
+	argsSaveBlock *indexer.ArgsSaveBlockData
 }
 
 // NewItemBlock will create a new instance of ItemBlock
 func NewItemBlock(
 	indexer saveBlockIndexer,
 	marshalizer marshal.Marshalizer,
-	args *types.ArgsSaveBlockData,
+	args *indexer.ArgsSaveBlockData,
 ) WorkItemHandler {
 	return &itemBlock{
 		indexer:       indexer,
@@ -81,7 +81,7 @@ func (wib *itemBlock) IsInterfaceNil() bool {
 }
 
 // ComputeSizeOfTxs will compute size of transactions in bytes
-func ComputeSizeOfTxs(marshalizer marshal.Marshalizer, pool *types.Pool) int {
+func ComputeSizeOfTxs(marshalizer marshal.Marshalizer, pool *indexer.Pool) int {
 	sizeTxs := 0
 
 	sizeTxs += computeSizeOfMap(marshalizer, pool.Txs)

@@ -2,8 +2,6 @@ package types
 
 import (
 	"time"
-
-	"github.com/ElrondNetwork/elrond-go/data"
 )
 
 // Block is a structure containing all the fields that need
@@ -41,39 +39,4 @@ type Miniblock struct {
 	ReceiverBlockHash string        `json:"receiverBlockHash"`
 	Type              string        `json:"type"`
 	Timestamp         time.Duration `json:"timestamp"`
-}
-
-// ArgsSaveBlockData will contains all information that are needed to save block data
-type ArgsSaveBlockData struct {
-	HeaderHash             []byte
-	Body                   data.BodyHandler
-	Header                 data.HeaderHandler
-	SignersIndexes         []uint64
-	NotarizedHeadersHashes []string
-	TransactionsPool       *Pool
-}
-
-// Pool will holds all types of transaction
-type Pool struct {
-	Txs      map[string]data.TransactionHandler
-	Scrs     map[string]data.TransactionHandler
-	Rewards  map[string]data.TransactionHandler
-	Invalid  map[string]data.TransactionHandler
-	Receipts map[string]data.TransactionHandler
-}
-
-func (p *Pool) AllTxs() map[string]data.TransactionHandler {
-	allTxs := make(map[string]data.TransactionHandler)
-
-	sliceMaps := []map[string]data.TransactionHandler{
-		p.Txs, p.Scrs, p.Receipts, p.Invalid, p.Rewards,
-	}
-
-	for _, txsMap := range sliceMaps {
-		for hash, tx := range txsMap {
-			allTxs[hash] = tx
-		}
-	}
-
-	return allTxs
 }

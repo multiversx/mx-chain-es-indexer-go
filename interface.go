@@ -9,6 +9,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go/core/statistics"
 	"github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/block"
+	"github.com/ElrondNetwork/elrond-go/data/indexer"
 	"github.com/ElrondNetwork/elrond-go/process"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
@@ -29,7 +30,7 @@ type ElasticProcessor interface {
 	RemoveMiniblocks(header data.HeaderHandler, body *block.Body) error
 	RemoveTransactions(header data.HeaderHandler, body *block.Body) error
 	SaveMiniblocks(header data.HeaderHandler, body *block.Body) (map[string]bool, error)
-	SaveTransactions(body *block.Body, header data.HeaderHandler, pool *types.Pool, mbsInDb map[string]bool) error
+	SaveTransactions(body *block.Body, header data.HeaderHandler, pool *indexer.Pool, mbsInDb map[string]bool) error
 	SaveValidatorsRating(index string, validatorsRatingInfo []*types.ValidatorRatingInfo) error
 	SaveRoundsInfo(infos []*types.RoundInfo) error
 	SaveShardValidatorsPubKeys(shardID, epoch uint32, shardValidatorsPubKeys [][]byte) error

@@ -15,6 +15,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go/core/statistics"
 	"github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/block"
+	"github.com/ElrondNetwork/elrond-go/data/indexer"
 	"github.com/ElrondNetwork/elrond-go/data/state"
 	"github.com/ElrondNetwork/elrond-go/process"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
@@ -348,15 +349,27 @@ func (ei *elasticProcessor) SaveMiniblocks(header data.HeaderHandler, body *bloc
 func (ei *elasticProcessor) SaveTransactions(
 	body *block.Body,
 	header data.HeaderHandler,
-	pool *types.Pool,
+	pool *indexer.Pool,
 	mbsInDb map[string]bool,
 ) error {
 	if !ei.isIndexEnabled(txIndex) {
 		return nil
 	}
 
+	allTxs := make(map[string]data.TransactionHandler)
+
+	sliceMaps := []map[string]data.TransactionHandler{
+		pool.Txs, pool.Scrs, pool.Receipts, pool.Invalid, pool.Rewards,
+	}
+
+	for _, txsMap := range sliceMaps {
+		for hash, tx := range txsMap {
+			allTxs[hash] = tx
+		}
+	}
+
 	selfShardID := ei.shardCoordinator.SelfId()
-	txs, alteredAccounts := ei.prepareTransactionsForDatabase(body, header, pool.AllTxs(), selfShardID)
+	txs, alteredAccounts := ei.prepareTransactionsForDatabase(body, header, allTxs, selfShardID)
 	buffSlice, err := serializeTransactions(txs, selfShardID, ei.getExistingObjMap, mbsInDb)
 	if err != nil {
 		return err

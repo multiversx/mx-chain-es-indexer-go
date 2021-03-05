@@ -16,6 +16,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/data"
 	dataBlock "github.com/ElrondNetwork/elrond-go/data/block"
+	"github.com/ElrondNetwork/elrond-go/data/indexer"
 	"github.com/ElrondNetwork/elrond-go/data/receipt"
 	"github.com/ElrondNetwork/elrond-go/data/rewardTx"
 	"github.com/ElrondNetwork/elrond-go/data/smartContractResult"
@@ -290,7 +291,7 @@ func TestElasticseachSaveTransactions(t *testing.T) {
 	txPool := newTestTxPool()
 
 	elasticDatabase := newTestElasticSearchDatabase(dbWriter, arguments)
-	err := elasticDatabase.SaveTransactions(body, header, &types.Pool{Txs: txPool}, map[string]bool{})
+	err := elasticDatabase.SaveTransactions(body, header, &indexer.Pool{Txs: txPool}, map[string]bool{})
 	require.Equal(t, localErr, err)
 }
 
@@ -649,7 +650,7 @@ func TestUpdateTransaction(t *testing.T) {
 
 	body.MiniBlocks[0].ReceiverShardID = 1
 	// insert
-	_ = esDatabase.SaveTransactions(body, header, &types.Pool{Txs: txPool}, map[string]bool{})
+	_ = esDatabase.SaveTransactions(body, header, &indexer.Pool{Txs: txPool}, map[string]bool{})
 
 	fmt.Println(hex.EncodeToString(txHash1))
 
@@ -664,7 +665,7 @@ func TestUpdateTransaction(t *testing.T) {
 	body.MiniBlocks[0].TxHashes = append(body.MiniBlocks[0].TxHashes, txHash3)
 
 	// update
-	_ = esDatabase.SaveTransactions(body, header, &types.Pool{Txs: txPool}, map[string]bool{})
+	_ = esDatabase.SaveTransactions(body, header, &indexer.Pool{Txs: txPool}, map[string]bool{})
 }
 
 func TestGetMultiple(t *testing.T) {
@@ -744,7 +745,7 @@ func TestIndexTransactionDestinationBeforeSourceShard(t *testing.T) {
 	body.MiniBlocks[0].ReceiverShardID = 2
 	body.MiniBlocks[0].SenderShardID = 1
 	isMBSInDB, _ := esDatabase.SaveMiniblocks(header, body)
-	_ = esDatabase.SaveTransactions(body, header, &types.Pool{Txs: txPool}, isMBSInDB)
+	_ = esDatabase.SaveTransactions(body, header, &indexer.Pool{Txs: txPool}, isMBSInDB)
 
 	txPool = map[string]data.TransactionHandler{
 		string(txHash1): tx1,
@@ -753,7 +754,7 @@ func TestIndexTransactionDestinationBeforeSourceShard(t *testing.T) {
 
 	header.ShardID = 1
 	isMBSInDB, _ = esDatabase.SaveMiniblocks(header, body)
-	_ = esDatabase.SaveTransactions(body, header, &types.Pool{Txs: txPool}, isMBSInDB)
+	_ = esDatabase.SaveTransactions(body, header, &indexer.Pool{Txs: txPool}, isMBSInDB)
 }
 
 func TestDoBulkRequestLimit(t *testing.T) {
@@ -803,7 +804,7 @@ func TestDoBulkRequestLimit(t *testing.T) {
 		body.MiniBlocks[0].ReceiverShardID = 2
 		body.MiniBlocks[0].SenderShardID = 1
 
-		_ = esDatabase.SaveTransactions(body, header, &types.Pool{Txs: txsPool}, map[string]bool{})
+		_ = esDatabase.SaveTransactions(body, header, &indexer.Pool{Txs: txsPool}, map[string]bool{})
 	}
 }
 

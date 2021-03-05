@@ -5,6 +5,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go/core/statistics"
 	"github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/block"
+	"github.com/ElrondNetwork/elrond-go/data/indexer"
 	"github.com/ElrondNetwork/elrond-go/process"
 )
 
@@ -16,7 +17,7 @@ type ElasticProcessorStub struct {
 	RemoveMiniblocksCalled           func(header data.HeaderHandler, body *block.Body) error
 	RemoveTransactionsCalled         func(header data.HeaderHandler, body *block.Body) error
 	SaveMiniblocksCalled             func(header data.HeaderHandler, body *block.Body) (map[string]bool, error)
-	SaveTransactionsCalled           func(body *block.Body, header data.HeaderHandler, pool *types.Pool, mbsInDb map[string]bool) error
+	SaveTransactionsCalled           func(body *block.Body, header data.HeaderHandler, pool *indexer.Pool, mbsInDb map[string]bool) error
 	SaveValidatorsRatingCalled       func(index string, validatorsRatingInfo []*types.ValidatorRatingInfo) error
 	SaveRoundsInfoCalled             func(infos []*types.RoundInfo) error
 	SaveShardValidatorsPubKeysCalled func(shardID, epoch uint32, shardValidatorsPubKeys [][]byte) error
@@ -73,7 +74,7 @@ func (eim *ElasticProcessorStub) SaveMiniblocks(header data.HeaderHandler, body 
 }
 
 // SaveTransactions -
-func (eim *ElasticProcessorStub) SaveTransactions(body *block.Body, header data.HeaderHandler, pool *types.Pool, mbsInDb map[string]bool) error {
+func (eim *ElasticProcessorStub) SaveTransactions(body *block.Body, header data.HeaderHandler, pool *indexer.Pool, mbsInDb map[string]bool) error {
 	if eim.SaveTransactionsCalled != nil {
 		return eim.SaveTransactionsCalled(body, header, pool, mbsInDb)
 	}
