@@ -8,7 +8,7 @@ import (
 // Array type will rename type []interface{}
 type Array []interface{}
 
-// Object types will rename type map[string]interface{}
+// Object data will rename type map[string]interface{}
 type Object map[string]interface{}
 
 // ToBuffer will convert an Object to a *bytes.Buffer

@@ -40,20 +40,20 @@ func (wib *itemBlock) Save() error {
 	}
 
 	log.Debug("indexer: starting indexing block",
-		"hash", logger.DisplayByteSlice(wib.argsSaveBlock.HeaderHash),
+		"hash", wib.argsSaveBlock.HeaderHash,
 		"nonce", wib.argsSaveBlock.Header.GetNonce())
 
 	body, ok := wib.argsSaveBlock.Body.(*block.Body)
 	if !ok {
 		return fmt.Errorf("%w when trying body assertion, block hash %s, nonce %d",
-			ErrBodyTypeAssertion, logger.DisplayByteSlice(wib.argsSaveBlock.HeaderHash), wib.argsSaveBlock.Header.GetNonce())
+			ErrBodyTypeAssertion, wib.argsSaveBlock.HeaderHash, wib.argsSaveBlock.Header.GetNonce())
 	}
 
 	txsSizeInBytes := ComputeSizeOfTxs(wib.marshalizer, wib.argsSaveBlock.TransactionsPool)
 	err := wib.indexer.SaveHeader(wib.argsSaveBlock.Header, wib.argsSaveBlock.SignersIndexes, body, wib.argsSaveBlock.NotarizedHeadersHashes, txsSizeInBytes)
 	if err != nil {
 		return fmt.Errorf("%w when saving header block, hash %s, nonce %d",
-			err, logger.DisplayByteSlice(wib.argsSaveBlock.HeaderHash), wib.argsSaveBlock.Header.GetNonce())
+			err, wib.argsSaveBlock.HeaderHash, wib.argsSaveBlock.Header.GetNonce())
 	}
 
 	if len(body.MiniBlocks) == 0 {
@@ -63,13 +63,13 @@ func (wib *itemBlock) Save() error {
 	mbsInDb, err := wib.indexer.SaveMiniblocks(wib.argsSaveBlock.Header, body)
 	if err != nil {
 		return fmt.Errorf("%w when saving miniblocks, block hash %s, nonce %d",
-			err, logger.DisplayByteSlice(wib.argsSaveBlock.HeaderHash), wib.argsSaveBlock.Header.GetNonce())
+			err, wib.argsSaveBlock.HeaderHash, wib.argsSaveBlock.Header.GetNonce())
 	}
 
 	err = wib.indexer.SaveTransactions(body, wib.argsSaveBlock.Header, wib.argsSaveBlock.TransactionsPool, mbsInDb)
 	if err != nil {
 		return fmt.Errorf("%w when saving transactions, block hash %s, nonce %d",
-			err, logger.DisplayByteSlice(wib.argsSaveBlock.HeaderHash), wib.argsSaveBlock.Header.GetNonce())
+			err, wib.argsSaveBlock.HeaderHash, wib.argsSaveBlock.Header.GetNonce())
 	}
 
 	return nil

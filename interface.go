@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"math/big"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/types"
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
 	"github.com/ElrondNetwork/elrond-go/core/statistics"
-	"github.com/ElrondNetwork/elrond-go/data"
+	nodeData "github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/block"
 	"github.com/ElrondNetwork/elrond-go/data/indexer"
 	"github.com/ElrondNetwork/elrond-go/process"
@@ -25,17 +25,17 @@ type DispatcherHandler interface {
 // ElasticProcessor defines the interface for the elastic search indexer
 type ElasticProcessor interface {
 	SaveShardStatistics(tpsBenchmark statistics.TPSBenchmark) error
-	SaveHeader(header data.HeaderHandler, signersIndexes []uint64, body *block.Body, notarizedHeadersHashes []string, txsSize int) error
-	RemoveHeader(header data.HeaderHandler) error
-	RemoveMiniblocks(header data.HeaderHandler, body *block.Body) error
-	RemoveTransactions(header data.HeaderHandler, body *block.Body) error
-	SaveMiniblocks(header data.HeaderHandler, body *block.Body) (map[string]bool, error)
-	SaveTransactions(body *block.Body, header data.HeaderHandler, pool *indexer.Pool, mbsInDb map[string]bool) error
-	SaveValidatorsRating(index string, validatorsRatingInfo []*types.ValidatorRatingInfo) error
-	SaveRoundsInfo(infos []*types.RoundInfo) error
+	SaveHeader(header nodeData.HeaderHandler, signersIndexes []uint64, body *block.Body, notarizedHeadersHashes []string, txsSize int) error
+	RemoveHeader(header nodeData.HeaderHandler) error
+	RemoveMiniblocks(header nodeData.HeaderHandler, body *block.Body) error
+	RemoveTransactions(header nodeData.HeaderHandler, body *block.Body) error
+	SaveMiniblocks(header nodeData.HeaderHandler, body *block.Body) (map[string]bool, error)
+	SaveTransactions(body *block.Body, header nodeData.HeaderHandler, pool *indexer.Pool, mbsInDb map[string]bool) error
+	SaveValidatorsRating(index string, validatorsRatingInfo []*data.ValidatorRatingInfo) error
+	SaveRoundsInfo(infos []*data.RoundInfo) error
 	SaveShardValidatorsPubKeys(shardID, epoch uint32, shardValidatorsPubKeys [][]byte) error
 	SetTxLogsProcessor(txLogsProc process.TransactionLogProcessorDatabase)
-	SaveAccounts(blockTimestamp uint64, accountsEGLD []*types.AccountEGLD) error
+	SaveAccounts(blockTimestamp uint64, accountsEGLD []*data.Account) error
 	IsInterfaceNil() bool
 }
 

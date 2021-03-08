@@ -1,12 +1,12 @@
 package indexer
 
 import (
-	"github.com/ElrondNetwork/elastic-indexer-go/types"
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"
 	"github.com/ElrondNetwork/elrond-go/core/statistics"
-	"github.com/ElrondNetwork/elrond-go/data"
+	nodeData "github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/indexer"
 	"github.com/ElrondNetwork/elrond-go/data/state"
 	"github.com/ElrondNetwork/elrond-go/epochStart"
@@ -72,7 +72,7 @@ func checkIndexerArgs(arguments ArgDataIndexer) error {
 }
 
 func (di *dataIndexer) epochStartEventHandler() epochStart.ActionHandler {
-	subscribeHandler := notifier.NewHandlerForEpochStart(func(hdr data.HeaderHandler) {
+	subscribeHandler := notifier.NewHandlerForEpochStart(func(hdr nodeData.HeaderHandler) {
 		currentEpoch := hdr.GetEpoch()
 		validatorsPubKeys, err := di.coordinator.GetAllEligibleValidatorsPublicKeys(currentEpoch)
 		if err != nil {
@@ -83,7 +83,7 @@ func (di *dataIndexer) epochStartEventHandler() epochStart.ActionHandler {
 
 		go di.SaveValidatorsPubKeys(validatorsPubKeys, currentEpoch)
 
-	}, func(_ data.HeaderHandler) {}, core.IndexerOrder)
+	}, func(_ nodeData.HeaderHandler) {}, core.IndexerOrder)
 
 	return subscribeHandler
 }
@@ -104,7 +104,7 @@ func (di *dataIndexer) Close() error {
 }
 
 // RevertIndexedBlock will remove from database block and miniblocks
-func (di *dataIndexer) RevertIndexedBlock(header data.HeaderHandler, body data.BodyHandler) {
+func (di *dataIndexer) RevertIndexedBlock(header nodeData.HeaderHandler, body nodeData.BodyHandler) {
 	wi := workItems.NewItemRemoveBlock(
 		di.elasticProcessor,
 		body,
@@ -115,9 +115,9 @@ func (di *dataIndexer) RevertIndexedBlock(header data.HeaderHandler, body data.B
 
 // SaveRoundsInfo will save data about a slice of rounds in elasticsearch
 func (di *dataIndexer) SaveRoundsInfo(roundsInfo []*indexer.RoundInfo) {
-	roundsInfoE := make([]*types.RoundInfo, 0)
+	roundsInfoE := make([]*data.RoundInfo, 0)
 	for _, info := range roundsInfo {
-		roundsInfoE = append(roundsInfoE, &types.RoundInfo{
+		roundsInfoE = append(roundsInfoE, &data.RoundInfo{
 			Index:            info.Index,
 			SignersIndexes:   info.SignersIndexes,
 			BlockWasProposed: info.BlockWasProposed,
@@ -132,9 +132,9 @@ func (di *dataIndexer) SaveRoundsInfo(roundsInfo []*indexer.RoundInfo) {
 
 // SaveValidatorsRating will save all validators rating info to elasticsearch
 func (di *dataIndexer) SaveValidatorsRating(indexID string, validatorsRatingInfo []*indexer.ValidatorRatingInfo) {
-	valRatingInfo := make([]*types.ValidatorRatingInfo, 0)
+	valRatingInfo := make([]*data.ValidatorRatingInfo, 0)
 	for _, info := range validatorsRatingInfo {
-		valRatingInfo = append(valRatingInfo, &types.ValidatorRatingInfo{
+		valRatingInfo = append(valRatingInfo, &data.ValidatorRatingInfo{
 			PublicKey: info.PublicKey,
 			Rating:    info.Rating,
 		})

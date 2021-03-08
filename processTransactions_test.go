@@ -3,15 +3,14 @@ package indexer
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/ElrondNetwork/elastic-indexer-go/disabled"
-	"github.com/ElrondNetwork/elastic-indexer-go/mock"
-	"github.com/ElrondNetwork/elastic-indexer-go/types"
-
 	"math/big"
 	"testing"
 
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elastic-indexer-go/disabled"
+	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/data"
+	nodeData "github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/block"
 	"github.com/ElrondNetwork/elrond-go/data/receipt"
 	"github.com/ElrondNetwork/elrond-go/data/rewardTx"
@@ -110,7 +109,7 @@ func TestPrepareTransactionsForDatabase(t *testing.T) {
 		},
 	}
 	header := &block.Header{}
-	txPool := map[string]data.TransactionHandler{
+	txPool := map[string]nodeData.TransactionHandler{
 		string(txHash1):  tx1,
 		string(txHash2):  tx2,
 		string(txHash3):  tx3,
@@ -169,9 +168,9 @@ func TestPrepareTxLog(t *testing.T) {
 			},
 		},
 	}
-	expectedTxLog := types.TxLog{
+	expectedTxLog := data.TxLog{
 		Address: txDbProc.addressPubkeyConverter.Encode(scAddr),
-		Events: []types.Event{
+		Events: []data.Event{
 			{
 				Address:    hex.EncodeToString(addr),
 				Identifier: hex.EncodeToString(identifier),
@@ -227,7 +226,7 @@ func TestRelayedTransactions(t *testing.T) {
 	}
 
 	header := &block.Header{}
-	txPool := map[string]data.TransactionHandler{
+	txPool := map[string]nodeData.TransactionHandler{
 		string(txHash1): tx1,
 		string(scHash1): scResult1,
 		string(scHash2): scResult2,
@@ -253,12 +252,12 @@ func TestRelayedTransactions(t *testing.T) {
 func TestSetTransactionSearchOrder(t *testing.T) {
 	t.Parallel()
 	txHash1 := []byte("txHash1")
-	tx1 := &types.Transaction{}
+	tx1 := &data.Transaction{}
 
 	txHash2 := []byte("txHash2")
-	tx2 := &types.Transaction{}
+	tx2 := &data.Transaction{}
 
-	txPool := map[string]*types.Transaction{
+	txPool := map[string]*data.Transaction{
 		string(txHash1): tx1,
 		string(txHash2): tx2,
 	}
@@ -299,7 +298,7 @@ func TestGetGasUsedFromReceipt_RefundedGas(t *testing.T) {
 		Data:    []byte(processTransaction.RefundGasMessage),
 		TxHash:  txHash,
 	}
-	tx := &types.Transaction{
+	tx := &data.Transaction{
 		Hash: hex.EncodeToString(txHash),
 
 		GasPrice: gasPrice,
@@ -325,7 +324,7 @@ func TestGetGasUsedFromReceipt_DataError(t *testing.T) {
 		Data:    []byte("error"),
 		TxHash:  txHash,
 	}
-	tx := &types.Transaction{
+	tx := &data.Transaction{
 		Hash: hex.EncodeToString(txHash),
 
 		GasPrice: gasPrice,
@@ -434,7 +433,7 @@ func TestAlteredAddresses(t *testing.T) {
 	}
 
 	hdr := &block.Header{}
-	txPool := map[string]data.TransactionHandler{
+	txPool := map[string]nodeData.TransactionHandler{
 		string(tx1Hash):    tx1,
 		string(tx2Hash):    tx2,
 		string(rwdTx1Hash): rwdTx1,
@@ -478,7 +477,7 @@ func TestAlteredAddresses(t *testing.T) {
 	}
 }
 
-func txPoolHasSearchOrder(txPool map[string]*types.Transaction, searchOrder uint32) bool {
+func txPoolHasSearchOrder(txPool map[string]*data.Transaction, searchOrder uint32) bool {
 	for _, tx := range txPool {
 		if tx.SearchOrder == searchOrder {
 			return true
@@ -495,12 +494,12 @@ func TestIsSCRForSenderWithGasUsed(t *testing.T) {
 	nonce := uint64(10)
 	sender := "sender"
 
-	tx := &types.Transaction{
+	tx := &data.Transaction{
 		Hash:   txHash,
 		Nonce:  nonce,
 		Sender: sender,
 	}
-	sc := types.ScResult{
+	sc := data.ScResult{
 		Data:      []byte("@6f6b@something"),
 		Nonce:     nonce + 1,
 		Receiver:  sender,
@@ -549,7 +548,7 @@ func TestCheckGasUsedInvalidTransaction(t *testing.T) {
 
 	header := &block.Header{}
 
-	txPool := map[string]data.TransactionHandler{
+	txPool := map[string]nodeData.TransactionHandler{
 		string(txHash1):  tx1,
 		string(recHash1): rec1,
 	}
@@ -598,7 +597,7 @@ func TestCheckGasUsedRelayedTransaction(t *testing.T) {
 
 	header := &block.Header{}
 
-	txPool := map[string]data.TransactionHandler{
+	txPool := map[string]nodeData.TransactionHandler{
 		string(txHash1):    tx1,
 		string(scResHash1): scRes1,
 	}

@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
-	"github.com/ElrondNetwork/elastic-indexer-go/types"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/vmcommon"
 	"github.com/ElrondNetwork/elrond-go/data/block"
@@ -64,7 +64,7 @@ func TestGetMoveBalanceTransaction(t *testing.T) {
 		SndUserName: []byte("snd"),
 	}
 
-	expectedTx := &types.Transaction{
+	expectedTx := &data.Transaction{
 		Hash:             hex.EncodeToString(txHash),
 		MBHash:           hex.EncodeToString(mbHash),
 		Nonce:            tx.Nonce,
@@ -112,7 +112,7 @@ func TestGetTransactionByType_SC(t *testing.T) {
 	}
 
 	scRes := cp.convertScResultInDatabaseScr(scHash, smartContractRes)
-	expectedTx := types.ScResult{
+	expectedTx := data.ScResult{
 		Nonce:        nonce,
 		Hash:         hex.EncodeToString([]byte(scHash)),
 		PreTxHash:    hex.EncodeToString(txHash),
@@ -143,7 +143,7 @@ func TestGetTransactionByType_RewardTx(t *testing.T) {
 	status := "Success"
 
 	resultTx := cp.buildRewardTransaction(rwdTx, txHash, mbHash, mb, header, status)
-	expectedTx := &types.Transaction{
+	expectedTx := &data.Transaction{
 		Hash:     hex.EncodeToString(txHash),
 		MBHash:   hex.EncodeToString(mbHash),
 		Round:    round,

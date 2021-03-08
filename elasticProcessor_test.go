@@ -11,10 +11,10 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
-	"github.com/ElrondNetwork/elastic-indexer-go/types"
 	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/data"
+	nodeData "github.com/ElrondNetwork/elrond-go/data"
 	dataBlock "github.com/ElrondNetwork/elrond-go/data/block"
 	"github.com/ElrondNetwork/elrond-go/data/indexer"
 	"github.com/ElrondNetwork/elrond-go/data/receipt"
@@ -68,8 +68,8 @@ func createMockElasticProcessorArgs() ArgElasticProcessor {
 	}
 }
 
-func newTestTxPool() map[string]data.TransactionHandler {
-	txPool := map[string]data.TransactionHandler{
+func newTestTxPool() map[string]nodeData.TransactionHandler {
+	txPool := map[string]nodeData.TransactionHandler{
 		"tx1": &transaction.Transaction{
 			Nonce:     uint64(1),
 			Value:     big.NewInt(1),
@@ -261,7 +261,7 @@ func TestElasticseachDatabaseSaveHeader_CheckRequestBody(t *testing.T) {
 		DoRequestCalled: func(req *esapi.IndexRequest) error {
 			require.Equal(t, blockIndex, req.Index)
 
-			var block types.Block
+			var block data.Block
 			blockBytes, _ := ioutil.ReadAll(req.Body)
 			_ = json.Unmarshal(blockBytes, &block)
 			require.Equal(t, header.Nonce, block.Nonce)
@@ -312,7 +312,7 @@ func TestElasticProcessor_SaveValidatorsRating(t *testing.T) {
 
 	err := elasticProc.SaveValidatorsRating(
 		docID,
-		[]*types.ValidatorRatingInfo{
+		[]*data.ValidatorRatingInfo{
 			{
 				PublicKey: "blablabla",
 				Rating:    100,
@@ -424,7 +424,7 @@ func TestElasticsearch_saveShardStatistics(t *testing.T) {
 }
 
 func TestElasticsearch_saveRoundInfo(t *testing.T) {
-	roundInfo := &types.RoundInfo{
+	roundInfo := &data.RoundInfo{
 		Index: 1, ShardId: 0, BlockWasProposed: true,
 	}
 	arguments := createMockElasticProcessorArgs()
@@ -436,12 +436,12 @@ func TestElasticsearch_saveRoundInfo(t *testing.T) {
 	}
 	elasticDatabase := newTestElasticSearchDatabase(dbWriter, arguments)
 
-	err := elasticDatabase.SaveRoundsInfo([]*types.RoundInfo{roundInfo})
+	err := elasticDatabase.SaveRoundsInfo([]*data.RoundInfo{roundInfo})
 	require.Nil(t, err)
 }
 
 func TestElasticsearch_saveRoundInfoRequestError(t *testing.T) {
-	roundInfo := &types.RoundInfo{}
+	roundInfo := &data.RoundInfo{}
 	localError := errors.New("local err")
 	arguments := createMockElasticProcessorArgs()
 	dbWriter := &mock.DatabaseWriterStub{
@@ -451,7 +451,7 @@ func TestElasticsearch_saveRoundInfoRequestError(t *testing.T) {
 	}
 	elasticDatabase := newTestElasticSearchDatabase(dbWriter, arguments)
 
-	err := elasticDatabase.SaveRoundsInfo([]*types.RoundInfo{roundInfo})
+	err := elasticDatabase.SaveRoundsInfo([]*data.RoundInfo{roundInfo})
 	require.Equal(t, localError, err)
 
 }
@@ -525,17 +525,17 @@ func TestSaveRoundsInfo(t *testing.T) {
 
 	esDatabase, _ := NewElasticProcessor(args)
 
-	roundInfo1 := &types.RoundInfo{
+	roundInfo1 := &data.RoundInfo{
 		Index: 1, ShardId: 0, BlockWasProposed: true,
 	}
-	roundInfo2 := &types.RoundInfo{
+	roundInfo2 := &data.RoundInfo{
 		Index: 2, ShardId: 0, BlockWasProposed: true,
 	}
-	roundInfo3 := &types.RoundInfo{
+	roundInfo3 := &data.RoundInfo{
 		Index: 3, ShardId: 0, BlockWasProposed: true,
 	}
 
-	_ = esDatabase.SaveRoundsInfo([]*types.RoundInfo{roundInfo1, roundInfo2, roundInfo3})
+	_ = esDatabase.SaveRoundsInfo([]*data.RoundInfo{roundInfo1, roundInfo2, roundInfo3})
 }
 
 func TestUpdateTransaction(t *testing.T) {
@@ -639,7 +639,7 @@ func TestUpdateTransaction(t *testing.T) {
 		},
 	}
 	header := &dataBlock.Header{}
-	txPool := map[string]data.TransactionHandler{
+	txPool := map[string]nodeData.TransactionHandler{
 		string(txHash1):  tx1,
 		string(txHash2):  tx2,
 		string(txHash3):  tx3,
@@ -655,7 +655,7 @@ func TestUpdateTransaction(t *testing.T) {
 	fmt.Println(hex.EncodeToString(txHash1))
 
 	header.TimeStamp = 1234
-	txPool = map[string]data.TransactionHandler{
+	txPool = map[string]nodeData.TransactionHandler{
 		string(txHash1): tx1,
 		string(txHash2): tx2,
 		string(scHash1): scResult1,
@@ -730,7 +730,7 @@ func TestIndexTransactionDestinationBeforeSourceShard(t *testing.T) {
 	}
 
 	header := &dataBlock.Header{}
-	txPool := map[string]data.TransactionHandler{
+	txPool := map[string]nodeData.TransactionHandler{
 		string(txHash1): tx1,
 		string(txHash2): tx2,
 	}
@@ -747,7 +747,7 @@ func TestIndexTransactionDestinationBeforeSourceShard(t *testing.T) {
 	isMBSInDB, _ := esDatabase.SaveMiniblocks(header, body)
 	_ = esDatabase.SaveTransactions(body, header, &indexer.Pool{Txs: txPool}, isMBSInDB)
 
-	txPool = map[string]data.TransactionHandler{
+	txPool = map[string]nodeData.TransactionHandler{
 		string(txHash1): tx1,
 		string(txHash2): tx2,
 	}
@@ -783,7 +783,7 @@ func TestDoBulkRequestLimit(t *testing.T) {
 		txs, hashes := generateTransactions(numTransactions, dataSize)
 
 		header := &dataBlock.Header{}
-		txsPool := make(map[string]data.TransactionHandler)
+		txsPool := make(map[string]nodeData.TransactionHandler)
 		for j := 0; j < numTransactions; j++ {
 			txsPool[hashes[j]] = &txs[j]
 		}

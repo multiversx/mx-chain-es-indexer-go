@@ -1,4 +1,4 @@
-package types
+package data
 
 import (
 	"time"
@@ -26,10 +26,10 @@ type AccountBalanceHistory struct {
 	IsSender        bool          `json:"isSender,omitempty"`
 }
 
-// AccountEGLD is a structure that is needed for EGLD accounts
-type AccountEGLD struct {
-	Account  state.UserAccountHandler
-	IsSender bool
+// Account is a structure that is needed for EGLD accounts
+type Account struct {
+	UserAccount state.UserAccountHandler
+	IsSender    bool
 }
 
 // AccountESDT is a structure that is needed for ESDT accounts

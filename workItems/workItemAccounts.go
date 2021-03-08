@@ -1,7 +1,7 @@
 package workItems
 
 import (
-	"github.com/ElrondNetwork/elastic-indexer-go/types"
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/state"
 )
 
@@ -26,11 +26,11 @@ func NewItemAccounts(
 
 // Save will save information about an account
 func (wiv *itemAccounts) Save() error {
-	accountsEGLD := make([]*types.AccountEGLD, len(wiv.accounts))
+	accountsEGLD := make([]*data.Account, len(wiv.accounts))
 	for idx, account := range wiv.accounts {
-		accountsEGLD[idx] = &types.AccountEGLD{
-			Account:  account,
-			IsSender: false,
+		accountsEGLD[idx] = &data.Account{
+			UserAccount: account,
+			IsSender:    false,
 		}
 	}
 
