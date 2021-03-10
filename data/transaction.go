@@ -32,7 +32,7 @@ type Transaction struct {
 	SenderUserName       []byte        `json:"senderUsername,omitempty"`
 	ReceiverUserName     []byte        `json:"receiverUsername,omitempty"`
 	Log                  TxLog         `json:"-"`
-	RcvAddrBytes         []byte
+	RcvAddrBytes         []byte        `json:"-"`
 }
 
 // GetGasLimit will return transaction gas limit
