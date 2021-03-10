@@ -49,6 +49,10 @@ func (wib *itemBlock) Save() error {
 			ErrBodyTypeAssertion, wib.argsSaveBlock.HeaderHash, wib.argsSaveBlock.Header.GetNonce())
 	}
 
+	if wib.argsSaveBlock.TransactionsPool == nil {
+		wib.argsSaveBlock.TransactionsPool = &indexer.Pool{}
+	}
+
 	txsSizeInBytes := ComputeSizeOfTxs(wib.marshalizer, wib.argsSaveBlock.TransactionsPool)
 	err := wib.indexer.SaveHeader(wib.argsSaveBlock.Header, wib.argsSaveBlock.SignersIndexes, body, wib.argsSaveBlock.NotarizedHeadersHashes, txsSizeInBytes)
 	if err != nil {
@@ -83,7 +87,6 @@ func (wib *itemBlock) IsInterfaceNil() bool {
 // ComputeSizeOfTxs will compute size of transactions in bytes
 func ComputeSizeOfTxs(marshalizer marshal.Marshalizer, pool *indexer.Pool) int {
 	sizeTxs := 0
-
 	sizeTxs += computeSizeOfMap(marshalizer, pool.Txs)
 	sizeTxs += computeSizeOfMap(marshalizer, pool.Receipts)
 	sizeTxs += computeSizeOfMap(marshalizer, pool.Invalid)
