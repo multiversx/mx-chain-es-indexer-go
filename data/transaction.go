@@ -32,7 +32,7 @@ type Transaction struct {
 	SenderUserName       []byte        `json:"senderUsername,omitempty"`
 	ReceiverUserName     []byte        `json:"receiverUsername,omitempty"`
 	Log                  TxLog         `json:"-"`
-	RcvAddrBytes         []byte        `json:"-"`
+	ReceiverAddressBytes []byte        `json:"-"`
 }
 
 // GetGasLimit will return transaction gas limit
@@ -52,7 +52,7 @@ func (t *Transaction) GetData() []byte {
 
 // GetRcvAddr will return transaction receiver address
 func (t *Transaction) GetRcvAddr() []byte {
-	return t.RcvAddrBytes
+	return t.ReceiverAddressBytes
 }
 
 // GetValue wil return transaction value

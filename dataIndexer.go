@@ -114,10 +114,10 @@ func (di *dataIndexer) RevertIndexedBlock(header nodeData.HeaderHandler, body no
 }
 
 // SaveRoundsInfo will save data about a slice of rounds in elasticsearch
-func (di *dataIndexer) SaveRoundsInfo(roundsInfo []*indexer.RoundInfo) {
-	roundsInfoE := make([]*data.RoundInfo, 0)
-	for _, info := range roundsInfo {
-		roundsInfoE = append(roundsInfoE, &data.RoundInfo{
+func (di *dataIndexer) SaveRoundsInfo(rf []*indexer.RoundInfo) {
+	roundsInfo := make([]*data.RoundInfo, 0)
+	for _, info := range rf {
+		roundsInfo = append(roundsInfo, &data.RoundInfo{
 			Index:            info.Index,
 			SignersIndexes:   info.SignersIndexes,
 			BlockWasProposed: info.BlockWasProposed,
@@ -126,7 +126,7 @@ func (di *dataIndexer) SaveRoundsInfo(roundsInfo []*indexer.RoundInfo) {
 		})
 	}
 
-	wi := workItems.NewItemRounds(di.elasticProcessor, roundsInfoE)
+	wi := workItems.NewItemRounds(di.elasticProcessor, roundsInfo)
 	di.dispatcher.Add(wi)
 }
 

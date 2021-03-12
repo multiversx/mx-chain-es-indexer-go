@@ -26,15 +26,15 @@ func NewItemAccounts(
 
 // Save will save information about an account
 func (wiv *itemAccounts) Save() error {
-	accountsEGLD := make([]*data.Account, len(wiv.accounts))
+	accounts := make([]*data.Account, len(wiv.accounts))
 	for idx, account := range wiv.accounts {
-		accountsEGLD[idx] = &data.Account{
+		accounts[idx] = &data.Account{
 			UserAccount: account,
 			IsSender:    false,
 		}
 	}
 
-	err := wiv.indexer.SaveAccounts(wiv.blockTimestamp, accountsEGLD)
+	err := wiv.indexer.SaveAccounts(wiv.blockTimestamp, accounts)
 	if err != nil {
 		log.Warn("itemAccounts.Save",
 			"could not index account",

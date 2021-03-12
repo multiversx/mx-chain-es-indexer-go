@@ -356,17 +356,10 @@ func (ei *elasticProcessor) SaveTransactions(
 		return nil
 	}
 
-	allTxs := make(map[string]nodeData.TransactionHandler)
-
 	sliceMaps := []map[string]nodeData.TransactionHandler{
 		pool.Txs, pool.Scrs, pool.Receipts, pool.Invalid, pool.Rewards,
 	}
-
-	for _, txsMap := range sliceMaps {
-		for hash, tx := range txsMap {
-			allTxs[hash] = tx
-		}
-	}
+	allTxs := mergeSliceOfMaps(sliceMaps)
 
 	selfShardID := ei.shardCoordinator.SelfId()
 	txs, alteredAccounts := ei.prepareTransactionsForDatabase(body, header, allTxs, selfShardID)
@@ -385,6 +378,18 @@ func (ei *elasticProcessor) SaveTransactions(
 	}
 
 	return ei.indexAlteredAccounts(header.GetTimeStamp(), alteredAccounts)
+}
+
+func mergeSliceOfMaps(sliceMaps []map[string]nodeData.TransactionHandler) map[string]nodeData.TransactionHandler {
+	allTxs := make(map[string]nodeData.TransactionHandler)
+
+	for _, txsMap := range sliceMaps {
+		for hash, tx := range txsMap {
+			allTxs[hash] = tx
+		}
+	}
+
+	return allTxs
 }
 
 // SaveShardStatistics will prepare and save information about a shard statistics in elasticsearch server
@@ -548,25 +553,25 @@ func (ei *elasticProcessor) indexAlteredAccounts(blockTimestamp uint64, accounts
 		return nil
 	}
 
-	accts := make([]*data.Account, len(accountsToIndex))
+	accountsSlice := make([]*data.Account, len(accountsToIndex))
 	for idx, account := range accountsToIndex {
-		accts[idx] = &data.Account{
+		accountsSlice[idx] = &data.Account{
 			UserAccount: account,
 			IsSender:    false,
 		}
 	}
 
-	return ei.SaveAccounts(blockTimestamp, accts)
+	return ei.SaveAccounts(blockTimestamp, accountsSlice)
 }
 
 // SaveAccounts will prepare and save information about provided accounts in elasticsearch server
-func (ei *elasticProcessor) SaveAccounts(blockTimestamp uint64, accts []*data.Account) error {
+func (ei *elasticProcessor) SaveAccounts(blockTimestamp uint64, accountsSlice []*data.Account) error {
 	if !ei.isIndexEnabled(accountsIndex) {
 		return nil
 	}
 
 	accountsMap := make(map[string]*data.AccountInfo)
-	for _, userAccount := range accts {
+	for _, userAccount := range accountsSlice {
 		balanceAsFloat := ei.computeBalanceAsFloat(userAccount.UserAccount.GetBalance())
 		acc := &data.AccountInfo{
 			Nonce:      userAccount.UserAccount.GetNonce(),
