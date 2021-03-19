@@ -1,1 +1,32 @@
 package data
+
+import (
+	"crypto/rand"
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
+
+func TestBufferSlice_PutDataShouldWork(t *testing.T) {
+	buffSlice := NewBufferSlice()
+
+	meta := generateRandomBytes(100)
+	serializedData := generateRandomBytes(100)
+
+	err := buffSlice.PutData(meta, serializedData)
+	require.Nil(t, err)
+
+	serializedData = generateRandomBytes(BulkSizeThreshold)
+	err = buffSlice.PutData(meta, serializedData)
+	require.Nil(t, err)
+
+	returnedBuffSlice := buffSlice.Buffers()
+	require.Equal(t, 2, len(returnedBuffSlice))
+}
+
+func generateRandomBytes(n int) []byte {
+	b := make([]byte, n)
+	_, _ = rand.Read(b)
+
+	return b
+}

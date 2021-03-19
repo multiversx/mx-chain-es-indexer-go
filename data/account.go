@@ -26,7 +26,7 @@ type AccountBalanceHistory struct {
 	IsSender        bool          `json:"isSender,omitempty"`
 }
 
-// Account is a structure that is needed for EGLD accounts
+// Account is a structure that is needed for regular accounts
 type Account struct {
 	UserAccount state.UserAccountHandler
 	IsSender    bool
