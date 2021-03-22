@@ -29,7 +29,7 @@ type ArgsIndexerFactory struct {
 	NodesCoordinator         sharding.NodesCoordinator
 	AddressPubkeyConverter   core.PubkeyConverter
 	ValidatorPubkeyConverter core.PubkeyConverter
-	Options                  *indexer.Options
+	UseKibana                bool
 	EnabledIndexes           []string
 	Denomination             int
 	AccountsDB               state.AccountsAdapter
@@ -62,7 +62,7 @@ func NewIndexer(args *ArgsIndexerFactory) (process.Indexer, error) {
 
 	arguments := indexer.ArgDataIndexer{
 		Marshalizer:        args.Marshalizer,
-		Options:            args.Options,
+		UseKibana:          args.UseKibana,
 		NodesCoordinator:   args.NodesCoordinator,
 		EpochStartNotifier: args.EpochStartNotifier,
 		ShardCoordinator:   args.ShardCoordinator,
@@ -87,7 +87,7 @@ func createElasticProcessor(args *ArgsIndexerFactory) (indexer.ElasticProcessor,
 		return nil, err
 	}
 
-	indexTemplates, indexPolicies, err := indexer.GetElasticTemplatesAndPolicies(args.Options.UseKibana)
+	indexTemplates, indexPolicies, err := indexer.GetElasticTemplatesAndPolicies(args.UseKibana)
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +107,7 @@ func createElasticProcessor(args *ArgsIndexerFactory) (indexer.ElasticProcessor,
 		Hasher:                   args.Hasher,
 		AddressPubkeyConverter:   args.AddressPubkeyConverter,
 		ValidatorPubkeyConverter: args.ValidatorPubkeyConverter,
-		Options:                  args.Options,
+		UseKibana:                args.UseKibana,
 		DBClient:                 databaseClient,
 		EnabledIndexes:           enabledIndexesMap,
 		AccountsDB:               args.AccountsDB,

@@ -57,7 +57,6 @@ func createMockElasticProcessorArgs() ArgElasticProcessor {
 		Hasher:                   &mock.HasherMock{},
 		Marshalizer:              &mock.MarshalizerMock{},
 		DBClient:                 &mock.DatabaseWriterStub{},
-		Options:                  &Options{},
 		IsInImportDBMode:         false,
 		EnabledIndexes: map[string]struct{}{
 			blockIndex: {}, txIndex: {}, miniblocksIndex: {}, tpsIndex: {}, validatorsIndex: {}, roundIndex: {}, accountsIndex: {}, ratingIndex: {}, accountsHistoryIndex: {},
@@ -129,9 +128,7 @@ func newTestBlockBody() *dataBlock.Body {
 
 func TestNewElasticProcessorWithKibana(t *testing.T) {
 	args := createMockElasticProcessorArgs()
-	args.Options = &Options{
-		UseKibana: true,
-	}
+	args.UseKibana = true
 	args.DBClient = &mock.DatabaseWriterStub{}
 
 	elasticProc, err := NewElasticProcessor(args)
@@ -475,10 +472,6 @@ func TestUpdateMiniBlock(t *testing.T) {
 		EnabledIndexes: map[string]struct{}{
 			"miniblocks": {},
 		},
-		Options: &Options{
-			IndexerCacheSize: 100,
-			UseKibana:        false,
-		},
 		AccountsDB:               &mock.AccountsStub{},
 		ShardCoordinator:         &mock.ShardCoordinatorMock{},
 		TransactionFeeCalculator: &economicsmocks.EconomicsHandlerStub{},
@@ -557,10 +550,6 @@ func TestUpdateTransaction(t *testing.T) {
 		AddressPubkeyConverter:   mock.NewPubkeyConverterMock(32),
 		AccountsDB:               &mock.AccountsStub{},
 		ValidatorPubkeyConverter: mock.NewPubkeyConverterMock(96),
-		Options: &Options{
-			UseKibana:        false,
-			IndexerCacheSize: 10000,
-		},
 		TransactionFeeCalculator: &economicsmocks.EconomicsHandlerStub{},
 		EnabledIndexes: map[string]struct{}{
 			"transactions": {},
