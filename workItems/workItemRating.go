@@ -1,19 +1,15 @@
 package workItems
 
-// ValidatorRatingInfo is a structure containing validator rating information
-type ValidatorRatingInfo struct {
-	PublicKey string  `json:"publicKey"`
-	Rating    float32 `json:"rating"`
-}
+import "github.com/ElrondNetwork/elastic-indexer-go/data"
 
 type itemRating struct {
 	indexer    saveRatingIndexer
 	indexID    string
-	infoRating []ValidatorRatingInfo
+	infoRating []*data.ValidatorRatingInfo
 }
 
 // NewItemRating will create a new instance of itemRating
-func NewItemRating(indexer saveRatingIndexer, indexID string, infoRating []ValidatorRatingInfo) WorkItemHandler {
+func NewItemRating(indexer saveRatingIndexer, indexID string, infoRating []*data.ValidatorRatingInfo) WorkItemHandler {
 	return &itemRating{
 		indexer:    indexer,
 		indexID:    indexID,

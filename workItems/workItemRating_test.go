@@ -4,6 +4,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
 	"github.com/stretchr/testify/require"
@@ -14,14 +15,14 @@ func TestItemRating_Save(t *testing.T) {
 	called := false
 	itemRating := workItems.NewItemRating(
 		&mock.ElasticProcessorStub{
-			SaveValidatorsRatingCalled: func(index string, validatorsRatingInfo []workItems.ValidatorRatingInfo) error {
+			SaveValidatorsRatingCalled: func(index string, validatorsRatingInfo []*data.ValidatorRatingInfo) error {
 				require.Equal(t, id, index)
 				called = true
 				return nil
 			},
 		},
 		id,
-		[]workItems.ValidatorRatingInfo{
+		[]*data.ValidatorRatingInfo{
 			{PublicKey: "pub-key", Rating: 100},
 		},
 	)
@@ -37,12 +38,12 @@ func TestItemRating_SaveShouldErr(t *testing.T) {
 	localErr := errors.New("local err")
 	itemRating := workItems.NewItemRating(
 		&mock.ElasticProcessorStub{
-			SaveValidatorsRatingCalled: func(index string, validatorsRatingInfo []workItems.ValidatorRatingInfo) error {
+			SaveValidatorsRatingCalled: func(index string, validatorsRatingInfo []*data.ValidatorRatingInfo) error {
 				return localErr
 			},
 		},
 		id,
-		[]workItems.ValidatorRatingInfo{
+		[]*data.ValidatorRatingInfo{
 			{PublicKey: "pub-key", Rating: 100},
 		},
 	)

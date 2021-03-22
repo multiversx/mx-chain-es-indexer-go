@@ -1,6 +1,9 @@
 package workItems
 
-import "github.com/ElrondNetwork/elrond-go/data/state"
+import (
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elrond-go/data/state"
+)
 
 type itemAccounts struct {
 	indexer        saveAccountsIndexer
@@ -23,7 +26,15 @@ func NewItemAccounts(
 
 // Save will save information about an account
 func (wiv *itemAccounts) Save() error {
-	err := wiv.indexer.SaveAccounts(wiv.blockTimestamp, wiv.accounts)
+	accounts := make([]*data.Account, len(wiv.accounts))
+	for idx, account := range wiv.accounts {
+		accounts[idx] = &data.Account{
+			UserAccount: account,
+			IsSender:    false,
+		}
+	}
+
+	err := wiv.indexer.SaveAccounts(wiv.blockTimestamp, accounts)
 	if err != nil {
 		log.Warn("itemAccounts.Save",
 			"could not index account",

@@ -17,6 +17,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go/core/check"
 	"github.com/ElrondNetwork/elrond-go/data"
 	dataBlock "github.com/ElrondNetwork/elrond-go/data/block"
+	"github.com/ElrondNetwork/elrond-go/data/indexer"
 	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-go/hashing/sha256"
 	"github.com/ElrondNetwork/elrond-go/marshal"
@@ -154,8 +155,11 @@ func TestDataIndexer_SaveBlock(t *testing.T) {
 	}
 	ei, _ := NewDataIndexer(arguments)
 
-	ei.SaveBlock(&dataBlock.Body{MiniBlocks: []*dataBlock.MiniBlock{}}, nil,
-		nil, nil, nil, []byte("hash"))
+	args := &indexer.ArgsSaveBlockData{
+		Body:       &dataBlock.Body{MiniBlocks: []*dataBlock.MiniBlock{}},
+		HeaderHash: []byte("hash"),
+	}
+	ei.SaveBlock(args)
 	require.True(t, called)
 }
 
@@ -173,7 +177,7 @@ func TestDataIndexer_SaveRoundInfo(t *testing.T) {
 	ei, _ := NewDataIndexer(arguments)
 	_ = ei.Close()
 
-	ei.SaveRoundsInfo([]workItems.RoundInfo{})
+	ei.SaveRoundsInfo([]*indexer.RoundInfo{})
 	require.True(t, called)
 }
 
@@ -209,7 +213,7 @@ func TestDataIndexer_SaveValidatorsRating(t *testing.T) {
 	}
 	ei, _ := NewDataIndexer(arguments)
 
-	ei.SaveValidatorsRating("ID", []workItems.ValidatorRatingInfo{
+	ei.SaveValidatorsRating("ID", []*indexer.ValidatorRatingInfo{
 		{Rating: 1}, {Rating: 2},
 	})
 	require.True(t, called)
@@ -359,7 +363,7 @@ func testCreateIndexer(t *testing.T) {
 		IndexTemplates:           indexTemplates,
 		IndexPolicies:            indexPolicies,
 		Marshalizer:              &marshal.JsonMarshalizer{},
-		Hasher:                   &sha256.Sha256{},
+		Hasher:                   sha256.Sha256{},
 		AddressPubkeyConverter:   &mock.PubkeyConverterMock{},
 		ValidatorPubkeyConverter: &mock.PubkeyConverterMock{},
 		Options:                  &Options{},
@@ -410,7 +414,15 @@ func testCreateIndexer(t *testing.T) {
 		body.MiniBlocks[0].ReceiverShardID = 2
 		body.MiniBlocks[0].SenderShardID = 1
 
-		di.SaveBlock(body, header, txsPool, signers, []string{"aaaaa", "bbbb"}, []byte("hash"))
+		args := &indexer.ArgsSaveBlockData{
+			HeaderHash:             []byte("hash"),
+			Body:                   body,
+			Header:                 header,
+			SignersIndexes:         signers,
+			NotarizedHeadersHashes: []string{"aaaaa", "bbbb"},
+			TransactionsPool:       &indexer.Pool{Txs: txsPool},
+		}
+		di.SaveBlock(args)
 	}
 
 	time.Sleep(100 * time.Second)

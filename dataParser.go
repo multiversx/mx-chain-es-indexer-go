@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/data"
+	nodeData "github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/block"
 	"github.com/ElrondNetwork/elrond-go/hashing"
 	"github.com/ElrondNetwork/elrond-go/marshal"
@@ -21,7 +21,7 @@ type dataParser struct {
 }
 
 func (dp *dataParser) getSerializedElasticBlockAndHeaderHash(
-	header data.HeaderHandler,
+	header nodeData.HeaderHandler,
 	signersIndexes []uint64,
 	body *block.Body,
 	notarizedHeadersHashes []string,
@@ -57,7 +57,7 @@ func (dp *dataParser) getSerializedElasticBlockAndHeaderHash(
 	}
 
 	headerHash := dp.hasher.Compute(string(headerBytes))
-	elasticBlock := Block{
+	elasticBlock := data.Block{
 		Nonce:                 header.GetNonce(),
 		Round:                 header.GetRound(),
 		Epoch:                 header.GetEpoch(),
@@ -85,7 +85,7 @@ func (dp *dataParser) getSerializedElasticBlockAndHeaderHash(
 	return serializedBlock, headerHash, nil
 }
 
-func (dp *dataParser) getMiniblocks(header data.HeaderHandler, body *block.Body) []*Miniblock {
+func (dp *dataParser) getMiniblocks(header nodeData.HeaderHandler, body *block.Body) []*data.Miniblock {
 	headerHash, err := core.CalculateHash(dp.marshalizer, dp.hasher, header)
 	if err != nil {
 		log.Warn("indexer: could not calculate header hash", "error", err.Error())
@@ -94,7 +94,7 @@ func (dp *dataParser) getMiniblocks(header data.HeaderHandler, body *block.Body)
 
 	encodedHeaderHash := hex.EncodeToString(headerHash)
 
-	miniblocks := make([]*Miniblock, 0)
+	miniblocks := make([]*data.Miniblock, 0)
 	for _, miniblock := range body.MiniBlocks {
 		mbHash, errComputeHash := core.CalculateHash(dp.marshalizer, dp.hasher, miniblock)
 		if errComputeHash != nil {
@@ -106,7 +106,7 @@ func (dp *dataParser) getMiniblocks(header data.HeaderHandler, body *block.Body)
 
 		encodedMbHash := hex.EncodeToString(mbHash)
 
-		mb := &Miniblock{
+		mb := &data.Miniblock{
 			Hash:            encodedMbHash,
 			SenderShardID:   miniblock.SenderShardID,
 			ReceiverShardID: miniblock.ReceiverShardID,
@@ -129,7 +129,7 @@ func (dp *dataParser) getMiniblocks(header data.HeaderHandler, body *block.Body)
 	return miniblocks
 }
 
-func serializeRoundInfo(info workItems.RoundInfo) ([]byte, []byte) {
+func serializeRoundInfo(info data.RoundInfo) ([]byte, []byte) {
 	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%d_%d", "_type" : "%s" } }%s`,
 		info.ShardId, info.Index, "_doc", "\n"))
 
@@ -145,7 +145,7 @@ func serializeRoundInfo(info workItems.RoundInfo) ([]byte, []byte) {
 	return serializedInfo, meta
 }
 
-func computeBlockSearchOrder(header data.HeaderHandler) uint64 {
+func computeBlockSearchOrder(header nodeData.HeaderHandler) uint64 {
 	shardIdentifier := createShardIdentifier(header.GetShardID())
 	stringOrder := fmt.Sprintf("1%02d%d", shardIdentifier, header.GetNonce())
 

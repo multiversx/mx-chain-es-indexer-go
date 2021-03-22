@@ -4,6 +4,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
 	"github.com/ElrondNetwork/elrond-go/data/state"
@@ -14,7 +15,7 @@ func TestItemAccounts_Save(t *testing.T) {
 	called := false
 	itemAccounts := workItems.NewItemAccounts(
 		&mock.ElasticProcessorStub{
-			SaveAccountsCalled: func(_ uint64, _ []state.UserAccountHandler) error {
+			SaveAccountsCalled: func(_ uint64, _ []*data.Account) error {
 				called = true
 				return nil
 			},
@@ -33,7 +34,7 @@ func TestItemAccounts_SaveAccountsShouldErr(t *testing.T) {
 	localErr := errors.New("local err")
 	itemAccounts := workItems.NewItemAccounts(
 		&mock.ElasticProcessorStub{
-			SaveAccountsCalled: func(_ uint64, _ []state.UserAccountHandler) error {
+			SaveAccountsCalled: func(_ uint64, _ []*data.Account) error {
 				return localErr
 			},
 		},

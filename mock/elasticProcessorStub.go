@@ -1,27 +1,28 @@
 package mock
 
 import (
-	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go/core/statistics"
-	"github.com/ElrondNetwork/elrond-go/data"
+	nodeData "github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/block"
-	"github.com/ElrondNetwork/elrond-go/data/state"
+	"github.com/ElrondNetwork/elrond-go/data/indexer"
 	"github.com/ElrondNetwork/elrond-go/process"
 )
 
 // ElasticProcessorStub -
 type ElasticProcessorStub struct {
 	SaveShardStatisticsCalled        func(tpsBenchmark statistics.TPSBenchmark) error
-	SaveHeaderCalled                 func(header data.HeaderHandler, signersIndexes []uint64, body *block.Body, notarizedHeadersHashes []string, txsSize int) error
-	RemoveHeaderCalled               func(header data.HeaderHandler) error
-	RemoveMiniblocksCalled           func(header data.HeaderHandler, body *block.Body) error
-	SaveMiniblocksCalled             func(header data.HeaderHandler, body *block.Body) (map[string]bool, error)
-	SaveTransactionsCalled           func(body *block.Body, header data.HeaderHandler, txPool map[string]data.TransactionHandler, selfShardID uint32, mbsInDb map[string]bool) error
-	SaveValidatorsRatingCalled       func(index string, validatorsRatingInfo []workItems.ValidatorRatingInfo) error
-	SaveRoundsInfoCalled             func(infos []workItems.RoundInfo) error
+	SaveHeaderCalled                 func(header nodeData.HeaderHandler, signersIndexes []uint64, body *block.Body, notarizedHeadersHashes []string, txsSize int) error
+	RemoveHeaderCalled               func(header nodeData.HeaderHandler) error
+	RemoveMiniblocksCalled           func(header nodeData.HeaderHandler, body *block.Body) error
+	RemoveTransactionsCalled         func(header nodeData.HeaderHandler, body *block.Body) error
+	SaveMiniblocksCalled             func(header nodeData.HeaderHandler, body *block.Body) (map[string]bool, error)
+	SaveTransactionsCalled           func(body *block.Body, header nodeData.HeaderHandler, pool *indexer.Pool, mbsInDb map[string]bool) error
+	SaveValidatorsRatingCalled       func(index string, validatorsRatingInfo []*data.ValidatorRatingInfo) error
+	SaveRoundsInfoCalled             func(infos []*data.RoundInfo) error
 	SaveShardValidatorsPubKeysCalled func(shardID, epoch uint32, shardValidatorsPubKeys [][]byte) error
 	SetTxLogsProcessorCalled         func(txLogsProc process.TransactionLogProcessorDatabase)
-	SaveAccountsCalled               func(timestamp uint64, acc []state.UserAccountHandler) error
+	SaveAccountsCalled               func(timestamp uint64, acc []*data.Account) error
 }
 
 // SaveShardStatistics -
@@ -33,7 +34,7 @@ func (eim *ElasticProcessorStub) SaveShardStatistics(tpsBenchmark statistics.TPS
 }
 
 // SaveHeader -
-func (eim *ElasticProcessorStub) SaveHeader(header data.HeaderHandler, signersIndexes []uint64, body *block.Body, notarizedHeadersHashes []string, txsSize int) error {
+func (eim *ElasticProcessorStub) SaveHeader(header nodeData.HeaderHandler, signersIndexes []uint64, body *block.Body, notarizedHeadersHashes []string, txsSize int) error {
 	if eim.SaveHeaderCalled != nil {
 		return eim.SaveHeaderCalled(header, signersIndexes, body, notarizedHeadersHashes, txsSize)
 	}
@@ -41,7 +42,7 @@ func (eim *ElasticProcessorStub) SaveHeader(header data.HeaderHandler, signersIn
 }
 
 // RemoveHeader -
-func (eim *ElasticProcessorStub) RemoveHeader(header data.HeaderHandler) error {
+func (eim *ElasticProcessorStub) RemoveHeader(header nodeData.HeaderHandler) error {
 	if eim.RemoveHeaderCalled != nil {
 		return eim.RemoveHeaderCalled(header)
 	}
@@ -49,15 +50,23 @@ func (eim *ElasticProcessorStub) RemoveHeader(header data.HeaderHandler) error {
 }
 
 // RemoveMiniblocks -
-func (eim *ElasticProcessorStub) RemoveMiniblocks(header data.HeaderHandler, body *block.Body) error {
+func (eim *ElasticProcessorStub) RemoveMiniblocks(header nodeData.HeaderHandler, body *block.Body) error {
 	if eim.RemoveMiniblocksCalled != nil {
 		return eim.RemoveMiniblocksCalled(header, body)
 	}
 	return nil
 }
 
+// RemoveTransactions -
+func (eim *ElasticProcessorStub) RemoveTransactions(header nodeData.HeaderHandler, body *block.Body) error {
+	if eim.RemoveMiniblocksCalled != nil {
+		return eim.RemoveTransactionsCalled(header, body)
+	}
+	return nil
+}
+
 // SaveMiniblocks -
-func (eim *ElasticProcessorStub) SaveMiniblocks(header data.HeaderHandler, body *block.Body) (map[string]bool, error) {
+func (eim *ElasticProcessorStub) SaveMiniblocks(header nodeData.HeaderHandler, body *block.Body) (map[string]bool, error) {
 	if eim.SaveMiniblocksCalled != nil {
 		return eim.SaveMiniblocksCalled(header, body)
 	}
@@ -65,15 +74,15 @@ func (eim *ElasticProcessorStub) SaveMiniblocks(header data.HeaderHandler, body 
 }
 
 // SaveTransactions -
-func (eim *ElasticProcessorStub) SaveTransactions(body *block.Body, header data.HeaderHandler, txPool map[string]data.TransactionHandler, selfShardID uint32, mbsInDb map[string]bool) error {
+func (eim *ElasticProcessorStub) SaveTransactions(body *block.Body, header nodeData.HeaderHandler, pool *indexer.Pool, mbsInDb map[string]bool) error {
 	if eim.SaveTransactionsCalled != nil {
-		return eim.SaveTransactionsCalled(body, header, txPool, selfShardID, mbsInDb)
+		return eim.SaveTransactionsCalled(body, header, pool, mbsInDb)
 	}
 	return nil
 }
 
 // SaveValidatorsRating -
-func (eim *ElasticProcessorStub) SaveValidatorsRating(index string, validatorsRatingInfo []workItems.ValidatorRatingInfo) error {
+func (eim *ElasticProcessorStub) SaveValidatorsRating(index string, validatorsRatingInfo []*data.ValidatorRatingInfo) error {
 	if eim.SaveValidatorsRatingCalled != nil {
 		return eim.SaveValidatorsRatingCalled(index, validatorsRatingInfo)
 	}
@@ -81,7 +90,7 @@ func (eim *ElasticProcessorStub) SaveValidatorsRating(index string, validatorsRa
 }
 
 // SaveRoundsInfo -
-func (eim *ElasticProcessorStub) SaveRoundsInfo(info []workItems.RoundInfo) error {
+func (eim *ElasticProcessorStub) SaveRoundsInfo(info []*data.RoundInfo) error {
 	if eim.SaveRoundsInfoCalled != nil {
 		return eim.SaveRoundsInfoCalled(info)
 	}
@@ -104,7 +113,7 @@ func (eim *ElasticProcessorStub) SetTxLogsProcessor(txLogsProc process.Transacti
 }
 
 // SaveAccounts -
-func (eim *ElasticProcessorStub) SaveAccounts(timestamp uint64, acc []state.UserAccountHandler) error {
+func (eim *ElasticProcessorStub) SaveAccounts(timestamp uint64, acc []*data.Account) error {
 	if eim.SaveAccountsCalled != nil {
 		return eim.SaveAccountsCalled(timestamp, acc)
 	}

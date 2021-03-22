@@ -12,6 +12,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
 	"github.com/ElrondNetwork/elrond-go/data"
 	dataBlock "github.com/ElrondNetwork/elrond-go/data/block"
+	"github.com/ElrondNetwork/elrond-go/data/indexer"
 	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-go/marshal"
 	"github.com/stretchr/testify/assert"
@@ -41,14 +42,7 @@ func TestItemBlock_SaveNilHeaderShouldRetNil(t *testing.T) {
 	itemBlock := workItems.NewItemBlock(
 		&mock.ElasticProcessorStub{},
 		&mock.MarshalizerMock{},
-		&dataBlock.Body{
-			MiniBlocks: dataBlock.MiniBlockSlice{{}},
-		},
-		nil,
-		nil,
-		[]uint64{},
-		[]string{},
-		[]byte("hash"),
+		&indexer.ArgsSaveBlockData{},
 	)
 	require.False(t, itemBlock.IsInterfaceNil())
 
@@ -65,14 +59,11 @@ func TestItemBlock_SaveHeaderShouldErr(t *testing.T) {
 			},
 		},
 		&mock.MarshalizerMock{},
-		&dataBlock.Body{
-			MiniBlocks: dataBlock.MiniBlockSlice{{}},
+		&indexer.ArgsSaveBlockData{
+			Header:           &dataBlock.Header{},
+			Body:             &dataBlock.Body{MiniBlocks: []*dataBlock.MiniBlock{{}}},
+			TransactionsPool: &indexer.Pool{},
 		},
-		&dataBlock.Header{},
-		nil,
-		[]uint64{},
-		[]string{},
-		[]byte("hash"),
 	)
 	require.False(t, itemBlock.IsInterfaceNil())
 
@@ -92,18 +83,17 @@ func TestItemBlock_SaveNoMiniblocksShoulCallSaveHeader(t *testing.T) {
 				countCalled++
 				return nil, nil
 			},
-			SaveTransactionsCalled: func(body *dataBlock.Body, header data.HeaderHandler, txPool map[string]data.TransactionHandler, selfShardID uint32, mbsInDb map[string]bool) error {
+			SaveTransactionsCalled: func(body *dataBlock.Body, header data.HeaderHandler, pool *indexer.Pool, mbsInDb map[string]bool) error {
 				countCalled++
 				return nil
 			},
 		},
 		&mock.MarshalizerMock{},
-		&dataBlock.Body{},
-		&dataBlock.Header{},
-		nil,
-		[]uint64{},
-		[]string{},
-		[]byte("hash"),
+		&indexer.ArgsSaveBlockData{
+			Body:             &dataBlock.Body{},
+			Header:           &dataBlock.Header{},
+			TransactionsPool: &indexer.Pool{},
+		},
 	)
 	require.False(t, itemBlock.IsInterfaceNil())
 
@@ -121,14 +111,11 @@ func TestItemBlock_SaveMiniblocksShouldErr(t *testing.T) {
 			},
 		},
 		&mock.MarshalizerMock{},
-		&dataBlock.Body{
-			MiniBlocks: dataBlock.MiniBlockSlice{{}},
+		&indexer.ArgsSaveBlockData{
+			Header:           &dataBlock.Header{},
+			Body:             &dataBlock.Body{MiniBlocks: []*dataBlock.MiniBlock{{}}},
+			TransactionsPool: &indexer.Pool{},
 		},
-		&dataBlock.Header{},
-		nil,
-		[]uint64{},
-		[]string{},
-		[]byte("hash"),
 	)
 	require.False(t, itemBlock.IsInterfaceNil())
 
@@ -140,19 +127,16 @@ func TestItemBlock_SaveTransactionsShouldErr(t *testing.T) {
 	localErr := errors.New("local err")
 	itemBlock := workItems.NewItemBlock(
 		&mock.ElasticProcessorStub{
-			SaveTransactionsCalled: func(body *dataBlock.Body, header data.HeaderHandler, txPool map[string]data.TransactionHandler, selfShardID uint32, mbsInDb map[string]bool) error {
+			SaveTransactionsCalled: func(body *dataBlock.Body, header data.HeaderHandler, pool *indexer.Pool, mbsInDb map[string]bool) error {
 				return localErr
 			},
 		},
 		&mock.MarshalizerMock{},
-		&dataBlock.Body{
-			MiniBlocks: dataBlock.MiniBlockSlice{{}},
+		&indexer.ArgsSaveBlockData{
+			Header:           &dataBlock.Header{},
+			Body:             &dataBlock.Body{MiniBlocks: []*dataBlock.MiniBlock{{}}},
+			TransactionsPool: &indexer.Pool{},
 		},
-		&dataBlock.Header{},
-		nil,
-		[]uint64{},
-		[]string{},
-		[]byte("hash"),
 	)
 	require.False(t, itemBlock.IsInterfaceNil())
 
@@ -172,20 +156,17 @@ func TestItemBlock_SaveShouldWork(t *testing.T) {
 				countCalled++
 				return nil, nil
 			},
-			SaveTransactionsCalled: func(body *dataBlock.Body, header data.HeaderHandler, txPool map[string]data.TransactionHandler, selfShardID uint32, mbsInDb map[string]bool) error {
+			SaveTransactionsCalled: func(body *dataBlock.Body, header data.HeaderHandler, pool *indexer.Pool, mbsInDb map[string]bool) error {
 				countCalled++
 				return nil
 			},
 		},
 		&mock.MarshalizerMock{},
-		&dataBlock.Body{
-			MiniBlocks: dataBlock.MiniBlockSlice{{}},
+		&indexer.ArgsSaveBlockData{
+			Header:           &dataBlock.Header{},
+			Body:             &dataBlock.Body{MiniBlocks: []*dataBlock.MiniBlock{{}}},
+			TransactionsPool: &indexer.Pool{},
 		},
-		&dataBlock.Header{},
-		nil,
-		[]uint64{},
-		[]string{},
-		[]byte("hash"),
 	)
 	require.False(t, itemBlock.IsInterfaceNil())
 
@@ -206,7 +187,7 @@ func benchmarkComputeSizeOfTxsDuration(b *testing.B) {
 	gogoMarsh := &marshal.GogoProtoMarshalizer{}
 
 	for i := 0; i < b.N; i++ {
-		workItems.ComputeSizeOfTxs(gogoMarsh, txs)
+		workItems.ComputeSizeOfTxs(gogoMarsh, &indexer.Pool{Txs: txs})
 	}
 }
 
@@ -216,7 +197,7 @@ func TestComputeSizeOfTxs(t *testing.T) {
 
 	txs := generateTxs(numTxs)
 	gogoMarsh := &marshal.GogoProtoMarshalizer{}
-	lenTxs := workItems.ComputeSizeOfTxs(gogoMarsh, txs)
+	lenTxs := workItems.ComputeSizeOfTxs(gogoMarsh, &indexer.Pool{Txs: txs})
 
 	keys := reflect.ValueOf(txs).MapKeys()
 	oneTxBytes, _ := gogoMarsh.Marshal(txs[keys[0].String()])

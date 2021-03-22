@@ -1,25 +1,16 @@
 package workItems
 
 import (
-	"time"
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 )
-
-// RoundInfo is a structure containing block signers and shard id
-type RoundInfo struct {
-	Index            uint64        `json:"round"`
-	SignersIndexes   []uint64      `json:"signersIndexes"`
-	BlockWasProposed bool          `json:"blockWasProposed"`
-	ShardId          uint32        `json:"shardId"`
-	Timestamp        time.Duration `json:"timestamp"`
-}
 
 type itemRounds struct {
 	indexer    saveRounds
-	roundsInfo []RoundInfo
+	roundsInfo []*data.RoundInfo
 }
 
 // NewItemRounds will create a new instance of itemRounds
-func NewItemRounds(indexer saveRounds, roundsInfo []RoundInfo) WorkItemHandler {
+func NewItemRounds(indexer saveRounds, roundsInfo []*data.RoundInfo) WorkItemHandler {
 	return &itemRounds{
 		indexer:    indexer,
 		roundsInfo: roundsInfo,

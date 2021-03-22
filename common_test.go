@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/vmcommon"
@@ -63,27 +64,27 @@ func TestGetMoveBalanceTransaction(t *testing.T) {
 		SndUserName: []byte("snd"),
 	}
 
-	expectedTx := &Transaction{
-		Hash:             hex.EncodeToString(txHash),
-		MBHash:           hex.EncodeToString(mbHash),
-		Nonce:            tx.Nonce,
-		Round:            header.Round,
-		Value:            tx.Value.String(),
-		Receiver:         cp.addressPubkeyConverter.Encode(tx.RcvAddr),
-		Sender:           cp.addressPubkeyConverter.Encode(tx.SndAddr),
-		ReceiverShard:    mb.ReceiverShardID,
-		SenderShard:      mb.SenderShardID,
-		GasPrice:         gasPrice,
-		GasLimit:         gasLimit,
-		GasUsed:          uint64(500),
-		Data:             tx.Data,
-		Signature:        hex.EncodeToString(tx.Signature),
-		Timestamp:        time.Duration(header.GetTimeStamp()),
-		Status:           status,
-		rcvAddrBytes:     []byte("receiver"),
-		Fee:              "100",
-		ReceiverUserName: []byte("rcv"),
-		SenderUserName:   []byte("snd"),
+	expectedTx := &data.Transaction{
+		Hash:                 hex.EncodeToString(txHash),
+		MBHash:               hex.EncodeToString(mbHash),
+		Nonce:                tx.Nonce,
+		Round:                header.Round,
+		Value:                tx.Value.String(),
+		Receiver:             cp.addressPubkeyConverter.Encode(tx.RcvAddr),
+		Sender:               cp.addressPubkeyConverter.Encode(tx.SndAddr),
+		ReceiverShard:        mb.ReceiverShardID,
+		SenderShard:          mb.SenderShardID,
+		GasPrice:             gasPrice,
+		GasLimit:             gasLimit,
+		GasUsed:              uint64(500),
+		Data:                 tx.Data,
+		Signature:            hex.EncodeToString(tx.Signature),
+		Timestamp:            time.Duration(header.GetTimeStamp()),
+		Status:               status,
+		ReceiverAddressBytes: []byte("receiver"),
+		Fee:                  "100",
+		ReceiverUserName:     []byte("rcv"),
+		SenderUserName:       []byte("snd"),
 	}
 
 	dbTx := cp.buildTransaction(tx, txHash, mbHash, mb, header, status)
@@ -111,7 +112,7 @@ func TestGetTransactionByType_SC(t *testing.T) {
 	}
 
 	scRes := cp.convertScResultInDatabaseScr(scHash, smartContractRes)
-	expectedTx := ScResult{
+	expectedTx := data.ScResult{
 		Nonce:        nonce,
 		Hash:         hex.EncodeToString([]byte(scHash)),
 		PreTxHash:    hex.EncodeToString(txHash),
@@ -142,7 +143,7 @@ func TestGetTransactionByType_RewardTx(t *testing.T) {
 	status := "Success"
 
 	resultTx := cp.buildRewardTransaction(rwdTx, txHash, mbHash, mb, header, status)
-	expectedTx := &Transaction{
+	expectedTx := &data.Transaction{
 		Hash:     hex.EncodeToString(txHash),
 		MBHash:   hex.EncodeToString(mbHash),
 		Round:    round,

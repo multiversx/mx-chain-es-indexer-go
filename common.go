@@ -10,11 +10,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/templates/noKibana"
 	"github.com/ElrondNetwork/elastic-indexer-go/templates/withKibana"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/statistics"
-	"github.com/ElrondNetwork/elrond-go/data"
+	nodeData "github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/block"
 	"github.com/ElrondNetwork/elrond-go/data/rewardTx"
 	"github.com/ElrondNetwork/elrond-go/data/smartContractResult"
@@ -36,7 +37,7 @@ func prepareGeneralInfo(tpsBenchmark statistics.TPSBenchmark) bytes.Buffer {
 	var buff bytes.Buffer
 
 	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s", "_type" : "%s" } }%s`, metachainTpsDocID, tpsIndex, "\n"))
-	generalInfo := TPS{
+	generalInfo := data.TPS{
 		LiveTPS:               tpsBenchmark.LiveTPS(),
 		PeakTPS:               tpsBenchmark.PeakTPS(),
 		NrOfShards:            tpsBenchmark.NrOfShards(),
@@ -74,7 +75,7 @@ func serializeShardInfo(shardInfo statistics.ShardStatistic) ([]byte, []byte) {
 		shardTpsDocIDPrefix, shardInfo.ShardID(), tpsIndex, "\n"))
 
 	bigTxCount := big.NewInt(int64(shardInfo.AverageBlockTxCount()))
-	shardTPS := TPS{
+	shardTPS := data.TPS{
 		ShardID:               shardInfo.ShardID(),
 		LiveTPS:               shardInfo.LiveTPS(),
 		PeakTPS:               shardInfo.PeakTPS(),
@@ -101,33 +102,33 @@ func (cm *commonProcessor) buildTransaction(
 	txHash []byte,
 	mbHash []byte,
 	mb *block.MiniBlock,
-	header data.HeaderHandler,
+	header nodeData.HeaderHandler,
 	txStatus string,
-) *Transaction {
+) *data.Transaction {
 	gasUsed := cm.txFeeCalculator.ComputeGasLimit(tx)
 	fee := cm.txFeeCalculator.ComputeTxFeeBasedOnGasUsed(tx, gasUsed)
 
-	return &Transaction{
-		Hash:             hex.EncodeToString(txHash),
-		MBHash:           hex.EncodeToString(mbHash),
-		Nonce:            tx.Nonce,
-		Round:            header.GetRound(),
-		Value:            tx.Value.String(),
-		Receiver:         cm.addressPubkeyConverter.Encode(tx.RcvAddr),
-		Sender:           cm.addressPubkeyConverter.Encode(tx.SndAddr),
-		ReceiverShard:    cm.shardCoordinator.ComputeId(tx.RcvAddr),
-		SenderShard:      mb.SenderShardID,
-		GasPrice:         tx.GasPrice,
-		GasLimit:         tx.GasLimit,
-		Data:             tx.Data,
-		Signature:        hex.EncodeToString(tx.Signature),
-		Timestamp:        time.Duration(header.GetTimeStamp()),
-		Status:           txStatus,
-		GasUsed:          gasUsed,
-		Fee:              fee.String(),
-		ReceiverUserName: tx.RcvUserName,
-		SenderUserName:   tx.SndUserName,
-		rcvAddrBytes:     tx.RcvAddr,
+	return &data.Transaction{
+		Hash:                 hex.EncodeToString(txHash),
+		MBHash:               hex.EncodeToString(mbHash),
+		Nonce:                tx.Nonce,
+		Round:                header.GetRound(),
+		Value:                tx.Value.String(),
+		Receiver:             cm.addressPubkeyConverter.Encode(tx.RcvAddr),
+		Sender:               cm.addressPubkeyConverter.Encode(tx.SndAddr),
+		ReceiverShard:        cm.shardCoordinator.ComputeId(tx.RcvAddr),
+		SenderShard:          mb.SenderShardID,
+		GasPrice:             tx.GasPrice,
+		GasLimit:             tx.GasLimit,
+		Data:                 tx.Data,
+		Signature:            hex.EncodeToString(tx.Signature),
+		Timestamp:            time.Duration(header.GetTimeStamp()),
+		Status:               txStatus,
+		GasUsed:              gasUsed,
+		Fee:                  fee.String(),
+		ReceiverUserName:     tx.RcvUserName,
+		SenderUserName:       tx.SndUserName,
+		ReceiverAddressBytes: tx.RcvAddr,
 	}
 }
 
@@ -136,10 +137,10 @@ func (cm *commonProcessor) buildRewardTransaction(
 	txHash []byte,
 	mbHash []byte,
 	mb *block.MiniBlock,
-	header data.HeaderHandler,
+	header nodeData.HeaderHandler,
 	txStatus string,
-) *Transaction {
-	return &Transaction{
+) *data.Transaction {
+	return &data.Transaction{
 		Hash:          hex.EncodeToString(txHash),
 		MBHash:        hex.EncodeToString(mbHash),
 		Nonce:         0,
@@ -158,13 +159,13 @@ func (cm *commonProcessor) buildRewardTransaction(
 	}
 }
 
-func (cm *commonProcessor) convertScResultInDatabaseScr(scHash string, sc *smartContractResult.SmartContractResult) ScResult {
+func (cm *commonProcessor) convertScResultInDatabaseScr(scHash string, sc *smartContractResult.SmartContractResult) data.ScResult {
 	relayerAddr := ""
 	if len(sc.RelayerAddr) > 0 {
 		relayerAddr = cm.addressPubkeyConverter.Encode(sc.RelayerAddr)
 	}
 
-	return ScResult{
+	return data.ScResult{
 		Hash:           hex.EncodeToString([]byte(scHash)),
 		Nonce:          sc.Nonce,
 		GasLimit:       sc.GasLimit,
@@ -186,7 +187,7 @@ func (cm *commonProcessor) convertScResultInDatabaseScr(scHash string, sc *smart
 
 func serializeBulkMiniBlocks(
 	hdrShardID uint32,
-	bulkMbs []*Miniblock,
+	bulkMbs []*data.Miniblock,
 	getAlreadyIndexedItems func(hashes []string, index string) (map[string]bool, error),
 ) (bytes.Buffer, map[string]bool) {
 	var err error
@@ -251,7 +252,7 @@ func prepareBufferMiniblocks(buff bytes.Buffer, meta, serializedData []byte) byt
 }
 
 func serializeTransactions(
-	transactions []*Transaction,
+	transactions []*data.Transaction,
 	selfShardID uint32,
 	_ func(hashes []string, index string) (map[string]bool, error),
 	mbsHashInDB map[string]bool,
@@ -299,7 +300,7 @@ func serializeTransactions(
 	return buffSlice, nil
 }
 
-func serializeAccounts(accounts map[string]*AccountInfo) ([]bytes.Buffer, error) {
+func serializeAccounts(accounts map[string]*data.AccountInfo) ([]bytes.Buffer, error) {
 	var err error
 
 	var buff bytes.Buffer
@@ -341,7 +342,7 @@ func serializeAccounts(accounts map[string]*AccountInfo) ([]bytes.Buffer, error)
 	return buffSlice, nil
 }
 
-func serializeAccountsHistory(accounts map[string]*AccountBalanceHistory) ([]bytes.Buffer, error) {
+func serializeAccountsHistory(accounts map[string]*data.AccountBalanceHistory) ([]bytes.Buffer, error) {
 	var err error
 
 	var buff bytes.Buffer
@@ -384,7 +385,7 @@ func serializeAccountsHistory(accounts map[string]*AccountBalanceHistory) ([]byt
 }
 
 func prepareSerializedDataForATransaction(
-	tx *Transaction,
+	tx *data.Transaction,
 	selfShardID uint32,
 	_ bool,
 ) ([]byte, []byte, error) {
@@ -457,11 +458,11 @@ func prepareSerializedDataForATransaction(
 	return metaData, serializedData, nil
 }
 
-func isRelayedTx(tx *Transaction) bool {
+func isRelayedTx(tx *data.Transaction) bool {
 	return strings.HasPrefix(string(tx.Data), "relayedTx") && len(tx.SmartContractResults) > 0
 }
 
-func prepareSerializedAccountInfo(address string, account *AccountInfo) ([]byte, []byte, error) {
+func prepareSerializedAccountInfo(address string, account *data.AccountInfo) ([]byte, []byte, error) {
 	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, address, "\n"))
 	serializedData, err := json.Marshal(account)
 	if err != nil {
@@ -474,7 +475,7 @@ func prepareSerializedAccountInfo(address string, account *AccountInfo) ([]byte,
 	return meta, serializedData, nil
 }
 
-func prepareSerializedAccountBalanceHistory(address string, account *AccountBalanceHistory) ([]byte, []byte, error) {
+func prepareSerializedAccountBalanceHistory(address string, account *data.AccountBalanceHistory) ([]byte, []byte, error) {
 	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, address, "\n"))
 	serializedData, err := json.Marshal(account)
 	if err != nil {
@@ -487,11 +488,11 @@ func prepareSerializedAccountBalanceHistory(address string, account *AccountBala
 	return meta, serializedData, nil
 }
 
-func isCrossShardDstMe(tx *Transaction, selfShardID uint32) bool {
+func isCrossShardDstMe(tx *data.Transaction, selfShardID uint32) bool {
 	return tx.SenderShard != tx.ReceiverShard && tx.ReceiverShard == selfShardID
 }
 
-func isIntraShardOrInvalid(tx *Transaction, selfShardID uint32) bool {
+func isIntraShardOrInvalid(tx *data.Transaction, selfShardID uint32) bool {
 	return (tx.SenderShard == tx.ReceiverShard && tx.ReceiverShard == selfShardID) || tx.Status == transaction.TxStatusInvalid.String()
 }
 
