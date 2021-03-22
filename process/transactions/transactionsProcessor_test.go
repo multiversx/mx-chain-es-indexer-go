@@ -6,11 +6,11 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/disabled"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
-	"github.com/ElrondNetwork/elastic-indexer-go/types"
 	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/data"
+	nodeData "github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/block"
 	"github.com/ElrondNetwork/elrond-go/data/receipt"
 	"github.com/ElrondNetwork/elrond-go/data/rewardTx"
@@ -236,9 +236,9 @@ func TestPrepareTxLog(t *testing.T) {
 			},
 		},
 	}
-	expectedTxLog := &types.TxLog{
-		Address: txDbProc.txBuilder.addressPubkeyConverter.Encode(scAddr),
-		Events: []types.Event{
+	expectedTxLog := data.TxLog{
+		Address: txDbProc.addressPubkeyConverter.Encode(scAddr),
+		Events: []data.Event{
 			{
 				Address:    hex.EncodeToString(addr),
 				Identifier: hex.EncodeToString(identifier),
@@ -295,11 +295,11 @@ func TestRelayedTransactions(t *testing.T) {
 
 	header := &block.Header{}
 
-	pool := &types.Pool{
-		Txs: map[string]data.TransactionHandler{
+	pool := &indexer.Pool{
+		Txs: map[string]nodeData.TransactionHandler{
 			string(txHash1): tx1,
 		},
-		Scrs: map[string]data.TransactionHandler{
+		Scrs: map[string]nodeData.TransactionHandler{
 			string(scHash1): scResult1,
 			string(scHash2): scResult2,
 			string(scHash3): scResult3,
@@ -326,12 +326,12 @@ func TestRelayedTransactions(t *testing.T) {
 func TestSetTransactionSearchOrder(t *testing.T) {
 	t.Parallel()
 	txHash1 := []byte("txHash1")
-	tx1 := &types.Transaction{}
+	tx1 := &data.Transaction{}
 
 	txHash2 := []byte("txHash2")
-	tx2 := &types.Transaction{}
+	tx2 := &data.Transaction{}
 
-	txPool := map[string]*types.Transaction{
+	txPool := map[string]*data.Transaction{
 		string(txHash1): tx1,
 		string(txHash2): tx2,
 	}
@@ -456,15 +456,15 @@ func TestAlteredAddresses(t *testing.T) {
 	hdr := &block.Header{}
 
 	pool := &types.Pool{
-		Txs: map[string]data.TransactionHandler{
+		Txs: map[string]nodeData.TransactionHandler{
 			string(tx1Hash): tx1,
 			string(tx2Hash): tx2,
 		},
-		Scrs: map[string]data.TransactionHandler{
+		Scrs: map[string]nodeData.TransactionHandler{
 			string(scr1Hash): scr1,
 			string(scr2Hash): scr2,
 		},
-		Rewards: map[string]data.TransactionHandler{
+		Rewards: map[string]datnodeDataa.TransactionHandler{
 			string(rwdTx1Hash): rwdTx1,
 			string(rwdTx2Hash): rwdTx2,
 		},
@@ -503,7 +503,7 @@ func TestAlteredAddresses(t *testing.T) {
 	}
 }
 
-func txPoolHasSearchOrder(txPool map[string]*types.Transaction, searchOrder uint32) bool {
+func txPoolHasSearchOrder(txPool map[string]*data.Transaction, searchOrder uint32) bool {
 	for _, tx := range txPool {
 		if tx.SearchOrder == searchOrder {
 			return true
@@ -520,12 +520,12 @@ func TestCheckGasUsedTooMuchGasProvidedCase(t *testing.T) {
 	nonce := uint64(10)
 	sender := "sender"
 
-	tx := &types.Transaction{
+	tx := &data.Transaction{
 		Hash:   txHash,
 		Nonce:  nonce,
 		Sender: sender,
 	}
-	sc := &types.ScResult{
+	sc := &data.ScResult{
 		Data:      []byte("@6f6b@something"),
 		Nonce:     nonce + 1,
 		Receiver:  sender,
@@ -575,11 +575,11 @@ func TestCheckGasUsedInvalidTransaction(t *testing.T) {
 
 	header := &block.Header{}
 
-	pool := &types.Pool{
-		Invalid: map[string]data.TransactionHandler{
+	pool := &indexer.Pool{
+		Invalid: map[string]nodeData.TransactionHandler{
 			string(txHash1): tx1,
 		},
-		Receipts: map[string]data.TransactionHandler{
+		Receipts: map[string]nodeData.TransactionHandler{
 			string(recHash1): rec1,
 		},
 	}
@@ -629,11 +629,11 @@ func TestCheckGasUsedRelayedTransaction(t *testing.T) {
 
 	header := &block.Header{}
 
-	pool := &types.Pool{
-		Txs: map[string]data.TransactionHandler{
+	pool := &indexer.Pool{
+		Txs: map[string]nodeData.TransactionHandler{
 			string(txHash1): tx1,
 		},
-		Scrs: map[string]data.TransactionHandler{
+		Scrs: map[string]nodeData.TransactionHandler{
 			string(scResHash1): scRes1,
 		},
 	}

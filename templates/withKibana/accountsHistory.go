@@ -11,4 +11,11 @@ var AccountsHistory = Object{
 		"opendistro.index_state_management.policy_id":      "accountshistory_policy",
 		"opendistro.index_state_management.rollover_alias": "accountshistory",
 	},
+	"mappings": Object{
+		"properties": Object{
+			"timestamp": Object{
+				"type": "date",
+			},
+		},
+	},
 }

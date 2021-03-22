@@ -1,16 +1,16 @@
 package workItems
 
 import (
-	"github.com/ElrondNetwork/elastic-indexer-go/types"
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 )
 
 type itemRounds struct {
 	indexer    saveRounds
-	roundsInfo []*types.RoundInfo
+	roundsInfo []*data.RoundInfo
 }
 
 // NewItemRounds will create a new instance of itemRounds
-func NewItemRounds(indexer saveRounds, roundsInfo []*types.RoundInfo) WorkItemHandler {
+func NewItemRounds(indexer saveRounds, roundsInfo []*data.RoundInfo) WorkItemHandler {
 	return &itemRounds{
 		indexer:    indexer,
 		roundsInfo: roundsInfo,

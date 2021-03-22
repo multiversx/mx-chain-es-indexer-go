@@ -13,6 +13,11 @@ import (
 	"github.com/ElrondNetwork/elrond-go/core/check"
 	dataBlock "github.com/ElrondNetwork/elrond-go/data/block"
 	dataProcess "github.com/ElrondNetwork/elrond-go/process"
+	"github.com/ElrondNetwork/elrond-go/data/indexer"
+	"github.com/ElrondNetwork/elrond-go/data/transaction"
+	"github.com/ElrondNetwork/elrond-go/hashing/sha256"
+	"github.com/ElrondNetwork/elrond-go/marshal"
+	"github.com/ElrondNetwork/elrond-go/process"
 	"github.com/ElrondNetwork/elrond-go/testscommon"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -144,7 +149,7 @@ func TestDataIndexer_SaveBlock(t *testing.T) {
 	}
 	ei, _ := NewDataIndexer(arguments)
 
-	args := &types.ArgsSaveBlockData{
+	args := &indexer.ArgsSaveBlockData{
 		HeaderHash:             []byte("hash"),
 		Body:                   &dataBlock.Body{MiniBlocks: []*dataBlock.MiniBlock{}},
 		Header:                 nil,
@@ -170,7 +175,7 @@ func TestDataIndexer_SaveRoundInfo(t *testing.T) {
 	ei, _ := NewDataIndexer(arguments)
 	_ = ei.Close()
 
-	ei.SaveRoundsInfo([]*types.RoundInfo{})
+	ei.SaveRoundsInfo([]*indexer.RoundInfo{})
 	require.True(t, called)
 }
 
@@ -206,7 +211,7 @@ func TestDataIndexer_SaveValidatorsRating(t *testing.T) {
 	}
 	ei, _ := NewDataIndexer(arguments)
 
-	ei.SaveValidatorsRating("ID", []*types.ValidatorRatingInfo{
+	ei.SaveValidatorsRating("ID", []*indexer.ValidatorRatingInfo{
 		{Rating: 1}, {Rating: 2},
 	})
 	require.True(t, called)

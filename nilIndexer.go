@@ -1,9 +1,9 @@
 package indexer
 
 import (
-	"github.com/ElrondNetwork/elastic-indexer-go/types"
 	"github.com/ElrondNetwork/elrond-go/core/statistics"
 	"github.com/ElrondNetwork/elrond-go/data"
+	"github.com/ElrondNetwork/elrond-go/data/indexer"
 	"github.com/ElrondNetwork/elrond-go/data/state"
 	"github.com/ElrondNetwork/elrond-go/process"
 )
@@ -18,7 +18,7 @@ func NewNilIndexer() *NilIndexer {
 }
 
 // SaveBlock will do nothing
-func (ni *NilIndexer) SaveBlock(_ *types.ArgsSaveBlockData) {
+func (ni *NilIndexer) SaveBlock(_ *indexer.ArgsSaveBlockData) {
 }
 
 // RevertIndexedBlock will do nothing
@@ -30,7 +30,7 @@ func (ni *NilIndexer) SetTxLogsProcessor(_ process.TransactionLogProcessorDataba
 }
 
 // SaveRoundsInfo will do nothing
-func (ni *NilIndexer) SaveRoundsInfo(_ []*types.RoundInfo) {
+func (ni *NilIndexer) SaveRoundsInfo(_ []*indexer.RoundInfo) {
 }
 
 // UpdateTPS will do nothing
@@ -38,7 +38,7 @@ func (ni *NilIndexer) UpdateTPS(_ statistics.TPSBenchmark) {
 }
 
 // SaveValidatorsRating --
-func (ni *NilIndexer) SaveValidatorsRating(_ string, _ []*types.ValidatorRatingInfo) {
+func (ni *NilIndexer) SaveValidatorsRating(_ string, _ []*indexer.ValidatorRatingInfo) {
 }
 
 // SaveValidatorsPubKeys will do nothing
@@ -46,7 +46,7 @@ func (ni *NilIndexer) SaveValidatorsPubKeys(_ map[uint32][][]byte, _ uint32) {
 }
 
 // SaveAccounts won't do anything as this is a nil implementation
-func (ni *NilIndexer) SaveAccounts(_ []state.UserAccountHandler) {
+func (ni *NilIndexer) SaveAccounts(_ uint64, _ []state.UserAccountHandler) {
 }
 
 // Close will do nothing
