@@ -7,8 +7,8 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
-	"github.com/ElrondNetwork/elastic-indexer-go/types"
 	"github.com/ElrondNetwork/elrond-go/data/esdt"
 	"github.com/ElrondNetwork/elrond-go/data/state"
 	"github.com/stretchr/testify/assert"
@@ -60,7 +60,7 @@ func TestGetESDTInfo_CannotRetriveValueShoudError(t *testing.T) {
 	require.NotNil(t, ap)
 
 	localErr := errors.New("local error")
-	wrapAccount := &types.AccountESDT{
+	wrapAccount := &data.AccountESDT{
 		Account: &mock.UserAccountStub{
 			DataTrieTrackerCalled: func() state.DataTrieTracker {
 				return &mock.DataTrieTrackerStub{
@@ -88,7 +88,7 @@ func TestGetESDTInfo(t *testing.T) {
 	}
 
 	tokenIdentifier := "token-001"
-	wrapAccount := &types.AccountESDT{
+	wrapAccount := &data.AccountESDT{
 		Account: &mock.UserAccountStub{
 			DataTrieTrackerCalled: func() state.DataTrieTracker {
 				return &mock.DataTrieTrackerStub{
@@ -119,7 +119,7 @@ func TestAccountsProcessor_GetAccountsEGLDAccounts(t *testing.T) {
 	ap := NewAccountsProcessor(10, &mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), accountsStub)
 	require.NotNil(t, ap)
 
-	alteredAccounts := map[string]*types.AlteredAccount{
+	alteredAccounts := map[string]*data.AlteredAccount{
 		addr: {
 			IsESDTOperation: false,
 			TokenIdentifier: "",
@@ -127,8 +127,8 @@ func TestAccountsProcessor_GetAccountsEGLDAccounts(t *testing.T) {
 	}
 	accounts, esdtAccounts := ap.GetAccounts(alteredAccounts)
 	require.Equal(t, 0, len(esdtAccounts))
-	require.Equal(t, []*types.AccountEGLD{
-		{Account: mockAccount},
+	require.Equal(t, []*data.Account{
+		{UserAccount: mockAccount},
 	}, accounts)
 }
 
@@ -145,7 +145,7 @@ func TestAccountsProcessor_GetAccountsESDTAccount(t *testing.T) {
 	ap := NewAccountsProcessor(10, &mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), accountsStub)
 	require.NotNil(t, ap)
 
-	alteredAccounts := map[string]*types.AlteredAccount{
+	alteredAccounts := map[string]*data.AlteredAccount{
 		addr: {
 			IsESDTOperation: true,
 			TokenIdentifier: "token",
@@ -153,7 +153,7 @@ func TestAccountsProcessor_GetAccountsESDTAccount(t *testing.T) {
 	}
 	accounts, esdtAccounts := ap.GetAccounts(alteredAccounts)
 	require.Equal(t, 0, len(accounts))
-	require.Equal(t, []*types.AccountESDT{
+	require.Equal(t, []*data.AccountESDT{
 		{Account: mockAccount, TokenIdentifier: "token"},
 	}, esdtAccounts)
 }
@@ -174,9 +174,9 @@ func TestAccountsProcessor_PrepareAccountsMapEGLD(t *testing.T) {
 		},
 	}
 
-	egldAccount := &types.AccountEGLD{
-		Account:  mockAccount,
-		IsSender: false,
+	egldAccount := &data.Account{
+		UserAccount: mockAccount,
+		IsSender:    false,
 	}
 
 	accountsStub := &mock.AccountsStub{
@@ -187,8 +187,8 @@ func TestAccountsProcessor_PrepareAccountsMapEGLD(t *testing.T) {
 	ap := NewAccountsProcessor(10, &mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), accountsStub)
 	require.NotNil(t, ap)
 
-	res := ap.PrepareAccountsMapEGLD([]*types.AccountEGLD{egldAccount})
-	require.Equal(t, map[string]*types.AccountInfo{
+	res := ap.PrepareAccountsMapEGLD([]*data.Account{egldAccount})
+	require.Equal(t, map[string]*data.AccountInfo{
 		hex.EncodeToString([]byte(addr)): {
 			Nonce:      1,
 			Balance:    "1000",
@@ -226,8 +226,8 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 	ap := NewAccountsProcessor(10, &mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), accountsStub)
 	require.NotNil(t, ap)
 
-	res := ap.PrepareAccountsMapESDT([]*types.AccountESDT{{Account: mockAccount, TokenIdentifier: "token"}})
-	require.Equal(t, map[string]*types.AccountInfo{
+	res := ap.PrepareAccountsMapESDT([]*data.AccountESDT{{Account: mockAccount, TokenIdentifier: "token"}})
+	require.Equal(t, map[string]*data.AccountInfo{
 		hex.EncodeToString([]byte(addr)): {
 			Address:         hex.EncodeToString([]byte(addr)),
 			Balance:         "1000",

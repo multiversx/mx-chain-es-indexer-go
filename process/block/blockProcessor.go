@@ -6,10 +6,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/types"
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/data"
+	nodeData "github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/block"
 	"github.com/ElrondNetwork/elrond-go/hashing"
 	"github.com/ElrondNetwork/elrond-go/marshal"
@@ -32,12 +32,12 @@ func NewBlockProcessor(hasher hashing.Hasher, msarshalizer marshal.Marshalizer) 
 
 // PrepareBlockForDB will prepare a database block and serialize if for database
 func (bp *blockProcessor) PrepareBlockForDB(
-	header data.HeaderHandler,
+	header nodeData.HeaderHandler,
 	signersIndexes []uint64,
 	body *block.Body,
 	notarizedHeadersHashes []string,
 	sizeTxs int,
-) (*types.Block, error) {
+) (*data.Block, error) {
 	blockSizeInBytes, headerHash, err := bp.computeBlockSizeAndHeaderHash(header, body)
 	if err != nil {
 		return nil, err
@@ -46,7 +46,7 @@ func (bp *blockProcessor) PrepareBlockForDB(
 	miniblocksHashes := bp.getEncodedMBSHashes(body)
 	leaderIndex := bp.getLeaderIndex(signersIndexes)
 
-	elasticBlock := &types.Block{
+	elasticBlock := &data.Block{
 		Nonce:                 header.GetNonce(),
 		Round:                 header.GetRound(),
 		Epoch:                 header.GetEpoch(),
@@ -89,7 +89,7 @@ func (bp *blockProcessor) getEncodedMBSHashes(body *block.Body) []string {
 	return miniblocksHashes
 }
 
-func (bp *blockProcessor) computeBlockSizeAndHeaderHash(header data.HeaderHandler, body *block.Body) (int, []byte, error) {
+func (bp *blockProcessor) computeBlockSizeAndHeaderHash(header nodeData.HeaderHandler, body *block.Body) (int, []byte, error) {
 	headerBytes, err := bp.marshalizer.Marshal(header)
 	if err != nil {
 		return 0, nil, err
@@ -114,7 +114,7 @@ func (bp *blockProcessor) getLeaderIndex(signersIndexes []uint64) uint64 {
 	return 0
 }
 
-func computeBlockSearchOrder(header data.HeaderHandler) uint64 {
+func computeBlockSearchOrder(header nodeData.HeaderHandler) uint64 {
 	shardIdentifier := createShardIdentifier(header.GetShardID())
 	stringOrder := fmt.Sprintf("1%02d%d", shardIdentifier, header.GetNonce())
 
@@ -138,6 +138,6 @@ func createShardIdentifier(shardID uint32) uint32 {
 }
 
 // ComputeHeaderHash will compute hash of a provided header
-func (bp *blockProcessor) ComputeHeaderHash(header data.HeaderHandler) ([]byte, error) {
+func (bp *blockProcessor) ComputeHeaderHash(header nodeData.HeaderHandler) ([]byte, error) {
 	return core.CalculateHash(bp.marshalizer, bp.hasher, header)
 }

@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/disabled"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/block"
@@ -18,10 +19,10 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/process/miniblocks"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/transactions"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/validators"
-	"github.com/ElrondNetwork/elastic-indexer-go/types"
 	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/data"
+	nodeData "github.com/ElrondNetwork/elrond-go/data"
 	dataBlock "github.com/ElrondNetwork/elrond-go/data/block"
+	"github.com/ElrondNetwork/elrond-go/data/indexer"
 	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-go/testscommon"
 	"github.com/ElrondNetwork/elrond-go/testscommon/economicsmocks"
@@ -53,8 +54,8 @@ func createMockElasticProcessorArgs() *ArgElasticProcessor {
 	}
 }
 
-func newTestTxPool() map[string]data.TransactionHandler {
-	txPool := map[string]data.TransactionHandler{
+func newTestTxPool() map[string]nodeData.TransactionHandler {
+	txPool := map[string]nodeData.TransactionHandler{
 		"tx1": &transaction.Transaction{
 			Nonce:     uint64(1),
 			Value:     big.NewInt(1),
@@ -249,7 +250,7 @@ func TestElasticseachDatabaseSaveHeader_CheckRequestBody(t *testing.T) {
 		DoRequestCalled: func(req *esapi.IndexRequest) error {
 			require.Equal(t, blockIndex, req.Index)
 
-			var bl types.Block
+			var bl data.Block
 			blockBytes, _ := ioutil.ReadAll(req.Body)
 			_ = json.Unmarshal(blockBytes, &bl)
 			require.Equal(t, header.Nonce, bl.Nonce)
@@ -292,7 +293,7 @@ func TestElasticseachSaveTransactions(t *testing.T) {
 	arguments.TxProc = txDbProc
 
 	elasticDatabase := newTestElasticSearchDatabase(dbWriter, arguments)
-	pool := &types.Pool{Txs: txPool}
+	pool := &indexer.Pool{Txs: txPool}
 	err := elasticDatabase.SaveTransactions(body, header, pool, map[string]bool{})
 	require.Equal(t, localErr, err)
 }
@@ -315,7 +316,7 @@ func TestElasticProcessor_SaveValidatorsRating(t *testing.T) {
 
 	err := elasticProc.SaveValidatorsRating(
 		docID,
-		[]*types.ValidatorRatingInfo{
+		[]*data.ValidatorRatingInfo{
 			{
 				PublicKey: blsKey,
 				Rating:    100,
@@ -429,7 +430,7 @@ func TestElasticsearch_saveShardStatistics(t *testing.T) {
 }
 
 func TestElasticsearch_saveRoundInfo(t *testing.T) {
-	roundInfo := &types.RoundInfo{
+	roundInfo := &data.RoundInfo{
 		Index: 1, ShardId: 0, BlockWasProposed: true,
 	}
 	arguments := createMockElasticProcessorArgs()
@@ -441,12 +442,12 @@ func TestElasticsearch_saveRoundInfo(t *testing.T) {
 	}
 	elasticDatabase := newTestElasticSearchDatabase(dbWriter, arguments)
 
-	err := elasticDatabase.SaveRoundsInfo([]*types.RoundInfo{roundInfo})
+	err := elasticDatabase.SaveRoundsInfo([]*data.RoundInfo{roundInfo})
 	require.Nil(t, err)
 }
 
 func TestElasticsearch_saveRoundInfoRequestError(t *testing.T) {
-	roundInfo := &types.RoundInfo{}
+	roundInfo := &data.RoundInfo{}
 	localError := errors.New("local err")
 	arguments := createMockElasticProcessorArgs()
 	dbWriter := &mock.DatabaseWriterStub{
@@ -456,7 +457,7 @@ func TestElasticsearch_saveRoundInfoRequestError(t *testing.T) {
 	}
 	elasticDatabase := newTestElasticSearchDatabase(dbWriter, arguments)
 
-	err := elasticDatabase.SaveRoundsInfo([]*types.RoundInfo{roundInfo})
+	err := elasticDatabase.SaveRoundsInfo([]*data.RoundInfo{roundInfo})
 	require.Equal(t, localError, err)
 
 }

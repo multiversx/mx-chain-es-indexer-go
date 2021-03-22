@@ -5,17 +5,17 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/types"
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 )
 
 // SerializeAccounts will serialize the provided accounts in a way that Elastic Search expects a bulk request
 func (ap *accountsProcessor) SerializeAccounts(
-	accounts map[string]*types.AccountInfo,
+	accounts map[string]*data.AccountInfo,
 	areESDTAccounts bool,
 ) ([]*bytes.Buffer, error) {
 	var err error
 
-	buffSlice := types.NewBufferSlice()
+	buffSlice := data.NewBufferSlice()
 	for address, acc := range accounts {
 		meta, serializedData, errPrepareAcc := prepareSerializedAccountInfo(address, acc, areESDTAccounts)
 		if len(meta) == 0 {
@@ -35,7 +35,7 @@ func (ap *accountsProcessor) SerializeAccounts(
 
 func prepareSerializedAccountInfo(
 	address string,
-	account *types.AccountInfo,
+	account *data.AccountInfo,
 	isESDTAccount bool,
 ) ([]byte, []byte, error) {
 	id := address
@@ -55,11 +55,11 @@ func prepareSerializedAccountInfo(
 
 // SerializeAccountsHistory will serialize accounts history in a way that Elastic Search expects a bulk request
 func (ap *accountsProcessor) SerializeAccountsHistory(
-	accounts map[string]*types.AccountBalanceHistory,
+	accounts map[string]*data.AccountBalanceHistory,
 ) ([]*bytes.Buffer, error) {
 	var err error
 
-	buffSlice := types.NewBufferSlice()
+	buffSlice := data.NewBufferSlice()
 	for address, acc := range accounts {
 		meta, serializedData, errPrepareAcc := prepareSerializedAccountBalanceHistory(address, acc)
 		if errPrepareAcc != nil {
@@ -79,7 +79,7 @@ func (ap *accountsProcessor) SerializeAccountsHistory(
 
 func prepareSerializedAccountBalanceHistory(
 	address string,
-	account *types.AccountBalanceHistory,
+	account *data.AccountBalanceHistory,
 ) ([]byte, []byte, error) {
 	// no '_id' is specified because an elastic client would never search after the identifier for this index.
 	// this is also an improvement: more details here:

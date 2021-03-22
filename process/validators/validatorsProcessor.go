@@ -1,7 +1,7 @@
 package validators
 
 import (
-	"github.com/ElrondNetwork/elastic-indexer-go/types"
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-go/core"
 )
@@ -20,8 +20,8 @@ func NewValidatorsProcessor(validatorPubkeyConverter core.PubkeyConverter) *vali
 }
 
 // PrepareValidatorsPublicKeys will prepare validators public keys
-func (vp *validatorsProcessor) PrepareValidatorsPublicKeys(shardValidatorsPubKeys [][]byte) *types.ValidatorsPublicKeys {
-	validatorsPubKeys := &types.ValidatorsPublicKeys{
+func (vp *validatorsProcessor) PrepareValidatorsPublicKeys(shardValidatorsPubKeys [][]byte) *data.ValidatorsPublicKeys {
+	validatorsPubKeys := &data.ValidatorsPublicKeys{
 		PublicKeys: make([]string, 0),
 	}
 

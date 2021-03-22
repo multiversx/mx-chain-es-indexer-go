@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/types"
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
@@ -207,7 +207,7 @@ func (ec *elasticClient) PolicyExists(policy string) bool {
 		Header:     res.Header,
 	}
 
-	existsRes := &types.KibanaResponse{}
+	existsRes := &data.KibanaResponse{}
 	err = parseResponse(response, existsRes, kibanaResponseErrorHandler)
 	if err != nil {
 		log.Warn("elasticClient.PolicyExists",
@@ -285,7 +285,7 @@ func (ec *elasticClient) createPolicy(policyName string, policy *bytes.Buffer) e
 		Header:     res.Header,
 	}
 
-	existsRes := &types.KibanaResponse{}
+	existsRes := &data.KibanaResponse{}
 	err = parseResponse(response, existsRes, kibanaResponseErrorHandler)
 	if err != nil {
 		return err

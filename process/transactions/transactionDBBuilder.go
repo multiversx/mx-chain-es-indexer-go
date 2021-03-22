@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/types"
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/data"
+	nodeData "github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/block"
 	"github.com/ElrondNetwork/elrond-go/data/receipt"
 	"github.com/ElrondNetwork/elrond-go/data/rewardTx"
@@ -45,9 +45,9 @@ func (tbb *txDBBuilder) buildTransaction(
 	txHash []byte,
 	mbHash []byte,
 	mb *block.MiniBlock,
-	header data.HeaderHandler,
+	header nodeData.HeaderHandler,
 	txStatus string,
-) *types.Transaction {
+) *data.Transaction {
 	var tokenIdentifier, esdtValue string
 	if isESDTTx := tbb.esdtProc.isESDTTx(tx); isESDTTx {
 		tokenIdentifier, esdtValue = tbb.esdtProc.getTokenIdentifierAndValue(tx)
@@ -56,29 +56,29 @@ func (tbb *txDBBuilder) buildTransaction(
 	gasUsed := tbb.txFeeCalculator.ComputeGasLimit(tx)
 	fee := tbb.txFeeCalculator.ComputeTxFeeBasedOnGasUsed(tx, gasUsed)
 
-	return &types.Transaction{
-		Hash:                hex.EncodeToString(txHash),
-		MBHash:              hex.EncodeToString(mbHash),
-		Nonce:               tx.Nonce,
-		Round:               header.GetRound(),
-		Value:               tx.Value.String(),
-		Receiver:            tbb.addressPubkeyConverter.Encode(tx.RcvAddr),
-		Sender:              tbb.addressPubkeyConverter.Encode(tx.SndAddr),
-		ReceiverShard:       mb.ReceiverShardID,
-		SenderShard:         mb.SenderShardID,
-		GasPrice:            tx.GasPrice,
-		GasLimit:            tx.GasLimit,
-		Data:                tx.Data,
-		Signature:           hex.EncodeToString(tx.Signature),
-		Timestamp:           time.Duration(header.GetTimeStamp()),
-		Status:              txStatus,
-		EsdtTokenIdentifier: tokenIdentifier,
-		EsdtValue:           esdtValue,
-		GasUsed:             gasUsed,
-		Fee:                 fee.String(),
-		ReceiverUserName:    tx.RcvUserName,
-		SenderUserName:      tx.SndUserName,
-		RcvAddrBytes:        tx.RcvAddr,
+	return &data.Transaction{
+		Hash:                 hex.EncodeToString(txHash),
+		MBHash:               hex.EncodeToString(mbHash),
+		Nonce:                tx.Nonce,
+		Round:                header.GetRound(),
+		Value:                tx.Value.String(),
+		Receiver:             tbb.addressPubkeyConverter.Encode(tx.RcvAddr),
+		Sender:               tbb.addressPubkeyConverter.Encode(tx.SndAddr),
+		ReceiverShard:        mb.ReceiverShardID,
+		SenderShard:          mb.SenderShardID,
+		GasPrice:             tx.GasPrice,
+		GasLimit:             tx.GasLimit,
+		Data:                 tx.Data,
+		Signature:            hex.EncodeToString(tx.Signature),
+		Timestamp:            time.Duration(header.GetTimeStamp()),
+		Status:               txStatus,
+		EsdtTokenIdentifier:  tokenIdentifier,
+		EsdtValue:            esdtValue,
+		GasUsed:              gasUsed,
+		Fee:                  fee.String(),
+		ReceiverUserName:     tx.RcvUserName,
+		SenderUserName:       tx.SndUserName,
+		ReceiverAddressBytes: tx.RcvAddr,
 	}
 }
 
@@ -87,10 +87,10 @@ func (tbb *txDBBuilder) buildRewardTransaction(
 	txHash []byte,
 	mbHash []byte,
 	mb *block.MiniBlock,
-	header data.HeaderHandler,
+	header nodeData.HeaderHandler,
 	txStatus string,
-) *types.Transaction {
-	return &types.Transaction{
+) *data.Transaction {
+	return &data.Transaction{
 		Hash:          hex.EncodeToString(txHash),
 		MBHash:        hex.EncodeToString(mbHash),
 		Nonce:         0,
@@ -112,8 +112,8 @@ func (tbb *txDBBuilder) buildRewardTransaction(
 func (tbb *txDBBuilder) convertScResultInDatabaseScr(
 	scHash string,
 	sc *smartContractResult.SmartContractResult,
-	header data.HeaderHandler,
-) *types.ScResult {
+	header nodeData.HeaderHandler,
+) *data.ScResult {
 	relayerAddr := ""
 	if len(sc.RelayerAddr) > 0 {
 		relayerAddr = tbb.addressPubkeyConverter.Encode(sc.RelayerAddr)
@@ -126,7 +126,7 @@ func (tbb *txDBBuilder) convertScResultInDatabaseScr(
 		tokenIdentifier, esdtValue = tbb.esdtProc.getTokenIdentifierAndValue(sc)
 	}
 
-	return &types.ScResult{
+	return &data.ScResult{
 		Hash:                hex.EncodeToString([]byte(scHash)),
 		Nonce:               sc.Nonce,
 		GasLimit:            sc.GasLimit,
@@ -152,9 +152,9 @@ func (tbb *txDBBuilder) convertScResultInDatabaseScr(
 func (tbb *txDBBuilder) convertReceiptInDatabaseReceipt(
 	recHash string,
 	rec *receipt.Receipt,
-	header data.HeaderHandler,
-) *types.Receipt {
-	return &types.Receipt{
+	header nodeData.HeaderHandler,
+) *data.Receipt {
+	return &data.Receipt{
 		Hash:      hex.EncodeToString([]byte(recHash)),
 		Value:     rec.Value.String(),
 		Sender:    tbb.addressPubkeyConverter.Encode(rec.SndAddr),
@@ -165,8 +165,8 @@ func (tbb *txDBBuilder) convertReceiptInDatabaseReceipt(
 }
 
 func (tbb *txDBBuilder) addScrsReceiverToAlteredAccounts(
-	alteredAddress map[string]*types.AlteredAccount,
-	scrs []*types.ScResult,
+	alteredAddress map[string]*data.AlteredAccount,
+	scrs []*data.ScResult,
 ) {
 	for _, scr := range scrs {
 		receiverAddr, _ := tbb.addressPubkeyConverter.Decode(scr.Receiver)
@@ -182,7 +182,7 @@ func (tbb *txDBBuilder) addScrsReceiverToAlteredAccounts(
 			continue
 		}
 		encodedReceiverAddress := scr.Receiver
-		alteredAddress[encodedReceiverAddress] = &types.AlteredAccount{
+		alteredAddress[encodedReceiverAddress] = &data.AlteredAccount{
 			IsESDTOperation: scr.EsdtTokenIdentifier != "" && scr.EsdtValue != "",
 			TokenIdentifier: scr.EsdtTokenIdentifier,
 		}

@@ -1,9 +1,9 @@
 package transactions
 
 import (
-	"github.com/ElrondNetwork/elastic-indexer-go/types"
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/data"
+	nodeData "github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/block"
 	"github.com/ElrondNetwork/elrond-go/data/receipt"
 	"github.com/ElrondNetwork/elrond-go/data/rewardTx"
@@ -39,11 +39,11 @@ func newTxGrouper(
 
 func (tg *txGrouper) groupNormalTxs(
 	mb *block.MiniBlock,
-	header data.HeaderHandler,
-	txs map[string]data.TransactionHandler,
-	alteredAddresses map[string]*types.AlteredAccount,
-) map[string]*types.Transaction {
-	transactions := make(map[string]*types.Transaction)
+	header nodeData.HeaderHandler,
+	txs map[string]nodeData.TransactionHandler,
+	alteredAddresses map[string]*data.AlteredAccount,
+) map[string]*data.Transaction {
+	transactions := make(map[string]*data.Transaction)
 
 	mbHash, err := core.CalculateHash(tg.marshalizer, tg.hasher, mb)
 	if err != nil {
@@ -75,11 +75,11 @@ func (tg *txGrouper) groupNormalTxs(
 
 func (tg *txGrouper) groupRewardsTxs(
 	mb *block.MiniBlock,
-	header data.HeaderHandler,
-	txs map[string]data.TransactionHandler,
-	alteredAddresses map[string]*types.AlteredAccount,
-) map[string]*types.Transaction {
-	rewardsTxs := make(map[string]*types.Transaction)
+	header nodeData.HeaderHandler,
+	txs map[string]nodeData.TransactionHandler,
+	alteredAddresses map[string]*data.AlteredAccount,
+) map[string]*data.Transaction {
+	rewardsTxs := make(map[string]*data.Transaction)
 	mbHash, err := core.CalculateHash(tg.marshalizer, tg.hasher, mb)
 	if err != nil {
 		log.Warn("txGrouper.groupRewardsTxs cannot calculate miniblock hash", "error", err)
@@ -110,11 +110,11 @@ func (tg *txGrouper) groupRewardsTxs(
 
 func (tg *txGrouper) groupInvalidTxs(
 	mb *block.MiniBlock,
-	header data.HeaderHandler,
-	txs map[string]data.TransactionHandler,
-	alteredAddresses map[string]*types.AlteredAccount,
-) map[string]*types.Transaction {
-	transactions := make(map[string]*types.Transaction)
+	header nodeData.HeaderHandler,
+	txs map[string]nodeData.TransactionHandler,
+	alteredAddresses map[string]*data.AlteredAccount,
+) map[string]*data.Transaction {
+	transactions := make(map[string]*data.Transaction)
 	mbHash, err := core.CalculateHash(tg.marshalizer, tg.hasher, mb)
 	if err != nil {
 		log.Warn("txGrouper.groupInvalidTxs cannot calculate miniblock hash", "error", err)
@@ -153,7 +153,7 @@ func (tg *txGrouper) shouldIndex(destinationShardID uint32) bool {
 	return tg.selfShardID == destinationShardID
 }
 
-func (tg *txGrouper) groupReceipts(header data.HeaderHandler, txPool map[string]data.TransactionHandler) []*types.Receipt {
+func (tg *txGrouper) groupReceipts(header nodeData.HeaderHandler, txPool map[string]nodeData.TransactionHandler) []*data.Receipt {
 	receipts := make(map[string]*receipt.Receipt)
 	for hash, tx := range txPool {
 		rec, ok := tx.(*receipt.Receipt)
@@ -164,7 +164,7 @@ func (tg *txGrouper) groupReceipts(header data.HeaderHandler, txPool map[string]
 		receipts[hash] = rec
 	}
 
-	dbReceipts := make([]*types.Receipt, 0)
+	dbReceipts := make([]*data.Receipt, 0)
 	for recHash, rec := range receipts {
 		dbReceipts = append(dbReceipts, tg.txBuilder.convertReceiptInDatabaseReceipt(recHash, rec, header))
 	}
@@ -180,7 +180,7 @@ func computeStatus(selfShardID uint32, receiverShardID uint32) string {
 	return transaction.TxStatusPending.String()
 }
 
-func groupSmartContractResults(txPool map[string]data.TransactionHandler) map[string]*smartContractResult.SmartContractResult {
+func groupSmartContractResults(txPool map[string]nodeData.TransactionHandler) map[string]*smartContractResult.SmartContractResult {
 	scResults := make(map[string]*smartContractResult.SmartContractResult)
 	for hash, tx := range txPool {
 		scResult, ok := tx.(*smartContractResult.SmartContractResult)
@@ -193,8 +193,8 @@ func groupSmartContractResults(txPool map[string]data.TransactionHandler) map[st
 	return scResults
 }
 
-func convertMapTxsToSlice(txs map[string]*types.Transaction) []*types.Transaction {
-	transactions := make([]*types.Transaction, len(txs))
+func convertMapTxsToSlice(txs map[string]*data.Transaction) []*data.Transaction {
+	transactions := make([]*data.Transaction, len(txs))
 	i := 0
 	for _, tx := range txs {
 		transactions[i] = tx
@@ -204,8 +204,8 @@ func convertMapTxsToSlice(txs map[string]*types.Transaction) []*types.Transactio
 }
 
 func addToAlteredAddresses(
-	tx *types.Transaction,
-	alteredAddresses map[string]*types.AlteredAccount,
+	tx *data.Transaction,
+	alteredAddresses map[string]*data.AlteredAccount,
 	miniBlock *block.MiniBlock,
 	selfShardID uint32,
 	isRewardTx bool,
@@ -213,7 +213,7 @@ func addToAlteredAddresses(
 	isESDTTx := tx.EsdtTokenIdentifier != "" && tx.EsdtValue != ""
 
 	if selfShardID == miniBlock.SenderShardID && !isRewardTx {
-		alteredAddresses[tx.Sender] = &types.AlteredAccount{
+		alteredAddresses[tx.Sender] = &data.AlteredAccount{
 			IsSender:        true,
 			IsESDTOperation: isESDTTx,
 			TokenIdentifier: tx.EsdtTokenIdentifier,
@@ -226,7 +226,7 @@ func addToAlteredAddresses(
 	}
 
 	if selfShardID == miniBlock.ReceiverShardID || miniBlock.ReceiverShardID == core.AllShardId {
-		alteredAddresses[tx.Receiver] = &types.AlteredAccount{
+		alteredAddresses[tx.Receiver] = &data.AlteredAccount{
 			IsSender:        false,
 			IsESDTOperation: isESDTTx,
 			TokenIdentifier: tx.EsdtTokenIdentifier,

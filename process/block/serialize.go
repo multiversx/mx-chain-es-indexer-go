@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/types"
-	"github.com/ElrondNetwork/elrond-go/data"
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	nodeData "github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/block"
 )
 
@@ -14,7 +14,7 @@ import (
 var ErrHeaderTypeAssertion = errors.New("elasticsearch - header type assertion failed")
 
 // SerializeBlock will serialize block for database
-func (bp *blockProcessor) SerializeBlock(elasticBlock *types.Block) (*bytes.Buffer, error) {
+func (bp *blockProcessor) SerializeBlock(elasticBlock *data.Block) (*bytes.Buffer, error) {
 	blockBytes, err := json.Marshal(elasticBlock)
 	if err != nil {
 		return nil, err
@@ -32,13 +32,13 @@ func (bp *blockProcessor) SerializeBlock(elasticBlock *types.Block) (*bytes.Buff
 }
 
 // SerializeEpochInfoData will serialize information about current epoch
-func (bp *blockProcessor) SerializeEpochInfoData(header data.HeaderHandler) (*bytes.Buffer, error) {
+func (bp *blockProcessor) SerializeEpochInfoData(header nodeData.HeaderHandler) (*bytes.Buffer, error) {
 	metablock, ok := header.(*block.MetaBlock)
 	if !ok {
 		return nil, ErrHeaderTypeAssertion
 	}
 
-	epochInfo := &types.EpochInfo{
+	epochInfo := &data.EpochInfo{
 		AccumulatedFees: metablock.AccumulatedFeesInEpoch.String(),
 		DeveloperFees:   metablock.DevFeesInEpoch.String(),
 	}

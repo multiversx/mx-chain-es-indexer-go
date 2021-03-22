@@ -3,10 +3,11 @@ package process
 import (
 	"bytes"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/types"
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go/core/statistics"
-	"github.com/ElrondNetwork/elrond-go/data"
+	nodeData "github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/block"
+	"github.com/ElrondNetwork/elrond-go/data/indexer"
 	"github.com/ElrondNetwork/elrond-go/process"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
@@ -28,59 +29,59 @@ type DatabaseClientHandler interface {
 
 // DBAccountHandler defines the actions that an accounts handler should do
 type DBAccountHandler interface {
-	GetAccounts(alteredAccounts map[string]*types.AlteredAccount) ([]*types.AccountEGLD, []*types.AccountESDT)
-	PrepareAccountsMapEGLD(accounts []*types.AccountEGLD) map[string]*types.AccountInfo
-	PrepareAccountsMapESDT(accounts []*types.AccountESDT) map[string]*types.AccountInfo
-	PrepareAccountsHistory(accounts map[string]*types.AccountInfo) map[string]*types.AccountBalanceHistory
+	GetAccounts(alteredAccounts map[string]*data.AlteredAccount) ([]*data.Account, []*data.AccountESDT)
+	PrepareAccountsMapEGLD(accounts []*data.Account) map[string]*data.AccountInfo
+	PrepareAccountsMapESDT(accounts []*data.AccountESDT) map[string]*data.AccountInfo
+	PrepareAccountsHistory(timestamp uint64, accounts map[string]*data.AccountInfo) map[string]*data.AccountBalanceHistory
 
-	SerializeAccountsHistory(accounts map[string]*types.AccountBalanceHistory) ([]*bytes.Buffer, error)
-	SerializeAccounts(accounts map[string]*types.AccountInfo, areESDTAccounts bool) ([]*bytes.Buffer, error)
+	SerializeAccountsHistory(accounts map[string]*data.AccountBalanceHistory) ([]*bytes.Buffer, error)
+	SerializeAccounts(accounts map[string]*data.AccountInfo, areESDTAccounts bool) ([]*bytes.Buffer, error)
 }
 
 // DBBlockHandler defines the actions that a block handler should do
 type DBBlockHandler interface {
-	PrepareBlockForDB(header data.HeaderHandler, signersIndexes []uint64, body *block.Body, notarizedHeadersHashes []string, sizeTxs int) (*types.Block, error)
-	ComputeHeaderHash(header data.HeaderHandler) ([]byte, error)
+	PrepareBlockForDB(header nodeData.HeaderHandler, signersIndexes []uint64, body *block.Body, notarizedHeadersHashes []string, sizeTxs int) (*data.Block, error)
+	ComputeHeaderHash(header nodeData.HeaderHandler) ([]byte, error)
 
-	SerializeEpochInfoData(header data.HeaderHandler) (*bytes.Buffer, error)
-	SerializeBlock(elasticBlock *types.Block) (*bytes.Buffer, error)
+	SerializeEpochInfoData(header nodeData.HeaderHandler) (*bytes.Buffer, error)
+	SerializeBlock(elasticBlock *data.Block) (*bytes.Buffer, error)
 }
 
 // DBTransactionsHandler defines the actions that a transactions handler should do
 type DBTransactionsHandler interface {
 	PrepareTransactionsForDatabase(
 		body *block.Body,
-		header data.HeaderHandler,
-		pool *types.Pool,
-	) *types.PreparedResults
-	GetRewardsTxsHashesHexEncoded(header data.HeaderHandler, body *block.Body) []string
+		header nodeData.HeaderHandler,
+		pool *indexer.Pool,
+	) *data.PreparedResults
+	GetRewardsTxsHashesHexEncoded(header nodeData.HeaderHandler, body *block.Body) []string
 
 	SetTxLogsProcessor(txLogProcessor process.TransactionLogProcessorDatabase)
 
-	SerializeReceipts(receipts []*types.Receipt) ([]*bytes.Buffer, error)
-	SerializeTransactions(transactions []*types.Transaction, selfShardID uint32, mbsHashInDB map[string]bool) ([]*bytes.Buffer, error)
-	SerializeScResults(scResults []*types.ScResult) ([]*bytes.Buffer, error)
+	SerializeReceipts(receipts []*data.Receipt) ([]*bytes.Buffer, error)
+	SerializeTransactions(transactions []*data.Transaction, selfShardID uint32, mbsHashInDB map[string]bool) ([]*bytes.Buffer, error)
+	SerializeScResults(scResults []*data.ScResult) ([]*bytes.Buffer, error)
 }
 
 // DBMiniblocksHandler defines the actions that a miniblocks handler should do
 type DBMiniblocksHandler interface {
-	PrepareDBMiniblocks(header data.HeaderHandler, body *block.Body) []*types.Miniblock
-	GetMiniblocksHashesHexEncoded(header data.HeaderHandler, body *block.Body) []string
+	PrepareDBMiniblocks(header nodeData.HeaderHandler, body *block.Body) []*data.Miniblock
+	GetMiniblocksHashesHexEncoded(header nodeData.HeaderHandler, body *block.Body) []string
 
-	SerializeBulkMiniBlocks(bulkMbs []*types.Miniblock, mbsInDB map[string]bool) *bytes.Buffer
+	SerializeBulkMiniBlocks(bulkMbs []*data.Miniblock, mbsInDB map[string]bool) *bytes.Buffer
 }
 
 // DBGeneralInfoHandler defines the actions that a general info handler should do
 type DBGeneralInfoHandler interface {
-	PrepareGeneralInfo(tpsBenchmark statistics.TPSBenchmark) (*types.TPS, []*types.TPS)
+	PrepareGeneralInfo(tpsBenchmark statistics.TPSBenchmark) (*data.TPS, []*data.TPS)
 
-	SerializeGeneralInfo(genInfo *types.TPS, shardsInfo []*types.TPS, index string) *bytes.Buffer
-	SerializeRoundsInfo(roundsInfo []*types.RoundInfo) *bytes.Buffer
+	SerializeGeneralInfo(genInfo *data.TPS, shardsInfo []*data.TPS, index string) *bytes.Buffer
+	SerializeRoundsInfo(roundsInfo []*data.RoundInfo) *bytes.Buffer
 }
 
 // DBValidatorsHandler defines the actions that a validators handler should do
 type DBValidatorsHandler interface {
-	PrepareValidatorsPublicKeys(shardValidatorsPubKeys [][]byte) *types.ValidatorsPublicKeys
-	SerializeValidatorsPubKeys(validatorsPubKeys *types.ValidatorsPublicKeys) (*bytes.Buffer, error)
-	SerializeValidatorsRating(index string, validatorsRatingInfo []*types.ValidatorRatingInfo) ([]*bytes.Buffer, error)
+	PrepareValidatorsPublicKeys(shardValidatorsPubKeys [][]byte) *data.ValidatorsPublicKeys
+	SerializeValidatorsPubKeys(validatorsPubKeys *data.ValidatorsPublicKeys) (*bytes.Buffer, error)
+	SerializeValidatorsRating(index string, validatorsRatingInfo []*data.ValidatorRatingInfo) ([]*bytes.Buffer, error)
 }

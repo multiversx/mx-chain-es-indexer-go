@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/types"
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
 
@@ -138,7 +138,7 @@ func isErrAliasAlreadyExists(response map[string]interface{}) bool {
 }
 
 func kibanaResponseErrorHandler(res *esapi.Response) error {
-	errorRes := &types.KibanaResponse{}
+	errorRes := &data.KibanaResponse{}
 	decodeErr := loadResponseBody(res.Body, errorRes)
 	if decodeErr != nil {
 		return decodeErr

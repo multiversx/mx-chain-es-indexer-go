@@ -5,12 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/types"
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 )
 
 // SerializeBulkMiniBlocks -
 func (mp *miniblocksProcessor) SerializeBulkMiniBlocks(
-	bulkMbs []*types.Miniblock,
+	bulkMbs []*data.Miniblock,
 	existsInDb map[string]bool,
 ) *bytes.Buffer {
 	buff := &bytes.Buffer{}
@@ -26,7 +26,7 @@ func (mp *miniblocksProcessor) SerializeBulkMiniBlocks(
 	return buff
 }
 
-func (mp *miniblocksProcessor) prepareMiniblockData(miniblockDB *types.Miniblock, isInDB bool) ([]byte, []byte, error) {
+func (mp *miniblocksProcessor) prepareMiniblockData(miniblockDB *data.Miniblock, isInDB bool) ([]byte, []byte, error) {
 	if isInDB {
 		meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s", "_type" : "%s" } }%s`, miniblockDB.Hash, "_doc", "\n"))
 		serializedData, err := json.Marshal(miniblockDB)

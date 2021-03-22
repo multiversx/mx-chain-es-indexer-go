@@ -6,7 +6,7 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/types"
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/vmcommon"
 	"github.com/ElrondNetwork/elrond-go/data/transaction"
@@ -18,7 +18,7 @@ func isScResultSuccessful(scResultData []byte) bool {
 	return bytes.Contains(scResultData, okReturnDataNewVersion) || bytes.Contains(scResultData, okReturnDataOldVersion)
 }
 
-func isSCRForSenderWithRefund(dbScResult *types.ScResult, tx *types.Transaction) bool {
+func isSCRForSenderWithRefund(dbScResult *data.ScResult, tx *data.Transaction) bool {
 	isForSender := dbScResult.Receiver == tx.Sender
 	isRightNonce := dbScResult.Nonce == tx.Nonce+1
 	isFromCurrentTx := dbScResult.PreTxHash == tx.Hash
@@ -44,14 +44,14 @@ func stringValueToBigInt(strValue string) *big.Int {
 	return value
 }
 
-func isRelayedTx(tx *types.Transaction) bool {
+func isRelayedTx(tx *data.Transaction) bool {
 	return strings.HasPrefix(string(tx.Data), core.RelayedTransaction) && len(tx.SmartContractResults) > 0
 }
 
-func isCrossShardDstMe(tx *types.Transaction, selfShardID uint32) bool {
+func isCrossShardDstMe(tx *data.Transaction, selfShardID uint32) bool {
 	return tx.SenderShard != tx.ReceiverShard && tx.ReceiverShard == selfShardID
 }
 
-func isIntraShardOrInvalid(tx *types.Transaction, selfShardID uint32) bool {
+func isIntraShardOrInvalid(tx *data.Transaction, selfShardID uint32) bool {
 	return (tx.SenderShard == tx.ReceiverShard && tx.ReceiverShard == selfShardID) || tx.Status == transaction.TxStatusInvalid.String()
 }

@@ -3,14 +3,14 @@ package accounts
 import (
 	"testing"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/types"
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/stretchr/testify/require"
 )
 
 func TestSerializeAccounts(t *testing.T) {
 	t.Parallel()
 
-	accs := map[string]*types.AccountInfo{
+	accs := map[string]*data.AccountInfo{
 		"addr1": {
 			Address: "addr1",
 			Nonce:   1,
@@ -30,7 +30,7 @@ func TestSerializeAccounts(t *testing.T) {
 func TestSerializeAccountsESDT(t *testing.T) {
 	t.Parallel()
 
-	accs := map[string]*types.AccountInfo{
+	accs := map[string]*data.AccountInfo{
 		"addr1": {
 			Address:         "addr1",
 			Nonce:           1,
@@ -52,7 +52,7 @@ func TestSerializeAccountsESDT(t *testing.T) {
 func TestSerializeAccountsHistory(t *testing.T) {
 	t.Parallel()
 
-	accsh := map[string]*types.AccountBalanceHistory{
+	accsh := map[string]*data.AccountBalanceHistory{
 		"account1": {
 			Address:         "account1",
 			Timestamp:       10,

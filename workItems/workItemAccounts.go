@@ -29,8 +29,8 @@ func (wiv *itemAccounts) Save() error {
 	accounts := make([]*data.Account, len(wiv.accounts))
 	for idx, account := range wiv.accounts {
 		accounts[idx] = &data.Account{
-			Account:  account,
-			IsSender: false,
+			UserAccount: account,
+			IsSender:    false,
 		}
 	}
 

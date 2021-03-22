@@ -111,8 +111,8 @@ func TestGetTransactionByType_SC(t *testing.T) {
 	}
 	header := &block.Header{TimeStamp: 100}
 
-	scRes := cp.convertScResultInDatabaseScr(scHash, smartContractRes)
-	expectedTx := data.ScResult{
+	scRes := cp.convertScResultInDatabaseScr(scHash, smartContractRes, header)
+	expectedTx := &data.ScResult{
 		Nonce:        nonce,
 		Hash:         hex.EncodeToString([]byte(scHash)),
 		PreTxHash:    hex.EncodeToString(txHash),

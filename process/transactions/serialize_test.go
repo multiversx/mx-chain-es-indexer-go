@@ -3,26 +3,26 @@ package transactions
 import (
 	"testing"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/types"
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/stretchr/testify/require"
 )
 
 func TestSerializeScResults(t *testing.T) {
 	t.Parallel()
 
-	scResult1 := &types.ScResult{
+	scResult1 := &data.ScResult{
 		Hash:     "hash1",
 		Nonce:    1,
 		GasPrice: 10,
 		GasLimit: 50,
 	}
-	scResult2 := &types.ScResult{
+	scResult2 := &data.ScResult{
 		Hash:     "hash2",
 		Nonce:    2,
 		GasPrice: 10,
 		GasLimit: 50,
 	}
-	scrs := []*types.ScResult{scResult1, scResult2}
+	scrs := []*data.ScResult{scResult1, scResult2}
 
 	res, err := (&txDatabaseProcessor{}).SerializeScResults(scrs)
 	require.Nil(t, err)
@@ -39,18 +39,18 @@ func TestSerializeScResults(t *testing.T) {
 func TestSerializeReceipts(t *testing.T) {
 	t.Parallel()
 
-	rec1 := &types.Receipt{
+	rec1 := &data.Receipt{
 		Hash:   "recHash1",
 		Sender: "sender1",
 		TxHash: "txHash1",
 	}
-	rec2 := &types.Receipt{
+	rec2 := &data.Receipt{
 		Hash:   "recHash2",
 		Sender: "sender2",
 		TxHash: "txHash2",
 	}
 
-	recs := []*types.Receipt{rec1, rec2}
+	recs := []*data.Receipt{rec1, rec2}
 
 	res, err := (&txDatabaseProcessor{}).SerializeReceipts(recs)
 	require.Nil(t, err)

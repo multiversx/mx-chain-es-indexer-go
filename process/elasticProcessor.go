@@ -5,12 +5,13 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/types"
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/statistics"
-	"github.com/ElrondNetwork/elrond-go/data"
+	nodeData "github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/block"
+	"github.com/ElrondNetwork/elrond-go/data/indexer"
 	"github.com/ElrondNetwork/elrond-go/process"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
@@ -255,7 +256,7 @@ func getTemplateByName(templateName string, templateList map[string]*bytes.Buffe
 
 // SaveHeader will prepare and save information about a header in elasticsearch server
 func (ei *elasticProcessor) SaveHeader(
-	header data.HeaderHandler,
+	header nodeData.HeaderHandler,
 	signersIndexes []uint64,
 	body *block.Body,
 	notarizedHeadersHashes []string,
@@ -290,7 +291,7 @@ func (ei *elasticProcessor) SaveHeader(
 	return ei.indexEpochInfoData(header)
 }
 
-func (ei *elasticProcessor) indexEpochInfoData(header data.HeaderHandler) error {
+func (ei *elasticProcessor) indexEpochInfoData(header nodeData.HeaderHandler) error {
 	if !ei.isIndexEnabled(epochInfoIndex) ||
 		ei.selfShardID != core.MetachainShardId {
 		return nil
@@ -312,7 +313,7 @@ func (ei *elasticProcessor) indexEpochInfoData(header data.HeaderHandler) error 
 }
 
 // RemoveHeader will remove a block from elasticsearch server
-func (ei *elasticProcessor) RemoveHeader(header data.HeaderHandler) error {
+func (ei *elasticProcessor) RemoveHeader(header nodeData.HeaderHandler) error {
 	headerHash, err := ei.blockProc.ComputeHeaderHash(header)
 	if err != nil {
 		return err
@@ -322,7 +323,7 @@ func (ei *elasticProcessor) RemoveHeader(header data.HeaderHandler) error {
 }
 
 // RemoveMiniblocks will remove all miniblocks that are in header from elasticsearch server
-func (ei *elasticProcessor) RemoveMiniblocks(header data.HeaderHandler, body *block.Body) error {
+func (ei *elasticProcessor) RemoveMiniblocks(header nodeData.HeaderHandler, body *block.Body) error {
 	encodedMiniblocksHashes := ei.miniblocksProc.GetMiniblocksHashesHexEncoded(header, body)
 	if len(encodedMiniblocksHashes) == 0 {
 		return nil
@@ -332,7 +333,7 @@ func (ei *elasticProcessor) RemoveMiniblocks(header data.HeaderHandler, body *bl
 }
 
 // RemoveTransactions will remove transaction that are in miniblock from the elasticsearch server
-func (ei *elasticProcessor) RemoveTransactions(header data.HeaderHandler, body *block.Body) error {
+func (ei *elasticProcessor) RemoveTransactions(header nodeData.HeaderHandler, body *block.Body) error {
 	encodedTxsHashes := ei.txProc.GetRewardsTxsHashesHexEncoded(header, body)
 	if len(encodedTxsHashes) == 0 {
 		return nil
@@ -347,7 +348,7 @@ func (ei *elasticProcessor) SetTxLogsProcessor(txLogProcessor process.Transactio
 }
 
 // SaveMiniblocks will prepare and save information about miniblocks in elasticsearch server
-func (ei *elasticProcessor) SaveMiniblocks(header data.HeaderHandler, body *block.Body) (map[string]bool, error) {
+func (ei *elasticProcessor) SaveMiniblocks(header nodeData.HeaderHandler, body *block.Body) (map[string]bool, error) {
 	if !ei.isIndexEnabled(miniblocksIndex) {
 		return map[string]bool{}, nil
 	}
@@ -366,7 +367,7 @@ func (ei *elasticProcessor) SaveMiniblocks(header data.HeaderHandler, body *bloc
 	return miniblocksInDBMap, ei.elasticClient.DoBulkRequest(buff, miniblocksIndex)
 }
 
-func (ei *elasticProcessor) miniblocksInDBMap(mbs []*types.Miniblock) (map[string]bool, error) {
+func (ei *elasticProcessor) miniblocksInDBMap(mbs []*data.Miniblock) (map[string]bool, error) {
 	mbsHashes := make([]string, len(mbs))
 	for idx := range mbs {
 		mbsHashes[idx] = mbs[idx].Hash
@@ -378,8 +379,8 @@ func (ei *elasticProcessor) miniblocksInDBMap(mbs []*types.Miniblock) (map[strin
 // SaveTransactions will prepare and save information about a transactions in elasticsearch server
 func (ei *elasticProcessor) SaveTransactions(
 	body *block.Body,
-	header data.HeaderHandler,
-	pool *types.Pool,
+	header nodeData.HeaderHandler,
+	pool *indexer.Pool,
 	mbsInDb map[string]bool,
 ) error {
 	if !ei.isIndexEnabled(txIndex) {
@@ -410,7 +411,7 @@ func (ei *elasticProcessor) SaveTransactions(
 		log.Warn("elasticProcessor.SaveTransactions cannot index bulk of receipts", "error", err)
 	}
 
-	return ei.indexAlteredAccounts(preparedResults.AlteredAccounts)
+	return ei.indexAlteredAccounts(header.GetTimeStamp(), preparedResults.AlteredAccounts)
 }
 
 // SaveShardStatistics will prepare and save information about a shard statistics in elasticsearch server
@@ -426,7 +427,7 @@ func (ei *elasticProcessor) SaveShardStatistics(tpsBenchmark statistics.TPSBench
 }
 
 // SaveValidatorsRating will save validators rating
-func (ei *elasticProcessor) SaveValidatorsRating(index string, validatorsRatingInfo []*types.ValidatorRatingInfo) error {
+func (ei *elasticProcessor) SaveValidatorsRating(index string, validatorsRatingInfo []*data.ValidatorRatingInfo) error {
 	if !ei.isIndexEnabled(ratingIndex) {
 		return nil
 	}
@@ -469,7 +470,7 @@ func (ei *elasticProcessor) SaveShardValidatorsPubKeys(shardID, epoch uint32, sh
 }
 
 // SaveRoundsInfo will prepare and save information about a slice of rounds in elasticsearch server
-func (ei *elasticProcessor) SaveRoundsInfo(infos []*types.RoundInfo) error {
+func (ei *elasticProcessor) SaveRoundsInfo(infos []*data.RoundInfo) error {
 	if !ei.isIndexEnabled(roundIndex) {
 		return nil
 	}
@@ -479,22 +480,22 @@ func (ei *elasticProcessor) SaveRoundsInfo(infos []*types.RoundInfo) error {
 	return ei.elasticClient.DoBulkRequest(buff, roundIndex)
 }
 
-func (ei *elasticProcessor) indexAlteredAccounts(alteredAccounts map[string]*types.AlteredAccount) error {
+func (ei *elasticProcessor) indexAlteredAccounts(timestamp uint64, alteredAccounts map[string]*data.AlteredAccount) error {
 	if !ei.isIndexEnabled(accountsIndex) {
 		return nil
 	}
 
 	accountsToIndexEGLD, accountsToIndexESDT := ei.accountsProc.GetAccounts(alteredAccounts)
 
-	err := ei.SaveAccounts(accountsToIndexEGLD)
+	err := ei.SaveAccounts(timestamp, accountsToIndexEGLD)
 	if err != nil {
 		return err
 	}
 
-	return ei.saveAccountsESDT(accountsToIndexESDT)
+	return ei.saveAccountsESDT(timestamp, accountsToIndexESDT)
 }
 
-func (ei *elasticProcessor) saveAccountsESDT(wrappedAccounts []*types.AccountESDT) error {
+func (ei *elasticProcessor) saveAccountsESDT(timestamp uint64, wrappedAccounts []*data.AccountESDT) error {
 	if !ei.isIndexEnabled(accountsESDTIndex) {
 		return nil
 	}
@@ -506,11 +507,11 @@ func (ei *elasticProcessor) saveAccountsESDT(wrappedAccounts []*types.AccountESD
 		return err
 	}
 
-	return ei.saveAccountsESDTHistory(accountsESDTMap)
+	return ei.saveAccountsESDTHistory(timestamp, accountsESDTMap)
 }
 
 // SaveAccounts will prepare and save information about provided accounts in elasticsearch server
-func (ei *elasticProcessor) SaveAccounts(accts []*types.AccountEGLD) error {
+func (ei *elasticProcessor) SaveAccounts(timestamp uint64, accts []*data.Account) error {
 	if !ei.isIndexEnabled(accountsIndex) {
 		return nil
 	}
@@ -521,10 +522,10 @@ func (ei *elasticProcessor) SaveAccounts(accts []*types.AccountEGLD) error {
 		return err
 	}
 
-	return ei.saveAccountsHistory(accountsMap)
+	return ei.saveAccountsHistory(timestamp, accountsMap)
 }
 
-func (ei *elasticProcessor) serializeAndIndexAccounts(accountsMap map[string]*types.AccountInfo, index string, areESDTAccounts bool) error {
+func (ei *elasticProcessor) serializeAndIndexAccounts(accountsMap map[string]*data.AccountInfo, index string, areESDTAccounts bool) error {
 	buffSlice, err := ei.accountsProc.SerializeAccounts(accountsMap, areESDTAccounts)
 	if err != nil {
 		return err
@@ -541,27 +542,27 @@ func (ei *elasticProcessor) serializeAndIndexAccounts(accountsMap map[string]*ty
 	return nil
 }
 
-func (ei *elasticProcessor) saveAccountsESDTHistory(accountsInfoMap map[string]*types.AccountInfo) error {
+func (ei *elasticProcessor) saveAccountsESDTHistory(timestamp uint64, accountsInfoMap map[string]*data.AccountInfo) error {
 	if !ei.isIndexEnabled(accountsESDTHistoryIndex) {
 		return nil
 	}
 
-	accountsMap := ei.accountsProc.PrepareAccountsHistory(accountsInfoMap)
+	accountsMap := ei.accountsProc.PrepareAccountsHistory(timestamp, accountsInfoMap)
 
 	return ei.serializeAndIndexAccountsHistory(accountsMap, accountsESDTHistoryIndex)
 }
 
-func (ei *elasticProcessor) saveAccountsHistory(accountsInfoMap map[string]*types.AccountInfo) error {
+func (ei *elasticProcessor) saveAccountsHistory(timestamp uint64, accountsInfoMap map[string]*data.AccountInfo) error {
 	if !ei.isIndexEnabled(accountsHistoryIndex) {
 		return nil
 	}
 
-	accountsMap := ei.accountsProc.PrepareAccountsHistory(accountsInfoMap)
+	accountsMap := ei.accountsProc.PrepareAccountsHistory(timestamp, accountsInfoMap)
 
 	return ei.serializeAndIndexAccountsHistory(accountsMap, accountsHistoryIndex)
 }
 
-func (ei *elasticProcessor) serializeAndIndexAccountsHistory(accountsMap map[string]*types.AccountBalanceHistory, index string) error {
+func (ei *elasticProcessor) serializeAndIndexAccountsHistory(accountsMap map[string]*data.AccountBalanceHistory, index string) error {
 	buffSlice, err := ei.accountsProc.SerializeAccountsHistory(accountsMap)
 	if err != nil {
 		return err
@@ -578,7 +579,7 @@ func (ei *elasticProcessor) serializeAndIndexAccountsHistory(accountsMap map[str
 	return nil
 }
 
-func (ei *elasticProcessor) indexScResults(scrs []*types.ScResult) error {
+func (ei *elasticProcessor) indexScResults(scrs []*data.ScResult) error {
 	if !ei.isIndexEnabled(scResultsIndex) {
 		return nil
 	}
@@ -598,7 +599,7 @@ func (ei *elasticProcessor) indexScResults(scrs []*types.ScResult) error {
 	return nil
 }
 
-func (ei *elasticProcessor) indexReceipts(receipts []*types.Receipt) error {
+func (ei *elasticProcessor) indexReceipts(receipts []*data.Receipt) error {
 	if !ei.isIndexEnabled(scResultsIndex) {
 		return nil
 	}

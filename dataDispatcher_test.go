@@ -10,10 +10,10 @@ import (
 	"time"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/client"
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
 	"github.com/stretchr/testify/require"
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
 )
 
 func TestNewDataDispatcher_InvalidCacheSize(t *testing.T) {
@@ -49,11 +49,12 @@ func TestDataDispatcher_StartIndexDataClose(t *testing.T) {
 			wg.Done()
 			return nil
 		},
-		SaveAccountsCalled: func(acc []*types.AccountEGLD) error {
+		SaveAccountsCalled: func(timestamp uint64, acc []*data.Account) error {
 			time.Sleep(7 * time.Second)
 			return nil
 		},
-		SaveValidatorsRatingCalled: func(index string, validatorsRatingInfo []*types.ValidatorRatingInfo) error {
+
+		SaveValidatorsRatingCalled: func(index string, validatorsRatingInfo []*data.ValidatorRatingInfo) error {
 			time.Sleep(6 * time.Second)
 			return nil
 		},
@@ -63,7 +64,7 @@ func TestDataDispatcher_StartIndexDataClose(t *testing.T) {
 
 	require.True(t, called)
 
-	dispatcher.Add(workItems.NewItemAccounts(elasticProc, nil))
+	dispatcher.Add(workItems.NewItemAccounts(elasticProc, 0, nil))
 	wg.Add(1)
 	dispatcher.Add(workItems.NewItemRounds(elasticProc, []*data.RoundInfo{}))
 	dispatcher.Add(workItems.NewItemRating(elasticProc, "", nil))

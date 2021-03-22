@@ -1,7 +1,6 @@
 package mock
 
 import (
-	"github.com/ElrondNetwork/elastic-indexer-go/types"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go/core/statistics"
 	nodeData "github.com/ElrondNetwork/elrond-go/data"
@@ -18,12 +17,12 @@ type ElasticProcessorStub struct {
 	RemoveMiniblocksCalled           func(header nodeData.HeaderHandler, body *block.Body) error
 	RemoveTransactionsCalled         func(header nodeData.HeaderHandler, body *block.Body) error
 	SaveMiniblocksCalled             func(header nodeData.HeaderHandler, body *block.Body) (map[string]bool, error)
-	SaveTransactionsCalled           func(body *block.Body, header nodeData.HeaderHandler, pool *types.Pool, mbsInDb map[string]bool) error
+	SaveTransactionsCalled           func(body *block.Body, header nodeData.HeaderHandler, pool *indexer.Pool, mbsInDb map[string]bool) error
 	SaveValidatorsRatingCalled       func(index string, validatorsRatingInfo []*data.ValidatorRatingInfo) error
 	SaveRoundsInfoCalled             func(infos []*data.RoundInfo) error
 	SaveShardValidatorsPubKeysCalled func(shardID, epoch uint32, shardValidatorsPubKeys [][]byte) error
 	SetTxLogsProcessorCalled         func(txLogsProc process.TransactionLogProcessorDatabase)
-	SaveAccountsCalled               func(timestamp uint64,acc []*data.AccountEGLD) error
+	SaveAccountsCalled               func(timestamp uint64, acc []*data.Account) error
 }
 
 // SaveShardStatistics -

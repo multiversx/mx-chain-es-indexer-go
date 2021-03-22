@@ -12,6 +12,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go/core"
 	nodeData "github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/block"
+	"github.com/ElrondNetwork/elrond-go/data/indexer"
 	"github.com/ElrondNetwork/elrond-go/data/receipt"
 	"github.com/ElrondNetwork/elrond-go/data/rewardTx"
 	"github.com/ElrondNetwork/elrond-go/data/smartContractResult"
@@ -27,13 +28,13 @@ func TestAddToAlteredAddresses(t *testing.T) {
 	sender := "senderAddress"
 	receiver := "receiverAddress"
 	tokenIdentifier := "Test-token"
-	tx := &types.Transaction{
+	tx := &data.Transaction{
 		Sender:              sender,
 		Receiver:            receiver,
 		EsdtValue:           "123",
 		EsdtTokenIdentifier: tokenIdentifier,
 	}
-	alteredAddress := make(map[string]*types.AlteredAccount)
+	alteredAddress := make(map[string]*data.AlteredAccount)
 	selfShardID := uint32(0)
 	mb := &block.MiniBlock{}
 
@@ -41,14 +42,14 @@ func TestAddToAlteredAddresses(t *testing.T) {
 
 	alterdAccount, ok := alteredAddress[receiver]
 	require.True(t, ok)
-	require.Equal(t, &types.AlteredAccount{
+	require.Equal(t, &data.AlteredAccount{
 		IsESDTOperation: true,
 		TokenIdentifier: tokenIdentifier,
 	}, alterdAccount)
 
 	alterdAccount, ok = alteredAddress[sender]
 	require.True(t, ok)
-	require.Equal(t, &types.AlteredAccount{
+	require.Equal(t, &data.AlteredAccount{
 		IsSender:        true,
 		IsESDTOperation: true,
 		TokenIdentifier: tokenIdentifier,
@@ -62,12 +63,12 @@ func TestIsSCRForSenderWithGasUsed(t *testing.T) {
 	nonce := uint64(10)
 	sender := "sender"
 
-	tx := &types.Transaction{
+	tx := &data.Transaction{
 		Hash:   txHash,
 		Nonce:  nonce,
 		Sender: sender,
 	}
-	sc := &types.ScResult{
+	sc := &data.ScResult{
 		Data:      []byte("@6f6b@something"),
 		Nonce:     nonce + 1,
 		Receiver:  sender,
@@ -165,26 +166,26 @@ func TestPrepareTransactionsForDatabase(t *testing.T) {
 	}
 	header := &block.Header{}
 
-	pool := &types.Pool{
-		Txs: map[string]data.TransactionHandler{
+	pool := &indexer.Pool{
+		Txs: map[string]nodeData.TransactionHandler{
 			string(txHash1): tx1,
 			string(txHash2): tx2,
 			string(txHash3): tx3,
 			string(txHash4): tx4,
 		},
-		Scrs: map[string]data.TransactionHandler{
+		Scrs: map[string]nodeData.TransactionHandler{
 			string(scHash1): scResult1,
 			string(scHash2): scResult2,
 			string(scHash3): scResult3,
 		},
-		Rewards: map[string]data.TransactionHandler{
+		Rewards: map[string]nodeData.TransactionHandler{
 			string(rTx1Hash): rTx1,
 			string(rTx2Hash): rTx2,
 		},
-		Invalid: map[string]data.TransactionHandler{
+		Invalid: map[string]nodeData.TransactionHandler{
 			string(txHash5): tx5,
 		},
-		Receipts: map[string]data.TransactionHandler{
+		Receipts: map[string]nodeData.TransactionHandler{
 			string(recHash1): rec1,
 			string(recHash2): rec2,
 		},
@@ -236,8 +237,8 @@ func TestPrepareTxLog(t *testing.T) {
 			},
 		},
 	}
-	expectedTxLog := data.TxLog{
-		Address: txDbProc.addressPubkeyConverter.Encode(scAddr),
+	expectedTxLog := &data.TxLog{
+		Address: txDbProc.txBuilder.addressPubkeyConverter.Encode(scAddr),
 		Events: []data.Event{
 			{
 				Address:    hex.EncodeToString(addr),
@@ -455,7 +456,7 @@ func TestAlteredAddresses(t *testing.T) {
 
 	hdr := &block.Header{}
 
-	pool := &types.Pool{
+	pool := &indexer.Pool{
 		Txs: map[string]nodeData.TransactionHandler{
 			string(tx1Hash): tx1,
 			string(tx2Hash): tx2,
@@ -464,7 +465,7 @@ func TestAlteredAddresses(t *testing.T) {
 			string(scr1Hash): scr1,
 			string(scr2Hash): scr2,
 		},
-		Rewards: map[string]datnodeDataa.TransactionHandler{
+		Rewards: map[string]nodeData.TransactionHandler{
 			string(rwdTx1Hash): rwdTx1,
 			string(rwdTx2Hash): rwdTx2,
 		},

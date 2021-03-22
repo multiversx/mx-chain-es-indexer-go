@@ -4,10 +4,10 @@ import (
 	"encoding/hex"
 	"time"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/types"
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/data"
+	nodeData "github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/block"
 	"github.com/ElrondNetwork/elrond-go/hashing"
 	"github.com/ElrondNetwork/elrond-go/marshal"
@@ -35,14 +35,14 @@ func NewMiniblocksProcessor(
 }
 
 // PrepareDBMiniblocks prepare miniblocks from body
-func (mp *miniblocksProcessor) PrepareDBMiniblocks(header data.HeaderHandler, body *block.Body) []*types.Miniblock {
+func (mp *miniblocksProcessor) PrepareDBMiniblocks(header nodeData.HeaderHandler, body *block.Body) []*data.Miniblock {
 	headerHash, err := mp.calculateHash(header)
 	if err != nil {
 		log.Warn("indexer: could not calculate header hash", "error", err)
 		return nil
 	}
 
-	dbMiniblocks := make([]*types.Miniblock, 0)
+	dbMiniblocks := make([]*data.Miniblock, 0)
 	for _, miniblock := range body.MiniBlocks {
 		dbMiniblock, errPrepareMiniblock := mp.prepareMiniblockForDB(miniblock, header, headerHash)
 		if errPrepareMiniblock != nil {
@@ -56,9 +56,9 @@ func (mp *miniblocksProcessor) PrepareDBMiniblocks(header data.HeaderHandler, bo
 }
 func (mp *miniblocksProcessor) prepareMiniblockForDB(
 	miniblock *block.MiniBlock,
-	header data.HeaderHandler,
+	header nodeData.HeaderHandler,
 	headerHash []byte,
-) (*types.Miniblock, error) {
+) (*data.Miniblock, error) {
 	mbHash, err := mp.calculateHash(miniblock)
 	if err != nil {
 		return nil, err
@@ -66,7 +66,7 @@ func (mp *miniblocksProcessor) prepareMiniblockForDB(
 
 	encodedMbHash := hex.EncodeToString(mbHash)
 
-	dbMiniblock := &types.Miniblock{
+	dbMiniblock := &data.Miniblock{
 		Hash:            encodedMbHash,
 		SenderShardID:   miniblock.SenderShardID,
 		ReceiverShardID: miniblock.ReceiverShardID,
@@ -89,7 +89,7 @@ func (mp *miniblocksProcessor) prepareMiniblockForDB(
 }
 
 // GetMiniblocksHashesHexEncoded will compute miniblocks hashes hex encoded
-func (mp *miniblocksProcessor) GetMiniblocksHashesHexEncoded(header data.HeaderHandler, body *block.Body) []string {
+func (mp *miniblocksProcessor) GetMiniblocksHashesHexEncoded(header nodeData.HeaderHandler, body *block.Body) []string {
 	if body == nil || len(header.GetMiniBlockHeadersHashes()) == 0 {
 		return nil
 	}

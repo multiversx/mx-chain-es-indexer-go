@@ -5,12 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/types"
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 )
 
 // SerializeScResults will serialize the provided smart contract results in a way that Elastic Search expects a bulk request
-func (tdp *txDatabaseProcessor) SerializeScResults(scResults []*types.ScResult) ([]*bytes.Buffer, error) {
-	buffSlice := types.NewBufferSlice()
+func (tdp *txDatabaseProcessor) SerializeScResults(scResults []*data.ScResult) ([]*bytes.Buffer, error) {
+	buffSlice := data.NewBufferSlice()
 	for _, sc := range scResults {
 		meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, sc.Hash, "\n"))
 		serializedData, errPrepareSc := json.Marshal(sc)
@@ -34,8 +34,8 @@ func (tdp *txDatabaseProcessor) SerializeScResults(scResults []*types.ScResult) 
 }
 
 // SerializeReceipts will serialize the receipts in a way that Elastic Search expects a bulk request
-func (tdp *txDatabaseProcessor) SerializeReceipts(receipts []*types.Receipt) ([]*bytes.Buffer, error) {
-	buffSlice := types.NewBufferSlice()
+func (tdp *txDatabaseProcessor) SerializeReceipts(receipts []*data.Receipt) ([]*bytes.Buffer, error) {
+	buffSlice := data.NewBufferSlice()
 	for _, rec := range receipts {
 		meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, rec.Hash, "\n"))
 		serializedData, errPrepareSc := json.Marshal(rec)
@@ -60,11 +60,11 @@ func (tdp *txDatabaseProcessor) SerializeReceipts(receipts []*types.Receipt) ([]
 
 // SerializeTransactions will serialize the transactions in a way that Elastic Search expects a bulk request
 func (tdp *txDatabaseProcessor) SerializeTransactions(
-	transactions []*types.Transaction,
+	transactions []*data.Transaction,
 	selfShardID uint32,
 	mbsHashInDB map[string]bool,
 ) ([]*bytes.Buffer, error) {
-	buffSlice := types.NewBufferSlice()
+	buffSlice := data.NewBufferSlice()
 	for _, tx := range transactions {
 		isMBOfTxInDB := mbsHashInDB[tx.MBHash]
 		meta, serializedData, err := prepareSerializedDataForATransaction(tx, selfShardID, isMBOfTxInDB)
@@ -88,7 +88,7 @@ func (tdp *txDatabaseProcessor) SerializeTransactions(
 }
 
 func prepareSerializedDataForATransaction(
-	tx *types.Transaction,
+	tx *data.Transaction,
 	selfShardID uint32,
 	_ bool,
 ) ([]byte, []byte, error) {
@@ -130,7 +130,7 @@ func prepareSerializedDataForATransaction(
 	return metaData, serializedData, nil
 }
 
-func prepareCrossShardTxForDestinationSerialized(tx *types.Transaction, marshaledTx []byte) ([]byte, error) {
+func prepareCrossShardTxForDestinationSerialized(tx *data.Transaction, marshaledTx []byte) ([]byte, error) {
 	// if transaction is cross-shard and current shard ID is destination, use upsert with updating fields
 	marshaledLogs, err := json.Marshal(tx.Logs)
 	if err != nil {

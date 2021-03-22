@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/types"
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 )
 
 // SerializeGeneralInfo will serialize general information
-func (gip *infoProcessor) SerializeGeneralInfo(genInfo *types.TPS, shardsInfo []*types.TPS, index string) *bytes.Buffer {
+func (gip *infoProcessor) SerializeGeneralInfo(genInfo *data.TPS, shardsInfo []*data.TPS, index string) *bytes.Buffer {
 	buff := serializeGeneralInfo(genInfo, index)
 
 	for _, shardInfo := range shardsInfo {
@@ -19,7 +19,7 @@ func (gip *infoProcessor) SerializeGeneralInfo(genInfo *types.TPS, shardsInfo []
 	return buff
 }
 
-func serializeGeneralInfo(generalInfo *types.TPS, index string) *bytes.Buffer {
+func serializeGeneralInfo(generalInfo *data.TPS, index string) *bytes.Buffer {
 	buff := &bytes.Buffer{}
 	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s", "_type" : "%s" } }%s`, metachainTpsDocID, index, "\n"))
 
@@ -44,7 +44,7 @@ func serializeGeneralInfo(generalInfo *types.TPS, index string) *bytes.Buffer {
 	return buff
 }
 
-func serializeShardInfo(buff *bytes.Buffer, shardTPS *types.TPS, index string) {
+func serializeShardInfo(buff *bytes.Buffer, shardTPS *data.TPS, index string) {
 	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s%d", "_type" : "%s" } }%s`,
 		shardTpsDocIDPrefix, shardTPS.ShardID, index, "\n"))
 
@@ -68,7 +68,7 @@ func serializeShardInfo(buff *bytes.Buffer, shardTPS *types.TPS, index string) {
 }
 
 // SerializeRoundsInfo will serialize information about rounds
-func (gip *infoProcessor) SerializeRoundsInfo(roundsInfo []*types.RoundInfo) *bytes.Buffer {
+func (gip *infoProcessor) SerializeRoundsInfo(roundsInfo []*data.RoundInfo) *bytes.Buffer {
 	buff := &bytes.Buffer{}
 	for _, info := range roundsInfo {
 		serializedRoundInfo, meta := serializeRoundInfo(info)
@@ -88,7 +88,7 @@ func (gip *infoProcessor) SerializeRoundsInfo(roundsInfo []*types.RoundInfo) *by
 	return buff
 }
 
-func serializeRoundInfo(info *types.RoundInfo) ([]byte, []byte) {
+func serializeRoundInfo(info *data.RoundInfo) ([]byte, []byte) {
 	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%d_%d", "_type" : "%s" } }%s`,
 		info.ShardId, info.Index, "_doc", "\n"))
 

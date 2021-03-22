@@ -3,7 +3,7 @@ package generalInfo
 import (
 	"math/big"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/types"
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-go/core/statistics"
 )
@@ -24,8 +24,8 @@ func NewGeneralInfoProcessor() *infoProcessor {
 }
 
 // PrepareGeneralInfo will prepare and general information about chain
-func (gip *infoProcessor) PrepareGeneralInfo(tpsBenchmark statistics.TPSBenchmark) (*types.TPS, []*types.TPS) {
-	generalInfo := &types.TPS{
+func (gip *infoProcessor) PrepareGeneralInfo(tpsBenchmark statistics.TPSBenchmark) (*data.TPS, []*data.TPS) {
+	generalInfo := &data.TPS{
 		LiveTPS:               tpsBenchmark.LiveTPS(),
 		PeakTPS:               tpsBenchmark.PeakTPS(),
 		NrOfShards:            tpsBenchmark.NrOfShards(),
@@ -37,10 +37,10 @@ func (gip *infoProcessor) PrepareGeneralInfo(tpsBenchmark statistics.TPSBenchmar
 		TotalProcessedTxCount: tpsBenchmark.TotalProcessedTxCount(),
 	}
 
-	shardsInfo := make([]*types.TPS, 0)
+	shardsInfo := make([]*data.TPS, 0)
 	for _, shardInfo := range tpsBenchmark.ShardStatistics() {
 		bigTxCount := big.NewInt(int64(shardInfo.AverageBlockTxCount()))
-		shardTPS := &types.TPS{
+		shardTPS := &data.TPS{
 			ShardID:               shardInfo.ShardID(),
 			LiveTPS:               shardInfo.LiveTPS(),
 			PeakTPS:               shardInfo.PeakTPS(),

@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/types"
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 )
 
 // SerializeValidatorsPubKeys will serialize validators public keys
-func (vp *validatorsProcessor) SerializeValidatorsPubKeys(validatorsPubKeys *types.ValidatorsPublicKeys) (*bytes.Buffer, error) {
+func (vp *validatorsProcessor) SerializeValidatorsPubKeys(validatorsPubKeys *data.ValidatorsPublicKeys) (*bytes.Buffer, error) {
 	marshalizedValidatorPubKeys, err := json.Marshal(validatorsPubKeys)
 	if err != nil {
 		log.Warn("validatorsProcessor.SerializeValidatorPubKeys cannot marshal", "error", err)
@@ -32,9 +32,9 @@ func (vp *validatorsProcessor) SerializeValidatorsPubKeys(validatorsPubKeys *typ
 // SerializeValidatorsRating will serialize validators rating
 func (vp *validatorsProcessor) SerializeValidatorsRating(
 	index string,
-	validatorsRatingInfo []*types.ValidatorRatingInfo,
+	validatorsRatingInfo []*data.ValidatorRatingInfo,
 ) ([]*bytes.Buffer, error) {
-	buffSlice := types.NewBufferSlice()
+	buffSlice := data.NewBufferSlice()
 
 	for _, valRatingInfo := range validatorsRatingInfo {
 		id := fmt.Sprintf("%s_%s", valRatingInfo.PublicKey, index)

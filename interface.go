@@ -12,22 +12,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go/process"
 )
 
-// Indexer is an interface for saving node specific data to other storage.
-// This could be an elastic search index, a MySql database or any other external services.
-type Indexer interface {
-	SetTxLogsProcessor(txLogsProc process.TransactionLogProcessorDatabase)
-	SaveBlock(args *types.ArgsSaveBlockData)
-	RevertIndexedBlock(header data.HeaderHandler, body data.BodyHandler)
-	SaveRoundsInfo(roundsInfos []*types.RoundInfo)
-	UpdateTPS(tpsBenchmark statistics.TPSBenchmark)
-	SaveValidatorsPubKeys(validatorsPubKeys map[uint32][][]byte, epoch uint32)
-	SaveValidatorsRating(indexID string, infoRating []*types.ValidatorRatingInfo)
-	SaveAccounts(acc []state.UserAccountHandler)
-	Close() error
-	IsInterfaceNil() bool
-	IsNilIndexer() bool
-}
-
 // DispatcherHandler defines the interface for the dispatcher that will manage when items are saved in elasticsearch database
 type DispatcherHandler interface {
 	StartIndexData()
@@ -42,13 +26,14 @@ type ElasticProcessor interface {
 	SaveHeader(header nodeData.HeaderHandler, signersIndexes []uint64, body *block.Body, notarizedHeadersHashes []string, txsSize int) error
 	RemoveHeader(header nodeData.HeaderHandler) error
 	RemoveMiniblocks(header nodeData.HeaderHandler, body *block.Body) error
+	RemoveTransactions(header nodeData.HeaderHandler, body *block.Body) error
 	SaveMiniblocks(header nodeData.HeaderHandler, body *block.Body) (map[string]bool, error)
-	SaveTransactions(body *block.Body, header data.HeaderHandler, pool *indexer.Pool, mbsInDb map[string]bool) error
-	SaveValidatorsRating(index string, validatorsRatingInfo []data.ValidatorRatingInfo) error
-	SaveRoundsInfo(infos []data.RoundInfo) error
+	SaveTransactions(body *block.Body, header nodeData.HeaderHandler, pool *indexer.Pool, mbsInDb map[string]bool) error
+	SaveValidatorsRating(index string, validatorsRatingInfo []*data.ValidatorRatingInfo) error
+	SaveRoundsInfo(infos []*data.RoundInfo) error
 	SaveShardValidatorsPubKeys(shardID, epoch uint32, shardValidatorsPubKeys [][]byte) error
 	SetTxLogsProcessor(txLogsProc process.TransactionLogProcessorDatabase)
-	SaveAccounts(blockTimestamp uint64, accounts []state.UserAccountHandler) error
+	SaveAccounts(blockTimestamp uint64, accounts []*data.Account) error
 	IsInterfaceNil() bool
 }
 
