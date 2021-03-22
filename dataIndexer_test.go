@@ -46,7 +46,6 @@ func newTestMetaBlock() *dataBlock.MetaBlock {
 func NewDataIndexerArguments() ArgDataIndexer {
 	return ArgDataIndexer{
 		Marshalizer:        &mock.MarshalizerMock{},
-		Options:            &Options{},
 		NodesCoordinator:   &mock.NodesCoordinatorMock{},
 		EpochStartNotifier: &mock.EpochStartNotifierStub{},
 		DataDispatcher:     &mock.DispatcherMock{},
@@ -366,12 +365,10 @@ func testCreateIndexer(t *testing.T) {
 		Hasher:                   sha256.Sha256{},
 		AddressPubkeyConverter:   &mock.PubkeyConverterMock{},
 		ValidatorPubkeyConverter: &mock.PubkeyConverterMock{},
-		Options:                  &Options{},
 		DBClient:                 dbClient,
 	})
 
 	di, err := NewDataIndexer(ArgDataIndexer{
-		Options:            &Options{},
 		Marshalizer:        &marshal.JsonMarshalizer{},
 		EpochStartNotifier: &mock.EpochStartNotifierStub{},
 		DataDispatcher:     dispatcher,

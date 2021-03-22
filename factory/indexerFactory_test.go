@@ -28,7 +28,6 @@ func createMockIndexerFactoryArgs() *ArgsIndexerFactory {
 		NodesCoordinator:         &mock.NodesCoordinatorMock{},
 		AddressPubkeyConverter:   &mock.PubkeyConverterMock{},
 		ValidatorPubkeyConverter: &mock.PubkeyConverterMock{},
-		Options:                  &indexer.Options{},
 		EnabledIndexes:           []string{"blocks", "transactions", "miniblocks", "tps", "validators", "round", "accounts", "rating"},
 		AccountsDB:               &mock.AccountsStub{},
 		TransactionFeeCalculator: &economicsmocks.EconomicsHandlerStub{},

@@ -68,7 +68,7 @@ func NewElasticProcessor(arguments ArgElasticProcessor) (ElasticProcessor, error
 			"not the current node's shard won't be indexed in Elastic Search")
 	}
 
-	if arguments.Options.UseKibana {
+	if arguments.UseKibana {
 		err = ei.initWithKibana(arguments.IndexTemplates, arguments.IndexPolicies)
 		if err != nil {
 			return nil, err
@@ -101,9 +101,6 @@ func checkArgElasticProcessor(arguments ArgElasticProcessor) error {
 	}
 	if check.IfNil(arguments.AccountsDB) {
 		return ErrNilAccountsDB
-	}
-	if arguments.Options == nil {
-		return ErrNilOptions
 	}
 	if check.IfNil(arguments.ShardCoordinator) {
 		return ErrNilShardCoordinator

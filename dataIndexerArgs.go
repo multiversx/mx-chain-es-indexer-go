@@ -11,18 +11,18 @@ import (
 	"github.com/ElrondNetwork/elrond-go/sharding"
 )
 
-//ArgDataIndexer is struct that is used to store all components that are needed to create a indexer
+// ArgDataIndexer is struct that is used to store all components that are needed to create a indexer
 type ArgDataIndexer struct {
 	ShardCoordinator   sharding.Coordinator
 	Marshalizer        marshal.Marshalizer
 	EpochStartNotifier sharding.EpochStartEventNotifier
 	NodesCoordinator   sharding.NodesCoordinator
-	Options            *Options
+	UseKibana          bool
 	DataDispatcher     DispatcherHandler
 	ElasticProcessor   ElasticProcessor
 }
 
-//ArgElasticProcessor is struct that is used to store all components that are needed to an elastic indexer
+// ArgElasticProcessor is struct that is used to store all components that are needed to an elastic indexer
 type ArgElasticProcessor struct {
 	IndexTemplates           map[string]*bytes.Buffer
 	IndexPolicies            map[string]*bytes.Buffer
@@ -30,7 +30,7 @@ type ArgElasticProcessor struct {
 	Hasher                   hashing.Hasher
 	AddressPubkeyConverter   core.PubkeyConverter
 	ValidatorPubkeyConverter core.PubkeyConverter
-	Options                  *Options
+	UseKibana                bool
 	DBClient                 DatabaseClientHandler
 	EnabledIndexes           map[string]struct{}
 	AccountsDB               state.AccountsAdapter
