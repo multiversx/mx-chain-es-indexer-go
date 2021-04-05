@@ -7,7 +7,9 @@ import (
 	"time"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elastic-indexer-go/errors"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
+	"github.com/ElrondNetwork/elrond-go-logger/check"
 	"github.com/ElrondNetwork/elrond-go/core"
 	nodeData "github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/block"
@@ -23,14 +25,21 @@ type blockProcessor struct {
 }
 
 // NewBlockProcessor will create a new instance of block processor
-func NewBlockProcessor(hasher hashing.Hasher, msarshalizer marshal.Marshalizer) *blockProcessor {
+func NewBlockProcessor(hasher hashing.Hasher, marshalizer marshal.Marshalizer) (*blockProcessor, error) {
+	if check.IfNil(hasher) {
+		return nil, errors.ErrNilHasher
+	}
+	if check.IfNil(marshalizer) {
+		return nil, errors.ErrNilMarshalizer
+	}
+
 	return &blockProcessor{
 		hasher:      hasher,
-		marshalizer: msarshalizer,
-	}
+		marshalizer: marshalizer,
+	}, nil
 }
 
-// PrepareBlockForDB will prepare a database block and serialize if for database
+// PrepareBlockForDB will prepare a database block and serialize it for database
 func (bp *blockProcessor) PrepareBlockForDB(
 	header nodeData.HeaderHandler,
 	signersIndexes []uint64,
@@ -38,6 +47,13 @@ func (bp *blockProcessor) PrepareBlockForDB(
 	notarizedHeadersHashes []string,
 	sizeTxs int,
 ) (*data.Block, error) {
+	if check.IfNil(header) {
+		return nil, errors.ErrNilHeaderHandler
+	}
+	if body == nil {
+		return nil, errors.ErrNilBlockBody
+	}
+
 	blockSizeInBytes, headerHash, err := bp.computeBlockSizeAndHeaderHash(header, body)
 	if err != nil {
 		return nil, err
@@ -137,7 +153,7 @@ func createShardIdentifier(shardID uint32) uint32 {
 	return shardIdentifier
 }
 
-// ComputeHeaderHash will compute hash of a provided header
+// ComputeHeaderHash will compute the hash of a provided header
 func (bp *blockProcessor) ComputeHeaderHash(header nodeData.HeaderHandler) ([]byte, error) {
 	return core.CalculateHash(bp.marshalizer, bp.hasher, header)
 }

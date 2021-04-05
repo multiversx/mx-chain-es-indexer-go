@@ -5,7 +5,7 @@ import (
 
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/client"
-	processIndexer "github.com/ElrondNetwork/elastic-indexer-go/process"
+	"github.com/ElrondNetwork/elastic-indexer-go/errors"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/factory"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"
@@ -109,37 +109,37 @@ func createElasticProcessor(args *ArgsIndexerFactory) (indexer.ElasticProcessor,
 
 func checkDataIndexerParams(arguments *ArgsIndexerFactory) error {
 	if arguments.IndexerCacheSize < 0 {
-		return indexer.ErrNegativeCacheSize
+		return errors.ErrNegativeCacheSize
 	}
 	if check.IfNil(arguments.AddressPubkeyConverter) {
-		return fmt.Errorf("%w when setting AddressPubkeyConverter in indexer", processIndexer.ErrNilPubkeyConverter)
+		return fmt.Errorf("%w when setting AddressPubkeyConverter in indexer", errors.ErrNilPubkeyConverter)
 	}
 	if check.IfNil(arguments.ValidatorPubkeyConverter) {
-		return fmt.Errorf("%w when setting ValidatorPubkeyConverter in indexer", processIndexer.ErrNilPubkeyConverter)
+		return fmt.Errorf("%w when setting ValidatorPubkeyConverter in indexer", errors.ErrNilPubkeyConverter)
 	}
 	if arguments.Url == "" {
-		return core.ErrNilUrl
+		return errors.ErrNilUrl
 	}
 	if check.IfNil(arguments.Marshalizer) {
-		return core.ErrNilMarshalizer
+		return errors.ErrNilMarshalizer
 	}
 	if check.IfNil(arguments.Hasher) {
-		return core.ErrNilHasher
+		return errors.ErrNilHasher
 	}
 	if check.IfNil(arguments.NodesCoordinator) {
-		return core.ErrNilNodesCoordinator
+		return errors.ErrNilNodesCoordinator
 	}
 	if check.IfNil(arguments.EpochStartNotifier) {
-		return core.ErrNilEpochStartNotifier
+		return errors.ErrNilEpochStartNotifier
 	}
 	if check.IfNil(arguments.TransactionFeeCalculator) {
-		return core.ErrNilTransactionFeeCalculator
+		return errors.ErrNilTransactionFeeCalculator
 	}
 	if check.IfNil(arguments.AccountsDB) {
-		return processIndexer.ErrNilAccountsDB
+		return errors.ErrNilAccountsDB
 	}
 	if check.IfNil(arguments.ShardCoordinator) {
-		return processIndexer.ErrNilShardCoordinator
+		return errors.ErrNilShardCoordinator
 	}
 
 	return nil

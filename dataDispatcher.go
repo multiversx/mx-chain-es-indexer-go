@@ -2,11 +2,11 @@ package indexer
 
 import (
 	"context"
-	"errors"
+	errorsGo "errors"
 	"sync"
 	"time"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/client"
+	"github.com/ElrondNetwork/elastic-indexer-go/errors"
 	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-go/core/atomic"
@@ -15,12 +15,11 @@ import (
 
 var log = logger.GetOrCreate("core/indexer")
 
-const durationBetweenErrorRetry = time.Second * 3
-
 const (
-	closeTimeout = time.Second * 20
-	backOffTime  = time.Second * 10
-	maxBackOff   = time.Minute * 5
+	durationBetweenErrorRetry = time.Second * 3
+	closeTimeout              = time.Second * 20
+	backOffTime               = time.Second * 10
+	maxBackOff                = time.Minute * 5
 )
 
 type dataDispatcher struct {
@@ -36,7 +35,7 @@ type dataDispatcher struct {
 // NewDataDispatcher creates a new dataDispatcher instance, capable of saving sequentially data in elasticsearch database
 func NewDataDispatcher(cacheSize int) (*dataDispatcher, error) {
 	if cacheSize < 0 {
-		return nil, ErrNegativeCacheSize
+		return nil, errors.ErrNegativeCacheSize
 	}
 
 	dd := &dataDispatcher{
@@ -54,10 +53,10 @@ func (d *dataDispatcher) StartIndexData() {
 	var ctx context.Context
 	ctx, d.cancelFunc = context.WithCancel(context.Background())
 
-	go d.startWorker(ctx)
+	go d.doDataDispatch(ctx)
 }
 
-func (d *dataDispatcher) startWorker(ctx context.Context) {
+func (d *dataDispatcher) doDataDispatch(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -134,7 +133,7 @@ func (d *dataDispatcher) doWork(wi workItems.WorkItemHandler) bool {
 		}
 
 		err := wi.Save()
-		if errors.Is(err, client.ErrBackOff) {
+		if errorsGo.Is(err, errors.ErrBackOff) {
 			log.Warn("dataDispatcher.doWork could not index item",
 				"received back off:", err.Error())
 

@@ -1,10 +1,12 @@
-package generalInfo
+package statistics
 
 import (
 	"math/big"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elastic-indexer-go/errors"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
+	"github.com/ElrondNetwork/elrond-go-logger/check"
 	"github.com/ElrondNetwork/elrond-go/core/statistics"
 )
 
@@ -13,18 +15,22 @@ const (
 	shardTpsDocIDPrefix = "shard"
 )
 
-var log = logger.GetOrCreate("indexer/process/generalInfo")
+var log = logger.GetOrCreate("indexer/process/statistics")
 
-type infoProcessor struct {
+type statisticsProcessor struct {
 }
 
-// NewGeneralInfoProcessor will create a new instance of general info processor
-func NewGeneralInfoProcessor() *infoProcessor {
-	return &infoProcessor{}
+// NewStatisticsProcessor will create a new instance of general statisticsProcessor
+func NewStatisticsProcessor() *statisticsProcessor {
+	return &statisticsProcessor{}
 }
 
-// PrepareGeneralInfo will prepare and general information about chain
-func (gip *infoProcessor) PrepareGeneralInfo(tpsBenchmark statistics.TPSBenchmark) (*data.TPS, []*data.TPS) {
+// PrepareStatistics will prepare and general information about chain
+func (sp *statisticsProcessor) PrepareStatistics(tpsBenchmark statistics.TPSBenchmark) (*data.TPS, []*data.TPS, error) {
+	if check.IfNil(tpsBenchmark) {
+		return nil, nil, errors.ErrNilTPSBenchmark
+	}
+
 	generalInfo := &data.TPS{
 		LiveTPS:               tpsBenchmark.LiveTPS(),
 		PeakTPS:               tpsBenchmark.PeakTPS(),
@@ -54,5 +60,5 @@ func (gip *infoProcessor) PrepareGeneralInfo(tpsBenchmark statistics.TPSBenchmar
 		shardsInfo = append(shardsInfo, shardTPS)
 	}
 
-	return generalInfo, shardsInfo
+	return generalInfo, shardsInfo, nil
 }

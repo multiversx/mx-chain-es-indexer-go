@@ -1,13 +1,14 @@
 package client
 
 import (
-	"errors"
+	errorsGo "errors"
 	"fmt"
 	"io"
 	"net/http"
 	"strings"
 	"testing"
 
+	"github.com/ElrondNetwork/elastic-indexer-go/errors"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"github.com/stretchr/testify/assert"
@@ -31,7 +32,7 @@ func TestLoadResponseBody_NilBodyNotNilDest(t *testing.T) {
 func TestElasticDefaultErrorResponseHandler_ReadAllFailsShouldErr(t *testing.T) {
 	t.Parallel()
 
-	expectedErr := errors.New("expected error")
+	expectedErr := errorsGo.New("expected error")
 	resp := &esapi.Response{
 		StatusCode: 0,
 		Header:     nil,
@@ -44,7 +45,7 @@ func TestElasticDefaultErrorResponseHandler_ReadAllFailsShouldErr(t *testing.T) 
 
 	err := elasticDefaultErrorResponseHandler(resp)
 
-	assert.True(t, errors.Is(err, expectedErr))
+	assert.True(t, errorsGo.Is(err, expectedErr))
 }
 
 func TestElasticDefaultErrorResponseHandler_UnmarshalFailsWithHttpForbiddenErrorShouldSignalBackOffErr(t *testing.T) {
@@ -54,7 +55,7 @@ func TestElasticDefaultErrorResponseHandler_UnmarshalFailsWithHttpForbiddenError
 	resp := createMockEsapiResponseWithText(httpErrString)
 	err := elasticDefaultErrorResponseHandler(resp)
 
-	assert.True(t, errors.Is(err, ErrBackOff))
+	assert.True(t, errorsGo.Is(err, errors.ErrBackOff))
 }
 
 func TestElasticDefaultErrorResponseHandler_UnmarshalFailsWithHttpTooManyRequestsErrorShouldSignalBackOffErr(t *testing.T) {
@@ -64,7 +65,7 @@ func TestElasticDefaultErrorResponseHandler_UnmarshalFailsWithHttpTooManyRequest
 	resp := createMockEsapiResponseWithText(httpErrString)
 	err := elasticDefaultErrorResponseHandler(resp)
 
-	assert.True(t, errors.Is(err, ErrBackOff))
+	assert.True(t, errorsGo.Is(err, errors.ErrBackOff))
 }
 
 func TestElasticDefaultErrorResponseHandler_UnmarshalFailsWithGenericError(t *testing.T) {
@@ -125,7 +126,7 @@ func createMockEsapiResponseWithText(str string) *esapi.Response {
 		Header:     nil,
 		Body: &mock.ReadCloserStub{
 			ReadCalled: func(p []byte) (n int, err error) {
-				//dump contents into provided byte slice
+				// dump contents into provided byte slice
 				for i := 0; i < len(p); i++ {
 					if i < len(str) {
 						p[i] = str[i]

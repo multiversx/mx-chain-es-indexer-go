@@ -13,19 +13,15 @@ func (ap *accountsProcessor) SerializeAccounts(
 	accounts map[string]*data.AccountInfo,
 	areESDTAccounts bool,
 ) ([]*bytes.Buffer, error) {
-	var err error
-
 	buffSlice := data.NewBufferSlice()
 	for address, acc := range accounts {
-		meta, serializedData, errPrepareAcc := prepareSerializedAccountInfo(address, acc, areESDTAccounts)
-		if len(meta) == 0 {
-			log.Warn("accountsProcessor.SerializeAccounts: cannot prepare serialized account info", "error", errPrepareAcc)
+		meta, serializedData, err := prepareSerializedAccountInfo(address, acc, areESDTAccounts)
+		if err != nil {
 			return nil, err
 		}
 
 		err = buffSlice.PutData(meta, serializedData)
 		if err != nil {
-			log.Warn("accountsProcessor.SerializeAccounts: cannot put data in buffer", "error", err.Error())
 			return nil, err
 		}
 	}
@@ -46,7 +42,6 @@ func prepareSerializedAccountInfo(
 	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, id, "\n"))
 	serializedData, err := json.Marshal(account)
 	if err != nil {
-		log.Debug("prepareSerializedAccountInfo marshal could not serialize account", "address", address)
 		return nil, nil, err
 	}
 
@@ -60,16 +55,14 @@ func (ap *accountsProcessor) SerializeAccountsHistory(
 	var err error
 
 	buffSlice := data.NewBufferSlice()
-	for address, acc := range accounts {
-		meta, serializedData, errPrepareAcc := prepareSerializedAccountBalanceHistory(address, acc)
+	for _, acc := range accounts {
+		meta, serializedData, errPrepareAcc := prepareSerializedAccountBalanceHistory(acc)
 		if errPrepareAcc != nil {
-			log.Warn("accountsProcessor.SerializeAccountsHistory: cannot prepare serialized account balance history", "error", err)
 			return nil, err
 		}
 
 		err = buffSlice.PutData(meta, serializedData)
 		if err != nil {
-			log.Warn("accountsProcessor.SerializeAccountsHistory: cannot put data in buffer", "error", err.Error())
 			return nil, err
 		}
 	}
@@ -78,7 +71,6 @@ func (ap *accountsProcessor) SerializeAccountsHistory(
 }
 
 func prepareSerializedAccountBalanceHistory(
-	address string,
 	account *data.AccountBalanceHistory,
 ) ([]byte, []byte, error) {
 	// no '_id' is specified because an elastic client would never search after the identifier for this index.
@@ -88,7 +80,6 @@ func prepareSerializedAccountBalanceHistory(
 
 	serializedData, err := json.Marshal(account)
 	if err != nil {
-		log.Debug("prepareSerializedAccountBalanceHistory could not serialize account history entry", "address", address, "err", err)
 		return nil, nil, err
 	}
 

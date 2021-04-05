@@ -1,16 +1,14 @@
 package factory
 
 import (
-	"errors"
+	errorsGo "errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
+	"github.com/ElrondNetwork/elastic-indexer-go/errors"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
-	"github.com/ElrondNetwork/elastic-indexer-go/process"
-	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/testscommon/economicsmocks"
 	"github.com/stretchr/testify/require"
 )
 
@@ -32,7 +30,7 @@ func createMockIndexerFactoryArgs() *ArgsIndexerFactory {
 		TemplatesPath:            "../testdata",
 		EnabledIndexes:           []string{"blocks", "transactions", "miniblocks", "tps", "validators", "round", "accounts", "rating"},
 		AccountsDB:               &mock.AccountsStub{},
-		TransactionFeeCalculator: &economicsmocks.EconomicsHandlerStub{},
+		TransactionFeeCalculator: &mock.EconomicsHandlerStub{},
 		ShardCoordinator:         &mock.ShardCoordinatorMock{},
 		IsInImportDBMode:         false,
 	}
@@ -51,7 +49,7 @@ func TestNewIndexerFactory(t *testing.T) {
 				args.IndexerCacheSize = -1
 				return args
 			},
-			exError: indexer.ErrNegativeCacheSize,
+			exError: errors.ErrNegativeCacheSize,
 		},
 		{
 			name: "NilAddressPubkeyConverter",
@@ -60,7 +58,7 @@ func TestNewIndexerFactory(t *testing.T) {
 				args.AddressPubkeyConverter = nil
 				return args
 			},
-			exError: process.ErrNilPubkeyConverter,
+			exError: errors.ErrNilPubkeyConverter,
 		},
 		{
 			name: "NilValidatorPubkeyConverter",
@@ -69,7 +67,7 @@ func TestNewIndexerFactory(t *testing.T) {
 				args.ValidatorPubkeyConverter = nil
 				return args
 			},
-			exError: process.ErrNilPubkeyConverter,
+			exError: errors.ErrNilPubkeyConverter,
 		},
 		{
 			name: "NilMarshalizer",
@@ -78,7 +76,7 @@ func TestNewIndexerFactory(t *testing.T) {
 				args.Marshalizer = nil
 				return args
 			},
-			exError: core.ErrNilMarshalizer,
+			exError: errors.ErrNilMarshalizer,
 		},
 		{
 			name: "NilHasher",
@@ -87,7 +85,7 @@ func TestNewIndexerFactory(t *testing.T) {
 				args.Hasher = nil
 				return args
 			},
-			exError: core.ErrNilHasher,
+			exError: errors.ErrNilHasher,
 		},
 		{
 			name: "NilNodesCoordinator",
@@ -96,7 +94,7 @@ func TestNewIndexerFactory(t *testing.T) {
 				args.NodesCoordinator = nil
 				return args
 			},
-			exError: core.ErrNilNodesCoordinator,
+			exError: errors.ErrNilNodesCoordinator,
 		},
 		{
 			name: "NilEpochStartNotifier",
@@ -105,7 +103,7 @@ func TestNewIndexerFactory(t *testing.T) {
 				args.EpochStartNotifier = nil
 				return args
 			},
-			exError: core.ErrNilEpochStartNotifier,
+			exError: errors.ErrNilEpochStartNotifier,
 		},
 		{
 			name: "NilAccountsDB",
@@ -114,7 +112,7 @@ func TestNewIndexerFactory(t *testing.T) {
 				args.AccountsDB = nil
 				return args
 			},
-			exError: process.ErrNilAccountsDB,
+			exError: errors.ErrNilAccountsDB,
 		},
 		{
 			name: "EmptyUrl",
@@ -123,7 +121,7 @@ func TestNewIndexerFactory(t *testing.T) {
 				args.Url = ""
 				return args
 			},
-			exError: core.ErrNilUrl,
+			exError: errors.ErrNilUrl,
 		},
 		{
 			name: "NilTransactionFeeCalculator",
@@ -132,16 +130,16 @@ func TestNewIndexerFactory(t *testing.T) {
 				args.TransactionFeeCalculator = nil
 				return args
 			},
-			exError: core.ErrNilTransactionFeeCalculator,
+			exError: errors.ErrNilTransactionFeeCalculator,
 		},
 		{
-			name: "NilHardCoordinator",
+			name: "NilShardCoordinator",
 			argsFunc: func() *ArgsIndexerFactory {
 				args := createMockIndexerFactoryArgs()
 				args.ShardCoordinator = nil
 				return args
 			},
-			exError: process.ErrNilShardCoordinator,
+			exError: errors.ErrNilShardCoordinator,
 		},
 		{
 			name: "All arguments ok",
@@ -155,7 +153,7 @@ func TestNewIndexerFactory(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := NewIndexer(tt.argsFunc())
-			require.True(t, errors.Is(err, tt.exError))
+			require.True(t, errorsGo.Is(err, tt.exError))
 		})
 	}
 }

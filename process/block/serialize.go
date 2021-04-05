@@ -3,18 +3,21 @@ package block
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
+	"fmt"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elastic-indexer-go/errors"
+	"github.com/ElrondNetwork/elrond-go-logger/check"
 	nodeData "github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/block"
 )
 
-// ErrHeaderTypeAssertion signals that body type assertion failed
-var ErrHeaderTypeAssertion = errors.New("elasticsearch - header type assertion failed")
-
-// SerializeBlock will serialize block for database
+// SerializeBlock will serialize a block for database
 func (bp *blockProcessor) SerializeBlock(elasticBlock *data.Block) (*bytes.Buffer, error) {
+	if elasticBlock == nil {
+		return nil, errors.ErrNilElasticBlock
+	}
+
 	blockBytes, err := json.Marshal(elasticBlock)
 	if err != nil {
 		return nil, err
@@ -33,9 +36,13 @@ func (bp *blockProcessor) SerializeBlock(elasticBlock *data.Block) (*bytes.Buffe
 
 // SerializeEpochInfoData will serialize information about current epoch
 func (bp *blockProcessor) SerializeEpochInfoData(header nodeData.HeaderHandler) (*bytes.Buffer, error) {
+	if check.IfNil(header) {
+		return nil, errors.ErrNilHeaderHandler
+	}
+
 	metablock, ok := header.(*block.MetaBlock)
 	if !ok {
-		return nil, ErrHeaderTypeAssertion
+		return nil, fmt.Errorf("%w in blockProcessor.SerializeEpochInfoData", errors.ErrHeaderTypeAssertion)
 	}
 
 	epochInfo := &data.EpochInfo{
@@ -45,7 +52,6 @@ func (bp *blockProcessor) SerializeEpochInfoData(header nodeData.HeaderHandler) 
 
 	epochInfoBytes, err := json.Marshal(epochInfo)
 	if err != nil {
-		log.Warn("blockProcessor.SerializeEpochInfoData cannot serialize epoch info", "error", err)
 		return nil, err
 	}
 
@@ -53,7 +59,6 @@ func (bp *blockProcessor) SerializeEpochInfoData(header nodeData.HeaderHandler) 
 	buff.Grow(len(epochInfoBytes))
 	_, err = buff.Write(epochInfoBytes)
 	if err != nil {
-		log.Warn("blockProcessor.SerializeEpochInfoData cannot write in buffer", "error", err)
 		return nil, err
 	}
 

@@ -2,12 +2,12 @@ package factory
 
 import (
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
-	"github.com/ElrondNetwork/elastic-indexer-go/disabled"
+	"github.com/ElrondNetwork/elastic-indexer-go/errors"
 	processIndexer "github.com/ElrondNetwork/elastic-indexer-go/process"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/accounts"
 	blockProc "github.com/ElrondNetwork/elastic-indexer-go/process/block"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/generalInfo"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/miniblocks"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/statistics"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/transactions"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/validators"
 	"github.com/ElrondNetwork/elrond-go/core"
@@ -18,7 +18,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go/sharding"
 )
 
-// ArgElasticProcessorFactory is struct that is used to store all components that are needed to an elastic indexer
+// ArgElasticProcessorFactory is struct that is used to store all components that are needed to create an elastic processor factory
 type ArgElasticProcessorFactory struct {
 	Marshalizer              marshal.Marshalizer
 	Hasher                   hashing.Hasher
@@ -49,39 +49,61 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (indexer.Elast
 		enabledIndexesMap[index] = struct{}{}
 	}
 	if len(enabledIndexesMap) == 0 {
-		return nil, indexer.ErrEmptyEnabledIndexes
+		return nil, errors.ErrEmptyEnabledIndexes
 	}
 
-	accountsProc := accounts.NewAccountsProcessor(arguments.Denomination, arguments.Marshalizer, arguments.AddressPubkeyConverter, arguments.AccountsDB)
-	blockProcHandler := blockProc.NewBlockProcessor(arguments.Hasher, arguments.Marshalizer)
-	miniblocksProc := miniblocks.NewMiniblocksProcessor(arguments.ShardCoordinator.SelfId(), arguments.Hasher, arguments.Marshalizer)
-	validatorsProc := validators.NewValidatorsProcessor(arguments.ValidatorPubkeyConverter)
-	generalInfoProc := generalInfo.NewGeneralInfoProcessor()
-
-	txsProc := transactions.NewTransactionsProcessor(
-		arguments.AddressPubkeyConverter,
-		arguments.TransactionFeeCalculator,
-		arguments.IsInImportDBMode,
-		arguments.ShardCoordinator,
-		arguments.SaveTxsLogsEnabled,
-		disabled.NewNilTxLogsProcessor(),
-		arguments.Hasher,
+	accountsProc, err := accounts.NewAccountsProcessor(
+		arguments.Denomination,
 		arguments.Marshalizer,
+		arguments.AddressPubkeyConverter,
+		arguments.AccountsDB,
 	)
+	if err != nil {
+		return nil, err
+	}
+
+	blockProcHandler, err := blockProc.NewBlockProcessor(arguments.Hasher, arguments.Marshalizer)
+	if err != nil {
+		return nil, err
+	}
+
+	miniblocksProc, err := miniblocks.NewMiniblocksProcessor(arguments.ShardCoordinator.SelfId(), arguments.Hasher, arguments.Marshalizer)
+	if err != nil {
+		return nil, err
+	}
+	validatorsProc, err := validators.NewValidatorsProcessor(arguments.ValidatorPubkeyConverter)
+	if err != nil {
+		return nil, err
+	}
+
+	generalInfoProc := statistics.NewStatisticsProcessor()
+
+	argsTxsProc := &transactions.ArgsTransactionProcessor{
+		AddressPubkeyConverter: arguments.AddressPubkeyConverter,
+		TxFeeCalculator:        arguments.TransactionFeeCalculator,
+		ShardCoordinator:       arguments.ShardCoordinator,
+		Hasher:                 arguments.Hasher,
+		Marshalizer:            arguments.Marshalizer,
+		IsInImportMode:         arguments.IsInImportDBMode,
+	}
+	txsProc, err := transactions.NewTransactionsProcessor(argsTxsProc)
+	if err != nil {
+		return nil, err
+	}
 
 	args := &processIndexer.ArgElasticProcessor{
-		TxProc:          txsProc,
-		AccountsProc:    accountsProc,
-		BlockProc:       blockProcHandler,
-		MiniblocksProc:  miniblocksProc,
-		ValidatorsProc:  validatorsProc,
-		GeneralInfoProc: generalInfoProc,
-		DBClient:        arguments.DBClient,
-		EnabledIndexes:  enabledIndexesMap,
-		UseKibana:       arguments.UseKibana,
-		IndexTemplates:  indexTemplates,
-		IndexPolicies:   indexPolicies,
-		SelfShardID:     arguments.ShardCoordinator.SelfId(),
+		TxsProc:        txsProc,
+		AccountsProc:   accountsProc,
+		BlockProc:      blockProcHandler,
+		MiniblocksProc: miniblocksProc,
+		ValidatorsProc: validatorsProc,
+		StatisticsProc: generalInfoProc,
+		DBClient:       arguments.DBClient,
+		EnabledIndexes: enabledIndexesMap,
+		UseKibana:      arguments.UseKibana,
+		IndexTemplates: indexTemplates,
+		IndexPolicies:  indexPolicies,
+		SelfShardID:    arguments.ShardCoordinator.SelfId(),
 	}
 
 	return processIndexer.NewElasticProcessor(args)

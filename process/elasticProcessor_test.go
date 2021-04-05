@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
+	errorsGo "errors"
 	"fmt"
 	"io/ioutil"
 	"math/big"
@@ -12,11 +12,12 @@ import (
 	"testing"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/disabled"
+	"github.com/ElrondNetwork/elastic-indexer-go/errors"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/accounts"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/block"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/generalInfo"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/miniblocks"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/statistics"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/transactions"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/validators"
 	"github.com/ElrondNetwork/elrond-go/core"
@@ -25,32 +26,40 @@ import (
 	"github.com/ElrondNetwork/elrond-go/data/indexer"
 	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-go/testscommon"
-	"github.com/ElrondNetwork/elrond-go/testscommon/economicsmocks"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"github.com/stretchr/testify/require"
 )
 
 func newTestElasticSearchDatabase(elasticsearchWriter DatabaseClientHandler, arguments *ArgElasticProcessor) *elasticProcessor {
 	return &elasticProcessor{
-		elasticClient:   elasticsearchWriter,
-		enabledIndexes:  arguments.EnabledIndexes,
-		blockProc:       arguments.BlockProc,
-		txProc:          arguments.TxProc,
-		miniblocksProc:  arguments.MiniblocksProc,
-		accountsProc:    arguments.AccountsProc,
-		validatorsProc:  arguments.ValidatorsProc,
-		generalInfoProc: arguments.GeneralInfoProc,
+		elasticClient:  elasticsearchWriter,
+		enabledIndexes: arguments.EnabledIndexes,
+		blockProc:      arguments.BlockProc,
+		txsProc:        arguments.TxsProc,
+		miniblocksProc: arguments.MiniblocksProc,
+		accountsProc:   arguments.AccountsProc,
+		validatorsProc: arguments.ValidatorsProc,
+		statisticsProc: arguments.StatisticsProc,
 	}
 }
 
 func createMockElasticProcessorArgs() *ArgElasticProcessor {
+	acp, _ := accounts.NewAccountsProcessor(0, &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{}, &mock.AccountsStub{})
+	bp, _ := block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
+	mp, _ := miniblocks.NewMiniblocksProcessor(0, &mock.HasherMock{}, &mock.MarshalizerMock{})
+	vp, _ := validators.NewValidatorsProcessor(mock.NewPubkeyConverterMock(32))
+
 	return &ArgElasticProcessor{
 		DBClient: &mock.DatabaseWriterStub{},
 		EnabledIndexes: map[string]struct{}{
 			blockIndex: {}, txIndex: {}, miniblocksIndex: {}, tpsIndex: {}, validatorsIndex: {}, roundIndex: {}, accountsIndex: {}, ratingIndex: {}, accountsHistoryIndex: {},
 		},
-		ValidatorsProc:  validators.NewValidatorsProcessor(mock.NewPubkeyConverterMock(32)),
-		GeneralInfoProc: generalInfo.NewGeneralInfoProcessor(),
+		ValidatorsProc: vp,
+		StatisticsProc: statistics.NewStatisticsProcessor(),
+		TxsProc:        &mock.DBTransactionProcessorStub{},
+		MiniblocksProc: mp,
+		AccountsProc:   acp,
+		BlockProc:      bp,
 	}
 }
 
@@ -113,6 +122,117 @@ func newTestBlockBody() *dataBlock.Body {
 	}
 }
 
+func TestNewElasticProcessor(t *testing.T) {
+	t.Parallel()
+
+	expectedErr := errorsGo.New("local error")
+	tests := []struct {
+		name  string
+		args  func() *ArgElasticProcessor
+		exErr error
+	}{
+		{
+			name: "NilArguments",
+			args: func() *ArgElasticProcessor {
+				return nil
+			},
+			exErr: errors.ErrNilElasticProcessorArguments,
+		},
+		{
+			name: "NilEnabledIndexesMap",
+			args: func() *ArgElasticProcessor {
+				arguments := createMockElasticProcessorArgs()
+				arguments.EnabledIndexes = nil
+				return arguments
+			},
+			exErr: errors.ErrNilEnabledIndexesMap,
+		},
+		{
+			name: "NilDatabaseClient",
+			args: func() *ArgElasticProcessor {
+				arguments := createMockElasticProcessorArgs()
+				arguments.DBClient = nil
+				return arguments
+			},
+			exErr: errors.ErrNilDatabaseClient,
+		},
+		{
+			name: "NilStatisticProc",
+			args: func() *ArgElasticProcessor {
+				arguments := createMockElasticProcessorArgs()
+				arguments.StatisticsProc = nil
+				return arguments
+			},
+			exErr: errors.ErrNilStatisticHandler,
+		},
+		{
+			name: "NilBlockProc",
+			args: func() *ArgElasticProcessor {
+				arguments := createMockElasticProcessorArgs()
+				arguments.BlockProc = nil
+				return arguments
+			},
+			exErr: errors.ErrNilBlockHandler,
+		},
+		{
+			name: "NilAccountsProc",
+			args: func() *ArgElasticProcessor {
+				arguments := createMockElasticProcessorArgs()
+				arguments.AccountsProc = nil
+				return arguments
+			},
+			exErr: errors.ErrNilAccountsHandler,
+		},
+		{
+			name: "NilMiniblocksProc",
+			args: func() *ArgElasticProcessor {
+				arguments := createMockElasticProcessorArgs()
+				arguments.MiniblocksProc = nil
+				return arguments
+			},
+			exErr: errors.ErrNilMiniblocksHandler,
+		},
+		{
+			name: "NilValidatorsProc",
+			args: func() *ArgElasticProcessor {
+				arguments := createMockElasticProcessorArgs()
+				arguments.ValidatorsProc = nil
+				return arguments
+			},
+			exErr: errors.ErrNilValidatorsHandler,
+		},
+		{
+			name: "NilTxsProc",
+			args: func() *ArgElasticProcessor {
+				arguments := createMockElasticProcessorArgs()
+				arguments.TxsProc = nil
+				return arguments
+			},
+			exErr: errors.ErrNilTransactionsHandler,
+		},
+		{
+			name: "InitError",
+			args: func() *ArgElasticProcessor {
+				arguments := createMockElasticProcessorArgs()
+				arguments.DBClient = &mock.DatabaseWriterStub{
+					CheckAndCreateIndexCalled: func(index string) error {
+						return expectedErr
+					},
+				}
+				return arguments
+			},
+			exErr: expectedErr,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := NewElasticProcessor(tt.args())
+			require.True(t, errorsGo.Is(err, tt.exErr))
+		})
+	}
+}
+
 func TestNewElasticProcessorWithKibana(t *testing.T) {
 	args := createMockElasticProcessorArgs()
 	args.UseKibana = true
@@ -134,7 +254,7 @@ func TestElasticProcessor_RemoveHeader(t *testing.T) {
 		},
 	}
 
-	args.BlockProc = block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
+	args.BlockProc, _ = block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	elasticProc, err := NewElasticProcessor(args)
 	require.NoError(t, err)
@@ -177,7 +297,7 @@ func TestElasticProcessor_RemoveMiniblocks(t *testing.T) {
 		},
 	}
 
-	args.MiniblocksProc = miniblocks.NewMiniblocksProcessor(0, &mock.HasherMock{}, &mock.MarshalizerMock{})
+	args.MiniblocksProc, _ = miniblocks.NewMiniblocksProcessor(0, &mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	elasticProc, err := NewElasticProcessor(args)
 	require.NoError(t, err)
@@ -210,7 +330,7 @@ func TestElasticProcessor_RemoveMiniblocks(t *testing.T) {
 }
 
 func TestElasticseachDatabaseSaveHeader_RequestError(t *testing.T) {
-	localErr := errors.New("localErr")
+	localErr := errorsGo.New("localErr")
 	header := &dataBlock.Header{Nonce: 1}
 	signerIndexes := []uint64{0, 1}
 	arguments := createMockElasticProcessorArgs()
@@ -219,7 +339,7 @@ func TestElasticseachDatabaseSaveHeader_RequestError(t *testing.T) {
 			return localErr
 		},
 	}
-	arguments.BlockProc = block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
+	arguments.BlockProc, _ = block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 	elasticDatabase := newTestElasticSearchDatabase(dbWriter, arguments)
 
 	err := elasticDatabase.SaveHeader(header, signerIndexes, &dataBlock.Body{}, nil, 1)
@@ -261,14 +381,14 @@ func TestElasticseachDatabaseSaveHeader_CheckRequestBody(t *testing.T) {
 		},
 	}
 
-	arguments.BlockProc = block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
+	arguments.BlockProc, _ = block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 	elasticDatabase := newTestElasticSearchDatabase(dbWriter, arguments)
 	err := elasticDatabase.SaveHeader(header, signerIndexes, blockBody, nil, 1)
 	require.Nil(t, err)
 }
 
 func TestElasticseachSaveTransactions(t *testing.T) {
-	localErr := errors.New("localErr")
+	localErr := errorsGo.New("localErr")
 	arguments := createMockElasticProcessorArgs()
 	dbWriter := &mock.DatabaseWriterStub{
 		DoBulkRequestCalled: func(buff *bytes.Buffer, index string) error {
@@ -280,17 +400,16 @@ func TestElasticseachSaveTransactions(t *testing.T) {
 	header := &dataBlock.Header{Nonce: 1, TxCount: 2}
 	txPool := newTestTxPool()
 
-	txDbProc := transactions.NewTransactionsProcessor(
-		&mock.PubkeyConverterMock{},
-		&economicsmocks.EconomicsHandlerStub{},
-		false,
-		&mock.ShardCoordinatorMock{},
-		false,
-		disabled.NewNilTxLogsProcessor(),
-		&mock.HasherMock{},
-		&mock.MarshalizerMock{},
-	)
-	arguments.TxProc = txDbProc
+	args := &transactions.ArgsTransactionProcessor{
+		AddressPubkeyConverter: &mock.PubkeyConverterMock{},
+		TxFeeCalculator:        &mock.EconomicsHandlerStub{},
+		ShardCoordinator:       &mock.ShardCoordinatorMock{},
+		Hasher:                 &mock.HasherMock{},
+		Marshalizer:            &mock.MarshalizerMock{},
+		IsInImportMode:         false,
+	}
+	txDbProc, _ := transactions.NewTransactionsProcessor(args)
+	arguments.TxsProc = txDbProc
 
 	elasticDatabase := newTestElasticSearchDatabase(dbWriter, arguments)
 	pool := &indexer.Pool{Txs: txPool}
@@ -300,7 +419,7 @@ func TestElasticseachSaveTransactions(t *testing.T) {
 
 func TestElasticProcessor_SaveValidatorsRating(t *testing.T) {
 	docID := "0_1"
-	localErr := errors.New("localErr")
+	localErr := errorsGo.New("localErr")
 
 	blsKey := "bls"
 
@@ -311,7 +430,7 @@ func TestElasticProcessor_SaveValidatorsRating(t *testing.T) {
 		},
 	}
 
-	arguments.ValidatorsProc = validators.NewValidatorsProcessor(mock.NewPubkeyConverterMock(32))
+	arguments.ValidatorsProc, _ = validators.NewValidatorsProcessor(mock.NewPubkeyConverterMock(32))
 	elasticProc, _ := NewElasticProcessor(arguments)
 
 	err := elasticProc.SaveValidatorsRating(
@@ -327,7 +446,7 @@ func TestElasticProcessor_SaveValidatorsRating(t *testing.T) {
 }
 
 func TestElasticProcessor_SaveMiniblocks(t *testing.T) {
-	localErr := errors.New("localErr")
+	localErr := errorsGo.New("localErr")
 
 	arguments := createMockElasticProcessorArgs()
 	arguments.DBClient = &mock.DatabaseWriterStub{
@@ -339,7 +458,7 @@ func TestElasticProcessor_SaveMiniblocks(t *testing.T) {
 		},
 	}
 
-	arguments.MiniblocksProc = miniblocks.NewMiniblocksProcessor(0, &mock.HasherMock{}, &mock.MarshalizerMock{})
+	arguments.MiniblocksProc, _ = miniblocks.NewMiniblocksProcessor(0, &mock.HasherMock{}, &mock.MarshalizerMock{})
 	elasticProc, _ := NewElasticProcessor(arguments)
 
 	header := &dataBlock.Header{}
@@ -355,14 +474,14 @@ func TestElasticsearch_saveShardValidatorsPubKeys_RequestError(t *testing.T) {
 	shardID := uint32(0)
 	epoch := uint32(0)
 	valPubKeys := [][]byte{[]byte("key1"), []byte("key2")}
-	localErr := errors.New("localErr")
+	localErr := errorsGo.New("localErr")
 	arguments := createMockElasticProcessorArgs()
 	dbWriter := &mock.DatabaseWriterStub{
 		DoRequestCalled: func(req *esapi.IndexRequest) error {
 			return localErr
 		},
 	}
-	arguments.ValidatorsProc = validators.NewValidatorsProcessor(mock.NewPubkeyConverterMock(32))
+	arguments.ValidatorsProc, _ = validators.NewValidatorsProcessor(mock.NewPubkeyConverterMock(32))
 	elasticDatabase := newTestElasticSearchDatabase(dbWriter, arguments)
 
 	err := elasticDatabase.SaveShardValidatorsPubKeys(shardID, epoch, valPubKeys)
@@ -394,7 +513,7 @@ func TestElasticsearch_saveShardStatistics_reqError(t *testing.T) {
 	}
 	tpsBenchmark.UpdateWithShardStats(metaBlock)
 
-	localError := errors.New("local err")
+	localError := errorsGo.New("local err")
 	arguments := createMockElasticProcessorArgs()
 	dbWriter := &mock.DatabaseWriterStub{
 		DoBulkRequestCalled: func(buff *bytes.Buffer, index string) error {
@@ -448,7 +567,7 @@ func TestElasticsearch_saveRoundInfo(t *testing.T) {
 
 func TestElasticsearch_saveRoundInfoRequestError(t *testing.T) {
 	roundInfo := &data.RoundInfo{}
-	localError := errors.New("local err")
+	localError := errorsGo.New("local err")
 	arguments := createMockElasticProcessorArgs()
 	dbWriter := &mock.DatabaseWriterStub{
 		DoBulkRequestCalled: func(buff *bytes.Buffer, index string) error {
@@ -477,16 +596,17 @@ func TestElasticProcessor_RemoveTransactions(t *testing.T) {
 		},
 	}
 
-	arguments.TxProc = transactions.NewTransactionsProcessor(
-		&mock.PubkeyConverterMock{},
-		&economicsmocks.EconomicsHandlerStub{},
-		false,
-		&mock.ShardCoordinatorMock{},
-		false,
-		disabled.NewNilTxLogsProcessor(),
-		&mock.HasherMock{},
-		&mock.MarshalizerMock{},
-	)
+	args := &transactions.ArgsTransactionProcessor{
+		AddressPubkeyConverter: &mock.PubkeyConverterMock{},
+		TxFeeCalculator:        &mock.EconomicsHandlerStub{},
+		ShardCoordinator:       &mock.ShardCoordinatorMock{},
+		Hasher:                 &mock.HasherMock{},
+		Marshalizer:            &mock.MarshalizerMock{},
+		IsInImportMode:         false,
+	}
+	txDbProc, _ := transactions.NewTransactionsProcessor(args)
+
+	arguments.TxsProc = txDbProc
 
 	elasticSearchProc := newTestElasticSearchDatabase(dbWriter, arguments)
 

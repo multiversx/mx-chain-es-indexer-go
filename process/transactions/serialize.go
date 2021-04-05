@@ -15,17 +15,11 @@ func (tdp *txDatabaseProcessor) SerializeScResults(scResults []*data.ScResult) (
 		meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, sc.Hash, "\n"))
 		serializedData, errPrepareSc := json.Marshal(sc)
 		if errPrepareSc != nil {
-			log.Warn("txDatabaseProcessor.SerializeScResults",
-				"error", "could not serialize sc results, will skip indexing",
-				"hash", sc.Hash)
-			continue
+			return nil, errPrepareSc
 		}
 
 		err := buffSlice.PutData(meta, serializedData)
 		if err != nil {
-			log.Warn("txDatabaseProcessor.SerializeScResults",
-				"error", "cannot put data in buffer",
-				"hash", sc.Hash)
 			return nil, err
 		}
 	}
@@ -38,19 +32,13 @@ func (tdp *txDatabaseProcessor) SerializeReceipts(receipts []*data.Receipt) ([]*
 	buffSlice := data.NewBufferSlice()
 	for _, rec := range receipts {
 		meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, rec.Hash, "\n"))
-		serializedData, errPrepareSc := json.Marshal(rec)
-		if errPrepareSc != nil {
-			log.Warn("indexer: marshal",
-				"error", "could not serialize receipts, will skip indexing",
-				"hash", rec.Hash)
-			continue
+		serializedData, errPrepareReceipt := json.Marshal(rec)
+		if errPrepareReceipt != nil {
+			return nil, errPrepareReceipt
 		}
 
 		err := buffSlice.PutData(meta, serializedData)
 		if err != nil {
-			log.Warn("txDatabaseProcessor.SerializeReceipts",
-				"error", "cannot put data in buffer",
-				"hash", rec.Hash)
 			return nil, err
 		}
 	}
@@ -69,17 +57,11 @@ func (tdp *txDatabaseProcessor) SerializeTransactions(
 		isMBOfTxInDB := mbsHashInDB[tx.MBHash]
 		meta, serializedData, err := prepareSerializedDataForATransaction(tx, selfShardID, isMBOfTxInDB)
 		if err != nil {
-			log.Warn("txDatabaseProcessor.SerializeTransactions cannot preparing transaction for indexing",
-				"tx hash", tx.Hash,
-				"error", err)
 			return nil, err
 		}
 
 		err = buffSlice.PutData(meta, serializedData)
 		if err != nil {
-			log.Warn("txDatabaseProcessor.SerializeTransactions cannot put data in buffer",
-				"tx hash", tx.Hash,
-				"error", err)
 			return nil, err
 		}
 	}
@@ -96,9 +78,6 @@ func prepareSerializedDataForATransaction(
 
 	marshaledTx, err := json.Marshal(tx)
 	if err != nil {
-		log.Debug("indexer: marshal",
-			"error", "could not serialize transaction, will skip indexing",
-			"tx hash", tx.Hash)
 		return nil, nil, err
 	}
 
@@ -134,17 +113,11 @@ func prepareCrossShardTxForDestinationSerialized(tx *data.Transaction, marshaled
 	// if transaction is cross-shard and current shard ID is destination, use upsert with updating fields
 	marshaledLogs, err := json.Marshal(tx.Logs)
 	if err != nil {
-		log.Debug("indexer: marshal",
-			"error", "could not serialize transaction log, will skip indexing",
-			"tx hash", tx.Hash)
 		return nil, err
 	}
 
 	marshaledTimestamp, err := json.Marshal(tx.Timestamp)
 	if err != nil {
-		log.Debug("indexer: marshal",
-			"error", "could not serialize timestamp, will skip indexing",
-			"tx hash", tx.Hash)
 		return nil, err
 	}
 

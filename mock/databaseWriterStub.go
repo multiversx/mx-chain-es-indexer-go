@@ -6,12 +6,13 @@ import (
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
 
-// DatabaseWriterStub --
+// DatabaseWriterStub -
 type DatabaseWriterStub struct {
-	DoRequestCalled     func(req *esapi.IndexRequest) error
-	DoBulkRequestCalled func(buff *bytes.Buffer, index string) error
-	DoBulkRemoveCalled  func(index string, hashes []string) error
-	DoMultiGetCalled    func(hashes []string, index string) (map[string]interface{}, error)
+	DoRequestCalled           func(req *esapi.IndexRequest) error
+	DoBulkRequestCalled       func(buff *bytes.Buffer, index string) error
+	DoBulkRemoveCalled        func(index string, hashes []string) error
+	DoMultiGetCalled          func(hashes []string, index string) (map[string]interface{}, error)
+	CheckAndCreateIndexCalled func(index string) error
 }
 
 // DoRequest -
@@ -49,7 +50,10 @@ func (dwm *DatabaseWriterStub) DoBulkRemove(index string, hashes []string) error
 }
 
 // CheckAndCreateIndex -
-func (dwm *DatabaseWriterStub) CheckAndCreateIndex(_ string) error {
+func (dwm *DatabaseWriterStub) CheckAndCreateIndex(index string) error {
+	if dwm.CheckAndCreateIndexCalled != nil {
+		return dwm.CheckAndCreateIndexCalled(index)
+	}
 	return nil
 }
 

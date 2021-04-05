@@ -20,8 +20,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func createCommonProcessor() txDBBuilder {
-	return txDBBuilder{
+func createCommonProcessor() dbTransactionBuilder {
+	return dbTransactionBuilder{
 		addressPubkeyConverter: mock.NewPubkeyConverterMock(32),
 		txFeeCalculator: &economicsmocks.EconomicsHandlerStub{
 			ComputeTxFeeBasedOnGasUsedCalled: func(tx process.TransactionWithFeeHandler, gasUsed uint64) *big.Int {
@@ -86,7 +86,7 @@ func TestGetMoveBalanceTransaction(t *testing.T) {
 		SenderUserName:       []byte("snd"),
 	}
 
-	dbTx := cp.buildTransaction(tx, txHash, mbHash, mb, header, status)
+	dbTx := cp.prepareTransaction(tx, txHash, mbHash, mb, header, status)
 	require.Equal(t, expectedTx, dbTx)
 }
 
@@ -111,11 +111,11 @@ func TestGetTransactionByType_SC(t *testing.T) {
 	}
 	header := &block.Header{TimeStamp: 100}
 
-	scRes := cp.convertScResultInDatabaseScr(scHash, smartContractRes, header)
+	scRes := cp.prepareSmartContractResult(scHash, smartContractRes, header)
 	expectedTx := &data.ScResult{
 		Nonce:        nonce,
 		Hash:         hex.EncodeToString([]byte(scHash)),
-		PreTxHash:    hex.EncodeToString(txHash),
+		PrevTxHash:   hex.EncodeToString(txHash),
 		Code:         string(code),
 		Data:         make([]byte, 0),
 		Sender:       cp.addressPubkeyConverter.Encode(sndAddr),
@@ -143,7 +143,7 @@ func TestGetTransactionByType_RewardTx(t *testing.T) {
 	header := &block.Header{Nonce: 2}
 	status := "Success"
 
-	resultTx := cp.buildRewardTransaction(rwdTx, txHash, mbHash, mb, header, status)
+	resultTx := cp.prepareRewardTransaction(rwdTx, txHash, mbHash, mb, header, status)
 	expectedTx := &data.Transaction{
 		Hash:     hex.EncodeToString(txHash),
 		MBHash:   hex.EncodeToString(mbHash),

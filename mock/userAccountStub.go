@@ -55,7 +55,6 @@ func (u *UserAccountStub) ClaimDeveloperRewards([]byte) (*big.Int, error) {
 
 // AddToDeveloperReward -
 func (u *UserAccountStub) AddToDeveloperReward(*big.Int) {
-
 }
 
 // GetDeveloperReward -
@@ -86,7 +85,7 @@ func (u *UserAccountStub) AddressBytes() []byte {
 	return nil
 }
 
-//IncreaseNonce -
+// IncreaseNonce -
 func (u *UserAccountStub) IncreaseNonce(_ uint64) {
 }
 

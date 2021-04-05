@@ -63,3 +63,52 @@ func TestSerializeReceipts(t *testing.T) {
 `
 	require.Equal(t, expectedRes, res[0].String())
 }
+
+func TestSerializeTransactionsIntraShardTx(t *testing.T) {
+	t.Parallel()
+
+	buffers, err := (&txDatabaseProcessor{}).SerializeTransactions([]*data.Transaction{{
+		Hash:                 "txHash",
+		SmartContractResults: []*data.ScResult{{}},
+	}}, 0, nil)
+	require.Nil(t, err)
+
+	expectedBuff := `{ "index" : { "_id" : "txHash", "_type" : "_doc" } }
+{"miniBlockHash":"","nonce":0,"round":0,"value":"","receiver":"","sender":"","receiverShard":0,"senderShard":0,"gasPrice":0,"gasLimit":0,"gasUsed":0,"fee":"","data":null,"signature":"","timestamp":0,"status":"","searchOrder":0}
+`
+	require.Equal(t, expectedBuff, buffers[0].String())
+}
+
+func TestSerializeTransactionCrossShardTxSource(t *testing.T) {
+	t.Parallel()
+
+	buffers, err := (&txDatabaseProcessor{}).SerializeTransactions([]*data.Transaction{{
+		Hash:                 "txHash",
+		SenderShard:          0,
+		ReceiverShard:        1,
+		SmartContractResults: []*data.ScResult{{}},
+	}}, 0, nil)
+	require.Nil(t, err)
+
+	expectedBuff := `{"update":{"_id":"txHash", "_type": "_doc"}}
+{"script":{"source":"return"},"upsert":{"miniBlockHash":"","nonce":0,"round":0,"value":"","receiver":"","sender":"","receiverShard":1,"senderShard":0,"gasPrice":0,"gasLimit":0,"gasUsed":0,"fee":"","data":null,"signature":"","timestamp":0,"status":"","searchOrder":0}}
+`
+	require.Equal(t, expectedBuff, buffers[0].String())
+}
+
+func TestSerializeTransactionsCrossShardTxDestination(t *testing.T) {
+	t.Parallel()
+
+	buffers, err := (&txDatabaseProcessor{}).SerializeTransactions([]*data.Transaction{{
+		Hash:                 "txHash",
+		SenderShard:          1,
+		ReceiverShard:        0,
+		SmartContractResults: []*data.ScResult{{}},
+	}}, 0, nil)
+	require.Nil(t, err)
+
+	expectedBuff := `{"update":{"_id":"txHash", "_type": "_doc"}}
+{"script":{"source":"ctx._source.status = params.status;ctx._source.miniBlockHash = params.miniBlockHash;ctx._source.log = params.log;ctx._source.timestamp = params.timestamp;ctx._source.gasUsed = params.gasUsed;ctx._source.fee = params.fee;ctx._source.hasScResults = params.hasScResults;","lang": "painless","params":{"status": "", "miniBlockHash": "", "logs": null, "timestamp": 0, "gasUsed": 0, "fee": "", "hasScResults": false}},"upsert":{"miniBlockHash":"","nonce":0,"round":0,"value":"","receiver":"","sender":"","receiverShard":0,"senderShard":1,"gasPrice":0,"gasLimit":0,"gasUsed":0,"fee":"","data":null,"signature":"","timestamp":0,"status":"","searchOrder":0}}
+`
+	require.Equal(t, expectedBuff, buffers[0].String())
+}

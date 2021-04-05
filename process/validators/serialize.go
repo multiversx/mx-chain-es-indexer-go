@@ -12,8 +12,6 @@ import (
 func (vp *validatorsProcessor) SerializeValidatorsPubKeys(validatorsPubKeys *data.ValidatorsPublicKeys) (*bytes.Buffer, error) {
 	marshalizedValidatorPubKeys, err := json.Marshal(validatorsPubKeys)
 	if err != nil {
-		log.Warn("validatorsProcessor.SerializeValidatorPubKeys cannot marshal", "error", err)
-
 		return nil, err
 	}
 
@@ -21,8 +19,6 @@ func (vp *validatorsProcessor) SerializeValidatorsPubKeys(validatorsPubKeys *dat
 	buff.Grow(len(marshalizedValidatorPubKeys))
 	_, err = buff.Write(marshalizedValidatorPubKeys)
 	if err != nil {
-		log.Warn("validatorsProcessor.SerializeValidatorPubKeys cannot save validators public keys", "error", err)
-
 		return nil, err
 	}
 
@@ -42,14 +38,11 @@ func (vp *validatorsProcessor) SerializeValidatorsRating(
 
 		serializedData, err := json.Marshal(valRatingInfo)
 		if err != nil {
-			log.Warn("validatorsProcessor.SerializeValidatorsRating", "error", err, "publickey", valRatingInfo.PublicKey)
 			continue
 		}
 
 		err = buffSlice.PutData(meta, serializedData)
 		if err != nil {
-			log.Warn("validatorsProcessor.SerializeValidatorsRating",
-				"cannot put data in buffer", "error", err, "publickey", valRatingInfo.PublicKey)
 			return nil, err
 		}
 	}

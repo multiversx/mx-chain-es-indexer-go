@@ -2,6 +2,7 @@ package indexer
 
 import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elastic-indexer-go/errors"
 	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"
@@ -16,7 +17,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go/sharding"
 )
 
-// ArgDataIndexer is a structure that is used to store all components that are needed to create a indexer
+// ArgDataIndexer is a structure that is used to store all the components that are needed to create an indexer
 type ArgDataIndexer struct {
 	ShardCoordinator   sharding.Coordinator
 	Marshalizer        marshal.Marshalizer
@@ -58,22 +59,22 @@ func NewDataIndexer(arguments ArgDataIndexer) (*dataIndexer, error) {
 
 func checkIndexerArgs(arguments ArgDataIndexer) error {
 	if check.IfNil(arguments.DataDispatcher) {
-		return ErrNilDataDispatcher
+		return errors.ErrNilDataDispatcher
 	}
 	if check.IfNil(arguments.ElasticProcessor) {
-		return ErrNilElasticProcessor
+		return errors.ErrNilElasticProcessor
 	}
 	if check.IfNil(arguments.NodesCoordinator) {
-		return core.ErrNilNodesCoordinator
+		return errors.ErrNilNodesCoordinator
 	}
 	if check.IfNil(arguments.EpochStartNotifier) {
-		return core.ErrNilEpochStartNotifier
+		return errors.ErrNilEpochStartNotifier
 	}
 	if check.IfNil(arguments.Marshalizer) {
-		return core.ErrNilMarshalizer
+		return errors.ErrNilMarshalizer
 	}
 	if check.IfNil(arguments.ShardCoordinator) {
-		return ErrNilShardCoordinator
+		return errors.ErrNilShardCoordinator
 	}
 
 	return nil

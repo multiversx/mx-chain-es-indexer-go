@@ -1,6 +1,7 @@
 package workItems
 
 import (
+	"github.com/ElrondNetwork/elastic-indexer-go/errors"
 	"github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/block"
 )
@@ -39,8 +40,8 @@ func (wirb *itemRemoveBlock) Save() error {
 
 	body, ok := wirb.bodyHandler.(*block.Body)
 	if !ok {
-		log.Warn("itemRemoveBlock.Save body", "error", ErrBodyTypeAssertion.Error())
-		return ErrBodyTypeAssertion
+		log.Warn("itemRemoveBlock.Save body", "error", errors.ErrBodyTypeAssertion.Error())
+		return errors.ErrBodyTypeAssertion
 	}
 
 	err = wirb.indexer.RemoveMiniblocks(wirb.headerHandler, body)

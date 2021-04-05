@@ -3,6 +3,7 @@ package workItems
 import (
 	"fmt"
 
+	"github.com/ElrondNetwork/elastic-indexer-go/errors"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-go/core/check"
 	"github.com/ElrondNetwork/elrond-go/data"
@@ -46,7 +47,7 @@ func (wib *itemBlock) Save() error {
 	body, ok := wib.argsSaveBlock.Body.(*block.Body)
 	if !ok {
 		return fmt.Errorf("%w when trying body assertion, block hash %s, nonce %d",
-			ErrBodyTypeAssertion, wib.argsSaveBlock.HeaderHash, wib.argsSaveBlock.Header.GetNonce())
+			errors.ErrBodyTypeAssertion, wib.argsSaveBlock.HeaderHash, wib.argsSaveBlock.Header.GetNonce())
 	}
 
 	if wib.argsSaveBlock.TransactionsPool == nil {

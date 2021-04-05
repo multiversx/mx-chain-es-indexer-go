@@ -2,10 +2,10 @@ package transactions
 
 import (
 	"encoding/hex"
-	"sync"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
+	"github.com/ElrondNetwork/elrond-go-logger/check"
 	"github.com/ElrondNetwork/elrond-go/core"
 	nodeData "github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/block"
@@ -26,42 +26,41 @@ const (
 
 var log = logger.GetOrCreate("indexer/process/transactions")
 
+type ArgsTransactionProcessor struct {
+	AddressPubkeyConverter core.PubkeyConverter
+	TxFeeCalculator        process.TransactionFeeCalculator
+	ShardCoordinator       sharding.Coordinator
+	Hasher                 hashing.Hasher
+	Marshalizer            marshal.Marshalizer
+	IsInImportMode         bool
+}
+
 type txDatabaseProcessor struct {
-	txFeeCalculator    process.TransactionFeeCalculator
-	txBuilder          *txDBBuilder
-	txGrouper          *txGrouper
-	txLogsProcessor    process.TransactionLogProcessorDatabase
-	mutex              *sync.RWMutex
-	saveTxsLogsEnabled bool
+	txFeeCalculator process.TransactionFeeCalculator
+	txBuilder       *dbTransactionBuilder
+	txsGrouper      *txsGrouper
 }
 
 // NewTransactionsProcessor will create a new instance of transactions database processor
-func NewTransactionsProcessor(
-	addressPubkeyConverter core.PubkeyConverter,
-	txFeeCalculator process.TransactionFeeCalculator,
-	isInImportMode bool,
-	shardCoordinator sharding.Coordinator,
-	saveTxsLogsEnabled bool,
-	txLogsProcessor process.TransactionLogProcessorDatabase,
-	hasher hashing.Hasher,
-	marshalizer marshal.Marshalizer,
-) *txDatabaseProcessor {
-	txBuilder := newTransactionDBBuilder(addressPubkeyConverter, shardCoordinator, txFeeCalculator)
-	txDBGrouper := newTxGrouper(txBuilder, isInImportMode, shardCoordinator.SelfId(), hasher, marshalizer)
+func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txDatabaseProcessor, error) {
+	err := checkTxsProcessorArg(args)
+	if err != nil {
+		return nil, err
+	}
 
-	if isInImportMode {
+	txBuilder := newTransactionDBBuilder(args.AddressPubkeyConverter, args.ShardCoordinator, args.TxFeeCalculator)
+	txsDBGrouper := newTxsGrouper(txBuilder, args.IsInImportMode, args.ShardCoordinator.SelfId(), args.Hasher, args.Marshalizer)
+
+	if args.IsInImportMode {
 		log.Warn("the node is in import mode! Cross shard transactions and rewards where destination shard is " +
 			"not the current node's shard won't be indexed in Elastic Search")
 	}
 
 	return &txDatabaseProcessor{
-		txFeeCalculator:    txFeeCalculator,
-		txBuilder:          txBuilder,
-		txGrouper:          txDBGrouper,
-		saveTxsLogsEnabled: saveTxsLogsEnabled,
-		txLogsProcessor:    txLogsProcessor,
-		mutex:              &sync.RWMutex{},
-	}
+		txFeeCalculator: args.TxFeeCalculator,
+		txBuilder:       txBuilder,
+		txsGrouper:      txsDBGrouper,
+	}, nil
 }
 
 // PrepareTransactionsForDatabase will prepare transactions for database
@@ -70,6 +69,18 @@ func (tdp *txDatabaseProcessor) PrepareTransactionsForDatabase(
 	header nodeData.HeaderHandler,
 	pool *indexer.Pool,
 ) *data.PreparedResults {
+	err := checkPrepareTransactionForDatabaseArguments(body, header, pool)
+	if err != nil {
+		log.Warn("checkPrepareTransactionForDatabaseArguments", "error", err)
+
+		return &data.PreparedResults{
+			Transactions:    []*data.Transaction{},
+			ScResults:       []*data.ScResult{},
+			Receipts:        []*data.Receipt{},
+			AlteredAccounts: map[string]*data.AlteredAccount{},
+		}
+	}
+
 	alteredAddresses := make(map[string]*data.AlteredAccount)
 	normalTxs := make(map[string]*data.Transaction)
 	rewardsTxs := make(map[string]*data.Transaction)
@@ -78,36 +89,26 @@ func (tdp *txDatabaseProcessor) PrepareTransactionsForDatabase(
 	for _, mb := range body.MiniBlocks {
 		switch mb.Type {
 		case block.TxBlock:
-			mergeTxsMaps(normalTxs, tdp.txGrouper.groupNormalTxs(mb, header, pool.Txs, alteredAddresses))
+			mergeTxsMaps(normalTxs, tdp.txsGrouper.groupNormalTxs(mb, header, pool.Txs, alteredAddresses))
 		case block.RewardsBlock:
-			mergeTxsMaps(rewardsTxs, tdp.txGrouper.groupRewardsTxs(mb, header, pool.Rewards, alteredAddresses))
+			mergeTxsMaps(rewardsTxs, tdp.txsGrouper.groupRewardsTxs(mb, header, pool.Rewards, alteredAddresses))
 		case block.InvalidBlock:
-			mergeTxsMaps(invalidTxs, tdp.txGrouper.groupInvalidTxs(mb, header, pool.Invalid, alteredAddresses))
+			mergeTxsMaps(invalidTxs, tdp.txsGrouper.groupInvalidTxs(mb, header, pool.Invalid, alteredAddresses))
 		default:
 			continue
 		}
 	}
 
 	normalTxs = tdp.setTransactionSearchOrder(normalTxs)
-
-	dbReceipts := tdp.txGrouper.groupReceipts(header, pool.Receipts)
-
+	dbReceipts := tdp.txsGrouper.groupReceipts(header, pool.Receipts)
 	dbSCResults, countScResults := tdp.iterateSCRSAndConvert(pool.Scrs, header, normalTxs)
 
 	tdp.txBuilder.addScrsReceiverToAlteredAccounts(alteredAddresses, dbSCResults)
-
-	tdp.setStatusOfTxsWithSCRS(normalTxs, countScResults)
-
-	tdp.addTxsLogsIfNeeded(normalTxs)
-
-	tdp.mutex.RLock()
-	tdp.txLogsProcessor.Clean()
-	tdp.mutex.RUnlock()
+	tdp.setDetailsOfTxsWithSCRS(normalTxs, countScResults)
 
 	sliceNormalTxs := convertMapTxsToSlice(normalTxs)
 	sliceRewardsTxs := convertMapTxsToSlice(rewardsTxs)
 	sliceInvalidTxs := convertMapTxsToSlice(invalidTxs)
-
 	txsSlice := append(sliceNormalTxs, append(sliceRewardsTxs, sliceInvalidTxs...)...)
 
 	return &data.PreparedResults{
@@ -118,42 +119,47 @@ func (tdp *txDatabaseProcessor) PrepareTransactionsForDatabase(
 	}
 }
 
-func (tdp *txDatabaseProcessor) setStatusOfTxsWithSCRS(
+func (tdp *txDatabaseProcessor) setDetailsOfTxsWithSCRS(
 	transactions map[string]*data.Transaction,
 	countScResults map[string]int,
 ) {
-	for hash, nrScResult := range countScResults {
+	for hash, nrScResults := range countScResults {
 		tx, ok := transactions[hash]
 		if !ok {
 			continue
 		}
 
-		tx.HasSCR = true
+		tdp.setDetailsOfATxWithSCRS(tx, nrScResults)
+	}
+}
 
-		if isRelayedTx(tx) {
-			tx.GasUsed = tx.GasLimit
-			fee := tdp.txFeeCalculator.ComputeTxFeeBasedOnGasUsed(tx, tx.GasUsed)
-			tx.Fee = fee.String()
+func (tdp *txDatabaseProcessor) setDetailsOfATxWithSCRS(tx *data.Transaction, nrScResults int) {
+	tx.HasSCR = true
 
-			continue
-		}
+	if isRelayedTx(tx) {
+		tx.GasUsed = tx.GasLimit
+		fee := tdp.txFeeCalculator.ComputeTxFeeBasedOnGasUsed(tx, tx.GasUsed)
+		tx.Fee = fee.String()
 
-		if nrScResult < minimumNumberOfSmartContractResults {
-			if len(tx.SmartContractResults) > 0 {
-				scResultData := tx.SmartContractResults[0].Data
-				if isScResultSuccessful(scResultData) {
-					// ESDT contract calls generate just one smart contract result
-					continue
-				}
-			}
+		return
+	}
 
-			tx.Status = transaction.TxStatusFail.String()
+	if nrScResults > minimumNumberOfSmartContractResults {
+		return
+	}
 
-			tx.GasUsed = tx.GasLimit
-			fee := tdp.txFeeCalculator.ComputeTxFeeBasedOnGasUsed(tx, tx.GasUsed)
-			tx.Fee = fee.String()
+	if len(tx.SmartContractResults) > 0 {
+		scResultData := tx.SmartContractResults[0].Data
+		if isScResultSuccessful(scResultData) {
+			// ESDT contract calls generate only one smart contract result
+			return
 		}
 	}
+
+	tx.Status = transaction.TxStatusFail.String()
+	tx.GasUsed = tx.GasLimit
+	fee := tdp.txFeeCalculator.ComputeTxFeeBasedOnGasUsed(tx, tx.GasUsed)
+	tx.Fee = fee.String()
 }
 
 func (tdp *txDatabaseProcessor) iterateSCRSAndConvert(
@@ -168,7 +174,7 @@ func (tdp *txDatabaseProcessor) iterateSCRSAndConvert(
 	dbSCResults := make([]*data.ScResult, 0)
 	countScResults := make(map[string]int)
 	for scHash, scResult := range scResults {
-		dbScResult := tdp.txBuilder.convertScResultInDatabaseScr(scHash, scResult, header)
+		dbScResult := tdp.txBuilder.prepareSmartContractResult(scHash, scResult, header)
 		dbSCResults = append(dbSCResults, dbScResult)
 
 		tx, ok := transactions[string(scResult.OriginalTxHash)]
@@ -193,7 +199,7 @@ func (tdp *txDatabaseProcessor) iterateSCRSAndConvert(
 
 func (tdp *txDatabaseProcessor) addScResultsInTx(tx *data.Transaction, header nodeData.HeaderHandler, scrs map[string]*smartContractResult.SmartContractResult) {
 	for childScHash, sc := range scrs {
-		childDBScResult := tdp.txBuilder.convertScResultInDatabaseScr(childScHash, sc, header)
+		childDBScResult := tdp.txBuilder.prepareSmartContractResult(childScHash, sc, header)
 
 		tx = tdp.addScResultInfoInTx(childDBScResult, tx)
 	}
@@ -211,23 +217,6 @@ func findAllChildScrResults(hash string, scrs map[string]*smartContractResult.Sm
 	return scrResults
 }
 
-func (tdp *txDatabaseProcessor) addTxsLogsIfNeeded(txs map[string]*data.Transaction) {
-	if !tdp.saveTxsLogsEnabled {
-		return
-	}
-
-	for hash, tx := range txs {
-		tdp.mutex.RLock()
-		txLog, ok := tdp.txLogsProcessor.GetLogFromCache([]byte(hash))
-		tdp.mutex.RUnlock()
-		if !ok {
-			continue
-		}
-
-		tx.Logs = tdp.prepareTxLog(txLog)
-	}
-}
-
 func (tdp *txDatabaseProcessor) addScResultInfoInTx(dbScResult *data.ScResult, tx *data.Transaction) *data.Transaction {
 	tx.SmartContractResults = append(tx.SmartContractResults, dbScResult)
 
@@ -241,29 +230,6 @@ func (tdp *txDatabaseProcessor) addScResultInfoInTx(dbScResult *data.ScResult, t
 	return tx
 }
 
-func (tdp *txDatabaseProcessor) prepareTxLog(log nodeData.LogHandler) *data.TxLog {
-	scAddr := tdp.txBuilder.addressPubkeyConverter.Encode(log.GetAddress())
-	events := log.GetLogEvents()
-
-	txLogEvents := make([]data.Event, len(events))
-	for i, event := range events {
-		txLogEvents[i].Address = hex.EncodeToString(event.GetAddress())
-		txLogEvents[i].Data = hex.EncodeToString(event.GetData())
-		txLogEvents[i].Identifier = hex.EncodeToString(event.GetIdentifier())
-
-		topics := event.GetTopics()
-		txLogEvents[i].Topics = make([]string, len(topics))
-		for j, topic := range topics {
-			txLogEvents[i].Topics[j] = hex.EncodeToString(topic)
-		}
-	}
-
-	return &data.TxLog{
-		Address: scAddr,
-		Events:  txLogEvents,
-	}
-}
-
 func (tdp *txDatabaseProcessor) setTransactionSearchOrder(transactions map[string]*data.Transaction) map[string]*data.Transaction {
 	currentOrder := uint32(0)
 	for _, tx := range transactions {
@@ -274,16 +240,9 @@ func (tdp *txDatabaseProcessor) setTransactionSearchOrder(transactions map[strin
 	return transactions
 }
 
-// SetTxLogsProcessor will set transaction log processor
-func (tdp *txDatabaseProcessor) SetTxLogsProcessor(txLogProcessor process.TransactionLogProcessorDatabase) {
-	tdp.mutex.Lock()
-	tdp.txLogsProcessor = txLogProcessor
-	tdp.mutex.Unlock()
-}
-
 // GetRewardsTxsHashesHexEncoded will return reward transactions hashes from body hex encoded
 func (tdp *txDatabaseProcessor) GetRewardsTxsHashesHexEncoded(header nodeData.HeaderHandler, body *block.Body) []string {
-	if body == nil || len(header.GetMiniBlockHeadersHashes()) == 0 {
+	if body == nil || check.IfNil(header) || len(header.GetMiniBlockHeadersHashes()) == 0 {
 		return nil
 	}
 
@@ -300,16 +259,24 @@ func (tdp *txDatabaseProcessor) GetRewardsTxsHashesHexEncoded(header nodeData.He
 			continue
 		}
 
-		for _, txHash := range miniblock.TxHashes {
-			encodedTxsHashes = append(encodedTxsHashes, hex.EncodeToString(txHash))
-		}
+		txsHashesFromMiniblock := getTxsHashesFromMiniblockHexEncoded(miniblock)
+		encodedTxsHashes = append(encodedTxsHashes, txsHashesFromMiniblock...)
 	}
 
 	return encodedTxsHashes
 }
 
-func mergeTxsMaps(m1, m2 map[string]*data.Transaction) {
-	for key, value := range m2 {
-		m1[key] = value
+func getTxsHashesFromMiniblockHexEncoded(miniBlock *block.MiniBlock) []string {
+	encodedTxsHashes := make([]string, 0)
+	for _, txHash := range miniBlock.TxHashes {
+		encodedTxsHashes = append(encodedTxsHashes, hex.EncodeToString(txHash))
+	}
+
+	return encodedTxsHashes
+}
+
+func mergeTxsMaps(dst, src map[string]*data.Transaction) {
+	for key, value := range src {
+		dst[key] = value
 	}
 }

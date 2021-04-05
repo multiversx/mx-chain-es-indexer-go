@@ -8,11 +8,10 @@ import (
 	nodeData "github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/block"
 	"github.com/ElrondNetwork/elrond-go/data/indexer"
-	"github.com/ElrondNetwork/elrond-go/process"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
 
-// DatabaseClientHandler defines the actions that a component that does request should do
+// DatabaseClientHandler defines the actions that a component that handles requests should do
 type DatabaseClientHandler interface {
 	DoRequest(req *esapi.IndexRequest) error
 	DoBulkRequest(buff *bytes.Buffer, index string) error
@@ -30,7 +29,7 @@ type DatabaseClientHandler interface {
 // DBAccountHandler defines the actions that an accounts handler should do
 type DBAccountHandler interface {
 	GetAccounts(alteredAccounts map[string]*data.AlteredAccount) ([]*data.Account, []*data.AccountESDT)
-	PrepareAccountsMapEGLD(accounts []*data.Account) map[string]*data.AccountInfo
+	PrepareRegularAccountsMap(accounts []*data.Account) map[string]*data.AccountInfo
 	PrepareAccountsMapESDT(accounts []*data.AccountESDT) map[string]*data.AccountInfo
 	PrepareAccountsHistory(timestamp uint64, accounts map[string]*data.AccountInfo) map[string]*data.AccountBalanceHistory
 
@@ -56,8 +55,6 @@ type DBTransactionsHandler interface {
 	) *data.PreparedResults
 	GetRewardsTxsHashesHexEncoded(header nodeData.HeaderHandler, body *block.Body) []string
 
-	SetTxLogsProcessor(txLogProcessor process.TransactionLogProcessorDatabase)
-
 	SerializeReceipts(receipts []*data.Receipt) ([]*bytes.Buffer, error)
 	SerializeTransactions(transactions []*data.Transaction, selfShardID uint32, mbsHashInDB map[string]bool) ([]*bytes.Buffer, error)
 	SerializeScResults(scResults []*data.ScResult) ([]*bytes.Buffer, error)
@@ -71,11 +68,11 @@ type DBMiniblocksHandler interface {
 	SerializeBulkMiniBlocks(bulkMbs []*data.Miniblock, mbsInDB map[string]bool) *bytes.Buffer
 }
 
-// DBGeneralInfoHandler defines the actions that a general info handler should do
-type DBGeneralInfoHandler interface {
-	PrepareGeneralInfo(tpsBenchmark statistics.TPSBenchmark) (*data.TPS, []*data.TPS)
+// DBStatisticsHandler defines the actions that a general info handler should do
+type DBStatisticsHandler interface {
+	PrepareStatistics(tpsBenchmark statistics.TPSBenchmark) (*data.TPS, []*data.TPS, error)
 
-	SerializeGeneralInfo(genInfo *data.TPS, shardsInfo []*data.TPS, index string) *bytes.Buffer
+	SerializeStatistics(genInfo *data.TPS, shardsInfo []*data.TPS, index string) (*bytes.Buffer, error)
 	SerializeRoundsInfo(roundsInfo []*data.RoundInfo) *bytes.Buffer
 }
 

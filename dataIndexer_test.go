@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/disabled"
+	"github.com/ElrondNetwork/elastic-indexer-go/errors"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
@@ -59,7 +60,7 @@ func TestDataIndexer_NewIndexerWithNilDataDispatcherShouldErr(t *testing.T) {
 	ei, err := NewDataIndexer(arguments)
 
 	require.Nil(t, ei)
-	require.Equal(t, ErrNilDataDispatcher, err)
+	require.Equal(t, errors.ErrNilDataDispatcher, err)
 }
 
 func TestDataIndexer_NewIndexerWithNilElasticProcessorShouldErr(t *testing.T) {
@@ -68,7 +69,7 @@ func TestDataIndexer_NewIndexerWithNilElasticProcessorShouldErr(t *testing.T) {
 	ei, err := NewDataIndexer(arguments)
 
 	require.Nil(t, ei)
-	require.Equal(t, ErrNilElasticProcessor, err)
+	require.Equal(t, errors.ErrNilElasticProcessor, err)
 }
 
 func TestDataIndexer_NewIndexerWithNilMarshalizerShouldErr(t *testing.T) {
@@ -121,16 +122,20 @@ func TestDataIndexer_UpdateTPS(t *testing.T) {
 }
 
 func TestDataIndexer_UpdateTPSNil(t *testing.T) {
-	// TODO fix this test without logging subsystem
-
-	_ = logger.SetLogLevel("core/indexer:TRACE")
+	called := false
 	arguments := NewDataIndexerArguments()
+	arguments.DataDispatcher = &mock.DispatcherMock{
+		AddCalled: func(item workItems.WorkItemHandler) {
+			called = true
+		},
+	}
 
 	ei, err := NewDataIndexer(arguments)
 	require.Nil(t, err)
 	_ = ei.Close()
 
 	ei.UpdateTPS(nil)
+	require.False(t, called)
 }
 
 func TestDataIndexer_SaveBlock(t *testing.T) {

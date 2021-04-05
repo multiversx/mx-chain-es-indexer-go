@@ -2,21 +2,24 @@ package validators
 
 import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	logger "github.com/ElrondNetwork/elrond-go-logger"
+	"github.com/ElrondNetwork/elastic-indexer-go/errors"
+	"github.com/ElrondNetwork/elrond-go-logger/check"
 	"github.com/ElrondNetwork/elrond-go/core"
 )
-
-var log = logger.GetOrCreate("indexer/process/validators")
 
 type validatorsProcessor struct {
 	validatorPubkeyConverter core.PubkeyConverter
 }
 
 // NewValidatorsProcessor will create a new instance of validatorsProcessor
-func NewValidatorsProcessor(validatorPubkeyConverter core.PubkeyConverter) *validatorsProcessor {
+func NewValidatorsProcessor(validatorPubkeyConverter core.PubkeyConverter) (*validatorsProcessor, error) {
+	if check.IfNil(validatorPubkeyConverter) {
+		return nil, errors.ErrNilPubkeyConverter
+	}
+
 	return &validatorsProcessor{
 		validatorPubkeyConverter: validatorPubkeyConverter,
-	}
+	}, nil
 }
 
 // PrepareValidatorsPublicKeys will prepare validators public keys

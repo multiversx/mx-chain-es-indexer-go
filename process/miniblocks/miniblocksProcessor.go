@@ -5,7 +5,9 @@ import (
 	"time"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elastic-indexer-go/errors"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
+	"github.com/ElrondNetwork/elrond-go-logger/check"
 	"github.com/ElrondNetwork/elrond-go/core"
 	nodeData "github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/block"
@@ -26,15 +28,22 @@ func NewMiniblocksProcessor(
 	selfShardID uint32,
 	hasher hashing.Hasher,
 	marshalier marshal.Marshalizer,
-) *miniblocksProcessor {
+) (*miniblocksProcessor, error) {
+	if check.IfNil(marshalier) {
+		return nil, errors.ErrNilMarshalizer
+	}
+	if check.IfNil(hasher) {
+		return nil, errors.ErrNilHasher
+	}
+
 	return &miniblocksProcessor{
 		hasher:      hasher,
 		marshalier:  marshalier,
 		selfShardID: selfShardID,
-	}
+	}, nil
 }
 
-// PrepareDBMiniblocks prepare miniblocks from body
+// PrepareDBMiniblocks will prepare miniblocks from body
 func (mp *miniblocksProcessor) PrepareDBMiniblocks(header nodeData.HeaderHandler, body *block.Body) []*data.Miniblock {
 	headerHash, err := mp.calculateHash(header)
 	if err != nil {
@@ -47,6 +56,7 @@ func (mp *miniblocksProcessor) PrepareDBMiniblocks(header nodeData.HeaderHandler
 		dbMiniblock, errPrepareMiniblock := mp.prepareMiniblockForDB(miniblock, header, headerHash)
 		if errPrepareMiniblock != nil {
 			log.Warn("miniblocksProcessor.PrepareDBMiniblocks cannot prepare miniblock", "error", errPrepareMiniblock)
+			continue
 		}
 
 		dbMiniblocks = append(dbMiniblocks, dbMiniblock)
@@ -54,6 +64,7 @@ func (mp *miniblocksProcessor) PrepareDBMiniblocks(header nodeData.HeaderHandler
 
 	return dbMiniblocks
 }
+
 func (mp *miniblocksProcessor) prepareMiniblockForDB(
 	miniblock *block.MiniBlock,
 	header nodeData.HeaderHandler,
@@ -88,7 +99,7 @@ func (mp *miniblocksProcessor) prepareMiniblockForDB(
 	return dbMiniblock, nil
 }
 
-// GetMiniblocksHashesHexEncoded will compute miniblocks hashes hex encoded
+// GetMiniblocksHashesHexEncoded will compute miniblocks hashes in a hexadecimal encoding
 func (mp *miniblocksProcessor) GetMiniblocksHashesHexEncoded(header nodeData.HeaderHandler, body *block.Body) []string {
 	if body == nil || len(header.GetMiniBlockHeadersHashes()) == 0 {
 		return nil
@@ -107,7 +118,7 @@ func (mp *miniblocksProcessor) GetMiniblocksHashesHexEncoded(header nodeData.Hea
 			continue
 		}
 
-		miniblockHash, err := core.CalculateHash(mp.marshalier, mp.hasher, miniblock)
+		miniblockHash, err := mp.calculateHash(miniblock)
 		if err != nil {
 			log.Debug("miniblocksProcessor.GetMiniblocksHashesHexEncoded cannot calculate miniblock hash",
 				"error", err)

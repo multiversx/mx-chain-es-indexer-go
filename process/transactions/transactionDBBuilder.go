@@ -18,7 +18,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go/sharding"
 )
 
-type txDBBuilder struct {
+type dbTransactionBuilder struct {
 	esdtProc               *esdtTransactionProcessor
 	addressPubkeyConverter core.PubkeyConverter
 	shardCoordinator       sharding.Coordinator
@@ -29,10 +29,10 @@ func newTransactionDBBuilder(
 	addressPubkeyConverter core.PubkeyConverter,
 	shardCoordinator sharding.Coordinator,
 	txFeeCalculator process.TransactionFeeCalculator,
-) *txDBBuilder {
+) *dbTransactionBuilder {
 	esdtProc := newEsdtTransactionHandler()
 
-	return &txDBBuilder{
+	return &dbTransactionBuilder{
 		esdtProc:               esdtProc,
 		addressPubkeyConverter: addressPubkeyConverter,
 		shardCoordinator:       shardCoordinator,
@@ -40,7 +40,7 @@ func newTransactionDBBuilder(
 	}
 }
 
-func (tbb *txDBBuilder) buildTransaction(
+func (dtb *dbTransactionBuilder) prepareTransaction(
 	tx *transaction.Transaction,
 	txHash []byte,
 	mbHash []byte,
@@ -49,12 +49,13 @@ func (tbb *txDBBuilder) buildTransaction(
 	txStatus string,
 ) *data.Transaction {
 	var tokenIdentifier, esdtValue string
-	if isESDTTx := tbb.esdtProc.isESDTTx(tx); isESDTTx {
-		tokenIdentifier, esdtValue = tbb.esdtProc.getTokenIdentifierAndValue(tx)
+	isESDTTx := dtb.esdtProc.isESDTTx(tx)
+	if isESDTTx {
+		tokenIdentifier, esdtValue = dtb.esdtProc.getTokenIdentifierAndValue(tx)
 	}
 
-	gasUsed := tbb.txFeeCalculator.ComputeGasLimit(tx)
-	fee := tbb.txFeeCalculator.ComputeTxFeeBasedOnGasUsed(tx, gasUsed)
+	gasUsed := dtb.txFeeCalculator.ComputeGasLimit(tx)
+	fee := dtb.txFeeCalculator.ComputeTxFeeBasedOnGasUsed(tx, gasUsed)
 
 	return &data.Transaction{
 		Hash:                 hex.EncodeToString(txHash),
@@ -62,8 +63,8 @@ func (tbb *txDBBuilder) buildTransaction(
 		Nonce:                tx.Nonce,
 		Round:                header.GetRound(),
 		Value:                tx.Value.String(),
-		Receiver:             tbb.addressPubkeyConverter.Encode(tx.RcvAddr),
-		Sender:               tbb.addressPubkeyConverter.Encode(tx.SndAddr),
+		Receiver:             dtb.addressPubkeyConverter.Encode(tx.RcvAddr),
+		Sender:               dtb.addressPubkeyConverter.Encode(tx.SndAddr),
 		ReceiverShard:        mb.ReceiverShardID,
 		SenderShard:          mb.SenderShardID,
 		GasPrice:             tx.GasPrice,
@@ -82,7 +83,7 @@ func (tbb *txDBBuilder) buildTransaction(
 	}
 }
 
-func (tbb *txDBBuilder) buildRewardTransaction(
+func (dtb *dbTransactionBuilder) prepareRewardTransaction(
 	rTx *rewardTx.RewardTx,
 	txHash []byte,
 	mbHash []byte,
@@ -96,7 +97,7 @@ func (tbb *txDBBuilder) buildRewardTransaction(
 		Nonce:         0,
 		Round:         rTx.Round,
 		Value:         rTx.Value.String(),
-		Receiver:      tbb.addressPubkeyConverter.Encode(rTx.RcvAddr),
+		Receiver:      dtb.addressPubkeyConverter.Encode(rTx.RcvAddr),
 		Sender:        fmt.Sprintf("%d", core.MetachainShardId),
 		ReceiverShard: mb.ReceiverShardID,
 		SenderShard:   mb.SenderShardID,
@@ -109,21 +110,21 @@ func (tbb *txDBBuilder) buildRewardTransaction(
 	}
 }
 
-func (tbb *txDBBuilder) convertScResultInDatabaseScr(
+func (dtb *dbTransactionBuilder) prepareSmartContractResult(
 	scHash string,
 	sc *smartContractResult.SmartContractResult,
 	header nodeData.HeaderHandler,
 ) *data.ScResult {
 	relayerAddr := ""
 	if len(sc.RelayerAddr) > 0 {
-		relayerAddr = tbb.addressPubkeyConverter.Encode(sc.RelayerAddr)
+		relayerAddr = dtb.addressPubkeyConverter.Encode(sc.RelayerAddr)
 	}
 
 	var tokenIdentifier, esdtValue string
 
-	isESDTTx := tbb.esdtProc.isESDTTx(sc)
+	isESDTTx := dtb.esdtProc.isESDTTx(sc)
 	if isESDTTx {
-		tokenIdentifier, esdtValue = tbb.esdtProc.getTokenIdentifierAndValue(sc)
+		tokenIdentifier, esdtValue = dtb.esdtProc.getTokenIdentifierAndValue(sc)
 	}
 
 	return &data.ScResult{
@@ -132,13 +133,13 @@ func (tbb *txDBBuilder) convertScResultInDatabaseScr(
 		GasLimit:            sc.GasLimit,
 		GasPrice:            sc.GasPrice,
 		Value:               sc.Value.String(),
-		Sender:              tbb.addressPubkeyConverter.Encode(sc.SndAddr),
-		Receiver:            tbb.addressPubkeyConverter.Encode(sc.RcvAddr),
+		Sender:              dtb.addressPubkeyConverter.Encode(sc.SndAddr),
+		Receiver:            dtb.addressPubkeyConverter.Encode(sc.RcvAddr),
 		RelayerAddr:         relayerAddr,
 		RelayedValue:        sc.RelayedValue.String(),
 		Code:                string(sc.Code),
 		Data:                sc.Data,
-		PreTxHash:           hex.EncodeToString(sc.PrevTxHash),
+		PrevTxHash:          hex.EncodeToString(sc.PrevTxHash),
 		OriginalTxHash:      hex.EncodeToString(sc.OriginalTxHash),
 		CallType:            strconv.Itoa(int(sc.CallType)),
 		CodeMetadata:        sc.CodeMetadata,
@@ -149,7 +150,7 @@ func (tbb *txDBBuilder) convertScResultInDatabaseScr(
 	}
 }
 
-func (tbb *txDBBuilder) convertReceiptInDatabaseReceipt(
+func (dtb *dbTransactionBuilder) prepareReceipt(
 	recHash string,
 	rec *receipt.Receipt,
 	header nodeData.HeaderHandler,
@@ -157,21 +158,21 @@ func (tbb *txDBBuilder) convertReceiptInDatabaseReceipt(
 	return &data.Receipt{
 		Hash:      hex.EncodeToString([]byte(recHash)),
 		Value:     rec.Value.String(),
-		Sender:    tbb.addressPubkeyConverter.Encode(rec.SndAddr),
+		Sender:    dtb.addressPubkeyConverter.Encode(rec.SndAddr),
 		Data:      string(rec.Data),
 		TxHash:    hex.EncodeToString(rec.TxHash),
 		Timestamp: time.Duration(header.GetTimeStamp()),
 	}
 }
 
-func (tbb *txDBBuilder) addScrsReceiverToAlteredAccounts(
+func (dtb *dbTransactionBuilder) addScrsReceiverToAlteredAccounts(
 	alteredAddress map[string]*data.AlteredAccount,
 	scrs []*data.ScResult,
 ) {
 	for _, scr := range scrs {
-		receiverAddr, _ := tbb.addressPubkeyConverter.Decode(scr.Receiver)
-		shardID := tbb.shardCoordinator.ComputeId(receiverAddr)
-		if shardID != tbb.shardCoordinator.SelfId() {
+		receiverAddr, _ := dtb.addressPubkeyConverter.Decode(scr.Receiver)
+		shardID := dtb.shardCoordinator.ComputeId(receiverAddr)
+		if shardID != dtb.shardCoordinator.SelfId() {
 			continue
 		}
 

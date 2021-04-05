@@ -8,7 +8,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 )
 
-// SerializeBulkMiniBlocks -
+// SerializeBulkMiniBlocks will serialize the provided miniblocks slice in a way that Elastic Search expects a bulk request
 func (mp *miniblocksProcessor) SerializeBulkMiniBlocks(
 	bulkMbs []*data.Miniblock,
 	existsInDb map[string]bool,
@@ -18,16 +18,21 @@ func (mp *miniblocksProcessor) SerializeBulkMiniBlocks(
 		meta, serializedData, err := mp.prepareMiniblockData(mb, existsInDb[mb.Hash])
 		if err != nil {
 			log.Warn("miniblocksProcessor.SerializeBulkMiniBlocks cannot prepare miniblock data", "error", err)
+			continue
 		}
 
-		putInBufferMiniblockData(buff, meta, serializedData)
+		err = putInBufferMiniblockData(buff, meta, serializedData)
+		if err != nil {
+			log.Warn("miniblocksProcessor.putInBufferMiniblockData cannot prepare miniblock data", "error", err)
+			continue
+		}
 	}
 
 	return buff
 }
 
 func (mp *miniblocksProcessor) prepareMiniblockData(miniblockDB *data.Miniblock, isInDB bool) ([]byte, []byte, error) {
-	if isInDB {
+	if !isInDB {
 		meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s", "_type" : "%s" } }%s`, miniblockDB.Hash, "_doc", "\n"))
 		serializedData, err := json.Marshal(miniblockDB)
 
@@ -49,16 +54,18 @@ func (mp *miniblocksProcessor) prepareMiniblockData(miniblockDB *data.Miniblock,
 	return meta, serializedData, nil
 }
 
-func putInBufferMiniblockData(buff *bytes.Buffer, meta, serializedData []byte) {
+func putInBufferMiniblockData(buff *bytes.Buffer, meta, serializedData []byte) error {
 	serializedData = append(serializedData, "\n"...)
 	buff.Grow(len(meta) + len(serializedData))
 	_, err := buff.Write(meta)
 	if err != nil {
-		log.Warn("putInBufferMiniblockData cannot write meta", "error", err)
+		return err
 	}
 
 	_, err = buff.Write(serializedData)
 	if err != nil {
-		log.Warn("putInBufferMiniblockData cannot write serialized miniblock", "error", err)
+		return err
 	}
+
+	return nil
 }

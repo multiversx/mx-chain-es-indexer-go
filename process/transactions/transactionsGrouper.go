@@ -13,22 +13,22 @@ import (
 	"github.com/ElrondNetwork/elrond-go/marshal"
 )
 
-type txGrouper struct {
-	selfShardID    uint32
-	txBuilder      *txDBBuilder
+type txsGrouper struct {
 	isInImportMode bool
+	selfShardID    uint32
+	txBuilder      *dbTransactionBuilder
 	hasher         hashing.Hasher
 	marshalizer    marshal.Marshalizer
 }
 
-func newTxGrouper(
-	txBuilder *txDBBuilder,
+func newTxsGrouper(
+	txBuilder *dbTransactionBuilder,
 	isInImportMode bool,
 	selfShardID uint32,
 	hasher hashing.Hasher,
 	marshalizer marshal.Marshalizer,
-) *txGrouper {
-	return &txGrouper{
+) *txsGrouper {
+	return &txsGrouper{
 		txBuilder:      txBuilder,
 		selfShardID:    selfShardID,
 		isInImportMode: isInImportMode,
@@ -37,7 +37,7 @@ func newTxGrouper(
 	}
 }
 
-func (tg *txGrouper) groupNormalTxs(
+func (tg *txsGrouper) groupNormalTxs(
 	mb *block.MiniBlock,
 	header nodeData.HeaderHandler,
 	txs map[string]nodeData.TransactionHandler,
@@ -47,23 +47,17 @@ func (tg *txGrouper) groupNormalTxs(
 
 	mbHash, err := core.CalculateHash(tg.marshalizer, tg.hasher, mb)
 	if err != nil {
-		log.Warn("txGrouper.groupNormalTxs cannot calculate miniblock hash", "error", err)
+		log.Warn("txsGrouper.groupNormalTxs cannot calculate miniblock hash", "error", err)
 		return nil
 	}
 
 	mbStatus := computeStatus(tg.selfShardID, mb.ReceiverShardID)
 	for _, txHash := range mb.TxHashes {
-		txHandler, okGet := txs[string(txHash)]
-		if !okGet {
+		dbTx, ok := tg.prepareNormalTxForDB(mbHash, mb, mbStatus, txHash, txs, header)
+		if !ok {
 			continue
 		}
 
-		tx, okCast := txHandler.(*transaction.Transaction)
-		if !okCast {
-			continue
-		}
-
-		dbTx := tg.txBuilder.buildTransaction(tx, txHash, mbHash, mb, header, mbStatus)
 		addToAlteredAddresses(dbTx, alteredAddresses, mb, tg.selfShardID, false)
 		if tg.shouldIndex(mb.ReceiverShardID) {
 			transactions[string(txHash)] = dbTx
@@ -73,7 +67,30 @@ func (tg *txGrouper) groupNormalTxs(
 	return transactions
 }
 
-func (tg *txGrouper) groupRewardsTxs(
+func (tg *txsGrouper) prepareNormalTxForDB(
+	mbHash []byte,
+	mb *block.MiniBlock,
+	mbStatus string,
+	txHash []byte,
+	txs map[string]nodeData.TransactionHandler,
+	header nodeData.HeaderHandler,
+) (*data.Transaction, bool) {
+	txHandler, okGet := txs[string(txHash)]
+	if !okGet {
+		return nil, false
+	}
+
+	tx, okCast := txHandler.(*transaction.Transaction)
+	if !okCast {
+		return nil, false
+	}
+
+	dbTx := tg.txBuilder.prepareTransaction(tx, txHash, mbHash, mb, header, mbStatus)
+
+	return dbTx, true
+}
+
+func (tg *txsGrouper) groupRewardsTxs(
 	mb *block.MiniBlock,
 	header nodeData.HeaderHandler,
 	txs map[string]nodeData.TransactionHandler,
@@ -82,33 +99,50 @@ func (tg *txGrouper) groupRewardsTxs(
 	rewardsTxs := make(map[string]*data.Transaction)
 	mbHash, err := core.CalculateHash(tg.marshalizer, tg.hasher, mb)
 	if err != nil {
-		log.Warn("txGrouper.groupRewardsTxs cannot calculate miniblock hash", "error", err)
+		log.Warn("txsGrouper.groupRewardsTxs cannot calculate miniblock hash", "error", err)
 		return nil
 	}
 
 	mbStatus := computeStatus(tg.selfShardID, mb.ReceiverShardID)
 	for _, txHash := range mb.TxHashes {
-		txHandler, okGet := txs[string(txHash)]
-		if !okGet {
+		rewardDBTx, ok := tg.prepareRewardTxForDB(mbHash, mb, mbStatus, txHash, txs, header)
+		if !ok {
 			continue
 		}
 
-		rtx, okCast := txHandler.(*rewardTx.RewardTx)
-		if !okCast {
-			continue
-		}
-
-		dbTx := tg.txBuilder.buildRewardTransaction(rtx, txHash, mbHash, mb, header, mbStatus)
-		addToAlteredAddresses(dbTx, alteredAddresses, mb, tg.selfShardID, true)
+		addToAlteredAddresses(rewardDBTx, alteredAddresses, mb, tg.selfShardID, true)
 		if tg.shouldIndex(mb.ReceiverShardID) {
-			rewardsTxs[string(txHash)] = dbTx
+			rewardsTxs[string(txHash)] = rewardDBTx
 		}
 	}
 
 	return rewardsTxs
 }
 
-func (tg *txGrouper) groupInvalidTxs(
+func (tg *txsGrouper) prepareRewardTxForDB(
+	mbHash []byte,
+	mb *block.MiniBlock,
+	mbStatus string,
+	txHash []byte,
+	txs map[string]nodeData.TransactionHandler,
+	header nodeData.HeaderHandler,
+) (*data.Transaction, bool) {
+	txHandler, okGet := txs[string(txHash)]
+	if !okGet {
+		return nil, false
+	}
+
+	rtx, okCast := txHandler.(*rewardTx.RewardTx)
+	if !okCast {
+		return nil, false
+	}
+
+	dbTx := tg.txBuilder.prepareRewardTransaction(rtx, txHash, mbHash, mb, header, mbStatus)
+
+	return dbTx, true
+}
+
+func (tg *txsGrouper) groupInvalidTxs(
 	mb *block.MiniBlock,
 	header nodeData.HeaderHandler,
 	txs map[string]nodeData.TransactionHandler,
@@ -117,35 +151,50 @@ func (tg *txGrouper) groupInvalidTxs(
 	transactions := make(map[string]*data.Transaction)
 	mbHash, err := core.CalculateHash(tg.marshalizer, tg.hasher, mb)
 	if err != nil {
-		log.Warn("txGrouper.groupInvalidTxs cannot calculate miniblock hash", "error", err)
+		log.Warn("txsGrouper.groupInvalidTxs cannot calculate miniblock hash", "error", err)
 		return nil
 	}
 
 	for _, txHash := range mb.TxHashes {
-		txHandler, okGet := txs[string(txHash)]
-		if !okGet {
+		invalidDBTx, ok := tg.prepareInvalidTxForDB(mbHash, mb, txHash, txs, header)
+		if !ok {
 			continue
 		}
 
-		tx, okCast := txHandler.(*transaction.Transaction)
-		if !okCast {
-			continue
-		}
-
-		dbTx := tg.txBuilder.buildTransaction(tx, txHash, mbHash, mb, header, transaction.TxStatusInvalid.String())
-		addToAlteredAddresses(dbTx, alteredAddresses, mb, tg.selfShardID, false)
-
-		dbTx.GasUsed = dbTx.GasLimit
-		fee := tg.txBuilder.txFeeCalculator.ComputeTxFeeBasedOnGasUsed(tx, dbTx.GasUsed)
-		dbTx.Fee = fee.String()
-
-		transactions[string(txHash)] = dbTx
+		addToAlteredAddresses(invalidDBTx, alteredAddresses, mb, tg.selfShardID, false)
+		transactions[string(txHash)] = invalidDBTx
 	}
 
 	return transactions
 }
 
-func (tg *txGrouper) shouldIndex(destinationShardID uint32) bool {
+func (tg *txsGrouper) prepareInvalidTxForDB(
+	mbHash []byte,
+	mb *block.MiniBlock,
+	txHash []byte,
+	txs map[string]nodeData.TransactionHandler,
+	header nodeData.HeaderHandler,
+) (*data.Transaction, bool) {
+	txHandler, okGet := txs[string(txHash)]
+	if !okGet {
+		return nil, false
+	}
+
+	tx, okCast := txHandler.(*transaction.Transaction)
+	if !okCast {
+		return nil, false
+	}
+
+	dbTx := tg.txBuilder.prepareTransaction(tx, txHash, mbHash, mb, header, transaction.TxStatusInvalid.String())
+
+	dbTx.GasUsed = dbTx.GasLimit
+	fee := tg.txBuilder.txFeeCalculator.ComputeTxFeeBasedOnGasUsed(tx, dbTx.GasUsed)
+	dbTx.Fee = fee.String()
+
+	return dbTx, true
+}
+
+func (tg *txsGrouper) shouldIndex(destinationShardID uint32) bool {
 	if !tg.isInImportMode {
 		return true
 	}
@@ -153,20 +202,15 @@ func (tg *txGrouper) shouldIndex(destinationShardID uint32) bool {
 	return tg.selfShardID == destinationShardID
 }
 
-func (tg *txGrouper) groupReceipts(header nodeData.HeaderHandler, txPool map[string]nodeData.TransactionHandler) []*data.Receipt {
-	receipts := make(map[string]*receipt.Receipt)
-	for hash, tx := range txPool {
+func (tg *txsGrouper) groupReceipts(header nodeData.HeaderHandler, txsPool map[string]nodeData.TransactionHandler) []*data.Receipt {
+	dbReceipts := make([]*data.Receipt, 0)
+	for hash, tx := range txsPool {
 		rec, ok := tx.(*receipt.Receipt)
 		if !ok {
 			continue
 		}
 
-		receipts[hash] = rec
-	}
-
-	dbReceipts := make([]*data.Receipt, 0)
-	for recHash, rec := range receipts {
-		dbReceipts = append(dbReceipts, tg.txBuilder.convertReceiptInDatabaseReceipt(recHash, rec, header))
+		dbReceipts = append(dbReceipts, tg.txBuilder.prepareReceipt(hash, rec, header))
 	}
 
 	return dbReceipts
@@ -180,9 +224,9 @@ func computeStatus(selfShardID uint32, receiverShardID uint32) string {
 	return transaction.TxStatusPending.String()
 }
 
-func groupSmartContractResults(txPool map[string]nodeData.TransactionHandler) map[string]*smartContractResult.SmartContractResult {
+func groupSmartContractResults(txsPool map[string]nodeData.TransactionHandler) map[string]*smartContractResult.SmartContractResult {
 	scResults := make(map[string]*smartContractResult.SmartContractResult)
-	for hash, tx := range txPool {
+	for hash, tx := range txsPool {
 		scResult, ok := tx.(*smartContractResult.SmartContractResult)
 		if !ok {
 			continue

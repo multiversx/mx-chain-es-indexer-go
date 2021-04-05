@@ -1,6 +1,8 @@
 package process
 
 const (
+	indexSuffix = "000001"
+
 	blockIndex               = "blocks"
 	miniblocksIndex          = "miniblocks"
 	txIndex                  = "transactions"

@@ -8,7 +8,9 @@ import (
 	"time"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elastic-indexer-go/errors"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
+	"github.com/ElrondNetwork/elrond-go-logger/check"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/data/esdt"
 	"github.com/ElrondNetwork/elrond-go/data/state"
@@ -34,37 +36,37 @@ func NewAccountsProcessor(
 	marshalizer marshal.Marshalizer,
 	addressPubkeyConverter core.PubkeyConverter,
 	accountsDB state.AccountsAdapter,
-) *accountsProcessor {
+) (*accountsProcessor, error) {
+	if denomination < 0 {
+		return nil, errors.ErrNegativeDenominationValue
+	}
+	if check.IfNil(marshalizer) {
+		return nil, errors.ErrNilMarshalizer
+	}
+	if check.IfNil(addressPubkeyConverter) {
+		return nil, errors.ErrNilPubkeyConverter
+	}
+	if check.IfNil(accountsDB) {
+		return nil, errors.ErrNilAccountsDB
+	}
+
 	return &accountsProcessor{
 		internalMarshalizer:    marshalizer,
 		addressPubkeyConverter: addressPubkeyConverter,
 		balancePrecision:       math.Pow(10, float64(numDecimalsInFloatBalance)),
 		dividerForDenomination: math.Pow(10, float64(core.MaxInt(denomination, 0))),
 		accountsDB:             accountsDB,
-	}
+	}, nil
 }
 
-// GetAccounts will get accounts for egld operations and esdt operations
+// GetAccounts will get accounts for regular operations and esdt operations
 func (ap *accountsProcessor) GetAccounts(alteredAccounts map[string]*data.AlteredAccount) ([]*data.Account, []*data.AccountESDT) {
-	accountsToIndexEGLD := make([]*data.Account, 0)
+	regularAccountsToIndex := make([]*data.Account, 0)
 	accountsToIndexESDT := make([]*data.AccountESDT, 0)
 	for address, info := range alteredAccounts {
-		addressBytes, err := ap.addressPubkeyConverter.Decode(address)
+		userAccount, err := ap.getUserAccount(address)
 		if err != nil {
-			log.Warn("cannot decode address", "address", address, "error", err)
-			continue
-		}
-
-		account, err := ap.accountsDB.LoadAccount(addressBytes)
-		if err != nil {
-			log.Warn("cannot load account", "address bytes", addressBytes, "error", err)
-			continue
-		}
-
-		userAccount, ok := account.(state.UserAccountHandler)
-		if !ok {
-			log.Warn("cannot cast AccountHandler to type UserAccountHandler")
-			continue
+			log.Warn("cannot get user account", "address", address, "error", err)
 		}
 
 		if info.IsESDTOperation {
@@ -77,21 +79,40 @@ func (ap *accountsProcessor) GetAccounts(alteredAccounts map[string]*data.Altere
 
 		if info.IsESDTOperation && !info.IsSender {
 			// should continue because he have an esdt transfer and the current account is not the sender
-			// this transfer will not affect the egld balance of the account
+			// this transfer will not affect the balance of the account
 			continue
 		}
 
-		accountsToIndexEGLD = append(accountsToIndexEGLD, &data.Account{
+		regularAccountsToIndex = append(regularAccountsToIndex, &data.Account{
 			UserAccount: userAccount,
 			IsSender:    info.IsSender,
 		})
 	}
 
-	return accountsToIndexEGLD, accountsToIndexESDT
+	return regularAccountsToIndex, accountsToIndexESDT
 }
 
-// PrepareAccountsMapEGLD will prepare a map of accounts with egld
-func (ap *accountsProcessor) PrepareAccountsMapEGLD(accounts []*data.Account) map[string]*data.AccountInfo {
+func (ap *accountsProcessor) getUserAccount(address string) (state.UserAccountHandler, error) {
+	addressBytes, err := ap.addressPubkeyConverter.Decode(address)
+	if err != nil {
+		return nil, err
+	}
+
+	account, err := ap.accountsDB.LoadAccount(addressBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	userAccount, ok := account.(state.UserAccountHandler)
+	if !ok {
+		return nil, errors.ErrCannotCastAccountHandlerToUserAccount
+	}
+
+	return userAccount, nil
+}
+
+// PrepareAccountsMapEGLD will prepare a map of regular accounts
+func (ap *accountsProcessor) PrepareRegularAccountsMap(accounts []*data.Account) map[string]*data.AccountInfo {
 	accountsMap := make(map[string]*data.AccountInfo)
 	for _, userAccount := range accounts {
 		balanceAsFloat := ap.computeBalanceAsFloat(userAccount.UserAccount.GetBalance())
@@ -137,7 +158,10 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(accounts []*data.AccountESDT
 }
 
 // PrepareAccountsHistory will prepare a map of accounts history balance from a map of accounts
-func (ap *accountsProcessor) PrepareAccountsHistory(timestamp uint64, accounts map[string]*data.AccountInfo) map[string]*data.AccountBalanceHistory {
+func (ap *accountsProcessor) PrepareAccountsHistory(
+	timestamp uint64,
+	accounts map[string]*data.AccountInfo,
+) map[string]*data.AccountBalanceHistory {
 	accountsMap := make(map[string]*data.AccountBalanceHistory)
 	for address, userAccount := range accounts {
 		acc := &data.AccountBalanceHistory{

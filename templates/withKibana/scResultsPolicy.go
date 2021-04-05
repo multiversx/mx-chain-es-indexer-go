@@ -1,9 +1,9 @@
 package withKibana
 
-// ReceiptsPolicy will hold the configuration for the receipts index policy
+// ScResultsPolicy will hold the configuration for the scResults index policy
 var ScResultsPolicy = Object{
 	"policy": Object{
-		"description":   "Open distro policy for the receipts elastic index.",
+		"description":   "Open distro policy for the scresults elastic index.",
 		"default_state": "hot",
 		"states": Array{
 			Object{

@@ -91,7 +91,7 @@ type ScResult struct {
 	RelayedValue        string        `json:"relayedValue,omitempty"`
 	Code                string        `json:"code,omitempty"`
 	Data                []byte        `json:"data,omitempty"`
-	PreTxHash           string        `json:"prevTxHash"`
+	PrevTxHash          string        `json:"prevTxHash"`
 	OriginalTxHash      string        `json:"originalTxHash"`
 	CallType            string        `json:"callType"`
 	CodeMetadata        []byte        `json:"codeMetaData,omitempty"`

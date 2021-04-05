@@ -1,4 +1,4 @@
-package generalInfo
+package statistics
 
 import (
 	"bytes"
@@ -8,25 +8,32 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 )
 
-// SerializeGeneralInfo will serialize general information
-func (gip *infoProcessor) SerializeGeneralInfo(genInfo *data.TPS, shardsInfo []*data.TPS, index string) *bytes.Buffer {
-	buff := serializeGeneralInfo(genInfo, index)
-
-	for _, shardInfo := range shardsInfo {
-		serializeShardInfo(buff, shardInfo, index)
+// SerializeGeneralInfo will serialize statistics information
+func (sp *statisticsProcessor) SerializeStatistics(genInfo *data.TPS, shardsInfo []*data.TPS, index string) (*bytes.Buffer, error) {
+	buff, err := serializeStatisticInfo(genInfo, index)
+	if err != nil {
+		return nil, err
 	}
 
-	return buff
+	for _, shardInfo := range shardsInfo {
+		errSerialize := serializeShardInfo(buff, shardInfo, index)
+		if errSerialize != nil {
+			log.Warn("serializeShardInfo", "shardID", shardInfo.ShardID, "error", errSerialize)
+
+			continue
+		}
+	}
+
+	return buff, nil
 }
 
-func serializeGeneralInfo(generalInfo *data.TPS, index string) *bytes.Buffer {
+func serializeStatisticInfo(generalInfo *data.TPS, index string) (*bytes.Buffer, error) {
 	buff := &bytes.Buffer{}
 	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s", "_type" : "%s" } }%s`, metachainTpsDocID, index, "\n"))
 
 	serializedInfo, err := json.Marshal(generalInfo)
 	if err != nil {
-		log.Debug("serializeGeneralInfo could not serialize tps info", "error", err)
-		return buff
+		return nil, err
 	}
 
 	serializedInfo = append(serializedInfo, "\n"...)
@@ -34,24 +41,23 @@ func serializeGeneralInfo(generalInfo *data.TPS, index string) *bytes.Buffer {
 	buff.Grow(len(meta) + len(serializedInfo))
 	_, err = buff.Write(meta)
 	if err != nil {
-		log.Warn("serializeGeneralInfo cannot write meta", "error", err)
+		return nil, err
 	}
 	_, err = buff.Write(serializedInfo)
 	if err != nil {
-		log.Warn("serializeGeneralInfo cannot write serialized info", "error", err)
+		return nil, err
 	}
 
-	return buff
+	return buff, nil
 }
 
-func serializeShardInfo(buff *bytes.Buffer, shardTPS *data.TPS, index string) {
+func serializeShardInfo(buff *bytes.Buffer, shardTPS *data.TPS, index string) error {
 	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s%d", "_type" : "%s" } }%s`,
 		shardTpsDocIDPrefix, shardTPS.ShardID, index, "\n"))
 
 	serializedInfo, err := json.Marshal(shardTPS)
 	if err != nil {
-		log.Debug("serializeShardInfo could not serialize info", "error", err)
-		return
+		return err
 	}
 
 	serializedInfo = append(serializedInfo, "\n"...)
@@ -59,16 +65,18 @@ func serializeShardInfo(buff *bytes.Buffer, shardTPS *data.TPS, index string) {
 	buff.Grow(len(meta) + len(serializedInfo))
 	_, err = buff.Write(meta)
 	if err != nil {
-		log.Warn("serializeShardInfo cannot write meta", "error", err)
+		return err
 	}
 	_, err = buff.Write(serializedInfo)
 	if err != nil {
-		log.Warn("serializeShardInfo cannot write serialized info", "error", err)
+		return err
 	}
+
+	return nil
 }
 
 // SerializeRoundsInfo will serialize information about rounds
-func (gip *infoProcessor) SerializeRoundsInfo(roundsInfo []*data.RoundInfo) *bytes.Buffer {
+func (sp *statisticsProcessor) SerializeRoundsInfo(roundsInfo []*data.RoundInfo) *bytes.Buffer {
 	buff := &bytes.Buffer{}
 	for _, info := range roundsInfo {
 		serializedRoundInfo, meta := serializeRoundInfo(info)

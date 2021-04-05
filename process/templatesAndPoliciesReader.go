@@ -48,7 +48,6 @@ func getTemplatesKibana() map[string]*bytes.Buffer {
 	indexTemplates[validatorsIndex] = withKibana.Validators.ToBuffer()
 	indexTemplates[accountsIndex] = withKibana.Accounts.ToBuffer()
 	indexTemplates[accountsHistoryIndex] = withKibana.AccountsHistory.ToBuffer()
-
 	indexTemplates[accountsESDTIndex] = withKibana.AccountsESDT.ToBuffer()
 	indexTemplates[accountsESDTHistoryIndex] = withKibana.AccountsESDTHistory.ToBuffer()
 	indexTemplates[epochInfoIndex] = withKibana.EpochInfo.ToBuffer()
@@ -90,7 +89,6 @@ func getPolicies() map[string]*bytes.Buffer {
 	indexesPolicies[roundPolicy] = withKibana.RoundsPolicy.ToBuffer()
 	indexesPolicies[validatorsPolicy] = withKibana.ValidatorsPolicy.ToBuffer()
 	indexesPolicies[accountsHistoryPolicy] = withKibana.AccountsHistoryPolicy.ToBuffer()
-
 	indexesPolicies[accountsPolicy] = withKibana.AccountsPolicy.ToBuffer()
 	indexesPolicies[accountsESDTPolicy] = withKibana.AccountsESDTPolicy.ToBuffer()
 	indexesPolicies[accountsESDTHistoryPolicy] = withKibana.AccountsESDTHistoryPolicy.ToBuffer()
