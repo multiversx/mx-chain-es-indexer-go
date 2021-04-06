@@ -112,7 +112,7 @@ func (ap *accountsProcessor) getUserAccount(address string) (state.UserAccountHa
 	return userAccount, nil
 }
 
-// PrepareAccountsMapEGLD will prepare a map of ESDT accounts
+// PrepareRegularAccountsMap will prepare a map of regular accounts
 func (ap *accountsProcessor) PrepareRegularAccountsMap(accounts []*data.Account) map[string]*data.AccountInfo {
 	accountsMap := make(map[string]*data.AccountInfo)
 	for _, userAccount := range accounts {
