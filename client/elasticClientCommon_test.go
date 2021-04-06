@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/errors"
+	"github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"github.com/stretchr/testify/assert"
@@ -55,7 +55,7 @@ func TestElasticDefaultErrorResponseHandler_UnmarshalFailsWithHttpForbiddenError
 	resp := createMockEsapiResponseWithText(httpErrString)
 	err := elasticDefaultErrorResponseHandler(resp)
 
-	assert.True(t, errorsGo.Is(err, errors.ErrBackOff))
+	assert.True(t, errorsGo.Is(err, indexer.ErrBackOff))
 }
 
 func TestElasticDefaultErrorResponseHandler_UnmarshalFailsWithHttpTooManyRequestsErrorShouldSignalBackOffErr(t *testing.T) {
@@ -65,7 +65,7 @@ func TestElasticDefaultErrorResponseHandler_UnmarshalFailsWithHttpTooManyRequest
 	resp := createMockEsapiResponseWithText(httpErrString)
 	err := elasticDefaultErrorResponseHandler(resp)
 
-	assert.True(t, errorsGo.Is(err, errors.ErrBackOff))
+	assert.True(t, errorsGo.Is(err, indexer.ErrBackOff))
 }
 
 func TestElasticDefaultErrorResponseHandler_UnmarshalFailsWithGenericError(t *testing.T) {

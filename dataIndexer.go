@@ -2,7 +2,6 @@ package indexer
 
 import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/errors"
 	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"
@@ -59,22 +58,22 @@ func NewDataIndexer(arguments ArgDataIndexer) (*dataIndexer, error) {
 
 func checkIndexerArgs(arguments ArgDataIndexer) error {
 	if check.IfNil(arguments.DataDispatcher) {
-		return errors.ErrNilDataDispatcher
+		return ErrNilDataDispatcher
 	}
 	if check.IfNil(arguments.ElasticProcessor) {
-		return errors.ErrNilElasticProcessor
+		return ErrNilElasticProcessor
 	}
 	if check.IfNil(arguments.NodesCoordinator) {
-		return errors.ErrNilNodesCoordinator
+		return ErrNilNodesCoordinator
 	}
 	if check.IfNil(arguments.EpochStartNotifier) {
-		return errors.ErrNilEpochStartNotifier
+		return ErrNilEpochStartNotifier
 	}
 	if check.IfNil(arguments.Marshalizer) {
-		return errors.ErrNilMarshalizer
+		return ErrNilMarshalizer
 	}
 	if check.IfNil(arguments.ShardCoordinator) {
-		return errors.ErrNilShardCoordinator
+		return ErrNilShardCoordinator
 	}
 
 	return nil

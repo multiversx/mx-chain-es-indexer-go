@@ -1,12 +1,12 @@
 package block
 
 import (
-	errorsGo "errors"
+	"errors"
 	"math/big"
 	"testing"
 
+	"github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/errors"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	dataBlock "github.com/ElrondNetwork/elrond-go/data/block"
 	"github.com/stretchr/testify/require"
@@ -18,7 +18,7 @@ func TestBlockProcessor_SerializeBlockNilElasticBlockErrors(t *testing.T) {
 	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	_, err := bp.SerializeBlock(nil)
-	require.True(t, errorsGo.Is(err, errors.ErrNilElasticBlock))
+	require.True(t, errors.Is(err, indexer.ErrNilElasticBlock))
 }
 
 func TestBlockProcessor_SerializeBlock(t *testing.T) {
@@ -37,10 +37,10 @@ func TestBlockProcessor_SerializeEpochInfoDataErrors(t *testing.T) {
 	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	_, err := bp.SerializeEpochInfoData(nil)
-	require.Equal(t, errors.ErrNilHeaderHandler, err)
+	require.Equal(t, indexer.ErrNilHeaderHandler, err)
 
 	_, err = bp.SerializeEpochInfoData(&dataBlock.Header{})
-	require.True(t, errorsGo.Is(err, errors.ErrHeaderTypeAssertion))
+	require.True(t, errors.Is(err, indexer.ErrHeaderTypeAssertion))
 }
 
 func TestBlockProcessor_SerializeEpochInfoData(t *testing.T) {

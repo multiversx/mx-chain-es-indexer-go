@@ -6,8 +6,8 @@ import (
 	"math/big"
 	"strings"
 
+	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/errors"
 	"github.com/ElrondNetwork/elrond-go-logger/check"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/vmcommon"
@@ -23,22 +23,22 @@ const (
 
 func checkTxsProcessorArg(args *ArgsTransactionProcessor) error {
 	if args == nil {
-		return errors.ErrNilTransactionsProcessorArguments
+		return elasticIndexer.ErrNilTransactionsProcessorArguments
 	}
 	if check.IfNil(args.Marshalizer) {
-		return errors.ErrNilMarshalizer
+		return elasticIndexer.ErrNilMarshalizer
 	}
 	if check.IfNil(args.ShardCoordinator) {
-		return errors.ErrNilShardCoordinator
+		return elasticIndexer.ErrNilShardCoordinator
 	}
 	if check.IfNil(args.Hasher) {
-		return errors.ErrNilHasher
+		return elasticIndexer.ErrNilHasher
 	}
 	if check.IfNil(args.AddressPubkeyConverter) {
-		return errors.ErrNilPubkeyConverter
+		return elasticIndexer.ErrNilPubkeyConverter
 	}
 	if check.IfNil(args.TxFeeCalculator) {
-		return errors.ErrNilTransactionFeeCalculator
+		return elasticIndexer.ErrNilTransactionFeeCalculator
 	}
 
 	return nil
@@ -50,13 +50,13 @@ func checkPrepareTransactionForDatabaseArguments(
 	pool *indexer.Pool,
 ) error {
 	if body == nil {
-		return errors.ErrNilBlockBody
+		return elasticIndexer.ErrNilBlockBody
 	}
 	if check.IfNil(header) {
-		return errors.ErrNilHeaderHandler
+		return elasticIndexer.ErrNilHeaderHandler
 	}
 	if pool == nil {
-		return errors.ErrNilPool
+		return elasticIndexer.ErrNilPool
 	}
 
 	return nil

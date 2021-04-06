@@ -3,7 +3,7 @@ package miniblocks
 import (
 	"testing"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/errors"
+	"github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	dataBlock "github.com/ElrondNetwork/elrond-go/data/block"
 	"github.com/ElrondNetwork/elrond-go/hashing"
@@ -24,14 +24,14 @@ func TestNewMiniblocksProcessor(t *testing.T) {
 			args: func() (uint32, hashing.Hasher, marshal.Marshalizer) {
 				return 0, nil, &mock.MarshalizerMock{}
 			},
-			exErr: errors.ErrNilHasher,
+			exErr: indexer.ErrNilHasher,
 		},
 		{
 			name: "NilMarshalizer",
 			args: func() (uint32, hashing.Hasher, marshal.Marshalizer) {
 				return 0, &mock.HasherMock{}, nil
 			},
-			exErr: errors.ErrNilMarshalizer,
+			exErr: indexer.ErrNilMarshalizer,
 		},
 	}
 

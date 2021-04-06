@@ -2,7 +2,7 @@ package indexer
 
 import (
 	"context"
-	errorsGo "errors"
+	"errors"
 	"fmt"
 	"sync"
 	"sync/atomic"
@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/errors"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
 	"github.com/stretchr/testify/require"
@@ -22,7 +21,7 @@ func TestNewDataDispatcher_InvalidCacheSize(t *testing.T) {
 	dataDist, err := NewDataDispatcher(-1)
 
 	require.Nil(t, dataDist)
-	require.Equal(t, errors.ErrNegativeCacheSize, err)
+	require.Equal(t, ErrNegativeCacheSize, err)
 }
 
 func TestNewDataDispatcher(t *testing.T) {
@@ -88,7 +87,7 @@ func TestDataDispatcher_Add(t *testing.T) {
 		SaveRoundsInfoCalled: func(infos []*data.RoundInfo) error {
 			if calledCount < 2 {
 				atomic.AddUint32(&calledCount, 1)
-				return fmt.Errorf("%w: wrapped error", errors.ErrBackOff)
+				return fmt.Errorf("%w: wrapped error", ErrBackOff)
 			}
 
 			atomic.AddUint32(&calledCount, 1)
@@ -124,7 +123,7 @@ func TestDataDispatcher_AddWithErrorShouldRetryTheReprocessing(t *testing.T) {
 		SaveRoundsInfoCalled: func(infos []*data.RoundInfo) error {
 			if calledCount < 2 {
 				atomic.AddUint32(&calledCount, 1)
-				return errorsGo.New("generic error")
+				return errors.New("generic error")
 			}
 
 			atomic.AddUint32(&calledCount, 1)

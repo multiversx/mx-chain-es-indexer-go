@@ -1,4 +1,4 @@
-package errors
+package indexer
 
 import "errors"
 
@@ -52,9 +52,6 @@ var ErrNilHasher = errors.New("nil hasher provided")
 
 // ErrNilUrl signals that the provided url is empty
 var ErrNilUrl = errors.New("url is empty")
-
-// ErrBodyTypeAssertion signals that body type assertion failed
-var ErrBodyTypeAssertion = errors.New("elasticsearch - body type assertion failed")
 
 // ErrCannotCastAccountHandlerToUserAccount signals that cast from AccountHandler to UserAccountHandler was not OK
 var ErrCannotCastAccountHandlerToUserAccount = errors.New("cannot cast AccountHandler to UserAccountHandler")

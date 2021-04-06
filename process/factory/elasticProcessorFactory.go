@@ -2,12 +2,12 @@ package factory
 
 import (
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
-	"github.com/ElrondNetwork/elastic-indexer-go/errors"
 	processIndexer "github.com/ElrondNetwork/elastic-indexer-go/process"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/accounts"
 	blockProc "github.com/ElrondNetwork/elastic-indexer-go/process/block"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/miniblocks"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/statistics"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/templatesAndPolicies"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/transactions"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/validators"
 	"github.com/ElrondNetwork/elrond-go/core"
@@ -38,7 +38,7 @@ type ArgElasticProcessorFactory struct {
 
 // CreateElasticProcessor will create a new instance of ElasticProcessor
 func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (indexer.ElasticProcessor, error) {
-	templatesAndPoliciesReader := processIndexer.NewTemplatesAndPoliciesReader(arguments.UseKibana)
+	templatesAndPoliciesReader := templatesAndPolicies.CreateTemplatesAndPoliciesReader(arguments.UseKibana)
 	indexTemplates, indexPolicies, err := templatesAndPoliciesReader.GetElasticTemplatesAndPolicies()
 	if err != nil {
 		return nil, err
@@ -49,7 +49,7 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (indexer.Elast
 		enabledIndexesMap[index] = struct{}{}
 	}
 	if len(enabledIndexesMap) == 0 {
-		return nil, errors.ErrEmptyEnabledIndexes
+		return nil, indexer.ErrEmptyEnabledIndexes
 	}
 
 	accountsProc, err := accounts.NewAccountsProcessor(
@@ -92,18 +92,18 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (indexer.Elast
 	}
 
 	args := &processIndexer.ArgElasticProcessor{
-		TxsProc:        txsProc,
-		AccountsProc:   accountsProc,
-		BlockProc:      blockProcHandler,
-		MiniblocksProc: miniblocksProc,
-		ValidatorsProc: validatorsProc,
-		StatisticsProc: generalInfoProc,
-		DBClient:       arguments.DBClient,
-		EnabledIndexes: enabledIndexesMap,
-		UseKibana:      arguments.UseKibana,
-		IndexTemplates: indexTemplates,
-		IndexPolicies:  indexPolicies,
-		SelfShardID:    arguments.ShardCoordinator.SelfId(),
+		TransactionsProc: txsProc,
+		AccountsProc:     accountsProc,
+		BlockProc:        blockProcHandler,
+		MiniblocksProc:   miniblocksProc,
+		ValidatorsProc:   validatorsProc,
+		StatisticsProc:   generalInfoProc,
+		DBClient:         arguments.DBClient,
+		EnabledIndexes:   enabledIndexesMap,
+		UseKibana:        arguments.UseKibana,
+		IndexTemplates:   indexTemplates,
+		IndexPolicies:    indexPolicies,
+		SelfShardID:      arguments.ShardCoordinator.SelfId(),
 	}
 
 	return processIndexer.NewElasticProcessor(args)

@@ -9,7 +9,7 @@ import (
 )
 
 // SerializeScResults will serialize the provided smart contract results in a way that Elastic Search expects a bulk request
-func (tdp *txDatabaseProcessor) SerializeScResults(scResults []*data.ScResult) ([]*bytes.Buffer, error) {
+func (tdp *txsDatabaseProcessor) SerializeScResults(scResults []*data.ScResult) ([]*bytes.Buffer, error) {
 	buffSlice := data.NewBufferSlice()
 	for _, sc := range scResults {
 		meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, sc.Hash, "\n"))
@@ -28,7 +28,7 @@ func (tdp *txDatabaseProcessor) SerializeScResults(scResults []*data.ScResult) (
 }
 
 // SerializeReceipts will serialize the receipts in a way that Elastic Search expects a bulk request
-func (tdp *txDatabaseProcessor) SerializeReceipts(receipts []*data.Receipt) ([]*bytes.Buffer, error) {
+func (tdp *txsDatabaseProcessor) SerializeReceipts(receipts []*data.Receipt) ([]*bytes.Buffer, error) {
 	buffSlice := data.NewBufferSlice()
 	for _, rec := range receipts {
 		meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, rec.Hash, "\n"))
@@ -47,7 +47,7 @@ func (tdp *txDatabaseProcessor) SerializeReceipts(receipts []*data.Receipt) ([]*
 }
 
 // SerializeTransactions will serialize the transactions in a way that Elastic Search expects a bulk request
-func (tdp *txDatabaseProcessor) SerializeTransactions(
+func (tdp *txsDatabaseProcessor) SerializeTransactions(
 	transactions []*data.Transaction,
 	selfShardID uint32,
 	mbsHashInDB map[string]bool,

@@ -5,7 +5,6 @@ import (
 
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/client"
-	"github.com/ElrondNetwork/elastic-indexer-go/errors"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/factory"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"
@@ -109,37 +108,37 @@ func createElasticProcessor(args *ArgsIndexerFactory) (indexer.ElasticProcessor,
 
 func checkDataIndexerParams(arguments *ArgsIndexerFactory) error {
 	if arguments.IndexerCacheSize < 0 {
-		return errors.ErrNegativeCacheSize
+		return indexer.ErrNegativeCacheSize
 	}
 	if check.IfNil(arguments.AddressPubkeyConverter) {
-		return fmt.Errorf("%w when setting AddressPubkeyConverter in indexer", errors.ErrNilPubkeyConverter)
+		return fmt.Errorf("%w when setting AddressPubkeyConverter in indexer", indexer.ErrNilPubkeyConverter)
 	}
 	if check.IfNil(arguments.ValidatorPubkeyConverter) {
-		return fmt.Errorf("%w when setting ValidatorPubkeyConverter in indexer", errors.ErrNilPubkeyConverter)
+		return fmt.Errorf("%w when setting ValidatorPubkeyConverter in indexer", indexer.ErrNilPubkeyConverter)
 	}
 	if arguments.Url == "" {
-		return errors.ErrNilUrl
+		return indexer.ErrNilUrl
 	}
 	if check.IfNil(arguments.Marshalizer) {
-		return errors.ErrNilMarshalizer
+		return indexer.ErrNilMarshalizer
 	}
 	if check.IfNil(arguments.Hasher) {
-		return errors.ErrNilHasher
+		return indexer.ErrNilHasher
 	}
 	if check.IfNil(arguments.NodesCoordinator) {
-		return errors.ErrNilNodesCoordinator
+		return indexer.ErrNilNodesCoordinator
 	}
 	if check.IfNil(arguments.EpochStartNotifier) {
-		return errors.ErrNilEpochStartNotifier
+		return indexer.ErrNilEpochStartNotifier
 	}
 	if check.IfNil(arguments.TransactionFeeCalculator) {
-		return errors.ErrNilTransactionFeeCalculator
+		return indexer.ErrNilTransactionFeeCalculator
 	}
 	if check.IfNil(arguments.AccountsDB) {
-		return errors.ErrNilAccountsDB
+		return indexer.ErrNilAccountsDB
 	}
 	if check.IfNil(arguments.ShardCoordinator) {
-		return errors.ErrNilShardCoordinator
+		return indexer.ErrNilShardCoordinator
 	}
 
 	return nil

@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/errors"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
@@ -34,7 +34,7 @@ type elasticClient struct {
 // NewElasticClient will create a new instance of elasticClient
 func NewElasticClient(cfg elasticsearch.Config) (*elasticClient, error) {
 	if len(cfg.Addresses) == 0 {
-		return nil, errors.ErrNoElasticUrlProvided
+		return nil, indexer.ErrNoElasticUrlProvided
 	}
 
 	es, err := elasticsearch.NewClient(cfg)
@@ -211,7 +211,7 @@ func (ec *elasticClient) PolicyExists(policy string) bool {
 		Header:     res.Header,
 	}
 
-	existsRes := &data.ResponseExists{}
+	existsRes := &data.Response{}
 	err = parseResponse(response, existsRes, kibanaResponseErrorHandler)
 	if err != nil {
 		log.Warn("elasticClient.PolicyExists",
@@ -289,14 +289,14 @@ func (ec *elasticClient) createPolicy(policyName string, policy *bytes.Buffer) e
 		Header:     res.Header,
 	}
 
-	existsRes := &data.ResponseExists{}
+	existsRes := &data.Response{}
 	err = parseResponse(response, existsRes, kibanaResponseErrorHandler)
 	if err != nil {
 		return err
 	}
 
 	if !existsRes.Ok && !strings.Contains(existsRes.Error, errPolicyAlreadyExists) {
-		return errors.ErrCouldNotCreatePolicy
+		return indexer.ErrCouldNotCreatePolicy
 	}
 
 	return nil

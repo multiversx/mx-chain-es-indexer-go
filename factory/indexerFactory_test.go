@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
-	"github.com/ElrondNetwork/elastic-indexer-go/errors"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -49,7 +48,7 @@ func TestNewIndexerFactory(t *testing.T) {
 				args.IndexerCacheSize = -1
 				return args
 			},
-			exError: errors.ErrNegativeCacheSize,
+			exError: indexer.ErrNegativeCacheSize,
 		},
 		{
 			name: "NilAddressPubkeyConverter",
@@ -58,7 +57,7 @@ func TestNewIndexerFactory(t *testing.T) {
 				args.AddressPubkeyConverter = nil
 				return args
 			},
-			exError: errors.ErrNilPubkeyConverter,
+			exError: indexer.ErrNilPubkeyConverter,
 		},
 		{
 			name: "NilValidatorPubkeyConverter",
@@ -67,7 +66,7 @@ func TestNewIndexerFactory(t *testing.T) {
 				args.ValidatorPubkeyConverter = nil
 				return args
 			},
-			exError: errors.ErrNilPubkeyConverter,
+			exError: indexer.ErrNilPubkeyConverter,
 		},
 		{
 			name: "NilMarshalizer",
@@ -76,7 +75,7 @@ func TestNewIndexerFactory(t *testing.T) {
 				args.Marshalizer = nil
 				return args
 			},
-			exError: errors.ErrNilMarshalizer,
+			exError: indexer.ErrNilMarshalizer,
 		},
 		{
 			name: "NilHasher",
@@ -85,7 +84,7 @@ func TestNewIndexerFactory(t *testing.T) {
 				args.Hasher = nil
 				return args
 			},
-			exError: errors.ErrNilHasher,
+			exError: indexer.ErrNilHasher,
 		},
 		{
 			name: "NilNodesCoordinator",
@@ -94,7 +93,7 @@ func TestNewIndexerFactory(t *testing.T) {
 				args.NodesCoordinator = nil
 				return args
 			},
-			exError: errors.ErrNilNodesCoordinator,
+			exError: indexer.ErrNilNodesCoordinator,
 		},
 		{
 			name: "NilEpochStartNotifier",
@@ -103,7 +102,7 @@ func TestNewIndexerFactory(t *testing.T) {
 				args.EpochStartNotifier = nil
 				return args
 			},
-			exError: errors.ErrNilEpochStartNotifier,
+			exError: indexer.ErrNilEpochStartNotifier,
 		},
 		{
 			name: "NilAccountsDB",
@@ -112,7 +111,7 @@ func TestNewIndexerFactory(t *testing.T) {
 				args.AccountsDB = nil
 				return args
 			},
-			exError: errors.ErrNilAccountsDB,
+			exError: indexer.ErrNilAccountsDB,
 		},
 		{
 			name: "EmptyUrl",
@@ -121,7 +120,7 @@ func TestNewIndexerFactory(t *testing.T) {
 				args.Url = ""
 				return args
 			},
-			exError: errors.ErrNilUrl,
+			exError: indexer.ErrNilUrl,
 		},
 		{
 			name: "NilTransactionFeeCalculator",
@@ -130,7 +129,7 @@ func TestNewIndexerFactory(t *testing.T) {
 				args.TransactionFeeCalculator = nil
 				return args
 			},
-			exError: errors.ErrNilTransactionFeeCalculator,
+			exError: indexer.ErrNilTransactionFeeCalculator,
 		},
 		{
 			name: "NilShardCoordinator",
@@ -139,7 +138,7 @@ func TestNewIndexerFactory(t *testing.T) {
 				args.ShardCoordinator = nil
 				return args
 			},
-			exError: errors.ErrNilShardCoordinator,
+			exError: indexer.ErrNilShardCoordinator,
 		},
 		{
 			name: "All arguments ok",

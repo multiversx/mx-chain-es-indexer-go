@@ -26,6 +26,8 @@ const (
 
 var log = logger.GetOrCreate("indexer/process/transactions")
 
+// ArgsTransactionProcessor holds all dependencies required by the txsDatabaseProcessor  in order to create
+// new instances
 type ArgsTransactionProcessor struct {
 	AddressPubkeyConverter core.PubkeyConverter
 	TxFeeCalculator        process.TransactionFeeCalculator
@@ -35,14 +37,14 @@ type ArgsTransactionProcessor struct {
 	IsInImportMode         bool
 }
 
-type txDatabaseProcessor struct {
+type txsDatabaseProcessor struct {
 	txFeeCalculator process.TransactionFeeCalculator
 	txBuilder       *dbTransactionBuilder
 	txsGrouper      *txsGrouper
 }
 
 // NewTransactionsProcessor will create a new instance of transactions database processor
-func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txDatabaseProcessor, error) {
+func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txsDatabaseProcessor, error) {
 	err := checkTxsProcessorArg(args)
 	if err != nil {
 		return nil, err
@@ -56,7 +58,7 @@ func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txDatabaseProces
 			"not the current node's shard won't be indexed in Elastic Search")
 	}
 
-	return &txDatabaseProcessor{
+	return &txsDatabaseProcessor{
 		txFeeCalculator: args.TxFeeCalculator,
 		txBuilder:       txBuilder,
 		txsGrouper:      txsDBGrouper,
@@ -64,7 +66,7 @@ func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txDatabaseProces
 }
 
 // PrepareTransactionsForDatabase will prepare transactions for database
-func (tdp *txDatabaseProcessor) PrepareTransactionsForDatabase(
+func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 	body *block.Body,
 	header nodeData.HeaderHandler,
 	pool *indexer.Pool,
@@ -89,11 +91,26 @@ func (tdp *txDatabaseProcessor) PrepareTransactionsForDatabase(
 	for _, mb := range body.MiniBlocks {
 		switch mb.Type {
 		case block.TxBlock:
-			mergeTxsMaps(normalTxs, tdp.txsGrouper.groupNormalTxs(mb, header, pool.Txs, alteredAddresses))
+			txs, errGroup := tdp.txsGrouper.groupNormalTxs(mb, header, pool.Txs, alteredAddresses)
+			if errGroup != nil {
+				log.Warn("txsDatabaseProcessor.groupNormalTxs", "error", err)
+				continue
+			}
+			mergeTxsMaps(normalTxs, txs)
 		case block.RewardsBlock:
-			mergeTxsMaps(rewardsTxs, tdp.txsGrouper.groupRewardsTxs(mb, header, pool.Rewards, alteredAddresses))
+			txs, errGroup := tdp.txsGrouper.groupRewardsTxs(mb, header, pool.Rewards, alteredAddresses)
+			if errGroup != nil {
+				log.Warn("txsDatabaseProcessor.groupRewardsTxs", "error", err)
+				continue
+			}
+			mergeTxsMaps(rewardsTxs, txs)
 		case block.InvalidBlock:
-			mergeTxsMaps(invalidTxs, tdp.txsGrouper.groupInvalidTxs(mb, header, pool.Invalid, alteredAddresses))
+			log.Warn("txsDatabaseProcessor.groupInvalidTxs", "error", err)
+			txs, errGroup := tdp.txsGrouper.groupInvalidTxs(mb, header, pool.Invalid, alteredAddresses)
+			if errGroup != nil {
+				continue
+			}
+			mergeTxsMaps(invalidTxs, txs)
 		default:
 			continue
 		}
@@ -119,7 +136,7 @@ func (tdp *txDatabaseProcessor) PrepareTransactionsForDatabase(
 	}
 }
 
-func (tdp *txDatabaseProcessor) setDetailsOfTxsWithSCRS(
+func (tdp *txsDatabaseProcessor) setDetailsOfTxsWithSCRS(
 	transactions map[string]*data.Transaction,
 	countScResults map[string]int,
 ) {
@@ -133,7 +150,7 @@ func (tdp *txDatabaseProcessor) setDetailsOfTxsWithSCRS(
 	}
 }
 
-func (tdp *txDatabaseProcessor) setDetailsOfATxWithSCRS(tx *data.Transaction, nrScResults int) {
+func (tdp *txsDatabaseProcessor) setDetailsOfATxWithSCRS(tx *data.Transaction, nrScResults int) {
 	tx.HasSCR = true
 
 	if isRelayedTx(tx) {
@@ -162,7 +179,7 @@ func (tdp *txDatabaseProcessor) setDetailsOfATxWithSCRS(tx *data.Transaction, nr
 	tx.Fee = fee.String()
 }
 
-func (tdp *txDatabaseProcessor) iterateSCRSAndConvert(
+func (tdp *txsDatabaseProcessor) iterateSCRSAndConvert(
 	txPool map[string]nodeData.TransactionHandler,
 	header nodeData.HeaderHandler,
 	transactions map[string]*data.Transaction,
@@ -197,7 +214,7 @@ func (tdp *txDatabaseProcessor) iterateSCRSAndConvert(
 	return dbSCResults, countScResults
 }
 
-func (tdp *txDatabaseProcessor) addScResultsInTx(tx *data.Transaction, header nodeData.HeaderHandler, scrs map[string]*smartContractResult.SmartContractResult) {
+func (tdp *txsDatabaseProcessor) addScResultsInTx(tx *data.Transaction, header nodeData.HeaderHandler, scrs map[string]*smartContractResult.SmartContractResult) {
 	for childScHash, sc := range scrs {
 		childDBScResult := tdp.txBuilder.prepareSmartContractResult(childScHash, sc, header)
 
@@ -217,7 +234,7 @@ func findAllChildScrResults(hash string, scrs map[string]*smartContractResult.Sm
 	return scrResults
 }
 
-func (tdp *txDatabaseProcessor) addScResultInfoInTx(dbScResult *data.ScResult, tx *data.Transaction) *data.Transaction {
+func (tdp *txsDatabaseProcessor) addScResultInfoInTx(dbScResult *data.ScResult, tx *data.Transaction) *data.Transaction {
 	tx.SmartContractResults = append(tx.SmartContractResults, dbScResult)
 
 	if isSCRForSenderWithRefund(dbScResult, tx) {
@@ -230,7 +247,7 @@ func (tdp *txDatabaseProcessor) addScResultInfoInTx(dbScResult *data.ScResult, t
 	return tx
 }
 
-func (tdp *txDatabaseProcessor) setTransactionSearchOrder(transactions map[string]*data.Transaction) map[string]*data.Transaction {
+func (tdp *txsDatabaseProcessor) setTransactionSearchOrder(transactions map[string]*data.Transaction) map[string]*data.Transaction {
 	currentOrder := uint32(0)
 	for _, tx := range transactions {
 		tx.SearchOrder = currentOrder
@@ -241,7 +258,7 @@ func (tdp *txDatabaseProcessor) setTransactionSearchOrder(transactions map[strin
 }
 
 // GetRewardsTxsHashesHexEncoded will return reward transactions hashes from body hex encoded
-func (tdp *txDatabaseProcessor) GetRewardsTxsHashesHexEncoded(header nodeData.HeaderHandler, body *block.Body) []string {
+func (tdp *txsDatabaseProcessor) GetRewardsTxsHashesHexEncoded(header nodeData.HeaderHandler, body *block.Body) []string {
 	if body == nil || check.IfNil(header) || len(header.GetMiniBlockHeadersHashes()) == 0 {
 		return nil
 	}

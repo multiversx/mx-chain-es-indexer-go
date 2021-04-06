@@ -28,8 +28,8 @@ type TPS struct {
 	ShardID               uint32   `json:"shardID"`
 }
 
-// ResponseExists -
-type ResponseExists struct {
+// Response is a structure that holds response from Kibana
+type Response struct {
 	Ok    bool   `json:"ok"`
 	Error string `json:"error,omitempty"`
 }

@@ -68,7 +68,7 @@ type DBMiniblocksHandler interface {
 	SerializeBulkMiniBlocks(bulkMbs []*data.Miniblock, mbsInDB map[string]bool) *bytes.Buffer
 }
 
-// DBStatisticsHandler defines the actions that a general info handler should do
+// DBStatisticsHandler defines the actions that a database statistics handler should do
 type DBStatisticsHandler interface {
 	PrepareStatistics(tpsBenchmark statistics.TPSBenchmark) (*data.TPS, []*data.TPS, error)
 

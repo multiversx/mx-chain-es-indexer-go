@@ -24,7 +24,7 @@ func TestSerializeScResults(t *testing.T) {
 	}
 	scrs := []*data.ScResult{scResult1, scResult2}
 
-	res, err := (&txDatabaseProcessor{}).SerializeScResults(scrs)
+	res, err := (&txsDatabaseProcessor{}).SerializeScResults(scrs)
 	require.Nil(t, err)
 	require.Equal(t, 1, len(res))
 
@@ -52,7 +52,7 @@ func TestSerializeReceipts(t *testing.T) {
 
 	recs := []*data.Receipt{rec1, rec2}
 
-	res, err := (&txDatabaseProcessor{}).SerializeReceipts(recs)
+	res, err := (&txsDatabaseProcessor{}).SerializeReceipts(recs)
 	require.Nil(t, err)
 	require.Equal(t, 1, len(res))
 
@@ -67,7 +67,7 @@ func TestSerializeReceipts(t *testing.T) {
 func TestSerializeTransactionsIntraShardTx(t *testing.T) {
 	t.Parallel()
 
-	buffers, err := (&txDatabaseProcessor{}).SerializeTransactions([]*data.Transaction{{
+	buffers, err := (&txsDatabaseProcessor{}).SerializeTransactions([]*data.Transaction{{
 		Hash:                 "txHash",
 		SmartContractResults: []*data.ScResult{{}},
 	}}, 0, nil)
@@ -82,7 +82,7 @@ func TestSerializeTransactionsIntraShardTx(t *testing.T) {
 func TestSerializeTransactionCrossShardTxSource(t *testing.T) {
 	t.Parallel()
 
-	buffers, err := (&txDatabaseProcessor{}).SerializeTransactions([]*data.Transaction{{
+	buffers, err := (&txsDatabaseProcessor{}).SerializeTransactions([]*data.Transaction{{
 		Hash:                 "txHash",
 		SenderShard:          0,
 		ReceiverShard:        1,
@@ -99,7 +99,7 @@ func TestSerializeTransactionCrossShardTxSource(t *testing.T) {
 func TestSerializeTransactionsCrossShardTxDestination(t *testing.T) {
 	t.Parallel()
 
-	buffers, err := (&txDatabaseProcessor{}).SerializeTransactions([]*data.Transaction{{
+	buffers, err := (&txsDatabaseProcessor{}).SerializeTransactions([]*data.Transaction{{
 		Hash:                 "txHash",
 		SenderShard:          1,
 		ReceiverShard:        0,

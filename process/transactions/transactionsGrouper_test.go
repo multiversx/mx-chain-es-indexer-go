@@ -38,7 +38,7 @@ func TestGroupNormalTxs(t *testing.T) {
 	}
 	alteredAddresses := map[string]*data.AlteredAccount{}
 
-	normalTxs := grouper.groupNormalTxs(mb, header, txs, alteredAddresses)
+	normalTxs, _ := grouper.groupNormalTxs(mb, header, txs, alteredAddresses)
 	require.Len(t, normalTxs, 2)
 	require.Len(t, alteredAddresses, 4)
 }
@@ -66,7 +66,7 @@ func TestGroupRewardsTxs(t *testing.T) {
 	}
 	alteredAddresses := map[string]*data.AlteredAccount{}
 
-	normalTxs := grouper.groupRewardsTxs(mb, header, txs, alteredAddresses)
+	normalTxs, _ := grouper.groupRewardsTxs(mb, header, txs, alteredAddresses)
 	require.Len(t, normalTxs, 2)
 	require.Len(t, alteredAddresses, 2)
 }
@@ -96,7 +96,7 @@ func TestGroupInvalidTxs(t *testing.T) {
 	}
 	alteredAddresses := map[string]*data.AlteredAccount{}
 
-	normalTxs := grouper.groupInvalidTxs(mb, header, txs, alteredAddresses)
+	normalTxs, _ := grouper.groupInvalidTxs(mb, header, txs, alteredAddresses)
 	require.Len(t, normalTxs, 2)
 	require.Len(t, alteredAddresses, 2)
 }

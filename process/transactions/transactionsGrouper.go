@@ -42,13 +42,12 @@ func (tg *txsGrouper) groupNormalTxs(
 	header nodeData.HeaderHandler,
 	txs map[string]nodeData.TransactionHandler,
 	alteredAddresses map[string]*data.AlteredAccount,
-) map[string]*data.Transaction {
+) (map[string]*data.Transaction, error) {
 	transactions := make(map[string]*data.Transaction)
 
 	mbHash, err := core.CalculateHash(tg.marshalizer, tg.hasher, mb)
 	if err != nil {
-		log.Warn("txsGrouper.groupNormalTxs cannot calculate miniblock hash", "error", err)
-		return nil
+		return nil, err
 	}
 
 	mbStatus := computeStatus(tg.selfShardID, mb.ReceiverShardID)
@@ -64,7 +63,7 @@ func (tg *txsGrouper) groupNormalTxs(
 		}
 	}
 
-	return transactions
+	return transactions, nil
 }
 
 func (tg *txsGrouper) prepareNormalTxForDB(
@@ -95,12 +94,11 @@ func (tg *txsGrouper) groupRewardsTxs(
 	header nodeData.HeaderHandler,
 	txs map[string]nodeData.TransactionHandler,
 	alteredAddresses map[string]*data.AlteredAccount,
-) map[string]*data.Transaction {
+) (map[string]*data.Transaction, error) {
 	rewardsTxs := make(map[string]*data.Transaction)
 	mbHash, err := core.CalculateHash(tg.marshalizer, tg.hasher, mb)
 	if err != nil {
-		log.Warn("txsGrouper.groupRewardsTxs cannot calculate miniblock hash", "error", err)
-		return nil
+		return nil, err
 	}
 
 	mbStatus := computeStatus(tg.selfShardID, mb.ReceiverShardID)
@@ -116,7 +114,7 @@ func (tg *txsGrouper) groupRewardsTxs(
 		}
 	}
 
-	return rewardsTxs
+	return rewardsTxs, nil
 }
 
 func (tg *txsGrouper) prepareRewardTxForDB(
@@ -147,12 +145,11 @@ func (tg *txsGrouper) groupInvalidTxs(
 	header nodeData.HeaderHandler,
 	txs map[string]nodeData.TransactionHandler,
 	alteredAddresses map[string]*data.AlteredAccount,
-) map[string]*data.Transaction {
+) (map[string]*data.Transaction, error) {
 	transactions := make(map[string]*data.Transaction)
 	mbHash, err := core.CalculateHash(tg.marshalizer, tg.hasher, mb)
 	if err != nil {
-		log.Warn("txsGrouper.groupInvalidTxs cannot calculate miniblock hash", "error", err)
-		return nil
+		return nil, err
 	}
 
 	for _, txHash := range mb.TxHashes {
@@ -165,7 +162,7 @@ func (tg *txsGrouper) groupInvalidTxs(
 		transactions[string(txHash)] = invalidDBTx
 	}
 
-	return transactions
+	return transactions, nil
 }
 
 func (tg *txsGrouper) prepareInvalidTxForDB(

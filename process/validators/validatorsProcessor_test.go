@@ -3,8 +3,8 @@ package validators
 import (
 	"testing"
 
+	"github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/errors"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -14,7 +14,7 @@ func TestNewValidatorsProcessor(t *testing.T) {
 
 	vp, err := NewValidatorsProcessor(nil)
 	require.Nil(t, vp)
-	require.Equal(t, errors.ErrNilPubkeyConverter, err)
+	require.Equal(t, indexer.ErrNilPubkeyConverter, err)
 }
 
 func TestValidatorsProcessor_PrepareValidatorsPublicKeys(t *testing.T) {

@@ -3,12 +3,12 @@ package accounts
 import (
 	"encoding/hex"
 	"encoding/json"
-	errorsGo "errors"
+	"errors"
 	"math/big"
 	"testing"
 
+	"github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/errors"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/data/esdt"
@@ -31,28 +31,28 @@ func TestNewAccountsProcessor(t *testing.T) {
 			argsFunc: func() (int, marshal.Marshalizer, core.PubkeyConverter, state.AccountsAdapter) {
 				return -1, &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{}, &mock.AccountsStub{}
 			},
-			exError: errors.ErrNegativeDenominationValue,
+			exError: indexer.ErrNegativeDenominationValue,
 		},
 		{
 			name: "NilMarshalizer",
 			argsFunc: func() (int, marshal.Marshalizer, core.PubkeyConverter, state.AccountsAdapter) {
 				return 11, nil, &mock.PubkeyConverterMock{}, &mock.AccountsStub{}
 			},
-			exError: errors.ErrNilMarshalizer,
+			exError: indexer.ErrNilMarshalizer,
 		},
 		{
 			name: "NilPubKeyConverter",
 			argsFunc: func() (int, marshal.Marshalizer, core.PubkeyConverter, state.AccountsAdapter) {
 				return 11, &mock.MarshalizerMock{}, nil, &mock.AccountsStub{}
 			},
-			exError: errors.ErrNilPubkeyConverter,
+			exError: indexer.ErrNilPubkeyConverter,
 		},
 		{
 			name: "NilAccounts",
 			argsFunc: func() (int, marshal.Marshalizer, core.PubkeyConverter, state.AccountsAdapter) {
 				return 11, &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{}, nil
 			},
-			exError: errors.ErrNilAccountsDB,
+			exError: indexer.ErrNilAccountsDB,
 		},
 		{
 			name: "ShouldWork",
@@ -66,7 +66,7 @@ func TestNewAccountsProcessor(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := NewAccountsProcessor(tt.argsFunc())
-			require.True(t, errorsGo.Is(err, tt.exError))
+			require.True(t, errors.Is(err, tt.exError))
 		})
 	}
 }
@@ -134,7 +134,7 @@ func TestGetESDTInfo_CannotRetriveValueShoudError(t *testing.T) {
 	ap, _ := NewAccountsProcessor(10, &mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), &mock.AccountsStub{})
 	require.NotNil(t, ap)
 
-	localErr := errorsGo.New("local error")
+	localErr := errors.New("local error")
 	wrapAccount := &data.AccountESDT{
 		Account: &mock.UserAccountStub{
 			DataTrieTrackerCalled: func() state.DataTrieTracker {
@@ -341,7 +341,7 @@ func TestAccountsProcessor_PrepareAccountsHistory(t *testing.T) {
 func TestAccountsProcessor_GetUserAccountErrors(t *testing.T) {
 	t.Parallel()
 
-	localErr := errorsGo.New("local error")
+	localErr := errors.New("local error")
 	tests := []struct {
 		name         string
 		argsFunc     func() (int, marshal.Marshalizer, core.PubkeyConverter, state.AccountsAdapter)
@@ -371,7 +371,7 @@ func TestAccountsProcessor_GetUserAccountErrors(t *testing.T) {
 		},
 		{
 			name:    "CannotCastAccount",
-			exError: errors.ErrCannotCastAccountHandlerToUserAccount,
+			exError: indexer.ErrCannotCastAccountHandlerToUserAccount,
 			argsFunc: func() (int, marshal.Marshalizer, core.PubkeyConverter, state.AccountsAdapter) {
 				return 10, &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{}, &mock.AccountsStub{
 					LoadAccountCalled: func(container []byte) (state.AccountHandler, error) {

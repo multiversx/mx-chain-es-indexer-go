@@ -7,8 +7,8 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/errors"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-go-logger/check"
 	"github.com/ElrondNetwork/elrond-go/core"
@@ -38,16 +38,16 @@ func NewAccountsProcessor(
 	accountsDB state.AccountsAdapter,
 ) (*accountsProcessor, error) {
 	if denomination < 0 {
-		return nil, errors.ErrNegativeDenominationValue
+		return nil, indexer.ErrNegativeDenominationValue
 	}
 	if check.IfNil(marshalizer) {
-		return nil, errors.ErrNilMarshalizer
+		return nil, indexer.ErrNilMarshalizer
 	}
 	if check.IfNil(addressPubkeyConverter) {
-		return nil, errors.ErrNilPubkeyConverter
+		return nil, indexer.ErrNilPubkeyConverter
 	}
 	if check.IfNil(accountsDB) {
-		return nil, errors.ErrNilAccountsDB
+		return nil, indexer.ErrNilAccountsDB
 	}
 
 	return &accountsProcessor{
@@ -67,6 +67,7 @@ func (ap *accountsProcessor) GetAccounts(alteredAccounts map[string]*data.Altere
 		userAccount, err := ap.getUserAccount(address)
 		if err != nil {
 			log.Warn("cannot get user account", "address", address, "error", err)
+			continue
 		}
 
 		if info.IsESDTOperation {
@@ -105,13 +106,13 @@ func (ap *accountsProcessor) getUserAccount(address string) (state.UserAccountHa
 
 	userAccount, ok := account.(state.UserAccountHandler)
 	if !ok {
-		return nil, errors.ErrCannotCastAccountHandlerToUserAccount
+		return nil, indexer.ErrCannotCastAccountHandlerToUserAccount
 	}
 
 	return userAccount, nil
 }
 
-// PrepareAccountsMapEGLD will prepare a map of regular accounts
+// PrepareAccountsMapEGLD will prepare a map of ESDT accounts
 func (ap *accountsProcessor) PrepareRegularAccountsMap(accounts []*data.Account) map[string]*data.AccountInfo {
 	accountsMap := make(map[string]*data.AccountInfo)
 	for _, userAccount := range accounts {

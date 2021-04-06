@@ -5,8 +5,8 @@ import (
 	"math/big"
 	"testing"
 
+	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/errors"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/vmcommon"
@@ -43,7 +43,7 @@ func TestNewTransactionsProcessor(t *testing.T) {
 				args.AddressPubkeyConverter = nil
 				return args
 			},
-			exErr: errors.ErrNilPubkeyConverter,
+			exErr: elasticIndexer.ErrNilPubkeyConverter,
 		},
 		{
 			name: "NilTxFeeCalculator",
@@ -52,7 +52,7 @@ func TestNewTransactionsProcessor(t *testing.T) {
 				args.TxFeeCalculator = nil
 				return args
 			},
-			exErr: errors.ErrNilTransactionFeeCalculator,
+			exErr: elasticIndexer.ErrNilTransactionFeeCalculator,
 		},
 		{
 			name: "NilShardCoordinator",
@@ -61,7 +61,7 @@ func TestNewTransactionsProcessor(t *testing.T) {
 				args.ShardCoordinator = nil
 				return args
 			},
-			exErr: errors.ErrNilShardCoordinator,
+			exErr: elasticIndexer.ErrNilShardCoordinator,
 		},
 		{
 			name: "NilMarshalizer",
@@ -70,7 +70,7 @@ func TestNewTransactionsProcessor(t *testing.T) {
 				args.Marshalizer = nil
 				return args
 			},
-			exErr: errors.ErrNilMarshalizer,
+			exErr: elasticIndexer.ErrNilMarshalizer,
 		},
 		{
 			name: "NilHasher",
@@ -79,7 +79,7 @@ func TestNewTransactionsProcessor(t *testing.T) {
 				args.Hasher = nil
 				return args
 			},
-			exErr: errors.ErrNilHasher,
+			exErr: elasticIndexer.ErrNilHasher,
 		},
 	}
 
@@ -102,21 +102,21 @@ func TestCheckTxsProcessorArg(t *testing.T) {
 			args: func() (body *block.Body, header nodeData.HeaderHandler, pool *indexer.Pool) {
 				return nil, &block.Header{}, &indexer.Pool{}
 			},
-			exErr: errors.ErrNilBlockBody,
+			exErr: elasticIndexer.ErrNilBlockBody,
 		},
 		{
 			name: "NilHeaderHandler",
 			args: func() (body *block.Body, header nodeData.HeaderHandler, pool *indexer.Pool) {
 				return &block.Body{}, nil, &indexer.Pool{}
 			},
-			exErr: errors.ErrNilHeaderHandler,
+			exErr: elasticIndexer.ErrNilHeaderHandler,
 		},
 		{
 			name: "NilPool",
 			args: func() (body *block.Body, header nodeData.HeaderHandler, pool *indexer.Pool) {
 				return &block.Body{}, &block.Header{}, nil
 			},
-			exErr: errors.ErrNilPool,
+			exErr: elasticIndexer.ErrNilPool,
 		},
 	}
 

@@ -9,25 +9,46 @@ import (
 	"github.com/ElrondNetwork/elrond-go/data/indexer"
 )
 
+// DBTransactionProcessorStub -
 type DBTransactionProcessorStub struct {
+	PrepareTransactionsForDatabaseCalled func(body *block.Body, header nodeData.HeaderHandler, pool *indexer.Pool) *data.PreparedResults
+	SerializeReceiptsCalled              func(recs []*data.Receipt) ([]*bytes.Buffer, error)
+	SerializeScResultsCalled             func(scrs []*data.ScResult) ([]*bytes.Buffer, error)
 }
 
-func (tps *DBTransactionProcessorStub) PrepareTransactionsForDatabase(_ *block.Body, _ nodeData.HeaderHandler, _ *indexer.Pool) *data.PreparedResults {
-	panic("implement me")
+// PrepareTransactionsForDatabase -
+func (tps *DBTransactionProcessorStub) PrepareTransactionsForDatabase(body *block.Body, header nodeData.HeaderHandler, pool *indexer.Pool) *data.PreparedResults {
+	if tps.PrepareTransactionsForDatabaseCalled != nil {
+		return tps.PrepareTransactionsForDatabaseCalled(body, header, pool)
+	}
+
+	return nil
 }
 
+// GetRewardsTxsHashesHexEncoded -
 func (tps *DBTransactionProcessorStub) GetRewardsTxsHashesHexEncoded(_ nodeData.HeaderHandler, _ *block.Body) []string {
-	panic("implement me")
+	return nil
 }
 
-func (tps *DBTransactionProcessorStub) SerializeReceipts(_ []*data.Receipt) ([]*bytes.Buffer, error) {
-	panic("implement me")
+// SerializeReceipts -
+func (tps *DBTransactionProcessorStub) SerializeReceipts(recs []*data.Receipt) ([]*bytes.Buffer, error) {
+	if tps.SerializeReceiptsCalled != nil {
+		return tps.SerializeReceiptsCalled(recs)
+	}
+
+	return nil, nil
 }
 
+// SerializeTransactions -
 func (tps *DBTransactionProcessorStub) SerializeTransactions(_ []*data.Transaction, _ uint32, _ map[string]bool) ([]*bytes.Buffer, error) {
-	panic("implement me")
+	return nil, nil
 }
 
-func (tps *DBTransactionProcessorStub) SerializeScResults(_ []*data.ScResult) ([]*bytes.Buffer, error) {
-	panic("implement me")
+// SerializeScResults -
+func (tps *DBTransactionProcessorStub) SerializeScResults(scrs []*data.ScResult) ([]*bytes.Buffer, error) {
+	if tps.SerializeScResultsCalled != nil {
+		return tps.SerializeScResultsCalled(scrs)
+	}
+
+	return nil, nil
 }

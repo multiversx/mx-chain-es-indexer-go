@@ -4,8 +4,8 @@ import (
 	"encoding/hex"
 	"time"
 
+	"github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/errors"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-go-logger/check"
 	"github.com/ElrondNetwork/elrond-go/core"
@@ -30,10 +30,10 @@ func NewMiniblocksProcessor(
 	marshalier marshal.Marshalizer,
 ) (*miniblocksProcessor, error) {
 	if check.IfNil(marshalier) {
-		return nil, errors.ErrNilMarshalizer
+		return nil, indexer.ErrNilMarshalizer
 	}
 	if check.IfNil(hasher) {
-		return nil, errors.ErrNilHasher
+		return nil, indexer.ErrNilHasher
 	}
 
 	return &miniblocksProcessor{

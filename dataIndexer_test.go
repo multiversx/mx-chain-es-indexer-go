@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/disabled"
-	"github.com/ElrondNetwork/elastic-indexer-go/errors"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
@@ -60,7 +59,7 @@ func TestDataIndexer_NewIndexerWithNilDataDispatcherShouldErr(t *testing.T) {
 	ei, err := NewDataIndexer(arguments)
 
 	require.Nil(t, ei)
-	require.Equal(t, errors.ErrNilDataDispatcher, err)
+	require.Equal(t, ErrNilDataDispatcher, err)
 }
 
 func TestDataIndexer_NewIndexerWithNilElasticProcessorShouldErr(t *testing.T) {
@@ -69,7 +68,7 @@ func TestDataIndexer_NewIndexerWithNilElasticProcessorShouldErr(t *testing.T) {
 	ei, err := NewDataIndexer(arguments)
 
 	require.Nil(t, ei)
-	require.Equal(t, errors.ErrNilElasticProcessor, err)
+	require.Equal(t, ErrNilElasticProcessor, err)
 }
 
 func TestDataIndexer_NewIndexerWithNilMarshalizerShouldErr(t *testing.T) {

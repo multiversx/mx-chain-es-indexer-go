@@ -10,8 +10,8 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/errors"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
 
@@ -27,7 +27,7 @@ func exists(res *esapi.Response, err error) bool {
 	}()
 
 	if err != nil {
-		log.Warn("elasticClient.IndexExists", "could not checkArgs index on the elastic nodes:", err.Error())
+		log.Warn("elasticClient.IndexExists", "could not check index on the elastic nodes:", err.Error())
 		return false
 	}
 
@@ -68,7 +68,7 @@ func elasticDefaultErrorResponseHandler(res *esapi.Response) error {
 		isBackOffError := strings.Contains(string(bodyBytes), fmt.Sprintf("%d", http.StatusForbidden)) ||
 			strings.Contains(string(bodyBytes), fmt.Sprintf("%d", http.StatusTooManyRequests))
 		if isBackOffError {
-			errToReturn = errors.ErrBackOff
+			errToReturn = indexer.ErrBackOff
 		}
 
 		return fmt.Errorf("%w, cannot unmarshal elastic response body to map[string]interface{}, "+
@@ -139,7 +139,7 @@ func isErrAliasAlreadyExists(response map[string]interface{}) bool {
 }
 
 func kibanaResponseErrorHandler(res *esapi.Response) error {
-	errorRes := &data.ResponseExists{}
+	errorRes := &data.Response{}
 	decodeErr := loadResponseBody(res.Body, errorRes)
 	if decodeErr != nil {
 		return decodeErr
@@ -148,7 +148,7 @@ func kibanaResponseErrorHandler(res *esapi.Response) error {
 	log.Warn("elasticClient.parseResponse",
 		"error returned by elastic API", errorRes.Error,
 		"code", res.StatusCode)
-	return errors.ErrBackOff
+	return indexer.ErrBackOff
 }
 
 func newRequest(method, path string, body *bytes.Buffer) (*http.Request, error) {
@@ -170,7 +170,7 @@ func newRequest(method, path string, body *bytes.Buffer) (*http.Request, error) 
 }
 
 /**
- * parseResponse will checkArgs and load the elastic/kibana api response into the destination objectsMap. Custom errorHandler
+ * parseResponse will check and load the elastic/kibana api response into the destination objectsMap. Custom errorHandler
  *  can be passed for special requests that want to handle StatusCode != 200. Every responseErrorHandler
  *  implementation should call loadResponseBody or consume the response body in order to be able to
  *  reuse persistent TCP connections: https://github.com/elastic/go-elasticsearch#usage
@@ -198,7 +198,7 @@ func parseResponse(res *esapi.Response, dest interface{}, errorHandler responseE
 	if err != nil {
 		log.Warn("elasticClient.parseResponse",
 			"could not load response body:", err.Error())
-		return errors.ErrBackOff
+		return indexer.ErrBackOff
 	}
 
 	return nil

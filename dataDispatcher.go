@@ -2,11 +2,10 @@ package indexer
 
 import (
 	"context"
-	errorsGo "errors"
+	"errors"
 	"sync"
 	"time"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/errors"
 	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-go/core/atomic"
@@ -35,7 +34,7 @@ type dataDispatcher struct {
 // NewDataDispatcher creates a new dataDispatcher instance, capable of saving sequentially data in elasticsearch database
 func NewDataDispatcher(cacheSize int) (*dataDispatcher, error) {
 	if cacheSize < 0 {
-		return nil, errors.ErrNegativeCacheSize
+		return nil, ErrNegativeCacheSize
 	}
 
 	dd := &dataDispatcher{
@@ -133,7 +132,7 @@ func (d *dataDispatcher) doWork(wi workItems.WorkItemHandler) bool {
 		}
 
 		err := wi.Save()
-		if errorsGo.Is(err, errors.ErrBackOff) {
+		if errors.Is(err, ErrBackOff) {
 			log.Warn("dataDispatcher.doWork could not index item",
 				"received back off:", err.Error())
 

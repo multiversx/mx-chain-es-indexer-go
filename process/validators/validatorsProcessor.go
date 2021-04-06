@@ -1,8 +1,8 @@
 package validators
 
 import (
+	"github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/errors"
 	"github.com/ElrondNetwork/elrond-go-logger/check"
 	"github.com/ElrondNetwork/elrond-go/core"
 )
@@ -14,7 +14,7 @@ type validatorsProcessor struct {
 // NewValidatorsProcessor will create a new instance of validatorsProcessor
 func NewValidatorsProcessor(validatorPubkeyConverter core.PubkeyConverter) (*validatorsProcessor, error) {
 	if check.IfNil(validatorPubkeyConverter) {
-		return nil, errors.ErrNilPubkeyConverter
+		return nil, indexer.ErrNilPubkeyConverter
 	}
 
 	return &validatorsProcessor{

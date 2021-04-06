@@ -3,7 +3,7 @@ package statistics
 import (
 	"testing"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/errors"
+	"github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elrond-go/core/statistics"
 	"github.com/stretchr/testify/require"
 )
@@ -14,7 +14,7 @@ func TestStatisticsProcessor_PrepareStatisticsShouldErr(t *testing.T) {
 	sp := NewStatisticsProcessor()
 
 	_, _, err := sp.PrepareStatistics(nil)
-	require.Equal(t, errors.ErrNilTPSBenchmark, err)
+	require.Equal(t, indexer.ErrNilTPSBenchmark, err)
 }
 
 func TestStatisticsProcessor_PrepareStatistics(t *testing.T) {

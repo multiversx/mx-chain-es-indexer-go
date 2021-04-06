@@ -2,11 +2,11 @@ package block
 
 import (
 	"encoding/hex"
-	errorsGo "errors"
+	"errors"
 	"testing"
 
+	"github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/errors"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	dataBlock "github.com/ElrondNetwork/elrond-go/data/block"
 	"github.com/ElrondNetwork/elrond-go/hashing"
@@ -27,14 +27,14 @@ func TestNewBlockProcessor(t *testing.T) {
 			argsFunc: func() (hashing.Hasher, marshal.Marshalizer) {
 				return &mock.HasherMock{}, nil
 			},
-			exErr: errors.ErrNilMarshalizer,
+			exErr: indexer.ErrNilMarshalizer,
 		},
 		{
 			name: "NilHasher",
 			argsFunc: func() (hashing.Hasher, marshal.Marshalizer) {
 				return nil, &mock.MarshalizerMock{}
 			},
-			exErr: errors.ErrNilHasher,
+			exErr: indexer.ErrNilHasher,
 		},
 		{
 			name: "ShouldWork",
@@ -91,7 +91,7 @@ func TestBlockProcessor_PrepareBlockForDBNilHeader(t *testing.T) {
 	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	dbBlock, err := bp.PrepareBlockForDB(nil, nil, &dataBlock.Body{}, nil, 0)
-	require.Equal(t, errors.ErrNilHeaderHandler, err)
+	require.Equal(t, indexer.ErrNilHeaderHandler, err)
 	require.Nil(t, dbBlock)
 }
 
@@ -101,14 +101,14 @@ func TestBlockProcessor_PrepareBlockForDBNilBody(t *testing.T) {
 	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	dbBlock, err := bp.PrepareBlockForDB(&dataBlock.MetaBlock{}, nil, nil, nil, 0)
-	require.Equal(t, errors.ErrNilBlockBody, err)
+	require.Equal(t, indexer.ErrNilBlockBody, err)
 	require.Nil(t, dbBlock)
 }
 
 func TestBlockProcessor_PrepareBlockForDBMarshalFailHeader(t *testing.T) {
 	t.Parallel()
 
-	expectedErr := errorsGo.New("local error")
+	expectedErr := errors.New("local error")
 	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{
 		MarshalCalled: func(obj interface{}) ([]byte, error) {
 			return nil, expectedErr
@@ -124,7 +124,7 @@ func TestBlockProcessor_PrepareBlockForDBMarshalFailBlock(t *testing.T) {
 	t.Parallel()
 
 	count := 0
-	expectedErr := errorsGo.New("local error")
+	expectedErr := errors.New("local error")
 	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{
 		MarshalCalled: func(obj interface{}) ([]byte, error) {
 			defer func() {

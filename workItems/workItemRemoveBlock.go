@@ -1,7 +1,6 @@
 package workItems
 
 import (
-	"github.com/ElrondNetwork/elastic-indexer-go/errors"
 	"github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/block"
 )
@@ -34,25 +33,21 @@ func (wirb *itemRemoveBlock) IsInterfaceNil() bool {
 func (wirb *itemRemoveBlock) Save() error {
 	err := wirb.indexer.RemoveHeader(wirb.headerHandler)
 	if err != nil {
-		log.Warn("itemRemoveBlock.Save could not remove block", "error", err.Error())
 		return err
 	}
 
 	body, ok := wirb.bodyHandler.(*block.Body)
 	if !ok {
-		log.Warn("itemRemoveBlock.Save body", "error", errors.ErrBodyTypeAssertion.Error())
-		return errors.ErrBodyTypeAssertion
+		return ErrBodyTypeAssertion
 	}
 
 	err = wirb.indexer.RemoveMiniblocks(wirb.headerHandler, body)
 	if err != nil {
-		log.Warn("itemRemoveBlock.Save could not remove miniblocks", "error", err.Error())
 		return err
 	}
 
 	err = wirb.indexer.RemoveTransactions(wirb.headerHandler, body)
 	if err != nil {
-		log.Warn("itemRemoveBlock.Save could not remove transactions", "error", err.Error())
 		return err
 	}
 

@@ -69,7 +69,6 @@ func (u *UserAccountStub) ChangeOwnerAddress([]byte, []byte) error {
 
 // SetOwnerAddress -
 func (u *UserAccountStub) SetOwnerAddress([]byte) {
-
 }
 
 // GetOwnerAddress -
@@ -99,7 +98,6 @@ func (u *UserAccountStub) GetNonce() uint64 {
 
 // SetCode -
 func (u *UserAccountStub) SetCode(_ []byte) {
-
 }
 
 // GetCode -
@@ -118,7 +116,6 @@ func (u *UserAccountStub) GetCodeMetadata() []byte {
 
 // SetCodeHash -
 func (u *UserAccountStub) SetCodeHash([]byte) {
-
 }
 
 // GetCodeHash -
@@ -128,7 +125,6 @@ func (u *UserAccountStub) GetCodeHash() []byte {
 
 // SetRootHash -
 func (u *UserAccountStub) SetRootHash([]byte) {
-
 }
 
 // GetRootHash -
@@ -138,7 +134,6 @@ func (u *UserAccountStub) GetRootHash() []byte {
 
 // SetDataTrie -
 func (u *UserAccountStub) SetDataTrie(_ data.Trie) {
-
 }
 
 // DataTrie -

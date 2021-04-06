@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/errors"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-go-logger/check"
 	"github.com/ElrondNetwork/elrond-go/core"
@@ -27,10 +27,10 @@ type blockProcessor struct {
 // NewBlockProcessor will create a new instance of block processor
 func NewBlockProcessor(hasher hashing.Hasher, marshalizer marshal.Marshalizer) (*blockProcessor, error) {
 	if check.IfNil(hasher) {
-		return nil, errors.ErrNilHasher
+		return nil, indexer.ErrNilHasher
 	}
 	if check.IfNil(marshalizer) {
-		return nil, errors.ErrNilMarshalizer
+		return nil, indexer.ErrNilMarshalizer
 	}
 
 	return &blockProcessor{
@@ -48,10 +48,10 @@ func (bp *blockProcessor) PrepareBlockForDB(
 	sizeTxs int,
 ) (*data.Block, error) {
 	if check.IfNil(header) {
-		return nil, errors.ErrNilHeaderHandler
+		return nil, indexer.ErrNilHeaderHandler
 	}
 	if body == nil {
-		return nil, errors.ErrNilBlockBody
+		return nil, indexer.ErrNilBlockBody
 	}
 
 	blockSizeInBytes, headerHash, err := bp.computeBlockSizeAndHeaderHash(header, body)

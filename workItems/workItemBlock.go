@@ -1,9 +1,9 @@
 package workItems
 
 import (
+	"errors"
 	"fmt"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/errors"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-go/core/check"
 	"github.com/ElrondNetwork/elrond-go/data"
@@ -11,6 +11,9 @@ import (
 	"github.com/ElrondNetwork/elrond-go/data/indexer"
 	"github.com/ElrondNetwork/elrond-go/marshal"
 )
+
+// ErrBodyTypeAssertion signals that body type assertion failed
+var ErrBodyTypeAssertion = errors.New("elasticsearch - body type assertion failed")
 
 var log = logger.GetOrCreate("core/indexer/workItems")
 
@@ -47,7 +50,7 @@ func (wib *itemBlock) Save() error {
 	body, ok := wib.argsSaveBlock.Body.(*block.Body)
 	if !ok {
 		return fmt.Errorf("%w when trying body assertion, block hash %s, nonce %d",
-			errors.ErrBodyTypeAssertion, wib.argsSaveBlock.HeaderHash, wib.argsSaveBlock.Header.GetNonce())
+			ErrBodyTypeAssertion, wib.argsSaveBlock.HeaderHash, wib.argsSaveBlock.Header.GetNonce())
 	}
 
 	if wib.argsSaveBlock.TransactionsPool == nil {
