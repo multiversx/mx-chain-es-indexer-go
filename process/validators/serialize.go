@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 )
@@ -32,8 +33,11 @@ func (vp *validatorsProcessor) SerializeValidatorsRating(
 ) ([]*bytes.Buffer, error) {
 	buffSlice := data.NewBufferSlice()
 
+	// from elrond-go index is "shardID_epoch" - to keep backwards compatibility have to change here
+	// shardID from index have to be removed because is sufficient to have document id =blsKey_epoch
+	indexWithoutShardID := removeShardIDFromIndex(index)
 	for _, valRatingInfo := range validatorsRatingInfo {
-		id := fmt.Sprintf("%s_%s", valRatingInfo.PublicKey, index)
+		id := fmt.Sprintf("%s_%s", valRatingInfo.PublicKey, indexWithoutShardID)
 		meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, id, "\n"))
 
 		serializedData, err := json.Marshal(valRatingInfo)
@@ -48,4 +52,13 @@ func (vp *validatorsProcessor) SerializeValidatorsRating(
 	}
 
 	return buffSlice.Buffers(), nil
+}
+
+func removeShardIDFromIndex(index string) string {
+	splitIndex := strings.Split(index, "_")
+	if len(splitIndex) == 2 {
+		return splitIndex[1]
+	}
+
+	return index
 }

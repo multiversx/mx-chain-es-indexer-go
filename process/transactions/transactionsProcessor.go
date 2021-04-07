@@ -105,9 +105,9 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 			}
 			mergeTxsMaps(rewardsTxs, txs)
 		case block.InvalidBlock:
-			log.Warn("txsDatabaseProcessor.groupInvalidTxs", "error", err)
 			txs, errGroup := tdp.txsGrouper.groupInvalidTxs(mb, header, pool.Invalid, alteredAddresses)
 			if errGroup != nil {
+				log.Warn("txsDatabaseProcessor.groupInvalidTxs", "errGroup", err)
 				continue
 			}
 			mergeTxsMaps(invalidTxs, txs)

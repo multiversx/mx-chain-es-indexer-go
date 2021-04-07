@@ -41,3 +41,16 @@ func TestValidatorsProcessor_SerializeValidatorsRating(t *testing.T) {
 `
 	require.Equal(t, expected, buff[0].String())
 }
+
+func TestRemoveShardIDFromIndex(t *testing.T) {
+	t.Parallel()
+
+	index := "2_1230"
+	require.Equal(t, "1230", removeShardIDFromIndex(index))
+
+	index = "1230"
+	require.Equal(t, index, removeShardIDFromIndex(index))
+
+	index = "4294967295_0"
+	require.Equal(t, "0", removeShardIDFromIndex(index))
+}
