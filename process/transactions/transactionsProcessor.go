@@ -86,7 +86,6 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 	alteredAddresses := make(map[string]*data.AlteredAccount)
 	normalTxs := make(map[string]*data.Transaction)
 	rewardsTxs := make(map[string]*data.Transaction)
-	invalidTxs := make(map[string]*data.Transaction)
 
 	for _, mb := range body.MiniBlocks {
 		switch mb.Type {
@@ -110,7 +109,7 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 				log.Warn("txsDatabaseProcessor.groupInvalidTxs", "errGroup", err)
 				continue
 			}
-			mergeTxsMaps(invalidTxs, txs)
+			mergeTxsMaps(normalTxs, txs)
 		default:
 			continue
 		}
@@ -125,8 +124,7 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 
 	sliceNormalTxs := convertMapTxsToSlice(normalTxs)
 	sliceRewardsTxs := convertMapTxsToSlice(rewardsTxs)
-	sliceInvalidTxs := convertMapTxsToSlice(invalidTxs)
-	txsSlice := append(sliceNormalTxs, append(sliceRewardsTxs, sliceInvalidTxs...)...)
+	txsSlice := append(sliceNormalTxs, sliceRewardsTxs...)
 
 	return &data.PreparedResults{
 		Transactions:    txsSlice,
@@ -158,6 +156,11 @@ func (tdp *txsDatabaseProcessor) setDetailsOfATxWithSCRS(tx *data.Transaction, n
 		fee := tdp.txFeeCalculator.ComputeTxFeeBasedOnGasUsed(tx, tx.GasUsed)
 		tx.Fee = fee.String()
 
+		return
+	}
+
+	// ignore invalid transaction because status and gas fields was already set
+	if tx.Status == transaction.TxStatusInvalid.String() {
 		return
 	}
 
@@ -236,6 +239,11 @@ func findAllChildScrResults(hash string, scrs map[string]*smartContractResult.Sm
 
 func (tdp *txsDatabaseProcessor) addScResultInfoInTx(dbScResult *data.ScResult, tx *data.Transaction) *data.Transaction {
 	tx.SmartContractResults = append(tx.SmartContractResults, dbScResult)
+
+	// ignore invalid transaction because status and gas fields was already set
+	if tx.Status == transaction.TxStatusInvalid.String() {
+		return tx
+	}
 
 	if isSCRForSenderWithRefund(dbScResult, tx) {
 		refundValue := stringValueToBigInt(dbScResult.Value)
