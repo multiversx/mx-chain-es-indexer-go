@@ -92,6 +92,47 @@ func elasticDefaultErrorResponseHandler(res *esapi.Response) error {
 		res.StatusCode, responseBody, bodyBytes)
 }
 
+func elasticBulkRequestResponseHandler(res *esapi.Response) error {
+	if res.IsError() {
+		return fmt.Errorf("%s", res.String())
+	}
+
+	bodyBytes, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return fmt.Errorf("%w cannot read elastic response body bytes", err)
+	}
+
+	bulkResponse := &BulkRequestResponse{}
+	err = json.Unmarshal(bodyBytes, bulkResponse)
+	if err != nil {
+		return fmt.Errorf("%w cannot urmarshal BulkRequestResponse", err)
+	}
+
+	if bulkResponse.Errors {
+		errBulkResponse := extractErrorFromBulkResponse(bulkResponse)
+		log.Warn("elasticBulkRequestResponseHandler", "error", errBulkResponse)
+		return indexer.ErrBackOff
+
+	}
+
+	return nil
+}
+
+func extractErrorFromBulkResponse(response *BulkRequestResponse) error {
+	count := 0
+	errorsString := ""
+	for _, item := range response.Items {
+		count++
+		errorsString += fmt.Sprintf("{ status code: %d, error type: %s, reason: %s }\n", item.Index.Status, item.Index.Error.Type, item.Index.Error.Reason)
+
+		if count == numOfErrorsToExtractBulkResponse {
+			break
+		}
+	}
+
+	return fmt.Errorf("%s", errorsString)
+}
+
 func errIsAlreadyExists(response map[string]interface{}) bool {
 	alreadyExistsMessage := "resource_already_exists_exception"
 	errKey := "error"
