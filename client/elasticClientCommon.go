@@ -122,6 +122,10 @@ func extractErrorFromBulkResponse(response *BulkRequestResponse) error {
 	count := 0
 	errorsString := ""
 	for _, item := range response.Items {
+		if item.Index.Status < http.StatusBadRequest {
+			continue
+		}
+
 		count++
 		errorsString += fmt.Sprintf("{ status code: %d, error type: %s, reason: %s }\n", item.Index.Status, item.Index.Error.Type, item.Index.Error.Reason)
 
