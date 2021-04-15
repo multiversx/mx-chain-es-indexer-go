@@ -8,17 +8,13 @@ import (
 
 // AccountInfo holds (serializable) data about an account
 type AccountInfo struct {
-	Address                     string  `json:"address,omitempty"`
-	Nonce                       uint64  `json:"nonce,omitempty"`
-	Balance                     string  `json:"balance"`
-	BalanceNum                  float64 `json:"balanceNum"`
-	TokenIdentifier             string  `json:"token,omitempty"`
-	Properties                  string  `json:"properties,omitempty"`
-	IsSender                    bool    `json:"-"`
-	ValueStakedLegacyDelegation string  `json:"legacyDelegation,omitempty"`
-	ValueStakedValidators       string  `json:"validators,omitempty"`
-	ValueStakedDelegation       string  `json:"delegation,omitempty"`
-	TotalBalanceWithStake       string  `json:"totalBalanceWithStake,omitempty"`
+	Address         string  `json:"address,omitempty"`
+	Nonce           uint64  `json:"nonce,omitempty"`
+	Balance         string  `json:"balance"`
+	BalanceNum      float64 `json:"balanceNum"`
+	TokenIdentifier string  `json:"token,omitempty"`
+	Properties      string  `json:"properties,omitempty"`
+	IsSender        bool    `json:"-"`
 }
 
 // AccountBalanceHistory represents an entry in the user accounts balances history
