@@ -105,7 +105,7 @@ func elasticBulkRequestResponseHandler(res *esapi.Response) error {
 	bulkResponse := &BulkRequestResponse{}
 	err = json.Unmarshal(bodyBytes, bulkResponse)
 	if err != nil {
-		return fmt.Errorf("%w cannot urmarshal BulkRequestResponse", err)
+		return fmt.Errorf("%w cannot unmarshal BulkRequestResponse", err)
 	}
 
 	if bulkResponse.Errors {

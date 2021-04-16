@@ -92,21 +92,21 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 		case block.TxBlock:
 			txs, errGroup := tdp.txsGrouper.groupNormalTxs(mb, header, pool.Txs, alteredAddresses)
 			if errGroup != nil {
-				log.Warn("txsDatabaseProcessor.groupNormalTxs", "error", err)
+				log.Warn("txsDatabaseProcessor.groupNormalTxs", "error", errGroup)
 				continue
 			}
 			mergeTxsMaps(normalTxs, txs)
 		case block.RewardsBlock:
 			txs, errGroup := tdp.txsGrouper.groupRewardsTxs(mb, header, pool.Rewards, alteredAddresses)
 			if errGroup != nil {
-				log.Warn("txsDatabaseProcessor.groupRewardsTxs", "error", err)
+				log.Warn("txsDatabaseProcessor.groupRewardsTxs", "error", errGroup)
 				continue
 			}
 			mergeTxsMaps(rewardsTxs, txs)
 		case block.InvalidBlock:
 			txs, errGroup := tdp.txsGrouper.groupInvalidTxs(mb, header, pool.Invalid, alteredAddresses)
 			if errGroup != nil {
-				log.Warn("txsDatabaseProcessor.groupInvalidTxs", "errGroup", err)
+				log.Warn("txsDatabaseProcessor.groupInvalidTxs", "error", errGroup)
 				continue
 			}
 			mergeTxsMaps(normalTxs, txs)
@@ -159,7 +159,7 @@ func (tdp *txsDatabaseProcessor) setDetailsOfATxWithSCRS(tx *data.Transaction, n
 		return
 	}
 
-	// ignore invalid transaction because status and gas fields was already set
+	// ignore invalid transaction because status and gas fields were already set
 	if tx.Status == transaction.TxStatusInvalid.String() {
 		return
 	}

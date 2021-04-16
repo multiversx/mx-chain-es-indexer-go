@@ -33,8 +33,8 @@ func (vp *validatorsProcessor) SerializeValidatorsRating(
 ) ([]*bytes.Buffer, error) {
 	buffSlice := data.NewBufferSlice()
 
-	// from elrond-go index is "shardID_epoch" - to keep backwards compatibility have to change here
-	// shardID from index have to be removed because is sufficient to have document id =blsKey_epoch
+	// inside elrond-go, the index is "shardID_epoch" so in order to keep backwards compatibility some adjustments have to be made.
+	// shardID from index name has to be removed because it is sufficient to have document id = blsKey_epoch
 	indexWithoutShardID := removeShardIDFromIndex(index)
 	for _, valRatingInfo := range validatorsRatingInfo {
 		id := fmt.Sprintf("%s_%s", valRatingInfo.PublicKey, indexWithoutShardID)
