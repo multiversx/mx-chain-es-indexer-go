@@ -1,7 +1,6 @@
 package indexer
 
 import (
-	"bytes"
 	"math/big"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
@@ -11,7 +10,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go/data/block"
 	"github.com/ElrondNetwork/elrond-go/data/indexer"
 	"github.com/ElrondNetwork/elrond-go/process"
-	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
 
 // DispatcherHandler defines the interface for the dispatcher that will manage when items are saved in elasticsearch database
@@ -36,21 +34,6 @@ type ElasticProcessor interface {
 	SaveShardValidatorsPubKeys(shardID, epoch uint32, shardValidatorsPubKeys [][]byte) error
 	SetTxLogsProcessor(txLogsProc process.TransactionLogProcessorDatabase)
 	SaveAccounts(blockTimestamp uint64, accounts []*data.Account) error
-	IsInterfaceNil() bool
-}
-
-// DatabaseClientHandler is an interface that do requests to elasticsearch server
-type DatabaseClientHandler interface {
-	DoRequest(req *esapi.IndexRequest) error
-	DoBulkRequest(buff *bytes.Buffer, index string) error
-	DoBulkRemove(index string, hashes []string) error
-	DoMultiGet(query objectsMap, index string) (objectsMap, error)
-
-	CheckAndCreateIndex(index string) error
-	CheckAndCreateAlias(alias string, index string) error
-	CheckAndCreateTemplate(templateName string, template *bytes.Buffer) error
-	CheckAndCreatePolicy(policyName string, policy *bytes.Buffer) error
-
 	IsInterfaceNil() bool
 }
 

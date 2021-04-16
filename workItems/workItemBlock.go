@@ -1,6 +1,7 @@
 package workItems
 
 import (
+	"errors"
 	"fmt"
 
 	logger "github.com/ElrondNetwork/elrond-go-logger"
@@ -10,6 +11,9 @@ import (
 	"github.com/ElrondNetwork/elrond-go/data/indexer"
 	"github.com/ElrondNetwork/elrond-go/marshal"
 )
+
+// ErrBodyTypeAssertion signals that body type assertion failed
+var ErrBodyTypeAssertion = errors.New("elasticsearch - body type assertion failed")
 
 var log = logger.GetOrCreate("core/indexer/workItems")
 

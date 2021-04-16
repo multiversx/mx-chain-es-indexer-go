@@ -28,10 +28,13 @@ type Transaction struct {
 	Timestamp            time.Duration `json:"timestamp"`
 	Status               string        `json:"status"`
 	SearchOrder          uint32        `json:"searchOrder"`
-	SmartContractResults []ScResult    `json:"scResults,omitempty"`
-	SenderUserName       []byte        `json:"senderUsername,omitempty"`
-	ReceiverUserName     []byte        `json:"receiverUsername,omitempty"`
-	Log                  TxLog         `json:"-"`
+	EsdtTokenIdentifier  string        `json:"token,omitempty"`
+	EsdtValue            string        `json:"esdtValue,omitempty"`
+	SenderUserName       []byte        `json:"senderUserName,omitempty"`
+	ReceiverUserName     []byte        `json:"receiverUserName,omitempty"`
+	Logs                 *TxLog        `json:"logs,omitempty"`
+	HasSCR               bool          `json:"hasScResults,omitempty"`
+	SmartContractResults []*ScResult   `json:"-"`
 	ReceiverAddressBytes []byte        `json:"-"`
 }
 
@@ -77,22 +80,25 @@ type Receipt struct {
 
 // ScResult is a structure containing all the fields that need to be saved for a smart contract result
 type ScResult struct {
-	Hash           string `json:"hash"`
-	Nonce          uint64 `json:"nonce"`
-	GasLimit       uint64 `json:"gasLimit"`
-	GasPrice       uint64 `json:"gasPrice"`
-	Value          string `json:"value"`
-	Sender         string `json:"sender"`
-	Receiver       string `json:"receiver"`
-	RelayerAddr    string `json:"relayerAddr,omitempty"`
-	RelayedValue   string `json:"relayedValue,omitempty"`
-	Code           string `json:"code,omitempty"`
-	Data           []byte `json:"data,omitempty"`
-	PreTxHash      string `json:"prevTxHash"`
-	OriginalTxHash string `json:"originalTxHash"`
-	CallType       string `json:"callType"`
-	CodeMetadata   []byte `json:"codeMetaData,omitempty"`
-	ReturnMessage  string `json:"returnMessage,omitempty"`
+	Hash                string        `json:"-"`
+	Nonce               uint64        `json:"nonce"`
+	GasLimit            uint64        `json:"gasLimit"`
+	GasPrice            uint64        `json:"gasPrice"`
+	Value               string        `json:"value"`
+	Sender              string        `json:"sender"`
+	Receiver            string        `json:"receiver"`
+	RelayerAddr         string        `json:"relayerAddr,omitempty"`
+	RelayedValue        string        `json:"relayedValue,omitempty"`
+	Code                string        `json:"code,omitempty"`
+	Data                []byte        `json:"data,omitempty"`
+	PrevTxHash          string        `json:"prevTxHash"`
+	OriginalTxHash      string        `json:"originalTxHash"`
+	CallType            string        `json:"callType"`
+	CodeMetadata        []byte        `json:"codeMetaData,omitempty"`
+	ReturnMessage       string        `json:"returnMessage,omitempty"`
+	Timestamp           time.Duration `json:"timestamp"`
+	EsdtTokenIdentifier string        `json:"token,omitempty"`
+	EsdtValue           string        `json:"esdtValue,omitempty"`
 }
 
 // TxLog holds all the data needed for a log structure

@@ -27,6 +27,7 @@ type saveRatingIndexer interface {
 type removeIndexer interface {
 	RemoveHeader(header nodeData.HeaderHandler) error
 	RemoveMiniblocks(header nodeData.HeaderHandler, body *block.Body) error
+	RemoveTransactions(header nodeData.HeaderHandler, body *block.Body) error
 }
 
 type saveRounds interface {

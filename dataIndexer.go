@@ -16,6 +16,16 @@ import (
 	"github.com/ElrondNetwork/elrond-go/sharding"
 )
 
+// ArgDataIndexer is a structure that is used to store all the components that are needed to create an indexer
+type ArgDataIndexer struct {
+	ShardCoordinator   sharding.Coordinator
+	Marshalizer        marshal.Marshalizer
+	EpochStartNotifier sharding.EpochStartEventNotifier
+	NodesCoordinator   sharding.NodesCoordinator
+	DataDispatcher     DispatcherHandler
+	ElasticProcessor   ElasticProcessor
+}
+
 type dataIndexer struct {
 	isNilIndexer     bool
 	dispatcher       DispatcherHandler
@@ -54,13 +64,13 @@ func checkIndexerArgs(arguments ArgDataIndexer) error {
 		return ErrNilElasticProcessor
 	}
 	if check.IfNil(arguments.NodesCoordinator) {
-		return core.ErrNilNodesCoordinator
+		return ErrNilNodesCoordinator
 	}
 	if check.IfNil(arguments.EpochStartNotifier) {
-		return core.ErrNilEpochStartNotifier
+		return ErrNilEpochStartNotifier
 	}
 	if check.IfNil(arguments.Marshalizer) {
-		return core.ErrNilMarshalizer
+		return ErrNilMarshalizer
 	}
 	if check.IfNil(arguments.ShardCoordinator) {
 		return ErrNilShardCoordinator

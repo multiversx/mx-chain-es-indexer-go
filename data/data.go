@@ -28,15 +28,15 @@ type TPS struct {
 	ShardID               uint32   `json:"shardID"`
 }
 
-// KibanaResponse -
-type KibanaResponse struct {
+// Response is a structure that holds response from Kibana
+type Response struct {
 	Ok    bool   `json:"ok"`
 	Error string `json:"error,omitempty"`
 }
 
 // ValidatorRatingInfo is a structure containing validator rating information
 type ValidatorRatingInfo struct {
-	PublicKey string  `json:"publicKey"`
+	PublicKey string  `json:"-"`
 	Rating    float32 `json:"rating"`
 }
 
