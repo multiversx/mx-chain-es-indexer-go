@@ -116,12 +116,16 @@ func (ap *accountsProcessor) getUserAccount(address string) (state.UserAccountHa
 func (ap *accountsProcessor) PrepareRegularAccountsMap(accounts []*data.Account) map[string]*data.AccountInfo {
 	accountsMap := make(map[string]*data.AccountInfo)
 	for _, userAccount := range accounts {
-		balanceAsFloat := ap.computeBalanceAsFloat(userAccount.UserAccount.GetBalance())
+		balance := userAccount.UserAccount.GetBalance()
+		balanceAsFloat := ap.computeBalanceAsFloat(balance)
 		acc := &data.AccountInfo{
-			Nonce:      userAccount.UserAccount.GetNonce(),
-			Balance:    userAccount.UserAccount.GetBalance().String(),
-			BalanceNum: balanceAsFloat,
-			IsSender:   userAccount.IsSender,
+			Nonce:                    userAccount.UserAccount.GetNonce(),
+			Balance:                  balance.String(),
+			BalanceNum:               balanceAsFloat,
+			IsSender:                 userAccount.IsSender,
+			IsSmartContract:          core.IsSmartContractAddress(userAccount.UserAccount.AddressBytes()),
+			TotalBalanceWithStake:    balance.String(),
+			TotalBalanceWithStakeNum: balanceAsFloat,
 		}
 		address := ap.addressPubkeyConverter.Encode(userAccount.UserAccount.AddressBytes())
 		accountsMap[address] = acc
@@ -150,6 +154,7 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(accounts []*data.AccountESDT
 			BalanceNum:      ap.computeBalanceAsFloat(balance),
 			Properties:      properties,
 			IsSender:        accountESDT.IsSender,
+			IsSmartContract: core.IsSmartContractAddress(accountESDT.Account.AddressBytes()),
 		}
 
 		accountsESDTMap[address] = acc
@@ -171,6 +176,7 @@ func (ap *accountsProcessor) PrepareAccountsHistory(
 			Timestamp:       time.Duration(timestamp),
 			TokenIdentifier: userAccount.TokenIdentifier,
 			IsSender:        userAccount.IsSender,
+			IsSmartContract: userAccount.IsSmartContract,
 		}
 		addressKey := fmt.Sprintf("%s_%d", address, timestamp)
 		accountsMap[addressKey] = acc

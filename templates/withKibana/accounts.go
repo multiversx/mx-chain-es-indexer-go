@@ -23,6 +23,9 @@ var Accounts = Object{
 			"balanceNum": Object{
 				"type": "double",
 			},
+			"totalBalanceWithStakeNum": Object{
+				"type": "double",
+			},
 		},
 	},
 }

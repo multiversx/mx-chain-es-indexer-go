@@ -8,13 +8,16 @@ import (
 
 // AccountInfo holds (serializable) data about an account
 type AccountInfo struct {
-	Address         string  `json:"address,omitempty"`
-	Nonce           uint64  `json:"nonce,omitempty"`
-	Balance         string  `json:"balance"`
-	BalanceNum      float64 `json:"balanceNum"`
-	TokenIdentifier string  `json:"token,omitempty"`
-	Properties      string  `json:"properties,omitempty"`
-	IsSender        bool    `json:"-"`
+	Address                  string  `json:"address,omitempty"`
+	Nonce                    uint64  `json:"nonce,omitempty"`
+	Balance                  string  `json:"balance"`
+	BalanceNum               float64 `json:"balanceNum"`
+	TokenIdentifier          string  `json:"token,omitempty"`
+	Properties               string  `json:"properties,omitempty"`
+	IsSender                 bool    `json:"-"`
+	IsSmartContract          bool    `json:"-"`
+	TotalBalanceWithStake    string  `json:"totalBalanceWithStake,omitempty"`
+	TotalBalanceWithStakeNum float64 `json:"totalBalanceWithStakeNum,omitempty"`
 }
 
 // AccountBalanceHistory represents an entry in the user accounts balances history
@@ -24,6 +27,7 @@ type AccountBalanceHistory struct {
 	Balance         string        `json:"balance"`
 	TokenIdentifier string        `json:"token,omitempty"`
 	IsSender        bool          `json:"isSender,omitempty"`
+	IsSmartContract bool          `json:"isSmartContract,omitempty"`
 }
 
 // Account is a structure that is needed for regular accounts

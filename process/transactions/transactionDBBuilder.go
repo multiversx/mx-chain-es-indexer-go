@@ -57,6 +57,8 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 	gasUsed := dtb.txFeeCalculator.ComputeGasLimit(tx)
 	fee := dtb.txFeeCalculator.ComputeTxFeeBasedOnGasUsed(tx, gasUsed)
 
+	isSSCall := core.IsSmartContractAddress(tx.RcvAddr)
+
 	return &data.Transaction{
 		Hash:                 hex.EncodeToString(txHash),
 		MBHash:               hex.EncodeToString(mbHash),
@@ -80,6 +82,7 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		ReceiverUserName:     tx.RcvUserName,
 		SenderUserName:       tx.SndUserName,
 		ReceiverAddressBytes: tx.RcvAddr,
+		SCCall:               isSSCall,
 	}
 }
 
