@@ -151,7 +151,7 @@ func (tdp *txsDatabaseProcessor) setDetailsOfTxsWithSCRS(
 func (tdp *txsDatabaseProcessor) setDetailsOfATxWithSCRS(tx *data.Transaction, nrScResults int) {
 	tx.HasSCR = true
 
-	if isRelayedTx(tx) {
+	if isRelayedTx(tx) || isESDTNFTTransfer(tx) {
 		tx.GasUsed = tx.GasLimit
 		fee := tdp.txFeeCalculator.ComputeTxFeeBasedOnGasUsed(tx, tx.GasUsed)
 		tx.Fee = fee.String()
