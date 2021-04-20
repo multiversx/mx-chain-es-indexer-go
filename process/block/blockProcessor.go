@@ -84,11 +84,14 @@ func (bp *blockProcessor) PrepareBlockForDB(
 		EpochStartBlock:       header.IsStartOfEpochBlock(),
 	}
 
-	if header.GetAccumulatedFees() != nil {
-		elasticBlock.AccumulatedFees = header.GetAccumulatedFees().String()
+	accumulatedFees := header.GetAccumulatedFees()
+	if accumulatedFees != nil {
+		elasticBlock.AccumulatedFees = accumulatedFees.String()
 	}
-	if header.GetDeveloperFees() != nil {
-		elasticBlock.DeveloperFees = header.GetDeveloperFees().String()
+
+	developerFees := header.GetDeveloperFees()
+	if developerFees != nil {
+		elasticBlock.DeveloperFees = developerFees.String()
 	}
 
 	bp.addEpochStartInfoForMeta(header, elasticBlock)
