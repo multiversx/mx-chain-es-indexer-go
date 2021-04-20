@@ -107,7 +107,7 @@ func (ec *elasticClient) DoBulkRequest(buff *bytes.Buffer, index string) error {
 		return err
 	}
 
-	return elasticBulkRequestResponseHandler(res)
+	return elasticBulkRequestResponseHandler(res, index)
 }
 
 // DoMultiGet wil do a multi get request to elaticsearch server

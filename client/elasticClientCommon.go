@@ -92,7 +92,7 @@ func elasticDefaultErrorResponseHandler(res *esapi.Response) error {
 		res.StatusCode, responseBody, bodyBytes)
 }
 
-func elasticBulkRequestResponseHandler(res *esapi.Response) error {
+func elasticBulkRequestResponseHandler(res *esapi.Response, index string) error {
 	if res.IsError() {
 		return fmt.Errorf("%s", res.String())
 	}
@@ -102,32 +102,38 @@ func elasticBulkRequestResponseHandler(res *esapi.Response) error {
 		return fmt.Errorf("%w cannot read elastic response body bytes", err)
 	}
 
-	bulkResponse := &BulkRequestResponse{}
-	err = json.Unmarshal(bodyBytes, bulkResponse)
-	if err != nil {
-		return fmt.Errorf("%w cannot unmarshal BulkRequestResponse", err)
-	}
-
-	if bulkResponse.Errors {
-		errBulkResponse := extractErrorFromBulkResponse(bulkResponse)
-		log.Warn("elasticBulkRequestResponseHandler", "error", errBulkResponse)
-		return indexer.ErrBackOff
-
-	}
-
-	return nil
+	return extractErrorFromBulkBodyResponseBytes(bodyBytes, index)
 }
 
-func extractErrorFromBulkResponse(response *BulkRequestResponse) error {
+func extractErrorFromBulkBodyResponseBytes(bodyBytes []byte, index string) error {
+	if index == indexer.TransactionsIndex {
+		return searchForErrorsUpdate(bodyBytes)
+	}
+
+	return searchForErrorsIndex(bodyBytes)
+}
+
+func searchForErrorsUpdate(bodyBytes []byte) error {
+	response := BulkRequestResponseUpdate{}
+	err := json.Unmarshal(bodyBytes, &response)
+	if err != nil {
+		return err
+	}
+	if !response.Errors {
+		return nil
+	}
+
 	count := 0
 	errorsString := ""
+
 	for _, item := range response.Items {
-		if item.Index.Status < http.StatusBadRequest {
+		errStr := getErrorFromItem(&item.Item)
+		if errStr == "" {
 			continue
 		}
 
 		count++
-		errorsString += fmt.Sprintf("{ status code: %d, error type: %s, reason: %s }\n", item.Index.Status, item.Index.Error.Type, item.Index.Error.Reason)
+		errorsString += errStr
 
 		if count == numOfErrorsToExtractBulkResponse {
 			break
@@ -135,6 +141,45 @@ func extractErrorFromBulkResponse(response *BulkRequestResponse) error {
 	}
 
 	return fmt.Errorf("%s", errorsString)
+}
+
+func searchForErrorsIndex(bodyBytes []byte) error {
+	response := BulkRequestResponseIndex{}
+	err := json.Unmarshal(bodyBytes, &response)
+	if err != nil {
+		return err
+	}
+	if !response.Errors {
+		return nil
+	}
+
+	count := 0
+	errorsString := ""
+
+	for _, item := range response.Items {
+		errStr := getErrorFromItem(&item.Item)
+		if errStr == "" {
+			continue
+		}
+
+		count++
+		errorsString += errStr
+
+		if count == numOfErrorsToExtractBulkResponse {
+			break
+		}
+	}
+
+	return fmt.Errorf("%s", errorsString)
+}
+
+func getErrorFromItem(item *Item) string {
+	if item.Status < http.StatusBadRequest {
+		return ""
+	}
+
+	return fmt.Sprintf("{ status code: %d, error type: %s, reason: %s }\n", item.Status, item.Error.Type, item.Error.Reason)
+
 }
 
 func errIsAlreadyExists(response map[string]interface{}) bool {
