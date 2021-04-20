@@ -6,13 +6,14 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ElrondNetwork/elastic-indexer-go"
+	indexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-go-logger/check"
 	"github.com/ElrondNetwork/elrond-go/core"
 	nodeData "github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/block"
+	nodeBlock "github.com/ElrondNetwork/elrond-go/data/block"
 	"github.com/ElrondNetwork/elrond-go/hashing"
 	"github.com/ElrondNetwork/elrond-go/marshal"
 )
@@ -80,12 +81,47 @@ func (bp *blockProcessor) PrepareBlockForDB(
 		StateRootHash:         hex.EncodeToString(header.GetRootHash()),
 		PrevHash:              hex.EncodeToString(header.GetPrevHash()),
 		SearchOrder:           computeBlockSearchOrder(header),
-		AccumulatedFees:       header.GetAccumulatedFees().String(),
-		DeveloperFees:         header.GetDeveloperFees().String(),
 		EpochStartBlock:       header.IsStartOfEpochBlock(),
 	}
 
+	if header.GetAccumulatedFees() != nil {
+		elasticBlock.AccumulatedFees = header.GetAccumulatedFees().String()
+	}
+	if header.GetDeveloperFees() != nil {
+		elasticBlock.DeveloperFees = header.GetDeveloperFees().String()
+	}
+
+	bp.addEpochStartInfoForMeta(header, elasticBlock)
+
 	return elasticBlock, nil
+}
+
+func (bp *blockProcessor) addEpochStartInfoForMeta(header nodeData.HeaderHandler, block *data.Block) {
+	if header.GetShardID() != core.MetachainShardId {
+		return
+	}
+
+	metaHeader, ok := header.(*nodeBlock.MetaBlock)
+	if !ok {
+		return
+	}
+
+	if !metaHeader.IsStartOfEpochBlock() {
+		return
+	}
+
+	metaHeaderEconomics := metaHeader.EpochStart.Economics
+
+	block.EpochStartInfo = &data.EpochStartInfo{
+		TotalSupply:                      metaHeaderEconomics.TotalSupply.String(),
+		TotalToDistribute:                metaHeaderEconomics.TotalToDistribute.String(),
+		TotalNewlyMinted:                 metaHeaderEconomics.TotalNewlyMinted.String(),
+		RewardsPerBlock:                  metaHeaderEconomics.RewardsPerBlock.String(),
+		RewardsForProtocolSustainability: metaHeaderEconomics.RewardsForProtocolSustainability.String(),
+		NodePrice:                        metaHeaderEconomics.NodePrice.String(),
+		PrevEpochStartRound:              metaHeaderEconomics.PrevEpochStartRound,
+		PrevEpochStartHash:               hex.EncodeToString(metaHeaderEconomics.PrevEpochStartHash),
+	}
 }
 
 func (bp *blockProcessor) getEncodedMBSHashes(body *block.Body) []string {
