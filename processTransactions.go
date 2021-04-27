@@ -103,11 +103,16 @@ func (tdp *txDatabaseProcessor) prepareTransactionsForDatabase(
 			continue
 		}
 
-		if isRelayedTx(tx) {
+		if isRelayedTx(tx) || isESDTNFTTransfer(tx) {
 			tx.GasUsed = tx.GasLimit
 			fee := tdp.txFeeCalculator.ComputeTxFeeBasedOnGasUsed(tx, tx.GasUsed)
 			tx.Fee = fee.String()
 
+			continue
+		}
+
+		// ignore invalid transaction because status and gas fields were already set
+		if tx.Status == transaction.TxStatusInvalid.String() {
 			continue
 		}
 
@@ -195,6 +200,11 @@ func findAllChildScrResults(hash string, scrs map[string]*smartContractResult.Sm
 func (tdp *txDatabaseProcessor) addScResultInfoInTx(scHash string, scr *smartContractResult.SmartContractResult, tx *data.Transaction) *data.Transaction {
 	dbScResult := tdp.commonProcessor.convertScResultInDatabaseScr(scHash, scr)
 	tx.SmartContractResults = append(tx.SmartContractResults, dbScResult)
+
+	// ignore invalid transaction because status and gas fields was already set
+	if tx.Status == transaction.TxStatusInvalid.String() {
+		return tx
+	}
 
 	if isSCRForSenderWithRefund(dbScResult, tx) {
 		refundValue := stringValueToBigInt(dbScResult.Value)

@@ -462,6 +462,10 @@ func isRelayedTx(tx *data.Transaction) bool {
 	return strings.HasPrefix(string(tx.Data), "relayedTx") && len(tx.SmartContractResults) > 0
 }
 
+func isESDTNFTTransfer(tx *data.Transaction) bool {
+	return strings.HasPrefix(string(tx.Data), core.BuiltInFunctionESDTNFTTransfer) && len(tx.SmartContractResults) > 0
+}
+
 func prepareSerializedAccountInfo(address string, account *data.AccountInfo) ([]byte, []byte, error) {
 	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, address, "\n"))
 	serializedData, err := json.Marshal(account)
