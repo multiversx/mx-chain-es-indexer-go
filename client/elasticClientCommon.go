@@ -102,32 +102,38 @@ func elasticBulkRequestResponseHandler(res *esapi.Response) error {
 		return fmt.Errorf("%w cannot read elastic response body bytes", err)
 	}
 
-	bulkResponse := &BulkRequestResponse{}
-	err = json.Unmarshal(bodyBytes, bulkResponse)
-	if err != nil {
-		return fmt.Errorf("%w cannot unmarshal BulkRequestResponse", err)
-	}
-
-	if bulkResponse.Errors {
-		errBulkResponse := extractErrorFromBulkResponse(bulkResponse)
-		log.Warn("elasticBulkRequestResponseHandler", "error", errBulkResponse)
-		return indexer.ErrBackOff
-
-	}
-
-	return nil
+	return extractErrorFromBulkBodyResponseBytes(bodyBytes)
 }
 
-func extractErrorFromBulkResponse(response *BulkRequestResponse) error {
+func extractErrorFromBulkBodyResponseBytes(bodyBytes []byte) error {
+	response := BulkRequestResponse{}
+	err := json.Unmarshal(bodyBytes, &response)
+	if err != nil {
+		return err
+	}
+	if !response.Errors {
+		return nil
+	}
+
 	count := 0
 	errorsString := ""
 	for _, item := range response.Items {
-		if item.Index.Status < http.StatusBadRequest {
+		var selectedItem Item
+
+		switch {
+		case item.ItemIndex != nil:
+			selectedItem = *item.ItemIndex
+		case item.ItemUpdate != nil:
+			selectedItem = *item.ItemUpdate
+		}
+
+		if selectedItem.Status < http.StatusBadRequest {
 			continue
 		}
 
 		count++
-		errorsString += fmt.Sprintf("{ status code: %d, error type: %s, reason: %s }\n", item.Index.Status, item.Index.Error.Type, item.Index.Error.Reason)
+		errorsString += fmt.Sprintf("{ status code: %d, error type: %s, reason: %s }\n",
+			selectedItem.Status, selectedItem.Error.Type, selectedItem.Error.Reason)
 
 		if count == numOfErrorsToExtractBulkResponse {
 			break

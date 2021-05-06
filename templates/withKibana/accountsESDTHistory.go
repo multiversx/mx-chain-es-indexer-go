@@ -10,4 +10,11 @@ var AccountsESDTHistory = Object{
 		"opendistro.index_state_management.policy_id":      "accountsesdthistory_policy",
 		"opendistro.index_state_management.rollover_alias": "accountsesdthistory",
 	},
+	"mappings": Object{
+		"properties": Object{
+			"timestamp": Object{
+				"type": "date",
+			},
+		},
+	},
 }

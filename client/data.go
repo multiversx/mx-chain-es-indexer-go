@@ -13,12 +13,16 @@ var headerContentTypeJSON = []string{"application/json"}
 type BulkRequestResponse struct {
 	Errors bool `json:"errors"`
 	Items  []struct {
-		Index struct {
-			Status int `json:"status"`
-			Error  struct {
-				Type   string `json:"type"`
-				Reason string `json:"reason"`
-			} `json:"error"`
-		} `json:"index"`
+		ItemIndex  *Item `json:"index"`
+		ItemUpdate *Item `json:"update"`
 	} `json:"items"`
+}
+
+// Item defines the structure of a item from a bulk response
+type Item struct {
+	Status int `json:"status"`
+	Error  struct {
+		Type   string `json:"type"`
+		Reason string `json:"reason"`
+	} `json:"error"`
 }

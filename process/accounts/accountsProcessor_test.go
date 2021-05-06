@@ -236,7 +236,7 @@ func TestAccountsProcessor_GetAccountsESDTAccount(t *testing.T) {
 func TestAccountsProcessor_PrepareAccountsMapEGLD(t *testing.T) {
 	t.Parallel()
 
-	addr := "aaaabbbb"
+	addr := string(make([]byte, 32))
 	mockAccount := &mock.UserAccountStub{
 		GetNonceCalled: func() uint64 {
 			return 1
@@ -265,9 +265,12 @@ func TestAccountsProcessor_PrepareAccountsMapEGLD(t *testing.T) {
 	res := ap.PrepareRegularAccountsMap([]*data.Account{egldAccount})
 	require.Equal(t, map[string]*data.AccountInfo{
 		hex.EncodeToString([]byte(addr)): {
-			Nonce:      1,
-			Balance:    "1000",
-			BalanceNum: ap.computeBalanceAsFloat(big.NewInt(1000)),
+			Nonce:                    1,
+			Balance:                  "1000",
+			BalanceNum:               ap.computeBalanceAsFloat(big.NewInt(1000)),
+			TotalBalanceWithStake:    "1000",
+			TotalBalanceWithStakeNum: ap.computeBalanceAsFloat(big.NewInt(1000)),
+			IsSmartContract:          true,
 		},
 	}, res)
 }

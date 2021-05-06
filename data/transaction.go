@@ -9,9 +9,7 @@ import (
 //  to be saved for a transaction. It has all the default fields
 //  plus some extra information for ease of search and filter
 type Transaction struct {
-	Hash                 string        `json:"-"`
 	MBHash               string        `json:"miniBlockHash"`
-	BlockHash            string        `json:"-"`
 	Nonce                uint64        `json:"nonce"`
 	Round                uint64        `json:"round"`
 	Value                string        `json:"value"`
@@ -34,8 +32,11 @@ type Transaction struct {
 	ReceiverUserName     []byte        `json:"receiverUserName,omitempty"`
 	Logs                 *TxLog        `json:"logs,omitempty"`
 	HasSCR               bool          `json:"hasScResults,omitempty"`
+	IsScCall             bool          `json:"isScCall,omitempty"`
 	SmartContractResults []*ScResult   `json:"-"`
 	ReceiverAddressBytes []byte        `json:"-"`
+	Hash                 string        `json:"-"`
+	BlockHash            string        `json:"-"`
 }
 
 // GetGasLimit will return transaction gas limit

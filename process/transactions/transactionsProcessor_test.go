@@ -650,3 +650,54 @@ func TestTxsDatabaseProcessor_PrepareTransactionsForDatabaseInvalidTxWithSCR(t *
 	require.Len(t, resultedTx.SmartContractResults, 1)
 	require.Equal(t, resultedTx.GasLimit, resultedTx.GasUsed)
 }
+
+func TestTxsDatabaseProcessor_PrepareTransactionsForDatabaseESDTNFTTransfer(t *testing.T) {
+	t.Parallel()
+
+	txDbProc, _ := NewTransactionsProcessor(createMockArgsTxsDBProc())
+
+	txHash1 := []byte("txHash1")
+	tx1 := &transaction.Transaction{
+		GasLimit: 100,
+		GasPrice: 123456,
+		Data:     []byte("ESDTNFTTransfer@595959453643392D303837363661@01@01@000000000000000005005C83E0C42EDCE394F40B24D29D298B0249C41F028974@66756E64@890479AFC610F4BEBC087D3ADA3F7C2775C736BBA91F41FD3D65092AA482D8B0@1c20"),
+	}
+	scResHash1 := []byte("scResHash1")
+	scRes1 := &smartContractResult.SmartContractResult{
+		OriginalTxHash: txHash1,
+	}
+
+	body := &block.Body{
+		MiniBlocks: []*block.MiniBlock{
+			{
+				TxHashes: [][]byte{txHash1},
+				Type:     block.TxBlock,
+			},
+			{
+				TxHashes: [][]byte{scResHash1},
+				Type:     block.SmartContractResultBlock,
+			},
+		},
+	}
+
+	header := &block.Header{}
+
+	pool := &indexer.Pool{
+		Txs: map[string]nodeData.TransactionHandler{
+			string(txHash1): tx1,
+		},
+		Scrs: map[string]nodeData.TransactionHandler{
+			string(scResHash1): scRes1,
+		},
+	}
+
+	results := txDbProc.PrepareTransactionsForDatabase(body, header, pool)
+	require.NotNil(t, results)
+	require.Len(t, results.Transactions, 1)
+	require.Len(t, results.ScResults, 1)
+
+	resultedTx := results.Transactions[0]
+	require.Equal(t, transaction.TxStatusSuccess.String(), resultedTx.Status)
+	require.Len(t, resultedTx.SmartContractResults, 1)
+	require.Equal(t, resultedTx.GasLimit, resultedTx.GasUsed)
+}
