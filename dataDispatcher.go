@@ -12,7 +12,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go/core/check"
 )
 
-var log = logger.GetOrCreate("core/indexer")
+var log = logger.GetOrCreate("indexer")
 
 const (
 	durationBetweenErrorRetry = time.Second * 3
