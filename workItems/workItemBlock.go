@@ -16,7 +16,7 @@ import (
 // ErrBodyTypeAssertion signals that body type assertion failed
 var ErrBodyTypeAssertion = errors.New("elasticsearch - body type assertion failed")
 
-var log = logger.GetOrCreate("core/indexer/workItems")
+var log = logger.GetOrCreate("indexer/workItems")
 
 type itemBlock struct {
 	indexer       saveBlockIndexer
