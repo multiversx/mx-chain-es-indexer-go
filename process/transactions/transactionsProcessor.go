@@ -122,6 +122,9 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 	tdp.txBuilder.addScrsReceiverToAlteredAccounts(alteredAddresses, dbSCResults)
 	tdp.setDetailsOfTxsWithSCRS(normalTxs, countScResults)
 
+	tdp.txBuilder.esdtProc.searchTxsWithNFTCreateAndPutNonceInAlteredAddress(alteredAddresses, normalTxs, dbSCResults)
+	tdp.txBuilder.esdtProc.searchSCRSWithCreateNFTAndPutNonceInAlteredAddress(alteredAddresses, dbSCResults)
+
 	sliceNormalTxs := convertMapTxsToSlice(normalTxs)
 	sliceRewardsTxs := convertMapTxsToSlice(rewardsTxs)
 	txsSlice := append(sliceNormalTxs, sliceRewardsTxs...)

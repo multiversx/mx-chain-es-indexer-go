@@ -27,7 +27,6 @@ type Transaction struct {
 	Status               string        `json:"status"`
 	SearchOrder          uint32        `json:"searchOrder"`
 	EsdtTokenIdentifier  string        `json:"token,omitempty"`
-	EsdtValue            string        `json:"esdtValue,omitempty"`
 	SenderUserName       []byte        `json:"senderUserName,omitempty"`
 	ReceiverUserName     []byte        `json:"receiverUserName,omitempty"`
 	Logs                 *TxLog        `json:"logs,omitempty"`
@@ -99,7 +98,6 @@ type ScResult struct {
 	ReturnMessage       string        `json:"returnMessage,omitempty"`
 	Timestamp           time.Duration `json:"timestamp"`
 	EsdtTokenIdentifier string        `json:"token,omitempty"`
-	EsdtValue           string        `json:"esdtValue,omitempty"`
 }
 
 // TxLog holds all the data needed for a log structure

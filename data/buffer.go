@@ -35,7 +35,9 @@ func (bs *bufferSlice) PutData(meta []byte, serializedData []byte) error {
 		bs.idx++
 	}
 
-	serializedData = append(serializedData, "\n"...)
+	if len(serializedData) > 0 {
+		serializedData = append(serializedData, "\n"...)
+	}
 
 	currentBuff.Grow(len(meta) + len(serializedData))
 	_, err := currentBuff.Write(meta)

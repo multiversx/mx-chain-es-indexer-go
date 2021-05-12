@@ -122,3 +122,61 @@ func TestGroupReceipts(t *testing.T) {
 	normalTxs := grouper.groupReceipts(header, txs)
 	require.Len(t, normalTxs, 2)
 }
+
+func TestAddToAlteredAddressesNFT(t *testing.T) {
+	t.Parallel()
+
+	grouper := txsGrouper{
+		txBuilder: &dbTransactionBuilder{
+			esdtProc: newEsdtTransactionHandler(),
+		},
+	}
+
+	alteredAddresses := map[string]*data.AlteredAccount{}
+	mb := &block.MiniBlock{
+		SenderShardID:   0,
+		ReceiverShardID: 0,
+	}
+	grouper.addToAlteredAddresses(&data.Transaction{
+		Data:                []byte("ESDTNFTTransfer@4d494841492d666437653066@01@01@b7a5acba50ff6a2821876693a4e62d60ec8645af696591e04ead2e2cb6e4cb4f"),
+		Sender:              "sender",
+		Receiver:            "sender",
+		EsdtTokenIdentifier: "MY-TOKEN",
+	}, alteredAddresses, mb, 0, false)
+	require.Equal(t, &data.AlteredAccount{
+		IsNFTOperation:  true,
+		IsESDTOperation: false,
+		IsSender:        true,
+		TokenIdentifier: "MY-TOKEN",
+		NFTNonceString:  "1",
+	}, alteredAddresses["sender"])
+}
+
+func TestAddToAlteredAddressesESDT(t *testing.T) {
+	t.Parallel()
+
+	grouper := txsGrouper{
+		txBuilder: &dbTransactionBuilder{
+			esdtProc: newEsdtTransactionHandler(),
+		},
+	}
+
+	alteredAddresses := map[string]*data.AlteredAccount{}
+	mb := &block.MiniBlock{
+		SenderShardID:   0,
+		ReceiverShardID: 0,
+	}
+	grouper.addToAlteredAddresses(&data.Transaction{
+		Data:                []byte("ESDTTransfer@31323334352d373066366534@174876e800"),
+		Sender:              "sender",
+		Receiver:            "sender",
+		EsdtTokenIdentifier: "MY-TOKEN",
+	}, alteredAddresses, mb, 0, false)
+	require.Equal(t, &data.AlteredAccount{
+		IsNFTOperation:  false,
+		IsESDTOperation: true,
+		IsSender:        true,
+		TokenIdentifier: "MY-TOKEN",
+		NFTNonceString:  "",
+	}, alteredAddresses["sender"])
+}

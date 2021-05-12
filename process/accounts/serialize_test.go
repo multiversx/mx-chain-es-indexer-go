@@ -42,6 +42,8 @@ func TestSerializeAccountsESDT(t *testing.T) {
 			Nonce:           1,
 			TokenIdentifier: "token-0001",
 			Properties:      "000",
+			Balance:         "10000000000000",
+			BalanceNum:      1,
 		},
 	}
 
@@ -50,7 +52,30 @@ func TestSerializeAccountsESDT(t *testing.T) {
 	require.Equal(t, 1, len(res))
 
 	expectedRes := `{ "index" : { "_id" : "addr1_token-0001" } }
-{"address":"addr1","nonce":1,"balance":"","balanceNum":0,"token":"token-0001","properties":"000"}
+{"address":"addr1","nonce":1,"balance":"10000000000000","balanceNum":1,"token":"token-0001","properties":"000"}
+`
+	require.Equal(t, expectedRes, res[0].String())
+}
+
+func TestSerializeAccountsESDTDelete(t *testing.T) {
+	t.Parallel()
+
+	accs := map[string]*data.AccountInfo{
+		"addr1": {
+			Address:         "addr1",
+			Nonce:           1,
+			TokenIdentifier: "token-0001",
+			Properties:      "000",
+			Balance:         "0",
+			BalanceNum:      0,
+		},
+	}
+
+	res, err := (&accountsProcessor{}).SerializeAccounts(accs, true)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(res))
+
+	expectedRes := `{ "delete" : { "_id" : "addr1_token-0001" } }
 `
 	require.Equal(t, expectedRes, res[0].String())
 }

@@ -41,14 +41,18 @@ func TestAddToAlteredAddresses(t *testing.T) {
 	tx := &data.Transaction{
 		Sender:              sender,
 		Receiver:            receiver,
-		EsdtValue:           "123",
 		EsdtTokenIdentifier: tokenIdentifier,
 	}
 	alteredAddress := make(map[string]*data.AlteredAccount)
 	selfShardID := uint32(0)
 	mb := &block.MiniBlock{}
 
-	addToAlteredAddresses(tx, alteredAddress, mb, selfShardID, false)
+	grouper := txsGrouper{
+		txBuilder: &dbTransactionBuilder{
+			esdtProc: newEsdtTransactionHandler(),
+		},
+	}
+	grouper.addToAlteredAddresses(tx, alteredAddress, mb, selfShardID, false)
 
 	alterdAccount, ok := alteredAddress[receiver]
 	require.True(t, ok)

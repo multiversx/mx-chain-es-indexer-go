@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"math"
 	"math/big"
 	"testing"
 
@@ -120,10 +121,15 @@ func TestAccountsProcessor_ComputeBalanceAsFloat(t *testing.T) {
 			input:  big.NewInt(-7),
 			output: 0.0,
 		},
+
+		{
+			input:  big.NewInt(0),
+			output: 0.0,
+		},
 	}
 
 	for _, tt := range tests {
-		out := ap.computeBalanceAsFloat(tt.input)
+		out := ap.computeBalanceAsFloat(tt.input, false)
 		assert.Equal(t, tt.output, out)
 	}
 }
@@ -178,6 +184,39 @@ func TestGetESDTInfo(t *testing.T) {
 	balance, prop, err := ap.getESDTInfo(wrapAccount)
 	require.Nil(t, err)
 	require.Equal(t, big.NewInt(1000), balance)
+	require.Equal(t, hex.EncodeToString([]byte("ok")), prop)
+}
+
+func TestGetESDTInfoNFT(t *testing.T) {
+	t.Parallel()
+
+	ap, _ := NewAccountsProcessor(10, &mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), &mock.AccountsStub{})
+	require.NotNil(t, ap)
+
+	esdtToken := &esdt.ESDigitalToken{
+		Value:      big.NewInt(1),
+		Properties: []byte("ok"),
+	}
+
+	tokenIdentifier := "token-001"
+	wrapAccount := &data.AccountESDT{
+		Account: &mock.UserAccountStub{
+			DataTrieTrackerCalled: func() state.DataTrieTracker {
+				return &mock.DataTrieTrackerStub{
+					RetrieveValueCalled: func(key []byte) ([]byte, error) {
+						assert.Equal(t, append([]byte("ELRONDesdttoken-001"), 0xa), key)
+						return json.Marshal(esdtToken)
+					},
+				}
+			},
+		},
+		TokenIdentifier: tokenIdentifier,
+		IsNFTOperation:  true,
+		NFTNonceString:  "10",
+	}
+	balance, prop, err := ap.getESDTInfo(wrapAccount)
+	require.Nil(t, err)
+	require.Equal(t, big.NewInt(1), balance)
 	require.Equal(t, hex.EncodeToString([]byte("ok")), prop)
 }
 
@@ -267,9 +306,9 @@ func TestAccountsProcessor_PrepareAccountsMapEGLD(t *testing.T) {
 		hex.EncodeToString([]byte(addr)): {
 			Nonce:                    1,
 			Balance:                  "1000",
-			BalanceNum:               ap.computeBalanceAsFloat(big.NewInt(1000)),
+			BalanceNum:               ap.computeBalanceAsFloat(big.NewInt(1000), false),
 			TotalBalanceWithStake:    "1000",
-			TotalBalanceWithStakeNum: ap.computeBalanceAsFloat(big.NewInt(1000)),
+			TotalBalanceWithStakeNum: ap.computeBalanceAsFloat(big.NewInt(1000), false),
 			IsSmartContract:          true,
 		},
 	}, res)
@@ -309,7 +348,7 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 		hex.EncodeToString([]byte(addr)): {
 			Address:         hex.EncodeToString([]byte(addr)),
 			Balance:         "1000",
-			BalanceNum:      ap.computeBalanceAsFloat(big.NewInt(1000)),
+			BalanceNum:      ap.computeBalanceAsFloat(big.NewInt(1000), false),
 			TokenIdentifier: "token",
 			Properties:      hex.EncodeToString([]byte("ok")),
 		},
@@ -392,4 +431,16 @@ func TestAccountsProcessor_GetUserAccountErrors(t *testing.T) {
 		_, err = ap.getUserAccount(tt.inputAddress)
 		require.Equal(t, tt.exError, err)
 	}
+}
+
+func TestAccountsProcessor_ComputeBalanceFloatBigNumber(t *testing.T) {
+	t.Parallel()
+
+	processor := &accountsProcessor{
+		balancePrecisionESDT:   math.Pow(10, float64(core.MaxInt(numDecimalsInFloatBalanceESDT, 0))),
+		dividerForDenomination: math.Pow(10, float64(core.MaxInt(18, 0))),
+	}
+
+	floatValue := processor.computeBalanceAsFloat(big.NewInt(1), true)
+	require.Equal(t, 1e-18, floatValue)
 }

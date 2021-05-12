@@ -57,7 +57,7 @@ func (tg *txsGrouper) groupNormalTxs(
 			continue
 		}
 
-		addToAlteredAddresses(dbTx, alteredAddresses, mb, tg.selfShardID, false)
+		tg.addToAlteredAddresses(dbTx, alteredAddresses, mb, tg.selfShardID, false)
 		if tg.shouldIndex(mb.ReceiverShardID) {
 			transactions[string(txHash)] = dbTx
 		}
@@ -108,7 +108,7 @@ func (tg *txsGrouper) groupRewardsTxs(
 			continue
 		}
 
-		addToAlteredAddresses(rewardDBTx, alteredAddresses, mb, tg.selfShardID, true)
+		tg.addToAlteredAddresses(rewardDBTx, alteredAddresses, mb, tg.selfShardID, true)
 		if tg.shouldIndex(mb.ReceiverShardID) {
 			rewardsTxs[string(txHash)] = rewardDBTx
 		}
@@ -158,7 +158,7 @@ func (tg *txsGrouper) groupInvalidTxs(
 			continue
 		}
 
-		addToAlteredAddresses(invalidDBTx, alteredAddresses, mb, tg.selfShardID, false)
+		tg.addToAlteredAddresses(invalidDBTx, alteredAddresses, mb, tg.selfShardID, false)
 		transactions[string(txHash)] = invalidDBTx
 	}
 
@@ -244,25 +244,35 @@ func convertMapTxsToSlice(txs map[string]*data.Transaction) []*data.Transaction 
 	return transactions
 }
 
-func addToAlteredAddresses(
+func (tg *txsGrouper) addToAlteredAddresses(
 	tx *data.Transaction,
 	alteredAddresses map[string]*data.AlteredAccount,
 	miniBlock *block.MiniBlock,
 	selfShardID uint32,
 	isRewardTx bool,
 ) {
-	isESDTTx := tx.EsdtTokenIdentifier != "" && tx.EsdtValue != ""
+	var nftNonceSTR string
+	var isESDTTx bool
+	isNFTTx := tg.txBuilder.esdtProc.isNFTTx(tx.Data)
+
+	if !isNFTTx {
+		isESDTTx = tx.EsdtTokenIdentifier != ""
+	} else {
+		_, nftNonceSTR = tg.txBuilder.esdtProc.getNFTTxInfo(tx.Data)
+	}
 
 	if selfShardID == miniBlock.SenderShardID && !isRewardTx {
 		alteredAddresses[tx.Sender] = &data.AlteredAccount{
 			IsSender:        true,
 			IsESDTOperation: isESDTTx,
+			IsNFTOperation:  isNFTTx,
 			TokenIdentifier: tx.EsdtTokenIdentifier,
+			NFTNonceString:  nftNonceSTR,
 		}
 	}
 
-	if tx.Status == transaction.TxStatusInvalid.String() {
-		// ignore receiver if we have an invalid transaction
+	if tx.Status == transaction.TxStatusInvalid.String() || tx.Sender == tx.Receiver {
+		// ignore receiver if we have an invalid transaction OR we have a self transaction
 		return
 	}
 
@@ -270,7 +280,9 @@ func addToAlteredAddresses(
 		alteredAddresses[tx.Receiver] = &data.AlteredAccount{
 			IsSender:        false,
 			IsESDTOperation: isESDTTx,
+			IsNFTOperation:  isNFTTx,
 			TokenIdentifier: tx.EsdtTokenIdentifier,
+			NFTNonceString:  nftNonceSTR,
 		}
 	}
 }

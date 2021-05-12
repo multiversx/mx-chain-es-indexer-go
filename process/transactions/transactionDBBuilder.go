@@ -48,10 +48,10 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 	header nodeData.HeaderHandler,
 	txStatus string,
 ) *data.Transaction {
-	var tokenIdentifier, esdtValue string
-	isESDTTx := dtb.esdtProc.isESDTTx(tx)
+	var tokenIdentifier string
+	isESDTTx := dtb.esdtProc.isESDTTx(tx.Data)
 	if isESDTTx {
-		tokenIdentifier, esdtValue = dtb.esdtProc.getTokenIdentifierAndValue(tx)
+		tokenIdentifier = dtb.esdtProc.getTokenIdentifier(tx.Data)
 	}
 
 	gasUsed := dtb.txFeeCalculator.ComputeGasLimit(tx)
@@ -76,7 +76,6 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		Timestamp:            time.Duration(header.GetTimeStamp()),
 		Status:               txStatus,
 		EsdtTokenIdentifier:  tokenIdentifier,
-		EsdtValue:            esdtValue,
 		GasUsed:              gasUsed,
 		Fee:                  fee.String(),
 		ReceiverUserName:     tx.RcvUserName,
@@ -123,11 +122,11 @@ func (dtb *dbTransactionBuilder) prepareSmartContractResult(
 		relayerAddr = dtb.addressPubkeyConverter.Encode(sc.RelayerAddr)
 	}
 
-	var tokenIdentifier, esdtValue string
+	var tokenIdentifier string
 
-	isESDTTx := dtb.esdtProc.isESDTTx(sc)
+	isESDTTx := dtb.esdtProc.isESDTTx(sc.Data)
 	if isESDTTx {
-		tokenIdentifier, esdtValue = dtb.esdtProc.getTokenIdentifierAndValue(sc)
+		tokenIdentifier = dtb.esdtProc.getTokenIdentifier(sc.Data)
 	}
 
 	return &data.ScResult{
@@ -148,7 +147,6 @@ func (dtb *dbTransactionBuilder) prepareSmartContractResult(
 		CodeMetadata:        sc.CodeMetadata,
 		ReturnMessage:       string(sc.ReturnMessage),
 		EsdtTokenIdentifier: tokenIdentifier,
-		EsdtValue:           esdtValue,
 		Timestamp:           time.Duration(header.GetTimeStamp()),
 	}
 }
@@ -180,14 +178,27 @@ func (dtb *dbTransactionBuilder) addScrsReceiverToAlteredAccounts(
 		}
 
 		egldBalanceNotChanged := scr.Value == "" || scr.Value == "0"
-		esdtBalanceNotChanged := scr.EsdtValue == "" || scr.EsdtValue == "0"
+		esdtBalanceNotChanged := scr.EsdtTokenIdentifier == ""
 		if egldBalanceNotChanged && esdtBalanceNotChanged {
 			// the smart contract results that don't alter the balance of the receiver address should be ignored
 			continue
 		}
 		encodedReceiverAddress := scr.Receiver
+
+		var nftNonceSTR string
+		var isESDTScr bool
+		isNFTScr := dtb.esdtProc.isNFTTx(scr.Data)
+
+		if !isNFTScr {
+			isESDTScr = scr.EsdtTokenIdentifier != ""
+		} else {
+			_, nftNonceSTR = dtb.esdtProc.getNFTTxInfo(scr.Data)
+		}
+
 		alteredAddress[encodedReceiverAddress] = &data.AlteredAccount{
-			IsESDTOperation: scr.EsdtTokenIdentifier != "" && scr.EsdtValue != "",
+			IsESDTOperation: isESDTScr,
+			IsNFTOperation:  isNFTScr,
+			NFTNonceString:  nftNonceSTR,
 			TokenIdentifier: scr.EsdtTokenIdentifier,
 		}
 	}
