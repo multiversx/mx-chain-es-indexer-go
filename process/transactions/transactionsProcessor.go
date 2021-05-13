@@ -41,6 +41,7 @@ type txsDatabaseProcessor struct {
 	txFeeCalculator process.TransactionFeeCalculator
 	txBuilder       *dbTransactionBuilder
 	txsGrouper      *txsGrouper
+	scDeploysProc   *scDeploysProc
 }
 
 // NewTransactionsProcessor will create a new instance of transactions database processor
@@ -52,6 +53,7 @@ func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txsDatabaseProce
 
 	txBuilder := newTransactionDBBuilder(args.AddressPubkeyConverter, args.ShardCoordinator, args.TxFeeCalculator)
 	txsDBGrouper := newTxsGrouper(txBuilder, args.IsInImportMode, args.ShardCoordinator.SelfId(), args.Hasher, args.Marshalizer)
+	scDeploys := newScDeploysProc(args.AddressPubkeyConverter, args.ShardCoordinator.SelfId())
 
 	if args.IsInImportMode {
 		log.Warn("the node is in import mode! Cross shard transactions and rewards where destination shard is " +
@@ -62,6 +64,7 @@ func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txsDatabaseProce
 		txFeeCalculator: args.TxFeeCalculator,
 		txBuilder:       txBuilder,
 		txsGrouper:      txsDBGrouper,
+		scDeploysProc:   scDeploys,
 	}, nil
 }
 
@@ -129,11 +132,14 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 	sliceRewardsTxs := convertMapTxsToSlice(rewardsTxs)
 	txsSlice := append(sliceNormalTxs, sliceRewardsTxs...)
 
+	deploysData := tdp.scDeploysProc.searchSCDeployTransactionsOrSCRS(txsSlice, dbSCResults)
+
 	return &data.PreparedResults{
 		Transactions:    txsSlice,
 		ScResults:       dbSCResults,
 		Receipts:        dbReceipts,
 		AlteredAccounts: alteredAddresses,
+		DeploysInfo:     deploysData,
 	}
 }
 

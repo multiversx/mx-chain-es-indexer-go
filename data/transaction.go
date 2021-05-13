@@ -120,4 +120,12 @@ type PreparedResults struct {
 	ScResults       []*ScResult
 	Receipts        []*Receipt
 	AlteredAccounts map[string]*AlteredAccount
+	DeploysInfo     []*ScDeployInfo
+}
+
+// ScDeployInfo is the TDO that holds information about a smart  contract deploy
+type ScDeployInfo struct {
+	ScAddress string `json:"-"`
+	TxHash    string `json:"deployTxHash"`
+	Creator   string `json:"deployer"`
 }

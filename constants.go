@@ -33,6 +33,8 @@ const (
 	EpochInfoIndex = "epochinfo"
 	// OpenDistroIndex is the Elasticsearch index for opendistro
 	OpenDistroIndex = "opendistro"
+	// DeploysIndex is the Elasticsearch index for the smart contracts deploy information
+	DeploysIndex = "deploys"
 
 	// TransactionsPolicy is the Elasticsearch policy for the transactions
 	TransactionsPolicy = "transactions_policy"
