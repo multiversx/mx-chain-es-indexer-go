@@ -7,6 +7,7 @@ import (
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go/core"
+	"github.com/ElrondNetwork/elrond-go/core/parsers"
 	"github.com/ElrondNetwork/elrond-go/hashing/keccak"
 	"github.com/ElrondNetwork/elrond-go/process/factory"
 )
@@ -16,9 +17,10 @@ const (
 )
 
 type scDeploysProc struct {
-	pubKeyConverter      core.PubkeyConverter
-	scDeployReceiverAddr string
-	selfShardID          uint32
+	argumentsParserExtended *argumentsParserExtended
+	pubKeyConverter         core.PubkeyConverter
+	scDeployReceiverAddr    string
+	selfShardID             uint32
 }
 
 type deployerDto struct {
@@ -31,11 +33,13 @@ type deployerDto struct {
 
 func newScDeploysProc(pubKeyConverter core.PubkeyConverter, selfShardID uint32) *scDeploysProc {
 	scDeployReceiver := make([]byte, 32)
+	argsParser := parsers.NewCallArgsParser()
 
 	return &scDeploysProc{
-		selfShardID:          selfShardID,
-		pubKeyConverter:      pubKeyConverter,
-		scDeployReceiverAddr: pubKeyConverter.Encode(scDeployReceiver),
+		selfShardID:             selfShardID,
+		pubKeyConverter:         pubKeyConverter,
+		scDeployReceiverAddr:    pubKeyConverter.Encode(scDeployReceiver),
+		argumentsParserExtended: newArgumentsParser(argsParser),
 	}
 }
 
@@ -45,14 +49,14 @@ func (sc *scDeploysProc) searchSCDeployTransactionsOrSCRS(
 ) []*data.ScDeployInfo {
 	scDeploys := make([]*data.ScDeployInfo, 0)
 	for _, tx := range txs {
-		dto := &deployerDto{sender: tx.Sender, receiver: tx.Receiver, nonce: tx.Nonce, txHash: tx.Hash, data: tx.Data}
-		deployInfo, ok := sc.searchNormalDeploy(dto, tx.SmartContractResults)
+		deployer := &deployerDto{sender: tx.Sender, receiver: tx.Receiver, nonce: tx.Nonce, txHash: tx.Hash, data: tx.Data}
+		deployInfo, ok := sc.searchNormalDeploy(deployer, tx.SmartContractResults)
 		if ok {
 			scDeploys = append(scDeploys, deployInfo)
 			continue
 		}
 
-		deployInfo, ok = sc.searchDelegationManagerDeploy(dto, tx.SmartContractResults)
+		deployInfo, ok = sc.searchDelegationManagerDeploy(deployer, tx.SmartContractResults)
 		if ok {
 			scDeploys = append(scDeploys, deployInfo)
 			continue
@@ -79,8 +83,8 @@ func (sc *scDeploysProc) searchForSCRWithDelegationManagerDeploy(scrs []*data.Sc
 
 	scDeploys := make([]*data.ScDeployInfo, 0)
 	for _, scr := range scrs {
-		dto := &deployerDto{sender: scr.Sender, receiver: scr.Receiver, nonce: scr.Nonce, txHash: scr.Hash, data: scr.Data}
-		deployInfo, ok := sc.searchDelegationManagerDeploy(dto, scrs)
+		deployer := &deployerDto{sender: scr.Sender, receiver: scr.Receiver, nonce: scr.Nonce, txHash: scr.Hash, data: scr.Data}
+		deployInfo, ok := sc.searchDelegationManagerDeploy(deployer, scrs)
 		if !ok {
 			continue
 		}
@@ -101,8 +105,8 @@ func (sc *scDeploysProc) searchForSCRWithDeployNormal(scrs []*data.ScResult) ([]
 		if scr.Receiver != sc.scDeployReceiverAddr {
 			continue
 		}
-		dto := &deployerDto{sender: scr.Sender, receiver: scr.Receiver, nonce: scr.Nonce, txHash: scr.Hash, data: scr.Data}
-		deployInfo, ok := sc.searchNormalDeploy(dto, scrs)
+		deployer := &deployerDto{sender: scr.Sender, receiver: scr.Receiver, nonce: scr.Nonce, txHash: scr.Hash, data: scr.Data}
+		deployInfo, ok := sc.searchNormalDeploy(deployer, scrs)
 		if !ok {
 			continue
 		}
@@ -117,8 +121,8 @@ func (sc *scDeploysProc) searchForSCRWithDeployNormal(scrs []*data.ScResult) ([]
 	return scDeploys, true
 }
 
-func (sc *scDeploysProc) searchNormalDeploy(dto *deployerDto, scrs []*data.ScResult) (*data.ScDeployInfo, bool) {
-	if dto.receiver != sc.scDeployReceiverAddr {
+func (sc *scDeploysProc) searchNormalDeploy(deployer *deployerDto, scrs []*data.ScResult) (*data.ScDeployInfo, bool) {
+	if deployer.receiver != sc.scDeployReceiverAddr {
 		return nil, false
 	}
 
@@ -127,37 +131,37 @@ func (sc *scDeploysProc) searchNormalDeploy(dto *deployerDto, scrs []*data.ScRes
 	}
 
 	for _, scr := range scrs {
-		if !bytes.HasPrefix(scr.Data, []byte("@6f6b")) ||
+		if !sc.argumentsParserExtended.hasOKPrefix(string(scr.Data)) ||
 			scr.Sender != sc.scDeployReceiverAddr ||
-			scr.Receiver != dto.sender {
+			scr.Receiver != deployer.sender {
 			continue
 		}
 
-		scAddress, err := sc.computeContractAddress(dto.sender, dto.nonce, factory.ArwenVirtualMachine)
+		scAddress, err := sc.computeContractAddress(deployer.sender, deployer.nonce, factory.ArwenVirtualMachine)
 		if err != nil {
 			continue
 		}
 
 		return &data.ScDeployInfo{
 			ScAddress: scAddress,
-			TxHash:    dto.txHash,
-			Creator:   dto.sender,
+			TxHash:    deployer.txHash,
+			Creator:   deployer.sender,
 		}, true
 	}
 
 	return nil, false
 }
 
-func (sc *scDeploysProc) searchDelegationManagerDeploy(dto *deployerDto, scrs []*data.ScResult) (*data.ScDeployInfo, bool) {
+func (sc *scDeploysProc) searchDelegationManagerDeploy(deployer *deployerDto, scrs []*data.ScResult) (*data.ScDeployInfo, bool) {
 	if sc.selfShardID != core.MetachainShardId {
 		return nil, false
 	}
 
-	if dto.receiver != delegationManagerAddress {
+	if deployer.receiver != delegationManagerAddress {
 		return nil, false
 	}
 
-	if !bytes.HasPrefix(dto.data, []byte("createNewDelegationContract")) {
+	if !bytes.HasPrefix(deployer.data, []byte("createNewDelegationContract")) {
 		return nil, false
 	}
 
@@ -166,20 +170,21 @@ func (sc *scDeploysProc) searchDelegationManagerDeploy(dto *deployerDto, scrs []
 	}
 
 	for _, scr := range scrs {
-		if !(scr.Sender == delegationManagerAddress && scr.Receiver == dto.sender) {
+		isSCRFromDeployAddress := scr.Sender == delegationManagerAddress && scr.Receiver == deployer.sender
+		if !isSCRFromDeployAddress {
 			continue
 		}
 
-		if !bytes.HasPrefix(scr.Data, []byte("@6f6b")) {
+		if !sc.argumentsParserExtended.hasOKPrefix(string(scr.Data)) {
 			continue
 		}
 
-		splitData := bytes.Split(scr.Data, []byte("@"))
+		splitData := sc.argumentsParserExtended.split(string(scr.Data))
 		if len(splitData) < 3 {
 			continue
 		}
 
-		hexDecoded, err := hex.DecodeString(string(splitData[2]))
+		hexDecoded, err := hex.DecodeString(splitData[2])
 		if err != nil {
 			continue
 		}
@@ -187,8 +192,8 @@ func (sc *scDeploysProc) searchDelegationManagerDeploy(dto *deployerDto, scrs []
 		scAddress := sc.pubKeyConverter.Encode(hexDecoded)
 		return &data.ScDeployInfo{
 			ScAddress: scAddress,
-			TxHash:    dto.txHash,
-			Creator:   dto.sender,
+			TxHash:    deployer.txHash,
+			Creator:   deployer.sender,
 		}, true
 	}
 

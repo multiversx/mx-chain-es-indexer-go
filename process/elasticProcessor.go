@@ -30,7 +30,7 @@ var (
 	indexes = []string{
 		elasticIndexer.TransactionsIndex, elasticIndexer.BlockIndex, elasticIndexer.MiniblocksIndex, elasticIndexer.TpsIndex, elasticIndexer.RatingIndex, elasticIndexer.RoundsIndex, elasticIndexer.ValidatorsIndex,
 		elasticIndexer.AccountsIndex, elasticIndexer.AccountsHistoryIndex, elasticIndexer.ReceiptsIndex, elasticIndexer.ScResultsIndex, elasticIndexer.AccountsESDTHistoryIndex, elasticIndexer.AccountsESDTIndex,
-		elasticIndexer.EpochInfoIndex, elasticIndexer.DeploysIndex,
+		elasticIndexer.EpochInfoIndex, elasticIndexer.SCDeploysIndex,
 	}
 )
 
@@ -395,6 +395,10 @@ func (ei *elasticProcessor) SaveTransactions(
 	pool *indexer.Pool,
 	mbsInDb map[string]bool,
 ) error {
+	if !ei.shouldPrepareTransactionsData() {
+		return nil
+	}
+
 	preparedResults := ei.transactionsProc.PrepareTransactionsForDatabase(body, header, pool)
 
 	err := ei.indexTransactions(preparedResults.Transactions, header, mbsInDb)
@@ -417,11 +421,27 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
-	return ei.indexDeploysData(preparedResults.DeploysInfo)
+	return ei.indexScDeploys(preparedResults.DeploysInfo)
 }
 
-func (ei *elasticProcessor) indexDeploysData(deployData []*data.ScDeployInfo) error {
-	if !ei.isIndexEnabled(elasticIndexer.DeploysIndex) {
+func (ei *elasticProcessor) shouldPrepareTransactionsData() bool {
+	transactionsIndexes := []string{elasticIndexer.TransactionsIndex, elasticIndexer.ScResultsIndex, elasticIndexer.ReceiptsIndex,
+		elasticIndexer.AccountsIndex, elasticIndexer.AccountsHistoryIndex, elasticIndexer.AccountsESDTIndex,
+		elasticIndexer.AccountsESDTHistoryIndex, elasticIndexer.SCDeploysIndex,
+	}
+
+	for _, index := range transactionsIndexes {
+		_, ok := ei.enabledIndexes[index]
+		if !ok {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (ei *elasticProcessor) indexScDeploys(deployData []*data.ScDeployInfo) error {
+	if !ei.isIndexEnabled(elasticIndexer.SCDeploysIndex) {
 		return nil
 	}
 
@@ -430,14 +450,7 @@ func (ei *elasticProcessor) indexDeploysData(deployData []*data.ScDeployInfo) er
 		return err
 	}
 
-	for idx := range buffSlice {
-		err = ei.elasticClient.DoBulkRequest(buffSlice[idx], elasticIndexer.DeploysIndex)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return ei.doBulkRequests(elasticIndexer.SCDeploysIndex, buffSlice)
 }
 
 func (ei *elasticProcessor) indexTransactions(txs []*data.Transaction, header nodeData.HeaderHandler, mbsInDb map[string]bool) error {
@@ -450,14 +463,7 @@ func (ei *elasticProcessor) indexTransactions(txs []*data.Transaction, header no
 		return err
 	}
 
-	for idx := range buffSlice {
-		err = ei.elasticClient.DoBulkRequest(buffSlice[idx], elasticIndexer.TransactionsIndex)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return ei.doBulkRequests(elasticIndexer.TransactionsIndex, buffSlice)
 }
 
 // SaveShardStatistics will prepare and save information about a shard statistics in elasticsearch server
@@ -489,15 +495,8 @@ func (ei *elasticProcessor) SaveValidatorsRating(index string, validatorsRatingI
 	if err != nil {
 		return err
 	}
-	for idx := range buffSlice {
-		err = ei.elasticClient.DoBulkRequest(buffSlice[idx], elasticIndexer.RatingIndex)
-		if err != nil {
-			log.Warn("elasticProcessor.SaveValidatorsRating cannot index validators rating", "error", err)
-			return err
-		}
-	}
 
-	return nil
+	return ei.doBulkRequests(elasticIndexer.RatingIndex, buffSlice)
 }
 
 // SaveShardValidatorsPubKeys will prepare and save information about a shard validators public keys in elasticsearch server
@@ -586,14 +585,8 @@ func (ei *elasticProcessor) serializeAndIndexAccounts(accountsMap map[string]*da
 	if err != nil {
 		return err
 	}
-	for idx := range buffSlice {
-		err = ei.elasticClient.DoBulkRequest(buffSlice[idx], index)
-		if err != nil {
-			return err
-		}
-	}
 
-	return nil
+	return ei.doBulkRequests(index, buffSlice)
 }
 
 func (ei *elasticProcessor) saveAccountsESDTHistory(timestamp uint64, accountsInfoMap map[string]*data.AccountInfo) error {
@@ -621,14 +614,8 @@ func (ei *elasticProcessor) serializeAndIndexAccountsHistory(accountsMap map[str
 	if err != nil {
 		return err
 	}
-	for idx := range buffSlice {
-		err = ei.elasticClient.DoBulkRequest(buffSlice[idx], index)
-		if err != nil {
-			return err
-		}
-	}
 
-	return nil
+	return ei.doBulkRequests(index, buffSlice)
 }
 
 func (ei *elasticProcessor) indexScResults(scrs []*data.ScResult) error {
@@ -641,14 +628,7 @@ func (ei *elasticProcessor) indexScResults(scrs []*data.ScResult) error {
 		return err
 	}
 
-	for idx := range buffSlice {
-		err = ei.elasticClient.DoBulkRequest(buffSlice[idx], elasticIndexer.ScResultsIndex)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return ei.doBulkRequests(elasticIndexer.ScResultsIndex, buffSlice)
 }
 
 func (ei *elasticProcessor) indexReceipts(receipts []*data.Receipt) error {
@@ -661,19 +641,24 @@ func (ei *elasticProcessor) indexReceipts(receipts []*data.Receipt) error {
 		return err
 	}
 
+	return ei.doBulkRequests(elasticIndexer.ReceiptsIndex, buffSlice)
+}
+
+func (ei *elasticProcessor) isIndexEnabled(index string) bool {
+	_, isEnabled := ei.enabledIndexes[index]
+	return isEnabled
+}
+
+func (ei *elasticProcessor) doBulkRequests(index string, buffSlice []*bytes.Buffer) error {
+	var err error
 	for idx := range buffSlice {
-		err = ei.elasticClient.DoBulkRequest(buffSlice[idx], elasticIndexer.ReceiptsIndex)
+		err = ei.elasticClient.DoBulkRequest(buffSlice[idx], index)
 		if err != nil {
 			return err
 		}
 	}
 
 	return nil
-}
-
-func (ei *elasticProcessor) isIndexEnabled(index string) bool {
-	_, isEnabled := ei.enabledIndexes[index]
-	return isEnabled
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

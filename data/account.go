@@ -40,9 +40,9 @@ type Account struct {
 type AccountESDT struct {
 	Account         state.UserAccountHandler
 	TokenIdentifier string
+	NFTNonceString  string
 	IsSender        bool
 	IsNFTOperation  bool
-	NFTNonceString  string
 }
 
 // AlteredAccount is a structure that holds information about an altered account

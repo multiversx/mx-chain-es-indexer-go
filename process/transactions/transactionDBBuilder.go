@@ -177,29 +177,32 @@ func (dtb *dbTransactionBuilder) addScrsReceiverToAlteredAccounts(
 			continue
 		}
 
-		egldBalanceNotChanged := scr.Value == "" || scr.Value == "0"
-		esdtBalanceNotChanged := scr.EsdtTokenIdentifier == ""
+		egldBalanceNotChanged := scr.Value == emptyString || scr.Value == "0"
+		esdtBalanceNotChanged := scr.EsdtTokenIdentifier == emptyString
 		if egldBalanceNotChanged && esdtBalanceNotChanged {
 			// the smart contract results that don't alter the balance of the receiver address should be ignored
 			continue
 		}
 		encodedReceiverAddress := scr.Receiver
 
-		var nftNonceSTR string
-		var isESDTScr bool
-		isNFTScr := dtb.esdtProc.isNFTTx(scr.Data)
-
-		if !isNFTScr {
-			isESDTScr = scr.EsdtTokenIdentifier != ""
-		} else {
-			_, nftNonceSTR = dtb.esdtProc.getNFTTxInfo(scr.Data)
-		}
-
+		isESDTScr, isNFTScr, nftNonceStr := dtb.computeESDTInfo(scr.Data, scr.EsdtTokenIdentifier)
 		alteredAddress[encodedReceiverAddress] = &data.AlteredAccount{
 			IsESDTOperation: isESDTScr,
 			IsNFTOperation:  isNFTScr,
-			NFTNonceString:  nftNonceSTR,
+			NFTNonceString:  nftNonceStr,
 			TokenIdentifier: scr.EsdtTokenIdentifier,
 		}
 	}
+}
+
+func (dtb *dbTransactionBuilder) computeESDTInfo(dataField []byte, tokenIdentifier string) (isESDT, isNFT bool, nftNonceStr string) {
+	isNFT = dtb.esdtProc.isNFTTx(dataField)
+
+	if !isNFT {
+		isESDT = tokenIdentifier != emptyString
+	} else {
+		_, nftNonceStr = dtb.esdtProc.getNFTTxInfo(dataField)
+	}
+
+	return
 }

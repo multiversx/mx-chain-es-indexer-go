@@ -49,8 +49,8 @@ func TestGetNFTInfo(t *testing.T) {
 
 	esdtProc := newEsdtTransactionHandler()
 
-	tokenIdentifier, nonceStr := esdtProc.getNFTTxInfo([]byte("ESDTNFTTransfer@4d494841492d666437653066@01@01@b7a5acba50ff6a2821876693a4e62d60ec8645af696591e04ead2e2cb6e4cb4f"))
-	require.Equal(t, "MIHAI-fd7e0f", tokenIdentifier)
+	tokenIdentifier, nonceStr := esdtProc.getNFTTxInfo([]byte("ESDTNFTTransfer@544f4b454e2d666437653066@01@01@b7a5acba50ff6a2821876693a4e62d60ec8645af696591e04ead2e2cb6e4cb4f"))
+	require.Equal(t, "TOKEN-fd7e0f", tokenIdentifier)
 	require.Equal(t, "1", nonceStr)
 
 	tokenIdentifier, nonceStr = esdtProc.getNFTTxInfo([]byte("@01@01@b7a5acba50ff6a2821876693a4e62d60ec8645af696591e04ead2e2cb6e4cb4f"))
@@ -65,8 +65,8 @@ func TestGetNFTInfo(t *testing.T) {
 	require.Equal(t, "", tokenIdentifier)
 	require.Equal(t, "", nonceStr)
 
-	tokenIdentifier, nonceStr = esdtProc.getNFTTxInfo([]byte("ESDTNFTTransfer@4d494841492d666437653066"))
-	require.Equal(t, "MIHAI-fd7e0f", tokenIdentifier)
+	tokenIdentifier, nonceStr = esdtProc.getNFTTxInfo([]byte("ESDTNFTTransfer@544f4b454e2d666437653066"))
+	require.Equal(t, "TOKEN-fd7e0f", tokenIdentifier)
 	require.Equal(t, "", nonceStr)
 }
 

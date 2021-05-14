@@ -251,16 +251,7 @@ func (tg *txsGrouper) addToAlteredAddresses(
 	selfShardID uint32,
 	isRewardTx bool,
 ) {
-	var nftNonceSTR string
-	var isESDTTx bool
-	isNFTTx := tg.txBuilder.esdtProc.isNFTTx(tx.Data)
-
-	if !isNFTTx {
-		isESDTTx = tx.EsdtTokenIdentifier != ""
-	} else {
-		_, nftNonceSTR = tg.txBuilder.esdtProc.getNFTTxInfo(tx.Data)
-	}
-
+	isESDTTx, isNFTTx, nftNonceSTR := tg.txBuilder.computeESDTInfo(tx.Data, tx.EsdtTokenIdentifier)
 	if selfShardID == miniBlock.SenderShardID && !isRewardTx {
 		alteredAddresses[tx.Sender] = &data.AlteredAccount{
 			IsSender:        true,
@@ -271,8 +262,8 @@ func (tg *txsGrouper) addToAlteredAddresses(
 		}
 	}
 
-	if tx.Status == transaction.TxStatusInvalid.String() || tx.Sender == tx.Receiver {
-		// ignore receiver if we have an invalid transaction OR we have a self transaction
+	ignoreTransactionReceiver := tx.Status == transaction.TxStatusInvalid.String() || tx.Sender == tx.Receiver
+	if ignoreTransactionReceiver {
 		return
 	}
 

@@ -56,7 +56,7 @@ func NewAccountsProcessor(
 		internalMarshalizer:    marshalizer,
 		addressPubkeyConverter: addressPubkeyConverter,
 		balancePrecision:       math.Pow(10, float64(numDecimalsInFloatBalance)),
-		balancePrecisionESDT:   math.Pow(10, float64(core.MaxInt(numDecimalsInFloatBalanceESDT, 0))),
+		balancePrecisionESDT:   math.Pow(10, float64(numDecimalsInFloatBalanceESDT)),
 		dividerForDenomination: math.Pow(10, float64(core.MaxInt(denomination, 0))),
 		accountsDB:             accountsDB,
 	}, nil
@@ -122,7 +122,7 @@ func (ap *accountsProcessor) PrepareRegularAccountsMap(accounts []*data.Account)
 	accountsMap := make(map[string]*data.AccountInfo)
 	for _, userAccount := range accounts {
 		balance := userAccount.UserAccount.GetBalance()
-		balanceAsFloat := ap.computeBalanceAsFloat(balance, false)
+		balanceAsFloat := ap.computeBalanceAsFloat(balance, ap.balancePrecision)
 		acc := &data.AccountInfo{
 			Nonce:                    userAccount.UserAccount.GetNonce(),
 			Balance:                  balance.String(),
@@ -156,7 +156,7 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(accounts []*data.AccountESDT
 			Address:         address,
 			TokenIdentifier: accountESDT.TokenIdentifier,
 			Balance:         balance.String(),
-			BalanceNum:      ap.computeBalanceAsFloat(balance, true),
+			BalanceNum:      ap.computeBalanceAsFloat(balance, ap.balancePrecisionESDT),
 			Properties:      properties,
 			IsSender:        accountESDT.IsSender,
 			IsSmartContract: core.IsSmartContractAddress(accountESDT.Account.AddressBytes()),
@@ -200,8 +200,10 @@ func (ap *accountsProcessor) getESDTInfo(accountESDT *data.AccountESDT) (*big.In
 
 	tokenKey := []byte(core.ElrondProtectedKeyPrefix + core.ESDTKeyIdentifier + accountESDT.TokenIdentifier)
 	if accountESDT.IsNFTOperation {
-		nonceBig, _ := big.NewInt(0).SetString(accountESDT.NFTNonceString, 10)
-		tokenKey = append(tokenKey, nonceBig.Bytes()...)
+		nonceBig, ok := big.NewInt(0).SetString(accountESDT.NFTNonceString, 10)
+		if ok {
+			tokenKey = append(tokenKey, nonceBig.Bytes()...)
+		}
 	}
 
 	valueBytes, err := accountESDT.Account.DataTrieTracker().RetrieveValue(tokenKey)
@@ -222,7 +224,7 @@ func (ap *accountsProcessor) getESDTInfo(accountESDT *data.AccountESDT) (*big.In
 	return esdtToken.Value, hex.EncodeToString(esdtToken.Properties), nil
 }
 
-func (ap *accountsProcessor) computeBalanceAsFloat(balance *big.Int, isESDT bool) float64 {
+func (ap *accountsProcessor) computeBalanceAsFloat(balance *big.Int, balancePrecision float64) float64 {
 	if balance == nil {
 		return 0
 	}
@@ -231,11 +233,6 @@ func (ap *accountsProcessor) computeBalanceAsFloat(balance *big.Int, isESDT bool
 	balanceFloat64, _ := balanceBigFloat.Float64()
 
 	bal := balanceFloat64 / ap.dividerForDenomination
-
-	balancePrecision := ap.balancePrecision
-	if isESDT {
-		balancePrecision = ap.balancePrecisionESDT
-	}
 
 	balanceFloatWithDecimals := math.Round(bal*balancePrecision) / balancePrecision
 

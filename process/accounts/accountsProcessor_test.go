@@ -129,7 +129,7 @@ func TestAccountsProcessor_ComputeBalanceAsFloat(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		out := ap.computeBalanceAsFloat(tt.input, false)
+		out := ap.computeBalanceAsFloat(tt.input, ap.balancePrecision)
 		assert.Equal(t, tt.output, out)
 	}
 }
@@ -306,9 +306,9 @@ func TestAccountsProcessor_PrepareAccountsMapEGLD(t *testing.T) {
 		hex.EncodeToString([]byte(addr)): {
 			Nonce:                    1,
 			Balance:                  "1000",
-			BalanceNum:               ap.computeBalanceAsFloat(big.NewInt(1000), false),
+			BalanceNum:               ap.computeBalanceAsFloat(big.NewInt(1000), ap.balancePrecision),
 			TotalBalanceWithStake:    "1000",
-			TotalBalanceWithStakeNum: ap.computeBalanceAsFloat(big.NewInt(1000), false),
+			TotalBalanceWithStakeNum: ap.computeBalanceAsFloat(big.NewInt(1000), ap.balancePrecision),
 			IsSmartContract:          true,
 		},
 	}, res)
@@ -348,7 +348,7 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 		hex.EncodeToString([]byte(addr)): {
 			Address:         hex.EncodeToString([]byte(addr)),
 			Balance:         "1000",
-			BalanceNum:      ap.computeBalanceAsFloat(big.NewInt(1000), false),
+			BalanceNum:      ap.computeBalanceAsFloat(big.NewInt(1000), ap.balancePrecision),
 			TokenIdentifier: "token",
 			Properties:      hex.EncodeToString([]byte("ok")),
 		},
@@ -441,6 +441,6 @@ func TestAccountsProcessor_ComputeBalanceFloatBigNumber(t *testing.T) {
 		dividerForDenomination: math.Pow(10, float64(core.MaxInt(18, 0))),
 	}
 
-	floatValue := processor.computeBalanceAsFloat(big.NewInt(1), true)
+	floatValue := processor.computeBalanceAsFloat(big.NewInt(1), processor.balancePrecisionESDT)
 	require.Equal(t, 1e-18, floatValue)
 }

@@ -114,7 +114,7 @@ type Event struct {
 	Data       string   `json:"data"`
 }
 
-// PreparedResults is the TDO that holds all the results after processing
+// PreparedResults is the DTO that holds all the results after processing
 type PreparedResults struct {
 	Transactions    []*Transaction
 	ScResults       []*ScResult
@@ -123,7 +123,7 @@ type PreparedResults struct {
 	DeploysInfo     []*ScDeployInfo
 }
 
-// ScDeployInfo is the TDO that holds information about a smart  contract deploy
+// ScDeployInfo is the DTO that holds information about a smart contract deployment
 type ScDeployInfo struct {
 	ScAddress string `json:"-"`
 	TxHash    string `json:"deployTxHash"`

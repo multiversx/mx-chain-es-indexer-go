@@ -1,7 +1,6 @@
 package transactions
 
 import (
-	"bytes"
 	"encoding/hex"
 	"math/big"
 	"strings"
@@ -9,18 +8,23 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/parsers"
-	"github.com/ElrondNetwork/elrond-go/process"
+)
+
+const (
+	builtInFuncWipeSingleNFT = "wipeSingleNFT"
+	emptyString              = ""
 )
 
 type esdtTransactionProcessor struct {
-	esdtOperations    map[string]struct{}
-	esdtNFTOperations map[string]struct{}
-	argumentParser    process.CallArgumentsParser
+	esdtOperations         map[string]struct{}
+	esdtNFTOperations      map[string]struct{}
+	argumentParserExtended *argumentsParserExtended
 }
 
 func newEsdtTransactionHandler() *esdtTransactionProcessor {
+	argsParser := parsers.NewCallArgsParser()
 	esdtTxProc := &esdtTransactionProcessor{
-		argumentParser: parsers.NewCallArgsParser(),
+		argumentParserExtended: newArgumentsParser(argsParser),
 	}
 
 	esdtTxProc.initESDTOperations()
@@ -46,14 +50,14 @@ func (etp *esdtTransactionProcessor) initESDTNFTOperations() {
 		core.BuiltInFunctionESDTNFTCreate:      {},
 		core.BuiltInFunctionESDTNFTTransfer:    {},
 		core.BuiltInFunctionESDTNFTAddQuantity: {},
-		"wipeSingleNFT":                        {},
+		builtInFuncWipeSingleNFT:               {},
 	}
 }
 
 func (etp *esdtTransactionProcessor) getFunctionName(txData []byte) string {
-	function, _, err := etp.argumentParser.ParseData(string(txData))
+	function, _, err := etp.argumentParserExtended.ParseData(string(txData))
 	if err != nil {
-		return ""
+		return emptyString
 	}
 
 	return function
@@ -61,19 +65,19 @@ func (etp *esdtTransactionProcessor) getFunctionName(txData []byte) string {
 
 func (etp *esdtTransactionProcessor) isESDTTx(txData []byte) bool {
 	functionName := etp.getFunctionName(txData)
-	if functionName == "" {
+	if functionName == emptyString {
 		return false
 	}
 
-	_, esdtFunc := etp.esdtOperations[functionName]
-	_, nftFunc := etp.esdtNFTOperations[functionName]
+	_, isEsdtFunc := etp.esdtOperations[functionName]
+	_, isNftFunc := etp.esdtNFTOperations[functionName]
 
-	return esdtFunc || nftFunc
+	return isEsdtFunc || isNftFunc
 }
 
 func (etp *esdtTransactionProcessor) isNFTTx(txData []byte) bool {
 	functionName := etp.getFunctionName(txData)
-	if functionName == "" {
+	if functionName == emptyString {
 		return false
 	}
 
@@ -82,20 +86,20 @@ func (etp *esdtTransactionProcessor) isNFTTx(txData []byte) bool {
 }
 
 func (etp *esdtTransactionProcessor) getTokenIdentifier(txData []byte) string {
-	_, arguments, err := etp.argumentParser.ParseData(string(txData))
+	_, arguments, err := etp.argumentParserExtended.ParseData(string(txData))
 	if err != nil {
-		return ""
+		return emptyString
 	}
 
-	if len(arguments) >= 1 {
-		return string(arguments[0])
+	if len(arguments) < 1 {
+		return emptyString
 	}
 
-	return ""
+	return string(arguments[0])
 }
 
 func (etp *esdtTransactionProcessor) getNFTTxInfo(txData []byte) (tokenIdentifier, nonce string) {
-	function, arguments, err := etp.argumentParser.ParseData(string(txData))
+	function, arguments, err := etp.argumentParserExtended.ParseData(string(txData))
 	if err != nil {
 		return
 	}
@@ -104,8 +108,8 @@ func (etp *esdtTransactionProcessor) getNFTTxInfo(txData []byte) (tokenIdentifie
 		return
 	}
 
-	_, nftFunc := etp.esdtNFTOperations[function]
-	if !nftFunc {
+	_, isNftFunc := etp.esdtNFTOperations[function]
+	if !isNftFunc {
 		return
 	}
 
@@ -116,7 +120,7 @@ func (etp *esdtTransactionProcessor) getNFTTxInfo(txData []byte) (tokenIdentifie
 	}
 
 	switch function {
-	case core.BuiltInFunctionESDTNFTTransfer, "wipeSingleNFT", core.BuiltInFunctionESDTNFTAddQuantity:
+	case core.BuiltInFunctionESDTNFTTransfer, builtInFuncWipeSingleNFT, core.BuiltInFunctionESDTNFTAddQuantity:
 		nonce = big.NewInt(0).SetBytes(arguments[1]).String()
 	}
 
@@ -129,12 +133,13 @@ func (etp *esdtTransactionProcessor) searchTxsWithNFTCreateAndPutNonceInAlteredA
 	scrs []*data.ScResult,
 ) {
 	for txHash, tx := range txs {
-		if !strings.HasPrefix(string(tx.Data), core.BuiltInFunctionESDTNFTCreate) {
+		isBuiltinFunctionForNftCreate := strings.HasPrefix(string(tx.Data), core.BuiltInFunctionESDTNFTCreate)
+		if !isBuiltinFunctionForNftCreate {
 			continue
 		}
 
 		encodedHash := hex.EncodeToString([]byte(txHash))
-		searchSCRWithNonceOfNFT(encodedHash, alteredAddresses, scrs)
+		etp.searchSCRWithNonceOfNFT(encodedHash, alteredAddresses, scrs)
 	}
 }
 
@@ -147,11 +152,11 @@ func (etp *esdtTransactionProcessor) searchSCRSWithCreateNFTAndPutNonceInAltered
 			continue
 		}
 
-		searchSCRWithNonceOfNFT(scr.OriginalTxHash, alteredAddresses, scrs)
+		etp.searchSCRWithNonceOfNFT(scr.OriginalTxHash, alteredAddresses, scrs)
 	}
 }
 
-func searchSCRWithNonceOfNFT(txHash string, alteredAddresses map[string]*data.AlteredAccount, scrs []*data.ScResult) {
+func (etp *esdtTransactionProcessor) searchSCRWithNonceOfNFT(txHash string, alteredAddresses map[string]*data.AlteredAccount, scrs []*data.ScResult) {
 	for _, scr := range scrs {
 		if scr.OriginalTxHash != txHash {
 			continue
@@ -166,21 +171,21 @@ func searchSCRWithNonceOfNFT(txHash string, alteredAddresses map[string]*data.Al
 			return
 		}
 
-		altered.NFTNonceString = extractNonceString(scr)
+		altered.NFTNonceString = etp.extractNonceString(scr)
 	}
 }
 
-func extractNonceString(scr *data.ScResult) string {
-	scrDataSplit := bytes.Split(scr.Data, []byte("@"))
+func (etp *esdtTransactionProcessor) extractNonceString(scr *data.ScResult) string {
+	scrDataSplit := etp.argumentParserExtended.split(string(scr.Data))
 	if len(scrDataSplit) < 3 {
 		return ""
 	}
 
-	if !bytes.Equal(scrDataSplit[1], []byte("6f6b")) {
+	if scrDataSplit[1] != okHexConst {
 		return ""
 	}
 
-	nonceBytes, err := hex.DecodeString(string(scrDataSplit[2]))
+	nonceBytes, err := hex.DecodeString(scrDataSplit[2])
 	if err != nil {
 		return ""
 	}
