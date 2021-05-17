@@ -27,4 +27,7 @@ func TestArgumentsParserExtended_HasOkPrefix(t *testing.T) {
 	require.True(t, argsParserEx.hasOKPrefix("@6f6b"))
 	require.False(t, argsParserEx.hasOKPrefix("@"))
 	require.False(t, argsParserEx.hasOKPrefix(""))
+	require.False(t, argsParserEx.hasOKPrefix("aaa@aaa"))
+	require.True(t, argsParserEx.hasOKPrefix("aaa@6f6b"))
+	require.True(t, argsParserEx.hasOKPrefix("aaa@6f6b@aaa"))
 }

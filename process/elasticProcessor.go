@@ -395,10 +395,6 @@ func (ei *elasticProcessor) SaveTransactions(
 	pool *indexer.Pool,
 	mbsInDb map[string]bool,
 ) error {
-	if !ei.shouldPrepareTransactionsData() {
-		return nil
-	}
-
 	preparedResults := ei.transactionsProc.PrepareTransactionsForDatabase(body, header, pool)
 
 	err := ei.indexTransactions(preparedResults.Transactions, header, mbsInDb)
@@ -422,22 +418,6 @@ func (ei *elasticProcessor) SaveTransactions(
 	}
 
 	return ei.indexScDeploys(preparedResults.DeploysInfo)
-}
-
-func (ei *elasticProcessor) shouldPrepareTransactionsData() bool {
-	transactionsIndexes := []string{elasticIndexer.TransactionsIndex, elasticIndexer.ScResultsIndex, elasticIndexer.ReceiptsIndex,
-		elasticIndexer.AccountsIndex, elasticIndexer.AccountsHistoryIndex, elasticIndexer.AccountsESDTIndex,
-		elasticIndexer.AccountsESDTHistoryIndex, elasticIndexer.SCDeploysIndex,
-	}
-
-	for _, index := range transactionsIndexes {
-		_, ok := ei.enabledIndexes[index]
-		if !ok {
-			return true
-		}
-	}
-
-	return false
 }
 
 func (ei *elasticProcessor) indexScDeploys(deployData []*data.ScDeployInfo) error {

@@ -30,16 +30,12 @@ func (ap *accountsProcessor) SerializeAccounts(
 }
 
 func prepareSerializedAccount(address string, acc *data.AccountInfo, isESDT bool) ([]byte, []byte, error) {
-	var meta, serializedData []byte
-	var err error
-
 	if acc.Balance == "0" || acc.Balance == "" {
-		meta = prepareDeleteAccountInfo(address, acc, isESDT)
-	} else {
-		meta, serializedData, err = prepareSerializedAccountInfo(address, acc, isESDT)
+		meta := prepareDeleteAccountInfo(address, acc, isESDT)
+		return meta, nil, nil
 	}
 
-	return meta, serializedData, err
+	return prepareSerializedAccountInfo(address, acc, isESDT)
 }
 
 func prepareDeleteAccountInfo(address string, acct *data.AccountInfo, isESDT bool) []byte {

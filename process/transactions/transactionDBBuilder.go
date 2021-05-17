@@ -197,12 +197,11 @@ func (dtb *dbTransactionBuilder) addScrsReceiverToAlteredAccounts(
 
 func (dtb *dbTransactionBuilder) computeESDTInfo(dataField []byte, tokenIdentifier string) (isESDT, isNFT bool, nftNonceStr string) {
 	isNFT = dtb.esdtProc.isNFTTx(dataField)
-
 	if !isNFT {
 		isESDT = tokenIdentifier != emptyString
-	} else {
-		_, nftNonceStr = dtb.esdtProc.getNFTTxInfo(dataField)
+		return
 	}
 
+	_, nftNonceStr = dtb.esdtProc.getNFTTxInfo(dataField)
 	return
 }
