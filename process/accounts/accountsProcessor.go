@@ -225,7 +225,7 @@ func (ap *accountsProcessor) getESDTInfo(accountESDT *data.AccountESDT) (*big.In
 }
 
 func (ap *accountsProcessor) computeBalanceAsFloat(balance *big.Int, balancePrecision float64) float64 {
-	if balance == nil {
+	if balance == nil || balance == big.NewInt(0) {
 		return 0
 	}
 

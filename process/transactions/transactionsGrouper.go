@@ -267,11 +267,13 @@ func (tg *txsGrouper) addToAlteredAddresses(
 		return
 	}
 
+	isESDTNotDestinationMeta := isESDTTx && selfShardID != core.MetachainShardId
+	isNFTTxNotDestinationMeta := isNFTTx && selfShardID != core.MetachainShardId
 	if selfShardID == miniBlock.ReceiverShardID || miniBlock.ReceiverShardID == core.AllShardId {
 		alteredAddresses[tx.Receiver] = &data.AlteredAccount{
 			IsSender:        false,
-			IsESDTOperation: isESDTTx,
-			IsNFTOperation:  isNFTTx,
+			IsESDTOperation: isESDTNotDestinationMeta,
+			IsNFTOperation:  isNFTTxNotDestinationMeta,
 			TokenIdentifier: tx.EsdtTokenIdentifier,
 			NFTNonceString:  nftNonceSTR,
 		}
