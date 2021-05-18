@@ -187,9 +187,9 @@ func (dtb *dbTransactionBuilder) addScrsReceiverToAlteredAccounts(
 
 		isESDTScr, isNFTScr, nftNonceStr := dtb.computeESDTInfo(scr.Data, scr.EsdtTokenIdentifier)
 
-		isDestinationMeta := dtb.shardCoordinator.SelfId() == core.MetachainShardId
-		isESDTScrNotDestinationMeta := isESDTScr && !isDestinationMeta
-		isNFTScrNotDestinationMeta := isNFTScr && !isDestinationMeta
+		isMeta := dtb.shardCoordinator.SelfId() == core.MetachainShardId
+		isESDTScrNotDestinationMeta := isESDTScr && !isMeta
+		isNFTScrNotDestinationMeta := isNFTScr && !isMeta
 		alteredAddress[encodedReceiverAddress] = &data.AlteredAccount{
 			IsESDTOperation: isESDTScrNotDestinationMeta,
 			IsNFTOperation:  isNFTScrNotDestinationMeta,

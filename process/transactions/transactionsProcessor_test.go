@@ -77,7 +77,6 @@ func TestTestAddToAlteredAddressesESDTOnMeta(t *testing.T) {
 	tx := &data.Transaction{
 		Sender:              sender,
 		Receiver:            receiver,
-		EsdtValue:           "123",
 		EsdtTokenIdentifier: tokenIdentifier,
 	}
 	alteredAddress := make(map[string]*data.AlteredAccount)
@@ -86,7 +85,12 @@ func TestTestAddToAlteredAddressesESDTOnMeta(t *testing.T) {
 		ReceiverShardID: core.MetachainShardId,
 	}
 
-	addToAlteredAddresses(tx, alteredAddress, mb, selfShardID, false)
+	grouper := txsGrouper{
+		txBuilder: &dbTransactionBuilder{
+			esdtProc: newEsdtTransactionHandler(),
+		},
+	}
+	grouper.addToAlteredAddresses(tx, alteredAddress, mb, selfShardID, false)
 
 	alteredAccounts, ok := alteredAddress[receiver]
 	require.True(t, ok)
