@@ -266,11 +266,11 @@ func addToAlteredAddresses(
 		return
 	}
 
-	isESDTOnDestination := isESDTTx && selfShardID != core.MetachainShardId
+	isESDTNotDestinationMeta := isESDTTx && selfShardID != core.MetachainShardId
 	if selfShardID == miniBlock.ReceiverShardID || miniBlock.ReceiverShardID == core.AllShardId {
 		alteredAddresses[tx.Receiver] = &data.AlteredAccount{
 			IsSender:        false,
-			IsESDTOperation: isESDTOnDestination,
+			IsESDTOperation: isESDTNotDestinationMeta,
 			TokenIdentifier: tx.EsdtTokenIdentifier,
 		}
 	}

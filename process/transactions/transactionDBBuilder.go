@@ -186,10 +186,10 @@ func (dtb *dbTransactionBuilder) addScrsReceiverToAlteredAccounts(
 			continue
 		}
 
-		isESDTOnDestination := scr.EsdtTokenIdentifier != "" && scr.EsdtValue != "" && dtb.shardCoordinator.SelfId() != core.MetachainShardId
+		isESDTNotDestinationMeta := scr.EsdtTokenIdentifier != "" && scr.EsdtValue != "" && dtb.shardCoordinator.SelfId() != core.MetachainShardId
 		encodedReceiverAddress := scr.Receiver
 		alteredAddress[encodedReceiverAddress] = &data.AlteredAccount{
-			IsESDTOperation: isESDTOnDestination,
+			IsESDTOperation: isESDTNotDestinationMeta,
 			TokenIdentifier: scr.EsdtTokenIdentifier,
 		}
 	}
