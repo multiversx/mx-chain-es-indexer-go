@@ -50,20 +50,47 @@ func TestAddToAlteredAddresses(t *testing.T) {
 
 	addToAlteredAddresses(tx, alteredAddress, mb, selfShardID, false)
 
-	alterdAccount, ok := alteredAddress[receiver]
+	alteredAccounts, ok := alteredAddress[receiver]
 	require.True(t, ok)
 	require.Equal(t, &data.AlteredAccount{
 		IsESDTOperation: true,
 		TokenIdentifier: tokenIdentifier,
-	}, alterdAccount)
+	}, alteredAccounts)
 
-	alterdAccount, ok = alteredAddress[sender]
+	alteredAccounts, ok = alteredAddress[sender]
 	require.True(t, ok)
 	require.Equal(t, &data.AlteredAccount{
 		IsSender:        true,
 		IsESDTOperation: true,
 		TokenIdentifier: tokenIdentifier,
-	}, alterdAccount)
+	}, alteredAccounts)
+}
+
+func TestTestAddToAlteredAddressesESDTOnMeta(t *testing.T) {
+	sender := "senderAddress"
+	receiver := "receiverAddress"
+	tokenIdentifier := "Test-token"
+	tx := &data.Transaction{
+		Sender:              sender,
+		Receiver:            receiver,
+		EsdtValue:           "123",
+		EsdtTokenIdentifier: tokenIdentifier,
+	}
+	alteredAddress := make(map[string]*data.AlteredAccount)
+	selfShardID := core.MetachainShardId
+	mb := &block.MiniBlock{
+		ReceiverShardID: core.MetachainShardId,
+	}
+
+	addToAlteredAddresses(tx, alteredAddress, mb, selfShardID, false)
+
+	alteredAccounts, ok := alteredAddress[receiver]
+	require.True(t, ok)
+	require.Equal(t, &data.AlteredAccount{
+		IsESDTOperation: false,
+		TokenIdentifier: tokenIdentifier,
+	}, alteredAccounts)
+
 }
 
 func TestIsSCRForSenderWithGasUsed(t *testing.T) {

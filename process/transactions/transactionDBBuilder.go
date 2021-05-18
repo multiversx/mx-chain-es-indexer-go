@@ -185,9 +185,11 @@ func (dtb *dbTransactionBuilder) addScrsReceiverToAlteredAccounts(
 			// the smart contract results that don't alter the balance of the receiver address should be ignored
 			continue
 		}
+
+		isESDTNotDestinationMeta := scr.EsdtTokenIdentifier != "" && scr.EsdtValue != "" && dtb.shardCoordinator.SelfId() != core.MetachainShardId
 		encodedReceiverAddress := scr.Receiver
 		alteredAddress[encodedReceiverAddress] = &data.AlteredAccount{
-			IsESDTOperation: scr.EsdtTokenIdentifier != "" && scr.EsdtValue != "",
+			IsESDTOperation: isESDTNotDestinationMeta,
 			TokenIdentifier: scr.EsdtTokenIdentifier,
 		}
 	}
