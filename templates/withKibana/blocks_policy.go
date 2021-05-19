@@ -33,8 +33,12 @@ var BlocksPolicy = Object{
 						},
 					},
 				},
-				"transitions": Object{},
+				"transitions": Array{},
 			},
+		},
+		"ism_template": Object{
+			"index_patterns": Array{"blocks-*"},
+			"priority":       100,
 		},
 	},
 }

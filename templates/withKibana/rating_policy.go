@@ -36,5 +36,9 @@ var RatingPolicy = Object{
 				"transitions": Array{},
 			},
 		},
+		"ism_template": Object{
+			"index_patterns": Array{"rating-*"},
+			"priority":       100,
+		},
 	},
 }

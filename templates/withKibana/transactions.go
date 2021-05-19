@@ -6,9 +6,8 @@ var Transactions = Object{
 		"transactions-*",
 	},
 	"settings": Object{
-		"number_of_shards":                                 5,
-		"number_of_replicas":                               0,
-		"opendistro.index_state_management.policy_id":      "transactions_policy",
+		"number_of_shards":   5,
+		"number_of_replicas": 0,
 		"opendistro.index_state_management.rollover_alias": "transactions",
 		"index": Object{
 			"sort.field": Array{
