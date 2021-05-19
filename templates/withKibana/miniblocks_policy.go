@@ -36,5 +36,9 @@ var MiniblocksPolicy = Object{
 				"transitions": Array{},
 			},
 		},
+		"ism_template": Object{
+			"index_patterns": Array{"miniblocks-*"},
+			"priority":       100,
+		},
 	},
 }

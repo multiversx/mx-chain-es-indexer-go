@@ -36,5 +36,9 @@ var TransactionsPolicy = Object{
 				"transitions": Array{},
 			},
 		},
+		"ism_template": Object{
+			"index_patterns": Array{"transactions-*"},
+			"priority":       100,
+		},
 	},
 }

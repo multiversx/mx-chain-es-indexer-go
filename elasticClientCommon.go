@@ -143,6 +143,15 @@ func kibanaResponseErrorHandler(res *esapi.Response) error {
 		return decodeErr
 	}
 
+	errStr := fmt.Sprintf("%v", errorRes.Error)
+	if errorRes.Status == http.StatusConflict && strings.Contains(errStr, errPolicyAlreadyExists) {
+		return nil
+	}
+
+	if errorRes.Error == nil && errorRes.Status < http.StatusBadRequest {
+		return nil
+	}
+
 	log.Warn("elasticClient.parseResponse",
 		"error returned by elastic API", errorRes.Error,
 		"code", res.StatusCode)

@@ -109,17 +109,17 @@ func checkArgElasticProcessor(arguments ArgElasticProcessor) error {
 	return nil
 }
 
-func (ei *elasticProcessor) initWithKibana(indexTemplates, _ map[string]*bytes.Buffer) error {
+func (ei *elasticProcessor) initWithKibana(indexTemplates, indexPolicies map[string]*bytes.Buffer) error {
 	err := ei.createOpenDistroTemplates(indexTemplates)
 	if err != nil {
 		return err
 	}
 
-	// TODO: Re-activate after we think of a solid way to handle forks+rotating indexes
-	//err = ei.createIndexPolicies(indexPolicies)
-	//if err != nil {
-	//	return err
-	//}
+	//TODO: Re-activate after we think of a solid way to handle forks+rotating indexes
+	// err = ei.createIndexPolicies(indexPolicies)
+	// if err != nil {
+	// 	return err
+	// }
 
 	err = ei.createIndexTemplates(indexTemplates)
 	if err != nil {
@@ -158,6 +158,22 @@ func (ei *elasticProcessor) initNoKibana(indexTemplates map[string]*bytes.Buffer
 	err = ei.createAliases()
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (ei *elasticProcessor) createIndexPolicies(indexPolicies map[string]*bytes.Buffer) error {
+	indexesPolicies := []string{txPolicy, blockPolicy, miniblocksPolicy, ratingPolicy, roundPolicy, validatorsPolicy, accountsHistoryPolicy}
+	for _, indexPolicyName := range indexesPolicies {
+		indexPolicy := getTemplateByName(indexPolicyName, indexPolicies)
+		if indexPolicy != nil {
+			err := ei.elasticClient.CheckAndCreatePolicy(indexPolicyName, indexPolicy)
+			if err != nil {
+				log.Error("check and create policy", "policy", indexPolicy, "err", err)
+				return err
+			}
+		}
 	}
 
 	return nil
