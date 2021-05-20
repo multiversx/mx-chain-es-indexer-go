@@ -219,7 +219,7 @@ func (ec *elasticClient) PolicyExists(policy string) bool {
 		return false
 	}
 
-	return existsRes.Ok
+	return existsRes.Status == http.StatusConflict
 }
 
 // AliasExists checks if an index alias already exists
@@ -265,9 +265,8 @@ func (ec *elasticClient) createIndex(index string) error {
 // CreatePolicy creates a new policy for elastic indexes. Policies define rollover parameters
 func (ec *elasticClient) createPolicy(policyName string, policy *bytes.Buffer) error {
 	policyRoute := fmt.Sprintf(
-		"%s/%s/ism/policies/%s",
+		"%s/_opendistro/_ism/policies/%s",
 		ec.elasticBaseUrl,
-		kibanaPluginPath,
 		policyName,
 	)
 
@@ -295,7 +294,8 @@ func (ec *elasticClient) createPolicy(policyName string, policy *bytes.Buffer) e
 		return err
 	}
 
-	if !existsRes.Ok && !strings.Contains(existsRes.Error, errPolicyAlreadyExists) {
+	errStr := fmt.Sprintf("%v", existsRes.Error)
+	if existsRes.Status == http.StatusConflict && !strings.Contains(errStr, errPolicyAlreadyExists) {
 		return indexer.ErrCouldNotCreatePolicy
 	}
 

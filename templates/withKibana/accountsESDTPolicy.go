@@ -36,5 +36,9 @@ var AccountsESDTPolicy = Object{
 				"transitions": Array{},
 			},
 		},
+		"ism_template": Object{
+			"index_patterns": Array{"accountsesdt-*"},
+			"priority":       100,
+		},
 	},
 }

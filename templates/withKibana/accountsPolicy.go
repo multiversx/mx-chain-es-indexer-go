@@ -36,5 +36,9 @@ var AccountsPolicy = Object{
 				"transitions": Array{},
 			},
 		},
+		"ism_template": Object{
+			"index_patterns": Array{"accounts-*"},
+			"priority":       100,
+		},
 	},
 }

@@ -36,5 +36,9 @@ var ValidatorsPolicy = Object{
 				"transitions": Array{},
 			},
 		},
+		"ism_template": Object{
+			"index_patterns": Array{"validators-*"},
+			"priority":       100,
+		},
 	},
 }

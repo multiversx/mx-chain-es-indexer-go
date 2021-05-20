@@ -30,8 +30,8 @@ type TPS struct {
 
 // Response is a structure that holds response from Kibana
 type Response struct {
-	Ok    bool   `json:"ok"`
-	Error string `json:"error,omitempty"`
+	Error  interface{} `json:"error,omitempty"`
+	Status int         `json:"status"`
 }
 
 // ValidatorRatingInfo is a structure containing validator rating information

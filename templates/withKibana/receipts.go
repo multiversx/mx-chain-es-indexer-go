@@ -16,7 +16,6 @@ var Receipts = Object{
 				"desc",
 			},
 		},
-		"opendistro.index_state_management.policy_id":      "receipts_policy",
 		"opendistro.index_state_management.rollover_alias": "receipts",
 	},
 	"mappings": Object{

@@ -36,5 +36,9 @@ var AccountsHistoryPolicy = Object{
 				"transitions": Array{},
 			},
 		},
+		"ism_template": Object{
+			"index_patterns": Array{"accountshistory-*"},
+			"priority":       100,
+		},
 	},
 }

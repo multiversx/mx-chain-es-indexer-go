@@ -36,5 +36,9 @@ var RoundsPolicy = Object{
 				"transitions": Array{},
 			},
 		},
+		"ism_template": Object{
+			"index_patterns": Array{"rounds-*"},
+			"priority":       100,
+		},
 	},
 }
