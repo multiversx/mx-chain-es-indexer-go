@@ -1,7 +1,6 @@
-package indexer
+package transactions
 
 import (
-	"bytes"
 	"encoding/hex"
 	"fmt"
 	"math/big"
@@ -21,10 +20,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func createCommonProcessor() commonProcessor {
-	return commonProcessor{
-		addressPubkeyConverter:   mock.NewPubkeyConverterMock(32),
-		validatorPubkeyConverter: mock.NewPubkeyConverterMock(32),
+func createCommonProcessor() dbTransactionBuilder {
+	return dbTransactionBuilder{
+		addressPubkeyConverter: mock.NewPubkeyConverterMock(32),
 		txFeeCalculator: &economicsmocks.EconomicsHandlerStub{
 			ComputeTxFeeBasedOnGasUsedCalled: func(tx process.TransactionWithFeeHandler, gasUsed uint64) *big.Int {
 				return big.NewInt(100)
@@ -34,6 +32,7 @@ func createCommonProcessor() commonProcessor {
 			},
 		},
 		shardCoordinator: &mock.ShardCoordinatorMock{},
+		esdtProc:         newEsdtTransactionHandler(),
 	}
 }
 
@@ -87,7 +86,7 @@ func TestGetMoveBalanceTransaction(t *testing.T) {
 		SenderUserName:       []byte("snd"),
 	}
 
-	dbTx := cp.buildTransaction(tx, txHash, mbHash, mb, header, status)
+	dbTx := cp.prepareTransaction(tx, txHash, mbHash, mb, header, status)
 	require.Equal(t, expectedTx, dbTx)
 }
 
@@ -110,12 +109,13 @@ func TestGetTransactionByType_SC(t *testing.T) {
 		RcvAddr:    rcvAddr,
 		CallType:   vmcommon.CallType(1),
 	}
+	header := &block.Header{TimeStamp: 100}
 
-	scRes := cp.convertScResultInDatabaseScr(scHash, smartContractRes)
-	expectedTx := data.ScResult{
+	scRes := cp.prepareSmartContractResult(scHash, smartContractRes, header)
+	expectedTx := &data.ScResult{
 		Nonce:        nonce,
 		Hash:         hex.EncodeToString([]byte(scHash)),
-		PreTxHash:    hex.EncodeToString(txHash),
+		PrevTxHash:   hex.EncodeToString(txHash),
 		Code:         string(code),
 		Data:         make([]byte, 0),
 		Sender:       cp.addressPubkeyConverter.Encode(sndAddr),
@@ -123,6 +123,7 @@ func TestGetTransactionByType_SC(t *testing.T) {
 		Value:        "<nil>",
 		RelayedValue: "<nil>",
 		CallType:     "1",
+		Timestamp:    time.Duration(100),
 	}
 
 	require.Equal(t, expectedTx, scRes)
@@ -142,7 +143,7 @@ func TestGetTransactionByType_RewardTx(t *testing.T) {
 	header := &block.Header{Nonce: 2}
 	status := "Success"
 
-	resultTx := cp.buildRewardTransaction(rwdTx, txHash, mbHash, mb, header, status)
+	resultTx := cp.prepareRewardTransaction(rwdTx, txHash, mbHash, mb, header, status)
 	expectedTx := &data.Transaction{
 		Hash:     hex.EncodeToString(txHash),
 		MBHash:   hex.EncodeToString(mbHash),
@@ -155,21 +156,4 @@ func TestGetTransactionByType_RewardTx(t *testing.T) {
 	}
 
 	require.Equal(t, expectedTx, resultTx)
-}
-
-func TestPrepareBufferMiniblocks(t *testing.T) {
-	var buff bytes.Buffer
-
-	meta := []byte("test1")
-	serializedData := []byte("test2")
-
-	buff = prepareBufferMiniblocks(buff, meta, serializedData)
-
-	var expectedBuff bytes.Buffer
-	serializedData = append(serializedData, "\n"...)
-	expectedBuff.Grow(len(meta) + len(serializedData))
-	_, _ = expectedBuff.Write(meta)
-	_, _ = expectedBuff.Write(serializedData)
-
-	require.Equal(t, expectedBuff, buff)
 }
