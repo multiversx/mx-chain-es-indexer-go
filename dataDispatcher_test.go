@@ -198,8 +198,6 @@ func TestDataDispatcher_RecoverPanic(t *testing.T) {
 	dispatcher, err := NewDataDispatcher(100)
 	require.NoError(t, err)
 
-	wg := &sync.WaitGroup{}
-	wg.Add(1)
 	elasticProc := &mock.ElasticProcessorStub{
 		SaveRoundsInfoCalled: func(infos []*data.RoundInfo) error {
 			panic(1)
