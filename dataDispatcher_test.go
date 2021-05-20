@@ -186,3 +186,24 @@ func TestDataDispatcher_Close(t *testing.T) {
 
 	cancelFunc()
 }
+
+func TestDataDispatcher_RecoverPanic(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		r := recover()
+		require.NotNil(t, r)
+	}()
+
+	dispatcher, err := NewDataDispatcher(100)
+	require.NoError(t, err)
+
+	elasticProc := &mock.ElasticProcessorStub{
+		SaveRoundsInfoCalled: func(infos []*data.RoundInfo) error {
+			panic(1)
+		},
+	}
+
+	dispatcher.Add(workItems.NewItemRounds(elasticProc, []*data.RoundInfo{}))
+	dispatcher.doDataDispatch(context.Background())
+}

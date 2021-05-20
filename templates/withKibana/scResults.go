@@ -16,7 +16,6 @@ var SCResults = Object{
 				"desc",
 			},
 		},
-		"opendistro.index_state_management.policy_id":      "scresults_policy",
 		"opendistro.index_state_management.rollover_alias": "scresults",
 	},
 	"mappings": Object{

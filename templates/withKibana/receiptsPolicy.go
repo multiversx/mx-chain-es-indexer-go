@@ -36,5 +36,9 @@ var ReceiptsPolicy = Object{
 				"transitions": Array{},
 			},
 		},
+		"ism_template": Object{
+			"index_patterns": Array{"receipts-*"},
+			"priority":       100,
+		},
 	},
 }

@@ -6,9 +6,8 @@ var Rating = Object{
 		"rating-*",
 	},
 	"settings": Object{
-		"number_of_shards":                                 1,
-		"number_of_replicas":                               0,
-		"opendistro.index_state_management.policy_id":      "rating_policy",
+		"number_of_shards":   1,
+		"number_of_replicas": 0,
 		"opendistro.index_state_management.rollover_alias": "rating",
 	},
 	"mappings": Object{

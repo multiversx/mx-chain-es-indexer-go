@@ -3,6 +3,7 @@ package indexer
 import (
 	"context"
 	"errors"
+	"runtime/debug"
 	"sync"
 	"time"
 
@@ -56,6 +57,16 @@ func (d *dataDispatcher) StartIndexData() {
 }
 
 func (d *dataDispatcher) doDataDispatch(ctx context.Context) {
+	defer func() {
+		r := recover()
+		if r != nil {
+			log.Error("d.doDataDispatch",
+				"message", r,
+				"panic", string(debug.Stack()))
+			panic(r)
+		}
+	}()
+
 	for {
 		select {
 		case <-ctx.Done():

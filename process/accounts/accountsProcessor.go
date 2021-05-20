@@ -68,7 +68,7 @@ func (ap *accountsProcessor) GetAccounts(alteredAccounts map[string]*data.Altere
 	accountsToIndexESDT := make([]*data.AccountESDT, 0)
 	for address, info := range alteredAccounts {
 		userAccount, err := ap.getUserAccount(address)
-		if err != nil {
+		if err != nil || check.IfNil(userAccount) {
 			log.Warn("cannot get user account", "address", address, "error", err)
 			continue
 		}
@@ -192,7 +192,7 @@ func (ap *accountsProcessor) PrepareAccountsHistory(
 
 func (ap *accountsProcessor) getESDTInfo(accountESDT *data.AccountESDT) (*big.Int, string, error) {
 	if accountESDT.TokenIdentifier == "" {
-		return nil, "", nil
+		return big.NewInt(0), "", nil
 	}
 	if accountESDT.IsNFTOperation && accountESDT.NFTNonceString == "" {
 		return big.NewInt(0), "", nil
