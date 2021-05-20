@@ -26,12 +26,6 @@ type (
 	objectsMap           = map[string]interface{}
 )
 
-type kibanaResponse struct {
-	Error  interface{} `json:"error,omitempty"`
-	Status int         `json:"status"`
-}
-
-
 type elasticClient struct {
 	elasticBaseUrl string
 	es             *elasticsearch.Client
@@ -295,7 +289,6 @@ func (ec *elasticClient) createPolicy(policyName string, policy *bytes.Buffer) e
 	}
 
 	existsRes := &data.Response{}
-	existsRes := &kibanaResponse{}
 	err = parseResponse(response, existsRes, kibanaResponseErrorHandler)
 	if err != nil {
 		return err
@@ -303,7 +296,7 @@ func (ec *elasticClient) createPolicy(policyName string, policy *bytes.Buffer) e
 
 	errStr := fmt.Sprintf("%v", existsRes.Error)
 	if existsRes.Status == http.StatusConflict && !strings.Contains(errStr, errPolicyAlreadyExists) {
-		return ErrCouldNotCreatePolicy
+		return indexer.ErrCouldNotCreatePolicy
 	}
 
 	return nil
