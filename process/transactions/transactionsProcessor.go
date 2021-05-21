@@ -177,18 +177,24 @@ func (tdp *txsDatabaseProcessor) setDetailsOfATxWithSCRS(tx *data.Transaction, n
 		return
 	}
 
-	if len(tx.SmartContractResults) > 0 {
-		scResultData := tx.SmartContractResults[0].Data
-		if isScResultSuccessful(scResultData) {
-			// ESDT contract calls generate only one smart contract result
-			return
-		}
+	if hasSCRSWithOk(tx) {
+		return
 	}
 
 	tx.Status = transaction.TxStatusFail.String()
 	tx.GasUsed = tx.GasLimit
 	fee := tdp.txFeeCalculator.ComputeTxFeeBasedOnGasUsed(tx, tx.GasUsed)
 	tx.Fee = fee.String()
+}
+
+func hasSCRSWithOk(tx *data.Transaction) bool {
+	for _, scr := range tx.SmartContractResults {
+		if isScResultSuccessful(scr.Data) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (tdp *txsDatabaseProcessor) iterateSCRSAndConvert(
