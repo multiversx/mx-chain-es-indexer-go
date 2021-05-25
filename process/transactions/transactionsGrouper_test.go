@@ -180,3 +180,33 @@ func TestAddToAlteredAddressesESDT(t *testing.T) {
 		NFTNonceString:  "",
 	}, alteredAddresses["sender"])
 }
+
+func TestAddToAlteredAddressesESDTInvalidMiniblock(t *testing.T) {
+	t.Parallel()
+
+	grouper := txsGrouper{
+		txBuilder: &dbTransactionBuilder{
+			esdtProc: newEsdtTransactionHandler(),
+		},
+	}
+
+	alteredAddresses := map[string]*data.AlteredAccount{}
+	mb := &block.MiniBlock{
+		SenderShardID:   0,
+		ReceiverShardID: 0,
+		Type:            block.InvalidBlock,
+	}
+	grouper.addToAlteredAddresses(&data.Transaction{
+		Data:                []byte("ESDTTransfer@31323334352d373066366534@174876e800"),
+		Sender:              "sender",
+		Receiver:            "sender",
+		EsdtTokenIdentifier: "MY-TOKEN",
+	}, alteredAddresses, mb, 0, false)
+	require.Equal(t, &data.AlteredAccount{
+		IsNFTOperation:  false,
+		IsESDTOperation: false,
+		IsSender:        true,
+		TokenIdentifier: "MY-TOKEN",
+		NFTNonceString:  "",
+	}, alteredAddresses["sender"])
+}

@@ -190,6 +190,15 @@ func (dtb *dbTransactionBuilder) addScrsReceiverToAlteredAccounts(
 		isMeta := dtb.shardCoordinator.SelfId() == core.MetachainShardId
 		isESDTScrNotDestinationMeta := isESDTScr && !isMeta
 		isNFTScrNotDestinationMeta := isNFTScr && !isMeta
+
+		_, ok := alteredAddress[encodedReceiverAddress]
+		if ok {
+			//  TODO treat this case in the next PR
+			//  is a case when an account will send and receive and ESDT or NFT in the same block
+			//  should be 2 entries in the altered accounts
+			continue
+		}
+
 		alteredAddress[encodedReceiverAddress] = &data.AlteredAccount{
 			IsESDTOperation: isESDTScrNotDestinationMeta,
 			IsNFTOperation:  isNFTScrNotDestinationMeta,
