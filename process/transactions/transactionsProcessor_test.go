@@ -9,6 +9,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elrond-go/core"
+	"github.com/ElrondNetwork/elrond-go/core/pubkeyConverter"
 	nodeData "github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/block"
 	"github.com/ElrondNetwork/elrond-go/data/indexer"
@@ -41,14 +42,18 @@ func TestAddToAlteredAddresses(t *testing.T) {
 	tx := &data.Transaction{
 		Sender:              sender,
 		Receiver:            receiver,
-		EsdtValue:           "123",
 		EsdtTokenIdentifier: tokenIdentifier,
 	}
 	alteredAddress := make(map[string]*data.AlteredAccount)
 	selfShardID := uint32(0)
 	mb := &block.MiniBlock{}
 
-	addToAlteredAddresses(tx, alteredAddress, mb, selfShardID, false)
+	grouper := txsGrouper{
+		txBuilder: &dbTransactionBuilder{
+			esdtProc: newEsdtTransactionHandler(),
+		},
+	}
+	grouper.addToAlteredAddresses(tx, alteredAddress, mb, selfShardID, false)
 
 	alteredAccounts, ok := alteredAddress[receiver]
 	require.True(t, ok)
@@ -73,7 +78,6 @@ func TestTestAddToAlteredAddressesESDTOnMeta(t *testing.T) {
 	tx := &data.Transaction{
 		Sender:              sender,
 		Receiver:            receiver,
-		EsdtValue:           "123",
 		EsdtTokenIdentifier: tokenIdentifier,
 	}
 	alteredAddress := make(map[string]*data.AlteredAccount)
@@ -82,7 +86,12 @@ func TestTestAddToAlteredAddressesESDTOnMeta(t *testing.T) {
 		ReceiverShardID: core.MetachainShardId,
 	}
 
-	addToAlteredAddresses(tx, alteredAddress, mb, selfShardID, false)
+	grouper := txsGrouper{
+		txBuilder: &dbTransactionBuilder{
+			esdtProc: newEsdtTransactionHandler(),
+		},
+	}
+	grouper.addToAlteredAddresses(tx, alteredAddress, mb, selfShardID, false)
 
 	alteredAccounts, ok := alteredAddress[receiver]
 	require.True(t, ok)
@@ -727,4 +736,89 @@ func TestTxsDatabaseProcessor_PrepareTransactionsForDatabaseESDTNFTTransfer(t *t
 	require.Equal(t, transaction.TxStatusSuccess.String(), resultedTx.Status)
 	require.Len(t, resultedTx.SmartContractResults, 1)
 	require.Equal(t, resultedTx.GasLimit, resultedTx.GasUsed)
+}
+
+func TestTxsDatabaseProcessor_IssueESDTTx(t *testing.T) {
+	t.Parallel()
+
+	args := createMockArgsTxsDBProc()
+	pubKeyConv, _ := pubkeyConverter.NewBech32PubkeyConverter(32)
+	args.AddressPubkeyConverter = pubKeyConv
+	args.ShardCoordinator = &mock.ShardCoordinatorMock{SelfID: core.MetachainShardId}
+	txDbProc, _ := NewTransactionsProcessor(args)
+
+	decodeBech32 := func(key string) []byte {
+		decoded, _ := pubKeyConv.Decode(key)
+		return decoded
+	}
+
+	// transaction success
+	body := &block.Body{
+		MiniBlocks: []*block.MiniBlock{
+			{
+				TxHashes:        [][]byte{[]byte("t1")},
+				Type:            block.TxBlock,
+				SenderShardID:   0,
+				ReceiverShardID: core.MetachainShardId,
+			},
+			{
+				TxHashes: [][]byte{[]byte("scr1"), []byte("scr2")},
+				Type:     block.SmartContractResultBlock,
+			},
+		},
+	}
+	header := &block.Header{}
+	pool := &indexer.Pool{
+		Txs: map[string]nodeData.TransactionHandler{
+			"t1": &transaction.Transaction{
+				SndAddr: decodeBech32("erd1dglncxk6sl9a3xumj78n6z2xux4ghp5c92cstv5zsn56tjgtdwpsk46qrs"),
+				RcvAddr: decodeBech32("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u"),
+				Data:    []byte("issue@4141414141@41414141414141@0186a0@01@63616e467265657a65@74727565@63616e57697065@74727565@63616e5061757365@74727565@63616e4d696e74@74727565@63616e4275726e@74727565@63616e4368616e67654f776e6572@74727565@63616e55706772616465@74727565"),
+			},
+		},
+		Scrs: map[string]nodeData.TransactionHandler{
+			"scr1": &smartContractResult.SmartContractResult{
+				OriginalTxHash: []byte("t1"),
+				Data:           []byte("ESDTTransfer@414141414141412d323436626461@0186a0"),
+				SndAddr:        decodeBech32("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u"),
+				RcvAddr:        decodeBech32("erd1dglncxk6sl9a3xumj78n6z2xux4ghp5c92cstv5zsn56tjgtdwpsk46qrs"),
+			},
+			"scr2": &smartContractResult.SmartContractResult{
+				OriginalTxHash: []byte("t1"),
+				Data:           []byte("@6f6b"),
+				SndAddr:        decodeBech32("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u"),
+				RcvAddr:        decodeBech32("erd1dglncxk6sl9a3xumj78n6z2xux4ghp5c92cstv5zsn56tjgtdwpsk46qrs"),
+			},
+		},
+	}
+
+	res := txDbProc.PrepareTransactionsForDatabase(body, header, pool)
+	require.Equal(t, "success", res.Transactions[0].Status)
+	require.Equal(t, 2, len(res.ScResults))
+
+	_, ok := res.AlteredAccounts["erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u"]
+	require.True(t, ok)
+
+	// transaction fail
+	pool = &indexer.Pool{
+		Txs: map[string]nodeData.TransactionHandler{
+			"t1": &transaction.Transaction{
+				SndAddr: decodeBech32("erd1dglncxk6sl9a3xumj78n6z2xux4ghp5c92cstv5zsn56tjgtdwpsk46qrs"),
+				RcvAddr: decodeBech32("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u"),
+				Data:    []byte("issue@4141414141@41414141414141@0186a0@01@63616e467265657a65@74727565@63616e57697065@74727565@63616e5061757365@74727565@63616e4d696e74@74727565@63616e4275726e@74727565@63616e4368616e67654f776e6572@74727565@63616e55706772616465@74727565"),
+			},
+		},
+		Scrs: map[string]nodeData.TransactionHandler{
+			"scr1": &smartContractResult.SmartContractResult{
+				OriginalTxHash: []byte("t1"),
+				Data:           []byte("75736572206572726f72"),
+				SndAddr:        decodeBech32("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u"),
+				RcvAddr:        decodeBech32("erd1dglncxk6sl9a3xumj78n6z2xux4ghp5c92cstv5zsn56tjgtdwpsk46qrs"),
+			},
+		},
+	}
+
+	res = txDbProc.PrepareTransactionsForDatabase(body, header, pool)
+	require.Equal(t, "fail", res.Transactions[0].Status)
+	require.Equal(t, 1, len(res.ScResults))
 }

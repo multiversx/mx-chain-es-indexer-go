@@ -58,6 +58,7 @@ type DBTransactionsHandler interface {
 	SerializeReceipts(receipts []*data.Receipt) ([]*bytes.Buffer, error)
 	SerializeTransactions(transactions []*data.Transaction, selfShardID uint32, mbsHashInDB map[string]bool) ([]*bytes.Buffer, error)
 	SerializeScResults(scResults []*data.ScResult) ([]*bytes.Buffer, error)
+	SerializeDeploysData(deploys []*data.ScDeployInfo) ([]*bytes.Buffer, error)
 }
 
 // DBMiniblocksHandler defines the actions that a miniblocks handler should do

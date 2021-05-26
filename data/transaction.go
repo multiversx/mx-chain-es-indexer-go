@@ -27,7 +27,6 @@ type Transaction struct {
 	Status               string        `json:"status"`
 	SearchOrder          uint32        `json:"searchOrder"`
 	EsdtTokenIdentifier  string        `json:"token,omitempty"`
-	EsdtValue            string        `json:"esdtValue,omitempty"`
 	SenderUserName       []byte        `json:"senderUserName,omitempty"`
 	ReceiverUserName     []byte        `json:"receiverUserName,omitempty"`
 	Logs                 *TxLog        `json:"logs,omitempty"`
@@ -99,7 +98,6 @@ type ScResult struct {
 	ReturnMessage       string        `json:"returnMessage,omitempty"`
 	Timestamp           time.Duration `json:"timestamp"`
 	EsdtTokenIdentifier string        `json:"token,omitempty"`
-	EsdtValue           string        `json:"esdtValue,omitempty"`
 }
 
 // TxLog holds all the data needed for a log structure
@@ -116,10 +114,18 @@ type Event struct {
 	Data       string   `json:"data"`
 }
 
-// PreparedResults is the TDO that holds all the results after processing
+// PreparedResults is the DTO that holds all the results after processing
 type PreparedResults struct {
 	Transactions    []*Transaction
 	ScResults       []*ScResult
 	Receipts        []*Receipt
 	AlteredAccounts map[string]*AlteredAccount
+	DeploysInfo     []*ScDeployInfo
+}
+
+// ScDeployInfo is the DTO that holds information about a smart contract deployment
+type ScDeployInfo struct {
+	ScAddress string `json:"-"`
+	TxHash    string `json:"deployTxHash"`
+	Creator   string `json:"deployer"`
 }

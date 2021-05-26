@@ -48,10 +48,10 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 	header nodeData.HeaderHandler,
 	txStatus string,
 ) *data.Transaction {
-	var tokenIdentifier, esdtValue string
-	isESDTTx := dtb.esdtProc.isESDTTx(tx)
+	var tokenIdentifier string
+	isESDTTx := dtb.esdtProc.isESDTTx(tx.Data)
 	if isESDTTx {
-		tokenIdentifier, esdtValue = dtb.esdtProc.getTokenIdentifierAndValue(tx)
+		tokenIdentifier = dtb.esdtProc.getTokenIdentifier(tx.Data)
 	}
 
 	gasUsed := dtb.txFeeCalculator.ComputeGasLimit(tx)
@@ -76,7 +76,6 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		Timestamp:            time.Duration(header.GetTimeStamp()),
 		Status:               txStatus,
 		EsdtTokenIdentifier:  tokenIdentifier,
-		EsdtValue:            esdtValue,
 		GasUsed:              gasUsed,
 		Fee:                  fee.String(),
 		ReceiverUserName:     tx.RcvUserName,
@@ -123,11 +122,11 @@ func (dtb *dbTransactionBuilder) prepareSmartContractResult(
 		relayerAddr = dtb.addressPubkeyConverter.Encode(sc.RelayerAddr)
 	}
 
-	var tokenIdentifier, esdtValue string
+	var tokenIdentifier string
 
-	isESDTTx := dtb.esdtProc.isESDTTx(sc)
+	isESDTTx := dtb.esdtProc.isESDTTx(sc.Data)
 	if isESDTTx {
-		tokenIdentifier, esdtValue = dtb.esdtProc.getTokenIdentifierAndValue(sc)
+		tokenIdentifier = dtb.esdtProc.getTokenIdentifier(sc.Data)
 	}
 
 	return &data.ScResult{
@@ -148,7 +147,6 @@ func (dtb *dbTransactionBuilder) prepareSmartContractResult(
 		CodeMetadata:        sc.CodeMetadata,
 		ReturnMessage:       string(sc.ReturnMessage),
 		EsdtTokenIdentifier: tokenIdentifier,
-		EsdtValue:           esdtValue,
 		Timestamp:           time.Duration(header.GetTimeStamp()),
 	}
 }
@@ -179,18 +177,44 @@ func (dtb *dbTransactionBuilder) addScrsReceiverToAlteredAccounts(
 			continue
 		}
 
-		egldBalanceNotChanged := scr.Value == "" || scr.Value == "0"
-		esdtBalanceNotChanged := scr.EsdtValue == "" || scr.EsdtValue == "0"
+		egldBalanceNotChanged := scr.Value == emptyString || scr.Value == "0"
+		esdtBalanceNotChanged := scr.EsdtTokenIdentifier == emptyString
 		if egldBalanceNotChanged && esdtBalanceNotChanged {
 			// the smart contract results that don't alter the balance of the receiver address should be ignored
 			continue
 		}
-
-		isESDTNotDestinationMeta := scr.EsdtTokenIdentifier != "" && scr.EsdtValue != "" && dtb.shardCoordinator.SelfId() != core.MetachainShardId
 		encodedReceiverAddress := scr.Receiver
+
+		isESDTScr, isNFTScr, nftNonceStr := dtb.computeESDTInfo(scr.Data, scr.EsdtTokenIdentifier)
+
+		isMeta := dtb.shardCoordinator.SelfId() == core.MetachainShardId
+		isESDTScrNotDestinationMeta := isESDTScr && !isMeta
+		isNFTScrNotDestinationMeta := isNFTScr && !isMeta
+
+		_, ok := alteredAddress[encodedReceiverAddress]
+		if ok {
+			//  TODO treat this case in the next PR
+			//  is a case when an account will send and receive and ESDT or NFT in the same block
+			//  should be 2 entries in the altered accounts
+			continue
+		}
+
 		alteredAddress[encodedReceiverAddress] = &data.AlteredAccount{
-			IsESDTOperation: isESDTNotDestinationMeta,
+			IsESDTOperation: isESDTScrNotDestinationMeta,
+			IsNFTOperation:  isNFTScrNotDestinationMeta,
+			NFTNonceString:  nftNonceStr,
 			TokenIdentifier: scr.EsdtTokenIdentifier,
 		}
 	}
+}
+
+func (dtb *dbTransactionBuilder) computeESDTInfo(dataField []byte, tokenIdentifier string) (isESDT, isNFT bool, nftNonceStr string) {
+	isNFT = dtb.esdtProc.isNFTTx(dataField)
+	if !isNFT {
+		isESDT = tokenIdentifier != emptyString
+		return
+	}
+
+	_, nftNonceStr = dtb.esdtProc.getNFTTxInfo(dataField)
+	return
 }

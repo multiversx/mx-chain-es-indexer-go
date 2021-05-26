@@ -7,7 +7,7 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/ElrondNetwork/elastic-indexer-go"
+	indexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-go-logger/check"
@@ -20,11 +20,13 @@ import (
 var log = logger.GetOrCreate("indexer/process/accounts")
 
 const numDecimalsInFloatBalance = 10
+const numDecimalsInFloatBalanceESDT = 18
 
 // accountsProcessor a is structure responsible for processing accounts
 type accountsProcessor struct {
 	dividerForDenomination float64
 	balancePrecision       float64
+	balancePrecisionESDT   float64
 	internalMarshalizer    marshal.Marshalizer
 	addressPubkeyConverter core.PubkeyConverter
 	accountsDB             state.AccountsAdapter
@@ -54,6 +56,7 @@ func NewAccountsProcessor(
 		internalMarshalizer:    marshalizer,
 		addressPubkeyConverter: addressPubkeyConverter,
 		balancePrecision:       math.Pow(10, float64(numDecimalsInFloatBalance)),
+		balancePrecisionESDT:   math.Pow(10, float64(numDecimalsInFloatBalanceESDT)),
 		dividerForDenomination: math.Pow(10, float64(core.MaxInt(denomination, 0))),
 		accountsDB:             accountsDB,
 	}, nil
@@ -70,17 +73,18 @@ func (ap *accountsProcessor) GetAccounts(alteredAccounts map[string]*data.Altere
 			continue
 		}
 
-		if info.IsESDTOperation {
+		if info.IsESDTOperation || info.IsNFTOperation {
 			accountsToIndexESDT = append(accountsToIndexESDT, &data.AccountESDT{
 				Account:         userAccount,
 				TokenIdentifier: info.TokenIdentifier,
 				IsSender:        info.IsSender,
+				IsNFTOperation:  info.IsNFTOperation,
+				NFTNonceString:  info.NFTNonceString,
 			})
 		}
 
-		if info.IsESDTOperation && !info.IsSender {
-			// should continue because he have an esdt transfer and the current account is not the sender
-			// this transfer will not affect the balance of the account
+		ignoreESDTReceiver := (info.IsESDTOperation || info.IsNFTOperation) && !info.IsSender
+		if ignoreESDTReceiver {
 			continue
 		}
 
@@ -117,7 +121,7 @@ func (ap *accountsProcessor) PrepareRegularAccountsMap(accounts []*data.Account)
 	accountsMap := make(map[string]*data.AccountInfo)
 	for _, userAccount := range accounts {
 		balance := userAccount.UserAccount.GetBalance()
-		balanceAsFloat := ap.computeBalanceAsFloat(balance)
+		balanceAsFloat := ap.computeBalanceAsFloat(balance, ap.balancePrecision)
 		acc := &data.AccountInfo{
 			Nonce:                    userAccount.UserAccount.GetNonce(),
 			Balance:                  balance.String(),
@@ -151,7 +155,7 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(accounts []*data.AccountESDT
 			Address:         address,
 			TokenIdentifier: accountESDT.TokenIdentifier,
 			Balance:         balance.String(),
-			BalanceNum:      ap.computeBalanceAsFloat(balance),
+			BalanceNum:      ap.computeBalanceAsFloat(balance, ap.balancePrecisionESDT),
 			Properties:      properties,
 			IsSender:        accountESDT.IsSender,
 			IsSmartContract: core.IsSmartContractAddress(accountESDT.Account.AddressBytes()),
@@ -189,9 +193,19 @@ func (ap *accountsProcessor) getESDTInfo(accountESDT *data.AccountESDT) (*big.In
 	if accountESDT.TokenIdentifier == "" {
 		return big.NewInt(0), "", nil
 	}
+	if accountESDT.IsNFTOperation && accountESDT.NFTNonceString == "" {
+		return big.NewInt(0), "", nil
+	}
 
-	tokenKey := core.ElrondProtectedKeyPrefix + core.ESDTKeyIdentifier + accountESDT.TokenIdentifier
-	valueBytes, err := accountESDT.Account.DataTrieTracker().RetrieveValue([]byte(tokenKey))
+	tokenKey := []byte(core.ElrondProtectedKeyPrefix + core.ESDTKeyIdentifier + accountESDT.TokenIdentifier)
+	if accountESDT.IsNFTOperation {
+		nonceBig, ok := big.NewInt(0).SetString(accountESDT.NFTNonceString, 10)
+		if ok {
+			tokenKey = append(tokenKey, nonceBig.Bytes()...)
+		}
+	}
+
+	valueBytes, err := accountESDT.Account.DataTrieTracker().RetrieveValue(tokenKey)
 	if err != nil {
 		return nil, "", err
 	}
@@ -202,10 +216,14 @@ func (ap *accountsProcessor) getESDTInfo(accountESDT *data.AccountESDT) (*big.In
 		return nil, "", err
 	}
 
+	if esdtToken.Value == nil {
+		return big.NewInt(0), "", nil
+	}
+
 	return esdtToken.Value, hex.EncodeToString(esdtToken.Properties), nil
 }
 
-func (ap *accountsProcessor) computeBalanceAsFloat(balance *big.Int) float64 {
+func (ap *accountsProcessor) computeBalanceAsFloat(balance *big.Int, balancePrecision float64) float64 {
 	if balance == nil || balance == big.NewInt(0) {
 		return 0
 	}
@@ -214,7 +232,8 @@ func (ap *accountsProcessor) computeBalanceAsFloat(balance *big.Int) float64 {
 	balanceFloat64, _ := balanceBigFloat.Float64()
 
 	bal := balanceFloat64 / ap.dividerForDenomination
-	balanceFloatWithDecimals := math.Round(bal*ap.balancePrecision) / ap.balancePrecision
+
+	balanceFloatWithDecimals := math.Round(bal*balancePrecision) / balancePrecision
 
 	return core.MaxFloat64(balanceFloatWithDecimals, 0)
 }

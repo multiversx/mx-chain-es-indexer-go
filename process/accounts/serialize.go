@@ -15,7 +15,7 @@ func (ap *accountsProcessor) SerializeAccounts(
 ) ([]*bytes.Buffer, error) {
 	buffSlice := data.NewBufferSlice()
 	for address, acc := range accounts {
-		meta, serializedData, err := prepareSerializedAccountInfo(address, acc, areESDTAccounts)
+		meta, serializedData, err := prepareSerializedAccount(address, acc, areESDTAccounts)
 		if err != nil {
 			return nil, err
 		}
@@ -27,6 +27,26 @@ func (ap *accountsProcessor) SerializeAccounts(
 	}
 
 	return buffSlice.Buffers(), nil
+}
+
+func prepareSerializedAccount(address string, acc *data.AccountInfo, isESDT bool) ([]byte, []byte, error) {
+	if acc.Balance == "0" || acc.Balance == "" {
+		meta := prepareDeleteAccountInfo(address, acc, isESDT)
+		return meta, nil, nil
+	}
+
+	return prepareSerializedAccountInfo(address, acc, isESDT)
+}
+
+func prepareDeleteAccountInfo(address string, acct *data.AccountInfo, isESDT bool) []byte {
+	id := address
+	if isESDT {
+		id += "_" + acct.TokenIdentifier
+	}
+
+	meta := []byte(fmt.Sprintf(`{ "delete" : { "_id" : "%s" } }%s`, id, "\n"))
+
+	return meta
 }
 
 func prepareSerializedAccountInfo(
