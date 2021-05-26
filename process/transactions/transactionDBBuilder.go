@@ -199,6 +199,15 @@ func (dtb *dbTransactionBuilder) addScrsReceiverToAlteredAccounts(
 			continue
 		}
 
+		if isESDTScrNotDestinationMeta || isNFTScrNotDestinationMeta {
+			alteredAddress[scr.Sender] = &data.AlteredAccount{
+				IsESDTOperation: isESDTScrNotDestinationMeta,
+				IsNFTOperation:  isNFTScrNotDestinationMeta,
+				TokenIdentifier: scr.EsdtTokenIdentifier,
+				NFTNonceString:  nftNonceStr,
+			}
+		}
+
 		alteredAddress[encodedReceiverAddress] = &data.AlteredAccount{
 			IsESDTOperation: isESDTScrNotDestinationMeta,
 			IsNFTOperation:  isNFTScrNotDestinationMeta,

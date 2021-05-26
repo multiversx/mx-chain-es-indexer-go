@@ -6,6 +6,7 @@ import (
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
+	"github.com/ElrondNetwork/elrond-go/core/pubkeyConverter"
 	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/stretchr/testify/require"
 )
@@ -161,16 +162,16 @@ func TestSearchSCRSWithCreateNFTAndPutNonceInAlteredAddress(t *testing.T) {
 		},
 	}
 
-	esdtProc.searchSCRSWithCreateNFTAndPutNonceInAlteredAddress(alteredAddresses, scrs)
+	esdtProc.searchForESDTInScrs(alteredAddresses, scrs)
 	require.Equal(t, &data.AlteredAccount{
 		NFTNonceString: "1",
 	}, alteredAddresses["sender"])
 }
 
-func TestSearchHTxWithNFTTransfer(t *testing.T) {
+func TestSearchTxWithNFTTransfer(t *testing.T) {
 	t.Parallel()
 
-	esdtProc := newEsdtTransactionHandler(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{})
+	esdtProc := newEsdtTransactionHandler(mock.NewPubkeyConverterMock(9), &mock.ShardCoordinatorMock{})
 	alteredAddresses := map[string]*data.AlteredAccount{}
 
 	txs := map[string]*data.Transaction{
@@ -191,4 +192,24 @@ func TestSearchHTxWithNFTTransfer(t *testing.T) {
 		TokenIdentifier: "token",
 		NFTNonceString:  "1",
 	}, res)
+}
+
+func TestSearchTxWithNFTTransferWrongAddress(t *testing.T) {
+	t.Parallel()
+
+	addressEncoder, _ := pubkeyConverter.NewBech32PubkeyConverter(32)
+	esdtProc := newEsdtTransactionHandler(addressEncoder, &mock.ShardCoordinatorMock{})
+	alteredAddresses := map[string]*data.AlteredAccount{}
+
+	txs := map[string]*data.Transaction{
+		"hash": {
+			Sender:   "sender",
+			Receiver: "receiver",
+			Data:     []byte("ESDTNFTTransfer@746f6b656e@01@01@726563656976657231"),
+		},
+	}
+
+	esdtProc.searchForReceiverNFTTransferAndPutInAlteredAddress(txs, alteredAddresses)
+	_, ok := alteredAddresses["726563656976657231"]
+	require.False(t, ok)
 }

@@ -157,3 +157,27 @@ func TestGetTransactionByType_RewardTx(t *testing.T) {
 
 	require.Equal(t, expectedTx, resultTx)
 }
+
+func TestAddScrsReceiverToAlteredAccounts_ShouldWork(t *testing.T) {
+	t.Parallel()
+
+	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{}, &mock.EconomicsHandlerStub{})
+
+	alteredAddress := map[string]*data.AlteredAccount{}
+	scrs := []*data.ScResult{
+		{
+			Sender:              "sender",
+			Receiver:            "receiver",
+			EsdtTokenIdentifier: "my-token",
+			Data:                []byte("ESDTTransfer@544b4e2d626231323061@010f0cf064dd59200000"),
+		},
+	}
+	txBuilder.addScrsReceiverToAlteredAccounts(alteredAddress, scrs)
+	require.Equal(t, 2, len(alteredAddress))
+
+	_, ok := alteredAddress["sender"]
+	require.True(t, ok)
+
+	_, ok = alteredAddress["receiver"]
+	require.True(t, ok)
+}
