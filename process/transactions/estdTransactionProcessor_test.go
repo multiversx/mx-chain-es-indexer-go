@@ -129,10 +129,11 @@ func TestSearchTxsWithNFTCreateAndPutNonceInAlteredAddress(t *testing.T) {
 	esdtProc.searchTxsWithNFTCreateAndPutNonceInAlteredAddress(alteredAddresses, txs, scrs)
 	require.Equal(t, &data.AlteredAccount{
 		NFTNonceString: "1",
+		IsNFTOperation: true,
 	}, alteredAddresses["sender"])
 
 	esdtProc.searchTxsWithNFTCreateAndPutNonceInAlteredAddress(alteredAddressesEmpty, txs, scrs)
-	require.Equal(t, 0, len(alteredAddressesEmpty))
+	require.Equal(t, 1, len(alteredAddressesEmpty))
 }
 
 func TestSearchSCRSWithCreateNFTAndPutNonceInAlteredAddress(t *testing.T) {
@@ -149,10 +150,11 @@ func TestSearchSCRSWithCreateNFTAndPutNonceInAlteredAddress(t *testing.T) {
 			OriginalTxHash: hex.EncodeToString([]byte("anotherHash")),
 		},
 		{
-			OriginalTxHash: hex.EncodeToString(txHash),
-			Sender:         "sender",
-			Receiver:       "sender",
-			Data:           []byte("ESDTNFTCreate@4d494841492d666437653066@01@6d796e6674@0b@@@"),
+			OriginalTxHash:      hex.EncodeToString(txHash),
+			Sender:              "sender",
+			Receiver:            "sender",
+			EsdtTokenIdentifier: "my-token",
+			Data:                []byte("ESDTNFTCreate@4d494841492d666437653066@01@6d796e6674@0b@@@"),
 		},
 		{
 			OriginalTxHash: hex.EncodeToString(txHash),
@@ -164,7 +166,9 @@ func TestSearchSCRSWithCreateNFTAndPutNonceInAlteredAddress(t *testing.T) {
 
 	esdtProc.searchForESDTInScrs(alteredAddresses, scrs)
 	require.Equal(t, &data.AlteredAccount{
-		NFTNonceString: "1",
+		NFTNonceString:  "1",
+		IsNFTOperation:  true,
+		TokenIdentifier: "my-token",
 	}, alteredAddresses["sender"])
 }
 
