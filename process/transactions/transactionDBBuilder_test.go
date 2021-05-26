@@ -32,7 +32,7 @@ func createCommonProcessor() dbTransactionBuilder {
 			},
 		},
 		shardCoordinator: &mock.ShardCoordinatorMock{},
-		esdtProc:         newEsdtTransactionHandler(),
+		esdtProc:         newEsdtTransactionHandler(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{}),
 	}
 }
 

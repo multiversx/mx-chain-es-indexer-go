@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"math/big"
+	"strconv"
 	"time"
 
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
@@ -155,6 +156,7 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(accounts []*data.AccountESDT
 		acc := &data.AccountInfo{
 			Address:         address,
 			TokenIdentifier: accountESDT.TokenIdentifier,
+			TokenNonce:      convertStringToUint64(accountESDT.NFTNonceString),
 			Balance:         balance.String(),
 			BalanceNum:      ap.computeBalanceAsFloat(balance, ap.balancePrecisionESDT),
 			Properties:      properties,
@@ -166,6 +168,19 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(accounts []*data.AccountESDT
 	}
 
 	return accountsESDTMap
+}
+
+func convertStringToUint64(numberStr string) uint64 {
+	if numberStr == "" {
+		return 0
+	}
+
+	res, err := strconv.ParseUint(numberStr, 10, 64)
+	if err != nil {
+		return 0
+	}
+
+	return res
 }
 
 // PrepareAccountsHistory will prepare a map of accounts history balance from a map of accounts
@@ -180,6 +195,7 @@ func (ap *accountsProcessor) PrepareAccountsHistory(
 			Balance:         userAccount.Balance,
 			Timestamp:       time.Duration(timestamp),
 			TokenIdentifier: userAccount.TokenIdentifier,
+			TokenNonce:      userAccount.TokenNonce,
 			IsSender:        userAccount.IsSender,
 			IsSmartContract: userAccount.IsSmartContract,
 		}

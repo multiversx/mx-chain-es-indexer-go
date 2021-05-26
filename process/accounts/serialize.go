@@ -41,7 +41,7 @@ func prepareSerializedAccount(address string, acc *data.AccountInfo, isESDT bool
 func prepareDeleteAccountInfo(address string, acct *data.AccountInfo, isESDT bool) []byte {
 	id := address
 	if isESDT {
-		id += "_" + acct.TokenIdentifier
+		id += fmt.Sprintf("_%s_%d", acct.TokenIdentifier, acct.TokenNonce)
 	}
 
 	meta := []byte(fmt.Sprintf(`{ "delete" : { "_id" : "%s" } }%s`, id, "\n"))
@@ -56,7 +56,7 @@ func prepareSerializedAccountInfo(
 ) ([]byte, []byte, error) {
 	id := address
 	if isESDTAccount {
-		id += fmt.Sprintf("_%s", account.TokenIdentifier)
+		id += fmt.Sprintf("_%s_%d", account.TokenIdentifier, account.TokenNonce)
 	}
 
 	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, id, "\n"))

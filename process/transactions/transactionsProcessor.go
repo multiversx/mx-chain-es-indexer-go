@@ -127,6 +127,7 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 
 	tdp.txBuilder.esdtProc.searchTxsWithNFTCreateAndPutNonceInAlteredAddress(alteredAddresses, normalTxs, dbSCResults)
 	tdp.txBuilder.esdtProc.searchSCRSWithCreateNFTAndPutNonceInAlteredAddress(alteredAddresses, dbSCResults)
+	tdp.txBuilder.esdtProc.searchForReceiverNFTTransferAndPutInAlteredAddress(normalTxs, alteredAddresses)
 
 	sliceNormalTxs := convertMapTxsToSlice(normalTxs)
 	sliceRewardsTxs := convertMapTxsToSlice(rewardsTxs)

@@ -50,7 +50,7 @@ func TestAddToAlteredAddresses(t *testing.T) {
 
 	grouper := txsGrouper{
 		txBuilder: &dbTransactionBuilder{
-			esdtProc: newEsdtTransactionHandler(),
+			esdtProc: newEsdtTransactionHandler(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{}),
 		},
 	}
 	grouper.addToAlteredAddresses(tx, alteredAddress, mb, selfShardID, false)
@@ -88,7 +88,7 @@ func TestTestAddToAlteredAddressesESDTOnMeta(t *testing.T) {
 
 	grouper := txsGrouper{
 		txBuilder: &dbTransactionBuilder{
-			esdtProc: newEsdtTransactionHandler(),
+			esdtProc: newEsdtTransactionHandler(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{}),
 		},
 	}
 	grouper.addToAlteredAddresses(tx, alteredAddress, mb, selfShardID, false)

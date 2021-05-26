@@ -8,6 +8,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/parsers"
+	"github.com/ElrondNetwork/elrond-go/sharding"
 )
 
 const (
@@ -19,12 +20,19 @@ type esdtTransactionProcessor struct {
 	esdtOperations         map[string]struct{}
 	esdtNFTOperations      map[string]struct{}
 	argumentParserExtended *argumentsParserExtended
+	pubKeyConverter        core.PubkeyConverter
+	shardCoordinator       sharding.Coordinator
 }
 
-func newEsdtTransactionHandler() *esdtTransactionProcessor {
+func newEsdtTransactionHandler(
+	pubKeyConverter core.PubkeyConverter,
+	shardCoordinator sharding.Coordinator,
+) *esdtTransactionProcessor {
 	argsParser := parsers.NewCallArgsParser()
 	esdtTxProc := &esdtTransactionProcessor{
 		argumentParserExtended: newArgumentsParser(argsParser),
+		pubKeyConverter:        pubKeyConverter,
+		shardCoordinator:       shardCoordinator,
 	}
 
 	esdtTxProc.initESDTOperations()
@@ -182,13 +190,59 @@ func (etp *esdtTransactionProcessor) extractNonceString(scr *data.ScResult) stri
 	}
 
 	if scrDataSplit[1] != okHexConst {
-		return ""
+		return emptyString
 	}
 
-	nonceBytes, err := hex.DecodeString(scrDataSplit[2])
+	return getNonceString(scrDataSplit[2])
+}
+
+func getNonceString(arg string) string {
+	nonceBytes, err := hex.DecodeString(arg)
 	if err != nil {
-		return ""
+		return emptyString
 	}
 
 	return big.NewInt(0).SetBytes(nonceBytes).String()
+}
+
+func (etp *esdtTransactionProcessor) searchForReceiverNFTTransferAndPutInAlteredAddress(
+	txs map[string]*data.Transaction,
+	alteredAddresses map[string]*data.AlteredAccount,
+) {
+	for _, tx := range txs {
+		etp.nftTransferData(tx.Data, alteredAddresses)
+	}
+}
+
+func (etp *esdtTransactionProcessor) nftTransferData(dataField []byte, alteredAddresses map[string]*data.AlteredAccount) {
+	function, arguments, err := etp.argumentParserExtended.ParseData(string(dataField))
+	if err != nil {
+		return
+	}
+
+	if function != core.BuiltInFunctionESDTNFTTransfer {
+		return
+	}
+
+	if len(arguments) < 4 {
+		return
+	}
+
+	nonceStr := big.NewInt(0).SetBytes(arguments[1]).String()
+
+	receiverNFTTransfer := arguments[3]
+	receiverShardID := etp.shardCoordinator.ComputeId(receiverNFTTransfer)
+	if receiverShardID != etp.shardCoordinator.SelfId() {
+		return
+	}
+
+	encodedReceiverAddr := etp.pubKeyConverter.Encode(receiverNFTTransfer)
+	// TODO multiple ESDT operations same address next PR
+	alteredAddresses[encodedReceiverAddr] = &data.AlteredAccount{
+		IsSender:        false,
+		IsESDTOperation: false,
+		IsNFTOperation:  true,
+		TokenIdentifier: string(arguments[0]),
+		NFTNonceString:  nonceStr,
+	}
 }

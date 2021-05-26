@@ -363,6 +363,7 @@ func TestAccountsProcessor_PrepareAccountsHistory(t *testing.T) {
 			Address:         "addr1",
 			Balance:         "112",
 			TokenIdentifier: "token-112",
+			TokenNonce:      10,
 			IsSender:        true,
 		},
 	}
@@ -377,6 +378,7 @@ func TestAccountsProcessor_PrepareAccountsHistory(t *testing.T) {
 		Balance:         "112",
 		TokenIdentifier: "token-112",
 		IsSender:        true,
+		TokenNonce:      10,
 	}, accountBalanceHistory)
 }
 

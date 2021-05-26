@@ -13,6 +13,7 @@ type AccountInfo struct {
 	Balance                  string  `json:"balance"`
 	BalanceNum               float64 `json:"balanceNum"`
 	TokenIdentifier          string  `json:"token,omitempty"`
+	TokenNonce               uint64  `json:"tokenNonce,omitempty"`
 	Properties               string  `json:"properties,omitempty"`
 	IsSender                 bool    `json:"-"`
 	IsSmartContract          bool    `json:"-"`
@@ -26,6 +27,7 @@ type AccountBalanceHistory struct {
 	Timestamp       time.Duration `json:"timestamp"`
 	Balance         string        `json:"balance"`
 	TokenIdentifier string        `json:"token,omitempty"`
+	TokenNonce      uint64        `json:"tokenNonce,omitempty"`
 	IsSender        bool          `json:"isSender,omitempty"`
 	IsSmartContract bool          `json:"isSmartContract,omitempty"`
 }

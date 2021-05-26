@@ -30,7 +30,7 @@ func newTransactionDBBuilder(
 	shardCoordinator sharding.Coordinator,
 	txFeeCalculator process.TransactionFeeCalculator,
 ) *dbTransactionBuilder {
-	esdtProc := newEsdtTransactionHandler()
+	esdtProc := newEsdtTransactionHandler(addressPubkeyConverter, shardCoordinator)
 
 	return &dbTransactionBuilder{
 		esdtProc:               esdtProc,

@@ -128,7 +128,7 @@ func TestAddToAlteredAddressesNFT(t *testing.T) {
 
 	grouper := txsGrouper{
 		txBuilder: &dbTransactionBuilder{
-			esdtProc: newEsdtTransactionHandler(),
+			esdtProc: newEsdtTransactionHandler(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{}),
 		},
 	}
 
@@ -157,7 +157,7 @@ func TestAddToAlteredAddressesESDT(t *testing.T) {
 
 	grouper := txsGrouper{
 		txBuilder: &dbTransactionBuilder{
-			esdtProc: newEsdtTransactionHandler(),
+			esdtProc: newEsdtTransactionHandler(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{}),
 		},
 	}
 
@@ -186,7 +186,7 @@ func TestAddToAlteredAddressesESDTInvalidMiniblock(t *testing.T) {
 
 	grouper := txsGrouper{
 		txBuilder: &dbTransactionBuilder{
-			esdtProc: newEsdtTransactionHandler(),
+			esdtProc: newEsdtTransactionHandler(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{}),
 		},
 	}
 
