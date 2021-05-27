@@ -136,13 +136,13 @@ func (etp *esdtTransactionProcessor) getNFTTxInfo(txData []byte) (tokenIdentifie
 }
 
 func (etp *esdtTransactionProcessor) searchTxsWithNFTCreateAndPutNonceInAlteredAddress(
-	alteredAddresses map[string]*data.AlteredAccount,
+	alteredAccounts *data.AlteredAccounts,
 	txs map[string]*data.Transaction,
 	scrs []*data.ScResult,
 ) {
 	for txHash, tx := range txs {
 		encodedHash := hex.EncodeToString([]byte(txHash))
-		etp.searchSCRWithNonceOfNFTAndPutInAlteredAddress(tx.Data, tx.EsdtTokenIdentifier, encodedHash, alteredAddresses, scrs)
+		etp.searchSCRWithNonceOfNFTAndPutInAlteredAddress(tx.Data, tx.EsdtTokenIdentifier, encodedHash, alteredAccounts, scrs)
 	}
 }
 
@@ -150,7 +150,7 @@ func (etp *esdtTransactionProcessor) searchSCRWithNonceOfNFTAndPutInAlteredAddre
 	dataField []byte,
 	tokenIdentifier string,
 	txHash string,
-	alteredAddresses map[string]*data.AlteredAccount,
+	alteredAccounts *data.AlteredAccounts,
 	scrs []*data.ScResult,
 ) (found bool) {
 	isBuiltinFunctionForNftCreate := strings.HasPrefix(string(dataField), core.BuiltInFunctionESDTNFTCreate)
@@ -174,12 +174,12 @@ func (etp *esdtTransactionProcessor) searchSCRWithNonceOfNFTAndPutInAlteredAddre
 
 		isNFT := etp.isNFTTx(dataField)
 		isESDTNotNFT := !isNFT && etp.isESDTTx(dataField)
-		alteredAddresses[scr.Sender] = &data.AlteredAccount{
+		alteredAccounts.Add(scr.Sender, &data.AlteredAccount{
 			IsESDTOperation: isESDTNotNFT,
 			IsNFTOperation:  isNFT,
 			TokenIdentifier: tokenIdentifier,
 			NFTNonceString:  nonceStr,
-		}
+		})
 		return true
 	}
 
@@ -208,19 +208,19 @@ func getNonceString(arg string) string {
 	return big.NewInt(0).SetBytes(nonceBytes).String()
 }
 
-func (etp *esdtTransactionProcessor) searchForESDTInScrs(alteredAddresses map[string]*data.AlteredAccount, scrs []*data.ScResult) {
+func (etp *esdtTransactionProcessor) searchForESDTInScrs(alteredAccounts *data.AlteredAccounts, scrs []*data.ScResult) {
 	for _, scr := range scrs {
-		token, nonce, found := etp.nftTransferData(scr.Data, alteredAddresses)
+		token, nonce, found := etp.nftTransferData(scr.Data, alteredAccounts)
 		if found {
-			alteredAddresses[scr.Sender] = &data.AlteredAccount{
+			alteredAccounts.Add(scr.Sender, &data.AlteredAccount{
 				IsNFTOperation:  true,
 				TokenIdentifier: token,
 				NFTNonceString:  nonce,
-			}
+			})
 			continue
 		}
 
-		found = etp.searchSCRWithNonceOfNFTAndPutInAlteredAddress(scr.Data, scr.EsdtTokenIdentifier, scr.OriginalTxHash, alteredAddresses, scrs)
+		found = etp.searchSCRWithNonceOfNFTAndPutInAlteredAddress(scr.Data, scr.EsdtTokenIdentifier, scr.OriginalTxHash, alteredAccounts, scrs)
 		if found {
 			continue
 		}
@@ -230,14 +230,14 @@ func (etp *esdtTransactionProcessor) searchForESDTInScrs(alteredAddresses map[st
 
 func (etp *esdtTransactionProcessor) searchForReceiverNFTTransferAndPutInAlteredAddress(
 	txs map[string]*data.Transaction,
-	alteredAddresses map[string]*data.AlteredAccount,
+	alteredAccounts *data.AlteredAccounts,
 ) {
 	for _, tx := range txs {
-		_, _, _ = etp.nftTransferData(tx.Data, alteredAddresses)
+		_, _, _ = etp.nftTransferData(tx.Data, alteredAccounts)
 	}
 }
 
-func (etp *esdtTransactionProcessor) nftTransferData(dataField []byte, alteredAddresses map[string]*data.AlteredAccount) (token, nonce string, found bool) {
+func (etp *esdtTransactionProcessor) nftTransferData(dataField []byte, alteredAccounts *data.AlteredAccounts) (token, nonce string, found bool) {
 	function, arguments, err := etp.argumentParserExtended.ParseData(string(dataField))
 	if err != nil {
 		return
@@ -264,12 +264,11 @@ func (etp *esdtTransactionProcessor) nftTransferData(dataField []byte, alteredAd
 	}
 
 	encodedReceiverAddr := etp.pubKeyConverter.Encode(receiverNFTTransfer)
-	// TODO multiple ESDT operations same address next PR
-	alteredAddresses[encodedReceiverAddr] = &data.AlteredAccount{
+	alteredAccounts.Add(encodedReceiverAddr, &data.AlteredAccount{
 		IsNFTOperation:  true,
 		TokenIdentifier: string(arguments[0]),
 		NFTNonceString:  nonceStr,
-	}
+	})
 
 	return string(arguments[0]), nonceStr, true
 }

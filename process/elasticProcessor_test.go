@@ -661,10 +661,10 @@ func TestElasticProcessor_SaveTransactionsIndexSCResults(t *testing.T) {
 	arguments.TransactionsProc = &mock.DBTransactionProcessorStub{
 		PrepareTransactionsForDatabaseCalled: func(body *dataBlock.Body, header nodeData.HeaderHandler, pool *indexer.Pool) *data.PreparedResults {
 			return &data.PreparedResults{
-				Transactions:    nil,
-				ScResults:       nil,
-				Receipts:        nil,
-				AlteredAccounts: nil,
+				Transactions: nil,
+				ScResults:    nil,
+				Receipts:     nil,
+				AlteredAccts: nil,
 			}
 		},
 		SerializeScResultsCalled: func(scrs []*data.ScResult) ([]*bytes.Buffer, error) {
@@ -697,10 +697,10 @@ func TestElasticProcessor_SaveTransactionsIndexReceipts(t *testing.T) {
 	arguments.TransactionsProc = &mock.DBTransactionProcessorStub{
 		PrepareTransactionsForDatabaseCalled: func(body *dataBlock.Body, header nodeData.HeaderHandler, pool *indexer.Pool) *data.PreparedResults {
 			return &data.PreparedResults{
-				Transactions:    nil,
-				ScResults:       nil,
-				Receipts:        nil,
-				AlteredAccounts: nil,
+				Transactions: nil,
+				ScResults:    nil,
+				Receipts:     nil,
+				AlteredAccts: nil,
 			}
 		},
 		SerializeReceiptsCalled: func(recs []*data.Receipt) ([]*bytes.Buffer, error) {
@@ -745,7 +745,7 @@ func TestElasticProcessor_IndexAlteredAccounts(t *testing.T) {
 	elasticSearchProc.enabledIndexes[elasticIndexer.AccountsESDTIndex] = struct{}{}
 	elasticSearchProc.enabledIndexes[elasticIndexer.AccountsESDTHistoryIndex] = struct{}{}
 
-	alteredAccounts := map[string]*data.AlteredAccount{}
+	alteredAccounts := data.NewAlteredAccounts()
 	err := elasticSearchProc.indexAlteredAccounts(100, alteredAccounts)
 	require.Nil(t, err)
 	require.True(t, called)

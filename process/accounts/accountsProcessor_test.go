@@ -233,12 +233,12 @@ func TestAccountsProcessor_GetAccountsEGLDAccounts(t *testing.T) {
 	ap, _ := NewAccountsProcessor(10, &mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), accountsStub)
 	require.NotNil(t, ap)
 
-	alteredAccounts := map[string]*data.AlteredAccount{
-		addr: {
-			IsESDTOperation: false,
-			TokenIdentifier: "",
-		},
-	}
+	alteredAccounts := data.NewAlteredAccounts()
+	alteredAccounts.Add(addr, &data.AlteredAccount{
+		IsESDTOperation: false,
+		TokenIdentifier: "",
+	})
+
 	accounts, esdtAccounts := ap.GetAccounts(alteredAccounts)
 	require.Equal(t, 0, len(esdtAccounts))
 	require.Equal(t, []*data.Account{
@@ -259,12 +259,11 @@ func TestAccountsProcessor_GetAccountsESDTAccount(t *testing.T) {
 	ap, _ := NewAccountsProcessor(10, &mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), accountsStub)
 	require.NotNil(t, ap)
 
-	alteredAccounts := map[string]*data.AlteredAccount{
-		addr: {
-			IsESDTOperation: true,
-			TokenIdentifier: "token",
-		},
-	}
+	alteredAccounts := data.NewAlteredAccounts()
+	alteredAccounts.Add(addr, &data.AlteredAccount{
+		IsESDTOperation: true,
+		TokenIdentifier: "token",
+	})
 	accounts, esdtAccounts := ap.GetAccounts(alteredAccounts)
 	require.Equal(t, 0, len(accounts))
 	require.Equal(t, []*data.AccountESDT{

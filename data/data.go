@@ -40,12 +40,6 @@ type ValidatorRatingInfo struct {
 	Rating    float32 `json:"rating"`
 }
 
-// TODO this will be removed in the next PR
-// ValidatorsRatingInfo is a structure containing validators information
-type ValidatorsRatingInfo struct {
-	ValidatorsInfos []*ValidatorRatingInfo `json:"validatorsRating"`
-}
-
 // RoundInfo is a structure containing block signers and shard id
 type RoundInfo struct {
 	Index            uint64        `json:"round"`

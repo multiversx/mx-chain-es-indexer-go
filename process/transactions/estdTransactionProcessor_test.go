@@ -78,10 +78,10 @@ func TestSearchTxsWithNFTCreateAndPutNonceInAlteredAddress(t *testing.T) {
 	esdtProc := newEsdtTransactionHandler(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{})
 
 	txHash := []byte("txHash")
-	alteredAddresses := map[string]*data.AlteredAccount{
-		"sender": {},
-	}
-	alteredAddressesEmpty := map[string]*data.AlteredAccount{}
+	alteredAddresses := data.NewAlteredAccounts()
+	alteredAddresses.Add("sender", &data.AlteredAccount{})
+
+	alteredAddressesEmpty := data.NewAlteredAccounts()
 
 	txs := map[string]*data.Transaction{
 		string(txHash): {
@@ -127,22 +127,26 @@ func TestSearchTxsWithNFTCreateAndPutNonceInAlteredAddress(t *testing.T) {
 	}
 
 	esdtProc.searchTxsWithNFTCreateAndPutNonceInAlteredAddress(alteredAddresses, txs, scrs)
+
+	altered, ok := alteredAddresses.Get("sender")
+	require.True(t, ok)
+
 	require.Equal(t, &data.AlteredAccount{
 		NFTNonceString: "1",
 		IsNFTOperation: true,
-	}, alteredAddresses["sender"])
+	}, altered[0])
 
 	esdtProc.searchTxsWithNFTCreateAndPutNonceInAlteredAddress(alteredAddressesEmpty, txs, scrs)
-	require.Equal(t, 1, len(alteredAddressesEmpty))
+	require.Equal(t, 1, alteredAddressesEmpty.Len())
 }
 
 func TestSearchSCRSWithCreateNFTAndPutNonceInAlteredAddress(t *testing.T) {
 	t.Parallel()
 
 	esdtProc := newEsdtTransactionHandler(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{})
-	alteredAddresses := map[string]*data.AlteredAccount{
-		"sender": {},
-	}
+
+	alteredAddresses := data.NewAlteredAccounts()
+	alteredAddresses.Add("sender", &data.AlteredAccount{})
 
 	txHash := []byte("txHash")
 	scrs := []*data.ScResult{
@@ -165,18 +169,22 @@ func TestSearchSCRSWithCreateNFTAndPutNonceInAlteredAddress(t *testing.T) {
 	}
 
 	esdtProc.searchForESDTInScrs(alteredAddresses, scrs)
+
+	altered, ok := alteredAddresses.Get("sender")
+	require.True(t, ok)
+
 	require.Equal(t, &data.AlteredAccount{
 		NFTNonceString:  "1",
 		IsNFTOperation:  true,
 		TokenIdentifier: "my-token",
-	}, alteredAddresses["sender"])
+	}, altered[0])
 }
 
 func TestSearchTxWithNFTTransfer(t *testing.T) {
 	t.Parallel()
 
 	esdtProc := newEsdtTransactionHandler(mock.NewPubkeyConverterMock(9), &mock.ShardCoordinatorMock{})
-	alteredAddresses := map[string]*data.AlteredAccount{}
+	alteredAddresses := data.NewAlteredAccounts()
 
 	txs := map[string]*data.Transaction{
 		"hash": {
@@ -187,7 +195,7 @@ func TestSearchTxWithNFTTransfer(t *testing.T) {
 	}
 
 	esdtProc.searchForReceiverNFTTransferAndPutInAlteredAddress(txs, alteredAddresses)
-	res, ok := alteredAddresses["726563656976657231"]
+	res, ok := alteredAddresses.Get("726563656976657231")
 	require.True(t, ok)
 	require.Equal(t, &data.AlteredAccount{
 		IsSender:        false,
@@ -195,7 +203,7 @@ func TestSearchTxWithNFTTransfer(t *testing.T) {
 		IsNFTOperation:  true,
 		TokenIdentifier: "token",
 		NFTNonceString:  "1",
-	}, res)
+	}, res[0])
 }
 
 func TestSearchTxWithNFTTransferWrongAddress(t *testing.T) {
@@ -203,7 +211,7 @@ func TestSearchTxWithNFTTransferWrongAddress(t *testing.T) {
 
 	addressEncoder, _ := pubkeyConverter.NewBech32PubkeyConverter(32)
 	esdtProc := newEsdtTransactionHandler(addressEncoder, &mock.ShardCoordinatorMock{})
-	alteredAddresses := map[string]*data.AlteredAccount{}
+	alteredAddresses := data.NewAlteredAccounts()
 
 	txs := map[string]*data.Transaction{
 		"hash": {
@@ -214,6 +222,6 @@ func TestSearchTxWithNFTTransferWrongAddress(t *testing.T) {
 	}
 
 	esdtProc.searchForReceiverNFTTransferAndPutInAlteredAddress(txs, alteredAddresses)
-	_, ok := alteredAddresses["726563656976657231"]
+	_, ok := alteredAddresses.Get("726563656976657231")
 	require.False(t, ok)
 }

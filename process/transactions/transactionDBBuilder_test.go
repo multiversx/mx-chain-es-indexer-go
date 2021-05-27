@@ -163,7 +163,7 @@ func TestAddScrsReceiverToAlteredAccounts_ShouldWork(t *testing.T) {
 
 	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{}, &mock.EconomicsHandlerStub{})
 
-	alteredAddress := map[string]*data.AlteredAccount{}
+	alteredAddress := data.NewAlteredAccounts()
 	scrs := []*data.ScResult{
 		{
 			Sender:              "sender",
@@ -173,11 +173,11 @@ func TestAddScrsReceiverToAlteredAccounts_ShouldWork(t *testing.T) {
 		},
 	}
 	txBuilder.addScrsReceiverToAlteredAccounts(alteredAddress, scrs)
-	require.Equal(t, 2, len(alteredAddress))
+	require.Equal(t, 2, alteredAddress.Len())
 
-	_, ok := alteredAddress["sender"]
+	_, ok := alteredAddress.Get("sender")
 	require.True(t, ok)
 
-	_, ok = alteredAddress["receiver"]
+	_, ok = alteredAddress.Get("receiver")
 	require.True(t, ok)
 }

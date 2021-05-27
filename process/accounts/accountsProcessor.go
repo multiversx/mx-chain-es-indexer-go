@@ -64,16 +64,31 @@ func NewAccountsProcessor(
 }
 
 // GetAccounts will get accounts for regular operations and esdt operations
-func (ap *accountsProcessor) GetAccounts(alteredAccounts map[string]*data.AlteredAccount) ([]*data.Account, []*data.AccountESDT) {
+func (ap *accountsProcessor) GetAccounts(alteredAccounts *data.AlteredAccounts) ([]*data.Account, []*data.AccountESDT) {
 	regularAccountsToIndex := make([]*data.Account, 0)
 	accountsToIndexESDT := make([]*data.AccountESDT, 0)
-	for address, info := range alteredAccounts {
+
+	allAlteredAccounts := alteredAccounts.GetAll()
+	for address, altered := range allAlteredAccounts {
 		userAccount, err := ap.getUserAccount(address)
 		if err != nil || check.IfNil(userAccount) {
 			log.Warn("cannot get user account", "address", address, "error", err)
 			continue
 		}
 
+		regularAccounts, esdtAccounts := iterateAlteredAccounts(userAccount, altered)
+
+		regularAccountsToIndex = append(regularAccountsToIndex, regularAccounts...)
+		accountsToIndexESDT = append(accountsToIndexESDT, esdtAccounts...)
+	}
+
+	return regularAccountsToIndex, accountsToIndexESDT
+}
+
+func iterateAlteredAccounts(userAccount state.UserAccountHandler, altered []*data.AlteredAccount) ([]*data.Account, []*data.AccountESDT) {
+	regularAccountsToIndex := make([]*data.Account, 0)
+	accountsToIndexESDT := make([]*data.AccountESDT, 0)
+	for _, info := range altered {
 		if info.IsESDTOperation || info.IsNFTOperation {
 			accountsToIndexESDT = append(accountsToIndexESDT, &data.AccountESDT{
 				Account:         userAccount,

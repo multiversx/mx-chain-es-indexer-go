@@ -46,12 +46,3 @@ type AccountESDT struct {
 	IsSender        bool
 	IsNFTOperation  bool
 }
-
-// AlteredAccount is a structure that holds information about an altered account
-type AlteredAccount struct {
-	IsSender        bool
-	IsESDTOperation bool
-	IsNFTOperation  bool
-	TokenIdentifier string
-	NFTNonceString  string
-}

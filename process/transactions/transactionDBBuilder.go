@@ -167,7 +167,7 @@ func (dtb *dbTransactionBuilder) prepareReceipt(
 }
 
 func (dtb *dbTransactionBuilder) addScrsReceiverToAlteredAccounts(
-	alteredAddress map[string]*data.AlteredAccount,
+	alteredAccounts *data.AlteredAccounts,
 	scrs []*data.ScResult,
 ) {
 	for _, scr := range scrs {
@@ -191,29 +191,21 @@ func (dtb *dbTransactionBuilder) addScrsReceiverToAlteredAccounts(
 		isESDTScrNotDestinationMeta := isESDTScr && !isMeta
 		isNFTScrNotDestinationMeta := isNFTScr && !isMeta
 
-		_, ok := alteredAddress[encodedReceiverAddress]
-		if ok {
-			//  TODO treat this case in the next PR
-			//  is a case when an account will send and receive and ESDT or NFT in the same block
-			//  should be 2 entries in the altered accounts
-			continue
-		}
-
 		if isESDTScrNotDestinationMeta || isNFTScrNotDestinationMeta {
-			alteredAddress[scr.Sender] = &data.AlteredAccount{
+			alteredAccounts.Add(scr.Sender, &data.AlteredAccount{
 				IsESDTOperation: isESDTScrNotDestinationMeta,
 				IsNFTOperation:  isNFTScrNotDestinationMeta,
 				TokenIdentifier: scr.EsdtTokenIdentifier,
 				NFTNonceString:  nftNonceStr,
-			}
+			})
 		}
 
-		alteredAddress[encodedReceiverAddress] = &data.AlteredAccount{
+		alteredAccounts.Add(encodedReceiverAddress, &data.AlteredAccount{
 			IsESDTOperation: isESDTScrNotDestinationMeta,
 			IsNFTOperation:  isNFTScrNotDestinationMeta,
 			NFTNonceString:  nftNonceStr,
 			TokenIdentifier: scr.EsdtTokenIdentifier,
-		}
+		})
 	}
 }
 
