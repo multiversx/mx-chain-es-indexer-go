@@ -196,7 +196,8 @@ func (dtb *dbTransactionBuilder) addScrsReceiverToAlteredAccounts(
 		isESDTScrNotDestinationMeta := isESDTScr && !isMeta
 		isNFTScrNotDestinationMeta := isNFTScr && !isMeta
 
-		if isESDTScrNotDestinationMeta || isNFTScrNotDestinationMeta {
+		shouldAddSender := (isESDTScrNotDestinationMeta || isNFTScrNotDestinationMeta) && dtb.isInSameShard(scr.Sender)
+		if shouldAddSender {
 			alteredAccounts.Add(scr.Sender, &data.AlteredAccount{
 				IsESDTOperation: isESDTScrNotDestinationMeta,
 				IsNFTOperation:  isNFTScrNotDestinationMeta,
@@ -212,6 +213,15 @@ func (dtb *dbTransactionBuilder) addScrsReceiverToAlteredAccounts(
 			TokenIdentifier: scr.EsdtTokenIdentifier,
 		})
 	}
+}
+
+func (dtb *dbTransactionBuilder) isInSameShard(sender string) bool {
+	senderBytes, err := dtb.addressPubkeyConverter.Decode(sender)
+	if err != nil {
+		return false
+	}
+
+	return dtb.shardCoordinator.ComputeId(senderBytes) == dtb.shardCoordinator.SelfId()
 }
 
 func (dtb *dbTransactionBuilder) computeESDTInfo(dataField []byte, tokenIdentifier string) (isESDT, isNFT bool, nftNonceStr string) {

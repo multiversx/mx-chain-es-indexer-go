@@ -165,8 +165,8 @@ func TestAddScrsReceiverToAlteredAccounts_ShouldWork(t *testing.T) {
 	alteredAddress := data.NewAlteredAccounts()
 	scrs := []*data.ScResult{
 		{
-			Sender:              "sender",
-			Receiver:            "receiver",
+			Sender:              "010101",
+			Receiver:            "020202",
 			EsdtTokenIdentifier: "my-token",
 			Data:                []byte("ESDTTransfer@544b4e2d626231323061@010f0cf064dd59200000"),
 		},
@@ -174,9 +174,9 @@ func TestAddScrsReceiverToAlteredAccounts_ShouldWork(t *testing.T) {
 	txBuilder.addScrsReceiverToAlteredAccounts(alteredAddress, scrs)
 	require.Equal(t, 2, alteredAddress.Len())
 
-	_, ok := alteredAddress.Get("sender")
+	_, ok := alteredAddress.Get("010101")
 	require.True(t, ok)
 
-	_, ok = alteredAddress.Get("receiver")
+	_, ok = alteredAddress.Get("020202")
 	require.True(t, ok)
 }
