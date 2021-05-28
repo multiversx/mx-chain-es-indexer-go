@@ -130,10 +130,6 @@ func prepareSerializedDataForATransaction(
 
 func prepareCrossShardTxForDestinationSerialized(tx *data.Transaction, marshaledTx []byte) ([]byte, error) {
 	// if transaction is cross-shard and current shard ID is destination, use upsert with updating fields
-	marshaledLogs, err := json.Marshal(tx.Logs)
-	if err != nil {
-		return nil, err
-	}
 
 	marshaledTimestamp, err := json.Marshal(tx.Timestamp)
 	if err != nil {
@@ -143,14 +139,13 @@ func prepareCrossShardTxForDestinationSerialized(tx *data.Transaction, marshaled
 	serializedData := []byte(fmt.Sprintf(`{"script":{"source":"`+
 		`ctx._source.status = params.status;`+
 		`ctx._source.miniBlockHash = params.miniBlockHash;`+
-		`ctx._source.log = params.log;`+
 		`ctx._source.timestamp = params.timestamp;`+
 		`ctx._source.gasUsed = params.gasUsed;`+
 		`ctx._source.fee = params.fee;`+
 		`ctx._source.hasScResults = params.hasScResults;`+
 		`","lang": "painless","params":`+
-		`{"status": "%s", "miniBlockHash": "%s", "logs": %s, "timestamp": %s, "gasUsed": %d, "fee": "%s", "hasScResults": %t}},"upsert":%s}`,
-		tx.Status, tx.MBHash, string(marshaledLogs), string(marshaledTimestamp), tx.GasUsed, tx.Fee, tx.HasSCR, string(marshaledTx)))
+		`{"status": "%s", "miniBlockHash": "%s", "timestamp": %s, "gasUsed": %d, "fee": "%s", "hasScResults": %t}},"upsert":%s}`,
+		tx.Status, tx.MBHash, string(marshaledTimestamp), tx.GasUsed, tx.Fee, tx.HasSCR, string(marshaledTx)))
 
 	return serializedData, nil
 }
