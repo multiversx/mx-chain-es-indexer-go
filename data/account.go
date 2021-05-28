@@ -8,17 +8,27 @@ import (
 
 // AccountInfo holds (serializable) data about an account
 type AccountInfo struct {
-	Address                  string  `json:"address,omitempty"`
-	Nonce                    uint64  `json:"nonce,omitempty"`
-	Balance                  string  `json:"balance"`
-	BalanceNum               float64 `json:"balanceNum"`
-	TokenIdentifier          string  `json:"token,omitempty"`
-	TokenNonce               uint64  `json:"tokenNonce,omitempty"`
-	Properties               string  `json:"properties,omitempty"`
-	IsSender                 bool    `json:"-"`
-	IsSmartContract          bool    `json:"-"`
-	TotalBalanceWithStake    string  `json:"totalBalanceWithStake,omitempty"`
-	TotalBalanceWithStakeNum float64 `json:"totalBalanceWithStakeNum,omitempty"`
+	Address                  string         `json:"address,omitempty"`
+	Nonce                    uint64         `json:"nonce,omitempty"`
+	Balance                  string         `json:"balance"`
+	BalanceNum               float64        `json:"balanceNum"`
+	TokenIdentifier          string         `json:"token,omitempty"`
+	TokenNonce               uint64         `json:"tokenNonce,omitempty"`
+	Properties               string         `json:"properties,omitempty"`
+	IsSender                 bool           `json:"-"`
+	IsSmartContract          bool           `json:"-"`
+	TotalBalanceWithStake    string         `json:"totalBalanceWithStake,omitempty"`
+	TotalBalanceWithStakeNum float64        `json:"totalBalanceWithStakeNum,omitempty"`
+	MetaData                 *TokenMetaData `json:"tokenMetaData,omitempty"`
+}
+
+type TokenMetaData struct {
+	Name       string   `json:"name,omitempty"`
+	Creator    string   `json:"creator,omitempty"`
+	Royalties  uint32   `json:"royalties,omitempty"`
+	Hash       []byte   `json:"hash,omitempty"`
+	URIs       [][]byte `json:"uris,omitempty"`
+	Attributes []byte   `json:"attributes,omitempty"`
 }
 
 // AccountBalanceHistory represents an entry in the user accounts balances history

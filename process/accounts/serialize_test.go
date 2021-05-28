@@ -58,6 +58,41 @@ func TestSerializeAccountsESDT(t *testing.T) {
 	require.Equal(t, expectedRes, res[0].String())
 }
 
+func TestSerializeAccountsNFTWithMedaData(t *testing.T) {
+	t.Parallel()
+
+	accs := map[string]*data.AccountInfo{
+		"addr1": {
+			Address:         "addr1",
+			Nonce:           1,
+			TokenIdentifier: "token-0001",
+			Properties:      "000",
+			TokenNonce:      5,
+			Balance:         "10000000000000",
+			BalanceNum:      1,
+			MetaData: &data.TokenMetaData{
+				Name:      "nft",
+				Creator:   "010101",
+				Royalties: 1,
+				Hash:      []byte("hash"),
+				URIs: [][]byte{
+					[]byte("uri"),
+				},
+				Attributes: []byte("atr"),
+			},
+		},
+	}
+
+	res, err := (&accountsProcessor{}).SerializeAccounts(accs, true)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(res))
+
+	expectedRes := `{ "index" : { "_id" : "addr1_token-0001_5" } }
+{"address":"addr1","nonce":1,"balance":"10000000000000","balanceNum":1,"token":"token-0001","tokenNonce":5,"properties":"000","tokenMetaData":{"name":"nft","creator":"010101","royalties":1,"hash":"aGFzaA==","uris":["dXJp"],"attributes":"YXRy"}}
+`
+	require.Equal(t, expectedRes, res[0].String())
+}
+
 func TestSerializeAccountsESDTDelete(t *testing.T) {
 	t.Parallel()
 

@@ -153,7 +153,7 @@ func TestGetESDTInfo_CannotRetriveValueShoudError(t *testing.T) {
 		},
 		TokenIdentifier: "token",
 	}
-	_, _, err := ap.getESDTInfo(wrapAccount)
+	_, _, _, err := ap.getESDTInfo(wrapAccount)
 	require.Equal(t, localErr, err)
 }
 
@@ -181,7 +181,7 @@ func TestGetESDTInfo(t *testing.T) {
 		},
 		TokenIdentifier: tokenIdentifier,
 	}
-	balance, prop, err := ap.getESDTInfo(wrapAccount)
+	balance, prop, _, err := ap.getESDTInfo(wrapAccount)
 	require.Nil(t, err)
 	require.Equal(t, big.NewInt(1000), balance)
 	require.Equal(t, hex.EncodeToString([]byte("ok")), prop)
@@ -214,10 +214,54 @@ func TestGetESDTInfoNFT(t *testing.T) {
 		IsNFTOperation:  true,
 		NFTNonceString:  "10",
 	}
-	balance, prop, err := ap.getESDTInfo(wrapAccount)
+	balance, prop, _, err := ap.getESDTInfo(wrapAccount)
 	require.Nil(t, err)
 	require.Equal(t, big.NewInt(1), balance)
 	require.Equal(t, hex.EncodeToString([]byte("ok")), prop)
+}
+
+func TestGetESDTInfoNFTWithMetaData(t *testing.T) {
+	t.Parallel()
+
+	ap, _ := NewAccountsProcessor(10, &mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), &mock.AccountsStub{})
+	require.NotNil(t, ap)
+
+	esdtToken := &esdt.ESDigitalToken{
+		Value:      big.NewInt(1),
+		Properties: []byte("ok"),
+		TokenMetaData: &esdt.MetaData{
+			Nonce:     1,
+			Name:      []byte("Test-nft"),
+			Creator:   []byte("010101"),
+			Royalties: 2,
+		},
+	}
+
+	tokenIdentifier := "token-001"
+	wrapAccount := &data.AccountESDT{
+		Account: &mock.UserAccountStub{
+			DataTrieTrackerCalled: func() state.DataTrieTracker {
+				return &mock.DataTrieTrackerStub{
+					RetrieveValueCalled: func(key []byte) ([]byte, error) {
+						assert.Equal(t, append([]byte("ELRONDesdttoken-001"), 0xa), key)
+						return json.Marshal(esdtToken)
+					},
+				}
+			},
+		},
+		TokenIdentifier: tokenIdentifier,
+		IsNFTOperation:  true,
+		NFTNonceString:  "10",
+	}
+	balance, prop, metaData, err := ap.getESDTInfo(wrapAccount)
+	require.Nil(t, err)
+	require.Equal(t, big.NewInt(1), balance)
+	require.Equal(t, hex.EncodeToString([]byte("ok")), prop)
+	require.Equal(t, &data.TokenMetaData{
+		Name:      "Test-nft",
+		Creator:   "303130313031",
+		Royalties: 2,
+	}, metaData)
 }
 
 func TestAccountsProcessor_GetAccountsEGLDAccounts(t *testing.T) {

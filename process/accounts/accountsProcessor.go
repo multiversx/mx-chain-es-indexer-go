@@ -160,7 +160,7 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(accounts []*data.AccountESDT
 	accountsESDTMap := make(map[string]*data.AccountInfo)
 	for _, accountESDT := range accounts {
 		address := ap.addressPubkeyConverter.Encode(accountESDT.Account.AddressBytes())
-		balance, properties, err := ap.getESDTInfo(accountESDT)
+		balance, properties, tokenMetaData, err := ap.getESDTInfo(accountESDT)
 		if err != nil {
 			log.Warn("cannot get esdt info from account",
 				"address", address,
@@ -177,6 +177,7 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(accounts []*data.AccountESDT
 			Properties:      properties,
 			IsSender:        accountESDT.IsSender,
 			IsSmartContract: core.IsSmartContractAddress(accountESDT.Account.AddressBytes()),
+			MetaData:        tokenMetaData,
 		}
 
 		accountsESDTMap[address] = acc
@@ -221,12 +222,12 @@ func (ap *accountsProcessor) PrepareAccountsHistory(
 	return accountsMap
 }
 
-func (ap *accountsProcessor) getESDTInfo(accountESDT *data.AccountESDT) (*big.Int, string, error) {
+func (ap *accountsProcessor) getESDTInfo(accountESDT *data.AccountESDT) (*big.Int, string, *data.TokenMetaData, error) {
 	if accountESDT.TokenIdentifier == "" {
-		return big.NewInt(0), "", nil
+		return big.NewInt(0), "", nil, nil
 	}
 	if accountESDT.IsNFTOperation && accountESDT.NFTNonceString == "" {
-		return big.NewInt(0), "", nil
+		return big.NewInt(0), "", nil, nil
 	}
 
 	tokenKey := []byte(core.ElrondProtectedKeyPrefix + core.ESDTKeyIdentifier + accountESDT.TokenIdentifier)
@@ -239,20 +240,42 @@ func (ap *accountsProcessor) getESDTInfo(accountESDT *data.AccountESDT) (*big.In
 
 	valueBytes, err := accountESDT.Account.DataTrieTracker().RetrieveValue(tokenKey)
 	if err != nil {
-		return nil, "", err
+		return nil, "", nil, err
 	}
 
 	esdtToken := &esdt.ESDigitalToken{}
 	err = ap.internalMarshalizer.Unmarshal(esdtToken, valueBytes)
 	if err != nil {
-		return nil, "", err
+		return nil, "", nil, err
 	}
 
 	if esdtToken.Value == nil {
-		return big.NewInt(0), "", nil
+		return big.NewInt(0), "", nil, nil
 	}
 
-	return esdtToken.Value, hex.EncodeToString(esdtToken.Properties), nil
+	tokenMetaData := ap.getTokenMetaData(esdtToken)
+
+	return esdtToken.Value, hex.EncodeToString(esdtToken.Properties), tokenMetaData, nil
+}
+
+func (ap *accountsProcessor) getTokenMetaData(esdtInfo *esdt.ESDigitalToken) *data.TokenMetaData {
+	if esdtInfo.TokenMetaData == nil {
+		return nil
+	}
+
+	creatorStr := ""
+	if esdtInfo.TokenMetaData.Creator != nil {
+		creatorStr = ap.addressPubkeyConverter.Encode(esdtInfo.TokenMetaData.Creator)
+	}
+
+	return &data.TokenMetaData{
+		Name:       string(esdtInfo.TokenMetaData.Name),
+		Creator:    creatorStr,
+		Royalties:  esdtInfo.TokenMetaData.Royalties,
+		Hash:       esdtInfo.TokenMetaData.Hash,
+		URIs:       esdtInfo.TokenMetaData.URIs,
+		Attributes: esdtInfo.TokenMetaData.Attributes,
+	}
 }
 
 func (ap *accountsProcessor) computeBalanceAsFloat(balance *big.Int, balancePrecision float64) float64 {
