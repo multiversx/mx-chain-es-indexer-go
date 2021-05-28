@@ -129,6 +129,11 @@ func (dtb *dbTransactionBuilder) prepareSmartContractResult(
 		tokenIdentifier = dtb.esdtProc.getTokenIdentifier(sc.Data)
 	}
 
+	relayedValue := ""
+	if sc.RelayedValue != nil {
+		relayedValue = sc.RelayedValue.String()
+	}
+
 	return &data.ScResult{
 		Hash:                hex.EncodeToString([]byte(scHash)),
 		Nonce:               sc.Nonce,
@@ -138,7 +143,7 @@ func (dtb *dbTransactionBuilder) prepareSmartContractResult(
 		Sender:              dtb.addressPubkeyConverter.Encode(sc.SndAddr),
 		Receiver:            dtb.addressPubkeyConverter.Encode(sc.RcvAddr),
 		RelayerAddr:         relayerAddr,
-		RelayedValue:        sc.RelayedValue.String(),
+		RelayedValue:        relayedValue,
 		Code:                string(sc.Code),
 		Data:                sc.Data,
 		PrevTxHash:          hex.EncodeToString(sc.PrevTxHash),
