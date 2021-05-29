@@ -102,9 +102,8 @@ func splitAlteredAccounts(userAccount state.UserAccountHandler, altered []*data.
 			})
 		}
 
-		if (info.IsESDTOperation || info.IsNFTOperation) && !info.IsSender {
-			// should continue because he have an esdt transfer and the current account is not the sender
-			// this transfer will not affect the balance of the account
+		ignoreESDTReceiver := (info.IsESDTOperation || info.IsNFTOperation) && !info.IsSender
+		if ignoreESDTReceiver {
 			continue
 		}
 
