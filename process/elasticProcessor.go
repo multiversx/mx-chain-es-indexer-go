@@ -512,7 +512,7 @@ func (ei *elasticProcessor) SaveRoundsInfo(info []*data.RoundInfo) error {
 	return ei.elasticClient.DoBulkRequest(buff, elasticIndexer.RoundsIndex)
 }
 
-func (ei *elasticProcessor) indexAlteredAccounts(timestamp uint64, alteredAccounts *data.AlteredAccounts) error {
+func (ei *elasticProcessor) indexAlteredAccounts(timestamp uint64, alteredAccounts data.AlteredAccountsHandler) error {
 	regularAccountsToIndex, accountsToIndexESDT := ei.accountsProc.GetAccounts(alteredAccounts)
 
 	err := ei.SaveAccounts(timestamp, regularAccountsToIndex)

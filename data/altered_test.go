@@ -38,7 +38,7 @@ func TestAlteredAccounts_AddESDT(t *testing.T) {
 	acct2 := &AlteredAccount{
 		TokenIdentifier: "my-token",
 		IsESDTOperation: true,
-		NFTNonceString:  "",
+		NFTNonce:        0,
 	}
 	altAccounts.Add(addr, acct2)
 
@@ -46,7 +46,7 @@ func TestAlteredAccounts_AddESDT(t *testing.T) {
 		IsSender:        true,
 		TokenIdentifier: "my-token",
 		IsESDTOperation: true,
-		NFTNonceString:  "",
+		NFTNonce:        0,
 	}
 	altAccounts.Add(addr, acct3)
 
@@ -54,7 +54,7 @@ func TestAlteredAccounts_AddESDT(t *testing.T) {
 		IsSender:        true,
 		TokenIdentifier: "my-nft-token",
 		IsNFTOperation:  true,
-		NFTNonceString:  "1",
+		NFTNonce:        1,
 	}
 	altAccounts.Add(addr, acct4)
 
@@ -71,14 +71,14 @@ func TestAlteredAccounts_AddESDT(t *testing.T) {
 	require.Equal(t, &AlteredAccount{
 		IsNFTOperation:  true,
 		TokenIdentifier: "my-nft-token",
-		NFTNonceString:  "1",
+		NFTNonce:        1,
 	}, res[1])
 }
 
 func TestAlteredAccounts_GetAll(t *testing.T) {
 	t.Parallel()
 
-	altAccounts := &AlteredAccounts{}
+	altAccounts := &alteredAccounts{}
 
 	res := altAccounts.GetAll()
 	require.NotNil(t, res)

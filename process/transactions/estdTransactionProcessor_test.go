@@ -51,25 +51,25 @@ func TestGetNFTInfo(t *testing.T) {
 
 	esdtProc := newEsdtTransactionHandler(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{})
 
-	tokenIdentifier, nonceStr := esdtProc.getNFTTxInfo([]byte("ESDTNFTTransfer@544f4b454e2d666437653066@01@01@b7a5acba50ff6a2821876693a4e62d60ec8645af696591e04ead2e2cb6e4cb4f"))
+	tokenIdentifier, nonce := esdtProc.getNFTTxInfo([]byte("ESDTNFTTransfer@544f4b454e2d666437653066@01@01@b7a5acba50ff6a2821876693a4e62d60ec8645af696591e04ead2e2cb6e4cb4f"))
 	require.Equal(t, "TOKEN-fd7e0f", tokenIdentifier)
-	require.Equal(t, "1", nonceStr)
+	require.Equal(t, uint64(1), nonce)
 
-	tokenIdentifier, nonceStr = esdtProc.getNFTTxInfo([]byte("@01@01@b7a5acba50ff6a2821876693a4e62d60ec8645af696591e04ead2e2cb6e4cb4f"))
+	tokenIdentifier, nonce = esdtProc.getNFTTxInfo([]byte("@01@01@b7a5acba50ff6a2821876693a4e62d60ec8645af696591e04ead2e2cb6e4cb4f"))
 	require.Equal(t, "", tokenIdentifier)
-	require.Equal(t, "", nonceStr)
+	require.Equal(t, uint64(0), nonce)
 
-	tokenIdentifier, nonceStr = esdtProc.getNFTTxInfo([]byte("myMethod"))
+	tokenIdentifier, nonce = esdtProc.getNFTTxInfo([]byte("myMethod"))
 	require.Equal(t, "", tokenIdentifier)
-	require.Equal(t, "", nonceStr)
+	require.Equal(t, uint64(0), nonce)
 
-	tokenIdentifier, nonceStr = esdtProc.getNFTTxInfo([]byte("myMethod@01"))
+	tokenIdentifier, nonce = esdtProc.getNFTTxInfo([]byte("myMethod@01"))
 	require.Equal(t, "", tokenIdentifier)
-	require.Equal(t, "", nonceStr)
+	require.Equal(t, uint64(0), nonce)
 
-	tokenIdentifier, nonceStr = esdtProc.getNFTTxInfo([]byte("ESDTNFTTransfer@544f4b454e2d666437653066"))
+	tokenIdentifier, nonce = esdtProc.getNFTTxInfo([]byte("ESDTNFTTransfer@544f4b454e2d666437653066"))
 	require.Equal(t, "TOKEN-fd7e0f", tokenIdentifier)
-	require.Equal(t, "", nonceStr)
+	require.Equal(t, uint64(0), nonce)
 }
 
 func TestSearchTxsWithNFTCreateAndPutNonceInAlteredAddress(t *testing.T) {
@@ -132,7 +132,7 @@ func TestSearchTxsWithNFTCreateAndPutNonceInAlteredAddress(t *testing.T) {
 	require.True(t, ok)
 
 	require.Equal(t, &data.AlteredAccount{
-		NFTNonceString: "1",
+		NFTNonce:       1,
 		IsNFTOperation: true,
 	}, altered[0])
 
@@ -174,7 +174,7 @@ func TestSearchSCRSWithCreateNFTAndPutNonceInAlteredAddress(t *testing.T) {
 	require.True(t, ok)
 
 	require.Equal(t, &data.AlteredAccount{
-		NFTNonceString:  "1",
+		NFTNonce:        1,
 		IsNFTOperation:  true,
 		TokenIdentifier: "my-token",
 	}, altered[0])
@@ -202,7 +202,7 @@ func TestSearchTxWithNFTTransfer(t *testing.T) {
 		IsESDTOperation: false,
 		IsNFTOperation:  true,
 		TokenIdentifier: "token",
-		NFTNonceString:  "1",
+		NFTNonce:        1,
 	}, res[0])
 }
 

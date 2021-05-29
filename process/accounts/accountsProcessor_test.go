@@ -212,7 +212,7 @@ func TestGetESDTInfoNFT(t *testing.T) {
 		},
 		TokenIdentifier: tokenIdentifier,
 		IsNFTOperation:  true,
-		NFTNonceString:  "10",
+		NFTNonce:        10,
 	}
 	balance, prop, _, err := ap.getESDTInfo(wrapAccount)
 	require.Nil(t, err)
@@ -251,7 +251,7 @@ func TestGetESDTInfoNFTWithMetaData(t *testing.T) {
 		},
 		TokenIdentifier: tokenIdentifier,
 		IsNFTOperation:  true,
-		NFTNonceString:  "10",
+		NFTNonce:        10,
 	}
 	balance, prop, metaData, err := ap.getESDTInfo(wrapAccount)
 	require.Nil(t, err)

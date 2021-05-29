@@ -41,7 +41,7 @@ func (tg *txsGrouper) groupNormalTxs(
 	mb *block.MiniBlock,
 	header nodeData.HeaderHandler,
 	txs map[string]nodeData.TransactionHandler,
-	alteredAccounts *data.AlteredAccounts,
+	alteredAccounts data.AlteredAccountsHandler,
 ) (map[string]*data.Transaction, error) {
 	transactions := make(map[string]*data.Transaction)
 
@@ -93,7 +93,7 @@ func (tg *txsGrouper) groupRewardsTxs(
 	mb *block.MiniBlock,
 	header nodeData.HeaderHandler,
 	txs map[string]nodeData.TransactionHandler,
-	alteredAccounts *data.AlteredAccounts,
+	alteredAccounts data.AlteredAccountsHandler,
 ) (map[string]*data.Transaction, error) {
 	rewardsTxs := make(map[string]*data.Transaction)
 	mbHash, err := core.CalculateHash(tg.marshalizer, tg.hasher, mb)
@@ -144,7 +144,7 @@ func (tg *txsGrouper) groupInvalidTxs(
 	mb *block.MiniBlock,
 	header nodeData.HeaderHandler,
 	txs map[string]nodeData.TransactionHandler,
-	alteredAccounts *data.AlteredAccounts,
+	alteredAccounts data.AlteredAccountsHandler,
 ) (map[string]*data.Transaction, error) {
 	transactions := make(map[string]*data.Transaction)
 	mbHash, err := core.CalculateHash(tg.marshalizer, tg.hasher, mb)
@@ -246,7 +246,7 @@ func convertMapTxsToSlice(txs map[string]*data.Transaction) []*data.Transaction 
 
 func (tg *txsGrouper) addToAlteredAddresses(
 	tx *data.Transaction,
-	alteredAccounts *data.AlteredAccounts,
+	alteredAccounts data.AlteredAccountsHandler,
 	miniBlock *block.MiniBlock,
 	selfShardID uint32,
 	isRewardTx bool,
@@ -260,7 +260,7 @@ func (tg *txsGrouper) addToAlteredAddresses(
 			IsESDTOperation: isESDTNotInvalid,
 			IsNFTOperation:  isNFTTxNotInvalid,
 			TokenIdentifier: tx.EsdtTokenIdentifier,
-			NFTNonceString:  nftNonceSTR,
+			NFTNonce:        nftNonceSTR,
 		})
 	}
 
@@ -278,7 +278,7 @@ func (tg *txsGrouper) addToAlteredAddresses(
 			IsESDTOperation: isESDTNotDestinationMeta,
 			IsNFTOperation:  isNFTTxNotDestinationMeta,
 			TokenIdentifier: tx.EsdtTokenIdentifier,
-			NFTNonceString:  nftNonceSTR,
+			NFTNonce:        nftNonceSTR,
 		})
 	}
 }

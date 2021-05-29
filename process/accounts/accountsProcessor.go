@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math"
 	"math/big"
-	"strconv"
 	"time"
 
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
@@ -64,9 +63,13 @@ func NewAccountsProcessor(
 }
 
 // GetAccounts will get accounts for regular operations and esdt operations
-func (ap *accountsProcessor) GetAccounts(alteredAccounts *data.AlteredAccounts) ([]*data.Account, []*data.AccountESDT) {
+func (ap *accountsProcessor) GetAccounts(alteredAccounts data.AlteredAccountsHandler) ([]*data.Account, []*data.AccountESDT) {
 	regularAccountsToIndex := make([]*data.Account, 0)
 	accountsToIndexESDT := make([]*data.AccountESDT, 0)
+
+	if alteredAccounts == nil {
+		return regularAccountsToIndex, accountsToIndexESDT
+	}
 
 	allAlteredAccounts := alteredAccounts.GetAll()
 	for address, altered := range allAlteredAccounts {
@@ -76,7 +79,7 @@ func (ap *accountsProcessor) GetAccounts(alteredAccounts *data.AlteredAccounts) 
 			continue
 		}
 
-		regularAccounts, esdtAccounts := iterateAlteredAccounts(userAccount, altered)
+		regularAccounts, esdtAccounts := splitAlteredAccounts(userAccount, altered)
 
 		regularAccountsToIndex = append(regularAccountsToIndex, regularAccounts...)
 		accountsToIndexESDT = append(accountsToIndexESDT, esdtAccounts...)
@@ -85,7 +88,7 @@ func (ap *accountsProcessor) GetAccounts(alteredAccounts *data.AlteredAccounts) 
 	return regularAccountsToIndex, accountsToIndexESDT
 }
 
-func iterateAlteredAccounts(userAccount state.UserAccountHandler, altered []*data.AlteredAccount) ([]*data.Account, []*data.AccountESDT) {
+func splitAlteredAccounts(userAccount state.UserAccountHandler, altered []*data.AlteredAccount) ([]*data.Account, []*data.AccountESDT) {
 	regularAccountsToIndex := make([]*data.Account, 0)
 	accountsToIndexESDT := make([]*data.AccountESDT, 0)
 	for _, info := range altered {
@@ -95,7 +98,7 @@ func iterateAlteredAccounts(userAccount state.UserAccountHandler, altered []*dat
 				TokenIdentifier: info.TokenIdentifier,
 				IsSender:        info.IsSender,
 				IsNFTOperation:  info.IsNFTOperation,
-				NFTNonceString:  info.NFTNonceString,
+				NFTNonce:        info.NFTNonce,
 			})
 		}
 
@@ -171,7 +174,7 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(accounts []*data.AccountESDT
 		acc := &data.AccountInfo{
 			Address:         address,
 			TokenIdentifier: accountESDT.TokenIdentifier,
-			TokenNonce:      convertStringToUint64(accountESDT.NFTNonceString),
+			TokenNonce:      accountESDT.NFTNonce,
 			Balance:         balance.String(),
 			BalanceNum:      ap.computeBalanceAsFloat(balance, ap.balancePrecisionESDT),
 			Properties:      properties,
@@ -184,19 +187,6 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(accounts []*data.AccountESDT
 	}
 
 	return accountsESDTMap
-}
-
-func convertStringToUint64(numberStr string) uint64 {
-	if numberStr == "" {
-		return 0
-	}
-
-	res, err := strconv.ParseUint(numberStr, 10, 64)
-	if err != nil {
-		return 0
-	}
-
-	return res
 }
 
 // PrepareAccountsHistory will prepare a map of accounts history balance from a map of accounts
@@ -226,16 +216,14 @@ func (ap *accountsProcessor) getESDTInfo(accountESDT *data.AccountESDT) (*big.In
 	if accountESDT.TokenIdentifier == "" {
 		return big.NewInt(0), "", nil, nil
 	}
-	if accountESDT.IsNFTOperation && accountESDT.NFTNonceString == "" {
+	if accountESDT.IsNFTOperation && accountESDT.NFTNonce == 0 {
 		return big.NewInt(0), "", nil, nil
 	}
 
 	tokenKey := []byte(core.ElrondProtectedKeyPrefix + core.ESDTKeyIdentifier + accountESDT.TokenIdentifier)
 	if accountESDT.IsNFTOperation {
-		nonceBig, ok := big.NewInt(0).SetString(accountESDT.NFTNonceString, 10)
-		if ok {
-			tokenKey = append(tokenKey, nonceBig.Bytes()...)
-		}
+		nonceBig := big.NewInt(0).SetUint64(accountESDT.NFTNonce)
+		tokenKey = append(tokenKey, nonceBig.Bytes()...)
 	}
 
 	valueBytes, err := accountESDT.Account.DataTrieTracker().RetrieveValue(tokenKey)

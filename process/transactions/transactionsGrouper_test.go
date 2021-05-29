@@ -151,7 +151,7 @@ func TestAddToAlteredAddressesNFT(t *testing.T) {
 		IsESDTOperation: false,
 		IsSender:        true,
 		TokenIdentifier: "MY-TOKEN",
-		NFTNonceString:  "1",
+		NFTNonce:        uint64(1),
 	}, altered[0])
 }
 
@@ -184,7 +184,7 @@ func TestAddToAlteredAddressesESDT(t *testing.T) {
 		IsESDTOperation: true,
 		IsSender:        true,
 		TokenIdentifier: "MY-TOKEN",
-		NFTNonceString:  "",
+		NFTNonce:        0,
 	}, altered[0])
 }
 
@@ -218,6 +218,6 @@ func TestAddToAlteredAddressesESDTInvalidMiniblock(t *testing.T) {
 		IsESDTOperation: false,
 		IsSender:        true,
 		TokenIdentifier: "MY-TOKEN",
-		NFTNonceString:  "",
+		NFTNonce:        0,
 	}, altered[0])
 }

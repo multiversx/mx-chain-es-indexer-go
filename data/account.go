@@ -52,7 +52,7 @@ type Account struct {
 type AccountESDT struct {
 	Account         state.UserAccountHandler
 	TokenIdentifier string
-	NFTNonceString  string
+	NFTNonce        uint64
 	IsSender        bool
 	IsNFTOperation  bool
 }

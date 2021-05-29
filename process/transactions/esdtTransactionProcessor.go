@@ -106,7 +106,7 @@ func (etp *esdtTransactionProcessor) getTokenIdentifier(txData []byte) string {
 	return string(arguments[0])
 }
 
-func (etp *esdtTransactionProcessor) getNFTTxInfo(txData []byte) (tokenIdentifier, nonce string) {
+func (etp *esdtTransactionProcessor) getNFTTxInfo(txData []byte) (tokenIdentifier string, nonce uint64) {
 	function, arguments, err := etp.argumentParserExtended.ParseData(string(txData))
 	if err != nil {
 		return
@@ -129,14 +129,14 @@ func (etp *esdtTransactionProcessor) getNFTTxInfo(txData []byte) (tokenIdentifie
 
 	switch function {
 	case core.BuiltInFunctionESDTNFTTransfer, builtInFuncWipeSingleNFT, core.BuiltInFunctionESDTNFTAddQuantity:
-		nonce = big.NewInt(0).SetBytes(arguments[1]).String()
+		nonce = big.NewInt(0).SetBytes(arguments[1]).Uint64()
 	}
 
 	return
 }
 
 func (etp *esdtTransactionProcessor) searchTxsWithNFTCreateAndPutNonceInAlteredAddress(
-	alteredAccounts *data.AlteredAccounts,
+	alteredAccounts data.AlteredAccountsHandler,
 	txs map[string]*data.Transaction,
 	scrs []*data.ScResult,
 ) {
@@ -150,7 +150,7 @@ func (etp *esdtTransactionProcessor) searchSCRWithNonceOfNFTAndPutInAlteredAddre
 	dataField []byte,
 	tokenIdentifier string,
 	txHash string,
-	alteredAccounts *data.AlteredAccounts,
+	alteredAccounts data.AlteredAccountsHandler,
 	scrs []*data.ScResult,
 ) (found bool) {
 	isBuiltinFunctionForNftCreate := strings.HasPrefix(string(dataField), core.BuiltInFunctionESDTNFTCreate)
@@ -168,7 +168,7 @@ func (etp *esdtTransactionProcessor) searchSCRWithNonceOfNFTAndPutInAlteredAddre
 		}
 
 		nonceStr := etp.extractNonceString(scr)
-		if nonceStr == emptyString {
+		if nonceStr == 0 {
 			continue
 		}
 
@@ -178,7 +178,7 @@ func (etp *esdtTransactionProcessor) searchSCRWithNonceOfNFTAndPutInAlteredAddre
 			IsESDTOperation: isESDTNotNFT,
 			IsNFTOperation:  isNFT,
 			TokenIdentifier: tokenIdentifier,
-			NFTNonceString:  nonceStr,
+			NFTNonce:        nonceStr,
 		})
 		return true
 	}
@@ -186,58 +186,54 @@ func (etp *esdtTransactionProcessor) searchSCRWithNonceOfNFTAndPutInAlteredAddre
 	return
 }
 
-func (etp *esdtTransactionProcessor) extractNonceString(scr *data.ScResult) string {
+func (etp *esdtTransactionProcessor) extractNonceString(scr *data.ScResult) uint64 {
 	scrDataSplit := etp.argumentParserExtended.split(string(scr.Data))
 	if len(scrDataSplit) < 3 {
-		return emptyString
+		return 0
 	}
 
 	if scrDataSplit[1] != okHexConst {
-		return emptyString
+		return 0
 	}
 
-	return getNonceString(scrDataSplit[2])
+	return getNonce(scrDataSplit[2])
 }
 
-func getNonceString(arg string) string {
+func getNonce(arg string) uint64 {
 	nonceBytes, err := hex.DecodeString(arg)
 	if err != nil {
-		return emptyString
+		return 0
 	}
 
-	return big.NewInt(0).SetBytes(nonceBytes).String()
+	return big.NewInt(0).SetBytes(nonceBytes).Uint64()
 }
 
-func (etp *esdtTransactionProcessor) searchForESDTInScrs(alteredAccounts *data.AlteredAccounts, scrs []*data.ScResult) {
+func (etp *esdtTransactionProcessor) searchForESDTInScrs(alteredAccounts data.AlteredAccountsHandler, scrs []*data.ScResult) {
 	for _, scr := range scrs {
-		token, nonce, found := etp.nftTransferData(scr.Data, alteredAccounts)
+		token, nonce, found := etp.processNftTransferData(scr.Data, alteredAccounts)
 		if found {
 			alteredAccounts.Add(scr.Sender, &data.AlteredAccount{
 				IsNFTOperation:  true,
 				TokenIdentifier: token,
-				NFTNonceString:  nonce,
+				NFTNonce:        nonce,
 			})
 			continue
 		}
 
-		found = etp.searchSCRWithNonceOfNFTAndPutInAlteredAddress(scr.Data, scr.EsdtTokenIdentifier, scr.OriginalTxHash, alteredAccounts, scrs)
-		if found {
-			continue
-		}
-
+		_ = etp.searchSCRWithNonceOfNFTAndPutInAlteredAddress(scr.Data, scr.EsdtTokenIdentifier, scr.OriginalTxHash, alteredAccounts, scrs)
 	}
 }
 
 func (etp *esdtTransactionProcessor) searchForReceiverNFTTransferAndPutInAlteredAddress(
 	txs map[string]*data.Transaction,
-	alteredAccounts *data.AlteredAccounts,
+	alteredAccounts data.AlteredAccountsHandler,
 ) {
 	for _, tx := range txs {
-		_, _, _ = etp.nftTransferData(tx.Data, alteredAccounts)
+		_, _, _ = etp.processNftTransferData(tx.Data, alteredAccounts)
 	}
 }
 
-func (etp *esdtTransactionProcessor) nftTransferData(dataField []byte, alteredAccounts *data.AlteredAccounts) (token, nonce string, found bool) {
+func (etp *esdtTransactionProcessor) processNftTransferData(dataField []byte, alteredAccounts data.AlteredAccountsHandler) (token string, nonce uint64, found bool) {
 	function, arguments, err := etp.argumentParserExtended.ParseData(string(dataField))
 	if err != nil {
 		return
@@ -251,7 +247,7 @@ func (etp *esdtTransactionProcessor) nftTransferData(dataField []byte, alteredAc
 		return
 	}
 
-	nonceStr := big.NewInt(0).SetBytes(arguments[1]).String()
+	nonceUint := big.NewInt(0).SetBytes(arguments[1]).Uint64()
 
 	receiverNFTTransfer := arguments[3]
 	receiverShardID := etp.shardCoordinator.ComputeId(receiverNFTTransfer)
@@ -267,8 +263,8 @@ func (etp *esdtTransactionProcessor) nftTransferData(dataField []byte, alteredAc
 	alteredAccounts.Add(encodedReceiverAddr, &data.AlteredAccount{
 		IsNFTOperation:  true,
 		TokenIdentifier: string(arguments[0]),
-		NFTNonceString:  nonceStr,
+		NFTNonce:        nonceUint,
 	})
 
-	return string(arguments[0]), nonceStr, true
+	return string(arguments[0]), nonceUint, true
 }

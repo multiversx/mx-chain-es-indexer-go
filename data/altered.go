@@ -6,20 +6,29 @@ type AlteredAccount struct {
 	IsESDTOperation bool
 	IsNFTOperation  bool
 	TokenIdentifier string
-	NFTNonceString  string
+	NFTNonce        uint64
 }
 
-type AlteredAccounts struct {
+// AlteredAccountsHandler defines the actions that an altered accounts handler should do
+type AlteredAccountsHandler interface {
+	Add(key string, account *AlteredAccount)
+	Get(key string) ([]*AlteredAccount, bool)
+	GetAll() map[string][]*AlteredAccount
+	Len() int
+}
+
+type alteredAccounts struct {
 	altered map[string][]*AlteredAccount
 }
 
-func NewAlteredAccounts() *AlteredAccounts {
-	return &AlteredAccounts{
+// NewAlteredAccounts will create a new instance of alteredAccounts
+func NewAlteredAccounts() *alteredAccounts {
+	return &alteredAccounts{
 		altered: make(map[string][]*AlteredAccount),
 	}
 }
 
-func (aa *AlteredAccounts) Add(key string, account *AlteredAccount) {
+func (aa *alteredAccounts) Add(key string, account *AlteredAccount) {
 	_, ok := aa.altered[key]
 	if !ok {
 		aa.altered[key] = make([]*AlteredAccount, 0)
@@ -28,31 +37,31 @@ func (aa *AlteredAccounts) Add(key string, account *AlteredAccount) {
 		return
 	}
 
-	isESDTOrNFT := account.IsESDTOperation || account.IsNFTOperation
-	if !isESDTOrNFT {
+	isTokenOperation := account.IsESDTOperation || account.IsNFTOperation
+	if !isTokenOperation {
 		aa.altered[key][0].IsSender = aa.altered[key][0].IsSender || account.IsSender
 		return
 	}
 
 	wasSender := false
 	for _, elem := range aa.altered[key] {
-		newElemIsESDT := account.IsESDTOperation || account.IsNFTOperation
-		oldElemIsESDT := elem.IsESDTOperation || elem.IsNFTOperation
+		newElementIsTokenOperation := account.IsESDTOperation || account.IsNFTOperation
+		oldElementIsTokenOperation := elem.IsESDTOperation || elem.IsNFTOperation
 
 		wasSender = elem.IsSender || account.IsSender
 
-		shouldRewrite := newElemIsESDT && !oldElemIsESDT
+		shouldRewrite := newElementIsTokenOperation && !oldElementIsTokenOperation
 		if shouldRewrite {
 			elem.TokenIdentifier = account.TokenIdentifier
-			elem.NFTNonceString = account.NFTNonceString
+			elem.NFTNonce = account.NFTNonce
 			elem.IsNFTOperation = account.IsNFTOperation
 			elem.IsESDTOperation = account.IsESDTOperation
 			elem.IsSender = elem.IsSender || account.IsSender
 			return
 		}
 
-		alreadyExits := elem.TokenIdentifier == account.TokenIdentifier && elem.NFTNonceString == account.NFTNonceString
-		if alreadyExits {
+		alreadyExists := elem.TokenIdentifier == account.TokenIdentifier && elem.NFTNonce == account.NFTNonce
+		if alreadyExists {
 			elem.IsSender = elem.IsSender || account.IsSender
 			return
 		}
@@ -66,17 +75,17 @@ func (aa *AlteredAccounts) Add(key string, account *AlteredAccount) {
 	aa.altered[key] = append(aa.altered[key], account)
 }
 
-func (aa *AlteredAccounts) Get(key string) ([]*AlteredAccount, bool) {
+func (aa *alteredAccounts) Get(key string) ([]*AlteredAccount, bool) {
 	altered, ok := aa.altered[key]
 
 	return altered, ok
 }
 
-func (aa *AlteredAccounts) Len() int {
+func (aa *alteredAccounts) Len() int {
 	return len(aa.altered)
 }
 
-func (aa *AlteredAccounts) GetAll() map[string][]*AlteredAccount {
+func (aa *alteredAccounts) GetAll() map[string][]*AlteredAccount {
 	if aa == nil || aa.altered == nil {
 		return map[string][]*AlteredAccount{}
 	}
