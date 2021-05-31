@@ -78,7 +78,7 @@ func TestSerializeAccountsNFTWithMedaData(t *testing.T) {
 				URIs: [][]byte{
 					[]byte("uri"),
 				},
-				Attributes: []byte("atr"),
+				Attributes: data.NewAttributesDTO([]byte("tags:test,free,fun;description:This is a test description for an awesome nft")),
 			},
 		},
 	}
@@ -88,7 +88,7 @@ func TestSerializeAccountsNFTWithMedaData(t *testing.T) {
 	require.Equal(t, 1, len(res))
 
 	expectedRes := `{ "index" : { "_id" : "addr1_token-0001_5" } }
-{"address":"addr1","nonce":1,"balance":"10000000000000","balanceNum":1,"token":"token-0001","tokenNonce":5,"properties":"000","tokenMetaData":{"name":"nft","creator":"010101","royalties":1,"hash":"aGFzaA==","uris":["dXJp"],"attributes":"YXRy"}}
+{"address":"addr1","nonce":1,"balance":"10000000000000","balanceNum":1,"token":"token-0001","tokenNonce":5,"properties":"000","tokenMetaData":{"name":"nft","creator":"010101","royalties":1,"hash":"aGFzaA==","uris":["dXJp"],"attributes":{"description":["This is a test description for an awesome nft"],"tags":["test","free","fun"]}}}
 `
 	require.Equal(t, expectedRes, res[0].String())
 }

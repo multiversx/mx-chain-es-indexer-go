@@ -23,6 +23,14 @@ var AccountsESDT = Object{
 					"creator": Object{
 						"type": "text",
 					},
+					"attributes": Object{
+						"type": "nested",
+						"properties": Object{
+							"tags": Object{
+								"type": "text",
+							},
+						},
+					},
 				},
 			},
 		},

@@ -261,7 +261,7 @@ func (ap *accountsProcessor) getTokenMetaData(esdtInfo *esdt.ESDigitalToken) *da
 		Royalties:  esdtInfo.TokenMetaData.Royalties,
 		Hash:       esdtInfo.TokenMetaData.Hash,
 		URIs:       esdtInfo.TokenMetaData.URIs,
-		Attributes: esdtInfo.TokenMetaData.Attributes,
+		Attributes: data.NewAttributesDTO(esdtInfo.TokenMetaData.Attributes),
 	}
 }
 
