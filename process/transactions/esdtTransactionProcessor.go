@@ -167,7 +167,7 @@ func (etp *esdtTransactionProcessor) searchSCRWithNonceOfNFTAndPutInAlteredAddre
 			continue
 		}
 
-		nonceStr := etp.extractNonceString(scr)
+		nonceStr := etp.extractNonce(scr)
 		if nonceStr == 0 {
 			continue
 		}
@@ -186,7 +186,7 @@ func (etp *esdtTransactionProcessor) searchSCRWithNonceOfNFTAndPutInAlteredAddre
 	return
 }
 
-func (etp *esdtTransactionProcessor) extractNonceString(scr *data.ScResult) uint64 {
+func (etp *esdtTransactionProcessor) extractNonce(scr *data.ScResult) uint64 {
 	scrDataSplit := etp.argumentParserExtended.split(string(scr.Data))
 	if len(scrDataSplit) < 3 {
 		return 0

@@ -15,6 +15,7 @@ type AlteredAccountsHandler interface {
 	Get(key string) ([]*AlteredAccount, bool)
 	GetAll() map[string][]*AlteredAccount
 	Len() int
+	IsInterfaceNil() bool
 }
 
 type alteredAccounts struct {
@@ -91,4 +92,9 @@ func (aa *alteredAccounts) GetAll() map[string][]*AlteredAccount {
 	}
 
 	return aa.altered
+}
+
+// IsInterfaceNil returns true if underlying object is nil
+func (aa *alteredAccounts) IsInterfaceNil() bool {
+	return aa == nil
 }

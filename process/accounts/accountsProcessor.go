@@ -67,7 +67,7 @@ func (ap *accountsProcessor) GetAccounts(alteredAccounts data.AlteredAccountsHan
 	regularAccountsToIndex := make([]*data.Account, 0)
 	accountsToIndexESDT := make([]*data.AccountESDT, 0)
 
-	if alteredAccounts == nil {
+	if check.IfNil(alteredAccounts) {
 		return regularAccountsToIndex, accountsToIndexESDT
 	}
 

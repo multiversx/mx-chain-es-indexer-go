@@ -20,6 +20,11 @@ func NewAttributesDTO(attributes []byte) *Attributes {
 	attrs := make(Attributes)
 	sAttributes := strings.Split(string(attributes), attributesSeparator)
 
+	if len(sAttributes) == 1 {
+		attrs[string(attributes)] = []string{string(attributes)}
+		return &attrs
+	}
+
 	for _, keValuesPair := range sAttributes {
 		sKeyValuesPair := strings.Split(keValuesPair, keyValuesSeparator)
 		if len(sKeyValuesPair) < 2 {

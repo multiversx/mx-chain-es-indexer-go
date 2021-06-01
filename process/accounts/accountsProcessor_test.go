@@ -223,16 +223,19 @@ func TestGetESDTInfoNFT(t *testing.T) {
 func TestGetESDTInfoNFTWithMetaData(t *testing.T) {
 	t.Parallel()
 
-	ap, _ := NewAccountsProcessor(10, &mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), &mock.AccountsStub{})
+	pubKeyConverter := mock.NewPubkeyConverterMock(32)
+	ap, _ := NewAccountsProcessor(10, &mock.MarshalizerMock{}, pubKeyConverter, &mock.AccountsStub{})
 	require.NotNil(t, ap)
 
+	nftName := "Test-nft"
+	creator := []byte("010101")
 	esdtToken := &esdt.ESDigitalToken{
 		Value:      big.NewInt(1),
 		Properties: []byte("ok"),
 		TokenMetaData: &esdt.MetaData{
 			Nonce:     1,
-			Name:      []byte("Test-nft"),
-			Creator:   []byte("010101"),
+			Name:      []byte(nftName),
+			Creator:   creator,
 			Royalties: 2,
 		},
 	}
@@ -258,8 +261,8 @@ func TestGetESDTInfoNFTWithMetaData(t *testing.T) {
 	require.Equal(t, big.NewInt(1), balance)
 	require.Equal(t, hex.EncodeToString([]byte("ok")), prop)
 	require.Equal(t, &data.TokenMetaData{
-		Name:      "Test-nft",
-		Creator:   "303130313031",
+		Name:      nftName,
+		Creator:   pubKeyConverter.Encode(creator),
 		Royalties: 2,
 	}, metaData)
 }
