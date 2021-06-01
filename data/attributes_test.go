@@ -35,7 +35,9 @@ func TestPrepareAttributesShouldWork(t *testing.T) {
 
 	attributes = []byte(";")
 	prepared = NewAttributesDTO(attributes)
-	require.Nil(t, prepared)
+	require.Equal(t, &Attributes{
+		";": []string{";"},
+	}, prepared)
 
 	attributes = []byte("  ")
 	prepared = NewAttributesDTO(attributes)
@@ -47,5 +49,11 @@ func TestPrepareAttributesShouldWork(t *testing.T) {
 	prepared = NewAttributesDTO(attributes)
 	require.Equal(t, &Attributes{
 		"attribute": []string{"attribute"},
+	}, prepared)
+
+	attributes = []byte("shard:1,3")
+	prepared = NewAttributesDTO(attributes)
+	require.Equal(t, &Attributes{
+		"shard": []string{"1", "3"},
 	}, prepared)
 }
