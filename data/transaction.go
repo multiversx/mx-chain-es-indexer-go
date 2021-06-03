@@ -116,11 +116,11 @@ type Event struct {
 
 // PreparedResults is the DTO that holds all the results after processing
 type PreparedResults struct {
-	Transactions    []*Transaction
-	ScResults       []*ScResult
-	Receipts        []*Receipt
-	AlteredAccounts map[string]*AlteredAccount
-	DeploysInfo     []*ScDeployInfo
+	Transactions []*Transaction
+	ScResults    []*ScResult
+	Receipts     []*Receipt
+	DeploysInfo  []*ScDeployInfo
+	AlteredAccts AlteredAccountsHandler
 }
 
 // ScDeployInfo is the DTO that holds information about a smart contract deployment

@@ -41,7 +41,7 @@ func (tg *txsGrouper) groupNormalTxs(
 	mb *block.MiniBlock,
 	header nodeData.HeaderHandler,
 	txs map[string]nodeData.TransactionHandler,
-	alteredAddresses map[string]*data.AlteredAccount,
+	alteredAccounts data.AlteredAccountsHandler,
 ) (map[string]*data.Transaction, error) {
 	transactions := make(map[string]*data.Transaction)
 
@@ -57,7 +57,7 @@ func (tg *txsGrouper) groupNormalTxs(
 			continue
 		}
 
-		tg.addToAlteredAddresses(dbTx, alteredAddresses, mb, tg.selfShardID, false)
+		tg.addToAlteredAddresses(dbTx, alteredAccounts, mb, tg.selfShardID, false)
 		if tg.shouldIndex(mb.ReceiverShardID) {
 			transactions[string(txHash)] = dbTx
 		}
@@ -93,7 +93,7 @@ func (tg *txsGrouper) groupRewardsTxs(
 	mb *block.MiniBlock,
 	header nodeData.HeaderHandler,
 	txs map[string]nodeData.TransactionHandler,
-	alteredAddresses map[string]*data.AlteredAccount,
+	alteredAccounts data.AlteredAccountsHandler,
 ) (map[string]*data.Transaction, error) {
 	rewardsTxs := make(map[string]*data.Transaction)
 	mbHash, err := core.CalculateHash(tg.marshalizer, tg.hasher, mb)
@@ -108,7 +108,7 @@ func (tg *txsGrouper) groupRewardsTxs(
 			continue
 		}
 
-		tg.addToAlteredAddresses(rewardDBTx, alteredAddresses, mb, tg.selfShardID, true)
+		tg.addToAlteredAddresses(rewardDBTx, alteredAccounts, mb, tg.selfShardID, true)
 		if tg.shouldIndex(mb.ReceiverShardID) {
 			rewardsTxs[string(txHash)] = rewardDBTx
 		}
@@ -144,7 +144,7 @@ func (tg *txsGrouper) groupInvalidTxs(
 	mb *block.MiniBlock,
 	header nodeData.HeaderHandler,
 	txs map[string]nodeData.TransactionHandler,
-	alteredAddresses map[string]*data.AlteredAccount,
+	alteredAccounts data.AlteredAccountsHandler,
 ) (map[string]*data.Transaction, error) {
 	transactions := make(map[string]*data.Transaction)
 	mbHash, err := core.CalculateHash(tg.marshalizer, tg.hasher, mb)
@@ -158,7 +158,7 @@ func (tg *txsGrouper) groupInvalidTxs(
 			continue
 		}
 
-		tg.addToAlteredAddresses(invalidDBTx, alteredAddresses, mb, tg.selfShardID, false)
+		tg.addToAlteredAddresses(invalidDBTx, alteredAccounts, mb, tg.selfShardID, false)
 		transactions[string(txHash)] = invalidDBTx
 	}
 
@@ -246,7 +246,7 @@ func convertMapTxsToSlice(txs map[string]*data.Transaction) []*data.Transaction 
 
 func (tg *txsGrouper) addToAlteredAddresses(
 	tx *data.Transaction,
-	alteredAddresses map[string]*data.AlteredAccount,
+	alteredAccounts data.AlteredAccountsHandler,
 	miniBlock *block.MiniBlock,
 	selfShardID uint32,
 	isRewardTx bool,
@@ -255,13 +255,13 @@ func (tg *txsGrouper) addToAlteredAddresses(
 	isESDTNotInvalid := isESDTTx && miniBlock.Type != block.InvalidBlock
 	isNFTTxNotInvalid := isNFTTx && miniBlock.Type != block.InvalidBlock
 	if selfShardID == miniBlock.SenderShardID && !isRewardTx {
-		alteredAddresses[tx.Sender] = &data.AlteredAccount{
+		alteredAccounts.Add(tx.Sender, &data.AlteredAccount{
 			IsSender:        true,
 			IsESDTOperation: isESDTNotInvalid,
 			IsNFTOperation:  isNFTTxNotInvalid,
 			TokenIdentifier: tx.EsdtTokenIdentifier,
-			NFTNonceString:  nftNonceSTR,
-		}
+			NFTNonce:        nftNonceSTR,
+		})
 	}
 
 	ignoreTransactionReceiver := tx.Status == transaction.TxStatusInvalid.String() || tx.Sender == tx.Receiver
@@ -273,12 +273,12 @@ func (tg *txsGrouper) addToAlteredAddresses(
 	isESDTNotDestinationMeta := isESDTNotInvalid && !isMeta
 	isNFTTxNotDestinationMeta := isNFTTxNotInvalid && !isMeta
 	if selfShardID == miniBlock.ReceiverShardID || miniBlock.ReceiverShardID == core.AllShardId {
-		alteredAddresses[tx.Receiver] = &data.AlteredAccount{
+		alteredAccounts.Add(tx.Receiver, &data.AlteredAccount{
 			IsSender:        false,
 			IsESDTOperation: isESDTNotDestinationMeta,
 			IsNFTOperation:  isNFTTxNotDestinationMeta,
 			TokenIdentifier: tx.EsdtTokenIdentifier,
-			NFTNonceString:  nftNonceSTR,
-		}
+			NFTNonce:        nftNonceSTR,
+		})
 	}
 }

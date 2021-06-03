@@ -79,35 +79,35 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 		log.Warn("checkPrepareTransactionForDatabaseArguments", "error", err)
 
 		return &data.PreparedResults{
-			Transactions:    []*data.Transaction{},
-			ScResults:       []*data.ScResult{},
-			Receipts:        []*data.Receipt{},
-			AlteredAccounts: map[string]*data.AlteredAccount{},
+			Transactions: []*data.Transaction{},
+			ScResults:    []*data.ScResult{},
+			Receipts:     []*data.Receipt{},
+			AlteredAccts: data.NewAlteredAccounts(),
 		}
 	}
 
-	alteredAddresses := make(map[string]*data.AlteredAccount)
+	alteredAccounts := data.NewAlteredAccounts()
 	normalTxs := make(map[string]*data.Transaction)
 	rewardsTxs := make(map[string]*data.Transaction)
 
 	for _, mb := range body.MiniBlocks {
 		switch mb.Type {
 		case block.TxBlock:
-			txs, errGroup := tdp.txsGrouper.groupNormalTxs(mb, header, pool.Txs, alteredAddresses)
+			txs, errGroup := tdp.txsGrouper.groupNormalTxs(mb, header, pool.Txs, alteredAccounts)
 			if errGroup != nil {
 				log.Warn("txsDatabaseProcessor.groupNormalTxs", "error", errGroup)
 				continue
 			}
 			mergeTxsMaps(normalTxs, txs)
 		case block.RewardsBlock:
-			txs, errGroup := tdp.txsGrouper.groupRewardsTxs(mb, header, pool.Rewards, alteredAddresses)
+			txs, errGroup := tdp.txsGrouper.groupRewardsTxs(mb, header, pool.Rewards, alteredAccounts)
 			if errGroup != nil {
 				log.Warn("txsDatabaseProcessor.groupRewardsTxs", "error", errGroup)
 				continue
 			}
 			mergeTxsMaps(rewardsTxs, txs)
 		case block.InvalidBlock:
-			txs, errGroup := tdp.txsGrouper.groupInvalidTxs(mb, header, pool.Invalid, alteredAddresses)
+			txs, errGroup := tdp.txsGrouper.groupInvalidTxs(mb, header, pool.Invalid, alteredAccounts)
 			if errGroup != nil {
 				log.Warn("txsDatabaseProcessor.groupInvalidTxs", "error", errGroup)
 				continue
@@ -122,11 +122,12 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 	dbReceipts := tdp.txsGrouper.groupReceipts(header, pool.Receipts)
 	dbSCResults, countScResults := tdp.iterateSCRSAndConvert(pool.Scrs, header, normalTxs)
 
-	tdp.txBuilder.addScrsReceiverToAlteredAccounts(alteredAddresses, dbSCResults)
+	tdp.txBuilder.addScrsReceiverToAlteredAccounts(alteredAccounts, dbSCResults)
 	tdp.setDetailsOfTxsWithSCRS(normalTxs, countScResults)
 
-	tdp.txBuilder.esdtProc.searchTxsWithNFTCreateAndPutNonceInAlteredAddress(alteredAddresses, normalTxs, dbSCResults)
-	tdp.txBuilder.esdtProc.searchSCRSWithCreateNFTAndPutNonceInAlteredAddress(alteredAddresses, dbSCResults)
+	tdp.txBuilder.esdtProc.searchTxsWithNFTCreateAndPutNonceInAlteredAddress(alteredAccounts, normalTxs, dbSCResults)
+	tdp.txBuilder.esdtProc.searchForESDTInScrs(alteredAccounts, dbSCResults)
+	tdp.txBuilder.esdtProc.searchForReceiverNFTTransferAndPutInAlteredAddress(normalTxs, alteredAccounts)
 
 	sliceNormalTxs := convertMapTxsToSlice(normalTxs)
 	sliceRewardsTxs := convertMapTxsToSlice(rewardsTxs)
@@ -135,11 +136,11 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 	deploysData := tdp.scDeploysProc.searchSCDeployTransactionsOrSCRS(txsSlice, dbSCResults)
 
 	return &data.PreparedResults{
-		Transactions:    txsSlice,
-		ScResults:       dbSCResults,
-		Receipts:        dbReceipts,
-		AlteredAccounts: alteredAddresses,
-		DeploysInfo:     deploysData,
+		Transactions: txsSlice,
+		ScResults:    dbSCResults,
+		Receipts:     dbReceipts,
+		AlteredAccts: alteredAccounts,
+		DeploysInfo:  deploysData,
 	}
 }
 

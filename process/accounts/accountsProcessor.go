@@ -63,23 +63,42 @@ func NewAccountsProcessor(
 }
 
 // GetAccounts will get accounts for regular operations and esdt operations
-func (ap *accountsProcessor) GetAccounts(alteredAccounts map[string]*data.AlteredAccount) ([]*data.Account, []*data.AccountESDT) {
+func (ap *accountsProcessor) GetAccounts(alteredAccounts data.AlteredAccountsHandler) ([]*data.Account, []*data.AccountESDT) {
 	regularAccountsToIndex := make([]*data.Account, 0)
 	accountsToIndexESDT := make([]*data.AccountESDT, 0)
-	for address, info := range alteredAccounts {
+
+	if check.IfNil(alteredAccounts) {
+		return regularAccountsToIndex, accountsToIndexESDT
+	}
+
+	allAlteredAccounts := alteredAccounts.GetAll()
+	for address, altered := range allAlteredAccounts {
 		userAccount, err := ap.getUserAccount(address)
 		if err != nil || check.IfNil(userAccount) {
 			log.Warn("cannot get user account", "address", address, "error", err)
 			continue
 		}
 
+		regularAccounts, esdtAccounts := splitAlteredAccounts(userAccount, altered)
+
+		regularAccountsToIndex = append(regularAccountsToIndex, regularAccounts...)
+		accountsToIndexESDT = append(accountsToIndexESDT, esdtAccounts...)
+	}
+
+	return regularAccountsToIndex, accountsToIndexESDT
+}
+
+func splitAlteredAccounts(userAccount state.UserAccountHandler, altered []*data.AlteredAccount) ([]*data.Account, []*data.AccountESDT) {
+	regularAccountsToIndex := make([]*data.Account, 0)
+	accountsToIndexESDT := make([]*data.AccountESDT, 0)
+	for _, info := range altered {
 		if info.IsESDTOperation || info.IsNFTOperation {
 			accountsToIndexESDT = append(accountsToIndexESDT, &data.AccountESDT{
 				Account:         userAccount,
 				TokenIdentifier: info.TokenIdentifier,
 				IsSender:        info.IsSender,
 				IsNFTOperation:  info.IsNFTOperation,
-				NFTNonceString:  info.NFTNonceString,
+				NFTNonce:        info.NFTNonce,
 			})
 		}
 
@@ -143,7 +162,7 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(accounts []*data.AccountESDT
 	accountsESDTMap := make(map[string]*data.AccountInfo)
 	for _, accountESDT := range accounts {
 		address := ap.addressPubkeyConverter.Encode(accountESDT.Account.AddressBytes())
-		balance, properties, err := ap.getESDTInfo(accountESDT)
+		balance, properties, tokenMetaData, err := ap.getESDTInfo(accountESDT)
 		if err != nil {
 			log.Warn("cannot get esdt info from account",
 				"address", address,
@@ -154,11 +173,13 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(accounts []*data.AccountESDT
 		acc := &data.AccountInfo{
 			Address:         address,
 			TokenIdentifier: accountESDT.TokenIdentifier,
+			TokenNonce:      accountESDT.NFTNonce,
 			Balance:         balance.String(),
 			BalanceNum:      ap.computeBalanceAsFloat(balance, ap.balancePrecisionESDT),
 			Properties:      properties,
 			IsSender:        accountESDT.IsSender,
 			IsSmartContract: core.IsSmartContractAddress(accountESDT.Account.AddressBytes()),
+			MetaData:        tokenMetaData,
 		}
 
 		accountsESDTMap[address] = acc
@@ -179,6 +200,7 @@ func (ap *accountsProcessor) PrepareAccountsHistory(
 			Balance:         userAccount.Balance,
 			Timestamp:       time.Duration(timestamp),
 			TokenIdentifier: userAccount.TokenIdentifier,
+			TokenNonce:      userAccount.TokenNonce,
 			IsSender:        userAccount.IsSender,
 			IsSmartContract: userAccount.IsSmartContract,
 		}
@@ -189,38 +211,58 @@ func (ap *accountsProcessor) PrepareAccountsHistory(
 	return accountsMap
 }
 
-func (ap *accountsProcessor) getESDTInfo(accountESDT *data.AccountESDT) (*big.Int, string, error) {
+func (ap *accountsProcessor) getESDTInfo(accountESDT *data.AccountESDT) (*big.Int, string, *data.TokenMetaData, error) {
 	if accountESDT.TokenIdentifier == "" {
-		return big.NewInt(0), "", nil
+		return big.NewInt(0), "", nil, nil
 	}
-	if accountESDT.IsNFTOperation && accountESDT.NFTNonceString == "" {
-		return big.NewInt(0), "", nil
+	if accountESDT.IsNFTOperation && accountESDT.NFTNonce == 0 {
+		return big.NewInt(0), "", nil, nil
 	}
 
 	tokenKey := []byte(core.ElrondProtectedKeyPrefix + core.ESDTKeyIdentifier + accountESDT.TokenIdentifier)
 	if accountESDT.IsNFTOperation {
-		nonceBig, ok := big.NewInt(0).SetString(accountESDT.NFTNonceString, 10)
-		if ok {
-			tokenKey = append(tokenKey, nonceBig.Bytes()...)
-		}
+		nonceBig := big.NewInt(0).SetUint64(accountESDT.NFTNonce)
+		tokenKey = append(tokenKey, nonceBig.Bytes()...)
 	}
 
 	valueBytes, err := accountESDT.Account.DataTrieTracker().RetrieveValue(tokenKey)
 	if err != nil {
-		return nil, "", err
+		return nil, "", nil, err
 	}
 
 	esdtToken := &esdt.ESDigitalToken{}
 	err = ap.internalMarshalizer.Unmarshal(esdtToken, valueBytes)
 	if err != nil {
-		return nil, "", err
+		return nil, "", nil, err
 	}
 
 	if esdtToken.Value == nil {
-		return big.NewInt(0), "", nil
+		return big.NewInt(0), "", nil, nil
 	}
 
-	return esdtToken.Value, hex.EncodeToString(esdtToken.Properties), nil
+	tokenMetaData := ap.getTokenMetaData(esdtToken)
+
+	return esdtToken.Value, hex.EncodeToString(esdtToken.Properties), tokenMetaData, nil
+}
+
+func (ap *accountsProcessor) getTokenMetaData(esdtInfo *esdt.ESDigitalToken) *data.TokenMetaData {
+	if esdtInfo.TokenMetaData == nil {
+		return nil
+	}
+
+	creatorStr := ""
+	if esdtInfo.TokenMetaData.Creator != nil {
+		creatorStr = ap.addressPubkeyConverter.Encode(esdtInfo.TokenMetaData.Creator)
+	}
+
+	return &data.TokenMetaData{
+		Name:       string(esdtInfo.TokenMetaData.Name),
+		Creator:    creatorStr,
+		Royalties:  esdtInfo.TokenMetaData.Royalties,
+		Hash:       esdtInfo.TokenMetaData.Hash,
+		URIs:       esdtInfo.TokenMetaData.URIs,
+		Attributes: data.NewAttributesDTO(esdtInfo.TokenMetaData.Attributes),
+	}
 }
 
 func (ap *accountsProcessor) computeBalanceAsFloat(balance *big.Int, balancePrecision float64) float64 {

@@ -153,7 +153,7 @@ func TestGetESDTInfo_CannotRetriveValueShoudError(t *testing.T) {
 		},
 		TokenIdentifier: "token",
 	}
-	_, _, err := ap.getESDTInfo(wrapAccount)
+	_, _, _, err := ap.getESDTInfo(wrapAccount)
 	require.Equal(t, localErr, err)
 }
 
@@ -181,7 +181,7 @@ func TestGetESDTInfo(t *testing.T) {
 		},
 		TokenIdentifier: tokenIdentifier,
 	}
-	balance, prop, err := ap.getESDTInfo(wrapAccount)
+	balance, prop, _, err := ap.getESDTInfo(wrapAccount)
 	require.Nil(t, err)
 	require.Equal(t, big.NewInt(1000), balance)
 	require.Equal(t, hex.EncodeToString([]byte("ok")), prop)
@@ -212,12 +212,59 @@ func TestGetESDTInfoNFT(t *testing.T) {
 		},
 		TokenIdentifier: tokenIdentifier,
 		IsNFTOperation:  true,
-		NFTNonceString:  "10",
+		NFTNonce:        10,
 	}
-	balance, prop, err := ap.getESDTInfo(wrapAccount)
+	balance, prop, _, err := ap.getESDTInfo(wrapAccount)
 	require.Nil(t, err)
 	require.Equal(t, big.NewInt(1), balance)
 	require.Equal(t, hex.EncodeToString([]byte("ok")), prop)
+}
+
+func TestGetESDTInfoNFTWithMetaData(t *testing.T) {
+	t.Parallel()
+
+	pubKeyConverter := mock.NewPubkeyConverterMock(32)
+	ap, _ := NewAccountsProcessor(10, &mock.MarshalizerMock{}, pubKeyConverter, &mock.AccountsStub{})
+	require.NotNil(t, ap)
+
+	nftName := "Test-nft"
+	creator := []byte("010101")
+	esdtToken := &esdt.ESDigitalToken{
+		Value:      big.NewInt(1),
+		Properties: []byte("ok"),
+		TokenMetaData: &esdt.MetaData{
+			Nonce:     1,
+			Name:      []byte(nftName),
+			Creator:   creator,
+			Royalties: 2,
+		},
+	}
+
+	tokenIdentifier := "token-001"
+	wrapAccount := &data.AccountESDT{
+		Account: &mock.UserAccountStub{
+			DataTrieTrackerCalled: func() state.DataTrieTracker {
+				return &mock.DataTrieTrackerStub{
+					RetrieveValueCalled: func(key []byte) ([]byte, error) {
+						assert.Equal(t, append([]byte("ELRONDesdttoken-001"), 0xa), key)
+						return json.Marshal(esdtToken)
+					},
+				}
+			},
+		},
+		TokenIdentifier: tokenIdentifier,
+		IsNFTOperation:  true,
+		NFTNonce:        10,
+	}
+	balance, prop, metaData, err := ap.getESDTInfo(wrapAccount)
+	require.Nil(t, err)
+	require.Equal(t, big.NewInt(1), balance)
+	require.Equal(t, hex.EncodeToString([]byte("ok")), prop)
+	require.Equal(t, &data.TokenMetaData{
+		Name:      nftName,
+		Creator:   pubKeyConverter.Encode(creator),
+		Royalties: 2,
+	}, metaData)
 }
 
 func TestAccountsProcessor_GetAccountsEGLDAccounts(t *testing.T) {
@@ -233,12 +280,12 @@ func TestAccountsProcessor_GetAccountsEGLDAccounts(t *testing.T) {
 	ap, _ := NewAccountsProcessor(10, &mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), accountsStub)
 	require.NotNil(t, ap)
 
-	alteredAccounts := map[string]*data.AlteredAccount{
-		addr: {
-			IsESDTOperation: false,
-			TokenIdentifier: "",
-		},
-	}
+	alteredAccounts := data.NewAlteredAccounts()
+	alteredAccounts.Add(addr, &data.AlteredAccount{
+		IsESDTOperation: false,
+		TokenIdentifier: "",
+	})
+
 	accounts, esdtAccounts := ap.GetAccounts(alteredAccounts)
 	require.Equal(t, 0, len(esdtAccounts))
 	require.Equal(t, []*data.Account{
@@ -259,12 +306,11 @@ func TestAccountsProcessor_GetAccountsESDTAccount(t *testing.T) {
 	ap, _ := NewAccountsProcessor(10, &mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), accountsStub)
 	require.NotNil(t, ap)
 
-	alteredAccounts := map[string]*data.AlteredAccount{
-		addr: {
-			IsESDTOperation: true,
-			TokenIdentifier: "token",
-		},
-	}
+	alteredAccounts := data.NewAlteredAccounts()
+	alteredAccounts.Add(addr, &data.AlteredAccount{
+		IsESDTOperation: true,
+		TokenIdentifier: "token",
+	})
 	accounts, esdtAccounts := ap.GetAccounts(alteredAccounts)
 	require.Equal(t, 0, len(accounts))
 	require.Equal(t, []*data.AccountESDT{
@@ -363,6 +409,7 @@ func TestAccountsProcessor_PrepareAccountsHistory(t *testing.T) {
 			Address:         "addr1",
 			Balance:         "112",
 			TokenIdentifier: "token-112",
+			TokenNonce:      10,
 			IsSender:        true,
 		},
 	}
@@ -377,6 +424,7 @@ func TestAccountsProcessor_PrepareAccountsHistory(t *testing.T) {
 		Balance:         "112",
 		TokenIdentifier: "token-112",
 		IsSender:        true,
+		TokenNonce:      10,
 	}, accountBalanceHistory)
 }
 

@@ -14,6 +14,25 @@ var AccountsESDT = Object{
 			"balanceNum": Object{
 				"type": "double",
 			},
+			"tokenMetaData": Object{
+				"type": "nested",
+				"properties": Object{
+					"name": Object{
+						"type": "text",
+					},
+					"creator": Object{
+						"type": "text",
+					},
+					"attributes": Object{
+						"type": "nested",
+						"properties": Object{
+							"tags": Object{
+								"type": "text",
+							},
+						},
+					},
+				},
+			},
 		},
 	},
 }

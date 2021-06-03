@@ -30,7 +30,7 @@ func newTransactionDBBuilder(
 	shardCoordinator sharding.Coordinator,
 	txFeeCalculator process.TransactionFeeCalculator,
 ) *dbTransactionBuilder {
-	esdtProc := newEsdtTransactionHandler()
+	esdtProc := newEsdtTransactionHandler(addressPubkeyConverter, shardCoordinator)
 
 	return &dbTransactionBuilder{
 		esdtProc:               esdtProc,
@@ -129,6 +129,11 @@ func (dtb *dbTransactionBuilder) prepareSmartContractResult(
 		tokenIdentifier = dtb.esdtProc.getTokenIdentifier(sc.Data)
 	}
 
+	relayedValue := ""
+	if sc.RelayedValue != nil {
+		relayedValue = sc.RelayedValue.String()
+	}
+
 	return &data.ScResult{
 		Hash:                hex.EncodeToString([]byte(scHash)),
 		Nonce:               sc.Nonce,
@@ -138,7 +143,7 @@ func (dtb *dbTransactionBuilder) prepareSmartContractResult(
 		Sender:              dtb.addressPubkeyConverter.Encode(sc.SndAddr),
 		Receiver:            dtb.addressPubkeyConverter.Encode(sc.RcvAddr),
 		RelayerAddr:         relayerAddr,
-		RelayedValue:        sc.RelayedValue.String(),
+		RelayedValue:        relayedValue,
 		Code:                string(sc.Code),
 		Data:                sc.Data,
 		PrevTxHash:          hex.EncodeToString(sc.PrevTxHash),
@@ -167,7 +172,7 @@ func (dtb *dbTransactionBuilder) prepareReceipt(
 }
 
 func (dtb *dbTransactionBuilder) addScrsReceiverToAlteredAccounts(
-	alteredAddress map[string]*data.AlteredAccount,
+	alteredAccounts data.AlteredAccountsHandler,
 	scrs []*data.ScResult,
 ) {
 	for _, scr := range scrs {
@@ -191,30 +196,41 @@ func (dtb *dbTransactionBuilder) addScrsReceiverToAlteredAccounts(
 		isESDTScrNotDestinationMeta := isESDTScr && !isMeta
 		isNFTScrNotDestinationMeta := isNFTScr && !isMeta
 
-		_, ok := alteredAddress[encodedReceiverAddress]
-		if ok {
-			//  TODO treat this case in the next PR
-			//  is a case when an account will send and receive and ESDT or NFT in the same block
-			//  should be 2 entries in the altered accounts
-			continue
+		shouldAddSender := (isESDTScrNotDestinationMeta || isNFTScrNotDestinationMeta) && dtb.isInSameShard(scr.Sender)
+		if shouldAddSender {
+			alteredAccounts.Add(scr.Sender, &data.AlteredAccount{
+				IsESDTOperation: isESDTScrNotDestinationMeta,
+				IsNFTOperation:  isNFTScrNotDestinationMeta,
+				TokenIdentifier: scr.EsdtTokenIdentifier,
+				NFTNonce:        nftNonceStr,
+			})
 		}
 
-		alteredAddress[encodedReceiverAddress] = &data.AlteredAccount{
+		alteredAccounts.Add(encodedReceiverAddress, &data.AlteredAccount{
 			IsESDTOperation: isESDTScrNotDestinationMeta,
 			IsNFTOperation:  isNFTScrNotDestinationMeta,
-			NFTNonceString:  nftNonceStr,
+			NFTNonce:        nftNonceStr,
 			TokenIdentifier: scr.EsdtTokenIdentifier,
-		}
+		})
 	}
 }
 
-func (dtb *dbTransactionBuilder) computeESDTInfo(dataField []byte, tokenIdentifier string) (isESDT, isNFT bool, nftNonceStr string) {
+func (dtb *dbTransactionBuilder) isInSameShard(sender string) bool {
+	senderBytes, err := dtb.addressPubkeyConverter.Decode(sender)
+	if err != nil {
+		return false
+	}
+
+	return dtb.shardCoordinator.ComputeId(senderBytes) == dtb.shardCoordinator.SelfId()
+}
+
+func (dtb *dbTransactionBuilder) computeESDTInfo(dataField []byte, tokenIdentifier string) (isESDT, isNFT bool, nftNonce uint64) {
 	isNFT = dtb.esdtProc.isNFTTx(dataField)
 	if !isNFT {
 		isESDT = tokenIdentifier != emptyString
 		return
 	}
 
-	_, nftNonceStr = dtb.esdtProc.getNFTTxInfo(dataField)
+	_, nftNonce = dtb.esdtProc.getNFTTxInfo(dataField)
 	return
 }

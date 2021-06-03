@@ -13,7 +13,7 @@ type DBAccountsHandlerStub struct {
 }
 
 // GetAccounts -
-func (dba *DBAccountsHandlerStub) GetAccounts(_ map[string]*data.AlteredAccount) ([]*data.Account, []*data.AccountESDT) {
+func (dba *DBAccountsHandlerStub) GetAccounts(_ data.AlteredAccountsHandler) ([]*data.Account, []*data.AccountESDT) {
 	return nil, nil
 }
 

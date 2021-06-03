@@ -44,31 +44,31 @@ func TestAddToAlteredAddresses(t *testing.T) {
 		Receiver:            receiver,
 		EsdtTokenIdentifier: tokenIdentifier,
 	}
-	alteredAddress := make(map[string]*data.AlteredAccount)
+	alteredAddress := data.NewAlteredAccounts()
 	selfShardID := uint32(0)
 	mb := &block.MiniBlock{}
 
 	grouper := txsGrouper{
 		txBuilder: &dbTransactionBuilder{
-			esdtProc: newEsdtTransactionHandler(),
+			esdtProc: newEsdtTransactionHandler(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{}),
 		},
 	}
 	grouper.addToAlteredAddresses(tx, alteredAddress, mb, selfShardID, false)
 
-	alteredAccounts, ok := alteredAddress[receiver]
+	alteredAccounts, ok := alteredAddress.Get(receiver)
 	require.True(t, ok)
 	require.Equal(t, &data.AlteredAccount{
 		IsESDTOperation: true,
 		TokenIdentifier: tokenIdentifier,
-	}, alteredAccounts)
+	}, alteredAccounts[0])
 
-	alteredAccounts, ok = alteredAddress[sender]
+	alteredAccounts, ok = alteredAddress.Get(sender)
 	require.True(t, ok)
 	require.Equal(t, &data.AlteredAccount{
 		IsSender:        true,
 		IsESDTOperation: true,
 		TokenIdentifier: tokenIdentifier,
-	}, alteredAccounts)
+	}, alteredAccounts[0])
 }
 
 func TestTestAddToAlteredAddressesESDTOnMeta(t *testing.T) {
@@ -80,7 +80,7 @@ func TestTestAddToAlteredAddressesESDTOnMeta(t *testing.T) {
 		Receiver:            receiver,
 		EsdtTokenIdentifier: tokenIdentifier,
 	}
-	alteredAddress := make(map[string]*data.AlteredAccount)
+	alteredAddress := data.NewAlteredAccounts()
 	selfShardID := core.MetachainShardId
 	mb := &block.MiniBlock{
 		ReceiverShardID: core.MetachainShardId,
@@ -88,17 +88,17 @@ func TestTestAddToAlteredAddressesESDTOnMeta(t *testing.T) {
 
 	grouper := txsGrouper{
 		txBuilder: &dbTransactionBuilder{
-			esdtProc: newEsdtTransactionHandler(),
+			esdtProc: newEsdtTransactionHandler(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{}),
 		},
 	}
 	grouper.addToAlteredAddresses(tx, alteredAddress, mb, selfShardID, false)
 
-	alteredAccounts, ok := alteredAddress[receiver]
+	alteredAccounts, ok := alteredAddress.Get(receiver)
 	require.True(t, ok)
 	require.Equal(t, &data.AlteredAccount{
 		IsESDTOperation: false,
 		TokenIdentifier: tokenIdentifier,
-	}, alteredAccounts)
+	}, alteredAccounts[0])
 
 }
 
@@ -460,9 +460,8 @@ func TestAlteredAddresses(t *testing.T) {
 	txDbProc, _ := NewTransactionsProcessor(args)
 
 	results := txDbProc.PrepareTransactionsForDatabase(body, hdr, pool)
-	require.Equal(t, len(expectedAlteredAccounts), len(results.AlteredAccounts))
 
-	for addrActual := range results.AlteredAccounts {
+	for addrActual := range results.AlteredAccts.GetAll() {
 		_, found := expectedAlteredAccounts[addrActual]
 		if !found {
 			assert.Fail(t, fmt.Sprintf("address %s not found", addrActual))
@@ -796,7 +795,7 @@ func TestTxsDatabaseProcessor_IssueESDTTx(t *testing.T) {
 	require.Equal(t, "success", res.Transactions[0].Status)
 	require.Equal(t, 2, len(res.ScResults))
 
-	_, ok := res.AlteredAccounts["erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u"]
+	_, ok := res.AlteredAccts.Get("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u")
 	require.True(t, ok)
 
 	// transaction fail

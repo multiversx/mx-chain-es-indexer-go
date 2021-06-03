@@ -8,16 +8,28 @@ import (
 
 // AccountInfo holds (serializable) data about an account
 type AccountInfo struct {
-	Address                  string  `json:"address,omitempty"`
-	Nonce                    uint64  `json:"nonce,omitempty"`
-	Balance                  string  `json:"balance"`
-	BalanceNum               float64 `json:"balanceNum"`
-	TokenIdentifier          string  `json:"token,omitempty"`
-	Properties               string  `json:"properties,omitempty"`
-	IsSender                 bool    `json:"-"`
-	IsSmartContract          bool    `json:"-"`
-	TotalBalanceWithStake    string  `json:"totalBalanceWithStake,omitempty"`
-	TotalBalanceWithStakeNum float64 `json:"totalBalanceWithStakeNum,omitempty"`
+	Address                  string         `json:"address,omitempty"`
+	Nonce                    uint64         `json:"nonce,omitempty"`
+	Balance                  string         `json:"balance"`
+	BalanceNum               float64        `json:"balanceNum"`
+	TokenIdentifier          string         `json:"token,omitempty"`
+	TokenNonce               uint64         `json:"tokenNonce,omitempty"`
+	Properties               string         `json:"properties,omitempty"`
+	IsSender                 bool           `json:"-"`
+	IsSmartContract          bool           `json:"-"`
+	TotalBalanceWithStake    string         `json:"totalBalanceWithStake,omitempty"`
+	TotalBalanceWithStakeNum float64        `json:"totalBalanceWithStakeNum,omitempty"`
+	MetaData                 *TokenMetaData `json:"tokenMetaData,omitempty"`
+}
+
+// TokenMetaData holds data about a token metadata
+type TokenMetaData struct {
+	Name       string      `json:"name,omitempty"`
+	Creator    string      `json:"creator,omitempty"`
+	Royalties  uint32      `json:"royalties,omitempty"`
+	Hash       []byte      `json:"hash,omitempty"`
+	URIs       [][]byte    `json:"uris,omitempty"`
+	Attributes *Attributes `json:"attributes,omitempty"`
 }
 
 // AccountBalanceHistory represents an entry in the user accounts balances history
@@ -26,6 +38,7 @@ type AccountBalanceHistory struct {
 	Timestamp       time.Duration `json:"timestamp"`
 	Balance         string        `json:"balance"`
 	TokenIdentifier string        `json:"token,omitempty"`
+	TokenNonce      uint64        `json:"tokenNonce,omitempty"`
 	IsSender        bool          `json:"isSender,omitempty"`
 	IsSmartContract bool          `json:"isSmartContract,omitempty"`
 }
@@ -40,16 +53,7 @@ type Account struct {
 type AccountESDT struct {
 	Account         state.UserAccountHandler
 	TokenIdentifier string
-	NFTNonceString  string
+	NFTNonce        uint64
 	IsSender        bool
 	IsNFTOperation  bool
-}
-
-// AlteredAccount is a structure that holds information about an altered account
-type AlteredAccount struct {
-	IsSender        bool
-	IsESDTOperation bool
-	IsNFTOperation  bool
-	TokenIdentifier string
-	NFTNonceString  string
 }

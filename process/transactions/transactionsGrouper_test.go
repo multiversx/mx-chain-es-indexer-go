@@ -36,11 +36,11 @@ func TestGroupNormalTxs(t *testing.T) {
 			RcvAddr: []byte("receiver2"),
 		},
 	}
-	alteredAddresses := map[string]*data.AlteredAccount{}
+	alteredAddresses := data.NewAlteredAccounts()
 
 	normalTxs, _ := grouper.groupNormalTxs(mb, header, txs, alteredAddresses)
 	require.Len(t, normalTxs, 2)
-	require.Len(t, alteredAddresses, 4)
+	require.Equal(t, 4, alteredAddresses.Len())
 }
 
 func TestGroupRewardsTxs(t *testing.T) {
@@ -64,11 +64,11 @@ func TestGroupRewardsTxs(t *testing.T) {
 			RcvAddr: []byte("receiver2"),
 		},
 	}
-	alteredAddresses := map[string]*data.AlteredAccount{}
+	alteredAddresses := data.NewAlteredAccounts()
 
 	normalTxs, _ := grouper.groupRewardsTxs(mb, header, txs, alteredAddresses)
 	require.Len(t, normalTxs, 2)
-	require.Len(t, alteredAddresses, 2)
+	require.Equal(t, 2, alteredAddresses.Len())
 }
 
 func TestGroupInvalidTxs(t *testing.T) {
@@ -94,11 +94,11 @@ func TestGroupInvalidTxs(t *testing.T) {
 			RcvAddr: []byte("receiver2"),
 		},
 	}
-	alteredAddresses := map[string]*data.AlteredAccount{}
+	alteredAddresses := data.NewAlteredAccounts()
 
 	normalTxs, _ := grouper.groupInvalidTxs(mb, header, txs, alteredAddresses)
 	require.Len(t, normalTxs, 2)
-	require.Len(t, alteredAddresses, 2)
+	require.Equal(t, 2, alteredAddresses.Len())
 }
 
 func TestGroupReceipts(t *testing.T) {
@@ -128,11 +128,11 @@ func TestAddToAlteredAddressesNFT(t *testing.T) {
 
 	grouper := txsGrouper{
 		txBuilder: &dbTransactionBuilder{
-			esdtProc: newEsdtTransactionHandler(),
+			esdtProc: newEsdtTransactionHandler(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{}),
 		},
 	}
 
-	alteredAddresses := map[string]*data.AlteredAccount{}
+	alteredAddresses := data.NewAlteredAccounts()
 	mb := &block.MiniBlock{
 		SenderShardID:   0,
 		ReceiverShardID: 0,
@@ -143,13 +143,16 @@ func TestAddToAlteredAddressesNFT(t *testing.T) {
 		Receiver:            "sender",
 		EsdtTokenIdentifier: "MY-TOKEN",
 	}, alteredAddresses, mb, 0, false)
+
+	altered, ok := alteredAddresses.Get("sender")
+	require.True(t, ok)
 	require.Equal(t, &data.AlteredAccount{
 		IsNFTOperation:  true,
 		IsESDTOperation: false,
 		IsSender:        true,
 		TokenIdentifier: "MY-TOKEN",
-		NFTNonceString:  "1",
-	}, alteredAddresses["sender"])
+		NFTNonce:        uint64(1),
+	}, altered[0])
 }
 
 func TestAddToAlteredAddressesESDT(t *testing.T) {
@@ -157,11 +160,11 @@ func TestAddToAlteredAddressesESDT(t *testing.T) {
 
 	grouper := txsGrouper{
 		txBuilder: &dbTransactionBuilder{
-			esdtProc: newEsdtTransactionHandler(),
+			esdtProc: newEsdtTransactionHandler(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{}),
 		},
 	}
 
-	alteredAddresses := map[string]*data.AlteredAccount{}
+	alteredAddresses := data.NewAlteredAccounts()
 	mb := &block.MiniBlock{
 		SenderShardID:   0,
 		ReceiverShardID: 0,
@@ -172,13 +175,17 @@ func TestAddToAlteredAddressesESDT(t *testing.T) {
 		Receiver:            "sender",
 		EsdtTokenIdentifier: "MY-TOKEN",
 	}, alteredAddresses, mb, 0, false)
+
+	altered, ok := alteredAddresses.Get("sender")
+	require.True(t, ok)
+
 	require.Equal(t, &data.AlteredAccount{
 		IsNFTOperation:  false,
 		IsESDTOperation: true,
 		IsSender:        true,
 		TokenIdentifier: "MY-TOKEN",
-		NFTNonceString:  "",
-	}, alteredAddresses["sender"])
+		NFTNonce:        0,
+	}, altered[0])
 }
 
 func TestAddToAlteredAddressesESDTInvalidMiniblock(t *testing.T) {
@@ -186,11 +193,11 @@ func TestAddToAlteredAddressesESDTInvalidMiniblock(t *testing.T) {
 
 	grouper := txsGrouper{
 		txBuilder: &dbTransactionBuilder{
-			esdtProc: newEsdtTransactionHandler(),
+			esdtProc: newEsdtTransactionHandler(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{}),
 		},
 	}
 
-	alteredAddresses := map[string]*data.AlteredAccount{}
+	alteredAddresses := data.NewAlteredAccounts()
 	mb := &block.MiniBlock{
 		SenderShardID:   0,
 		ReceiverShardID: 0,
@@ -202,11 +209,15 @@ func TestAddToAlteredAddressesESDTInvalidMiniblock(t *testing.T) {
 		Receiver:            "sender",
 		EsdtTokenIdentifier: "MY-TOKEN",
 	}, alteredAddresses, mb, 0, false)
+
+	altered, ok := alteredAddresses.Get("sender")
+	require.True(t, ok)
+
 	require.Equal(t, &data.AlteredAccount{
 		IsNFTOperation:  false,
 		IsESDTOperation: false,
 		IsSender:        true,
 		TokenIdentifier: "MY-TOKEN",
-		NFTNonceString:  "",
-	}, alteredAddresses["sender"])
+		NFTNonce:        0,
+	}, altered[0])
 }
