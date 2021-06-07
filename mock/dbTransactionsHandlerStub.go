@@ -57,3 +57,8 @@ func (tps *DBTransactionProcessorStub) SerializeScResults(scrs []*data.ScResult)
 func (tps *DBTransactionProcessorStub) SerializeDeploysData(_ []*data.ScDeployInfo) ([]*bytes.Buffer, error) {
 	return nil, nil
 }
+
+// SerializeTokens -
+func (tps *DBTransactionProcessorStub) SerializeTokens(_ []*data.TokenInfo) ([]*bytes.Buffer, error) {
+	return nil, nil
+}

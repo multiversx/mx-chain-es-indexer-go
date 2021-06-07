@@ -1,0 +1,174 @@
+package transactions
+
+import (
+	"fmt"
+	"testing"
+
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elrond-go/core"
+	"github.com/ElrondNetwork/elrond-go/core/vmcommon"
+	"github.com/stretchr/testify/require"
+)
+
+func TestNewTokensProcessor_SearchIssueFungibleESDTTransactions(t *testing.T) {
+	t.Parallel()
+
+	sender := "erd1yp046t9pc009mkaxyws5dm434ydut348va5ypjd3ng57euy3yjkqcnrfh3"
+	txs := []*data.Transaction{
+		{
+			Sender:   sender,
+			Receiver: metachainESDTAddress,
+			Nonce:    15,
+			Data:     []byte("issue@446f6c6c6172@555344@0ba43b7400@05@63616e55706772616465@74727565"),
+			SmartContractResults: []*data.ScResult{
+				{
+					Nonce:    16,
+					Sender:   metachainESDTAddress,
+					Receiver: sender,
+					Data:     []byte("@6f6b"),
+				},
+				{
+					Nonce:    0,
+					Sender:   metachainESDTAddress,
+					Receiver: sender,
+					Data:     []byte("ESDTTransfer@5553442d326665643930@0ba43b7400"),
+				},
+			},
+		},
+	}
+
+	tokensProc := newTokensProcessor(core.MetachainShardId)
+	tokensInfo := tokensProc.searchForTokenIssueTransactions(txs)
+	require.Equal(t, &data.TokenInfo{
+		Name:       "Dollar",
+		Ticker:     "USD",
+		Identifier: "USD-2fed90",
+		Issuer:     "erd1yp046t9pc009mkaxyws5dm434ydut348va5ypjd3ng57euy3yjkqcnrfh3",
+		Type:       core.FungibleESDT,
+	}, tokensInfo[0])
+}
+
+func TestNewTokensProcessor_SearchIssueSemiFungibleESDTTransactions(t *testing.T) {
+	t.Parallel()
+
+	sender := "erd1yp046t9pc009mkaxyws5dm434ydut348va5ypjd3ng57euy3yjkqcnrfh3"
+	txs := []*data.Transaction{
+		{
+			Sender:   sender,
+			Receiver: metachainESDTAddress,
+			Nonce:    6,
+			Data:     []byte("issueSemiFungible@53656d6946756e6769626c65546f6b656e@534654@63616e467265657a65@74727565@63616e57697065@74727565@63616e5061757365@74727565@63616E5472616E736665724E4654437265617465526F6C65@74727565"),
+			SmartContractResults: []*data.ScResult{
+				{
+					Nonce:    7,
+					Sender:   metachainESDTAddress,
+					Receiver: sender,
+					Data:     []byte("@6f6b@5346542d623264303139"),
+				},
+			},
+		},
+	}
+
+	tokensProc := newTokensProcessor(core.MetachainShardId)
+	tokensInfo := tokensProc.searchForTokenIssueTransactions(txs)
+	require.Equal(t, &data.TokenInfo{
+		Name:       "SemiFungibleToken",
+		Ticker:     "SFT",
+		Identifier: "SFT-b2d019",
+		Issuer:     "erd1yp046t9pc009mkaxyws5dm434ydut348va5ypjd3ng57euy3yjkqcnrfh3",
+		Type:       core.SemiFungibleESDT,
+	}, tokensInfo[0])
+}
+
+func TestNewTokensProcessor_SearchIssueNonFungibleESDTTransactions(t *testing.T) {
+	t.Parallel()
+
+	sender := "erd1yp046t9pc009mkaxyws5dm434ydut348va5ypjd3ng57euy3yjkqcnrfh3"
+	txs := []*data.Transaction{
+		{
+			Sender:   sender,
+			Receiver: metachainESDTAddress,
+			Nonce:    25,
+			Data:     []byte("issueNonFungible@4d794e4654@4e4654@63616e467265657a65@74727565@63616e57697065@74727565@63616e5061757365@74727565@63616E5472616E736665724E4654437265617465526F6C65@74727565"),
+			SmartContractResults: []*data.ScResult{
+				{
+					Nonce:    26,
+					Sender:   metachainESDTAddress,
+					Receiver: sender,
+					Data:     []byte("@6f6b@4e46542d393437346262"),
+				},
+			},
+		},
+	}
+
+	tokensProc := newTokensProcessor(core.MetachainShardId)
+	tokensInfo := tokensProc.searchForTokenIssueTransactions(txs)
+	require.Equal(t, &data.TokenInfo{
+		Name:       "MyNFT",
+		Ticker:     "NFT",
+		Identifier: "NFT-9474bb",
+		Issuer:     "erd1yp046t9pc009mkaxyws5dm434ydut348va5ypjd3ng57euy3yjkqcnrfh3",
+		Type:       core.NonFungibleESDT,
+	}, tokensInfo[0])
+}
+
+func TestNewTokensProcessor_SearchIssueFungibleESDTSCResults(t *testing.T) {
+	t.Parallel()
+
+	sender := "erd1yp046t9pc009mkaxyws5dm434ydut348va5ypjd3ng57euy3yjkqcnrfh3"
+	scrs := []*data.ScResult{
+		{
+			Sender:   sender,
+			Receiver: metachainESDTAddress,
+			Nonce:    15,
+			Data:     []byte("issue@446f6c6c6172@555344@0ba43b7400@05@63616e55706772616465@74727565"),
+		},
+		{
+			Nonce:    0,
+			Sender:   metachainESDTAddress,
+			Receiver: sender,
+			Data:     []byte("ESDTTransfer@5553442d326665643930@0ba43b7400"),
+			CallType: fmt.Sprintf("%d", vmcommon.AsynchronousCallBack),
+		},
+	}
+
+	tokensProc := newTokensProcessor(core.MetachainShardId)
+	tokensInfo := tokensProc.searchForTokenIssueScrs(scrs)
+	require.Equal(t, &data.TokenInfo{
+		Name:       "Dollar",
+		Ticker:     "USD",
+		Identifier: "USD-2fed90",
+		Issuer:     "erd1yp046t9pc009mkaxyws5dm434ydut348va5ypjd3ng57euy3yjkqcnrfh3",
+		Type:       core.FungibleESDT,
+	}, tokensInfo[0])
+}
+
+func TestNewTokensProcessor_SearchIssueSemiFungibleESDTScResults(t *testing.T) {
+	t.Parallel()
+
+	sender := "erd1yp046t9pc009mkaxyws5dm434ydut348va5ypjd3ng57euy3yjkqcnrfh3"
+	scrs := []*data.ScResult{
+		{
+			Sender:   sender,
+			Receiver: metachainESDTAddress,
+			Nonce:    6,
+			Data:     []byte("issueSemiFungible@53656d6946756e6769626c65546f6b656e@534654@63616e467265657a65@74727565@63616e57697065@74727565@63616e5061757365@74727565@63616E5472616E736665724E4654437265617465526F6C65@74727565"),
+		},
+		{
+			Nonce:    7,
+			Sender:   metachainESDTAddress,
+			Receiver: sender,
+			Data:     []byte("@00@5346542d623264303139"),
+		},
+	}
+
+	tokensProc := newTokensProcessor(core.MetachainShardId)
+	tokensInfo := tokensProc.searchForTokenIssueScrs(scrs)
+	require.Equal(t, &data.TokenInfo{
+		Name:       "SemiFungibleToken",
+		Ticker:     "SFT",
+		Identifier: "SFT-b2d019",
+		Issuer:     "erd1yp046t9pc009mkaxyws5dm434ydut348va5ypjd3ng57euy3yjkqcnrfh3",
+		Type:       core.SemiFungibleESDT,
+	}, tokensInfo[0])
+}

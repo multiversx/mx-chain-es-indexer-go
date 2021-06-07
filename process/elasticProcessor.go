@@ -30,7 +30,7 @@ var (
 	indexes = []string{
 		elasticIndexer.TransactionsIndex, elasticIndexer.BlockIndex, elasticIndexer.MiniblocksIndex, elasticIndexer.TpsIndex, elasticIndexer.RatingIndex, elasticIndexer.RoundsIndex, elasticIndexer.ValidatorsIndex,
 		elasticIndexer.AccountsIndex, elasticIndexer.AccountsHistoryIndex, elasticIndexer.ReceiptsIndex, elasticIndexer.ScResultsIndex, elasticIndexer.AccountsESDTHistoryIndex, elasticIndexer.AccountsESDTIndex,
-		elasticIndexer.EpochInfoIndex, elasticIndexer.SCDeploysIndex,
+		elasticIndexer.EpochInfoIndex, elasticIndexer.SCDeploysIndex, elasticIndexer.TokensIndex,
 	}
 )
 
@@ -134,10 +134,10 @@ func (ei *elasticProcessor) init(useKibana bool, indexTemplates, _ map[string]*b
 
 	if useKibana {
 		// TODO: Re-activate after we think of a solid way to handle forks+rotating indexes
-		//err = ei.createIndexPolicies(indexPolicies)
-		//if err != nil {
+		// err = ei.createIndexPolicies(indexPolicies)
+		// if err != nil {
 		//	return err
-		//}
+		// }
 	}
 
 	err = ei.createIndexTemplates(indexTemplates)
@@ -158,7 +158,7 @@ func (ei *elasticProcessor) init(useKibana bool, indexTemplates, _ map[string]*b
 	return nil
 }
 
-//nolint
+// nolint
 func (ei *elasticProcessor) createIndexPolicies(indexPolicies map[string]*bytes.Buffer) error {
 	indexesPolicies := []string{elasticIndexer.TransactionsPolicy, elasticIndexer.BlockPolicy, elasticIndexer.MiniblocksPolicy, elasticIndexer.RatingPolicy, elasticIndexer.RoundsPolicy, elasticIndexer.ValidatorsPolicy,
 		elasticIndexer.AccountsPolicy, elasticIndexer.AccountsESDTPolicy, elasticIndexer.AccountsHistoryPolicy, elasticIndexer.AccountsESDTHistoryPolicy, elasticIndexer.AccountsESDTIndex, elasticIndexer.ReceiptsPolicy, elasticIndexer.ScResultsPolicy}
@@ -417,7 +417,25 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
+	err = ei.indexTokens(preparedResults.Tokens)
+	if err != nil {
+		return err
+	}
+
 	return ei.indexScDeploys(preparedResults.DeploysInfo)
+}
+
+func (ei *elasticProcessor) indexTokens(tokensData []*data.TokenInfo) error {
+	if !ei.isIndexEnabled(elasticIndexer.TokensIndex) {
+		return nil
+	}
+
+	buffSlice, err := ei.transactionsProc.SerializeTokens(tokensData)
+	if err != nil {
+		return err
+	}
+
+	return ei.doBulkRequests(elasticIndexer.TokensIndex, buffSlice)
 }
 
 func (ei *elasticProcessor) indexScDeploys(deployData []*data.ScDeployInfo) error {

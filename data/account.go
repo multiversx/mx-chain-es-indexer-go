@@ -57,3 +57,12 @@ type AccountESDT struct {
 	IsSender        bool
 	IsNFTOperation  bool
 }
+
+// TokenInfo is a structure that is needed to store information about a token
+type TokenInfo struct {
+	Name       string `json:"name"`
+	Ticker     string `json:"ticker"`
+	Identifier string `json:"identifier"`
+	Issuer     string `json:"issuer"`
+	Type       string `json:"type"`
+}

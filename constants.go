@@ -35,6 +35,8 @@ const (
 	OpenDistroIndex = "opendistro"
 	// SCDeploysIndex is the Elasticsearch index for the smart contracts deploy information
 	SCDeploysIndex = "scdeploys"
+	// TokensIndex is the Elasticsearch index for the ESDT tokens
+	TokensIndex = "tokens"
 
 	// TransactionsPolicy is the Elasticsearch policy for the transactions
 	TransactionsPolicy = "transactions_policy"

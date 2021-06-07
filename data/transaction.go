@@ -121,6 +121,7 @@ type PreparedResults struct {
 	Receipts     []*Receipt
 	DeploysInfo  []*ScDeployInfo
 	AlteredAccts AlteredAccountsHandler
+	Tokens       []*TokenInfo
 }
 
 // ScDeployInfo is the DTO that holds information about a smart contract deployment
