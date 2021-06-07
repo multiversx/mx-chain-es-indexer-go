@@ -38,13 +38,13 @@ func TestSerializeAccountsESDT(t *testing.T) {
 
 	accs := map[string]*data.AccountInfo{
 		"addr1": {
-			Address:         "addr1",
-			Nonce:           1,
-			TokenIdentifier: "token-0001",
-			Properties:      "000",
-			TokenNonce:      5,
-			Balance:         "10000000000000",
-			BalanceNum:      1,
+			Address:    "addr1",
+			Nonce:      1,
+			Token:      "token-0001",
+			Properties: "000",
+			TokenNonce: 5,
+			Balance:    "10000000000000",
+			BalanceNum: 1,
 		},
 	}
 
@@ -52,7 +52,7 @@ func TestSerializeAccountsESDT(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(res))
 
-	expectedRes := `{ "index" : { "_id" : "addr1_token-0001_5" } }
+	expectedRes := `{ "index" : { "_id" : "addr1-token-0001-5" } }
 {"address":"addr1","nonce":1,"balance":"10000000000000","balanceNum":1,"token":"token-0001","tokenNonce":5,"properties":"000"}
 `
 	require.Equal(t, expectedRes, res[0].String())
@@ -63,13 +63,14 @@ func TestSerializeAccountsNFTWithMedaData(t *testing.T) {
 
 	accs := map[string]*data.AccountInfo{
 		"addr1": {
-			Address:         "addr1",
-			Nonce:           1,
-			TokenIdentifier: "token-0001",
-			Properties:      "000",
-			TokenNonce:      5,
-			Balance:         "10000000000000",
-			BalanceNum:      1,
+			Address:    "addr1",
+			Nonce:      1,
+			Token:      "token-0001",
+			Properties: "000",
+			TokenNonce: 5,
+			Balance:    "10000000000000",
+			BalanceNum: 1,
+			Identifier: "token-0001-5",
 			MetaData: &data.TokenMetaData{
 				Name:      "nft",
 				Creator:   "010101",
@@ -87,8 +88,8 @@ func TestSerializeAccountsNFTWithMedaData(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(res))
 
-	expectedRes := `{ "index" : { "_id" : "addr1_token-0001_5" } }
-{"address":"addr1","nonce":1,"balance":"10000000000000","balanceNum":1,"token":"token-0001","tokenNonce":5,"properties":"000","tokenMetaData":{"name":"nft","creator":"010101","royalties":1,"hash":"aGFzaA==","uris":["dXJp"],"attributes":{"description":["This is a test description for an awesome nft"],"tags":["test","free","fun"]}}}
+	expectedRes := `{ "index" : { "_id" : "addr1-token-0001-5" } }
+{"address":"addr1","nonce":1,"balance":"10000000000000","balanceNum":1,"token":"token-0001","identifier":"token-0001-5","tokenNonce":5,"properties":"000","metaData":{"name":"nft","creator":"010101","royalties":1,"hash":"aGFzaA==","uris":["dXJp"],"attributes":{"description":["This is a test description for an awesome nft"],"tags":["test","free","fun"]}}}
 `
 	require.Equal(t, expectedRes, res[0].String())
 }
@@ -98,12 +99,12 @@ func TestSerializeAccountsESDTDelete(t *testing.T) {
 
 	accs := map[string]*data.AccountInfo{
 		"addr1": {
-			Address:         "addr1",
-			Nonce:           1,
-			TokenIdentifier: "token-0001",
-			Properties:      "000",
-			Balance:         "0",
-			BalanceNum:      0,
+			Address:    "addr1",
+			Nonce:      1,
+			Token:      "token-0001",
+			Properties: "000",
+			Balance:    "0",
+			BalanceNum: 0,
 		},
 	}
 
@@ -111,7 +112,7 @@ func TestSerializeAccountsESDTDelete(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(res))
 
-	expectedRes := `{ "delete" : { "_id" : "addr1_token-0001_0" } }
+	expectedRes := `{ "delete" : { "_id" : "addr1-token-0001-0" } }
 `
 	require.Equal(t, expectedRes, res[0].String())
 }
@@ -124,7 +125,7 @@ func TestSerializeAccountsHistory(t *testing.T) {
 			Address:         "account1",
 			Timestamp:       10,
 			Balance:         "123",
-			TokenIdentifier: "token-0001",
+			Token:           "token-0001",
 			IsSender:        true,
 			IsSmartContract: true,
 		},

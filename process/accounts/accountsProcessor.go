@@ -172,7 +172,8 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(accounts []*data.AccountESDT
 
 		acc := &data.AccountInfo{
 			Address:         address,
-			TokenIdentifier: accountESDT.TokenIdentifier,
+			Token:           accountESDT.TokenIdentifier,
+			Identifier:      computeTokenIdentifier(accountESDT.TokenIdentifier, accountESDT.NFTNonce),
 			TokenNonce:      accountESDT.NFTNonce,
 			Balance:         balance.String(),
 			BalanceNum:      ap.computeBalanceAsFloat(balance, ap.balancePrecisionESDT),
@@ -199,10 +200,11 @@ func (ap *accountsProcessor) PrepareAccountsHistory(
 			Address:         address,
 			Balance:         userAccount.Balance,
 			Timestamp:       time.Duration(timestamp),
-			TokenIdentifier: userAccount.TokenIdentifier,
+			Token:           userAccount.Token,
 			TokenNonce:      userAccount.TokenNonce,
 			IsSender:        userAccount.IsSender,
 			IsSmartContract: userAccount.IsSmartContract,
+			Identifier:      computeTokenIdentifier(userAccount.Token, userAccount.TokenNonce),
 		}
 		addressKey := fmt.Sprintf("%s_%d", address, timestamp)
 		accountsMap[addressKey] = acc
@@ -278,4 +280,12 @@ func (ap *accountsProcessor) computeBalanceAsFloat(balance *big.Int, balancePrec
 	balanceFloatWithDecimals := math.Round(bal*balancePrecision) / balancePrecision
 
 	return core.MaxFloat64(balanceFloatWithDecimals, 0)
+}
+
+func computeTokenIdentifier(token string, nonce uint64) string {
+	if token == "" || nonce == 0 {
+		return ""
+	}
+
+	return fmt.Sprintf("%s-%d", token, nonce)
 }

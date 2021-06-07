@@ -392,11 +392,11 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 	res := ap.PrepareAccountsMapESDT([]*data.AccountESDT{{Account: mockAccount, TokenIdentifier: "token"}})
 	require.Equal(t, map[string]*data.AccountInfo{
 		hex.EncodeToString([]byte(addr)): {
-			Address:         hex.EncodeToString([]byte(addr)),
-			Balance:         "1000",
-			BalanceNum:      ap.computeBalanceAsFloat(big.NewInt(1000), ap.balancePrecision),
-			TokenIdentifier: "token",
-			Properties:      hex.EncodeToString([]byte("ok")),
+			Address:    hex.EncodeToString([]byte(addr)),
+			Balance:    "1000",
+			BalanceNum: ap.computeBalanceAsFloat(big.NewInt(1000), ap.balancePrecision),
+			Token:      "token",
+			Properties: hex.EncodeToString([]byte("ok")),
 		},
 	}, res)
 }
@@ -406,11 +406,11 @@ func TestAccountsProcessor_PrepareAccountsHistory(t *testing.T) {
 
 	accounts := map[string]*data.AccountInfo{
 		"addr1": {
-			Address:         "addr1",
-			Balance:         "112",
-			TokenIdentifier: "token-112",
-			TokenNonce:      10,
-			IsSender:        true,
+			Address:    "addr1",
+			Balance:    "112",
+			Token:      "token-112",
+			TokenNonce: 10,
+			IsSender:   true,
 		},
 	}
 
@@ -419,12 +419,13 @@ func TestAccountsProcessor_PrepareAccountsHistory(t *testing.T) {
 	res := ap.PrepareAccountsHistory(100, accounts)
 	accountBalanceHistory := res["addr1_100"]
 	require.Equal(t, &data.AccountBalanceHistory{
-		Address:         "addr1",
-		Timestamp:       100,
-		Balance:         "112",
-		TokenIdentifier: "token-112",
-		IsSender:        true,
-		TokenNonce:      10,
+		Address:    "addr1",
+		Timestamp:  100,
+		Balance:    "112",
+		Token:      "token-112",
+		IsSender:   true,
+		TokenNonce: 10,
+		Identifier: "token-112-10",
 	}, accountBalanceHistory)
 }
 
