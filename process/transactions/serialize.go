@@ -12,7 +12,7 @@ import (
 func (tdp *txsDatabaseProcessor) SerializeTokens(tokens []*data.TokenInfo) ([]*bytes.Buffer, error) {
 	buffSlice := data.NewBufferSlice()
 	for _, tokenData := range tokens {
-		meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, tokenData.Identifier, "\n"))
+		meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, tokenData.Token, "\n"))
 		serializedData, errPrepareD := json.Marshal(tokenData)
 		if errPrepareD != nil {
 			return nil, errPrepareD

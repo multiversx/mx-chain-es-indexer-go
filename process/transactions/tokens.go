@@ -54,7 +54,7 @@ func (tp *tokensProcessor) searchForTokenIssueTransactions(txs []*data.Transacti
 		}
 
 		if funcName == issueFungibleESDTFunc {
-			tokenInfo.Identifier = tp.searchTokenIdentifierFungibleESDT(tx.Sender, tx.SmartContractResults)
+			tokenInfo.Token = tp.searchTokenIdentifierFungibleESDT(tx.Sender, tx.SmartContractResults)
 		}
 
 		tokensData = append(tokensData, tokenInfo)
@@ -90,7 +90,7 @@ func (tp *tokensProcessor) searchForTokenIssueScrs(scrs []*data.ScResult) []*dat
 			continue
 		}
 		tokenInfo.Issuer = scr.Sender
-		tokenInfo.Identifier = identifier
+		tokenInfo.Token = identifier
 
 		tokensData = append(tokensData, tokenInfo)
 	}
@@ -155,7 +155,7 @@ func (tp *tokensProcessor) extractTokenInfo(dataField []byte, scr *data.ScResult
 		return nil, false
 	}
 
-	tokenInfo.Identifier = string(tokenIdentifier)
+	tokenInfo.Token = string(tokenIdentifier)
 
 	return tokenInfo, true
 }
