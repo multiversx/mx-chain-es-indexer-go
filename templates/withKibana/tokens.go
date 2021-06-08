@@ -9,4 +9,11 @@ var Tokens = Object{
 		"number_of_shards":   3,
 		"number_of_replicas": 0,
 	},
+	"mappings": Object{
+		"properties": Object{
+			"timestamp": Object{
+				"type": "date",
+			},
+		},
+	},
 }

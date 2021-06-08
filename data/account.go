@@ -62,9 +62,10 @@ type AccountESDT struct {
 
 // TokenInfo is a structure that is needed to store information about a token
 type TokenInfo struct {
-	Name   string `json:"name"`
-	Ticker string `json:"ticker"`
-	Token  string `json:"token"`
-	Issuer string `json:"issuer"`
-	Type   string `json:"type"`
+	Name      string        `json:"name"`
+	Ticker    string        `json:"ticker"`
+	Token     string        `json:"token"`
+	Issuer    string        `json:"issuer"`
+	Type      string        `json:"type"`
+	Timestamp time.Duration `json:"timestamp"`
 }

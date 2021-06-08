@@ -3,6 +3,7 @@ package transactions
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go/core"
@@ -38,13 +39,14 @@ func TestNewTokensProcessor_SearchIssueFungibleESDTTransactions(t *testing.T) {
 	}
 
 	tokensProc := newTokensProcessor(core.MetachainShardId)
-	tokensInfo := tokensProc.searchForTokenIssueTransactions(txs)
+	tokensInfo := tokensProc.searchForTokenIssueTransactions(txs, 3000)
 	require.Equal(t, &data.TokenInfo{
-		Name:   "Dollar",
-		Ticker: "USD",
-		Token:  "USD-2fed90",
-		Issuer: "erd1yp046t9pc009mkaxyws5dm434ydut348va5ypjd3ng57euy3yjkqcnrfh3",
-		Type:   core.FungibleESDT,
+		Name:      "Dollar",
+		Ticker:    "USD",
+		Token:     "USD-2fed90",
+		Issuer:    "erd1yp046t9pc009mkaxyws5dm434ydut348va5ypjd3ng57euy3yjkqcnrfh3",
+		Type:      core.FungibleESDT,
+		Timestamp: time.Duration(3000),
 	}, tokensInfo[0])
 }
 
@@ -70,13 +72,14 @@ func TestNewTokensProcessor_SearchIssueSemiFungibleESDTTransactions(t *testing.T
 	}
 
 	tokensProc := newTokensProcessor(core.MetachainShardId)
-	tokensInfo := tokensProc.searchForTokenIssueTransactions(txs)
+	tokensInfo := tokensProc.searchForTokenIssueTransactions(txs, 3000)
 	require.Equal(t, &data.TokenInfo{
-		Name:   "SemiFungibleToken",
-		Ticker: "SFT",
-		Token:  "SFT-b2d019",
-		Issuer: "erd1yp046t9pc009mkaxyws5dm434ydut348va5ypjd3ng57euy3yjkqcnrfh3",
-		Type:   core.SemiFungibleESDT,
+		Name:      "SemiFungibleToken",
+		Ticker:    "SFT",
+		Token:     "SFT-b2d019",
+		Issuer:    "erd1yp046t9pc009mkaxyws5dm434ydut348va5ypjd3ng57euy3yjkqcnrfh3",
+		Type:      core.SemiFungibleESDT,
+		Timestamp: time.Duration(3000),
 	}, tokensInfo[0])
 }
 
@@ -102,13 +105,14 @@ func TestNewTokensProcessor_SearchIssueNonFungibleESDTTransactions(t *testing.T)
 	}
 
 	tokensProc := newTokensProcessor(core.MetachainShardId)
-	tokensInfo := tokensProc.searchForTokenIssueTransactions(txs)
+	tokensInfo := tokensProc.searchForTokenIssueTransactions(txs, 3000)
 	require.Equal(t, &data.TokenInfo{
-		Name:   "MyNFT",
-		Ticker: "NFT",
-		Token:  "NFT-9474bb",
-		Issuer: "erd1yp046t9pc009mkaxyws5dm434ydut348va5ypjd3ng57euy3yjkqcnrfh3",
-		Type:   core.NonFungibleESDT,
+		Name:      "MyNFT",
+		Ticker:    "NFT",
+		Token:     "NFT-9474bb",
+		Issuer:    "erd1yp046t9pc009mkaxyws5dm434ydut348va5ypjd3ng57euy3yjkqcnrfh3",
+		Type:      core.NonFungibleESDT,
+		Timestamp: time.Duration(3000),
 	}, tokensInfo[0])
 }
 
@@ -133,13 +137,14 @@ func TestNewTokensProcessor_SearchIssueFungibleESDTSCResults(t *testing.T) {
 	}
 
 	tokensProc := newTokensProcessor(core.MetachainShardId)
-	tokensInfo := tokensProc.searchForTokenIssueScrs(scrs)
+	tokensInfo := tokensProc.searchForTokenIssueScrs(scrs, 3000)
 	require.Equal(t, &data.TokenInfo{
-		Name:   "Dollar",
-		Ticker: "USD",
-		Token:  "USD-2fed90",
-		Issuer: "erd1yp046t9pc009mkaxyws5dm434ydut348va5ypjd3ng57euy3yjkqcnrfh3",
-		Type:   core.FungibleESDT,
+		Name:      "Dollar",
+		Ticker:    "USD",
+		Token:     "USD-2fed90",
+		Issuer:    "erd1yp046t9pc009mkaxyws5dm434ydut348va5ypjd3ng57euy3yjkqcnrfh3",
+		Type:      core.FungibleESDT,
+		Timestamp: time.Duration(3000),
 	}, tokensInfo[0])
 }
 
@@ -163,12 +168,13 @@ func TestNewTokensProcessor_SearchIssueSemiFungibleESDTScResults(t *testing.T) {
 	}
 
 	tokensProc := newTokensProcessor(core.MetachainShardId)
-	tokensInfo := tokensProc.searchForTokenIssueScrs(scrs)
+	tokensInfo := tokensProc.searchForTokenIssueScrs(scrs, 3000)
 	require.Equal(t, &data.TokenInfo{
-		Name:   "SemiFungibleToken",
-		Ticker: "SFT",
-		Token:  "SFT-b2d019",
-		Issuer: "erd1yp046t9pc009mkaxyws5dm434ydut348va5ypjd3ng57euy3yjkqcnrfh3",
-		Type:   core.SemiFungibleESDT,
+		Name:      "SemiFungibleToken",
+		Ticker:    "SFT",
+		Token:     "SFT-b2d019",
+		Issuer:    "erd1yp046t9pc009mkaxyws5dm434ydut348va5ypjd3ng57euy3yjkqcnrfh3",
+		Type:      core.SemiFungibleESDT,
+		Timestamp: time.Duration(3000),
 	}, tokensInfo[0])
 }

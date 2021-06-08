@@ -139,8 +139,8 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 
 	deploysData := tdp.scDeploysProc.searchSCDeployTransactionsOrSCRS(txsSlice, dbSCResults)
 
-	tokens := tdp.tokensProcessor.searchForTokenIssueTransactions(txsSlice)
-	tokens = append(tokens, tdp.tokensProcessor.searchForTokenIssueScrs(dbSCResults)...)
+	tokens := tdp.tokensProcessor.searchForTokenIssueTransactions(txsSlice, header.GetTimeStamp())
+	tokens = append(tokens, tdp.tokensProcessor.searchForTokenIssueScrs(dbSCResults, header.GetTimeStamp())...)
 
 	return &data.PreparedResults{
 		Transactions: txsSlice,

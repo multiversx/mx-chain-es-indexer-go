@@ -2,6 +2,7 @@ package transactions
 
 import (
 	"encoding/hex"
+	"time"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go/core"
@@ -36,7 +37,7 @@ func newTokensProcessor(selfShardID uint32) *tokensProcessor {
 	}
 }
 
-func (tp *tokensProcessor) searchForTokenIssueTransactions(txs []*data.Transaction) []*data.TokenInfo {
+func (tp *tokensProcessor) searchForTokenIssueTransactions(txs []*data.Transaction, timestamp uint64) []*data.TokenInfo {
 	if tp.selfShardID != core.MetachainShardId {
 		return []*data.TokenInfo{}
 	}
@@ -57,13 +58,14 @@ func (tp *tokensProcessor) searchForTokenIssueTransactions(txs []*data.Transacti
 			tokenInfo.Token = tp.searchTokenIdentifierFungibleESDT(tx.Sender, tx.SmartContractResults)
 		}
 
+		tokenInfo.Timestamp = time.Duration(timestamp)
 		tokensData = append(tokensData, tokenInfo)
 	}
 
 	return tokensData
 }
 
-func (tp *tokensProcessor) searchForTokenIssueScrs(scrs []*data.ScResult) []*data.TokenInfo {
+func (tp *tokensProcessor) searchForTokenIssueScrs(scrs []*data.ScResult, timestamp uint64) []*data.TokenInfo {
 	if tp.selfShardID != core.MetachainShardId {
 		return []*data.TokenInfo{}
 	}
@@ -79,6 +81,8 @@ func (tp *tokensProcessor) searchForTokenIssueScrs(scrs []*data.ScResult) []*dat
 		if !ok {
 			continue
 		}
+
+		tokenInfo.Timestamp = time.Duration(timestamp)
 
 		if funcName != issueFungibleESDTFunc {
 			tokensData = append(tokensData, tokenInfo)
