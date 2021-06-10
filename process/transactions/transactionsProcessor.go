@@ -38,11 +38,12 @@ type ArgsTransactionProcessor struct {
 }
 
 type txsDatabaseProcessor struct {
-	txFeeCalculator process.TransactionFeeCalculator
-	txBuilder       *dbTransactionBuilder
-	txsGrouper      *txsGrouper
-	scDeploysProc   *scDeploysProc
-	tokensProcessor *tokensProcessor
+	txFeeCalculator   process.TransactionFeeCalculator
+	txBuilder         *dbTransactionBuilder
+	txsGrouper        *txsGrouper
+	scDeploysProc     *scDeploysProc
+	tokensProcessor   *tokensProcessor
+	logsAndEventsProc *logsAndEventsProcessor
 }
 
 // NewTransactionsProcessor will create a new instance of transactions database processor
@@ -57,6 +58,7 @@ func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txsDatabaseProce
 	txsDBGrouper := newTxsGrouper(txBuilder, args.IsInImportMode, selfShardID, args.Hasher, args.Marshalizer)
 	scDeploys := newScDeploysProc(args.AddressPubkeyConverter, selfShardID)
 	tokensProc := newTokensProcessor(selfShardID)
+	logsAndEventsProc := newLogsAndEventsProcessorNFT(args.ShardCoordinator, args.AddressPubkeyConverter, args.Marshalizer)
 
 	if args.IsInImportMode {
 		log.Warn("the node is in import mode! Cross shard transactions and rewards where destination shard is " +
@@ -64,11 +66,12 @@ func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txsDatabaseProce
 	}
 
 	return &txsDatabaseProcessor{
-		txFeeCalculator: args.TxFeeCalculator,
-		txBuilder:       txBuilder,
-		txsGrouper:      txsDBGrouper,
-		scDeploysProc:   scDeploys,
-		tokensProcessor: tokensProc,
+		txFeeCalculator:   args.TxFeeCalculator,
+		txBuilder:         txBuilder,
+		txsGrouper:        txsDBGrouper,
+		scDeploysProc:     scDeploys,
+		tokensProcessor:   tokensProc,
+		logsAndEventsProc: logsAndEventsProc,
 	}, nil
 }
 
@@ -129,13 +132,12 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 	tdp.txBuilder.addScrsReceiverToAlteredAccounts(alteredAccounts, dbSCResults)
 	tdp.setDetailsOfTxsWithSCRS(normalTxs, countScResults)
 
-	tdp.txBuilder.esdtProc.searchTxsWithNFTCreateAndPutNonceInAlteredAddress(alteredAccounts, normalTxs, dbSCResults)
-	tdp.txBuilder.esdtProc.searchForESDTInScrs(alteredAccounts, dbSCResults)
-	tdp.txBuilder.esdtProc.searchForReceiverNFTTransferAndPutInAlteredAddress(normalTxs, alteredAccounts)
-
 	sliceNormalTxs := convertMapTxsToSlice(normalTxs)
 	sliceRewardsTxs := convertMapTxsToSlice(rewardsTxs)
 	txsSlice := append(sliceNormalTxs, sliceRewardsTxs...)
+
+	tdp.logsAndEventsProc.processLogsTransactions(txsSlice, alteredAccounts)
+	tdp.logsAndEventsProc.processLogsScrs(dbSCResults, alteredAccounts)
 
 	deploysData := tdp.scDeploysProc.searchSCDeployTransactionsOrSCRS(txsSlice, dbSCResults)
 
@@ -328,4 +330,8 @@ func mergeTxsMaps(dst, src map[string]*data.Transaction) {
 	for key, value := range src {
 		dst[key] = value
 	}
+}
+
+func (tdp *txsDatabaseProcessor) SetTxLogProcessor(logProcessor process.TransactionLogProcessorDatabase) {
+	tdp.logsAndEventsProc.setLogsAndEventsHandler(logProcessor)
 }

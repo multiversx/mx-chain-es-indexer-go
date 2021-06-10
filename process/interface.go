@@ -8,6 +8,7 @@ import (
 	nodeData "github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/block"
 	"github.com/ElrondNetwork/elrond-go/data/indexer"
+	"github.com/ElrondNetwork/elrond-go/process"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
 
@@ -30,11 +31,12 @@ type DatabaseClientHandler interface {
 type DBAccountHandler interface {
 	GetAccounts(alteredAccounts data.AlteredAccountsHandler) ([]*data.Account, []*data.AccountESDT)
 	PrepareRegularAccountsMap(accounts []*data.Account) map[string]*data.AccountInfo
-	PrepareAccountsMapESDT(accounts []*data.AccountESDT) map[string]*data.AccountInfo
+	PrepareAccountsMapESDT(accounts []*data.AccountESDT, timestamp uint64) (map[string]*data.AccountInfo, []*data.TokenInfo)
 	PrepareAccountsHistory(timestamp uint64, accounts map[string]*data.AccountInfo) map[string]*data.AccountBalanceHistory
 
 	SerializeAccountsHistory(accounts map[string]*data.AccountBalanceHistory) ([]*bytes.Buffer, error)
 	SerializeAccounts(accounts map[string]*data.AccountInfo, areESDTAccounts bool) ([]*bytes.Buffer, error)
+	SerializeNFTCreateInfo(tokensInfo []*data.TokenInfo) ([]*bytes.Buffer, error)
 }
 
 // DBBlockHandler defines the actions that a block handler should do
@@ -54,6 +56,7 @@ type DBTransactionsHandler interface {
 		pool *indexer.Pool,
 	) *data.PreparedResults
 	GetRewardsTxsHashesHexEncoded(header nodeData.HeaderHandler, body *block.Body) []string
+	SetTxLogProcessor(logProcessor process.TransactionLogProcessorDatabase)
 
 	SerializeReceipts(receipts []*data.Receipt) ([]*bytes.Buffer, error)
 	SerializeTransactions(transactions []*data.Transaction, selfShardID uint32, mbsHashInDB map[string]bool) ([]*bytes.Buffer, error)

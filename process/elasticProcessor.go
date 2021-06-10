@@ -354,7 +354,8 @@ func (ei *elasticProcessor) RemoveTransactions(header nodeData.HeaderHandler, bo
 }
 
 // SetTxLogsProcessor will set tx logs processor
-func (ei *elasticProcessor) SetTxLogsProcessor(_ process.TransactionLogProcessorDatabase) {
+func (ei *elasticProcessor) SetTxLogsProcessor(logProcessor process.TransactionLogProcessorDatabase) {
+	ei.transactionsProc.SetTxLogProcessor(logProcessor)
 }
 
 // SaveMiniblocks will prepare and save information about miniblocks in elasticsearch server
@@ -542,8 +543,13 @@ func (ei *elasticProcessor) indexAlteredAccounts(timestamp uint64, alteredAccoun
 }
 
 func (ei *elasticProcessor) saveAccountsESDT(timestamp uint64, wrappedAccounts []*data.AccountESDT) error {
-	accountsESDTMap := ei.accountsProc.PrepareAccountsMapESDT(wrappedAccounts)
+	accountsESDTMap, nftCreateTokenInfo := ei.accountsProc.PrepareAccountsMapESDT(wrappedAccounts, timestamp)
 	err := ei.indexAccountsESDT(accountsESDTMap)
+	if err != nil {
+		return err
+	}
+
+	err = ei.indexNFTCreateInfo(nftCreateTokenInfo)
 	if err != nil {
 		return err
 	}
@@ -557,6 +563,19 @@ func (ei *elasticProcessor) indexAccountsESDT(accountsESDTMap map[string]*data.A
 	}
 
 	return ei.serializeAndIndexAccounts(accountsESDTMap, elasticIndexer.AccountsESDTIndex, true)
+}
+
+func (ei *elasticProcessor) indexNFTCreateInfo(tokensData []*data.TokenInfo) error {
+	if !ei.isIndexEnabled(elasticIndexer.TokensIndex) {
+		return nil
+	}
+
+	buffSlice, err := ei.accountsProc.SerializeNFTCreateInfo(tokensData)
+	if err != nil {
+		return err
+	}
+
+	return ei.doBulkRequests(elasticIndexer.TokensIndex, buffSlice)
 }
 
 // SaveAccounts will prepare and save information about provided accounts in elasticsearch server

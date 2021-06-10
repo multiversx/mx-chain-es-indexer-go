@@ -55,6 +55,7 @@ func TestAlteredAccounts_AddESDT(t *testing.T) {
 		TokenIdentifier: "my-nft-token",
 		IsNFTOperation:  true,
 		NFTNonce:        1,
+		IsCreate:        true,
 	}
 	altAccounts.Add(addr, acct4)
 
@@ -72,6 +73,7 @@ func TestAlteredAccounts_AddESDT(t *testing.T) {
 		IsNFTOperation:  true,
 		TokenIdentifier: "my-nft-token",
 		NFTNonce:        1,
+		IsCreate:        true,
 	}, res[1])
 }
 

@@ -23,8 +23,8 @@ func (dba *DBAccountsHandlerStub) PrepareRegularAccountsMap(_ []*data.Account) m
 }
 
 // PrepareAccountsMapESDT -
-func (dba *DBAccountsHandlerStub) PrepareAccountsMapESDT(_ []*data.AccountESDT) map[string]*data.AccountInfo {
-	return nil
+func (dba *DBAccountsHandlerStub) PrepareAccountsMapESDT(_ []*data.AccountESDT, _ uint64) (map[string]*data.AccountInfo, []*data.TokenInfo) {
+	return nil, nil
 }
 
 // PrepareAccountsHistory -
@@ -46,5 +46,10 @@ func (dba *DBAccountsHandlerStub) SerializeAccountsHistory(accounts map[string]*
 
 // SerializeAccounts -
 func (dba *DBAccountsHandlerStub) SerializeAccounts(_ map[string]*data.AccountInfo, _ bool) ([]*bytes.Buffer, error) {
+	return nil, nil
+}
+
+// SerializeNFTCreateInfo -
+func (dba *DBAccountsHandlerStub) SerializeNFTCreateInfo(_ []*data.TokenInfo) ([]*bytes.Buffer, error) {
 	return nil, nil
 }

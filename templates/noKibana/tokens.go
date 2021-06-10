@@ -14,6 +14,25 @@ var Tokens = Object{
 			"timestamp": Object{
 				"type": "date",
 			},
+			"metaData": Object{
+				"type": "nested",
+				"properties": Object{
+					"name": Object{
+						"type": "text",
+					},
+					"creator": Object{
+						"type": "text",
+					},
+					"attributes": Object{
+						"type": "nested",
+						"properties": Object{
+							"tags": Object{
+								"type": "text",
+							},
+						},
+					},
+				},
+			},
 		},
 	},
 }

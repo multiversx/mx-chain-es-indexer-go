@@ -7,6 +7,7 @@ type AlteredAccount struct {
 	IsNFTOperation  bool
 	TokenIdentifier string
 	NFTNonce        uint64
+	IsCreate        bool
 }
 
 // AlteredAccountsHandler defines the actions that an altered accounts handler should do
@@ -58,6 +59,7 @@ func (aa *alteredAccounts) Add(key string, account *AlteredAccount) {
 			elem.IsNFTOperation = account.IsNFTOperation
 			elem.IsESDTOperation = account.IsESDTOperation
 			elem.IsSender = elem.IsSender || account.IsSender
+			elem.IsCreate = elem.IsCreate || account.IsCreate
 			return
 		}
 
