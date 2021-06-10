@@ -123,7 +123,7 @@ func (lep *logsAndEventsProcessor) processEvent(event dataElrond.EventHandler, a
 		IsNFTOperation:  true,
 		TokenIdentifier: token,
 		NFTNonce:        nonceBig.Uint64(),
-		IsCreate:        true,
+		IsCreate:        false,
 	})
 
 	return
