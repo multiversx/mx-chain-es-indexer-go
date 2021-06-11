@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// Operation defines the actions that an operation handler should do
 type Operation interface {
 	SetToken(token string)
 }

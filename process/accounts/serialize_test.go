@@ -63,7 +63,7 @@ func TestSerializeAccountsESDT(t *testing.T) {
 		"addr1": {
 			Address:    "addr1",
 			Nonce:      1,
-			Token:      "token-0001",
+			TokenName:  "token-0001",
 			Properties: "000",
 			TokenNonce: 5,
 			Balance:    "10000000000000",
@@ -86,14 +86,14 @@ func TestSerializeAccountsNFTWithMedaData(t *testing.T) {
 
 	accs := map[string]*data.AccountInfo{
 		"addr1": {
-			Address:    "addr1",
-			Nonce:      1,
-			Token:      "token-0001",
-			Properties: "000",
-			TokenNonce: 5,
-			Balance:    "10000000000000",
-			BalanceNum: 1,
-			Identifier: "token-0001-5",
+			Address:         "addr1",
+			Nonce:           1,
+			TokenName:       "token-0001",
+			Properties:      "000",
+			TokenNonce:      5,
+			Balance:         "10000000000000",
+			BalanceNum:      1,
+			TokenIdentifier: "token-0001-5",
 			MetaData: &data.TokenMetaData{
 				Name:      "nft",
 				Creator:   "010101",
@@ -124,7 +124,7 @@ func TestSerializeAccountsESDTDelete(t *testing.T) {
 		"addr1": {
 			Address:    "addr1",
 			Nonce:      1,
-			Token:      "token-0001",
+			TokenName:  "token-0001",
 			Properties: "000",
 			Balance:    "0",
 			BalanceNum: 0,

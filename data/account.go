@@ -12,8 +12,8 @@ type AccountInfo struct {
 	Nonce                    uint64         `json:"nonce,omitempty"`
 	Balance                  string         `json:"balance"`
 	BalanceNum               float64        `json:"balanceNum"`
-	Token                    string         `json:"token,omitempty"`
-	Identifier               string         `json:"identifier,omitempty"`
+	TokenName                string         `json:"token,omitempty"`
+	TokenIdentifier          string         `json:"identifier,omitempty"`
 	TokenNonce               uint64         `json:"tokenNonce,omitempty"`
 	Properties               string         `json:"properties,omitempty"`
 	IsSender                 bool           `json:"-"`

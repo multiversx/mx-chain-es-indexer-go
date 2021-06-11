@@ -16,7 +16,7 @@ import (
 type logsAndEventsProcessor struct {
 	pubKeyConverter          core.PubkeyConverter
 	marshalizer              marshal.Marshalizer
-	logsAndEventsHandler     process.TransactionLogProcessorDatabase
+	transactionsLogProcessor process.TransactionLogProcessorDatabase
 	nftOperationsIdentifiers map[string]struct{}
 	shardCoordinator         sharding.Coordinator
 }
@@ -27,10 +27,10 @@ func newLogsAndEventsProcessorNFT(
 	marshalizer marshal.Marshalizer,
 ) *logsAndEventsProcessor {
 	return &logsAndEventsProcessor{
-		shardCoordinator:     shardCoordinator,
-		pubKeyConverter:      pubKeyConverter,
-		marshalizer:          marshalizer,
-		logsAndEventsHandler: disabled.NewNilTxLogsProcessor(),
+		shardCoordinator:         shardCoordinator,
+		pubKeyConverter:          pubKeyConverter,
+		marshalizer:              marshalizer,
+		transactionsLogProcessor: disabled.NewNilTxLogsProcessor(),
 		nftOperationsIdentifiers: map[string]struct{}{
 			core.BuiltInFunctionESDTNFTTransfer:    {},
 			core.BuiltInFunctionESDTNFTBurn:        {},
@@ -41,7 +41,7 @@ func newLogsAndEventsProcessorNFT(
 }
 
 func (lep *logsAndEventsProcessor) setLogsAndEventsHandler(logsAndEventsHandler process.TransactionLogProcessorDatabase) {
-	lep.logsAndEventsHandler = logsAndEventsHandler
+	lep.transactionsLogProcessor = logsAndEventsHandler
 }
 
 func (lep *logsAndEventsProcessor) processLogsTransactions(txs []*data.Transaction, accounts data.AlteredAccountsHandler) {
@@ -67,7 +67,7 @@ func (lep *logsAndEventsProcessor) processLogsScrs(scrs []*data.ScResult, accoun
 }
 
 func (lep *logsAndEventsProcessor) processNFTOperationLog(op data.Operation, txHash []byte, accounts data.AlteredAccountsHandler) {
-	txLog, ok := lep.logsAndEventsHandler.GetLogFromCache(txHash)
+	txLog, ok := lep.transactionsLogProcessor.GetLogFromCache(txHash)
 	if txLog == nil || !ok {
 		return
 	}
@@ -84,18 +84,18 @@ func (lep *logsAndEventsProcessor) processNFTOperationLog(op data.Operation, txH
 	}
 }
 
-func (lep *logsAndEventsProcessor) processEvent(event dataElrond.EventHandler, accounts data.AlteredAccountsHandler) (token string) {
+func (lep *logsAndEventsProcessor) processEvent(event dataElrond.EventHandler, accounts data.AlteredAccountsHandler) string {
 	_, ok := lep.nftOperationsIdentifiers[string(event.GetIdentifier())]
 	if !ok {
-		return
+		return ""
 	}
 
 	topics := event.GetTopics()
 	if len(topics) < 2 {
-		return
+		return ""
 	}
 
-	token = string(topics[0])
+	token := string(topics[0])
 	nonceBig := big.NewInt(0).SetBytes(topics[1])
 
 	sender := event.GetAddress()
@@ -110,12 +110,13 @@ func (lep *logsAndEventsProcessor) processEvent(event dataElrond.EventHandler, a
 	}
 
 	if len(topics) < 3 {
-		return
+		log.Warn("logsAndEventsProcessor.processEvent - NFT log should have at least 3 topics")
+		return token
 	}
 
 	receiver := topics[2]
 	if lep.shardCoordinator.ComputeId(receiver) != lep.shardCoordinator.SelfId() {
-		return
+		return token
 	}
 
 	receiverBech32 := lep.pubKeyConverter.Encode(receiver)
@@ -126,5 +127,5 @@ func (lep *logsAndEventsProcessor) processEvent(event dataElrond.EventHandler, a
 		IsCreate:        false,
 	})
 
-	return
+	return token
 }

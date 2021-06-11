@@ -8,6 +8,7 @@ import (
 	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
+	"github.com/ElrondNetwork/elrond-go-logger/check"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/statistics"
 	nodeData "github.com/ElrondNetwork/elrond-go/data"
@@ -355,6 +356,10 @@ func (ei *elasticProcessor) RemoveTransactions(header nodeData.HeaderHandler, bo
 
 // SetTxLogsProcessor will set tx logs processor
 func (ei *elasticProcessor) SetTxLogsProcessor(logProcessor process.TransactionLogProcessorDatabase) {
+	if check.IfNil(logProcessor) {
+		return
+	}
+
 	ei.transactionsProc.SetTxLogProcessor(logProcessor)
 }
 

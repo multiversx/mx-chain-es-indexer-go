@@ -13,9 +13,9 @@ func (tdp *txsDatabaseProcessor) SerializeTokens(tokens []*data.TokenInfo) ([]*b
 	buffSlice := data.NewBufferSlice()
 	for _, tokenData := range tokens {
 		meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, tokenData.Token, "\n"))
-		serializedData, errPrepareD := json.Marshal(tokenData)
-		if errPrepareD != nil {
-			return nil, errPrepareD
+		serializedData, errMarshal := json.Marshal(tokenData)
+		if errMarshal != nil {
+			return nil, errMarshal
 		}
 
 		err := buffSlice.PutData(meta, serializedData)

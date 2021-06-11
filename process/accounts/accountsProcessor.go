@@ -177,8 +177,8 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(
 
 		acc := &data.AccountInfo{
 			Address:         address,
-			Token:           accountESDT.TokenIdentifier,
-			Identifier:      computeTokenIdentifier(accountESDT.TokenIdentifier, accountESDT.NFTNonce),
+			TokenName:       accountESDT.TokenIdentifier,
+			TokenIdentifier: computeTokenIdentifier(accountESDT.TokenIdentifier, accountESDT.NFTNonce),
 			TokenNonce:      accountESDT.NFTNonce,
 			Balance:         balance.String(),
 			BalanceNum:      ap.computeBalanceAsFloat(balance, ap.balancePrecisionESDT),
@@ -216,11 +216,11 @@ func (ap *accountsProcessor) PrepareAccountsHistory(
 			Address:         address,
 			Balance:         userAccount.Balance,
 			Timestamp:       time.Duration(timestamp),
-			Token:           userAccount.Token,
+			Token:           userAccount.TokenName,
 			TokenNonce:      userAccount.TokenNonce,
 			IsSender:        userAccount.IsSender,
 			IsSmartContract: userAccount.IsSmartContract,
-			Identifier:      computeTokenIdentifier(userAccount.Token, userAccount.TokenNonce),
+			Identifier:      computeTokenIdentifier(userAccount.TokenName, userAccount.TokenNonce),
 		}
 		addressKey := fmt.Sprintf("%s_%d", address, timestamp)
 		accountsMap[addressKey] = acc

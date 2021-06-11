@@ -12,7 +12,7 @@ func TestSerializeTokens(t *testing.T) {
 	t.Parallel()
 
 	tok1 := &data.TokenInfo{
-		Name:      "Token",
+		Name:      "TokenName",
 		Ticker:    "TKN",
 		Token:     "TKN-01234",
 		Timestamp: 50000,
@@ -34,7 +34,7 @@ func TestSerializeTokens(t *testing.T) {
 	require.Equal(t, 1, len(res))
 
 	expectedRes := `{ "index" : { "_id" : "TKN-01234" } }
-{"name":"Token","ticker":"TKN","token":"TKN-01234","issuer":"erd123","type":"SemiFungibleESDT","timestamp":50000}
+{"name":"TokenName","ticker":"TKN","token":"TKN-01234","issuer":"erd123","type":"SemiFungibleESDT","timestamp":50000}
 { "index" : { "_id" : "TKN2-51234" } }
 {"name":"Token2","ticker":"TKN2","token":"TKN2-51234","issuer":"erd1231213123","type":"NonFungibleESDT","timestamp":60000}
 `

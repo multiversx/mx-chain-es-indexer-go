@@ -57,7 +57,7 @@ func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txsDatabaseProce
 	txBuilder := newTransactionDBBuilder(args.AddressPubkeyConverter, args.ShardCoordinator, args.TxFeeCalculator)
 	txsDBGrouper := newTxsGrouper(txBuilder, args.IsInImportMode, selfShardID, args.Hasher, args.Marshalizer)
 	scDeploys := newScDeploysProc(args.AddressPubkeyConverter, selfShardID)
-	tokensProc := newTokensProcessor(selfShardID)
+	tokensProc := newTokensProcessor(selfShardID, args.AddressPubkeyConverter)
 	logsAndEventsProc := newLogsAndEventsProcessorNFT(args.ShardCoordinator, args.AddressPubkeyConverter, args.Marshalizer)
 
 	if args.IsInImportMode {
@@ -332,6 +332,11 @@ func mergeTxsMaps(dst, src map[string]*data.Transaction) {
 	}
 }
 
+// SetTxLogProcessor will set tx logs processor
 func (tdp *txsDatabaseProcessor) SetTxLogProcessor(logProcessor process.TransactionLogProcessorDatabase) {
+	if check.IfNil(logProcessor) {
+		return
+	}
+
 	tdp.logsAndEventsProc.setLogsAndEventsHandler(logProcessor)
 }

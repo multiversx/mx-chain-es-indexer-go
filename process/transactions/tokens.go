@@ -7,11 +7,10 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/parsers"
+	"github.com/ElrondNetwork/elrond-go/vm"
 )
 
 const (
-	metachainESDTAddress = "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u"
-
 	issueFungibleESDTFunc     = "issue"
 	issueSemiFungibleESDTFunc = "issueSemiFungible"
 	issueNonFungibleESDTFunc  = "issueNonFungible"
@@ -21,9 +20,10 @@ type tokensProcessor struct {
 	issueMethods           map[string]struct{}
 	argumentParserExtended *argumentsParserExtended
 	selfShardID            uint32
+	esdtSCAddress          string
 }
 
-func newTokensProcessor(selfShardID uint32) *tokensProcessor {
+func newTokensProcessor(selfShardID uint32, pubKeyConverter core.PubkeyConverter) *tokensProcessor {
 	argsParser := parsers.NewCallArgsParser()
 
 	return &tokensProcessor{
@@ -34,6 +34,7 @@ func newTokensProcessor(selfShardID uint32) *tokensProcessor {
 			issueNonFungibleESDTFunc:  {},
 		},
 		argumentParserExtended: newArgumentsParser(argsParser),
+		esdtSCAddress:          pubKeyConverter.Encode(vm.ESDTSCAddress),
 	}
 }
 
@@ -104,7 +105,7 @@ func (tp *tokensProcessor) searchForTokenIssueScrs(scrs []*data.ScResult, timest
 
 func (tp *tokensProcessor) searchTokenIdentifierFungibleESDT(sender string, scrs []*data.ScResult) string {
 	for _, scr := range scrs {
-		isReceiverAndSenderOk := scr.Receiver == sender && scr.Sender == metachainESDTAddress
+		isReceiverAndSenderOk := scr.Receiver == sender && scr.Sender == tp.esdtSCAddress
 		if !isReceiverAndSenderOk {
 			continue
 		}
@@ -171,8 +172,8 @@ func (tp *tokensProcessor) isIssueTxSuccess(dataField []byte, sender string, non
 	}
 
 	for _, scr := range scrs {
-		isReceiverAndSenderOk := scr.Receiver == sender && scr.Sender == metachainESDTAddress
-		if !isReceiverAndSenderOk {
+		areReceiverAndSenderOk := scr.Receiver == sender && scr.Sender == tp.esdtSCAddress
+		if !areReceiverAndSenderOk {
 			continue
 		}
 
@@ -213,8 +214,8 @@ func (tp *tokensProcessor) isIssueSCRSuccess(dataField []byte, sender string, sc
 	}
 
 	for _, scr := range scrs {
-		isReceiverAndSenderOk := scr.Receiver == sender && scr.Sender == metachainESDTAddress
-		if !isReceiverAndSenderOk {
+		areReceiverAndSenderOk := scr.Receiver == sender && scr.Sender == tp.esdtSCAddress
+		if !areReceiverAndSenderOk {
 			continue
 		}
 

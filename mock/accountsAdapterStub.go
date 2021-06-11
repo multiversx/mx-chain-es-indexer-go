@@ -31,6 +31,11 @@ type AccountsStub struct {
 	GetCodeCalled            func([]byte) []byte
 }
 
+// GetTrie -
+func (as *AccountsStub) GetTrie(_ []byte) (data.Trie, error) {
+	return nil, nil
+}
+
 // GetCode -
 func (as *AccountsStub) GetCode(codeHash []byte) []byte {
 	if as.GetCodeCalled != nil {
