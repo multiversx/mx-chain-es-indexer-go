@@ -59,6 +59,7 @@ type AccountESDT struct {
 	IsSender        bool
 	IsNFTOperation  bool
 	IsNFTCreate     bool
+	Type            string
 }
 
 // TokenInfo is a structure that is needed to store information about a token

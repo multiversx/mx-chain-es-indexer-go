@@ -184,8 +184,7 @@ func (di *dataIndexer) SaveAccounts(timestamp uint64, accounts []state.UserAccou
 }
 
 // SetTxLogsProcessor will set tx logs processor
-func (di *dataIndexer) SetTxLogsProcessor(txLogsProc process.TransactionLogProcessorDatabase) {
-	di.elasticProcessor.SetTxLogsProcessor(txLogsProc)
+func (di *dataIndexer) SetTxLogsProcessor(_ process.TransactionLogProcessorDatabase) {
 }
 
 // IsNilIndexer will return a bool value that signals if the indexer's implementation is a NilIndexer

@@ -251,16 +251,13 @@ func (tg *txsGrouper) addToAlteredAddresses(
 	selfShardID uint32,
 	isRewardTx bool,
 ) {
-	isESDTTx, isNFTTx, nftNonceSTR := tg.txBuilder.computeESDTInfo(tx.Data, tx.EsdtTokenIdentifier)
+	isESDTTx := tg.txBuilder.esdtProc.isESDTTx(tx.Data)
 	isESDTNotInvalid := isESDTTx && miniBlock.Type != block.InvalidBlock
-	isNFTTxNotInvalid := isNFTTx && miniBlock.Type != block.InvalidBlock
 	if selfShardID == miniBlock.SenderShardID && !isRewardTx {
 		alteredAccounts.Add(tx.Sender, &data.AlteredAccount{
 			IsSender:        true,
 			IsESDTOperation: isESDTNotInvalid,
-			IsNFTOperation:  isNFTTxNotInvalid,
 			TokenIdentifier: tx.EsdtTokenIdentifier,
-			NFTNonce:        nftNonceSTR,
 		})
 	}
 
@@ -271,14 +268,11 @@ func (tg *txsGrouper) addToAlteredAddresses(
 
 	isMeta := selfShardID == core.MetachainShardId
 	isESDTNotDestinationMeta := isESDTNotInvalid && !isMeta
-	isNFTTxNotDestinationMeta := isNFTTxNotInvalid && !isMeta
 	if selfShardID == miniBlock.ReceiverShardID || miniBlock.ReceiverShardID == core.AllShardId {
 		alteredAccounts.Add(tx.Receiver, &data.AlteredAccount{
 			IsSender:        false,
 			IsESDTOperation: isESDTNotDestinationMeta,
-			IsNFTOperation:  isNFTTxNotDestinationMeta,
 			TokenIdentifier: tx.EsdtTokenIdentifier,
-			NFTNonce:        nftNonceSTR,
 		})
 	}
 }

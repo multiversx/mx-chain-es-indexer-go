@@ -16,6 +16,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/accounts"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/block"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/logsevents"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/miniblocks"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/statistics"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/transactions"
@@ -32,14 +33,15 @@ import (
 
 func newElasticsearchProcessor(elasticsearchWriter DatabaseClientHandler, arguments *ArgElasticProcessor) *elasticProcessor {
 	return &elasticProcessor{
-		elasticClient:    elasticsearchWriter,
-		enabledIndexes:   arguments.EnabledIndexes,
-		blockProc:        arguments.BlockProc,
-		transactionsProc: arguments.TransactionsProc,
-		miniblocksProc:   arguments.MiniblocksProc,
-		accountsProc:     arguments.AccountsProc,
-		validatorsProc:   arguments.ValidatorsProc,
-		statisticsProc:   arguments.StatisticsProc,
+		elasticClient:     elasticsearchWriter,
+		enabledIndexes:    arguments.EnabledIndexes,
+		blockProc:         arguments.BlockProc,
+		transactionsProc:  arguments.TransactionsProc,
+		miniblocksProc:    arguments.MiniblocksProc,
+		accountsProc:      arguments.AccountsProc,
+		validatorsProc:    arguments.ValidatorsProc,
+		statisticsProc:    arguments.StatisticsProc,
+		logsAndEventsProc: arguments.LogsAndEventsProc,
 	}
 }
 
@@ -48,18 +50,20 @@ func createMockElasticProcessorArgs() *ArgElasticProcessor {
 	bp, _ := block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 	mp, _ := miniblocks.NewMiniblocksProcessor(0, &mock.HasherMock{}, &mock.MarshalizerMock{})
 	vp, _ := validators.NewValidatorsProcessor(mock.NewPubkeyConverterMock(32))
+	lp, _ := logsevents.NewLogsAndEventsProcessorNFT(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{})
 
 	return &ArgElasticProcessor{
 		DBClient: &mock.DatabaseWriterStub{},
 		EnabledIndexes: map[string]struct{}{
 			elasticIndexer.BlockIndex: {}, elasticIndexer.TransactionsIndex: {}, elasticIndexer.MiniblocksIndex: {}, elasticIndexer.TpsIndex: {}, elasticIndexer.ValidatorsIndex: {}, elasticIndexer.RoundsIndex: {}, elasticIndexer.AccountsIndex: {}, elasticIndexer.RatingIndex: {}, elasticIndexer.AccountsHistoryIndex: {},
 		},
-		ValidatorsProc:   vp,
-		StatisticsProc:   statistics.NewStatisticsProcessor(),
-		TransactionsProc: &mock.DBTransactionProcessorStub{},
-		MiniblocksProc:   mp,
-		AccountsProc:     acp,
-		BlockProc:        bp,
+		ValidatorsProc:    vp,
+		StatisticsProc:    statistics.NewStatisticsProcessor(),
+		TransactionsProc:  &mock.DBTransactionProcessorStub{},
+		MiniblocksProc:    mp,
+		AccountsProc:      acp,
+		BlockProc:         bp,
+		LogsAndEventsProc: lp,
 	}
 }
 

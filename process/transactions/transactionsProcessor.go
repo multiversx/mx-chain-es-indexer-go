@@ -38,12 +38,11 @@ type ArgsTransactionProcessor struct {
 }
 
 type txsDatabaseProcessor struct {
-	txFeeCalculator   process.TransactionFeeCalculator
-	txBuilder         *dbTransactionBuilder
-	txsGrouper        *txsGrouper
-	scDeploysProc     *scDeploysProc
-	tokensProcessor   *tokensProcessor
-	logsAndEventsProc *logsAndEventsProcessor
+	txFeeCalculator process.TransactionFeeCalculator
+	txBuilder       *dbTransactionBuilder
+	txsGrouper      *txsGrouper
+	scDeploysProc   *scDeploysProc
+	tokensProcessor *tokensProcessor
 }
 
 // NewTransactionsProcessor will create a new instance of transactions database processor
@@ -58,7 +57,6 @@ func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txsDatabaseProce
 	txsDBGrouper := newTxsGrouper(txBuilder, args.IsInImportMode, selfShardID, args.Hasher, args.Marshalizer)
 	scDeploys := newScDeploysProc(args.AddressPubkeyConverter, selfShardID)
 	tokensProc := newTokensProcessor(selfShardID, args.AddressPubkeyConverter)
-	logsAndEventsProc := newLogsAndEventsProcessorNFT(args.ShardCoordinator, args.AddressPubkeyConverter, args.Marshalizer)
 
 	if args.IsInImportMode {
 		log.Warn("the node is in import mode! Cross shard transactions and rewards where destination shard is " +
@@ -66,12 +64,11 @@ func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txsDatabaseProce
 	}
 
 	return &txsDatabaseProcessor{
-		txFeeCalculator:   args.TxFeeCalculator,
-		txBuilder:         txBuilder,
-		txsGrouper:        txsDBGrouper,
-		scDeploysProc:     scDeploys,
-		tokensProcessor:   tokensProc,
-		logsAndEventsProc: logsAndEventsProc,
+		txFeeCalculator: args.TxFeeCalculator,
+		txBuilder:       txBuilder,
+		txsGrouper:      txsDBGrouper,
+		scDeploysProc:   scDeploys,
+		tokensProcessor: tokensProc,
 	}, nil
 }
 
@@ -135,9 +132,6 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 	sliceNormalTxs := convertMapTxsToSlice(normalTxs)
 	sliceRewardsTxs := convertMapTxsToSlice(rewardsTxs)
 	txsSlice := append(sliceNormalTxs, sliceRewardsTxs...)
-
-	tdp.logsAndEventsProc.processLogsTransactions(txsSlice, alteredAccounts)
-	tdp.logsAndEventsProc.processLogsScrs(dbSCResults, alteredAccounts)
 
 	deploysData := tdp.scDeploysProc.searchSCDeployTransactionsOrSCRS(txsSlice, dbSCResults)
 
@@ -330,13 +324,4 @@ func mergeTxsMaps(dst, src map[string]*data.Transaction) {
 	for key, value := range src {
 		dst[key] = value
 	}
-}
-
-// SetTxLogProcessor will set tx logs processor
-func (tdp *txsDatabaseProcessor) SetTxLogProcessor(logProcessor process.TransactionLogProcessorDatabase) {
-	if check.IfNil(logProcessor) {
-		return
-	}
-
-	tdp.logsAndEventsProc.setLogsAndEventsHandler(logProcessor)
 }

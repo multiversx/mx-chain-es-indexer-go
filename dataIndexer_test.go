@@ -4,7 +4,6 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/disabled"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
@@ -12,7 +11,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go/core/check"
 	dataBlock "github.com/ElrondNetwork/elrond-go/data/block"
 	"github.com/ElrondNetwork/elrond-go/data/indexer"
-	dataProcess "github.com/ElrondNetwork/elrond-go/process"
 	"github.com/ElrondNetwork/elrond-go/testscommon"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -228,21 +226,6 @@ func TestDataIndexer_RevertIndexedBlock(t *testing.T) {
 	ei, _ := NewDataIndexer(arguments)
 
 	ei.RevertIndexedBlock(&dataBlock.Header{}, &dataBlock.Body{})
-	require.True(t, called)
-}
-
-func TestDataIndexer_SetTxLogsProcessor(t *testing.T) {
-	called := false
-
-	arguments := NewDataIndexerArguments()
-	arguments.ElasticProcessor = &mock.ElasticProcessorStub{
-		SetTxLogsProcessorCalled: func(txLogsProc dataProcess.TransactionLogProcessorDatabase) {
-			called = true
-		},
-	}
-	ei, _ := NewDataIndexer(arguments)
-
-	ei.SetTxLogsProcessor(disabled.NewNilTxLogsProcessor())
 	require.True(t, called)
 }
 

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/stretchr/testify/require"
 )
 
@@ -17,6 +18,7 @@ func TestSerializeNFTCreateInfo(t *testing.T) {
 			MetaData: &data.TokenMetaData{
 				Creator: "010102",
 			},
+			Type: core.NonFungibleESDT,
 		},
 	}
 
@@ -25,7 +27,7 @@ func TestSerializeNFTCreateInfo(t *testing.T) {
 	require.Equal(t, 1, len(res))
 
 	expectedRes := `{ "index" : { "_id" : "my-token-001-0f" } }
-{"identifier":"my-token-001-0f","token":"my-token-0001","metaData":{"creator":"010102"}}
+{"identifier":"my-token-001-0f","token":"my-token-0001","type":"NonFungibleESDT","metaData":{"creator":"010102"}}
 `
 	require.Equal(t, expectedRes, res[0].String())
 }

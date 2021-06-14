@@ -8,7 +8,6 @@ import (
 	nodeData "github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/block"
 	"github.com/ElrondNetwork/elrond-go/data/indexer"
-	"github.com/ElrondNetwork/elrond-go/process"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
 
@@ -56,7 +55,6 @@ type DBTransactionsHandler interface {
 		pool *indexer.Pool,
 	) *data.PreparedResults
 	GetRewardsTxsHashesHexEncoded(header nodeData.HeaderHandler, body *block.Body) []string
-	SetTxLogProcessor(logProcessor process.TransactionLogProcessorDatabase)
 
 	SerializeReceipts(receipts []*data.Receipt) ([]*bytes.Buffer, error)
 	SerializeTransactions(transactions []*data.Transaction, selfShardID uint32, mbsHashInDB map[string]bool) ([]*bytes.Buffer, error)
@@ -86,4 +84,9 @@ type DBValidatorsHandler interface {
 	PrepareValidatorsPublicKeys(shardValidatorsPubKeys [][]byte) *data.ValidatorsPublicKeys
 	SerializeValidatorsPubKeys(validatorsPubKeys *data.ValidatorsPublicKeys) (*bytes.Buffer, error)
 	SerializeValidatorsRating(index string, validatorsRatingInfo []*data.ValidatorRatingInfo) ([]*bytes.Buffer, error)
+}
+
+// DBLogsAndEventsHandler defines the actions that a logs and events handler should do
+type DBLogsAndEventsHandler interface {
+	ProcessLogsAndEvents(logsAndEvents map[string]nodeData.LogHandler, accounts data.AlteredAccountsHandler)
 }

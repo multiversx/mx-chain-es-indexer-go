@@ -100,6 +100,7 @@ func splitAlteredAccounts(userAccount state.UserAccountHandler, altered []*data.
 				IsNFTOperation:  info.IsNFTOperation,
 				NFTNonce:        info.NFTNonce,
 				IsNFTCreate:     info.IsCreate,
+				Type:            info.Type,
 			})
 		}
 
@@ -199,6 +200,7 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(
 			Identifier: computeTokenIdentifier(accountESDT.TokenIdentifier, accountESDT.NFTNonce),
 			Timestamp:  time.Duration(timestamp),
 			MetaData:   tokenMetaData,
+			Type:       accountESDT.Type,
 		})
 	}
 

@@ -8,13 +8,11 @@ import (
 	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
-	"github.com/ElrondNetwork/elrond-go-logger/check"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/statistics"
 	nodeData "github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/block"
 	"github.com/ElrondNetwork/elrond-go/data/indexer"
-	"github.com/ElrondNetwork/elrond-go/process"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
 
@@ -40,30 +38,32 @@ type objectsMap = map[string]interface{}
 // ArgElasticProcessor holds all dependencies required by the elasticProcessor in order to create
 // new instances
 type ArgElasticProcessor struct {
-	UseKibana        bool
-	SelfShardID      uint32
-	IndexTemplates   map[string]*bytes.Buffer
-	IndexPolicies    map[string]*bytes.Buffer
-	EnabledIndexes   map[string]struct{}
-	TransactionsProc DBTransactionsHandler
-	AccountsProc     DBAccountHandler
-	BlockProc        DBBlockHandler
-	MiniblocksProc   DBMiniblocksHandler
-	StatisticsProc   DBStatisticsHandler
-	ValidatorsProc   DBValidatorsHandler
-	DBClient         DatabaseClientHandler
+	UseKibana         bool
+	SelfShardID       uint32
+	IndexTemplates    map[string]*bytes.Buffer
+	IndexPolicies     map[string]*bytes.Buffer
+	EnabledIndexes    map[string]struct{}
+	TransactionsProc  DBTransactionsHandler
+	AccountsProc      DBAccountHandler
+	BlockProc         DBBlockHandler
+	MiniblocksProc    DBMiniblocksHandler
+	StatisticsProc    DBStatisticsHandler
+	ValidatorsProc    DBValidatorsHandler
+	DBClient          DatabaseClientHandler
+	LogsAndEventsProc DBLogsAndEventsHandler
 }
 
 type elasticProcessor struct {
-	selfShardID      uint32
-	enabledIndexes   map[string]struct{}
-	elasticClient    DatabaseClientHandler
-	accountsProc     DBAccountHandler
-	blockProc        DBBlockHandler
-	transactionsProc DBTransactionsHandler
-	miniblocksProc   DBMiniblocksHandler
-	statisticsProc   DBStatisticsHandler
-	validatorsProc   DBValidatorsHandler
+	selfShardID       uint32
+	enabledIndexes    map[string]struct{}
+	elasticClient     DatabaseClientHandler
+	accountsProc      DBAccountHandler
+	blockProc         DBBlockHandler
+	transactionsProc  DBTransactionsHandler
+	miniblocksProc    DBMiniblocksHandler
+	statisticsProc    DBStatisticsHandler
+	validatorsProc    DBValidatorsHandler
+	logsAndEventsProc DBLogsAndEventsHandler
 }
 
 // NewElasticProcessor handles Elastic Search operations such as initialization, adding, modifying or removing data
@@ -74,15 +74,16 @@ func NewElasticProcessor(arguments *ArgElasticProcessor) (*elasticProcessor, err
 	}
 
 	ei := &elasticProcessor{
-		elasticClient:    arguments.DBClient,
-		enabledIndexes:   arguments.EnabledIndexes,
-		accountsProc:     arguments.AccountsProc,
-		blockProc:        arguments.BlockProc,
-		miniblocksProc:   arguments.MiniblocksProc,
-		transactionsProc: arguments.TransactionsProc,
-		selfShardID:      arguments.SelfShardID,
-		statisticsProc:   arguments.StatisticsProc,
-		validatorsProc:   arguments.ValidatorsProc,
+		elasticClient:     arguments.DBClient,
+		enabledIndexes:    arguments.EnabledIndexes,
+		accountsProc:      arguments.AccountsProc,
+		blockProc:         arguments.BlockProc,
+		miniblocksProc:    arguments.MiniblocksProc,
+		transactionsProc:  arguments.TransactionsProc,
+		selfShardID:       arguments.SelfShardID,
+		statisticsProc:    arguments.StatisticsProc,
+		validatorsProc:    arguments.ValidatorsProc,
+		logsAndEventsProc: arguments.LogsAndEventsProc,
 	}
 
 	err = ei.init(arguments.UseKibana, arguments.IndexTemplates, arguments.IndexPolicies)
@@ -122,6 +123,10 @@ func checkArguments(arguments *ArgElasticProcessor) error {
 
 	if arguments.TransactionsProc == nil {
 		return elasticIndexer.ErrNilTransactionsHandler
+	}
+
+	if arguments.LogsAndEventsProc == nil {
+		return elasticIndexer.ErrNilLogsAndEventsHandler
 	}
 
 	return nil
@@ -354,15 +359,6 @@ func (ei *elasticProcessor) RemoveTransactions(header nodeData.HeaderHandler, bo
 	return ei.elasticClient.DoBulkRemove(elasticIndexer.TransactionsIndex, encodedTxsHashes)
 }
 
-// SetTxLogsProcessor will set tx logs processor
-func (ei *elasticProcessor) SetTxLogsProcessor(logProcessor process.TransactionLogProcessorDatabase) {
-	if check.IfNil(logProcessor) {
-		return
-	}
-
-	ei.transactionsProc.SetTxLogProcessor(logProcessor)
-}
-
 // SaveMiniblocks will prepare and save information about miniblocks in elasticsearch server
 // and returns a map with the hashes of the miniblocks that are already in elasticsearch database
 // the map on miniblocks have to be returned here because the get must be done before the actual miniblocks are indexed
@@ -407,6 +403,8 @@ func (ei *elasticProcessor) SaveTransactions(
 	if err != nil {
 		return err
 	}
+
+	ei.logsAndEventsProc.ProcessLogsAndEvents(pool.Logs, preparedResults.AlteredAccts)
 
 	err = ei.indexScResults(preparedResults.ScResults)
 	if err != nil {

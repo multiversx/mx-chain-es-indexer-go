@@ -3,6 +3,7 @@ package data
 import (
 	"testing"
 
+	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/stretchr/testify/require"
 )
 
@@ -56,6 +57,7 @@ func TestAlteredAccounts_AddESDT(t *testing.T) {
 		IsNFTOperation:  true,
 		NFTNonce:        1,
 		IsCreate:        true,
+		Type:            core.NonFungibleESDT,
 	}
 	altAccounts.Add(addr, acct4)
 
@@ -74,6 +76,7 @@ func TestAlteredAccounts_AddESDT(t *testing.T) {
 		TokenIdentifier: "my-nft-token",
 		NFTNonce:        1,
 		IsCreate:        true,
+		Type:            core.NonFungibleESDT,
 	}, res[1])
 }
 
