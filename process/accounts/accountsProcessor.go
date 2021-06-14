@@ -190,7 +190,7 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(
 
 		accountsESDTMap[address] = acc
 
-		if !accountESDT.IsNFTCreate {
+		if !accountESDT.IsNFTOperation || !accountESDT.IsNFTCreate {
 			continue
 		}
 
