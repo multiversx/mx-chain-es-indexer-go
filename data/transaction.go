@@ -5,11 +5,6 @@ import (
 	"time"
 )
 
-// Operation defines the actions that an operation handler should do
-type Operation interface {
-	SetToken(token string)
-}
-
 // Transaction is a structure containing all the fields that need
 //  to be saved for a transaction. It has all the default fields
 //  plus some extra information for ease of search and filter
@@ -41,11 +36,6 @@ type Transaction struct {
 	ReceiverAddressBytes []byte        `json:"-"`
 	Hash                 string        `json:"-"`
 	BlockHash            string        `json:"-"`
-}
-
-// SetToken will set the token identifier
-func (t *Transaction) SetToken(token string) {
-	t.EsdtTokenIdentifier = token
 }
 
 // GetGasLimit will return transaction gas limit
@@ -108,11 +98,6 @@ type ScResult struct {
 	ReturnMessage       string        `json:"returnMessage,omitempty"`
 	Timestamp           time.Duration `json:"timestamp"`
 	EsdtTokenIdentifier string        `json:"token,omitempty"`
-}
-
-// SetToken will set the token identifier
-func (t *ScResult) SetToken(token string) {
-	t.EsdtTokenIdentifier = token
 }
 
 // TxLog holds all the data needed for a log structure

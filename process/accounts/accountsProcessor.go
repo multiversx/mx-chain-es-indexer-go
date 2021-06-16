@@ -99,7 +99,7 @@ func splitAlteredAccounts(userAccount state.UserAccountHandler, altered []*data.
 				IsSender:        info.IsSender,
 				IsNFTOperation:  info.IsNFTOperation,
 				NFTNonce:        info.NFTNonce,
-				IsNFTCreate:     info.IsCreate,
+				IsNFTCreate:     info.IsNFTCreate,
 				Type:            info.Type,
 			})
 		}

@@ -40,7 +40,7 @@ func TestLogsAndEventsProcessor(t *testing.T) {
 		IsNFTOperation:  true,
 		TokenIdentifier: "my-token",
 		NFTNonce:        19,
-		IsCreate:        true,
+		IsNFTCreate:     true,
 		Type:            core.NonFungibleESDT,
 	}, alteredAddr[0])
 }
@@ -73,7 +73,7 @@ func TestLogsAndEventsProcessor_TransferNFT(t *testing.T) {
 		IsNFTOperation:  true,
 		TokenIdentifier: "my-token",
 		NFTNonce:        19,
-		IsCreate:        false,
+		IsNFTCreate:     false,
 	}, alteredAddrSender[0])
 
 	alteredAddrReceiver, ok := altered.Get("7265636569766572")
@@ -82,6 +82,6 @@ func TestLogsAndEventsProcessor_TransferNFT(t *testing.T) {
 		IsNFTOperation:  true,
 		TokenIdentifier: "my-token",
 		NFTNonce:        19,
-		IsCreate:        false,
+		IsNFTCreate:     false,
 	}, alteredAddrReceiver[0])
 }

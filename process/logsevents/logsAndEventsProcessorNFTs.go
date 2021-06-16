@@ -7,7 +7,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go-logger/check"
 	"github.com/ElrondNetwork/elrond-go/core"
-	dataElrond "github.com/ElrondNetwork/elrond-go/data"
+	nodeData "github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/sharding"
 )
 
@@ -43,7 +43,7 @@ func NewLogsAndEventsProcessorNFT(
 
 // ProcessLogsAndEvents will process provided logs and events
 func (lep *logsAndEventsProcessor) ProcessLogsAndEvents(
-	logsAndEvents map[string]dataElrond.LogHandler,
+	logsAndEvents map[string]nodeData.LogHandler,
 	accounts data.AlteredAccountsHandler,
 ) {
 	if logsAndEvents == nil || accounts == nil {
@@ -55,7 +55,7 @@ func (lep *logsAndEventsProcessor) ProcessLogsAndEvents(
 	}
 }
 
-func (lep *logsAndEventsProcessor) processNFTOperationLog(txLog dataElrond.LogHandler, accounts data.AlteredAccountsHandler) {
+func (lep *logsAndEventsProcessor) processNFTOperationLog(txLog nodeData.LogHandler, accounts data.AlteredAccountsHandler) {
 	events := txLog.GetLogEvents()
 	if len(events) == 0 {
 		return
@@ -66,7 +66,7 @@ func (lep *logsAndEventsProcessor) processNFTOperationLog(txLog dataElrond.LogHa
 	}
 }
 
-func (lep *logsAndEventsProcessor) processEvent(event dataElrond.EventHandler, accounts data.AlteredAccountsHandler) {
+func (lep *logsAndEventsProcessor) processEvent(event nodeData.EventHandler, accounts data.AlteredAccountsHandler) {
 	_, ok := lep.nftOperationsIdentifiers[string(event.GetIdentifier())]
 	if !ok {
 		return
@@ -77,6 +77,10 @@ func (lep *logsAndEventsProcessor) processEvent(event dataElrond.EventHandler, a
 		lep.processNFTEventOnSender(event, accounts)
 	}
 
+	// topics contains:
+	// [0] -- token identifier
+	// [1] -- nonce of the NFT (bytes)
+	// [2] -- receiver NFT address -- in case of NFTTransfer OR token type in case of NFTCreate
 	topics := event.GetTopics()
 	if string(event.GetIdentifier()) != core.BuiltInFunctionESDTNFTTransfer || len(topics) < 3 {
 		return
@@ -89,18 +93,18 @@ func (lep *logsAndEventsProcessor) processEvent(event dataElrond.EventHandler, a
 		return
 	}
 
-	receiverBech32 := lep.pubKeyConverter.Encode(receiver)
-	accounts.Add(receiverBech32, &data.AlteredAccount{
+	encodedReceiver := lep.pubKeyConverter.Encode(receiver)
+	accounts.Add(encodedReceiver, &data.AlteredAccount{
 		IsNFTOperation:  true,
 		TokenIdentifier: token,
 		NFTNonce:        nonceBig.Uint64(),
-		IsCreate:        false,
+		IsNFTCreate:     false,
 	})
 
 	return
 }
 
-func (lep *logsAndEventsProcessor) processNFTEventOnSender(event dataElrond.EventHandler, accounts data.AlteredAccountsHandler) {
+func (lep *logsAndEventsProcessor) processNFTEventOnSender(event nodeData.EventHandler, accounts data.AlteredAccountsHandler) {
 	sender := event.GetAddress()
 	topics := event.GetTopics()
 	token := string(topics[0])
@@ -112,7 +116,7 @@ func (lep *logsAndEventsProcessor) processNFTEventOnSender(event dataElrond.Even
 			IsNFTOperation:  true,
 			TokenIdentifier: token,
 			NFTNonce:        nonceBig.Uint64(),
-			IsCreate:        false,
+			IsNFTCreate:     false,
 		})
 
 		return
@@ -126,7 +130,7 @@ func (lep *logsAndEventsProcessor) processNFTEventOnSender(event dataElrond.Even
 		IsNFTOperation:  true,
 		TokenIdentifier: token,
 		NFTNonce:        nonceBig.Uint64(),
-		IsCreate:        true,
+		IsNFTCreate:     true,
 		Type:            string(topics[2]),
 	})
 }
