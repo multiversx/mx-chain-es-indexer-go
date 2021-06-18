@@ -1,9 +1,9 @@
 package noKibana
 
-// AccountsESDT will hold the configuration for the accountsesdt index
-var AccountsESDT = Object{
+// Tokens will hold the configuration for the tokens index
+var Tokens = Object{
 	"index_patterns": Array{
-		"accountsesdt-*",
+		"tokens-*",
 	},
 	"settings": Object{
 		"number_of_shards":   3,
@@ -11,8 +11,8 @@ var AccountsESDT = Object{
 	},
 	"mappings": Object{
 		"properties": Object{
-			"balanceNum": Object{
-				"type": "double",
+			"timestamp": Object{
+				"type": "date",
 			},
 			"metaData": Object{
 				"type": "nested",

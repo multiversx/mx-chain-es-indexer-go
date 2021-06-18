@@ -8,6 +8,25 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 )
 
+// SerializeNFTCreateInfo will serialize the provided nft create information in a way that Elastic Search expects a bulk request
+func (ap *accountsProcessor) SerializeNFTCreateInfo(tokensInfo []*data.TokenInfo) ([]*bytes.Buffer, error) {
+	buffSlice := data.NewBufferSlice()
+	for _, tokenData := range tokensInfo {
+		meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, tokenData.Identifier, "\n"))
+		serializedData, errMarshal := json.Marshal(tokenData)
+		if errMarshal != nil {
+			return nil, errMarshal
+		}
+
+		err := buffSlice.PutData(meta, serializedData)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return buffSlice.Buffers(), nil
+}
+
 // SerializeAccounts will serialize the provided accounts in a way that Elastic Search expects a bulk request
 func (ap *accountsProcessor) SerializeAccounts(
 	accounts map[string]*data.AccountInfo,
@@ -41,7 +60,7 @@ func prepareSerializedAccount(address string, acc *data.AccountInfo, isESDT bool
 func prepareDeleteAccountInfo(address string, acct *data.AccountInfo, isESDT bool) []byte {
 	id := address
 	if isESDT {
-		id += fmt.Sprintf("_%s_%d", acct.TokenIdentifier, acct.TokenNonce)
+		id += fmt.Sprintf("-%s-%d", acct.TokenName, acct.TokenNonce)
 	}
 
 	meta := []byte(fmt.Sprintf(`{ "delete" : { "_id" : "%s" } }%s`, id, "\n"))
@@ -56,7 +75,7 @@ func prepareSerializedAccountInfo(
 ) ([]byte, []byte, error) {
 	id := address
 	if isESDTAccount {
-		id += fmt.Sprintf("_%s_%d", account.TokenIdentifier, account.TokenNonce)
+		id += fmt.Sprintf("-%s-%d", account.TokenName, account.TokenNonce)
 	}
 
 	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, id, "\n"))

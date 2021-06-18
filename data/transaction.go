@@ -29,7 +29,7 @@ type Transaction struct {
 	EsdtTokenIdentifier  string        `json:"token,omitempty"`
 	SenderUserName       []byte        `json:"senderUserName,omitempty"`
 	ReceiverUserName     []byte        `json:"receiverUserName,omitempty"`
-	Logs                 *TxLog        `json:"logs,omitempty"`
+	Logs                 *TxLog        `json:"logsevents,omitempty"`
 	HasSCR               bool          `json:"hasScResults,omitempty"`
 	IsScCall             bool          `json:"isScCall,omitempty"`
 	SmartContractResults []*ScResult   `json:"-"`
@@ -121,6 +121,7 @@ type PreparedResults struct {
 	Receipts     []*Receipt
 	DeploysInfo  []*ScDeployInfo
 	AlteredAccts AlteredAccountsHandler
+	Tokens       []*TokenInfo
 }
 
 // ScDeployInfo is the DTO that holds information about a smart contract deployment

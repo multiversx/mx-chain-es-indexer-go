@@ -42,6 +42,7 @@ type txsDatabaseProcessor struct {
 	txBuilder       *dbTransactionBuilder
 	txsGrouper      *txsGrouper
 	scDeploysProc   *scDeploysProc
+	tokensProcessor *tokensProcessor
 }
 
 // NewTransactionsProcessor will create a new instance of transactions database processor
@@ -51,9 +52,11 @@ func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txsDatabaseProce
 		return nil, err
 	}
 
+	selfShardID := args.ShardCoordinator.SelfId()
 	txBuilder := newTransactionDBBuilder(args.AddressPubkeyConverter, args.ShardCoordinator, args.TxFeeCalculator)
-	txsDBGrouper := newTxsGrouper(txBuilder, args.IsInImportMode, args.ShardCoordinator.SelfId(), args.Hasher, args.Marshalizer)
-	scDeploys := newScDeploysProc(args.AddressPubkeyConverter, args.ShardCoordinator.SelfId())
+	txsDBGrouper := newTxsGrouper(txBuilder, args.IsInImportMode, selfShardID, args.Hasher, args.Marshalizer)
+	scDeploys := newScDeploysProc(args.AddressPubkeyConverter, selfShardID)
+	tokensProc := newTokensProcessor(selfShardID, args.AddressPubkeyConverter)
 
 	if args.IsInImportMode {
 		log.Warn("the node is in import mode! Cross shard transactions and rewards where destination shard is " +
@@ -65,6 +68,7 @@ func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txsDatabaseProce
 		txBuilder:       txBuilder,
 		txsGrouper:      txsDBGrouper,
 		scDeploysProc:   scDeploys,
+		tokensProcessor: tokensProc,
 	}, nil
 }
 
@@ -125,15 +129,14 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 	tdp.txBuilder.addScrsReceiverToAlteredAccounts(alteredAccounts, dbSCResults)
 	tdp.setDetailsOfTxsWithSCRS(normalTxs, countScResults)
 
-	tdp.txBuilder.esdtProc.searchTxsWithNFTCreateAndPutNonceInAlteredAddress(alteredAccounts, normalTxs, dbSCResults)
-	tdp.txBuilder.esdtProc.searchForESDTInScrs(alteredAccounts, dbSCResults)
-	tdp.txBuilder.esdtProc.searchForReceiverNFTTransferAndPutInAlteredAddress(normalTxs, alteredAccounts)
-
 	sliceNormalTxs := convertMapTxsToSlice(normalTxs)
 	sliceRewardsTxs := convertMapTxsToSlice(rewardsTxs)
 	txsSlice := append(sliceNormalTxs, sliceRewardsTxs...)
 
 	deploysData := tdp.scDeploysProc.searchSCDeployTransactionsOrSCRS(txsSlice, dbSCResults)
+
+	tokens := tdp.tokensProcessor.searchForTokenIssueTransactions(txsSlice, header.GetTimeStamp())
+	tokens = append(tokens, tdp.tokensProcessor.searchForTokenIssueScrs(dbSCResults, header.GetTimeStamp())...)
 
 	return &data.PreparedResults{
 		Transactions: txsSlice,
@@ -141,6 +144,7 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 		Receipts:     dbReceipts,
 		AlteredAccts: alteredAccounts,
 		DeploysInfo:  deploysData,
+		Tokens:       tokens,
 	}
 }
 

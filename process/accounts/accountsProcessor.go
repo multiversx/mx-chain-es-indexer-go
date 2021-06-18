@@ -99,6 +99,8 @@ func splitAlteredAccounts(userAccount state.UserAccountHandler, altered []*data.
 				IsSender:        info.IsSender,
 				IsNFTOperation:  info.IsNFTOperation,
 				NFTNonce:        info.NFTNonce,
+				IsNFTCreate:     info.IsNFTCreate,
+				Type:            info.Type,
 			})
 		}
 
@@ -158,8 +160,12 @@ func (ap *accountsProcessor) PrepareRegularAccountsMap(accounts []*data.Account)
 }
 
 // PrepareAccountsMapESDT will prepare a map of accounts with ESDT tokens
-func (ap *accountsProcessor) PrepareAccountsMapESDT(accounts []*data.AccountESDT) map[string]*data.AccountInfo {
+func (ap *accountsProcessor) PrepareAccountsMapESDT(
+	accounts []*data.AccountESDT,
+	timestamp uint64,
+) (map[string]*data.AccountInfo, []*data.TokenInfo) {
 	accountsESDTMap := make(map[string]*data.AccountInfo)
+	tokensCreateInfo := make([]*data.TokenInfo, 0)
 	for _, accountESDT := range accounts {
 		address := ap.addressPubkeyConverter.Encode(accountESDT.Account.AddressBytes())
 		balance, properties, tokenMetaData, err := ap.getESDTInfo(accountESDT)
@@ -172,7 +178,8 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(accounts []*data.AccountESDT
 
 		acc := &data.AccountInfo{
 			Address:         address,
-			TokenIdentifier: accountESDT.TokenIdentifier,
+			TokenName:       accountESDT.TokenIdentifier,
+			TokenIdentifier: computeTokenIdentifier(accountESDT.TokenIdentifier, accountESDT.NFTNonce),
 			TokenNonce:      accountESDT.NFTNonce,
 			Balance:         balance.String(),
 			BalanceNum:      ap.computeBalanceAsFloat(balance, ap.balancePrecisionESDT),
@@ -183,9 +190,21 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(accounts []*data.AccountESDT
 		}
 
 		accountsESDTMap[address] = acc
+
+		if !accountESDT.IsNFTOperation || !accountESDT.IsNFTCreate {
+			continue
+		}
+
+		tokensCreateInfo = append(tokensCreateInfo, &data.TokenInfo{
+			Token:      accountESDT.TokenIdentifier,
+			Identifier: computeTokenIdentifier(accountESDT.TokenIdentifier, accountESDT.NFTNonce),
+			Timestamp:  time.Duration(timestamp),
+			MetaData:   tokenMetaData,
+			Type:       accountESDT.Type,
+		})
 	}
 
-	return accountsESDTMap
+	return accountsESDTMap, tokensCreateInfo
 }
 
 // PrepareAccountsHistory will prepare a map of accounts history balance from a map of accounts
@@ -199,10 +218,11 @@ func (ap *accountsProcessor) PrepareAccountsHistory(
 			Address:         address,
 			Balance:         userAccount.Balance,
 			Timestamp:       time.Duration(timestamp),
-			TokenIdentifier: userAccount.TokenIdentifier,
+			Token:           userAccount.TokenName,
 			TokenNonce:      userAccount.TokenNonce,
 			IsSender:        userAccount.IsSender,
 			IsSmartContract: userAccount.IsSmartContract,
+			Identifier:      computeTokenIdentifier(userAccount.TokenName, userAccount.TokenNonce),
 		}
 		addressKey := fmt.Sprintf("%s_%d", address, timestamp)
 		accountsMap[addressKey] = acc
@@ -278,4 +298,14 @@ func (ap *accountsProcessor) computeBalanceAsFloat(balance *big.Int, balancePrec
 	balanceFloatWithDecimals := math.Round(bal*balancePrecision) / balancePrecision
 
 	return core.MaxFloat64(balanceFloatWithDecimals, 0)
+}
+
+func computeTokenIdentifier(token string, nonce uint64) string {
+	if token == "" || nonce == 0 {
+		return ""
+	}
+
+	nonceBig := big.NewInt(0).SetUint64(nonce)
+	hexEncodedNonce := hex.EncodeToString(nonceBig.Bytes())
+	return fmt.Sprintf("%s-%s", token, hexEncodedNonce)
 }

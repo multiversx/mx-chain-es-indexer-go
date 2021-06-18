@@ -7,8 +7,9 @@ import (
 )
 
 const (
-	atSeparator = "@"
-	okHexConst  = "6f6b"
+	atSeparator  = "@"
+	okHexConst   = "6f6b"
+	zeroHexConst = "00"
 )
 
 type argumentsParserExtended struct {
@@ -32,4 +33,13 @@ func (age *argumentsParserExtended) hasOKPrefix(dataField string) bool {
 	}
 
 	return splitData[1] == okHexConst
+}
+
+func (age *argumentsParserExtended) hasZeroPrefix(dataField string) bool {
+	splitData := age.split(dataField)
+	if len(splitData) < 2 {
+		return false
+	}
+
+	return splitData[1] == zeroHexConst
 }

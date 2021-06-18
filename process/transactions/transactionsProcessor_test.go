@@ -43,6 +43,7 @@ func TestAddToAlteredAddresses(t *testing.T) {
 		Sender:              sender,
 		Receiver:            receiver,
 		EsdtTokenIdentifier: tokenIdentifier,
+		Data:                []byte("ESDTTransfer@31323334352d373066366534@174876e800"),
 	}
 	alteredAddress := data.NewAlteredAccounts()
 	selfShardID := uint32(0)

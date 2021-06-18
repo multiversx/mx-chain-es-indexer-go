@@ -12,14 +12,15 @@ type AccountInfo struct {
 	Nonce                    uint64         `json:"nonce,omitempty"`
 	Balance                  string         `json:"balance"`
 	BalanceNum               float64        `json:"balanceNum"`
-	TokenIdentifier          string         `json:"token,omitempty"`
+	TokenName                string         `json:"token,omitempty"`
+	TokenIdentifier          string         `json:"identifier,omitempty"`
 	TokenNonce               uint64         `json:"tokenNonce,omitempty"`
 	Properties               string         `json:"properties,omitempty"`
 	IsSender                 bool           `json:"-"`
 	IsSmartContract          bool           `json:"-"`
 	TotalBalanceWithStake    string         `json:"totalBalanceWithStake,omitempty"`
 	TotalBalanceWithStakeNum float64        `json:"totalBalanceWithStakeNum,omitempty"`
-	MetaData                 *TokenMetaData `json:"tokenMetaData,omitempty"`
+	MetaData                 *TokenMetaData `json:"metaData,omitempty"`
 }
 
 // TokenMetaData holds data about a token metadata
@@ -37,7 +38,8 @@ type AccountBalanceHistory struct {
 	Address         string        `json:"address"`
 	Timestamp       time.Duration `json:"timestamp"`
 	Balance         string        `json:"balance"`
-	TokenIdentifier string        `json:"token,omitempty"`
+	Token           string        `json:"token,omitempty"`
+	Identifier      string        `json:"identifier,omitempty"`
 	TokenNonce      uint64        `json:"tokenNonce,omitempty"`
 	IsSender        bool          `json:"isSender,omitempty"`
 	IsSmartContract bool          `json:"isSmartContract,omitempty"`
@@ -56,4 +58,18 @@ type AccountESDT struct {
 	NFTNonce        uint64
 	IsSender        bool
 	IsNFTOperation  bool
+	IsNFTCreate     bool
+	Type            string
+}
+
+// TokenInfo is a structure that is needed to store information about a token
+type TokenInfo struct {
+	Name       string         `json:"name,omitempty"`
+	Ticker     string         `json:"ticker,omitempty"`
+	Identifier string         `json:"identifier,omitempty"`
+	Token      string         `json:"token,omitempty"`
+	Issuer     string         `json:"issuer,omitempty"`
+	Type       string         `json:"type,omitempty"`
+	Timestamp  time.Duration  `json:"timestamp,omitempty"`
+	MetaData   *TokenMetaData `json:"metaData,omitempty"`
 }

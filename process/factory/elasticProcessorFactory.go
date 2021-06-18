@@ -5,6 +5,7 @@ import (
 	processIndexer "github.com/ElrondNetwork/elastic-indexer-go/process"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/accounts"
 	blockProc "github.com/ElrondNetwork/elastic-indexer-go/process/block"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/logsevents"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/miniblocks"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/statistics"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/templatesAndPolicies"
@@ -91,19 +92,25 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (indexer.Elast
 		return nil, err
 	}
 
+	logsAndEventsProc, err := logsevents.NewLogsAndEventsProcessorNFT(arguments.ShardCoordinator, arguments.AddressPubkeyConverter)
+	if err != nil {
+		return nil, err
+	}
+
 	args := &processIndexer.ArgElasticProcessor{
-		TransactionsProc: txsProc,
-		AccountsProc:     accountsProc,
-		BlockProc:        blockProcHandler,
-		MiniblocksProc:   miniblocksProc,
-		ValidatorsProc:   validatorsProc,
-		StatisticsProc:   generalInfoProc,
-		DBClient:         arguments.DBClient,
-		EnabledIndexes:   enabledIndexesMap,
-		UseKibana:        arguments.UseKibana,
-		IndexTemplates:   indexTemplates,
-		IndexPolicies:    indexPolicies,
-		SelfShardID:      arguments.ShardCoordinator.SelfId(),
+		TransactionsProc:  txsProc,
+		AccountsProc:      accountsProc,
+		BlockProc:         blockProcHandler,
+		MiniblocksProc:    miniblocksProc,
+		ValidatorsProc:    validatorsProc,
+		StatisticsProc:    generalInfoProc,
+		LogsAndEventsProc: logsAndEventsProc,
+		DBClient:          arguments.DBClient,
+		EnabledIndexes:    enabledIndexesMap,
+		UseKibana:         arguments.UseKibana,
+		IndexTemplates:    indexTemplates,
+		IndexPolicies:     indexPolicies,
+		SelfShardID:       arguments.ShardCoordinator.SelfId(),
 	}
 
 	return processIndexer.NewElasticProcessor(args)

@@ -30,11 +30,12 @@ type DatabaseClientHandler interface {
 type DBAccountHandler interface {
 	GetAccounts(alteredAccounts data.AlteredAccountsHandler) ([]*data.Account, []*data.AccountESDT)
 	PrepareRegularAccountsMap(accounts []*data.Account) map[string]*data.AccountInfo
-	PrepareAccountsMapESDT(accounts []*data.AccountESDT) map[string]*data.AccountInfo
+	PrepareAccountsMapESDT(accounts []*data.AccountESDT, timestamp uint64) (map[string]*data.AccountInfo, []*data.TokenInfo)
 	PrepareAccountsHistory(timestamp uint64, accounts map[string]*data.AccountInfo) map[string]*data.AccountBalanceHistory
 
 	SerializeAccountsHistory(accounts map[string]*data.AccountBalanceHistory) ([]*bytes.Buffer, error)
 	SerializeAccounts(accounts map[string]*data.AccountInfo, areESDTAccounts bool) ([]*bytes.Buffer, error)
+	SerializeNFTCreateInfo(tokensInfo []*data.TokenInfo) ([]*bytes.Buffer, error)
 }
 
 // DBBlockHandler defines the actions that a block handler should do
@@ -59,6 +60,7 @@ type DBTransactionsHandler interface {
 	SerializeTransactions(transactions []*data.Transaction, selfShardID uint32, mbsHashInDB map[string]bool) ([]*bytes.Buffer, error)
 	SerializeScResults(scResults []*data.ScResult) ([]*bytes.Buffer, error)
 	SerializeDeploysData(deploys []*data.ScDeployInfo) ([]*bytes.Buffer, error)
+	SerializeTokens(tokens []*data.TokenInfo) ([]*bytes.Buffer, error)
 }
 
 // DBMiniblocksHandler defines the actions that a miniblocks handler should do
@@ -82,4 +84,9 @@ type DBValidatorsHandler interface {
 	PrepareValidatorsPublicKeys(shardValidatorsPubKeys [][]byte) *data.ValidatorsPublicKeys
 	SerializeValidatorsPubKeys(validatorsPubKeys *data.ValidatorsPublicKeys) (*bytes.Buffer, error)
 	SerializeValidatorsRating(index string, validatorsRatingInfo []*data.ValidatorRatingInfo) ([]*bytes.Buffer, error)
+}
+
+// DBLogsAndEventsHandler defines the actions that a logs and events handler should do
+type DBLogsAndEventsHandler interface {
+	ProcessLogsAndEvents(logsAndEvents map[string]nodeData.LogHandler, accounts data.AlteredAccountsHandler)
 }
