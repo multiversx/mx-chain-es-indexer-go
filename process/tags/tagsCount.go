@@ -74,6 +74,10 @@ func (tc *tagsCount) ExtractTagsFromAttributes(attributes *data.Attributes) {
 }
 
 func (tc *tagsCount) ParseTagsFromDB(response map[string]interface{}) error {
+	if response == nil {
+		return nil
+	}
+
 	responseDecoded, err := getResponse(response)
 	if err != nil {
 		return err
