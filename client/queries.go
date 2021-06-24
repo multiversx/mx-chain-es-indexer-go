@@ -15,12 +15,12 @@ func encode(obj objectsMap) (bytes.Buffer, error) {
 	return buff, nil
 }
 
-func getDocumentsByIDsQuery(hashes []string) objectsMap {
+func getDocumentsByIDsQuery(hashes []string, withSource bool) objectsMap {
 	interfaceSlice := make([]interface{}, len(hashes))
 	for idx := range hashes {
 		interfaceSlice[idx] = objectsMap{
 			"_id":     hashes[idx],
-			"_source": false,
+			"_source": withSource,
 		}
 	}
 

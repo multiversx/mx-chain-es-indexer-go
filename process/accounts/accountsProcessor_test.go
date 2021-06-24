@@ -395,7 +395,7 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 	accountsESDT := []*data.AccountESDT{
 		{Account: mockAccount, TokenIdentifier: "token", IsNFTCreate: true, IsNFTOperation: true, NFTNonce: 15},
 	}
-	res, createsInfo := ap.PrepareAccountsMapESDT(accountsESDT, 1000)
+	res, createsInfo, _ := ap.PrepareAccountsMapESDT(accountsESDT, 1000)
 	require.Equal(t, map[string]*data.AccountInfo{
 		hex.EncodeToString([]byte(addr)): {
 			Address:         hex.EncodeToString([]byte(addr)),

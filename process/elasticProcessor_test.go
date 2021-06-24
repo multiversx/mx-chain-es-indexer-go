@@ -457,7 +457,7 @@ func TestElasticProcessor_SaveMiniblocks(t *testing.T) {
 		DoBulkRequestCalled: func(buff *bytes.Buffer, index string) error {
 			return localErr
 		},
-		DoMultiGetCalled: func(hashes []string, index string) (map[string]interface{}, error) {
+		DoMultiGetCalled: func(hashes []string, index string, withSource bool) (map[string]interface{}, error) {
 			return nil, nil
 		},
 	}

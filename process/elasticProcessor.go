@@ -7,6 +7,7 @@ import (
 
 	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/statistics"
@@ -235,7 +236,7 @@ func (ei *elasticProcessor) getExistingObjMap(hashes []string, index string) (ma
 		return make(map[string]bool), nil
 	}
 
-	response, err := ei.elasticClient.DoMultiGet(hashes, index)
+	response, err := ei.elasticClient.DoMultiGet(hashes, index, false)
 	if err != nil {
 		return make(map[string]bool), err
 	}
@@ -546,7 +547,7 @@ func (ei *elasticProcessor) indexAlteredAccounts(timestamp uint64, alteredAccoun
 }
 
 func (ei *elasticProcessor) saveAccountsESDT(timestamp uint64, wrappedAccounts []*data.AccountESDT) error {
-	accountsESDTMap, nftCreateTokenInfo := ei.accountsProc.PrepareAccountsMapESDT(wrappedAccounts, timestamp)
+	accountsESDTMap, nftCreateTokenInfo, tagsCount := ei.accountsProc.PrepareAccountsMapESDT(wrappedAccounts, timestamp)
 	err := ei.indexAccountsESDT(accountsESDTMap)
 	if err != nil {
 		return err
@@ -557,7 +558,35 @@ func (ei *elasticProcessor) saveAccountsESDT(timestamp uint64, wrappedAccounts [
 		return err
 	}
 
+	err = ei.prepareAndIndexTagsCount(tagsCount)
+	if err != nil {
+		return err
+	}
+
 	return ei.saveAccountsESDTHistory(timestamp, accountsESDTMap)
+}
+
+func (ei *elasticProcessor) prepareAndIndexTagsCount(tagsCount tags.CountTags) error {
+	if !ei.isIndexEnabled(elasticIndexer.TagsIndex) || tagsCount.Len() == 0 {
+		return nil
+	}
+
+	res, err := ei.elasticClient.DoMultiGet(tagsCount.GetTags(), elasticIndexer.TagsIndex, true)
+	if err != nil {
+		return err
+	}
+
+	err = tagsCount.ParseTagsFromDB(res)
+	if err != nil {
+		return err
+	}
+
+	serializedTags, err := tagsCount.Serialize()
+	if err != nil {
+		return err
+	}
+
+	return ei.doBulkRequests(elasticIndexer.TagsIndex, serializedTags)
 }
 
 func (ei *elasticProcessor) indexAccountsESDT(accountsESDTMap map[string]*data.AccountInfo) error {

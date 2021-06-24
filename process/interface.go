@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
 	"github.com/ElrondNetwork/elrond-go/core/statistics"
 	nodeData "github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/block"
@@ -16,7 +17,7 @@ type DatabaseClientHandler interface {
 	DoRequest(req *esapi.IndexRequest) error
 	DoBulkRequest(buff *bytes.Buffer, index string) error
 	DoBulkRemove(index string, hashes []string) error
-	DoMultiGet(ids []string, index string) (objectsMap, error)
+	DoMultiGet(ids []string, index string, withSource bool) (objectsMap, error)
 
 	CheckAndCreateIndex(index string) error
 	CheckAndCreateAlias(alias string, index string) error
@@ -30,7 +31,7 @@ type DatabaseClientHandler interface {
 type DBAccountHandler interface {
 	GetAccounts(alteredAccounts data.AlteredAccountsHandler) ([]*data.Account, []*data.AccountESDT)
 	PrepareRegularAccountsMap(accounts []*data.Account) map[string]*data.AccountInfo
-	PrepareAccountsMapESDT(accounts []*data.AccountESDT, timestamp uint64) (map[string]*data.AccountInfo, []*data.TokenInfo)
+	PrepareAccountsMapESDT(accounts []*data.AccountESDT, timestamp uint64) (map[string]*data.AccountInfo, []*data.TokenInfo, tags.CountTags)
 	PrepareAccountsHistory(timestamp uint64, accounts map[string]*data.AccountInfo) map[string]*data.AccountBalanceHistory
 
 	SerializeAccountsHistory(accounts map[string]*data.AccountBalanceHistory) ([]*bytes.Buffer, error)

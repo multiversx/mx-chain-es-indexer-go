@@ -111,8 +111,8 @@ func (ec *elasticClient) DoBulkRequest(buff *bytes.Buffer, index string) error {
 }
 
 // DoMultiGet wil do a multi get request to elaticsearch server
-func (ec *elasticClient) DoMultiGet(hashes []string, index string) (objectsMap, error) {
-	obj := getDocumentsByIDsQuery(hashes)
+func (ec *elasticClient) DoMultiGet(hashes []string, index string, withSource bool) (objectsMap, error) {
+	obj := getDocumentsByIDsQuery(hashes, withSource)
 	body, err := encode(obj)
 	if err != nil {
 		return nil, err

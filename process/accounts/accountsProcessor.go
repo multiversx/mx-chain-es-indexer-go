@@ -9,6 +9,7 @@ import (
 
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-go-logger/check"
 	"github.com/ElrondNetwork/elrond-go/core"
@@ -163,7 +164,8 @@ func (ap *accountsProcessor) PrepareRegularAccountsMap(accounts []*data.Account)
 func (ap *accountsProcessor) PrepareAccountsMapESDT(
 	accounts []*data.AccountESDT,
 	timestamp uint64,
-) (map[string]*data.AccountInfo, []*data.TokenInfo) {
+) (map[string]*data.AccountInfo, []*data.TokenInfo, tags.CountTags) {
+	tagsCount := tags.NewTagsCount()
 	accountsESDTMap := make(map[string]*data.AccountInfo)
 	tokensCreateInfo := make([]*data.TokenInfo, 0)
 	for _, accountESDT := range accounts {
@@ -195,6 +197,8 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(
 			continue
 		}
 
+		tagsCount.ExtractTagsFromAttributes(tokenMetaData.Attributes)
+
 		tokensCreateInfo = append(tokensCreateInfo, &data.TokenInfo{
 			Token:      accountESDT.TokenIdentifier,
 			Identifier: computeTokenIdentifier(accountESDT.TokenIdentifier, accountESDT.NFTNonce),
@@ -204,7 +208,7 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(
 		})
 	}
 
-	return accountsESDTMap, tokensCreateInfo
+	return accountsESDTMap, tokensCreateInfo, tagsCount
 }
 
 // PrepareAccountsHistory will prepare a map of accounts history balance from a map of accounts
