@@ -20,7 +20,8 @@ var Receipts = Object{
 	"mappings": Object{
 		"properties": Object{
 			"timestamp": Object{
-				"type": "date",
+				"type":   "date",
+				"format": "epoch_second",
 			},
 		},
 	},

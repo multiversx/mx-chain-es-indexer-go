@@ -24,7 +24,8 @@ var Transactions = Object{
 				"type": "long",
 			},
 			"timestamp": Object{
-				"type": "date",
+				"type":   "date",
+				"format": "epoch_second",
 			},
 		},
 	},

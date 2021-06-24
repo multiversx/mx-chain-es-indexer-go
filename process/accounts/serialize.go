@@ -49,7 +49,7 @@ func (ap *accountsProcessor) SerializeAccounts(
 }
 
 func prepareSerializedAccount(address string, acc *data.AccountInfo, isESDT bool) ([]byte, []byte, error) {
-	if acc.Balance == "0" || acc.Balance == "" {
+	if (acc.Balance == "0" || acc.Balance == "") && isESDT {
 		meta := prepareDeleteAccountInfo(address, acc, isESDT)
 		return meta, nil, nil
 	}
