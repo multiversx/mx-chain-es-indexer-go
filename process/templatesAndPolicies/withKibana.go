@@ -14,7 +14,7 @@ func NewTemplatesAndPolicyReaderWithKibana() *templatesAndPolicyReaderWithKibana
 	return new(templatesAndPolicyReaderWithKibana)
 }
 
-//  GetElasticTemplatesAndPolicies will return templates and policies
+// GetElasticTemplatesAndPolicies will return templates and policies
 func (tr *templatesAndPolicyReaderWithKibana) GetElasticTemplatesAndPolicies() (map[string]*bytes.Buffer, map[string]*bytes.Buffer, error) {
 	indexTemplates := getTemplatesKibana()
 	indexPolicies := getPolicies()
@@ -42,6 +42,7 @@ func getTemplatesKibana() map[string]*bytes.Buffer {
 	indexTemplates[indexer.ScResultsIndex] = withKibana.SCResults.ToBuffer()
 	indexTemplates[indexer.SCDeploysIndex] = withKibana.SCDeploys.ToBuffer()
 	indexTemplates[indexer.TokensIndex] = withKibana.Tokens.ToBuffer()
+	indexTemplates[indexer.TagsIndex] = withKibana.Tags.ToBuffer()
 
 	return indexTemplates
 }
