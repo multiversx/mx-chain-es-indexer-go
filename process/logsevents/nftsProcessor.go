@@ -3,33 +3,23 @@ package logsevents
 import (
 	"math/big"
 
-	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elrond-go-logger/check"
 	"github.com/ElrondNetwork/elrond-go/core"
 	nodeData "github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/sharding"
 )
 
-type logsAndEventsProcessor struct {
+type nftsProcessor struct {
 	pubKeyConverter          core.PubkeyConverter
 	nftOperationsIdentifiers map[string]struct{}
 	shardCoordinator         sharding.Coordinator
 }
 
-// NewLogsAndEventsProcessorNFT will create a new instance for the logsAndEventsProcessor
-func NewLogsAndEventsProcessorNFT(
+func newNFTsProcessor(
 	shardCoordinator sharding.Coordinator,
 	pubKeyConverter core.PubkeyConverter,
-) (*logsAndEventsProcessor, error) {
-	if check.IfNil(shardCoordinator) {
-		return nil, elasticIndexer.ErrNilShardCoordinator
-	}
-	if check.IfNil(pubKeyConverter) {
-		return nil, elasticIndexer.ErrNilPubkeyConverter
-	}
-
-	return &logsAndEventsProcessor{
+) *nftsProcessor {
+	return &nftsProcessor{
 		shardCoordinator: shardCoordinator,
 		pubKeyConverter:  pubKeyConverter,
 		nftOperationsIdentifiers: map[string]struct{}{
@@ -38,11 +28,10 @@ func NewLogsAndEventsProcessorNFT(
 			core.BuiltInFunctionESDTNFTAddQuantity: {},
 			core.BuiltInFunctionESDTNFTCreate:      {},
 		},
-	}, nil
+	}
 }
 
-// ProcessLogsAndEvents will process provided logs and events
-func (lep *logsAndEventsProcessor) ProcessLogsAndEvents(
+func (np *nftsProcessor) processLogAndEventsNFTs(
 	logsAndEvents map[string]nodeData.LogHandler,
 	accounts data.AlteredAccountsHandler,
 ) {
@@ -51,30 +40,30 @@ func (lep *logsAndEventsProcessor) ProcessLogsAndEvents(
 	}
 
 	for _, txLog := range logsAndEvents {
-		lep.processNFTOperationLog(txLog, accounts)
+		np.processNFTOperationLog(txLog, accounts)
 	}
 }
 
-func (lep *logsAndEventsProcessor) processNFTOperationLog(txLog nodeData.LogHandler, accounts data.AlteredAccountsHandler) {
+func (np *nftsProcessor) processNFTOperationLog(txLog nodeData.LogHandler, accounts data.AlteredAccountsHandler) {
 	events := txLog.GetLogEvents()
 	if len(events) == 0 {
 		return
 	}
 
 	for _, event := range events {
-		lep.processEvent(event, accounts)
+		np.processEvent(event, accounts)
 	}
 }
 
-func (lep *logsAndEventsProcessor) processEvent(event nodeData.EventHandler, accounts data.AlteredAccountsHandler) {
-	_, ok := lep.nftOperationsIdentifiers[string(event.GetIdentifier())]
+func (np *nftsProcessor) processEvent(event nodeData.EventHandler, accounts data.AlteredAccountsHandler) {
+	_, ok := np.nftOperationsIdentifiers[string(event.GetIdentifier())]
 	if !ok {
 		return
 	}
 	sender := event.GetAddress()
 
-	if lep.shardCoordinator.ComputeId(sender) == lep.shardCoordinator.SelfId() {
-		lep.processNFTEventOnSender(event, accounts)
+	if np.shardCoordinator.ComputeId(sender) == np.shardCoordinator.SelfId() {
+		np.processNFTEventOnSender(event, accounts)
 	}
 
 	// topics contains:
@@ -89,11 +78,11 @@ func (lep *logsAndEventsProcessor) processEvent(event nodeData.EventHandler, acc
 	token := string(topics[0])
 	nonceBig := big.NewInt(0).SetBytes(topics[1])
 	receiver := topics[2]
-	if lep.shardCoordinator.ComputeId(receiver) != lep.shardCoordinator.SelfId() {
+	if np.shardCoordinator.ComputeId(receiver) != np.shardCoordinator.SelfId() {
 		return
 	}
 
-	encodedReceiver := lep.pubKeyConverter.Encode(receiver)
+	encodedReceiver := np.pubKeyConverter.Encode(receiver)
 	accounts.Add(encodedReceiver, &data.AlteredAccount{
 		IsNFTOperation:  true,
 		TokenIdentifier: token,
@@ -104,12 +93,12 @@ func (lep *logsAndEventsProcessor) processEvent(event nodeData.EventHandler, acc
 	return
 }
 
-func (lep *logsAndEventsProcessor) processNFTEventOnSender(event nodeData.EventHandler, accounts data.AlteredAccountsHandler) {
+func (np *nftsProcessor) processNFTEventOnSender(event nodeData.EventHandler, accounts data.AlteredAccountsHandler) {
 	sender := event.GetAddress()
 	topics := event.GetTopics()
 	token := string(topics[0])
 	nonceBig := big.NewInt(0).SetBytes(topics[1])
-	bech32Addr := lep.pubKeyConverter.Encode(sender)
+	bech32Addr := np.pubKeyConverter.Encode(sender)
 
 	if string(event.GetIdentifier()) != core.BuiltInFunctionESDTNFTCreate {
 		accounts.Add(bech32Addr, &data.AlteredAccount{
