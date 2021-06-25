@@ -16,8 +16,8 @@ func TestTagsCount_Serialize(t *testing.T) {
 		"tags": []string{"Art"},
 	}
 
-	tagsC.ExtractTagsFromAttributes(attributes)
-	tagsC.ExtractTagsFromAttributes(attributes)
+	tagsC.ParseTagsFromAttributes(attributes)
+	tagsC.ParseTagsFromAttributes(attributes)
 
 	buff, err := tagsC.Serialize()
 	require.Nil(t, err)

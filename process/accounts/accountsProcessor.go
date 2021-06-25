@@ -197,7 +197,7 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(
 			continue
 		}
 
-		tagsCount.ExtractTagsFromAttributes(tokenMetaData.Attributes)
+		tagsCount.ParseTagsFromAttributes(tokenMetaData.Attributes)
 
 		tokensCreateInfo = append(tokensCreateInfo, &data.TokenInfo{
 			Token:      accountESDT.TokenIdentifier,

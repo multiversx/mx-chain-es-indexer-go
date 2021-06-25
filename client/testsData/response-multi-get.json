@@ -1,0 +1,28 @@
+{
+  "docs": [
+    {
+      "_index": "tags",
+      "_type": "_doc",
+      "_id": "Art",
+      "found": false
+    },
+    {
+      "_index": "tags",
+      "_type": "_doc",
+      "_id": "Market",
+      "found": false
+    },
+    {
+      "_index": "tags",
+      "_type": "_doc",
+      "_id": "Music",
+      "_version": 2,
+      "_seq_no": 1551821,
+      "_primary_term": 1,
+      "found": true,
+      "_source": {
+        "count": 10
+      }
+    }
+  ]
+}

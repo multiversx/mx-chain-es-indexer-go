@@ -17,10 +17,10 @@ func TestTagsCount_ExtractTagsFromAttributes(t *testing.T) {
 		"something": []string{"aaa"},
 	}
 
-	tagsC.ExtractTagsFromAttributes(nil)
-	tagsC.ExtractTagsFromAttributes(attributes)
-	tagsC.ExtractTagsFromAttributes(attributes)
-	tagsC.ExtractTagsFromAttributes(attributes)
+	tagsC.ParseTagsFromAttributes(nil)
+	tagsC.ParseTagsFromAttributes(attributes)
+	tagsC.ParseTagsFromAttributes(attributes)
+	tagsC.ParseTagsFromAttributes(attributes)
 
 	require.Equal(t, 3, tagsC.Len())
 
@@ -41,7 +41,7 @@ func TestTagsCount_GetTags(t *testing.T) {
 		"tags": []string{"Art", "Art", "Sport", "Market"},
 	}
 
-	tagsC.ExtractTagsFromAttributes(attributes)
+	tagsC.ParseTagsFromAttributes(attributes)
 
 	tags := tagsC.GetTags()
 	require.Len(t, tags, 3)
@@ -56,39 +56,35 @@ func TestTagsCount_ParseTagsFromDB(t *testing.T) {
 		"tags": []string{"Art", "Art", "Sport", "Market"},
 	}
 
-	tagsC.ExtractTagsFromAttributes(attributes)
+	tagsC.ParseTagsFromAttributes(attributes)
 
-	response := map[string]interface{}{}
-	err := tagsC.ParseTagsFromDB(response)
-	require.Nil(t, err)
+	response := &data.ResponseTags{}
+	tagsC.ParseTagsFromDB(response)
 
-	err = tagsC.ParseTagsFromDB(nil)
-	require.Nil(t, err)
+	tagsC.ParseTagsFromDB(nil)
 
-	r1 := map[string]interface{}{
-		"found": false,
-	}
-	r2 := map[string]interface{}{
-		"found": true,
-		"_id":   "Art",
-		"_source": map[string]interface{}{
-			"count": 10,
+	response = &data.ResponseTags{
+		Docs: []data.ResponseTagDB{
+			{
+				Found: false,
+			},
+			{
+				Found:   true,
+				TagName: "Art",
+				Source: data.SourceTag{
+					Count: 10,
+				},
+			},
+			{
+				Found:   true,
+				TagName: "Sport",
+				Source: data.SourceTag{
+					Count: 25,
+				},
+			},
 		},
 	}
-	r3 := map[string]interface{}{
-		"found": true,
-		"_id":   "Sport",
-		"_source": map[string]interface{}{
-			"count": 25,
-		},
-	}
-	response = map[string]interface{}{
-		"docs": []interface{}{
-			r1, r2, r3,
-		},
-	}
-	err = tagsC.ParseTagsFromDB(response)
-	require.Nil(t, err)
+	tagsC.ParseTagsFromDB(response)
 
 	tagsS, ok := tagsC.(*tagsCount)
 	require.True(t, ok)

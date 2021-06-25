@@ -236,7 +236,8 @@ func (ei *elasticProcessor) getExistingObjMap(hashes []string, index string) (ma
 		return make(map[string]bool), nil
 	}
 
-	response, err := ei.elasticClient.DoMultiGet(hashes, index, false)
+	response := make(objectsMap)
+	err := ei.elasticClient.DoMultiGet(hashes, index, false, &response)
 	if err != nil {
 		return make(map[string]bool), err
 	}
@@ -567,19 +568,18 @@ func (ei *elasticProcessor) saveAccountsESDT(timestamp uint64, wrappedAccounts [
 }
 
 func (ei *elasticProcessor) prepareAndIndexTagsCount(tagsCount tags.CountTags) error {
-	if !ei.isIndexEnabled(elasticIndexer.TagsIndex) || tagsCount.Len() == 0 {
+	shouldSkipIndex := !ei.isIndexEnabled(elasticIndexer.TagsIndex) || tagsCount.Len() == 0
+	if shouldSkipIndex {
 		return nil
 	}
 
-	res, err := ei.elasticClient.DoMultiGet(tagsCount.GetTags(), elasticIndexer.TagsIndex, true)
+	responseTags := &data.ResponseTags{}
+	err := ei.elasticClient.DoMultiGet(tagsCount.GetTags(), elasticIndexer.TagsIndex, true, responseTags)
 	if err != nil {
 		return err
 	}
 
-	err = tagsCount.ParseTagsFromDB(res)
-	if err != nil {
-		return err
-	}
+	tagsCount.ParseTagsFromDB(responseTags)
 
 	serializedTags, err := tagsCount.Serialize()
 	if err != nil {

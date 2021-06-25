@@ -17,7 +17,7 @@ type DatabaseClientHandler interface {
 	DoRequest(req *esapi.IndexRequest) error
 	DoBulkRequest(buff *bytes.Buffer, index string) error
 	DoBulkRemove(index string, hashes []string) error
-	DoMultiGet(ids []string, index string, withSource bool) (objectsMap, error)
+	DoMultiGet(ids []string, index string, withSource bool, res interface{}) error
 
 	CheckAndCreateIndex(index string) error
 	CheckAndCreateAlias(alias string, index string) error

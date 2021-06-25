@@ -2,7 +2,6 @@ package tags
 
 import (
 	"bytes"
-	"encoding/json"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 )
@@ -14,8 +13,8 @@ const (
 // CountTags defines what a TagCount handler should be able to do
 type CountTags interface {
 	Serialize() ([]*bytes.Buffer, error)
-	ParseTagsFromDB(response map[string]interface{}) error
-	ExtractTagsFromAttributes(attributes *data.Attributes)
+	ParseTagsFromDB(response *data.ResponseTags)
+	ParseTagsFromAttributes(attributes *data.Attributes)
 	GetTags() []string
 	Len() int
 }
@@ -24,17 +23,19 @@ type tagsCount struct {
 	tags map[string]int
 }
 
-// NewTagsCount will create a new instance of tagsCount
+// NewTagsCount will create a new instance of tagsCount, this structure is not concurrent save
 func NewTagsCount() CountTags {
 	return &tagsCount{
 		tags: make(map[string]int),
 	}
 }
 
+// Len will return the number of tags
 func (tc *tagsCount) Len() int {
 	return len(tc.tags)
 }
 
+// GetTags will return all the tags
 func (tc *tagsCount) GetTags() []string {
 	tags := make([]string, 0, tc.Len())
 	for key := range tc.tags {
@@ -44,9 +45,8 @@ func (tc *tagsCount) GetTags() []string {
 	return tags
 }
 
-func (tc *tagsCount) ExtractTagsFromAttributes(attributes *data.Attributes) {
-	tagsC := make(map[string]int)
-
+// ParseTagsFromAttributes will parse all the tags from the provided attributes
+func (tc *tagsCount) ParseTagsFromAttributes(attributes *data.Attributes) {
 	if attributes == nil {
 		return
 	}
@@ -56,60 +56,47 @@ func (tc *tagsCount) ExtractTagsFromAttributes(attributes *data.Attributes) {
 			continue
 		}
 
-		for _, tag := range tags {
-			tagsC[tag] = 1
+		newTags := removeDuplicatedTags(tags)
+		for _, tag := range newTags {
+			tc.tags[tag]++
 		}
-
-	}
-
-	for key, value := range tagsC {
-		_, ok := tc.tags[key]
-		if ok {
-			tc.tags[key] += value
-			continue
-		}
-
-		tc.tags[key] = value
 	}
 }
 
-func (tc *tagsCount) ParseTagsFromDB(response map[string]interface{}) error {
+func removeDuplicatedTags(stringsSlice []string) []string {
+	keys := make(map[string]bool)
+	list := make([]string, 0)
+
+	for _, entry := range stringsSlice {
+		_, exits := keys[entry]
+		if exits {
+			continue
+		}
+
+		keys[entry] = true
+		list = append(list, entry)
+	}
+	return list
+}
+
+// ParseTagsFromDB will parse
+func (tc *tagsCount) ParseTagsFromDB(response *data.ResponseTags) {
 	if response == nil {
-		return nil
+		return
 	}
 
-	responseDecoded, err := getResponse(response)
-	if err != nil {
-		return err
-	}
-
-	for _, tagRes := range responseDecoded.Docs {
+	for _, tagRes := range response.Docs {
 		if !tagRes.Found {
 			continue
 		}
 
-		count, ok := tc.tags[tagRes.Tag]
+		count, ok := tc.tags[tagRes.TagName]
 		if !ok {
 			continue
 		}
 
-		tc.tags[tagRes.Tag] = count + tagRes.Source.Count
+		tc.tags[tagRes.TagName] = count + tagRes.Source.Count
 	}
 
-	return nil
-}
-
-func getResponse(response map[string]interface{}) (*responseTags, error) {
-	resBytes, err := json.Marshal(&response)
-	if err != nil {
-		return nil, err
-	}
-
-	res := &responseTags{}
-	err = json.Unmarshal(resBytes, res)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
+	return
 }
