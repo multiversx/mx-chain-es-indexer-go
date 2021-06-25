@@ -52,8 +52,7 @@ func TestElasticClient_DoMultiGet(t *testing.T) {
 		require.Nil(t, err)
 
 		byteValue, _ := ioutil.ReadAll(jsonFile)
-		resp := string(byteValue)
-		_, _ = w.Write([]byte(resp))
+		_, _ = w.Write(byteValue)
 	}
 
 	esClient, _ := NewElasticClient(elasticsearch.Config{

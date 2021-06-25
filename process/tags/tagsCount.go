@@ -68,8 +68,8 @@ func removeDuplicatedTags(stringsSlice []string) []string {
 	list := make([]string, 0)
 
 	for _, entry := range stringsSlice {
-		_, exits := keys[entry]
-		if exits {
+		_, exists := keys[entry]
+		if exists {
 			continue
 		}
 
@@ -79,7 +79,7 @@ func removeDuplicatedTags(stringsSlice []string) []string {
 	return list
 }
 
-// ParseTagsFromDB will parse
+// ParseTagsFromDB will parse the response with tags from DB and update the map with counts
 func (tc *tagsCount) ParseTagsFromDB(response *data.ResponseTags) {
 	if response == nil {
 		return
