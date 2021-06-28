@@ -1,0 +1,28 @@
+{
+  "docs": [
+    {
+      "_index": "tokens",
+      "_type": "_doc",
+      "_id": "Token-1",
+      "found": false
+    },
+    {
+      "_index": "tokens",
+      "_type": "_doc",
+      "_id": "Token-2",
+      "found": false
+    },
+    {
+      "_index": "tokens",
+      "_type": "_doc",
+      "_id": "Token-3",
+      "_version": 2,
+      "_seq_no": 1551821,
+      "_primary_term": 1,
+      "found": true,
+      "_source": {
+        "type": "SemiFungibleESDT"
+      }
+    }
+  ]
+}

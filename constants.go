@@ -37,6 +37,8 @@ const (
 	SCDeploysIndex = "scdeploys"
 	// TokensIndex is the Elasticsearch index for the ESDT tokens
 	TokensIndex = "tokens"
+	// TagsIndex is the Elasticsearch index for NFTs tags
+	TagsIndex = "tags"
 
 	// TransactionsPolicy is the Elasticsearch policy for the transactions
 	TransactionsPolicy = "transactions_policy"

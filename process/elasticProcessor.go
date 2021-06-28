@@ -7,6 +7,7 @@ import (
 
 	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/statistics"
@@ -29,7 +30,7 @@ var (
 	indexes = []string{
 		elasticIndexer.TransactionsIndex, elasticIndexer.BlockIndex, elasticIndexer.MiniblocksIndex, elasticIndexer.TpsIndex, elasticIndexer.RatingIndex, elasticIndexer.RoundsIndex, elasticIndexer.ValidatorsIndex,
 		elasticIndexer.AccountsIndex, elasticIndexer.AccountsHistoryIndex, elasticIndexer.ReceiptsIndex, elasticIndexer.ScResultsIndex, elasticIndexer.AccountsESDTHistoryIndex, elasticIndexer.AccountsESDTIndex,
-		elasticIndexer.EpochInfoIndex, elasticIndexer.SCDeploysIndex, elasticIndexer.TokensIndex,
+		elasticIndexer.EpochInfoIndex, elasticIndexer.SCDeploysIndex, elasticIndexer.TokensIndex, elasticIndexer.TagsIndex,
 	}
 )
 
@@ -235,7 +236,8 @@ func (ei *elasticProcessor) getExistingObjMap(hashes []string, index string) (ma
 		return make(map[string]bool), nil
 	}
 
-	response, err := ei.elasticClient.DoMultiGet(hashes, index)
+	response := make(objectsMap)
+	err := ei.elasticClient.DoMultiGet(hashes, index, false, &response)
 	if err != nil {
 		return make(map[string]bool), err
 	}
@@ -546,7 +548,7 @@ func (ei *elasticProcessor) indexAlteredAccounts(timestamp uint64, alteredAccoun
 }
 
 func (ei *elasticProcessor) saveAccountsESDT(timestamp uint64, wrappedAccounts []*data.AccountESDT) error {
-	accountsESDTMap, nftCreateTokenInfo := ei.accountsProc.PrepareAccountsMapESDT(wrappedAccounts, timestamp)
+	accountsESDTMap, nftCreateTokenInfo, tagsCount := ei.accountsProc.PrepareAccountsMapESDT(wrappedAccounts, timestamp)
 	err := ei.indexAccountsESDT(accountsESDTMap)
 	if err != nil {
 		return err
@@ -557,7 +559,26 @@ func (ei *elasticProcessor) saveAccountsESDT(timestamp uint64, wrappedAccounts [
 		return err
 	}
 
+	err = ei.prepareAndIndexTagsCount(tagsCount)
+	if err != nil {
+		return err
+	}
+
 	return ei.saveAccountsESDTHistory(timestamp, accountsESDTMap)
+}
+
+func (ei *elasticProcessor) prepareAndIndexTagsCount(tagsCount tags.CountTags) error {
+	shouldSkipIndex := !ei.isIndexEnabled(elasticIndexer.TagsIndex) || tagsCount.Len() == 0
+	if shouldSkipIndex {
+		return nil
+	}
+
+	serializedTags, err := tagsCount.Serialize()
+	if err != nil {
+		return err
+	}
+
+	return ei.doBulkRequests(elasticIndexer.TagsIndex, serializedTags)
 }
 
 func (ei *elasticProcessor) indexAccountsESDT(accountsESDTMap map[string]*data.AccountInfo) error {
@@ -568,12 +589,21 @@ func (ei *elasticProcessor) indexAccountsESDT(accountsESDTMap map[string]*data.A
 	return ei.serializeAndIndexAccounts(accountsESDTMap, elasticIndexer.AccountsESDTIndex, true)
 }
 
-func (ei *elasticProcessor) indexNFTCreateInfo(tokensData []*data.TokenInfo) error {
-	if !ei.isIndexEnabled(elasticIndexer.TokensIndex) {
+func (ei *elasticProcessor) indexNFTCreateInfo(tokensData data.TokensHandler) error {
+	shouldSkipIndex := !ei.isIndexEnabled(elasticIndexer.TokensIndex) || tokensData.Len() == 0
+	if shouldSkipIndex {
 		return nil
 	}
 
-	buffSlice, err := ei.accountsProc.SerializeNFTCreateInfo(tokensData)
+	responseTokens := &data.ResponseTokens{}
+	err := ei.elasticClient.DoMultiGet(tokensData.GetAllTokens(), elasticIndexer.TokensIndex, true, responseTokens)
+	if err != nil {
+		return err
+	}
+
+	tokensData.AddTypeFromResponse(responseTokens)
+
+	buffSlice, err := ei.accountsProc.SerializeNFTCreateInfo(tokensData.GetAll())
 	if err != nil {
 		return err
 	}

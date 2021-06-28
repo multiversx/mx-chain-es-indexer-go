@@ -50,7 +50,7 @@ func createMockElasticProcessorArgs() *ArgElasticProcessor {
 	bp, _ := block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 	mp, _ := miniblocks.NewMiniblocksProcessor(0, &mock.HasherMock{}, &mock.MarshalizerMock{})
 	vp, _ := validators.NewValidatorsProcessor(mock.NewPubkeyConverterMock(32))
-	lp, _ := logsevents.NewLogsAndEventsProcessorNFT(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{})
+	lp, _ := logsevents.NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{})
 
 	return &ArgElasticProcessor{
 		DBClient: &mock.DatabaseWriterStub{},
@@ -457,8 +457,8 @@ func TestElasticProcessor_SaveMiniblocks(t *testing.T) {
 		DoBulkRequestCalled: func(buff *bytes.Buffer, index string) error {
 			return localErr
 		},
-		DoMultiGetCalled: func(hashes []string, index string) (map[string]interface{}, error) {
-			return nil, nil
+		DoMultiGetCalled: func(hashes []string, index string, withSource bool, response interface{}) error {
+			return nil
 		},
 	}
 

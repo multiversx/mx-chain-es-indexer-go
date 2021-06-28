@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestLogsAndEventsProcessor(t *testing.T) {
+func TestNftsProcessor_processLogAndEventsNFTs(t *testing.T) {
 	t.Parallel()
 
 	nonce := uint64(19)
@@ -28,11 +28,11 @@ func TestLogsAndEventsProcessor(t *testing.T) {
 		},
 	}
 
-	logsProc, _ := NewLogsAndEventsProcessorNFT(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{})
+	nftsProc := newNFTsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{})
 
 	altered := data.NewAlteredAccounts()
 
-	logsProc.ProcessLogsAndEvents(logsAndEvents, altered)
+	nftsProc.processLogAndEventsNFTs(logsAndEvents, altered)
 
 	alteredAddr, ok := altered.Get("61646472")
 	require.True(t, ok)
@@ -41,15 +41,14 @@ func TestLogsAndEventsProcessor(t *testing.T) {
 		TokenIdentifier: "my-token",
 		NFTNonce:        19,
 		IsNFTCreate:     true,
-		Type:            core.NonFungibleESDT,
 	}, alteredAddr[0])
 }
 
-func TestLogsAndEventsProcessor_TransferNFT(t *testing.T) {
+func TestNftsProcessor_processLogAndEventsNFTs_TransferNFT(t *testing.T) {
 	t.Parallel()
 
 	nonce := uint64(19)
-	logsProc, _ := NewLogsAndEventsProcessorNFT(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{})
+	nftsProc := newNFTsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{})
 
 	logsAndEvents := map[string]nodeData.LogHandler{
 		"txHash": &transaction.Log{
@@ -65,7 +64,7 @@ func TestLogsAndEventsProcessor_TransferNFT(t *testing.T) {
 
 	altered := data.NewAlteredAccounts()
 
-	logsProc.ProcessLogsAndEvents(logsAndEvents, altered)
+	nftsProc.processLogAndEventsNFTs(logsAndEvents, altered)
 
 	alteredAddrSender, ok := altered.Get("61646472")
 	require.True(t, ok)
