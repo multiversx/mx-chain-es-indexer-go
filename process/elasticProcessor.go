@@ -573,14 +573,6 @@ func (ei *elasticProcessor) prepareAndIndexTagsCount(tagsCount tags.CountTags) e
 		return nil
 	}
 
-	responseTags := &data.ResponseTags{}
-	err := ei.elasticClient.DoMultiGet(tagsCount.GetTags(), elasticIndexer.TagsIndex, true, responseTags)
-	if err != nil {
-		return err
-	}
-
-	tagsCount.ParseTagsFromDB(responseTags)
-
 	serializedTags, err := tagsCount.Serialize()
 	if err != nil {
 		return err
@@ -597,12 +589,21 @@ func (ei *elasticProcessor) indexAccountsESDT(accountsESDTMap map[string]*data.A
 	return ei.serializeAndIndexAccounts(accountsESDTMap, elasticIndexer.AccountsESDTIndex, true)
 }
 
-func (ei *elasticProcessor) indexNFTCreateInfo(tokensData []*data.TokenInfo) error {
-	if !ei.isIndexEnabled(elasticIndexer.TokensIndex) {
+func (ei *elasticProcessor) indexNFTCreateInfo(tokensData data.TokensHandler) error {
+	shouldSkipIndex := !ei.isIndexEnabled(elasticIndexer.TokensIndex) || tokensData.Len() == 0
+	if shouldSkipIndex {
 		return nil
 	}
 
-	buffSlice, err := ei.accountsProc.SerializeNFTCreateInfo(tokensData)
+	responseTokens := &data.ResponseTokens{}
+	err := ei.elasticClient.DoMultiGet(tokensData.GetAllTokens(), elasticIndexer.TokensIndex, true, responseTokens)
+	if err != nil {
+		return err
+	}
+
+	tokensData.AddTypeFromResponse(responseTokens)
+
+	buffSlice, err := ei.accountsProc.SerializeNFTCreateInfo(tokensData.GetAll())
 	if err != nil {
 		return err
 	}

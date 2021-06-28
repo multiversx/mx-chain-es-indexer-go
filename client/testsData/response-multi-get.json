@@ -1,27 +1,27 @@
 {
   "docs": [
     {
-      "_index": "tags",
+      "_index": "tokens",
       "_type": "_doc",
-      "_id": "Art",
+      "_id": "Token-1",
       "found": false
     },
     {
-      "_index": "tags",
+      "_index": "tokens",
       "_type": "_doc",
-      "_id": "Market",
+      "_id": "Token-2",
       "found": false
     },
     {
-      "_index": "tags",
+      "_index": "tokens",
       "_type": "_doc",
-      "_id": "Music",
+      "_id": "Token-3",
       "_version": 2,
       "_seq_no": 1551821,
       "_primary_term": 1,
       "found": true,
       "_source": {
-        "count": 10
+        "type": "SemiFungibleESDT"
       }
     }
   ]

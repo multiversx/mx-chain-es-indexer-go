@@ -41,7 +41,6 @@ func TestNftsProcessor_processLogAndEventsNFTs(t *testing.T) {
 		TokenIdentifier: "my-token",
 		NFTNonce:        19,
 		IsNFTCreate:     true,
-		Type:            core.NonFungibleESDT,
 	}, alteredAddr[0])
 }
 

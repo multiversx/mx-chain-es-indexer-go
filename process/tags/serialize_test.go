@@ -22,8 +22,8 @@ func TestTagsCount_Serialize(t *testing.T) {
 	buff, err := tagsC.Serialize()
 	require.Nil(t, err)
 
-	expected := `{ "index" : { "_id" : "Art" } }
-{ "count" : 2 }
+	expected := `{ "update" : { "_id" : "Art", "_type" : "_doc" } }
+{"script": {"source": "ctx._source.count += params.count","lang": "painless","params": {"count": 2}},"upsert": {"count": 2}}
 `
 	require.Equal(t, expected, buff[0].String())
 }

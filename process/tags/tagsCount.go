@@ -13,7 +13,6 @@ const (
 // CountTags defines what a TagCount handler should be able to do
 type CountTags interface {
 	Serialize() ([]*bytes.Buffer, error)
-	ParseTagsFromDB(response *data.ResponseTags)
 	ParseTagsFromAttributes(attributes *data.Attributes)
 	GetTags() []string
 	Len() int
@@ -77,26 +76,4 @@ func removeDuplicatedTags(stringsSlice []string) []string {
 		list = append(list, entry)
 	}
 	return list
-}
-
-// ParseTagsFromDB will parse the response with tags from DB and update the map with counts
-func (tc *tagsCount) ParseTagsFromDB(response *data.ResponseTags) {
-	if response == nil {
-		return
-	}
-
-	for _, tagRes := range response.Docs {
-		if !tagRes.Found {
-			continue
-		}
-
-		count, ok := tc.tags[tagRes.TagName]
-		if !ok {
-			continue
-		}
-
-		tc.tags[tagRes.TagName] = count + tagRes.Source.Count
-	}
-
-	return
 }

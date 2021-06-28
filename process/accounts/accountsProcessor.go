@@ -164,10 +164,10 @@ func (ap *accountsProcessor) PrepareRegularAccountsMap(accounts []*data.Account)
 func (ap *accountsProcessor) PrepareAccountsMapESDT(
 	accounts []*data.AccountESDT,
 	timestamp uint64,
-) (map[string]*data.AccountInfo, []*data.TokenInfo, tags.CountTags) {
+) (map[string]*data.AccountInfo, data.TokensHandler, tags.CountTags) {
 	tagsCount := tags.NewTagsCount()
 	accountsESDTMap := make(map[string]*data.AccountInfo)
-	tokensCreateInfo := make([]*data.TokenInfo, 0)
+	tokensCreateInfo := data.NewTokensInfo()
 	for _, accountESDT := range accounts {
 		address := ap.addressPubkeyConverter.Encode(accountESDT.Account.AddressBytes())
 		balance, properties, tokenMetaData, err := ap.getESDTInfo(accountESDT)
@@ -199,12 +199,11 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(
 
 		tagsCount.ParseTagsFromAttributes(tokenMetaData.Attributes)
 
-		tokensCreateInfo = append(tokensCreateInfo, &data.TokenInfo{
+		tokensCreateInfo.Add(&data.TokenInfo{
 			Token:      accountESDT.TokenIdentifier,
 			Identifier: computeTokenIdentifier(accountESDT.TokenIdentifier, accountESDT.NFTNonce),
 			Timestamp:  time.Duration(timestamp),
 			MetaData:   tokenMetaData,
-			Type:       accountESDT.Type,
 		})
 	}
 

@@ -420,7 +420,7 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 				Creator: "63726561746f72",
 			},
 		},
-	}, createsInfo)
+	}, createsInfo.GetAll())
 }
 
 func TestAccountsProcessor_PrepareAccountsHistory(t *testing.T) {

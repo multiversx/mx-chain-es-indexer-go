@@ -60,7 +60,7 @@ func TestElasticClient_DoMultiGet(t *testing.T) {
 	})
 
 	ids := []string{"id"}
-	res := &data.ResponseTags{}
+	res := &data.ResponseTokens{}
 	err := esClient.DoMultiGet(ids, "tags", true, res)
 	require.Nil(t, err)
 	require.Len(t, res.Docs, 3)

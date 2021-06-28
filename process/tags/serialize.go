@@ -11,10 +11,10 @@ import (
 func (tc *tagsCount) Serialize() ([]*bytes.Buffer, error) {
 	buffSlice := data.NewBufferSlice()
 	for tag, count := range tc.tags {
-		meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, tag, "\n"))
-		serializedData := []byte(fmt.Sprintf(`{ "count" : %d }`, count))
+		meta := []byte(fmt.Sprintf(`{ "update" : { "_id" : "%s", "_type" : "_doc" } }%s`, tag, "\n"))
+		serializedDataStr := fmt.Sprintf(`{"script": {"source": "ctx._source.count += params.count","lang": "painless","params": {"count": %d}},"upsert": {"count": %d}}`, count, count)
 
-		err := buffSlice.PutData(meta, serializedData)
+		err := buffSlice.PutData(meta, []byte(serializedDataStr))
 		if err != nil {
 			return nil, err
 		}

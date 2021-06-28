@@ -31,7 +31,7 @@ type DatabaseClientHandler interface {
 type DBAccountHandler interface {
 	GetAccounts(alteredAccounts data.AlteredAccountsHandler) ([]*data.Account, []*data.AccountESDT)
 	PrepareRegularAccountsMap(accounts []*data.Account) map[string]*data.AccountInfo
-	PrepareAccountsMapESDT(accounts []*data.AccountESDT, timestamp uint64) (map[string]*data.AccountInfo, []*data.TokenInfo, tags.CountTags)
+	PrepareAccountsMapESDT(accounts []*data.AccountESDT, timestamp uint64) (map[string]*data.AccountInfo, data.TokensHandler, tags.CountTags)
 	PrepareAccountsHistory(timestamp uint64, accounts map[string]*data.AccountInfo) map[string]*data.AccountBalanceHistory
 
 	SerializeAccountsHistory(accounts map[string]*data.AccountBalanceHistory) ([]*bytes.Buffer, error)

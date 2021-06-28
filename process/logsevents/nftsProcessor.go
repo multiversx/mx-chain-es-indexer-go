@@ -100,26 +100,18 @@ func (np *nftsProcessor) processNFTEventOnSender(event nodeData.EventHandler, ac
 	nonceBig := big.NewInt(0).SetBytes(topics[1])
 	bech32Addr := np.pubKeyConverter.Encode(sender)
 
-	if string(event.GetIdentifier()) != core.BuiltInFunctionESDTNFTCreate {
-		accounts.Add(bech32Addr, &data.AlteredAccount{
-			IsNFTOperation:  true,
-			TokenIdentifier: token,
-			NFTNonce:        nonceBig.Uint64(),
-			IsNFTCreate:     false,
-		})
-
-		return
-	}
-
-	if len(topics) < 3 {
-		return
-	}
-
-	accounts.Add(bech32Addr, &data.AlteredAccount{
+	alteredAccount := &data.AlteredAccount{
 		IsNFTOperation:  true,
 		TokenIdentifier: token,
 		NFTNonce:        nonceBig.Uint64(),
-		IsNFTCreate:     true,
-		Type:            string(topics[2]),
-	})
+		IsNFTCreate:     false,
+	}
+
+	if string(event.GetIdentifier()) != core.BuiltInFunctionESDTNFTCreate {
+		accounts.Add(bech32Addr, alteredAccount)
+		return
+	}
+
+	alteredAccount.IsNFTCreate = true
+	accounts.Add(bech32Addr, alteredAccount)
 }
