@@ -52,14 +52,14 @@ func NewTokensInfo() *tokensInfo {
 }
 
 // Add will add tokenInfo
-func (tf *tokensInfo) Add(tokenInfo *TokenInfo) {
-	tf.tokensInfo[tokenInfo.Token] = tokenInfo
+func (ti *tokensInfo) Add(tokenInfo *TokenInfo) {
+	ti.tokensInfo[tokenInfo.Token] = tokenInfo
 }
 
 // GetAll will return all tokens information
-func (tf *tokensInfo) GetAll() []*TokenInfo {
-	tokens := make([]*TokenInfo, 0, len(tf.tokensInfo))
-	for _, tokenData := range tf.tokensInfo {
+func (ti *tokensInfo) GetAll() []*TokenInfo {
+	tokens := make([]*TokenInfo, 0, len(ti.tokensInfo))
+	for _, tokenData := range ti.tokensInfo {
 		tokens = append(tokens, tokenData)
 	}
 
@@ -67,9 +67,9 @@ func (tf *tokensInfo) GetAll() []*TokenInfo {
 }
 
 // GetAllTokens wil return all tokens names
-func (tf *tokensInfo) GetAllTokens() []string {
-	tokens := make([]string, 0, len(tf.tokensInfo))
-	for _, tokenData := range tf.tokensInfo {
+func (ti *tokensInfo) GetAllTokens() []string {
+	tokens := make([]string, 0, len(ti.tokensInfo))
+	for _, tokenData := range ti.tokensInfo {
 		tokens = append(tokens, tokenData.Token)
 	}
 
@@ -77,7 +77,7 @@ func (tf *tokensInfo) GetAllTokens() []string {
 }
 
 // AddTypeFromResponse will add token type from response
-func (tf *tokensInfo) AddTypeFromResponse(res *ResponseTokens) {
+func (ti *tokensInfo) AddTypeFromResponse(res *ResponseTokens) {
 	if res == nil {
 		return
 	}
@@ -87,15 +87,16 @@ func (tf *tokensInfo) AddTypeFromResponse(res *ResponseTokens) {
 			continue
 		}
 
-		_, ok := tf.tokensInfo[tokenData.ID]
+		_, ok := ti.tokensInfo[tokenData.ID]
 		if !ok {
 			continue
 		}
 
-		tf.tokensInfo[tokenData.ID].Type = tokenData.Source.Type
+		ti.tokensInfo[tokenData.ID].Type = tokenData.Source.Type
 	}
 }
 
-func (tf *tokensInfo) Len() int {
-	return len(tf.tokensInfo)
+// Len will return the number of tokens
+func (ti *tokensInfo) Len() int {
+	return len(ti.tokensInfo)
 }

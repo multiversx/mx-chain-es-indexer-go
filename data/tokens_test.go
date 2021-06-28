@@ -8,6 +8,8 @@ import (
 )
 
 func TestTokensInfo_AddGet(t *testing.T) {
+	t.Parallel()
+
 	tokensData := NewTokensInfo()
 
 	tokensData.Add(&TokenInfo{
@@ -25,6 +27,8 @@ func TestTokensInfo_AddGet(t *testing.T) {
 }
 
 func TestTokensInfo_AddTypeFromResponse(t *testing.T) {
+	t.Parallel()
+
 	tokensData := NewTokensInfo()
 
 	tokensData.Add(&TokenInfo{
