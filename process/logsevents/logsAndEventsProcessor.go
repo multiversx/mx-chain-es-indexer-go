@@ -37,3 +37,8 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogsAndPutInAltered(
 ) {
 	lep.nftsProc.processLogAndEventsNFTs(logsAndEvents, accounts)
 }
+
+// PrepareLogsForDB will prepare logs for database
+func (lep *logsAndEventsProcessor) PrepareLogsForDB(logsAndEvents map[string]nodeData.LogHandler) []*data.Logs {
+	return nil
+}
