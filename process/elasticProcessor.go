@@ -437,7 +437,6 @@ func (ei *elasticProcessor) prepareAndIndexLogs(logsAndEvents map[string]nodeDat
 	}
 
 	logsDB := ei.logsAndEventsProc.PrepareLogsForDB(logsAndEvents)
-
 	buffSlice, err := ei.logsAndEventsProc.SerializeLogs(logsDB)
 	if err != nil {
 		return err
