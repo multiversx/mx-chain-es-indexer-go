@@ -92,5 +92,5 @@ type DBLogsAndEventsHandler interface {
 	PrepareLogsForDB(logsAndEvents map[string]nodeData.LogHandler) []*data.Logs
 	ExtractDataFromLogsAndPutInAltered(logsAndEvents map[string]nodeData.LogHandler, accounts data.AlteredAccountsHandler)
 
-	SerializeLogs(logs *data.Logs) ([]*bytes.Buffer, error)
+	SerializeLogs(logs []*data.Logs) ([]*bytes.Buffer, error)
 }
