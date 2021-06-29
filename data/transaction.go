@@ -29,7 +29,6 @@ type Transaction struct {
 	EsdtTokenIdentifier  string        `json:"token,omitempty"`
 	SenderUserName       []byte        `json:"senderUserName,omitempty"`
 	ReceiverUserName     []byte        `json:"receiverUserName,omitempty"`
-	Logs                 *TxLog        `json:"logsevents,omitempty"`
 	HasSCR               bool          `json:"hasScResults,omitempty"`
 	IsScCall             bool          `json:"isScCall,omitempty"`
 	SmartContractResults []*ScResult   `json:"-"`
@@ -98,20 +97,6 @@ type ScResult struct {
 	ReturnMessage       string        `json:"returnMessage,omitempty"`
 	Timestamp           time.Duration `json:"timestamp"`
 	EsdtTokenIdentifier string        `json:"token,omitempty"`
-}
-
-// TxLog holds all the data needed for a log structure
-type TxLog struct {
-	Address string  `json:"scAddress"`
-	Events  []Event `json:"events"`
-}
-
-// Event holds all the data needed for an event structure
-type Event struct {
-	Address    string   `json:"address"`
-	Identifier string   `json:"identifier"`
-	Topics     []string `json:"topics"`
-	Data       string   `json:"data"`
 }
 
 // PreparedResults is the DTO that holds all the results after processing
