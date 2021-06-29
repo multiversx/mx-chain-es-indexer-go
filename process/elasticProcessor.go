@@ -408,6 +408,11 @@ func (ei *elasticProcessor) SaveTransactions(
 
 	ei.logsAndEventsProc.ExtractDataFromLogsAndPutInAltered(pool.Logs, preparedResults.AlteredAccts)
 
+	err = ei.prepareAndIndexLogs(pool.Logs)
+	if err != nil {
+		return err
+	}
+
 	err = ei.indexScResults(preparedResults.ScResults)
 	if err != nil {
 		return err
