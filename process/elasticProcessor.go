@@ -406,7 +406,7 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
-	ei.logsAndEventsProc.ProcessLogsAndEvents(pool.Logs, preparedResults.AlteredAccts)
+	ei.logsAndEventsProc.ExtractDataFromLogsAndPutInAltered(pool.Logs, preparedResults.AlteredAccts)
 
 	err = ei.indexScResults(preparedResults.ScResults)
 	if err != nil {

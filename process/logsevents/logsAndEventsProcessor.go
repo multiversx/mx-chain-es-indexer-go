@@ -30,8 +30,8 @@ func NewLogsAndEventsProcessor(
 	}, nil
 }
 
-// ProcessLogsAndEvents will process provided logs and events
-func (lep *logsAndEventsProcessor) ProcessLogsAndEvents(
+// ExtractDataFromLogsAndPutInAltered will extract information from provided logs and events and put in altered address
+func (lep *logsAndEventsProcessor) ExtractDataFromLogsAndPutInAltered(
 	logsAndEvents map[string]nodeData.LogHandler,
 	accounts data.AlteredAccountsHandler,
 ) {

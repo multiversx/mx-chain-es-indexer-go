@@ -89,5 +89,5 @@ type DBValidatorsHandler interface {
 
 // DBLogsAndEventsHandler defines the actions that a logs and events handler should do
 type DBLogsAndEventsHandler interface {
-	ProcessLogsAndEvents(logsAndEvents map[string]nodeData.LogHandler, accounts data.AlteredAccountsHandler)
+	ExtractDataFromLogsAndPutInAltered(logsAndEvents map[string]nodeData.LogHandler, accounts data.AlteredAccountsHandler)
 }
