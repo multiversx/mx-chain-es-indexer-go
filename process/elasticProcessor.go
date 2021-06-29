@@ -431,6 +431,21 @@ func (ei *elasticProcessor) SaveTransactions(
 	return ei.indexScDeploys(preparedResults.DeploysInfo)
 }
 
+func (ei *elasticProcessor) prepareAndIndexLogs(logsAndEvents map[string]nodeData.LogHandler) error {
+	if !ei.isIndexEnabled(elasticIndexer.LogsIndex) {
+		return nil
+	}
+
+	logsDB := ei.logsAndEventsProc.PrepareLogsForDB(logsAndEvents)
+
+	buffSlice, err := ei.logsAndEventsProc.SerializeLogs(logsDB)
+	if err != nil {
+		return err
+	}
+
+	return ei.doBulkRequests(elasticIndexer.LogsIndex, buffSlice)
+}
+
 func (ei *elasticProcessor) indexTokens(tokensData []*data.TokenInfo) error {
 	if !ei.isIndexEnabled(elasticIndexer.TokensIndex) {
 		return nil
