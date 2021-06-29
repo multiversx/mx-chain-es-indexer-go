@@ -1,0 +1,37 @@
+package logsevents
+
+import (
+	"math/big"
+	"testing"
+
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elrond-go/core"
+	"github.com/stretchr/testify/require"
+)
+
+func TestLogsAndEventsProcessor_SerializeLogs(t *testing.T) {
+	t.Parallel()
+
+	logs := []*data.Logs{
+		{
+			ID:      "747848617368",
+			Address: "61646472657373",
+			Events: []*data.Event{
+				{
+					Address:    "61646472",
+					Identifier: core.BuiltInFunctionESDTNFTTransfer,
+					Topics:     [][]byte{[]byte("my-token"), big.NewInt(0).SetUint64(1).Bytes(), []byte("receiver")},
+					Data:       []byte("data"),
+				},
+			},
+		},
+	}
+
+	res, err := (&logsAndEventsProcessor{}).SerializeLogs(logs)
+	require.Nil(t, err)
+
+	expectedRes := `{ "index" : { "_id" : "747848617368" } }
+{"address":"61646472657373","events":[{"address":"61646472","identifier":"ESDTNFTTransfer","topics":["bXktdG9rZW4=","AQ==","cmVjZWl2ZXI="],"data":"ZGF0YQ=="}]}
+`
+	require.Equal(t, expectedRes, res[0].String())
+}
