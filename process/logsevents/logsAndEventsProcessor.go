@@ -62,7 +62,7 @@ func (lep *logsAndEventsProcessor) prepareLogForDB(id string, logHandler nodeDat
 	logsDB := &data.Logs{
 		ID:      hex.EncodeToString([]byte(id)),
 		Address: lep.pubKeyConverter.Encode(logHandler.GetAddress()),
-		Events:  make([]*data.Event, len(events)),
+		Events:  make([]*data.Event, 0, len(events)),
 	}
 
 	for _, event := range events {
