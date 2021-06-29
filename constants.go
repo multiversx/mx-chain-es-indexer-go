@@ -39,6 +39,8 @@ const (
 	TokensIndex = "tokens"
 	// TagsIndex is the Elasticsearch index for NFTs tags
 	TagsIndex = "tags"
+	// LogsIndex is the Elasticsearch index for logs
+	LogsIndex = "logs"
 
 	// TransactionsPolicy is the Elasticsearch policy for the transactions
 	TransactionsPolicy = "transactions_policy"
