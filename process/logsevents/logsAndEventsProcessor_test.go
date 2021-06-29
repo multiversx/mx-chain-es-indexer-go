@@ -43,10 +43,6 @@ func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 				},
 			},
 		},
-
-		"noEvents": &transaction.Log{
-			Address: []byte("sender"),
-		},
 	}
 
 	proc, _ := NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, mock.NewPubkeyConverterMock(32))
