@@ -1,6 +1,8 @@
 package logsevents
 
 import (
+	"encoding/hex"
+
 	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go-logger/check"
@@ -10,7 +12,8 @@ import (
 )
 
 type logsAndEventsProcessor struct {
-	nftsProc *nftsProcessor
+	pubKeyConverter core.PubkeyConverter
+	nftsProc        *nftsProcessor
 }
 
 // NewLogsAndEventsProcessor will create a new instance for the logsAndEventsProcessor
@@ -26,7 +29,8 @@ func NewLogsAndEventsProcessor(
 	}
 
 	return &logsAndEventsProcessor{
-		nftsProc: newNFTsProcessor(shardCoordinator, pubKeyConverter),
+		pubKeyConverter: pubKeyConverter,
+		nftsProc:        newNFTsProcessor(shardCoordinator, pubKeyConverter),
 	}, nil
 }
 
@@ -40,5 +44,39 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogsAndPutInAltered(
 
 // PrepareLogsForDB will prepare logs for database
 func (lep *logsAndEventsProcessor) PrepareLogsForDB(logsAndEvents map[string]nodeData.LogHandler) []*data.Logs {
-	return nil
+	logs := make([]*data.Logs, 0, len(logsAndEvents))
+
+	for txHash, log := range logsAndEvents {
+		if check.IfNil(log) {
+			continue
+		}
+
+		logs = append(logs, lep.prepareLogForDB(txHash, log))
+	}
+
+	return logs
+}
+
+func (lep *logsAndEventsProcessor) prepareLogForDB(id string, logHandler nodeData.LogHandler) *data.Logs {
+	events := logHandler.GetLogEvents()
+	logsDB := &data.Logs{
+		ID:      hex.EncodeToString([]byte(id)),
+		Address: lep.pubKeyConverter.Encode(logHandler.GetAddress()),
+		Events:  make([]*data.Event, len(events)),
+	}
+
+	for _, event := range events {
+		if check.IfNil(event) {
+			continue
+		}
+
+		logsDB.Events = append(logsDB.Events, &data.Event{
+			Address:    lep.pubKeyConverter.Encode(event.GetAddress()),
+			Identifier: string(event.GetIdentifier()),
+			Topics:     event.GetTopics(),
+			Data:       event.GetData(),
+		})
+	}
+
+	return logsDB
 }

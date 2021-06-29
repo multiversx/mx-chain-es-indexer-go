@@ -4,6 +4,7 @@ import (
 	"math/big"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elrond-go-logger/check"
 	"github.com/ElrondNetwork/elrond-go/core"
 	nodeData "github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/sharding"
@@ -40,6 +41,10 @@ func (np *nftsProcessor) processLogAndEventsNFTs(
 	}
 
 	for _, txLog := range logsAndEvents {
+		if check.IfNil(txLog) {
+			continue
+		}
+
 		np.processNFTOperationLog(txLog, accounts)
 	}
 }

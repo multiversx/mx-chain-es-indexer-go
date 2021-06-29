@@ -2,6 +2,7 @@ package data
 
 // Logs holds all the fields needed for a logs structure
 type Logs struct {
+	ID      string   `json:"-"`
 	Address string   `json:"address"`
 	Events  []*Event `json:"events"`
 }
