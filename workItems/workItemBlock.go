@@ -69,11 +69,15 @@ func (wib *itemBlock) Save() error {
 		return nil
 	}
 
+	log.Debug("indexer: starting indexing miniblocks", "len", len(body.MiniBlocks))
+
 	mbsInDb, err := wib.indexer.SaveMiniblocks(wib.argsSaveBlock.Header, body)
 	if err != nil {
 		return fmt.Errorf("%w when saving miniblocks, block hash %s, nonce %d",
 			err, hex.EncodeToString(wib.argsSaveBlock.HeaderHash), wib.argsSaveBlock.Header.GetNonce())
 	}
+
+	log.Debug("indexer: starting indexing transactions")
 
 	err = wib.indexer.SaveTransactions(body, wib.argsSaveBlock.Header, wib.argsSaveBlock.TransactionsPool, mbsInDb)
 	if err != nil {

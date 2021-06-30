@@ -3,6 +3,7 @@ package indexer
 import (
 	"context"
 	"errors"
+	"fmt"
 	"runtime/debug"
 	"sync"
 	"time"
@@ -60,6 +61,7 @@ func (d *dataDispatcher) doDataDispatch(ctx context.Context) {
 	defer func() {
 		r := recover()
 		if r != nil {
+			fmt.Println(string(debug.Stack()))
 			log.Error("d.doDataDispatch",
 				"message", r,
 				"panic", string(debug.Stack()))
