@@ -261,6 +261,7 @@ func (ap *accountsProcessor) getESDTInfo(accountESDT *data.AccountESDT) (*big.In
 		return nil, "", nil, err
 	}
 
+	log.Debug("value bytes esdt token", "token", accountESDT.TokenIdentifier, "num bytes", len(valueBytes))
 	esdtToken := &esdt.ESDigitalToken{}
 	err = ap.internalMarshalizer.Unmarshal(esdtToken, valueBytes)
 	if err != nil {
