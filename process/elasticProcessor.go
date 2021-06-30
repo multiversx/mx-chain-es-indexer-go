@@ -399,6 +399,7 @@ func (ei *elasticProcessor) SaveTransactions(
 	pool *indexer.Pool,
 	mbsInDb map[string]bool,
 ) error {
+	log.Debug("indexer: prepare transactions")
 	preparedResults := ei.transactionsProc.PrepareTransactionsForDatabase(body, header, pool)
 
 	err := ei.indexTransactions(preparedResults.Transactions, header, mbsInDb)
@@ -406,33 +407,40 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
+	log.Debug("indexer: extract NFT data from logs")
 	ei.logsAndEventsProc.ExtractDataFromLogsAndPutInAltered(pool.Logs, preparedResults.AlteredAccts)
 
+	log.Debug("indexer: prepare logs")
 	err = ei.prepareAndIndexLogs(pool.Logs)
 	if err != nil {
 		return err
 	}
 
+	log.Debug("indexer: index sc results")
 	err = ei.indexScResults(preparedResults.ScResults)
 	if err != nil {
 		return err
 	}
 
+	log.Debug("indexer: index receipts")
 	err = ei.indexReceipts(preparedResults.Receipts)
 	if err != nil {
 		return err
 	}
 
+	log.Debug("indexer: index altered accounts")
 	err = ei.indexAlteredAccounts(header.GetTimeStamp(), preparedResults.AlteredAccts)
 	if err != nil {
 		return err
 	}
 
+	log.Debug("indexer: index tokens")
 	err = ei.indexTokens(preparedResults.Tokens)
 	if err != nil {
 		return err
 	}
 
+	log.Debug("indexer: index sc deploys")
 	return ei.indexScDeploys(preparedResults.DeploysInfo)
 }
 
