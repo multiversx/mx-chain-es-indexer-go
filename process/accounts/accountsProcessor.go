@@ -2,6 +2,7 @@ package accounts
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"math"
 	"math/big"
@@ -267,6 +268,9 @@ func (ap *accountsProcessor) getESDTInfo(accountESDT *data.AccountESDT) (*big.In
 	}
 
 	if esdtToken.Value == nil {
+		tokenBytes, _ := json.Marshal(esdtToken)
+
+		log.Debug("token value is zero", "token", string(tokenBytes))
 		return big.NewInt(0), "", nil, nil
 	}
 
