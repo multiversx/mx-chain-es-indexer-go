@@ -169,7 +169,10 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(
 	accountsESDTMap := make(map[string]*data.AccountInfo)
 	tokensCreateInfo := data.NewTokensInfo()
 	for _, accountESDT := range accounts {
+		log.Debug("indexer: PrepareAccountsMapESDT Encode")
 		address := ap.addressPubkeyConverter.Encode(accountESDT.Account.AddressBytes())
+
+		log.Debug("indexer: PrepareAccountsMapESDT getESDTInfo")
 		balance, properties, tokenMetaData, err := ap.getESDTInfo(accountESDT)
 		if err != nil {
 			log.Warn("cannot get esdt info from account",
@@ -193,10 +196,13 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(
 
 		accountsESDTMap[address] = acc
 
+		log.Debug("indexer: PrepareAccountsMapESDT OK")
+
 		if !accountESDT.IsNFTOperation || !accountESDT.IsNFTCreate {
 			continue
 		}
 
+		log.Debug("indexer: PrepareAccountsMapESDT ParseTagsFromAttributes")
 		tagsCount.ParseTagsFromAttributes(tokenMetaData.Attributes)
 
 		tokensCreateInfo.Add(&data.TokenInfo{
@@ -248,6 +254,7 @@ func (ap *accountsProcessor) getESDTInfo(accountESDT *data.AccountESDT) (*big.In
 		tokenKey = append(tokenKey, nonceBig.Bytes()...)
 	}
 
+	log.Debug("indexer: getESDTInfo RetrieveValue")
 	valueBytes, err := accountESDT.Account.DataTrieTracker().RetrieveValue(tokenKey)
 	if err != nil {
 		return nil, "", nil, err
@@ -265,6 +272,7 @@ func (ap *accountsProcessor) getESDTInfo(accountESDT *data.AccountESDT) (*big.In
 
 	tokenMetaData := ap.getTokenMetaData(esdtToken)
 
+	log.Debug("indexer: getESDTInfo return")
 	return esdtToken.Value, hex.EncodeToString(esdtToken.Properties), tokenMetaData, nil
 }
 
