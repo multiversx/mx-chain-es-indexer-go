@@ -193,9 +193,10 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(
 
 		accountsESDTMap[address] = acc
 
-		if !accountESDT.IsNFTOperation || !accountESDT.IsNFTCreate {
+		if !accountESDT.IsNFTOperation || !accountESDT.IsNFTCreate || tokenMetaData == nil {
 			continue
 		}
+		// TODO treat the case when a NFT/SFT in created and transferred in the same block
 
 		tagsCount.ParseTagsFromAttributes(tokenMetaData.Attributes)
 

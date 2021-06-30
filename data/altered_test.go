@@ -61,10 +61,30 @@ func TestAlteredAccounts_AddESDT(t *testing.T) {
 	}
 	altAccounts.Add(addr, acct4)
 
+	acct5 := &AlteredAccount{
+		IsSender:        true,
+		TokenIdentifier: "my-nft-token",
+		IsNFTOperation:  true,
+		NFTNonce:        1,
+		IsNFTCreate:     true,
+		Type:            core.NonFungibleESDT,
+	}
+	altAccounts.Add(addr, acct5)
+
+	acct6 := &AlteredAccount{
+		IsSender:        true,
+		TokenIdentifier: "my-nft-token",
+		IsNFTOperation:  true,
+		NFTNonce:        2,
+		IsNFTCreate:     true,
+		Type:            core.NonFungibleESDT,
+	}
+	altAccounts.Add(addr, acct6)
+
 	require.Equal(t, 1, altAccounts.Len())
 	res, ok := altAccounts.Get(addr)
 	require.True(t, ok)
-	require.Equal(t, 2, len(res))
+	require.Equal(t, 3, len(res))
 	require.Equal(t, &AlteredAccount{
 		IsSender:        true,
 		IsESDTOperation: true,
@@ -78,6 +98,14 @@ func TestAlteredAccounts_AddESDT(t *testing.T) {
 		IsNFTCreate:     true,
 		Type:            core.NonFungibleESDT,
 	}, res[1])
+
+	require.Equal(t, &AlteredAccount{
+		IsNFTOperation:  true,
+		TokenIdentifier: "my-nft-token",
+		NFTNonce:        2,
+		IsNFTCreate:     true,
+		Type:            core.NonFungibleESDT,
+	}, res[2])
 }
 
 func TestAlteredAccounts_GetAll(t *testing.T) {
