@@ -568,33 +568,39 @@ func (ei *elasticProcessor) SaveRoundsInfo(info []*data.RoundInfo) error {
 }
 
 func (ei *elasticProcessor) indexAlteredAccounts(timestamp uint64, alteredAccounts data.AlteredAccountsHandler) error {
+	log.Debug("indexer: altered GetAccounts")
 	regularAccountsToIndex, accountsToIndexESDT := ei.accountsProc.GetAccounts(alteredAccounts)
 
+	log.Debug("indexer: altered SaveAccounts")
 	err := ei.SaveAccounts(timestamp, regularAccountsToIndex)
 	if err != nil {
 		return err
 	}
-
+	log.Debug("indexer: altered saveAccountsESDT")
 	return ei.saveAccountsESDT(timestamp, accountsToIndexESDT)
 }
 
 func (ei *elasticProcessor) saveAccountsESDT(timestamp uint64, wrappedAccounts []*data.AccountESDT) error {
+	log.Debug("indexer: saveAccountsESDT PrepareAccountsMapESDT")
 	accountsESDTMap, nftCreateTokenInfo, tagsCount := ei.accountsProc.PrepareAccountsMapESDT(wrappedAccounts, timestamp)
 	err := ei.indexAccountsESDT(accountsESDTMap)
 	if err != nil {
 		return err
 	}
 
+	log.Debug("indexer: saveAccountsESDT indexNFTCreateInfo")
 	err = ei.indexNFTCreateInfo(nftCreateTokenInfo)
 	if err != nil {
 		return err
 	}
 
+	log.Debug("indexer: saveAccountsESDT prepareAndIndexTagsCount")
 	err = ei.prepareAndIndexTagsCount(tagsCount)
 	if err != nil {
 		return err
 	}
 
+	log.Debug("indexer: saveAccountsESDT saveAccountsESDTHistory")
 	return ei.saveAccountsESDTHistory(timestamp, accountsESDTMap)
 }
 

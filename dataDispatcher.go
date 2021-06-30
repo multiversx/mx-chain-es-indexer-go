@@ -63,7 +63,6 @@ func (d *dataDispatcher) doDataDispatch(ctx context.Context) {
 			log.Error("d.doDataDispatch",
 				"message", r,
 				"panic", string(debug.Stack()))
-			time.Sleep(2 * time.Second)
 			panic(r)
 		}
 	}()
