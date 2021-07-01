@@ -8,6 +8,7 @@ import (
 	"time"
 
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
+	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
@@ -100,7 +101,6 @@ func splitAlteredAccounts(userAccount state.UserAccountHandler, altered []*data.
 				IsSender:        info.IsSender,
 				IsNFTOperation:  info.IsNFTOperation,
 				NFTNonce:        info.NFTNonce,
-				IsNFTCreate:     info.IsNFTCreate,
 				Type:            info.Type,
 			})
 		}
@@ -163,11 +163,9 @@ func (ap *accountsProcessor) PrepareRegularAccountsMap(accounts []*data.Account)
 // PrepareAccountsMapESDT will prepare a map of accounts with ESDT tokens
 func (ap *accountsProcessor) PrepareAccountsMapESDT(
 	accounts []*data.AccountESDT,
-	timestamp uint64,
-) (map[string]*data.AccountInfo, data.TokensHandler, tags.CountTags) {
+) (map[string]*data.AccountInfo, tags.CountTags) {
 	tagsCount := tags.NewTagsCount()
 	accountsESDTMap := make(map[string]*data.AccountInfo)
-	tokensCreateInfo := data.NewTokensInfo()
 	for _, accountESDT := range accounts {
 		address := ap.addressPubkeyConverter.Encode(accountESDT.Account.AddressBytes())
 		balance, properties, tokenMetaData, err := ap.getESDTInfo(accountESDT)
@@ -181,7 +179,7 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(
 		acc := &data.AccountInfo{
 			Address:         address,
 			TokenName:       accountESDT.TokenIdentifier,
-			TokenIdentifier: computeTokenIdentifier(accountESDT.TokenIdentifier, accountESDT.NFTNonce),
+			TokenIdentifier: converters.ComputeTokenIdentifier(accountESDT.TokenIdentifier, accountESDT.NFTNonce),
 			TokenNonce:      accountESDT.NFTNonce,
 			Balance:         balance.String(),
 			BalanceNum:      ap.computeBalanceAsFloat(balance, ap.balancePrecisionESDT),
@@ -193,22 +191,14 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(
 
 		accountsESDTMap[address] = acc
 
-		if !accountESDT.IsNFTOperation || !accountESDT.IsNFTCreate || tokenMetaData == nil {
+		if !accountESDT.IsNFTOperation || tokenMetaData == nil {
 			continue
 		}
-		// TODO treat the case when a NFT/SFT in created and transferred in the same block
 
 		tagsCount.ParseTagsFromAttributes(tokenMetaData.Attributes)
-
-		tokensCreateInfo.Add(&data.TokenInfo{
-			Token:      accountESDT.TokenIdentifier,
-			Identifier: computeTokenIdentifier(accountESDT.TokenIdentifier, accountESDT.NFTNonce),
-			Timestamp:  time.Duration(timestamp),
-			MetaData:   tokenMetaData,
-		})
 	}
 
-	return accountsESDTMap, tokensCreateInfo, tagsCount
+	return accountsESDTMap, tagsCount
 }
 
 // PrepareAccountsHistory will prepare a map of accounts history balance from a map of accounts
@@ -226,7 +216,7 @@ func (ap *accountsProcessor) PrepareAccountsHistory(
 			TokenNonce:      userAccount.TokenNonce,
 			IsSender:        userAccount.IsSender,
 			IsSmartContract: userAccount.IsSmartContract,
-			Identifier:      computeTokenIdentifier(userAccount.TokenName, userAccount.TokenNonce),
+			Identifier:      converters.ComputeTokenIdentifier(userAccount.TokenName, userAccount.TokenNonce),
 		}
 		addressKey := fmt.Sprintf("%s_%d", address, timestamp)
 		accountsMap[addressKey] = acc
@@ -264,29 +254,9 @@ func (ap *accountsProcessor) getESDTInfo(accountESDT *data.AccountESDT) (*big.In
 		return big.NewInt(0), "", nil, nil
 	}
 
-	tokenMetaData := ap.getTokenMetaData(esdtToken)
+	tokenMetaData := converters.PrepareTokenMetaData(ap.addressPubkeyConverter, esdtToken)
 
 	return esdtToken.Value, hex.EncodeToString(esdtToken.Properties), tokenMetaData, nil
-}
-
-func (ap *accountsProcessor) getTokenMetaData(esdtInfo *esdt.ESDigitalToken) *data.TokenMetaData {
-	if esdtInfo.TokenMetaData == nil {
-		return nil
-	}
-
-	creatorStr := ""
-	if esdtInfo.TokenMetaData.Creator != nil {
-		creatorStr = ap.addressPubkeyConverter.Encode(esdtInfo.TokenMetaData.Creator)
-	}
-
-	return &data.TokenMetaData{
-		Name:       string(esdtInfo.TokenMetaData.Name),
-		Creator:    creatorStr,
-		Royalties:  esdtInfo.TokenMetaData.Royalties,
-		Hash:       esdtInfo.TokenMetaData.Hash,
-		URIs:       esdtInfo.TokenMetaData.URIs,
-		Attributes: data.NewAttributesDTO(esdtInfo.TokenMetaData.Attributes),
-	}
 }
 
 func (ap *accountsProcessor) computeBalanceAsFloat(balance *big.Int, balancePrecision float64) float64 {
@@ -302,14 +272,4 @@ func (ap *accountsProcessor) computeBalanceAsFloat(balance *big.Int, balancePrec
 	balanceFloatWithDecimals := math.Round(bal*balancePrecision) / balancePrecision
 
 	return core.MaxFloat64(balanceFloatWithDecimals, 0)
-}
-
-func computeTokenIdentifier(token string, nonce uint64) string {
-	if token == "" || nonce == 0 {
-		return ""
-	}
-
-	nonceBig := big.NewInt(0).SetUint64(nonce)
-	hexEncodedNonce := hex.EncodeToString(nonceBig.Bytes())
-	return fmt.Sprintf("%s-%s", token, hexEncodedNonce)
 }

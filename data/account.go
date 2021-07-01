@@ -58,6 +58,5 @@ type AccountESDT struct {
 	NFTNonce        uint64
 	IsSender        bool
 	IsNFTOperation  bool
-	IsNFTCreate     bool
 	Type            string
 }

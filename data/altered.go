@@ -7,7 +7,6 @@ type AlteredAccount struct {
 	IsNFTOperation  bool
 	TokenIdentifier string
 	NFTNonce        uint64
-	IsNFTCreate     bool
 	Type            string
 }
 
@@ -62,7 +61,6 @@ func (aa *alteredAccounts) Add(key string, account *AlteredAccount) {
 			elem.IsNFTOperation = account.IsNFTOperation
 			elem.IsESDTOperation = account.IsESDTOperation
 			elem.IsSender = elem.IsSender || account.IsSender
-			elem.IsNFTCreate = elem.IsNFTCreate || account.IsNFTCreate
 			elem.Type = account.Type
 			return
 		}

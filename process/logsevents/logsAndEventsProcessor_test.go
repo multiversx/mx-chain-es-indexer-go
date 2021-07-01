@@ -16,13 +16,16 @@ import (
 func TestNewLogsAndEventsProcessor(t *testing.T) {
 	t.Parallel()
 
-	_, err := NewLogsAndEventsProcessor(nil, &mock.PubkeyConverterMock{})
+	_, err := NewLogsAndEventsProcessor(nil, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{})
 	require.Equal(t, elasticIndexer.ErrNilShardCoordinator, err)
 
-	_, err = NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, nil)
+	_, err = NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, nil, &mock.MarshalizerMock{})
 	require.Equal(t, elasticIndexer.ErrNilPubkeyConverter, err)
 
-	proc, err := NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{})
+	_, err = NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, nil)
+	require.Equal(t, elasticIndexer.ErrNilMarshalizer, err)
+
+	proc, err := NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{})
 	require.NotNil(t, proc)
 	require.Nil(t, err)
 }
@@ -45,7 +48,7 @@ func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 		},
 	}
 
-	proc, _ := NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, mock.NewPubkeyConverterMock(32))
+	proc, _ := NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, mock.NewPubkeyConverterMock(32), &mock.MarshalizerMock{})
 
 	logsDB := proc.PrepareLogsForDB(logsAndEvents)
 	require.Equal(t, &data.Logs{

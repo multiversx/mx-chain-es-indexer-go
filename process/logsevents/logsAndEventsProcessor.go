@@ -8,6 +8,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go-logger/check"
 	"github.com/ElrondNetwork/elrond-go/core"
 	nodeData "github.com/ElrondNetwork/elrond-go/data"
+	"github.com/ElrondNetwork/elrond-go/marshal"
 	"github.com/ElrondNetwork/elrond-go/sharding"
 )
 
@@ -20,6 +21,7 @@ type logsAndEventsProcessor struct {
 func NewLogsAndEventsProcessor(
 	shardCoordinator sharding.Coordinator,
 	pubKeyConverter core.PubkeyConverter,
+	marshalizer marshal.Marshalizer,
 ) (*logsAndEventsProcessor, error) {
 	if check.IfNil(shardCoordinator) {
 		return nil, elasticIndexer.ErrNilShardCoordinator
@@ -27,10 +29,13 @@ func NewLogsAndEventsProcessor(
 	if check.IfNil(pubKeyConverter) {
 		return nil, elasticIndexer.ErrNilPubkeyConverter
 	}
+	if check.IfNil(marshalizer) {
+		return nil, elasticIndexer.ErrNilMarshalizer
+	}
 
 	return &logsAndEventsProcessor{
 		pubKeyConverter: pubKeyConverter,
-		nftsProc:        newNFTsProcessor(shardCoordinator, pubKeyConverter),
+		nftsProc:        newNFTsProcessor(shardCoordinator, pubKeyConverter, marshalizer),
 	}, nil
 }
 
@@ -38,8 +43,9 @@ func NewLogsAndEventsProcessor(
 func (lep *logsAndEventsProcessor) ExtractDataFromLogsAndPutInAltered(
 	logsAndEvents map[string]nodeData.LogHandler,
 	accounts data.AlteredAccountsHandler,
-) {
-	lep.nftsProc.processLogAndEventsNFTs(logsAndEvents, accounts)
+	timestamp uint64,
+) data.TokensHandler {
+	return lep.nftsProc.processLogAndEventsNFTs(logsAndEvents, accounts, timestamp)
 }
 
 // PrepareLogsForDB will prepare logs for database
