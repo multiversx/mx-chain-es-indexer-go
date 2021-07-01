@@ -123,7 +123,8 @@ func (np *nftsProcessor) processNFTEventOnSender(event nodeData.EventHandler, ac
 
 	accounts.Add(bech32Addr, alteredAccount)
 
-	if string(event.GetIdentifier()) != core.BuiltInFunctionESDTNFTCreate || len(topics) < 3 {
+	shouldReturn := string(event.GetIdentifier()) != core.BuiltInFunctionESDTNFTCreate || len(topics) < 3
+	if shouldReturn {
 		return
 	}
 
