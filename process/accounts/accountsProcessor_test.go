@@ -8,13 +8,14 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ElrondNetwork/elastic-indexer-go"
+	indexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/data/esdt"
 	"github.com/ElrondNetwork/elrond-go/data/state"
 	"github.com/ElrondNetwork/elrond-go/marshal"
+	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
+	"github.com/ElrondNetwork/elrond-vm-common/data/esdt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -273,7 +274,7 @@ func TestAccountsProcessor_GetAccountsEGLDAccounts(t *testing.T) {
 	addr := "aaaabbbb"
 	mockAccount := &mock.UserAccountStub{}
 	accountsStub := &mock.AccountsStub{
-		LoadAccountCalled: func(container []byte) (state.AccountHandler, error) {
+		LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
 			return mockAccount, nil
 		},
 	}
@@ -299,7 +300,7 @@ func TestAccountsProcessor_GetAccountsESDTAccount(t *testing.T) {
 	addr := "aaaabbbb"
 	mockAccount := &mock.UserAccountStub{}
 	accountsStub := &mock.AccountsStub{
-		LoadAccountCalled: func(container []byte) (state.AccountHandler, error) {
+		LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
 			return mockAccount, nil
 		},
 	}
@@ -340,7 +341,7 @@ func TestAccountsProcessor_PrepareAccountsMapEGLD(t *testing.T) {
 	}
 
 	accountsStub := &mock.AccountsStub{
-		LoadAccountCalled: func(container []byte) (state.AccountHandler, error) {
+		LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
 			return mockAccount, nil
 		},
 	}
@@ -385,7 +386,7 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 		},
 	}
 	accountsStub := &mock.AccountsStub{
-		LoadAccountCalled: func(container []byte) (state.AccountHandler, error) {
+		LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
 			return mockAccount, nil
 		},
 	}
@@ -476,7 +477,7 @@ func TestAccountsProcessor_GetUserAccountErrors(t *testing.T) {
 			exError: localErr,
 			argsFunc: func() (int, marshal.Marshalizer, core.PubkeyConverter, state.AccountsAdapter) {
 				return 10, &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{}, &mock.AccountsStub{
-					LoadAccountCalled: func(container []byte) (state.AccountHandler, error) {
+					LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
 						return nil, localErr
 					},
 				}
@@ -487,7 +488,7 @@ func TestAccountsProcessor_GetUserAccountErrors(t *testing.T) {
 			exError: indexer.ErrCannotCastAccountHandlerToUserAccount,
 			argsFunc: func() (int, marshal.Marshalizer, core.PubkeyConverter, state.AccountsAdapter) {
 				return 10, &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{}, &mock.AccountsStub{
-					LoadAccountCalled: func(container []byte) (state.AccountHandler, error) {
+					LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
 						return nil, nil
 					},
 				}
