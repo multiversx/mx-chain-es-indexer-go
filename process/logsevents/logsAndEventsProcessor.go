@@ -5,6 +5,7 @@ import (
 
 	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
 	"github.com/ElrondNetwork/elrond-go-logger/check"
 	"github.com/ElrondNetwork/elrond-go/core"
 	nodeData "github.com/ElrondNetwork/elrond-go/data"
@@ -44,7 +45,7 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogsAndPutInAltered(
 	logsAndEvents map[string]nodeData.LogHandler,
 	accounts data.AlteredAccountsHandler,
 	timestamp uint64,
-) data.TokensHandler {
+) (data.TokensHandler, tags.CountTags) {
 	return lep.nftsProc.processLogAndEventsNFTs(logsAndEvents, accounts, timestamp)
 }
 

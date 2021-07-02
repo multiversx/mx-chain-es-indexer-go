@@ -406,7 +406,12 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
-	nftCreateTokenInfo := ei.logsAndEventsProc.ExtractDataFromLogsAndPutInAltered(pool.Logs, preparedResults.AlteredAccts, header.GetTimeStamp())
+	nftCreateTokenInfo, tagsCount := ei.logsAndEventsProc.ExtractDataFromLogsAndPutInAltered(pool.Logs, preparedResults.AlteredAccts, header.GetTimeStamp())
+
+	err = ei.prepareAndIndexTagsCount(tagsCount)
+	if err != nil {
+		return err
+	}
 
 	err = ei.indexNFTCreateInfo(nftCreateTokenInfo)
 	if err != nil {
@@ -572,13 +577,8 @@ func (ei *elasticProcessor) indexAlteredAccounts(timestamp uint64, alteredAccoun
 }
 
 func (ei *elasticProcessor) saveAccountsESDT(timestamp uint64, wrappedAccounts []*data.AccountESDT) error {
-	accountsESDTMap, tagsCount := ei.accountsProc.PrepareAccountsMapESDT(wrappedAccounts)
+	accountsESDTMap := ei.accountsProc.PrepareAccountsMapESDT(wrappedAccounts)
 	err := ei.indexAccountsESDT(accountsESDTMap)
-	if err != nil {
-		return err
-	}
-
-	err = ei.prepareAndIndexTagsCount(tagsCount)
 	if err != nil {
 		return err
 	}

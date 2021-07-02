@@ -10,7 +10,6 @@ import (
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-go-logger/check"
 	"github.com/ElrondNetwork/elrond-go/core"
@@ -163,8 +162,7 @@ func (ap *accountsProcessor) PrepareRegularAccountsMap(accounts []*data.Account)
 // PrepareAccountsMapESDT will prepare a map of accounts with ESDT tokens
 func (ap *accountsProcessor) PrepareAccountsMapESDT(
 	accounts []*data.AccountESDT,
-) (map[string]*data.AccountInfo, tags.CountTags) {
-	tagsCount := tags.NewTagsCount()
+) map[string]*data.AccountInfo {
 	accountsESDTMap := make(map[string]*data.AccountInfo)
 	for _, accountESDT := range accounts {
 		address := ap.addressPubkeyConverter.Encode(accountESDT.Account.AddressBytes())
@@ -190,15 +188,9 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(
 		}
 
 		accountsESDTMap[address] = acc
-
-		if !accountESDT.IsNFTOperation || tokenMetaData == nil {
-			continue
-		}
-
-		tagsCount.ParseTagsFromAttributes(tokenMetaData.Attributes)
 	}
 
-	return accountsESDTMap, tagsCount
+	return accountsESDTMap
 }
 
 // PrepareAccountsHistory will prepare a map of accounts history balance from a map of accounts

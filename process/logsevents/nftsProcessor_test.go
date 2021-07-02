@@ -42,7 +42,7 @@ func TestNftsProcessor_processLogAndEventsNFTs(t *testing.T) {
 
 	altered := data.NewAlteredAccounts()
 
-	tokensCreateInfo := nftsProc.processLogAndEventsNFTs(logsAndEvents, altered, 1000)
+	tokensCreateInfo, _ := nftsProc.processLogAndEventsNFTs(logsAndEvents, altered, 1000)
 
 	alteredAddr, ok := altered.Get("61646472")
 	require.True(t, ok)

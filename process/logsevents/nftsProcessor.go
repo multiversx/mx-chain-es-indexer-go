@@ -6,6 +6,7 @@ import (
 
 	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
 	"github.com/ElrondNetwork/elrond-go-logger/check"
 	"github.com/ElrondNetwork/elrond-go/core"
 	nodeData "github.com/ElrondNetwork/elrond-go/data"
@@ -43,35 +44,48 @@ func (np *nftsProcessor) processLogAndEventsNFTs(
 	logsAndEvents map[string]nodeData.LogHandler,
 	accounts data.AlteredAccountsHandler,
 	timestamp uint64,
-) data.TokensHandler {
+) (data.TokensHandler, tags.CountTags) {
 	if logsAndEvents == nil || accounts == nil {
-		return nil
+		return data.NewTokensInfo(), tags.NewTagsCount()
 	}
 
+	tagsCount := tags.NewTagsCount()
 	tokens := data.NewTokensInfo()
 	for _, txLog := range logsAndEvents {
 		if check.IfNil(txLog) {
 			continue
 		}
 
-		np.processNFTOperationLog(txLog, accounts, tokens, timestamp)
+		np.processNFTOperationLog(txLog, accounts, tokens, timestamp, tagsCount)
 	}
 
-	return tokens
+	return tokens, tagsCount
 }
 
-func (np *nftsProcessor) processNFTOperationLog(txLog nodeData.LogHandler, accounts data.AlteredAccountsHandler, tokens data.TokensHandler, timestamp uint64) {
+func (np *nftsProcessor) processNFTOperationLog(
+	txLog nodeData.LogHandler,
+	accounts data.AlteredAccountsHandler,
+	tokens data.TokensHandler,
+	timestamp uint64,
+	tagsCount tags.CountTags,
+) {
 	events := txLog.GetLogEvents()
 	if len(events) == 0 {
 		return
 	}
 
 	for _, event := range events {
-		np.processEvent(event, accounts, tokens, timestamp)
+		np.processEvent(event, accounts, tokens, timestamp, tagsCount)
 	}
 }
 
-func (np *nftsProcessor) processEvent(event nodeData.EventHandler, accounts data.AlteredAccountsHandler, tokens data.TokensHandler, timestamp uint64) {
+func (np *nftsProcessor) processEvent(
+	event nodeData.EventHandler,
+	accounts data.AlteredAccountsHandler,
+	tokens data.TokensHandler,
+	timestamp uint64,
+	tagsCount tags.CountTags,
+) {
 	_, ok := np.nftOperationsIdentifiers[string(event.GetIdentifier())]
 	if !ok {
 		return
@@ -79,7 +93,7 @@ func (np *nftsProcessor) processEvent(event nodeData.EventHandler, accounts data
 	sender := event.GetAddress()
 
 	if np.shardCoordinator.ComputeId(sender) == np.shardCoordinator.SelfId() {
-		np.processNFTEventOnSender(event, accounts, tokens, timestamp)
+		np.processNFTEventOnSender(event, accounts, tokens, timestamp, tagsCount)
 	}
 
 	// topics contains:
@@ -108,7 +122,13 @@ func (np *nftsProcessor) processEvent(event nodeData.EventHandler, accounts data
 	return
 }
 
-func (np *nftsProcessor) processNFTEventOnSender(event nodeData.EventHandler, accounts data.AlteredAccountsHandler, tokensCreateInfo data.TokensHandler, timestamp uint64) {
+func (np *nftsProcessor) processNFTEventOnSender(
+	event nodeData.EventHandler,
+	accounts data.AlteredAccountsHandler,
+	tokensCreateInfo data.TokensHandler,
+	timestamp uint64,
+	tagsCount tags.CountTags,
+) {
 	sender := event.GetAddress()
 	topics := event.GetTopics()
 	token := string(topics[0])
@@ -135,10 +155,15 @@ func (np *nftsProcessor) processNFTEventOnSender(event nodeData.EventHandler, ac
 		return
 	}
 
+	tokenMetaData := converters.PrepareTokenMetaData(np.pubKeyConverter, esdtToken)
 	tokensCreateInfo.Add(&data.TokenInfo{
 		Token:      token,
 		Identifier: converters.ComputeTokenIdentifier(token, nonceBig.Uint64()),
 		Timestamp:  time.Duration(timestamp),
-		MetaData:   converters.PrepareTokenMetaData(np.pubKeyConverter, esdtToken),
+		MetaData:   tokenMetaData,
 	})
+
+	if tokenMetaData != nil {
+		tagsCount.ParseTagsFromAttributes(tokenMetaData.Attributes)
+	}
 }
