@@ -10,7 +10,6 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/core/vmcommon"
 	"github.com/ElrondNetwork/elrond-go/data/block"
 	"github.com/ElrondNetwork/elrond-go/data/rewardTx"
 	"github.com/ElrondNetwork/elrond-go/data/smartContractResult"
@@ -107,7 +106,7 @@ func TestGetTransactionByType_SC(t *testing.T) {
 		Data:       []byte(""),
 		SndAddr:    sndAddr,
 		RcvAddr:    rcvAddr,
-		CallType:   vmcommon.CallType(1),
+		CallType:   1,
 	}
 	header := &block.Header{TimeStamp: 100}
 

@@ -3,7 +3,7 @@ package transactions
 import (
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-go/core/parsers"
+	"github.com/ElrondNetwork/elrond-vm-common/parsers"
 	"github.com/stretchr/testify/require"
 )
 
