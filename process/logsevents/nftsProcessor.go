@@ -45,12 +45,13 @@ func (np *nftsProcessor) processLogAndEventsNFTs(
 	accounts data.AlteredAccountsHandler,
 	timestamp uint64,
 ) (data.TokensHandler, tags.CountTags) {
-	if logsAndEvents == nil || accounts == nil {
-		return data.NewTokensInfo(), tags.NewTagsCount()
-	}
-
 	tagsCount := tags.NewTagsCount()
 	tokens := data.NewTokensInfo()
+
+	if logsAndEvents == nil || accounts == nil {
+		return tokens, tagsCount
+	}
+
 	for _, txLog := range logsAndEvents {
 		if check.IfNil(txLog) {
 			continue

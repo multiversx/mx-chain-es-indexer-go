@@ -8,6 +8,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 )
 
+// SerializeLogs will serialize the provided logs in a way that Elastic Search expects a bulk request
 func (logsAndEventsProcessor) SerializeLogs(logs []*data.Logs) ([]*bytes.Buffer, error) {
 	buffSlice := data.NewBufferSlice()
 	for _, log := range logs {

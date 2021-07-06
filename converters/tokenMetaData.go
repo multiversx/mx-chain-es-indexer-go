@@ -2,13 +2,18 @@ package converters
 
 import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elrond-go-logger/check"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-vm-common/data/esdt"
 )
 
 // PrepareTokenMetaData will prepare the token metadata in a friendly format for database
 func PrepareTokenMetaData(pubKeyConverter core.PubkeyConverter, esdtInfo *esdt.ESDigitalToken) *data.TokenMetaData {
-	if esdtInfo.TokenMetaData == nil {
+	if check.IfNil(pubKeyConverter) {
+		return nil
+	}
+
+	if esdtInfo == nil || esdtInfo.TokenMetaData == nil {
 		return nil
 	}
 

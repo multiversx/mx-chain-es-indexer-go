@@ -40,7 +40,7 @@ func NewLogsAndEventsProcessor(
 	}, nil
 }
 
-// ExtractDataFromLogsAndPutInAltered will extract information from provided logs and events and put in altered address
+// ExtractDataFromLogsAndPutInAltered will extract data from the provided logs and events and put in altered addresses
 func (lep *logsAndEventsProcessor) ExtractDataFromLogsAndPutInAltered(
 	logsAndEvents map[string]nodeData.LogHandler,
 	accounts data.AlteredAccountsHandler,
@@ -58,13 +58,13 @@ func (lep *logsAndEventsProcessor) PrepareLogsForDB(logsAndEvents map[string]nod
 			continue
 		}
 
-		logs = append(logs, lep.prepareLogForDB(txHash, log))
+		logs = append(logs, lep.prepareLogsForDB(txHash, log))
 	}
 
 	return logs
 }
 
-func (lep *logsAndEventsProcessor) prepareLogForDB(id string, logHandler nodeData.LogHandler) *data.Logs {
+func (lep *logsAndEventsProcessor) prepareLogsForDB(id string, logHandler nodeData.LogHandler) *data.Logs {
 	events := logHandler.GetLogEvents()
 	logsDB := &data.Logs{
 		ID:      hex.EncodeToString([]byte(id)),

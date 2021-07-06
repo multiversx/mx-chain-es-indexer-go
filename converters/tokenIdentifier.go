@@ -6,7 +6,7 @@ import (
 	"math/big"
 )
 
-// ComputeTokenIdentifier will compute token identifier based on the token string and the nonce
+// ComputeTokenIdentifier will compute the token identifier based on the token string and the nonce
 func ComputeTokenIdentifier(token string, nonce uint64) string {
 	if token == "" || nonce == 0 {
 		return ""

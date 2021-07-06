@@ -50,7 +50,8 @@ func (aa *alteredAccounts) Add(key string, account *AlteredAccount) {
 		newElementIsTokenOperation := account.IsESDTOperation || account.IsNFTOperation
 		oldElementIsTokenOperation := elem.IsESDTOperation || elem.IsNFTOperation
 
-		if elem.IsSender || account.IsSender {
+		isSender := elem.IsSender || account.IsSender
+		if isSender {
 			senderCount++
 		}
 
@@ -60,7 +61,7 @@ func (aa *alteredAccounts) Add(key string, account *AlteredAccount) {
 			elem.NFTNonce = account.NFTNonce
 			elem.IsNFTOperation = account.IsNFTOperation
 			elem.IsESDTOperation = account.IsESDTOperation
-			elem.IsSender = elem.IsSender || account.IsSender
+			elem.IsSender = isSender
 			elem.Type = account.Type
 			return
 		}
