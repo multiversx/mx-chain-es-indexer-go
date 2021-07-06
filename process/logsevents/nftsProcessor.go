@@ -165,6 +165,6 @@ func (np *nftsProcessor) processNFTEventOnSender(
 	})
 
 	if tokenMetaData != nil {
-		tagsCount.ParseTagsFromAttributes(tokenMetaData.Attributes)
+		tagsCount.ParseTags(tokenMetaData.Tags)
 	}
 }

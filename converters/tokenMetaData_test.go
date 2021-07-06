@@ -16,15 +16,13 @@ func TestPrepareTokenMetaData(t *testing.T) {
 	require.Nil(t, PrepareTokenMetaData(&mock.PubkeyConverterMock{}, nil))
 
 	require.Equal(t, &data.TokenMetaData{
-		Name:      "token",
-		Creator:   "63726561746f72",
-		Royalties: 0,
-		Hash:      []byte("hash"),
-		URIs:      nil,
-		Attributes: &data.Attributes{
-			"tags":        []string{"test", "free", "fun"},
-			"description": []string{"This is a test description for an awesome nft"},
-		},
+		Name:       "token",
+		Creator:    "63726561746f72",
+		Royalties:  0,
+		Hash:       []byte("hash"),
+		URIs:       nil,
+		Attributes: []byte("tags:test,free,fun;description:This is a test description for an awesome nft"),
+		Tags:       []string{"test", "free", "fun"},
 	}, PrepareTokenMetaData(&mock.PubkeyConverterMock{}, &esdt.ESDigitalToken{
 		TokenMetaData: &esdt.MetaData{
 			Nonce:      2,

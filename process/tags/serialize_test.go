@@ -3,7 +3,6 @@ package tags
 import (
 	"testing"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/stretchr/testify/require"
 )
 
@@ -12,12 +11,8 @@ func TestTagsCount_Serialize(t *testing.T) {
 
 	tagsC := NewTagsCount()
 
-	attributes := &data.Attributes{
-		"tags": []string{"Art"},
-	}
-
-	tagsC.ParseTagsFromAttributes(attributes)
-	tagsC.ParseTagsFromAttributes(attributes)
+	tagsC.ParseTags([]string{"Art"})
+	tagsC.ParseTags([]string{"Art"})
 
 	buff, err := tagsC.Serialize()
 	require.Nil(t, err)

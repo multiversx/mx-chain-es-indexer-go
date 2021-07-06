@@ -2,18 +2,12 @@ package tags
 
 import (
 	"bytes"
-
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
-)
-
-const (
-	tagsKey = "tags"
 )
 
 // CountTags defines what a TagCount handler should be able to do
 type CountTags interface {
 	Serialize() ([]*bytes.Buffer, error)
-	ParseTagsFromAttributes(attributes *data.Attributes)
+	ParseTags(attributes []string)
 	GetTags() []string
 	Len() int
 }
@@ -44,21 +38,15 @@ func (tc *tagsCount) GetTags() []string {
 	return tags
 }
 
-// ParseTagsFromAttributes will parse all the tags from the provided attributes
-func (tc *tagsCount) ParseTagsFromAttributes(attributes *data.Attributes) {
-	if attributes == nil {
+// ParseTags will parse all the tags
+func (tc *tagsCount) ParseTags(tags []string) {
+	if tags == nil {
 		return
 	}
 
-	for key, tags := range *attributes {
-		if key != tagsKey {
-			continue
-		}
-
-		newTags := removeDuplicatedTags(tags)
-		for _, tag := range newTags {
-			tc.tags[tag]++
-		}
+	newTags := removeDuplicatedTags(tags)
+	for _, tag := range newTags {
+		tc.tags[tag]++
 	}
 }
 

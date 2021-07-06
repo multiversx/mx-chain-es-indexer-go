@@ -3,6 +3,7 @@ package accounts
 import (
 	"testing"
 
+	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/stretchr/testify/require"
@@ -104,7 +105,8 @@ func TestSerializeAccountsNFTWithMedaData(t *testing.T) {
 				URIs: [][]byte{
 					[]byte("uri"),
 				},
-				Attributes: data.NewAttributesDTO([]byte("tags:test,free,fun;description:This is a test description for an awesome nft")),
+				Attributes: []byte("tags:test,free,fun;description:This is a test description for an awesome nft"),
+				Tags:       converters.ExtractTagsFromAttributes([]byte("tags:test,free,fun;description:This is a test description for an awesome nft")),
 			},
 		},
 	}
@@ -114,7 +116,7 @@ func TestSerializeAccountsNFTWithMedaData(t *testing.T) {
 	require.Equal(t, 1, len(res))
 
 	expectedRes := `{ "index" : { "_id" : "addr1-token-0001-5" } }
-{"address":"addr1","nonce":1,"balance":"10000000000000","balanceNum":1,"token":"token-0001","identifier":"token-0001-5","tokenNonce":5,"properties":"000","metaData":{"name":"nft","creator":"010101","royalties":1,"hash":"aGFzaA==","uris":["dXJp"],"attributes":{"description":["This is a test description for an awesome nft"],"tags":["test","free","fun"]}}}
+{"address":"addr1","nonce":1,"balance":"10000000000000","balanceNum":1,"token":"token-0001","identifier":"token-0001-5","tokenNonce":5,"properties":"000","metaData":{"name":"nft","creator":"010101","royalties":1,"hash":"aGFzaA==","uris":["dXJp"],"tags":["test","free","fun"],"attributes":"dGFnczp0ZXN0LGZyZWUsZnVuO2Rlc2NyaXB0aW9uOlRoaXMgaXMgYSB0ZXN0IGRlc2NyaXB0aW9uIGZvciBhbiBhd2Vzb21lIG5mdA=="}}
 `
 	require.Equal(t, expectedRes, res[0].String())
 }
