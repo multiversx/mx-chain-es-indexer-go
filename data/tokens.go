@@ -28,7 +28,7 @@ type TokenInfo struct {
 	Issuer     string         `json:"issuer,omitempty"`
 	Type       string         `json:"type,omitempty"`
 	Timestamp  time.Duration  `json:"timestamp,omitempty"`
-	MetaData   *TokenMetaData `json:"metaData,omitempty"`
+	Data       *TokenMetaData `json:"data,omitempty"`
 }
 
 // TokensHandler defines the actions that an tokens handler should do

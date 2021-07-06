@@ -20,7 +20,7 @@ type AccountInfo struct {
 	IsSmartContract          bool           `json:"-"`
 	TotalBalanceWithStake    string         `json:"totalBalanceWithStake,omitempty"`
 	TotalBalanceWithStakeNum float64        `json:"totalBalanceWithStakeNum,omitempty"`
-	MetaData                 *TokenMetaData `json:"metaData,omitempty"`
+	Data                     *TokenMetaData `json:"data,omitempty"`
 }
 
 // TokenMetaData holds data about a token metadata
@@ -32,6 +32,7 @@ type TokenMetaData struct {
 	URIs       [][]byte `json:"uris,omitempty"`
 	Tags       []string `json:"tags,omitempty"`
 	Attributes []byte   `json:"attributes,omitempty"`
+	MetaData   string   `json:"metadata,omitempty"`
 }
 
 // AccountBalanceHistory represents an entry in the user accounts balances history

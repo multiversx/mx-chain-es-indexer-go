@@ -161,7 +161,7 @@ func (np *nftsProcessor) processNFTEventOnSender(
 		Token:      token,
 		Identifier: converters.ComputeTokenIdentifier(token, nonceBig.Uint64()),
 		Timestamp:  time.Duration(timestamp),
-		MetaData:   tokenMetaData,
+		Data:       tokenMetaData,
 	})
 
 	if tokenMetaData != nil {

@@ -35,5 +35,6 @@ func PrepareTokenMetaData(pubKeyConverter core.PubkeyConverter, esdtInfo *esdt.E
 		URIs:       uris,
 		Attributes: esdtInfo.TokenMetaData.Attributes,
 		Tags:       ExtractTagsFromAttributes(esdtInfo.TokenMetaData.Attributes),
+		MetaData:   ExtractMetaDataFromAttributes(esdtInfo.TokenMetaData.Attributes),
 	}
 }

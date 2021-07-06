@@ -14,7 +14,7 @@ var AccountsESDT = Object{
 			"balanceNum": Object{
 				"type": "double",
 			},
-			"metaData": Object{
+			"data": Object{
 				"type": "nested",
 				"properties": Object{
 					"name": Object{
@@ -27,6 +27,9 @@ var AccountsESDT = Object{
 						"type": "text",
 					},
 					"attributes": Object{
+						"type": "text",
+					},
+					"metadata": Object{
 						"type": "text",
 					},
 				},

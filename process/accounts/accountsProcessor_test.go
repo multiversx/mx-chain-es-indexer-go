@@ -406,7 +406,7 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 			TokenIdentifier: "token-0f",
 			Properties:      hex.EncodeToString([]byte("ok")),
 			TokenNonce:      15,
-			MetaData: &data.TokenMetaData{
+			Data: &data.TokenMetaData{
 				Creator: "63726561746f72",
 			},
 		},

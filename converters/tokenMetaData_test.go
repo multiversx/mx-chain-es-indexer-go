@@ -21,8 +21,9 @@ func TestPrepareTokenMetaData(t *testing.T) {
 		Royalties:  0,
 		Hash:       []byte("hash"),
 		URIs:       nil,
-		Attributes: []byte("tags:test,free,fun;description:This is a test description for an awesome nft"),
+		Attributes: []byte("tags:test,free,fun;description:This is a test description for an awesome nft;metadata:metadata-test"),
 		Tags:       []string{"test", "free", "fun"},
+		MetaData:   "metadata-test",
 	}, PrepareTokenMetaData(&mock.PubkeyConverterMock{}, &esdt.ESDigitalToken{
 		TokenMetaData: &esdt.MetaData{
 			Nonce:      2,
@@ -31,7 +32,7 @@ func TestPrepareTokenMetaData(t *testing.T) {
 			Royalties:  0,
 			Hash:       []byte("hash"),
 			URIs:       nil,
-			Attributes: []byte("tags:test,free,fun;description:This is a test description for an awesome nft"),
+			Attributes: []byte("tags:test,free,fun;description:This is a test description for an awesome nft;metadata:metadata-test"),
 		},
 	}))
 }

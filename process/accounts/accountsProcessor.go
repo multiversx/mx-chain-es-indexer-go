@@ -184,7 +184,7 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(
 			Properties:      properties,
 			IsSender:        accountESDT.IsSender,
 			IsSmartContract: core.IsSmartContractAddress(accountESDT.Account.AddressBytes()),
-			MetaData:        tokenMetaData,
+			Data:            tokenMetaData,
 		}
 
 		accountsESDTMap[address] = acc

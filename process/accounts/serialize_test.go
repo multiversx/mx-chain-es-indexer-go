@@ -16,7 +16,7 @@ func TestSerializeNFTCreateInfo(t *testing.T) {
 		{
 			Token:      "my-token-0001",
 			Identifier: "my-token-001-0f",
-			MetaData: &data.TokenMetaData{
+			Data: &data.TokenMetaData{
 				Creator: "010102",
 			},
 			Type: core.NonFungibleESDT,
@@ -28,7 +28,7 @@ func TestSerializeNFTCreateInfo(t *testing.T) {
 	require.Equal(t, 1, len(res))
 
 	expectedRes := `{ "index" : { "_id" : "my-token-001-0f" } }
-{"identifier":"my-token-001-0f","token":"my-token-0001","type":"NonFungibleESDT","metaData":{"creator":"010102"}}
+{"identifier":"my-token-001-0f","token":"my-token-0001","type":"NonFungibleESDT","data":{"creator":"010102"}}
 `
 	require.Equal(t, expectedRes, res[0].String())
 }
@@ -97,7 +97,7 @@ func TestSerializeAccountsNFTWithMedaData(t *testing.T) {
 			Balance:         "10000000000000",
 			BalanceNum:      1,
 			TokenIdentifier: "token-0001-5",
-			MetaData: &data.TokenMetaData{
+			Data: &data.TokenMetaData{
 				Name:      "nft",
 				Creator:   "010101",
 				Royalties: 1,
@@ -107,6 +107,7 @@ func TestSerializeAccountsNFTWithMedaData(t *testing.T) {
 				},
 				Attributes: []byte("tags:test,free,fun;description:This is a test description for an awesome nft"),
 				Tags:       converters.ExtractTagsFromAttributes([]byte("tags:test,free,fun;description:This is a test description for an awesome nft")),
+				MetaData:   "metadata-test",
 			},
 		},
 	}
@@ -116,7 +117,7 @@ func TestSerializeAccountsNFTWithMedaData(t *testing.T) {
 	require.Equal(t, 1, len(res))
 
 	expectedRes := `{ "index" : { "_id" : "addr1-token-0001-5" } }
-{"address":"addr1","nonce":1,"balance":"10000000000000","balanceNum":1,"token":"token-0001","identifier":"token-0001-5","tokenNonce":5,"properties":"000","metaData":{"name":"nft","creator":"010101","royalties":1,"hash":"aGFzaA==","uris":["dXJp"],"tags":["test","free","fun"],"attributes":"dGFnczp0ZXN0LGZyZWUsZnVuO2Rlc2NyaXB0aW9uOlRoaXMgaXMgYSB0ZXN0IGRlc2NyaXB0aW9uIGZvciBhbiBhd2Vzb21lIG5mdA=="}}
+{"address":"addr1","nonce":1,"balance":"10000000000000","balanceNum":1,"token":"token-0001","identifier":"token-0001-5","tokenNonce":5,"properties":"000","data":{"name":"nft","creator":"010101","royalties":1,"hash":"aGFzaA==","uris":["dXJp"],"tags":["test","free","fun"],"attributes":"dGFnczp0ZXN0LGZyZWUsZnVuO2Rlc2NyaXB0aW9uOlRoaXMgaXMgYSB0ZXN0IGRlc2NyaXB0aW9uIGZvciBhbiBhd2Vzb21lIG5mdA==","metadata":"metadata-test"}}
 `
 	require.Equal(t, expectedRes, res[0].String())
 }

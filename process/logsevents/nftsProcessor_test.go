@@ -57,7 +57,7 @@ func TestNftsProcessor_processLogAndEventsNFTs(t *testing.T) {
 		Token:      "my-token",
 		Timestamp:  1000,
 		Issuer:     "",
-		MetaData: &data.TokenMetaData{
+		Data: &data.TokenMetaData{
 			Creator: hex.EncodeToString([]byte("creator")),
 		},
 	}, tokensCreateInfo.GetAll()[0])
