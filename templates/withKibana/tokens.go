@@ -24,13 +24,11 @@ var Tokens = Object{
 					"creator": Object{
 						"type": "text",
 					},
+					"tags": Object{
+						"type": "text",
+					},
 					"attributes": Object{
-						"type": "nested",
-						"properties": Object{
-							"tags": Object{
-								"type": "text",
-							},
-						},
+						"type": "text",
 					},
 				},
 			},

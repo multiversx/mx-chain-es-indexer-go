@@ -1,5 +1,6 @@
 package withKibana
 
+// AccountsESDT will hold the configuration for the accountsesdt index
 var AccountsESDT = Object{
 	"index_patterns": Array{
 		"accountsesdt-*",
@@ -7,7 +8,6 @@ var AccountsESDT = Object{
 	"settings": Object{
 		"number_of_shards":   3,
 		"number_of_replicas": 0,
-		"opendistro.index_state_management.rollover_alias": "accountsesdt",
 	},
 	"mappings": Object{
 		"properties": Object{
@@ -23,13 +23,11 @@ var AccountsESDT = Object{
 					"creator": Object{
 						"type": "text",
 					},
+					"tags": Object{
+						"type": "text",
+					},
 					"attributes": Object{
-						"type": "nested",
-						"properties": Object{
-							"tags": Object{
-								"type": "text",
-							},
-						},
+						"type": "text",
 					},
 				},
 			},
