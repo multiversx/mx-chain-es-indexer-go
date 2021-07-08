@@ -16,6 +16,7 @@ import (
 type logsAndEventsProcessor struct {
 	pubKeyConverter core.PubkeyConverter
 	nftsProc        *nftsProcessor
+	fungibleProc    *fungibleESDTProcessor
 }
 
 // NewLogsAndEventsProcessor will create a new instance for the logsAndEventsProcessor
@@ -37,16 +38,19 @@ func NewLogsAndEventsProcessor(
 	return &logsAndEventsProcessor{
 		pubKeyConverter: pubKeyConverter,
 		nftsProc:        newNFTsProcessor(shardCoordinator, pubKeyConverter, marshalizer),
+		fungibleProc:    newFungibleESDTProcessor(pubKeyConverter, shardCoordinator),
 	}, nil
 }
 
 // ExtractDataFromLogsAndPutInAltered will extract data from the provided logs and events and put in altered addresses
 func (lep *logsAndEventsProcessor) ExtractDataFromLogsAndPutInAltered(
 	logsAndEvents map[string]nodeData.LogHandler,
-	accounts data.AlteredAccountsHandler,
+	preparedResults *data.PreparedResults,
 	timestamp uint64,
 ) (data.TokensHandler, tags.CountTags) {
-	return lep.nftsProc.processLogAndEventsNFTs(logsAndEvents, accounts, timestamp)
+	lep.fungibleProc.processLogsAndEventsESDT(logsAndEvents, preparedResults.AlteredAccts, preparedResults.Transactions, preparedResults.ScResults)
+
+	return lep.nftsProc.processLogAndEventsNFTs(logsAndEvents, preparedResults.AlteredAccts, timestamp)
 }
 
 // PrepareLogsForDB will prepare logs for database

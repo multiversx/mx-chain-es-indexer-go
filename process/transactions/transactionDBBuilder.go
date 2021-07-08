@@ -19,7 +19,6 @@ import (
 )
 
 type dbTransactionBuilder struct {
-	esdtProc               *esdtTransactionProcessor
 	addressPubkeyConverter core.PubkeyConverter
 	shardCoordinator       sharding.Coordinator
 	txFeeCalculator        process.TransactionFeeCalculator
@@ -30,10 +29,7 @@ func newTransactionDBBuilder(
 	shardCoordinator sharding.Coordinator,
 	txFeeCalculator process.TransactionFeeCalculator,
 ) *dbTransactionBuilder {
-	esdtProc := newEsdtTransactionHandler(addressPubkeyConverter, shardCoordinator)
-
 	return &dbTransactionBuilder{
-		esdtProc:               esdtProc,
 		addressPubkeyConverter: addressPubkeyConverter,
 		shardCoordinator:       shardCoordinator,
 		txFeeCalculator:        txFeeCalculator,
@@ -48,12 +44,6 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 	header nodeData.HeaderHandler,
 	txStatus string,
 ) *data.Transaction {
-	var tokenIdentifier string
-	isESDTTx := dtb.esdtProc.isESDTTx(tx.Data)
-	if isESDTTx {
-		tokenIdentifier = dtb.esdtProc.getTokenIdentifier(tx.Data)
-	}
-
 	gasUsed := dtb.txFeeCalculator.ComputeGasLimit(tx)
 	fee := dtb.txFeeCalculator.ComputeTxFeeBasedOnGasUsed(tx, gasUsed)
 
@@ -75,7 +65,6 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		Signature:            hex.EncodeToString(tx.Signature),
 		Timestamp:            time.Duration(header.GetTimeStamp()),
 		Status:               txStatus,
-		EsdtTokenIdentifier:  tokenIdentifier,
 		GasUsed:              gasUsed,
 		Fee:                  fee.String(),
 		ReceiverUserName:     tx.RcvUserName,
@@ -122,37 +111,29 @@ func (dtb *dbTransactionBuilder) prepareSmartContractResult(
 		relayerAddr = dtb.addressPubkeyConverter.Encode(sc.RelayerAddr)
 	}
 
-	var tokenIdentifier string
-
-	isESDTTx := dtb.esdtProc.isESDTTx(sc.Data)
-	if isESDTTx {
-		tokenIdentifier = dtb.esdtProc.getTokenIdentifier(sc.Data)
-	}
-
 	relayedValue := ""
 	if sc.RelayedValue != nil {
 		relayedValue = sc.RelayedValue.String()
 	}
 
 	return &data.ScResult{
-		Hash:                hex.EncodeToString([]byte(scHash)),
-		Nonce:               sc.Nonce,
-		GasLimit:            sc.GasLimit,
-		GasPrice:            sc.GasPrice,
-		Value:               sc.Value.String(),
-		Sender:              dtb.addressPubkeyConverter.Encode(sc.SndAddr),
-		Receiver:            dtb.addressPubkeyConverter.Encode(sc.RcvAddr),
-		RelayerAddr:         relayerAddr,
-		RelayedValue:        relayedValue,
-		Code:                string(sc.Code),
-		Data:                sc.Data,
-		PrevTxHash:          hex.EncodeToString(sc.PrevTxHash),
-		OriginalTxHash:      hex.EncodeToString(sc.OriginalTxHash),
-		CallType:            strconv.Itoa(int(sc.CallType)),
-		CodeMetadata:        sc.CodeMetadata,
-		ReturnMessage:       string(sc.ReturnMessage),
-		EsdtTokenIdentifier: tokenIdentifier,
-		Timestamp:           time.Duration(header.GetTimeStamp()),
+		Hash:           hex.EncodeToString([]byte(scHash)),
+		Nonce:          sc.Nonce,
+		GasLimit:       sc.GasLimit,
+		GasPrice:       sc.GasPrice,
+		Value:          sc.Value.String(),
+		Sender:         dtb.addressPubkeyConverter.Encode(sc.SndAddr),
+		Receiver:       dtb.addressPubkeyConverter.Encode(sc.RcvAddr),
+		RelayerAddr:    relayerAddr,
+		RelayedValue:   relayedValue,
+		Code:           string(sc.Code),
+		Data:           sc.Data,
+		PrevTxHash:     hex.EncodeToString(sc.PrevTxHash),
+		OriginalTxHash: hex.EncodeToString(sc.OriginalTxHash),
+		CallType:       strconv.Itoa(int(sc.CallType)),
+		CodeMetadata:   sc.CodeMetadata,
+		ReturnMessage:  string(sc.ReturnMessage),
+		Timestamp:      time.Duration(header.GetTimeStamp()),
 	}
 }
 
@@ -182,30 +163,14 @@ func (dtb *dbTransactionBuilder) addScrsReceiverToAlteredAccounts(
 			continue
 		}
 
-		egldBalanceNotChanged := scr.Value == emptyString || scr.Value == "0"
-		esdtBalanceNotChanged := scr.EsdtTokenIdentifier == emptyString
-		if egldBalanceNotChanged && esdtBalanceNotChanged {
+		egldBalanceNotChanged := scr.Value == "" || scr.Value == "0"
+		if egldBalanceNotChanged {
 			// the smart contract results that don't alter the balance of the receiver address should be ignored
 			continue
 		}
-		encodedReceiverAddress := scr.Receiver
 
-		isESDTScr := dtb.esdtProc.isESDTTx(scr.Data)
-
-		isMeta := dtb.shardCoordinator.SelfId() == core.MetachainShardId
-		isESDTScrNotDestinationMeta := isESDTScr && !isMeta
-
-		shouldAddSender := isESDTScrNotDestinationMeta && dtb.isInSameShard(scr.Sender)
-		if shouldAddSender {
-			alteredAccounts.Add(scr.Sender, &data.AlteredAccount{
-				IsESDTOperation: isESDTScrNotDestinationMeta,
-				TokenIdentifier: scr.EsdtTokenIdentifier,
-			})
-		}
-
-		alteredAccounts.Add(encodedReceiverAddress, &data.AlteredAccount{
-			IsESDTOperation: isESDTScrNotDestinationMeta,
-			TokenIdentifier: scr.EsdtTokenIdentifier,
+		alteredAccounts.Add(scr.Receiver, &data.AlteredAccount{
+			IsSender: false,
 		})
 	}
 }

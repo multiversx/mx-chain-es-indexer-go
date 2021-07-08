@@ -251,13 +251,9 @@ func (tg *txsGrouper) addToAlteredAddresses(
 	selfShardID uint32,
 	isRewardTx bool,
 ) {
-	isESDTTx := tg.txBuilder.esdtProc.isESDTTx(tx.Data)
-	isESDTNotInvalid := isESDTTx && miniBlock.Type != block.InvalidBlock
 	if selfShardID == miniBlock.SenderShardID && !isRewardTx {
 		alteredAccounts.Add(tx.Sender, &data.AlteredAccount{
-			IsSender:        true,
-			IsESDTOperation: isESDTNotInvalid,
-			TokenIdentifier: tx.EsdtTokenIdentifier,
+			IsSender: true,
 		})
 	}
 
@@ -266,13 +262,9 @@ func (tg *txsGrouper) addToAlteredAddresses(
 		return
 	}
 
-	isMeta := selfShardID == core.MetachainShardId
-	isESDTNotDestinationMeta := isESDTNotInvalid && !isMeta
 	if selfShardID == miniBlock.ReceiverShardID || miniBlock.ReceiverShardID == core.AllShardId {
 		alteredAccounts.Add(tx.Receiver, &data.AlteredAccount{
-			IsSender:        false,
-			IsESDTOperation: isESDTNotDestinationMeta,
-			TokenIdentifier: tx.EsdtTokenIdentifier,
+			IsSender: false,
 		})
 	}
 }

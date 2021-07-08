@@ -31,7 +31,6 @@ func createCommonProcessor() dbTransactionBuilder {
 			},
 		},
 		shardCoordinator: &mock.ShardCoordinatorMock{},
-		esdtProc:         newEsdtTransactionHandler(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{}),
 	}
 }
 
@@ -168,14 +167,12 @@ func TestAddScrsReceiverToAlteredAccounts_ShouldWork(t *testing.T) {
 			Receiver:            "020202",
 			EsdtTokenIdentifier: "my-token",
 			Data:                []byte("ESDTTransfer@544b4e2d626231323061@010f0cf064dd59200000"),
+			Value:               "1",
 		},
 	}
 	txBuilder.addScrsReceiverToAlteredAccounts(alteredAddress, scrs)
-	require.Equal(t, 2, alteredAddress.Len())
+	require.Equal(t, 1, alteredAddress.Len())
 
-	_, ok := alteredAddress.Get("010101")
-	require.True(t, ok)
-
-	_, ok = alteredAddress.Get("020202")
+	_, ok := alteredAddress.Get("020202")
 	require.True(t, ok)
 }

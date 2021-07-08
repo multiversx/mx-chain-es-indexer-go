@@ -400,13 +400,12 @@ func (ei *elasticProcessor) SaveTransactions(
 	mbsInDb map[string]bool,
 ) error {
 	preparedResults := ei.transactionsProc.PrepareTransactionsForDatabase(body, header, pool)
+	nftCreateTokenInfo, tagsCount := ei.logsAndEventsProc.ExtractDataFromLogsAndPutInAltered(pool.Logs, preparedResults, header.GetTimeStamp())
 
 	err := ei.indexTransactions(preparedResults.Transactions, header, mbsInDb)
 	if err != nil {
 		return err
 	}
-
-	nftCreateTokenInfo, tagsCount := ei.logsAndEventsProc.ExtractDataFromLogsAndPutInAltered(pool.Logs, preparedResults.AlteredAccts, header.GetTimeStamp())
 
 	err = ei.prepareAndIndexTagsCount(tagsCount)
 	if err != nil {
