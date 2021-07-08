@@ -394,9 +394,9 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 	require.NotNil(t, ap)
 
 	accountsESDT := []*data.AccountESDT{
-		{Account: mockAccount, TokenIdentifier: "token", IsNFTCreate: true, IsNFTOperation: true, NFTNonce: 15},
+		{Account: mockAccount, TokenIdentifier: "token", IsNFTOperation: true, NFTNonce: 15},
 	}
-	res, createsInfo, _ := ap.PrepareAccountsMapESDT(accountsESDT, 1000)
+	res := ap.PrepareAccountsMapESDT(accountsESDT)
 	require.Equal(t, map[string]*data.AccountInfo{
 		hex.EncodeToString([]byte(addr)): {
 			Address:         hex.EncodeToString([]byte(addr)),
@@ -406,22 +406,11 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 			TokenIdentifier: "token-0f",
 			Properties:      hex.EncodeToString([]byte("ok")),
 			TokenNonce:      15,
-			MetaData: &data.TokenMetaData{
+			Data: &data.TokenMetaData{
 				Creator: "63726561746f72",
 			},
 		},
 	}, res)
-
-	require.Equal(t, []*data.TokenInfo{
-		{
-			Timestamp:  1000,
-			Token:      "token",
-			Identifier: "token-0f",
-			MetaData: &data.TokenMetaData{
-				Creator: "63726561746f72",
-			},
-		},
-	}, createsInfo.GetAll())
 }
 
 func TestAccountsProcessor_PrepareAccountsHistory(t *testing.T) {

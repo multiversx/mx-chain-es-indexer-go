@@ -30,7 +30,7 @@ var (
 	indexes = []string{
 		elasticIndexer.TransactionsIndex, elasticIndexer.BlockIndex, elasticIndexer.MiniblocksIndex, elasticIndexer.TpsIndex, elasticIndexer.RatingIndex, elasticIndexer.RoundsIndex, elasticIndexer.ValidatorsIndex,
 		elasticIndexer.AccountsIndex, elasticIndexer.AccountsHistoryIndex, elasticIndexer.ReceiptsIndex, elasticIndexer.ScResultsIndex, elasticIndexer.AccountsESDTHistoryIndex, elasticIndexer.AccountsESDTIndex,
-		elasticIndexer.EpochInfoIndex, elasticIndexer.SCDeploysIndex, elasticIndexer.TokensIndex, elasticIndexer.TagsIndex,
+		elasticIndexer.EpochInfoIndex, elasticIndexer.SCDeploysIndex, elasticIndexer.TokensIndex, elasticIndexer.TagsIndex, elasticIndexer.LogsIndex,
 	}
 )
 
@@ -406,7 +406,22 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
-	ei.logsAndEventsProc.ProcessLogsAndEvents(pool.Logs, preparedResults.AlteredAccts)
+	nftCreateTokenInfo, tagsCount := ei.logsAndEventsProc.ExtractDataFromLogsAndPutInAltered(pool.Logs, preparedResults.AlteredAccts, header.GetTimeStamp())
+
+	err = ei.prepareAndIndexTagsCount(tagsCount)
+	if err != nil {
+		return err
+	}
+
+	err = ei.indexNFTCreateInfo(nftCreateTokenInfo)
+	if err != nil {
+		return err
+	}
+
+	err = ei.prepareAndIndexLogs(pool.Logs)
+	if err != nil {
+		return err
+	}
 
 	err = ei.indexScResults(preparedResults.ScResults)
 	if err != nil {
@@ -429,6 +444,20 @@ func (ei *elasticProcessor) SaveTransactions(
 	}
 
 	return ei.indexScDeploys(preparedResults.DeploysInfo)
+}
+
+func (ei *elasticProcessor) prepareAndIndexLogs(logsAndEvents map[string]nodeData.LogHandler) error {
+	if !ei.isIndexEnabled(elasticIndexer.LogsIndex) {
+		return nil
+	}
+
+	logsDB := ei.logsAndEventsProc.PrepareLogsForDB(logsAndEvents)
+	buffSlice, err := ei.logsAndEventsProc.SerializeLogs(logsDB)
+	if err != nil {
+		return err
+	}
+
+	return ei.doBulkRequests(elasticIndexer.LogsIndex, buffSlice)
 }
 
 func (ei *elasticProcessor) indexTokens(tokensData []*data.TokenInfo) error {
@@ -548,18 +577,8 @@ func (ei *elasticProcessor) indexAlteredAccounts(timestamp uint64, alteredAccoun
 }
 
 func (ei *elasticProcessor) saveAccountsESDT(timestamp uint64, wrappedAccounts []*data.AccountESDT) error {
-	accountsESDTMap, nftCreateTokenInfo, tagsCount := ei.accountsProc.PrepareAccountsMapESDT(wrappedAccounts, timestamp)
+	accountsESDTMap := ei.accountsProc.PrepareAccountsMapESDT(wrappedAccounts)
 	err := ei.indexAccountsESDT(accountsESDTMap)
-	if err != nil {
-		return err
-	}
-
-	err = ei.indexNFTCreateInfo(nftCreateTokenInfo)
-	if err != nil {
-		return err
-	}
-
-	err = ei.prepareAndIndexTagsCount(tagsCount)
 	if err != nil {
 		return err
 	}

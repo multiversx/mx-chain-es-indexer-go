@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
 )
 
 // DBAccountsHandlerStub -
@@ -24,8 +23,8 @@ func (dba *DBAccountsHandlerStub) PrepareRegularAccountsMap(_ []*data.Account) m
 }
 
 // PrepareAccountsMapESDT -
-func (dba *DBAccountsHandlerStub) PrepareAccountsMapESDT(_ []*data.AccountESDT, _ uint64) (map[string]*data.AccountInfo, data.TokensHandler, tags.CountTags) {
-	return nil, nil, nil
+func (dba *DBAccountsHandlerStub) PrepareAccountsMapESDT(_ []*data.AccountESDT) map[string]*data.AccountInfo {
+	return nil
 }
 
 // PrepareAccountsHistory -

@@ -20,17 +20,19 @@ type AccountInfo struct {
 	IsSmartContract          bool           `json:"-"`
 	TotalBalanceWithStake    string         `json:"totalBalanceWithStake,omitempty"`
 	TotalBalanceWithStakeNum float64        `json:"totalBalanceWithStakeNum,omitempty"`
-	MetaData                 *TokenMetaData `json:"metaData,omitempty"`
+	Data                     *TokenMetaData `json:"data,omitempty"`
 }
 
 // TokenMetaData holds data about a token metadata
 type TokenMetaData struct {
-	Name       string      `json:"name,omitempty"`
-	Creator    string      `json:"creator,omitempty"`
-	Royalties  uint32      `json:"royalties,omitempty"`
-	Hash       []byte      `json:"hash,omitempty"`
-	URIs       [][]byte    `json:"uris,omitempty"`
-	Attributes *Attributes `json:"attributes,omitempty"`
+	Name       string   `json:"name,omitempty"`
+	Creator    string   `json:"creator,omitempty"`
+	Royalties  uint32   `json:"royalties,omitempty"`
+	Hash       []byte   `json:"hash,omitempty"`
+	URIs       [][]byte `json:"uris,omitempty"`
+	Tags       []string `json:"tags,omitempty"`
+	Attributes []byte   `json:"attributes,omitempty"`
+	MetaData   string   `json:"metadata,omitempty"`
 }
 
 // AccountBalanceHistory represents an entry in the user accounts balances history
@@ -58,6 +60,5 @@ type AccountESDT struct {
 	NFTNonce        uint64
 	IsSender        bool
 	IsNFTOperation  bool
-	IsNFTCreate     bool
 	Type            string
 }

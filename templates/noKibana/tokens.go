@@ -15,7 +15,7 @@ var Tokens = Object{
 				"type":   "date",
 				"format": "epoch_second",
 			},
-			"metaData": Object{
+			"data": Object{
 				"type": "nested",
 				"properties": Object{
 					"name": Object{
@@ -24,13 +24,14 @@ var Tokens = Object{
 					"creator": Object{
 						"type": "text",
 					},
+					"tags": Object{
+						"type": "text",
+					},
 					"attributes": Object{
-						"type": "nested",
-						"properties": Object{
-							"tags": Object{
-								"type": "text",
-							},
-						},
+						"type": "text",
+					},
+					"metadata": Object{
+						"type": "text",
 					},
 				},
 			},

@@ -7,7 +7,6 @@ type AlteredAccount struct {
 	IsNFTOperation  bool
 	TokenIdentifier string
 	NFTNonce        uint64
-	IsNFTCreate     bool
 	Type            string
 }
 
@@ -46,12 +45,15 @@ func (aa *alteredAccounts) Add(key string, account *AlteredAccount) {
 		return
 	}
 
-	wasSender := false
+	senderCount := 0
 	for _, elem := range aa.altered[key] {
 		newElementIsTokenOperation := account.IsESDTOperation || account.IsNFTOperation
 		oldElementIsTokenOperation := elem.IsESDTOperation || elem.IsNFTOperation
 
-		wasSender = elem.IsSender || account.IsSender
+		isSender := elem.IsSender || account.IsSender
+		if isSender {
+			senderCount++
+		}
 
 		shouldRewrite := newElementIsTokenOperation && !oldElementIsTokenOperation
 		if shouldRewrite {
@@ -59,20 +61,19 @@ func (aa *alteredAccounts) Add(key string, account *AlteredAccount) {
 			elem.NFTNonce = account.NFTNonce
 			elem.IsNFTOperation = account.IsNFTOperation
 			elem.IsESDTOperation = account.IsESDTOperation
-			elem.IsSender = elem.IsSender || account.IsSender
-			elem.IsNFTCreate = elem.IsNFTCreate || account.IsNFTCreate
+			elem.IsSender = isSender
 			elem.Type = account.Type
 			return
 		}
 
 		alreadyExists := elem.TokenIdentifier == account.TokenIdentifier && elem.NFTNonce == account.NFTNonce
 		if alreadyExists {
-			elem.IsSender = elem.IsSender || account.IsSender
+			elem.IsSender = (elem.IsSender || account.IsSender) && senderCount == 1
 			return
 		}
 	}
 
-	if wasSender {
+	if senderCount > 0 {
 		// set isSender to false because regular balance change was already countered
 		account.IsSender = false
 	}

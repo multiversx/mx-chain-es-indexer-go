@@ -3,7 +3,6 @@ package tags
 import (
 	"testing"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/stretchr/testify/require"
 )
 
@@ -12,15 +11,10 @@ func TestTagsCount_ExtractTagsFromAttributes(t *testing.T) {
 
 	tagsC := NewTagsCount()
 
-	attributes := &data.Attributes{
-		"tags":      []string{"Art", "Art", "Sport", "Market"},
-		"something": []string{"aaa"},
-	}
-
-	tagsC.ParseTagsFromAttributes(nil)
-	tagsC.ParseTagsFromAttributes(attributes)
-	tagsC.ParseTagsFromAttributes(attributes)
-	tagsC.ParseTagsFromAttributes(attributes)
+	tagsC.ParseTags(nil)
+	tagsC.ParseTags([]string{"Art", "Art", "Sport", "Market"})
+	tagsC.ParseTags([]string{"Art", "Art", "Sport", "Market"})
+	tagsC.ParseTags([]string{"Art", "Art", "Sport", "Market"})
 
 	require.Equal(t, 3, tagsC.Len())
 
@@ -37,11 +31,7 @@ func TestTagsCount_GetTags(t *testing.T) {
 
 	tagsC := NewTagsCount()
 
-	attributes := &data.Attributes{
-		"tags": []string{"Art", "Art", "Sport", "Market"},
-	}
-
-	tagsC.ParseTagsFromAttributes(attributes)
+	tagsC.ParseTags([]string{"Art", "Art", "Sport", "Market"})
 
 	tags := tagsC.GetTags()
 	require.Len(t, tags, 3)

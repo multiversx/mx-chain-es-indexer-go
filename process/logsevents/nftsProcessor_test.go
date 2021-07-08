@@ -1,6 +1,8 @@
 package logsevents
 
 import (
+	"encoding/hex"
+	"encoding/json"
 	"math/big"
 	"testing"
 
@@ -9,11 +11,19 @@ import (
 	"github.com/ElrondNetwork/elrond-go/core"
 	nodeData "github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/transaction"
+	"github.com/ElrondNetwork/elrond-vm-common/data/esdt"
 	"github.com/stretchr/testify/require"
 )
 
 func TestNftsProcessor_processLogAndEventsNFTs(t *testing.T) {
 	t.Parallel()
+
+	esdtData := &esdt.ESDigitalToken{
+		TokenMetaData: &esdt.MetaData{
+			Creator: []byte("creator"),
+		},
+	}
+	esdtDataBytes, _ := json.Marshal(esdtData)
 
 	nonce := uint64(19)
 	logsAndEvents := map[string]nodeData.LogHandler{
@@ -22,17 +32,17 @@ func TestNftsProcessor_processLogAndEventsNFTs(t *testing.T) {
 				{
 					Address:    []byte("addr"),
 					Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
-					Topics:     [][]byte{[]byte("my-token"), big.NewInt(0).SetUint64(nonce).Bytes(), []byte(core.NonFungibleESDT)},
+					Topics:     [][]byte{[]byte("my-token"), big.NewInt(0).SetUint64(nonce).Bytes(), esdtDataBytes},
 				},
 			},
 		},
 	}
 
-	nftsProc := newNFTsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{})
+	nftsProc := newNFTsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{})
 
 	altered := data.NewAlteredAccounts()
 
-	nftsProc.processLogAndEventsNFTs(logsAndEvents, altered)
+	tokensCreateInfo, _ := nftsProc.processLogAndEventsNFTs(logsAndEvents, altered, 1000)
 
 	alteredAddr, ok := altered.Get("61646472")
 	require.True(t, ok)
@@ -40,15 +50,24 @@ func TestNftsProcessor_processLogAndEventsNFTs(t *testing.T) {
 		IsNFTOperation:  true,
 		TokenIdentifier: "my-token",
 		NFTNonce:        19,
-		IsNFTCreate:     true,
 	}, alteredAddr[0])
+
+	require.Equal(t, &data.TokenInfo{
+		Identifier: "my-token-13",
+		Token:      "my-token",
+		Timestamp:  1000,
+		Issuer:     "",
+		Data: &data.TokenMetaData{
+			Creator: hex.EncodeToString([]byte("creator")),
+		},
+	}, tokensCreateInfo.GetAll()[0])
 }
 
 func TestNftsProcessor_processLogAndEventsNFTs_TransferNFT(t *testing.T) {
 	t.Parallel()
 
 	nonce := uint64(19)
-	nftsProc := newNFTsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{})
+	nftsProc := newNFTsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{})
 
 	logsAndEvents := map[string]nodeData.LogHandler{
 		"txHash": &transaction.Log{
@@ -64,7 +83,7 @@ func TestNftsProcessor_processLogAndEventsNFTs_TransferNFT(t *testing.T) {
 
 	altered := data.NewAlteredAccounts()
 
-	nftsProc.processLogAndEventsNFTs(logsAndEvents, altered)
+	nftsProc.processLogAndEventsNFTs(logsAndEvents, altered, 10000)
 
 	alteredAddrSender, ok := altered.Get("61646472")
 	require.True(t, ok)
@@ -72,7 +91,6 @@ func TestNftsProcessor_processLogAndEventsNFTs_TransferNFT(t *testing.T) {
 		IsNFTOperation:  true,
 		TokenIdentifier: "my-token",
 		NFTNonce:        19,
-		IsNFTCreate:     false,
 	}, alteredAddrSender[0])
 
 	alteredAddrReceiver, ok := altered.Get("7265636569766572")
@@ -81,6 +99,5 @@ func TestNftsProcessor_processLogAndEventsNFTs_TransferNFT(t *testing.T) {
 		IsNFTOperation:  true,
 		TokenIdentifier: "my-token",
 		NFTNonce:        19,
-		IsNFTCreate:     false,
 	}, alteredAddrReceiver[0])
 }

@@ -31,7 +31,7 @@ type DatabaseClientHandler interface {
 type DBAccountHandler interface {
 	GetAccounts(alteredAccounts data.AlteredAccountsHandler) ([]*data.Account, []*data.AccountESDT)
 	PrepareRegularAccountsMap(accounts []*data.Account) map[string]*data.AccountInfo
-	PrepareAccountsMapESDT(accounts []*data.AccountESDT, timestamp uint64) (map[string]*data.AccountInfo, data.TokensHandler, tags.CountTags)
+	PrepareAccountsMapESDT(accounts []*data.AccountESDT) map[string]*data.AccountInfo
 	PrepareAccountsHistory(timestamp uint64, accounts map[string]*data.AccountInfo) map[string]*data.AccountBalanceHistory
 
 	SerializeAccountsHistory(accounts map[string]*data.AccountBalanceHistory) ([]*bytes.Buffer, error)
@@ -89,5 +89,12 @@ type DBValidatorsHandler interface {
 
 // DBLogsAndEventsHandler defines the actions that a logs and events handler should do
 type DBLogsAndEventsHandler interface {
-	ProcessLogsAndEvents(logsAndEvents map[string]nodeData.LogHandler, accounts data.AlteredAccountsHandler)
+	PrepareLogsForDB(logsAndEvents map[string]nodeData.LogHandler) []*data.Logs
+	ExtractDataFromLogsAndPutInAltered(
+		logsAndEvents map[string]nodeData.LogHandler,
+		accounts data.AlteredAccountsHandler,
+		timestamp uint64,
+	) (data.TokensHandler, tags.CountTags)
+
+	SerializeLogs(logs []*data.Logs) ([]*bytes.Buffer, error)
 }
