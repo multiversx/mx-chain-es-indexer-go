@@ -15,7 +15,7 @@ func TestPrepareTokenMetaData(t *testing.T) {
 	require.Nil(t, PrepareTokenMetaData(nil, nil))
 	require.Nil(t, PrepareTokenMetaData(&mock.PubkeyConverterMock{}, nil))
 
-	require.Equal(t, &data.TokenMetaData{
+	expectedTokenMetaData := &data.TokenMetaData{
 		Name:       "token",
 		Creator:    "63726561746f72",
 		Royalties:  0,
@@ -24,7 +24,9 @@ func TestPrepareTokenMetaData(t *testing.T) {
 		Attributes: []byte("tags:test,free,fun;description:This is a test description for an awesome nft;metadata:metadata-test"),
 		Tags:       []string{"test", "free", "fun"},
 		MetaData:   "metadata-test",
-	}, PrepareTokenMetaData(&mock.PubkeyConverterMock{}, &esdt.ESDigitalToken{
+	}
+
+	result := PrepareTokenMetaData(&mock.PubkeyConverterMock{}, &esdt.ESDigitalToken{
 		TokenMetaData: &esdt.MetaData{
 			Nonce:      2,
 			Name:       []byte("token"),
@@ -34,5 +36,7 @@ func TestPrepareTokenMetaData(t *testing.T) {
 			URIs:       nil,
 			Attributes: []byte("tags:test,free,fun;description:This is a test description for an awesome nft;metadata:metadata-test"),
 		},
-	}))
+	})
+
+	require.Equal(t, expectedTokenMetaData, result)
 }
