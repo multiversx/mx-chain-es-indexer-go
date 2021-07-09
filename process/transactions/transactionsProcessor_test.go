@@ -50,57 +50,19 @@ func TestAddToAlteredAddresses(t *testing.T) {
 	mb := &block.MiniBlock{}
 
 	grouper := txsGrouper{
-		txBuilder: &dbTransactionBuilder{
-			esdtProc: newEsdtTransactionHandler(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{}),
-		},
+		txBuilder: &dbTransactionBuilder{},
 	}
 	grouper.addToAlteredAddresses(tx, alteredAddress, mb, selfShardID, false)
 
 	alteredAccounts, ok := alteredAddress.Get(receiver)
 	require.True(t, ok)
-	require.Equal(t, &data.AlteredAccount{
-		IsESDTOperation: true,
-		TokenIdentifier: tokenIdentifier,
-	}, alteredAccounts[0])
+	require.Equal(t, &data.AlteredAccount{}, alteredAccounts[0])
 
 	alteredAccounts, ok = alteredAddress.Get(sender)
 	require.True(t, ok)
 	require.Equal(t, &data.AlteredAccount{
-		IsSender:        true,
-		IsESDTOperation: true,
-		TokenIdentifier: tokenIdentifier,
+		IsSender: true,
 	}, alteredAccounts[0])
-}
-
-func TestTestAddToAlteredAddressesESDTOnMeta(t *testing.T) {
-	sender := "senderAddress"
-	receiver := "receiverAddress"
-	tokenIdentifier := "Test-token"
-	tx := &data.Transaction{
-		Sender:              sender,
-		Receiver:            receiver,
-		EsdtTokenIdentifier: tokenIdentifier,
-	}
-	alteredAddress := data.NewAlteredAccounts()
-	selfShardID := core.MetachainShardId
-	mb := &block.MiniBlock{
-		ReceiverShardID: core.MetachainShardId,
-	}
-
-	grouper := txsGrouper{
-		txBuilder: &dbTransactionBuilder{
-			esdtProc: newEsdtTransactionHandler(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{}),
-		},
-	}
-	grouper.addToAlteredAddresses(tx, alteredAddress, mb, selfShardID, false)
-
-	alteredAccounts, ok := alteredAddress.Get(receiver)
-	require.True(t, ok)
-	require.Equal(t, &data.AlteredAccount{
-		IsESDTOperation: false,
-		TokenIdentifier: tokenIdentifier,
-	}, alteredAccounts[0])
-
 }
 
 func TestIsSCRForSenderWithGasUsed(t *testing.T) {

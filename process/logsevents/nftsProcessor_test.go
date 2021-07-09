@@ -8,8 +8,8 @@ import (
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
 	"github.com/ElrondNetwork/elrond-go/core"
-	nodeData "github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-vm-common/data/esdt"
 	"github.com/stretchr/testify/require"
@@ -26,23 +26,25 @@ func TestNftsProcessor_processLogAndEventsNFTs(t *testing.T) {
 	esdtDataBytes, _ := json.Marshal(esdtData)
 
 	nonce := uint64(19)
-	logsAndEvents := map[string]nodeData.LogHandler{
-		"txHash": &transaction.Log{
-			Events: []*transaction.Event{
-				{
-					Address:    []byte("addr"),
-					Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
-					Topics:     [][]byte{[]byte("my-token"), big.NewInt(0).SetUint64(nonce).Bytes(), esdtDataBytes},
-				},
-			},
-		},
+	event := &transaction.Event{
+		Address:    []byte("addr"),
+		Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
+		Topics:     [][]byte{[]byte("my-token"), big.NewInt(0).SetUint64(nonce).Bytes(), esdtDataBytes},
 	}
 
 	nftsProc := newNFTsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{})
 
 	altered := data.NewAlteredAccounts()
 
-	tokensCreateInfo, _ := nftsProc.processLogAndEventsNFTs(logsAndEvents, altered, 1000)
+	tagsCount := tags.NewTagsCount()
+	tokensCreateInfo := data.NewTokensInfo()
+	nftsProc.processEvent(&argsProcessEvent{
+		event:     event,
+		accounts:  altered,
+		tokens:    tokensCreateInfo,
+		timestamp: 1000,
+		tagsCount: tagsCount,
+	})
 
 	alteredAddr, ok := altered.Get("61646472")
 	require.True(t, ok)
@@ -61,6 +63,7 @@ func TestNftsProcessor_processLogAndEventsNFTs(t *testing.T) {
 			Creator: hex.EncodeToString([]byte("creator")),
 		},
 	}, tokensCreateInfo.GetAll()[0])
+
 }
 
 func TestNftsProcessor_processLogAndEventsNFTs_TransferNFT(t *testing.T) {
@@ -69,21 +72,21 @@ func TestNftsProcessor_processLogAndEventsNFTs_TransferNFT(t *testing.T) {
 	nonce := uint64(19)
 	nftsProc := newNFTsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{})
 
-	logsAndEvents := map[string]nodeData.LogHandler{
-		"txHash": &transaction.Log{
-			Events: []*transaction.Event{
-				{
-					Address:    []byte("addr"),
-					Identifier: []byte(core.BuiltInFunctionESDTNFTTransfer),
-					Topics:     [][]byte{[]byte("my-token"), big.NewInt(0).SetUint64(nonce).Bytes(), []byte("receiver")},
-				},
-			},
-		},
+	events := &transaction.Event{
+		Address:    []byte("addr"),
+		Identifier: []byte(core.BuiltInFunctionESDTNFTTransfer),
+		Topics:     [][]byte{[]byte("my-token"), big.NewInt(0).SetUint64(nonce).Bytes(), []byte("receiver")},
 	}
 
 	altered := data.NewAlteredAccounts()
 
-	nftsProc.processLogAndEventsNFTs(logsAndEvents, altered, 10000)
+	tagsCount := tags.NewTagsCount()
+	nftsProc.processEvent(&argsProcessEvent{
+		event:     events,
+		accounts:  altered,
+		timestamp: 10000,
+		tagsCount: tagsCount,
+	})
 
 	alteredAddrSender, ok := altered.Get("61646472")
 	require.True(t, ok)
