@@ -21,8 +21,6 @@ func TestConvertTxsSliceIntoMap(t *testing.T) {
 	txsSlice := []*data.Transaction{tx1, tx2}
 	txsMap := ConvertTxsSliceIntoMap(txsSlice)
 
-	txsMap["h1"].Nonce = 2
-	txsMap["h2"].Nonce = 10
 	require.True(t, tx1 == txsMap["h1"]) // pointer testing
 	require.True(t, tx2 == txsMap["h2"]) // pointer testing
 	require.Equal(t, len(txsSlice), len(txsMap))
@@ -42,8 +40,6 @@ func TestConvertScrsSliceIntoMap(t *testing.T) {
 	scrSlice := []*data.ScResult{scr1, scr2}
 	scrsMap := ConvertScrsSliceIntoMap(scrSlice)
 
-	scrsMap["h1"].Nonce = 5
-	scrsMap["h2"].Nonce = 10
 	require.True(t, scr1 == scrsMap["h1"]) // pointer testing
 	require.True(t, scr2 == scrsMap["h2"]) // pointer testing
 	require.Equal(t, len(scrSlice), len(scrsMap))
