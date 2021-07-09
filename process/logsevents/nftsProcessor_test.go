@@ -42,7 +42,11 @@ func TestNftsProcessor_processLogAndEventsNFTs(t *testing.T) {
 
 	altered := data.NewAlteredAccounts()
 
-	tokensCreateInfo, _ := nftsProc.processLogAndEventsNFTs(logsAndEvents, altered, 1000, nil, nil)
+	txs := make(map[string]*data.Transaction)
+	scrs := make(map[string]*data.ScResult)
+	encodedHash := hex.EncodeToString([]byte("txHash"))
+	scrs[encodedHash] = &data.ScResult{}
+	tokensCreateInfo, _ := nftsProc.processLogAndEventsNFTs(logsAndEvents, altered, 1000, txs, scrs)
 
 	alteredAddr, ok := altered.Get("61646472")
 	require.True(t, ok)
@@ -61,6 +65,8 @@ func TestNftsProcessor_processLogAndEventsNFTs(t *testing.T) {
 			Creator: hex.EncodeToString([]byte("creator")),
 		},
 	}, tokensCreateInfo.GetAll()[0])
+
+	require.Equal(t, "my-token-13", scrs[encodedHash].EsdtTokenIdentifier)
 }
 
 func TestNftsProcessor_processLogAndEventsNFTs_TransferNFT(t *testing.T) {
@@ -83,7 +89,11 @@ func TestNftsProcessor_processLogAndEventsNFTs_TransferNFT(t *testing.T) {
 
 	altered := data.NewAlteredAccounts()
 
-	nftsProc.processLogAndEventsNFTs(logsAndEvents, altered, 10000, nil, nil)
+	txs := make(map[string]*data.Transaction)
+	encodedHash := hex.EncodeToString([]byte("txHash"))
+	txs[encodedHash] = &data.Transaction{}
+	scrs := make(map[string]*data.ScResult)
+	nftsProc.processLogAndEventsNFTs(logsAndEvents, altered, 10000, txs, scrs)
 
 	alteredAddrSender, ok := altered.Get("61646472")
 	require.True(t, ok)
@@ -100,4 +110,6 @@ func TestNftsProcessor_processLogAndEventsNFTs_TransferNFT(t *testing.T) {
 		TokenIdentifier: "my-token",
 		NFTNonce:        19,
 	}, alteredAddrReceiver[0])
+
+	require.Equal(t, "my-token-13", txs[encodedHash].EsdtTokenIdentifier)
 }
