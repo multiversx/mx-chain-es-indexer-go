@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 
 	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
+	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
 	"github.com/ElrondNetwork/elrond-go/core"
@@ -48,9 +49,12 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogsAndPutInAltered(
 	preparedResults *data.PreparedResults,
 	timestamp uint64,
 ) (data.TokensHandler, tags.CountTags) {
-	lep.fungibleProc.processLogsAndEventsESDT(logsAndEvents, preparedResults.AlteredAccts, preparedResults.Transactions, preparedResults.ScResults)
+	txsMap := converters.ConvertSliceTxsInMap(preparedResults.Transactions)
+	scrsMap := converters.ConvertSliceScrInMap(preparedResults.ScResults)
 
-	return lep.nftsProc.processLogAndEventsNFTs(logsAndEvents, preparedResults.AlteredAccts, timestamp)
+	lep.fungibleProc.processLogsAndEventsESDT(logsAndEvents, preparedResults.AlteredAccts, txsMap, scrsMap)
+
+	return lep.nftsProc.processLogAndEventsNFTs(logsAndEvents, preparedResults.AlteredAccts, timestamp, txsMap, scrsMap)
 }
 
 // PrepareLogsForDB will prepare logs for database

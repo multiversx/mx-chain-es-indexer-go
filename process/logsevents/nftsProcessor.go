@@ -1,6 +1,7 @@
 package logsevents
 
 import (
+	"encoding/hex"
 	"math/big"
 	"time"
 
@@ -44,6 +45,8 @@ func (np *nftsProcessor) processLogAndEventsNFTs(
 	logsAndEvents map[string]nodeData.LogHandler,
 	accounts data.AlteredAccountsHandler,
 	timestamp uint64,
+	txsMap map[string]*data.Transaction,
+	scrsMap map[string]*data.ScResult,
 ) (data.TokensHandler, tags.CountTags) {
 	tagsCount := tags.NewTagsCount()
 	tokens := data.NewTokensInfo()
@@ -52,31 +55,47 @@ func (np *nftsProcessor) processLogAndEventsNFTs(
 		return tokens, tagsCount
 	}
 
-	for _, txLog := range logsAndEvents {
+	for logHash, txLog := range logsAndEvents {
 		if check.IfNil(txLog) {
 			continue
 		}
 
-		np.processNFTOperationLog(txLog, accounts, tokens, timestamp, tagsCount)
+		np.processNFTOperationLog(logHash, txLog, accounts, tokens, timestamp, tagsCount, txsMap, scrsMap)
 	}
 
 	return tokens, tagsCount
 }
 
 func (np *nftsProcessor) processNFTOperationLog(
+	logHash string,
 	txLog nodeData.LogHandler,
 	accounts data.AlteredAccountsHandler,
 	tokens data.TokensHandler,
 	timestamp uint64,
 	tagsCount tags.CountTags,
+	txsMap map[string]*data.Transaction,
+	scrsMap map[string]*data.ScResult,
 ) {
 	events := txLog.GetLogEvents()
 	if len(events) == 0 {
 		return
 	}
 
+	logHashHexEncoded := hex.EncodeToString([]byte(logHash))
 	for _, event := range events {
-		np.processEvent(event, accounts, tokens, timestamp, tagsCount)
+		tokenIdentifier := np.processEvent(event, accounts, tokens, timestamp, tagsCount)
+
+		tx, ok := txsMap[logHashHexEncoded]
+		if ok {
+			tx.EsdtTokenIdentifier = tokenIdentifier
+			continue
+		}
+
+		scr, ok := scrsMap[logHashHexEncoded]
+		if ok {
+			scr.EsdtTokenIdentifier = tokenIdentifier
+			continue
+		}
 	}
 }
 
@@ -86,10 +105,10 @@ func (np *nftsProcessor) processEvent(
 	tokens data.TokensHandler,
 	timestamp uint64,
 	tagsCount tags.CountTags,
-) {
+) string {
 	_, ok := np.nftOperationsIdentifiers[string(event.GetIdentifier())]
 	if !ok {
-		return
+		return ""
 	}
 	sender := event.GetAddress()
 
@@ -102,15 +121,16 @@ func (np *nftsProcessor) processEvent(
 	// [1] -- nonce of the NFT (bytes)
 	// [2] -- receiver NFT address -- in case of NFTTransfer OR ESDT token data in case of NFTCreate
 	topics := event.GetTopics()
-	if string(event.GetIdentifier()) != core.BuiltInFunctionESDTNFTTransfer || len(topics) < 3 {
-		return
-	}
-
 	token := string(topics[0])
 	nonceBig := big.NewInt(0).SetBytes(topics[1])
+	identifier := converters.ComputeTokenIdentifier(token, nonceBig.Uint64())
+	if string(event.GetIdentifier()) != core.BuiltInFunctionESDTNFTTransfer || len(topics) < 3 {
+		return identifier
+	}
+
 	receiver := topics[2]
 	if np.shardCoordinator.ComputeId(receiver) != np.shardCoordinator.SelfId() {
-		return
+		return identifier
 	}
 
 	encodedReceiver := np.pubKeyConverter.Encode(receiver)
@@ -120,7 +140,7 @@ func (np *nftsProcessor) processEvent(
 		NFTNonce:        nonceBig.Uint64(),
 	})
 
-	return
+	return identifier
 }
 
 func (np *nftsProcessor) processNFTEventOnSender(

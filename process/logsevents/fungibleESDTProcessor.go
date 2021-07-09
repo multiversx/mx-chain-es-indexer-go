@@ -3,7 +3,6 @@ package logsevents
 import (
 	"encoding/hex"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"
@@ -35,10 +34,7 @@ func newFungibleESDTProcessor(pubKeyConverter core.PubkeyConverter, shardCoordin
 	}
 }
 
-func (fep *fungibleESDTProcessor) processLogsAndEventsESDT(logsAndEvents map[string]nodeData.LogHandler, accounts data.AlteredAccountsHandler, txs []*data.Transaction, scrs []*data.ScResult) {
-	txsMap := converters.ConvertSliceTxsInMap(txs)
-	scrsMap := converters.ConvertSliceScrInMap(scrs)
-
+func (fep *fungibleESDTProcessor) processLogsAndEventsESDT(logsAndEvents map[string]nodeData.LogHandler, accounts data.AlteredAccountsHandler, txsMap map[string]*data.Transaction, scrsMap map[string]*data.ScResult) {
 	for logHash, log := range logsAndEvents {
 		if check.IfNil(log) {
 			continue
