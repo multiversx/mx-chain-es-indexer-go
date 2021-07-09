@@ -18,6 +18,8 @@ import (
 	"github.com/ElrondNetwork/elrond-go/sharding"
 )
 
+const emptyString = ""
+
 type dbTransactionBuilder struct {
 	addressPubkeyConverter core.PubkeyConverter
 	shardCoordinator       sharding.Coordinator
@@ -163,7 +165,7 @@ func (dtb *dbTransactionBuilder) addScrsReceiverToAlteredAccounts(
 			continue
 		}
 
-		egldBalanceNotChanged := scr.Value == "" || scr.Value == "0"
+		egldBalanceNotChanged := scr.Value == emptyString || scr.Value == "0"
 		if egldBalanceNotChanged {
 			// the smart contract results that don't alter the balance of the receiver address should be ignored
 			continue

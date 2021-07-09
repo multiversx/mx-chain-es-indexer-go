@@ -15,9 +15,8 @@ import (
 )
 
 type logsAndEventsProcessor struct {
-	pubKeyConverter core.PubkeyConverter
-	nftsProc        *nftsProcessor
-	fungibleProc    *fungibleESDTProcessor
+	pubKeyConverter  core.PubkeyConverter
+	eventsProcessors []eventsProcessor
 }
 
 // NewLogsAndEventsProcessor will create a new instance for the logsAndEventsProcessor
@@ -36,10 +35,14 @@ func NewLogsAndEventsProcessor(
 		return nil, elasticIndexer.ErrNilMarshalizer
 	}
 
+	nftsProc := newNFTsProcessor(shardCoordinator, pubKeyConverter, marshalizer)
+	fungibleProc := newFungibleESDTProcessor(pubKeyConverter, shardCoordinator)
+
 	return &logsAndEventsProcessor{
 		pubKeyConverter: pubKeyConverter,
-		nftsProc:        newNFTsProcessor(shardCoordinator, pubKeyConverter, marshalizer),
-		fungibleProc:    newFungibleESDTProcessor(pubKeyConverter, shardCoordinator),
+		eventsProcessors: []eventsProcessor{
+			fungibleProc, nftsProc,
+		},
 	}, nil
 }
 
@@ -49,12 +52,81 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogsAndPutInAltered(
 	preparedResults *data.PreparedResults,
 	timestamp uint64,
 ) (data.TokensHandler, tags.CountTags) {
-	txsMap := converters.ConvertSliceTxsInMap(preparedResults.Transactions)
-	scrsMap := converters.ConvertSliceScrInMap(preparedResults.ScResults)
+	txsMap := converters.ConvertTxsSliceIntoMap(preparedResults.Transactions)
+	scrsMap := converters.ConvertScrsSliceIntoMap(preparedResults.ScResults)
 
-	lep.fungibleProc.processLogsAndEventsESDT(logsAndEvents, preparedResults.AlteredAccts, txsMap, scrsMap)
+	tagsCount := tags.NewTagsCount()
+	tokens := data.NewTokensInfo()
+	for logHash, log := range logsAndEvents {
+		if check.IfNil(log) {
+			continue
+		}
 
-	return lep.nftsProc.processLogAndEventsNFTs(logsAndEvents, preparedResults.AlteredAccts, timestamp, txsMap, scrsMap)
+		events := log.GetLogEvents()
+		lep.processEvents(logHash, timestamp, events, tokens, tagsCount, preparedResults.AlteredAccts, txsMap, scrsMap)
+	}
+
+	return tokens, tagsCount
+}
+
+func (lep *logsAndEventsProcessor) processEvents(
+	logHash string,
+	timestamp uint64,
+	events []nodeData.EventHandler,
+	tokens data.TokensHandler,
+	tagsCount tags.CountTags,
+	accounts data.AlteredAccountsHandler,
+	txsMap map[string]*data.Transaction,
+	scrsMap map[string]*data.ScResult,
+) {
+	for _, event := range events {
+		if check.IfNil(event) {
+			continue
+		}
+
+		lep.processEvent(logHash, timestamp, event, tokens, tagsCount, accounts, txsMap, scrsMap)
+	}
+}
+
+func (lep *logsAndEventsProcessor) processEvent(
+	logHash string,
+	timestamp uint64,
+	events nodeData.EventHandler,
+	tokens data.TokensHandler,
+	tagsCount tags.CountTags,
+	accounts data.AlteredAccountsHandler,
+	txsMap map[string]*data.Transaction,
+	scrsMap map[string]*data.ScResult,
+) {
+	logHashHexEncoded := hex.EncodeToString([]byte(logHash))
+	for _, proc := range lep.eventsProcessors {
+		identifier, processed := proc.processEvent(&argsProcessEvent{
+			event:     events,
+			accounts:  accounts,
+			tokens:    tokens,
+			tagsCount: tagsCount,
+			timestamp: timestamp,
+		})
+		if identifier == "" {
+			continue
+		}
+
+		tx, ok := txsMap[logHashHexEncoded]
+		if ok {
+			tx.EsdtTokenIdentifier = identifier
+			continue
+		}
+
+		scr, ok := scrsMap[logHashHexEncoded]
+		if ok {
+			scr.EsdtTokenIdentifier = identifier
+			return
+		}
+
+		if processed {
+			return
+		}
+	}
 }
 
 // PrepareLogsForDB will prepare logs for database

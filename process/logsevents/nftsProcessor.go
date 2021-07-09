@@ -1,7 +1,6 @@
 package logsevents
 
 import (
-	"encoding/hex"
 	"math/big"
 	"time"
 
@@ -9,7 +8,6 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
 	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/core/check"
 	nodeData "github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/marshal"
 	"github.com/ElrondNetwork/elrond-go/sharding"
@@ -41,110 +39,44 @@ func newNFTsProcessor(
 	}
 }
 
-func (np *nftsProcessor) processLogAndEventsNFTs(
-	logsAndEvents map[string]nodeData.LogHandler,
-	accounts data.AlteredAccountsHandler,
-	timestamp uint64,
-	txsMap map[string]*data.Transaction,
-	scrsMap map[string]*data.ScResult,
-) (data.TokensHandler, tags.CountTags) {
-	tagsCount := tags.NewTagsCount()
-	tokens := data.NewTokensInfo()
-
-	if logsAndEvents == nil || accounts == nil {
-		return tokens, tagsCount
+func (np *nftsProcessor) processEvent(args *argsProcessEvent) (string, bool) {
+	eventIdentifier := string(args.event.GetIdentifier())
+	_, ok := np.nftOperationsIdentifiers[eventIdentifier]
+	if !ok {
+		return "", false
 	}
 
-	for logHash, txLog := range logsAndEvents {
-		if check.IfNil(txLog) {
-			continue
-		}
-
-		np.processNFTOperationLog(logHash, txLog, accounts, tokens, timestamp, tagsCount, txsMap, scrsMap)
-	}
-
-	return tokens, tagsCount
-}
-
-func (np *nftsProcessor) processNFTOperationLog(
-	logHash string,
-	txLog nodeData.LogHandler,
-	accounts data.AlteredAccountsHandler,
-	tokens data.TokensHandler,
-	timestamp uint64,
-	tagsCount tags.CountTags,
-	txsMap map[string]*data.Transaction,
-	scrsMap map[string]*data.ScResult,
-) {
-	events := txLog.GetLogEvents()
-	if len(events) == 0 {
-		return
-	}
-
-	logHashHexEncoded := hex.EncodeToString([]byte(logHash))
-	for _, event := range events {
-		_, ok := np.nftOperationsIdentifiers[string(event.GetIdentifier())]
-		if !ok {
-			continue
-		}
-
-		tokenIdentifier := np.processEvent(event, accounts, tokens, timestamp, tagsCount)
-		if tokenIdentifier == "" {
-			continue
-		}
-
-		tx, ok := txsMap[logHashHexEncoded]
-		if ok {
-			tx.EsdtTokenIdentifier = tokenIdentifier
-			continue
-		}
-
-		scr, ok := scrsMap[logHashHexEncoded]
-		if ok {
-			scr.EsdtTokenIdentifier = tokenIdentifier
-			continue
-		}
-	}
-}
-
-func (np *nftsProcessor) processEvent(
-	event nodeData.EventHandler,
-	accounts data.AlteredAccountsHandler,
-	tokens data.TokensHandler,
-	timestamp uint64,
-	tagsCount tags.CountTags,
-) string {
-	sender := event.GetAddress()
-
+	sender := args.event.GetAddress()
 	if np.shardCoordinator.ComputeId(sender) == np.shardCoordinator.SelfId() {
-		np.processNFTEventOnSender(event, accounts, tokens, timestamp, tagsCount)
+		np.processNFTEventOnSender(args.event, args.accounts, args.tokens, args.timestamp, args.tagsCount)
 	}
 
 	// topics contains:
 	// [0] -- token identifier
 	// [1] -- nonce of the NFT (bytes)
 	// [2] -- receiver NFT address -- in case of NFTTransfer OR ESDT token data in case of NFTCreate
-	topics := event.GetTopics()
+	topics := args.event.GetTopics()
 	token := string(topics[0])
 	nonceBig := big.NewInt(0).SetBytes(topics[1])
 	identifier := converters.ComputeTokenIdentifier(token, nonceBig.Uint64())
-	if string(event.GetIdentifier()) != core.BuiltInFunctionESDTNFTTransfer || len(topics) < 3 {
-		return identifier
+	shouldReturn := eventIdentifier != core.BuiltInFunctionESDTNFTTransfer || len(topics) < 3
+	if shouldReturn {
+		return identifier, true
 	}
 
 	receiver := topics[2]
 	if np.shardCoordinator.ComputeId(receiver) != np.shardCoordinator.SelfId() {
-		return identifier
+		return identifier, true
 	}
 
 	encodedReceiver := np.pubKeyConverter.Encode(receiver)
-	accounts.Add(encodedReceiver, &data.AlteredAccount{
+	args.accounts.Add(encodedReceiver, &data.AlteredAccount{
 		IsNFTOperation:  true,
 		TokenIdentifier: token,
 		NFTNonce:        nonceBig.Uint64(),
 	})
 
-	return identifier
+	return identifier, true
 }
 
 func (np *nftsProcessor) processNFTEventOnSender(

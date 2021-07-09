@@ -30,6 +30,58 @@ func TestNewLogsAndEventsProcessor(t *testing.T) {
 	require.Nil(t, err)
 }
 
+func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T) {
+	t.Parallel()
+
+	logsAndEvents := map[string]nodeData.LogHandler{
+		"wrong": nil,
+
+		"h1": &transaction.Log{
+			Address: []byte("address"),
+			Events: []*transaction.Event{
+				{
+					Address:    []byte("addr"),
+					Identifier: []byte(core.BuiltInFunctionESDTNFTTransfer),
+					Topics:     [][]byte{[]byte("my-token"), big.NewInt(0).SetUint64(1).Bytes(), []byte("receiver")},
+				},
+			},
+		},
+
+		"h2": &transaction.Log{
+			Events: []*transaction.Event{
+				{
+					Address:    []byte("addr"),
+					Identifier: []byte(core.BuiltInFunctionESDTTransfer),
+					Topics:     [][]byte{[]byte("esdt"), big.NewInt(0).SetUint64(100).Bytes(), []byte("receiver")},
+				},
+				nil,
+			},
+		},
+	}
+
+	altered := data.NewAlteredAccounts()
+	res := &data.PreparedResults{
+		Transactions: []*data.Transaction{
+			{
+				Hash: "6831",
+			},
+		},
+		ScResults: []*data.ScResult{
+			{
+				Hash: "6832",
+			},
+		},
+		AlteredAccts: altered,
+	}
+	proc, _ := NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, mock.NewPubkeyConverterMock(32), &mock.MarshalizerMock{})
+
+	tokens, tagsCount := proc.ExtractDataFromLogsAndPutInAltered(logsAndEvents, res, 1000)
+	require.NotNil(t, tokens)
+	require.NotNil(t, tagsCount)
+	require.Equal(t, "my-token-01", res.Transactions[0].EsdtTokenIdentifier)
+	require.Equal(t, "esdt", res.ScResults[0].EsdtTokenIdentifier)
+}
+
 func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 	t.Parallel()
 

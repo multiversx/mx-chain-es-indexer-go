@@ -1,11 +1,8 @@
 package logsevents
 
 import (
-	"encoding/hex"
-
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/core/check"
 	nodeData "github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/sharding"
 )
@@ -34,67 +31,26 @@ func newFungibleESDTProcessor(pubKeyConverter core.PubkeyConverter, shardCoordin
 	}
 }
 
-func (fep *fungibleESDTProcessor) processLogsAndEventsESDT(logsAndEvents map[string]nodeData.LogHandler, accounts data.AlteredAccountsHandler, txsMap map[string]*data.Transaction, scrsMap map[string]*data.ScResult) {
-	for logHash, log := range logsAndEvents {
-		if check.IfNil(log) {
-			continue
-		}
-
-		fep.processEventsESDT(logHash, log.GetLogEvents(), accounts, txsMap, scrsMap)
+func (fep *fungibleESDTProcessor) processEvent(args *argsProcessEvent) (string, bool) {
+	identifier := args.event.GetIdentifier()
+	_, ok := fep.fungibleOperationsIdentifiers[string(identifier)]
+	if !ok {
+		return "", false
 	}
-}
 
-func (fep *fungibleESDTProcessor) processEventsESDT(
-	logHash string,
-	events []nodeData.EventHandler,
-	accounts data.AlteredAccountsHandler,
-	txsMap map[string]*data.Transaction,
-	scrsMap map[string]*data.ScResult,
-) {
-	logHashHexEncoded := hex.EncodeToString([]byte(logHash))
-	for _, event := range events {
-		if check.IfNil(event) {
-			continue
-		}
-
-		identifier := event.GetIdentifier()
-		if _, ok := fep.fungibleOperationsIdentifiers[string(identifier)]; !ok {
-			continue
-		}
-
-		tokenIdentifier := fep.processEvent(event, accounts)
-		if tokenIdentifier == "" {
-			continue
-		}
-
-		tx, ok := txsMap[logHashHexEncoded]
-		if ok {
-			tx.EsdtTokenIdentifier = tokenIdentifier
-			continue
-		}
-
-		scr, ok := scrsMap[logHashHexEncoded]
-		if ok {
-			scr.EsdtTokenIdentifier = tokenIdentifier
-			continue
-		}
-	}
-}
-
-func (fep *fungibleESDTProcessor) processEvent(event nodeData.EventHandler, accounts data.AlteredAccountsHandler) string {
-	topics := event.GetTopics()
-	address := event.GetAddress()
+	topics := args.event.GetTopics()
+	address := args.event.GetAddress()
 	if len(topics) < numTopicsWithReceiverAddress-1 {
-		return ""
+		return "", true
 	}
 
 	selfShardID := fep.shardCoordinator.SelfId()
-	shardIDSender := fep.shardCoordinator.ComputeId(address)
-	if shardIDSender == selfShardID {
-		fep.processEventOnSenderShard(event, accounts)
+	senderShardID := fep.shardCoordinator.ComputeId(address)
+	if senderShardID == selfShardID {
+		fep.processEventOnSenderShard(args.event, args.accounts)
 	}
 
-	return fep.processEventDestination(event, accounts, selfShardID)
+	return fep.processEventDestination(args.event, args.accounts, selfShardID), true
 }
 
 func (fep *fungibleESDTProcessor) processEventOnSenderShard(event nodeData.EventHandler, accounts data.AlteredAccountsHandler) {
