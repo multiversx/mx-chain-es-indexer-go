@@ -83,7 +83,15 @@ func (np *nftsProcessor) processNFTOperationLog(
 
 	logHashHexEncoded := hex.EncodeToString([]byte(logHash))
 	for _, event := range events {
+		_, ok := np.nftOperationsIdentifiers[string(event.GetIdentifier())]
+		if !ok {
+			continue
+		}
+
 		tokenIdentifier := np.processEvent(event, accounts, tokens, timestamp, tagsCount)
+		if tokenIdentifier == "" {
+			continue
+		}
 
 		tx, ok := txsMap[logHashHexEncoded]
 		if ok {
@@ -106,10 +114,6 @@ func (np *nftsProcessor) processEvent(
 	timestamp uint64,
 	tagsCount tags.CountTags,
 ) string {
-	_, ok := np.nftOperationsIdentifiers[string(event.GetIdentifier())]
-	if !ok {
-		return ""
-	}
 	sender := event.GetAddress()
 
 	if np.shardCoordinator.ComputeId(sender) == np.shardCoordinator.SelfId() {

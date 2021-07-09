@@ -57,7 +57,16 @@ func (fep *fungibleESDTProcessor) processEventsESDT(
 			continue
 		}
 
+		identifier := event.GetIdentifier()
+		if _, ok := fep.fungibleOperationsIdentifiers[string(identifier)]; !ok {
+			continue
+		}
+
 		tokenIdentifier := fep.processEvent(event, accounts)
+		if tokenIdentifier == "" {
+			continue
+		}
+
 		tx, ok := txsMap[logHashHexEncoded]
 		if ok {
 			tx.EsdtTokenIdentifier = tokenIdentifier
@@ -73,11 +82,6 @@ func (fep *fungibleESDTProcessor) processEventsESDT(
 }
 
 func (fep *fungibleESDTProcessor) processEvent(event nodeData.EventHandler, accounts data.AlteredAccountsHandler) string {
-	identifier := event.GetIdentifier()
-	if _, ok := fep.fungibleOperationsIdentifiers[string(identifier)]; !ok {
-		return ""
-	}
-
 	topics := event.GetTopics()
 	address := event.GetAddress()
 	if len(topics) < numTopicsWithReceiverAddress-1 {

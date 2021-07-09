@@ -6,7 +6,8 @@ import "github.com/ElrondNetwork/elastic-indexer-go/data"
 func ConvertSliceTxsInMap(txs []*data.Transaction) map[string]*data.Transaction {
 	mapTxs := make(map[string]*data.Transaction, len(txs))
 
-	for _, tx := range txs {
+	for idx := 0; idx < len(txs); idx++ {
+		tx := txs[idx]
 		mapTxs[tx.Hash] = tx
 	}
 
@@ -17,7 +18,8 @@ func ConvertSliceTxsInMap(txs []*data.Transaction) map[string]*data.Transaction 
 func ConvertSliceScrInMap(scrs []*data.ScResult) map[string]*data.ScResult {
 	mapSCRs := make(map[string]*data.ScResult, len(scrs))
 
-	for _, scr := range scrs {
+	for idx := 0; idx < len(scrs); idx++ {
+		scr := scrs[idx]
 		mapSCRs[scr.Hash] = scr
 	}
 
