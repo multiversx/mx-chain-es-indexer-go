@@ -83,7 +83,6 @@ func (fep *fungibleESDTProcessor) processEvent(event nodeData.EventHandler, acco
 	if len(topics) < numTopicsWithReceiverAddress-1 {
 		return ""
 	}
-	tokenID := string(topics[0])
 
 	selfShardID := fep.shardCoordinator.SelfId()
 	shardIDSender := fep.shardCoordinator.ComputeId(address)
@@ -91,6 +90,23 @@ func (fep *fungibleESDTProcessor) processEvent(event nodeData.EventHandler, acco
 		fep.processEventOnSenderShard(event, accounts)
 	}
 
+	return fep.processEventDestination(event, accounts, selfShardID)
+}
+
+func (fep *fungibleESDTProcessor) processEventOnSenderShard(event nodeData.EventHandler, accounts data.AlteredAccountsHandler) {
+	topics := event.GetTopics()
+	tokenID := topics[0]
+
+	encodedAddr := fep.pubKeyConverter.Encode(event.GetAddress())
+	accounts.Add(encodedAddr, &data.AlteredAccount{
+		IsESDTOperation: true,
+		TokenIdentifier: string(tokenID),
+	})
+}
+
+func (fep *fungibleESDTProcessor) processEventDestination(event nodeData.EventHandler, accounts data.AlteredAccountsHandler, selfShardID uint32) string {
+	topics := event.GetTopics()
+	tokenID := string(topics[0])
 	if len(topics) < numTopicsWithReceiverAddress {
 		return tokenID
 	}
@@ -108,15 +124,4 @@ func (fep *fungibleESDTProcessor) processEvent(event nodeData.EventHandler, acco
 	})
 
 	return tokenID
-}
-
-func (fep *fungibleESDTProcessor) processEventOnSenderShard(event nodeData.EventHandler, accounts data.AlteredAccountsHandler) {
-	topics := event.GetTopics()
-	tokenID := topics[0]
-
-	encodedAddr := fep.pubKeyConverter.Encode(event.GetAddress())
-	accounts.Add(encodedAddr, &data.AlteredAccount{
-		IsESDTOperation: true,
-		TokenIdentifier: string(tokenID),
-	})
 }
