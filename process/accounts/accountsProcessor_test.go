@@ -351,6 +351,7 @@ func TestAccountsProcessor_PrepareAccountsMapEGLD(t *testing.T) {
 	res := ap.PrepareRegularAccountsMap([]*data.Account{egldAccount})
 	require.Equal(t, map[string]*data.AccountInfo{
 		hex.EncodeToString([]byte(addr)): {
+			Address:                  hex.EncodeToString([]byte(addr)),
 			Nonce:                    1,
 			Balance:                  "1000",
 			BalanceNum:               ap.computeBalanceAsFloat(big.NewInt(1000), ap.balancePrecision),
@@ -395,22 +396,36 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 
 	accountsESDT := []*data.AccountESDT{
 		{Account: mockAccount, TokenIdentifier: "token", IsNFTOperation: true, NFTNonce: 15},
+		{Account: mockAccount, TokenIdentifier: "token", IsNFTOperation: true, NFTNonce: 16},
 	}
 	res := ap.PrepareAccountsMapESDT(accountsESDT)
-	require.Equal(t, map[string]*data.AccountInfo{
-		hex.EncodeToString([]byte(addr)): {
-			Address:         hex.EncodeToString([]byte(addr)),
-			Balance:         "1000",
-			BalanceNum:      ap.computeBalanceAsFloat(big.NewInt(1000), ap.balancePrecision),
-			TokenName:       "token",
-			TokenIdentifier: "token-0f",
-			Properties:      hex.EncodeToString([]byte("ok")),
-			TokenNonce:      15,
-			Data: &data.TokenMetaData{
-				Creator: "63726561746f72",
-			},
+	require.Len(t, res, 2)
+
+	require.Equal(t, &data.AccountInfo{
+		Address:         hex.EncodeToString([]byte(addr)),
+		Balance:         "1000",
+		BalanceNum:      ap.computeBalanceAsFloat(big.NewInt(1000), ap.balancePrecision),
+		TokenName:       "token",
+		TokenIdentifier: "token-0f",
+		Properties:      hex.EncodeToString([]byte("ok")),
+		TokenNonce:      15,
+		Data: &data.TokenMetaData{
+			Creator: "63726561746f72",
 		},
-	}, res)
+	}, res[hex.EncodeToString([]byte(addr))+"-token-15"])
+
+	require.Equal(t, &data.AccountInfo{
+		Address:         hex.EncodeToString([]byte(addr)),
+		Balance:         "1000",
+		BalanceNum:      ap.computeBalanceAsFloat(big.NewInt(1000), ap.balancePrecision),
+		TokenName:       "token",
+		TokenIdentifier: "token-10",
+		Properties:      hex.EncodeToString([]byte("ok")),
+		TokenNonce:      16,
+		Data: &data.TokenMetaData{
+			Creator: "63726561746f72",
+		},
+	}, res[hex.EncodeToString([]byte(addr))+"-token-16"])
 }
 
 func TestAccountsProcessor_PrepareAccountsHistory(t *testing.T) {
