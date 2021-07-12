@@ -141,9 +141,11 @@ func (ap *accountsProcessor) getUserAccount(address string) (state.UserAccountHa
 func (ap *accountsProcessor) PrepareRegularAccountsMap(accounts []*data.Account) map[string]*data.AccountInfo {
 	accountsMap := make(map[string]*data.AccountInfo)
 	for _, userAccount := range accounts {
+		address := ap.addressPubkeyConverter.Encode(userAccount.UserAccount.AddressBytes())
 		balance := userAccount.UserAccount.GetBalance()
 		balanceAsFloat := ap.computeBalanceAsFloat(balance, ap.balancePrecision)
 		acc := &data.AccountInfo{
+			Address:                  address,
 			Nonce:                    userAccount.UserAccount.GetNonce(),
 			Balance:                  balance.String(),
 			BalanceNum:               balanceAsFloat,
@@ -152,7 +154,7 @@ func (ap *accountsProcessor) PrepareRegularAccountsMap(accounts []*data.Account)
 			TotalBalanceWithStake:    balance.String(),
 			TotalBalanceWithStakeNum: balanceAsFloat,
 		}
-		address := ap.addressPubkeyConverter.Encode(userAccount.UserAccount.AddressBytes())
+
 		accountsMap[address] = acc
 	}
 
@@ -187,7 +189,8 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(
 			Data:            tokenMetaData,
 		}
 
-		accountsESDTMap[address] = acc
+		keyInMap := fmt.Sprintf("%s-%s-%d", acc.Address, acc.TokenName, accountESDT.NFTNonce)
+		accountsESDTMap[keyInMap] = acc
 	}
 
 	return accountsESDTMap

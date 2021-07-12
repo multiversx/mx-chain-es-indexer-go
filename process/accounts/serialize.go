@@ -33,8 +33,8 @@ func (ap *accountsProcessor) SerializeAccounts(
 	areESDTAccounts bool,
 ) ([]*bytes.Buffer, error) {
 	buffSlice := data.NewBufferSlice()
-	for address, acc := range accounts {
-		meta, serializedData, err := prepareSerializedAccount(address, acc, areESDTAccounts)
+	for _, acc := range accounts {
+		meta, serializedData, err := prepareSerializedAccount(acc, areESDTAccounts)
 		if err != nil {
 			return nil, err
 		}
@@ -48,17 +48,17 @@ func (ap *accountsProcessor) SerializeAccounts(
 	return buffSlice.Buffers(), nil
 }
 
-func prepareSerializedAccount(address string, acc *data.AccountInfo, isESDT bool) ([]byte, []byte, error) {
+func prepareSerializedAccount(acc *data.AccountInfo, isESDT bool) ([]byte, []byte, error) {
 	if (acc.Balance == "0" || acc.Balance == "") && isESDT {
-		meta := prepareDeleteAccountInfo(address, acc, isESDT)
+		meta := prepareDeleteAccountInfo(acc, isESDT)
 		return meta, nil, nil
 	}
 
-	return prepareSerializedAccountInfo(address, acc, isESDT)
+	return prepareSerializedAccountInfo(acc, isESDT)
 }
 
-func prepareDeleteAccountInfo(address string, acct *data.AccountInfo, isESDT bool) []byte {
-	id := address
+func prepareDeleteAccountInfo(acct *data.AccountInfo, isESDT bool) []byte {
+	id := acct.Address
 	if isESDT {
 		id += fmt.Sprintf("-%s-%d", acct.TokenName, acct.TokenNonce)
 	}
@@ -69,11 +69,10 @@ func prepareDeleteAccountInfo(address string, acct *data.AccountInfo, isESDT boo
 }
 
 func prepareSerializedAccountInfo(
-	address string,
 	account *data.AccountInfo,
 	isESDTAccount bool,
 ) ([]byte, []byte, error) {
-	id := address
+	id := account.Address
 	if isESDTAccount {
 		id += fmt.Sprintf("-%s-%d", account.TokenName, account.TokenNonce)
 	}
