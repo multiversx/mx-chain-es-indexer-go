@@ -76,7 +76,7 @@ func prepareSerializedAccountInfo(
 ) ([]byte, []byte, error) {
 	id := account.Address
 	if isESDTAccount {
-		hexEncodedNonce := nonceHexEncoded(account.TokenNonce)
+		hexEncodedNonce := encodeNonceToHex(account.TokenNonce)
 		id += fmt.Sprintf("-%s-%s", account.TokenName, hexEncodedNonce)
 	}
 
@@ -89,7 +89,7 @@ func prepareSerializedAccountInfo(
 	return meta, serializedData, nil
 }
 
-func nonceHexEncoded(nonce uint64) string {
+func encodeNonceToHex(nonce uint64) string {
 	if nonce == 0 {
 		return "00"
 	}
