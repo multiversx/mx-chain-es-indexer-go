@@ -78,7 +78,7 @@ func TestSerializeAccountsESDT(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(res))
 
-	expectedRes := `{ "index" : { "_id" : "addr1-token-0001-5" } }
+	expectedRes := `{ "index" : { "_id" : "addr1-token-0001-05" } }
 {"address":"addr1","nonce":1,"balance":"10000000000000","balanceNum":1,"token":"token-0001","tokenNonce":5,"properties":"000"}
 `
 	require.Equal(t, expectedRes, res[0].String())
@@ -93,7 +93,7 @@ func TestSerializeAccountsNFTWithMedaData(t *testing.T) {
 			Nonce:           1,
 			TokenName:       "token-0001",
 			Properties:      "000",
-			TokenNonce:      5,
+			TokenNonce:      22,
 			Balance:         "10000000000000",
 			BalanceNum:      1,
 			TokenIdentifier: "token-0001-5",
@@ -116,8 +116,8 @@ func TestSerializeAccountsNFTWithMedaData(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(res))
 
-	expectedRes := `{ "index" : { "_id" : "addr1-token-0001-5" } }
-{"address":"addr1","nonce":1,"balance":"10000000000000","balanceNum":1,"token":"token-0001","identifier":"token-0001-5","tokenNonce":5,"properties":"000","data":{"name":"nft","creator":"010101","royalties":1,"hash":"aGFzaA==","uris":["dXJp"],"tags":["test","free","fun"],"attributes":"dGFnczp0ZXN0LGZyZWUsZnVuO2Rlc2NyaXB0aW9uOlRoaXMgaXMgYSB0ZXN0IGRlc2NyaXB0aW9uIGZvciBhbiBhd2Vzb21lIG5mdA==","metadata":"metadata-test"}}
+	expectedRes := `{ "index" : { "_id" : "addr1-token-0001-16" } }
+{"address":"addr1","nonce":1,"balance":"10000000000000","balanceNum":1,"token":"token-0001","identifier":"token-0001-5","tokenNonce":22,"properties":"000","data":{"name":"nft","creator":"010101","royalties":1,"hash":"aGFzaA==","uris":["dXJp"],"tags":["test","free","fun"],"attributes":"dGFnczp0ZXN0LGZyZWUsZnVuO2Rlc2NyaXB0aW9uOlRoaXMgaXMgYSB0ZXN0IGRlc2NyaXB0aW9uIGZvciBhbiBhd2Vzb21lIG5mdA==","metadata":"metadata-test"}}
 `
 	require.Equal(t, expectedRes, res[0].String())
 }
