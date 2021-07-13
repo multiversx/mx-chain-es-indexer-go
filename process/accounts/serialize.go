@@ -76,8 +76,7 @@ func prepareSerializedAccountInfo(
 ) ([]byte, []byte, error) {
 	id := account.Address
 	if isESDTAccount {
-		nonceBigBytes := big.NewInt(0).SetUint64(account.TokenNonce).Bytes()
-		hexEncodedNonce := hex.EncodeToString(nonceBigBytes)
+		hexEncodedNonce := nonceHexEncoded(account.TokenNonce)
 		id += fmt.Sprintf("-%s-%s", account.TokenName, hexEncodedNonce)
 	}
 
@@ -88,6 +87,17 @@ func prepareSerializedAccountInfo(
 	}
 
 	return meta, serializedData, nil
+}
+
+func nonceHexEncoded(nonce uint64) string {
+	if nonce == 0 {
+		return "00"
+	}
+
+	nonceBigBytes := big.NewInt(0).SetUint64(nonce).Bytes()
+	hexEncodedNonce := hex.EncodeToString(nonceBigBytes)
+
+	return hexEncodedNonce
 }
 
 // SerializeAccountsHistory will serialize accounts history in a way that Elastic Search expects a bulk request
