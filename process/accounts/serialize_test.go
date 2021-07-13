@@ -59,6 +59,31 @@ func TestSerializeAccounts(t *testing.T) {
 	require.Equal(t, expectedRes, res[0].String())
 }
 
+func TestSerializeAccountsESDTNonceZero(t *testing.T) {
+	t.Parallel()
+
+	accs := map[string]*data.AccountInfo{
+		"addr1": {
+			Address:    "addr1",
+			Nonce:      1,
+			TokenName:  "token-abcd",
+			Properties: "000",
+			TokenNonce: 0,
+			Balance:    "10000000000000",
+			BalanceNum: 1,
+		},
+	}
+
+	res, err := (&accountsProcessor{}).SerializeAccounts(accs, true)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(res))
+
+	expectedRes := `{ "index" : { "_id" : "addr1-token-abcd-00" } }
+{"address":"addr1","nonce":1,"balance":"10000000000000","balanceNum":1,"token":"token-abcd","properties":"000"}
+`
+	require.Equal(t, expectedRes, res[0].String())
+}
+
 func TestSerializeAccountsESDT(t *testing.T) {
 	t.Parallel()
 
