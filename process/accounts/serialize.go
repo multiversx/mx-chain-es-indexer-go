@@ -2,8 +2,10 @@ package accounts
 
 import (
 	"bytes"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"math/big"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 )
@@ -74,7 +76,9 @@ func prepareSerializedAccountInfo(
 ) ([]byte, []byte, error) {
 	id := account.Address
 	if isESDTAccount {
-		id += fmt.Sprintf("-%s-%d", account.TokenName, account.TokenNonce)
+		nonceBigBytes := big.NewInt(0).SetUint64(account.TokenNonce).Bytes()
+		hexEncodedNonce := hex.EncodeToString(nonceBigBytes)
+		id += fmt.Sprintf("-%s-%s", account.TokenName, hexEncodedNonce)
 	}
 
 	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, id, "\n"))

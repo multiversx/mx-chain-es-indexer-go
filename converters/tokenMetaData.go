@@ -22,19 +22,25 @@ func PrepareTokenMetaData(pubKeyConverter core.PubkeyConverter, esdtInfo *esdt.E
 		creatorStr = pubKeyConverter.Encode(esdtInfo.TokenMetaData.Creator)
 	}
 
-	uris := esdtInfo.TokenMetaData.URIs
-	if len(uris) == 0 {
-		uris = nil
+	return &data.TokenMetaData{
+		Name:         string(esdtInfo.TokenMetaData.Name),
+		Creator:      creatorStr,
+		Royalties:    esdtInfo.TokenMetaData.Royalties,
+		Hash:         esdtInfo.TokenMetaData.Hash,
+		URIs:         esdtInfo.TokenMetaData.URIs,
+		Attributes:   esdtInfo.TokenMetaData.Attributes,
+		Tags:         ExtractTagsFromAttributes(esdtInfo.TokenMetaData.Attributes),
+		MetaData:     ExtractMetaDataFromAttributes(esdtInfo.TokenMetaData.Attributes),
+		NonEmptyURIs: nonEmptyURIs(esdtInfo.TokenMetaData.URIs),
+	}
+}
+
+func nonEmptyURIs(uris [][]byte) bool {
+	for _, uri := range uris {
+		if len(uri) > 0 {
+			return true
+		}
 	}
 
-	return &data.TokenMetaData{
-		Name:       string(esdtInfo.TokenMetaData.Name),
-		Creator:    creatorStr,
-		Royalties:  esdtInfo.TokenMetaData.Royalties,
-		Hash:       esdtInfo.TokenMetaData.Hash,
-		URIs:       uris,
-		Attributes: esdtInfo.TokenMetaData.Attributes,
-		Tags:       ExtractTagsFromAttributes(esdtInfo.TokenMetaData.Attributes),
-		MetaData:   ExtractMetaDataFromAttributes(esdtInfo.TokenMetaData.Attributes),
-	}
+	return false
 }
