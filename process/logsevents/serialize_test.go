@@ -35,3 +35,23 @@ func TestLogsAndEventsProcessor_SerializeLogs(t *testing.T) {
 `
 	require.Equal(t, expectedRes, res[0].String())
 }
+
+func TestLogsAndEventsProcessor_SerializeSCDeploys(t *testing.T) {
+	t.Parallel()
+
+	scDeploys := map[string]*data.ScDeployInfo{
+		"scAddr": {
+			Creator:   "creator",
+			Timestamp: 123,
+			TxHash:    "hash",
+		},
+	}
+
+	res, err := (&logsAndEventsProcessor{}).SerializeSCDeploys(scDeploys)
+	require.Nil(t, err)
+
+	expectedRes := `{ "index" : { "_id" : "747848617368" } }
+{"address":"61646472657373","events":[{"address":"61646472","identifier":"ESDTNFTTransfer","topics":["bXktdG9rZW4=","AQ==","cmVjZWl2ZXI="],"data":"ZGF0YQ=="}]}
+`
+	require.Equal(t, expectedRes, res[0].String())
+}

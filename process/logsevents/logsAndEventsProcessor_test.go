@@ -75,7 +75,7 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 	}
 	proc, _ := NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, mock.NewPubkeyConverterMock(32), &mock.MarshalizerMock{})
 
-	tokens, tagsCount := proc.ExtractDataFromLogsAndPutInAltered(logsAndEvents, res, 1000)
+	tokens, tagsCount, _ := proc.ExtractDataFromLogsAndPutInAltered(logsAndEvents, res, 1000)
 	require.NotNil(t, tokens)
 	require.NotNil(t, tagsCount)
 	require.Equal(t, "my-token-01", res.Transactions[0].EsdtTokenIdentifier)

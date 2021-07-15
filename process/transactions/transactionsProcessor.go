@@ -41,7 +41,6 @@ type txsDatabaseProcessor struct {
 	txFeeCalculator process.TransactionFeeCalculator
 	txBuilder       *dbTransactionBuilder
 	txsGrouper      *txsGrouper
-	scDeploysProc   *scDeploysProc
 	tokensProcessor *tokensProcessor
 }
 
@@ -55,7 +54,6 @@ func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txsDatabaseProce
 	selfShardID := args.ShardCoordinator.SelfId()
 	txBuilder := newTransactionDBBuilder(args.AddressPubkeyConverter, args.ShardCoordinator, args.TxFeeCalculator)
 	txsDBGrouper := newTxsGrouper(txBuilder, args.IsInImportMode, selfShardID, args.Hasher, args.Marshalizer)
-	scDeploys := newScDeploysProc(args.AddressPubkeyConverter, selfShardID)
 	tokensProc := newTokensProcessor(selfShardID, args.AddressPubkeyConverter)
 
 	if args.IsInImportMode {
@@ -67,7 +65,6 @@ func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txsDatabaseProce
 		txFeeCalculator: args.TxFeeCalculator,
 		txBuilder:       txBuilder,
 		txsGrouper:      txsDBGrouper,
-		scDeploysProc:   scDeploys,
 		tokensProcessor: tokensProc,
 	}, nil
 }
@@ -133,8 +130,6 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 	sliceRewardsTxs := convertMapTxsToSlice(rewardsTxs)
 	txsSlice := append(sliceNormalTxs, sliceRewardsTxs...)
 
-	deploysData := tdp.scDeploysProc.searchSCDeployTransactionsOrSCRS(txsSlice, dbSCResults)
-
 	tokens := tdp.tokensProcessor.searchForTokenIssueTransactions(txsSlice, header.GetTimeStamp())
 	tokens = append(tokens, tdp.tokensProcessor.searchForTokenIssueScrs(dbSCResults, header.GetTimeStamp())...)
 
@@ -143,7 +138,6 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 		ScResults:    dbSCResults,
 		Receipts:     dbReceipts,
 		AlteredAccts: alteredAccounts,
-		DeploysInfo:  deploysData,
 		Tokens:       tokens,
 	}
 }

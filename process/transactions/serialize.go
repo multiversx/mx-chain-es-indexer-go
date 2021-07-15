@@ -27,25 +27,6 @@ func (tdp *txsDatabaseProcessor) SerializeTokens(tokens []*data.TokenInfo) ([]*b
 	return buffSlice.Buffers(), nil
 }
 
-// SerializeDeploysData will serialize the provided deploys data in a way that Elastic Search expects a bulk request
-func (tdp *txsDatabaseProcessor) SerializeDeploysData(deploys []*data.ScDeployInfo) ([]*bytes.Buffer, error) {
-	buffSlice := data.NewBufferSlice()
-	for _, deployInfo := range deploys {
-		meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, deployInfo.ScAddress, "\n"))
-		serializedData, errPrepareD := json.Marshal(deployInfo)
-		if errPrepareD != nil {
-			return nil, errPrepareD
-		}
-
-		err := buffSlice.PutData(meta, serializedData)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return buffSlice.Buffers(), nil
-}
-
 // SerializeScResults will serialize the provided smart contract results in a way that Elastic Search expects a bulk request
 func (tdp *txsDatabaseProcessor) SerializeScResults(scResults []*data.ScResult) ([]*bytes.Buffer, error) {
 	buffSlice := data.NewBufferSlice()

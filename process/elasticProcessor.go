@@ -400,7 +400,7 @@ func (ei *elasticProcessor) SaveTransactions(
 	mbsInDb map[string]bool,
 ) error {
 	preparedResults := ei.transactionsProc.PrepareTransactionsForDatabase(body, header, pool)
-	nftCreateTokenInfo, tagsCount := ei.logsAndEventsProc.ExtractDataFromLogsAndPutInAltered(pool.Logs, preparedResults, header.GetTimeStamp())
+	nftCreateTokenInfo, tagsCount, deploysInfo := ei.logsAndEventsProc.ExtractDataFromLogsAndPutInAltered(pool.Logs, preparedResults, header.GetTimeStamp())
 
 	err := ei.indexTransactions(preparedResults.Transactions, header, mbsInDb)
 	if err != nil {
@@ -442,7 +442,7 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
-	return ei.indexScDeploys(preparedResults.DeploysInfo)
+	return ei.indexScDeploys(deploysInfo)
 }
 
 func (ei *elasticProcessor) prepareAndIndexLogs(logsAndEvents map[string]nodeData.LogHandler) error {
@@ -472,12 +472,12 @@ func (ei *elasticProcessor) indexTokens(tokensData []*data.TokenInfo) error {
 	return ei.doBulkRequests(elasticIndexer.TokensIndex, buffSlice)
 }
 
-func (ei *elasticProcessor) indexScDeploys(deployData []*data.ScDeployInfo) error {
+func (ei *elasticProcessor) indexScDeploys(deployData map[string]*data.ScDeployInfo) error {
 	if !ei.isIndexEnabled(elasticIndexer.SCDeploysIndex) {
 		return nil
 	}
 
-	buffSlice, err := ei.transactionsProc.SerializeDeploysData(deployData)
+	buffSlice, err := ei.logsAndEventsProc.SerializeSCDeploys(deployData)
 	if err != nil {
 		return err
 	}

@@ -17,6 +17,14 @@ import (
 type logsAndEventsProcessor struct {
 	pubKeyConverter  core.PubkeyConverter
 	eventsProcessors []eventsProcessor
+
+	timestamp uint64
+	tokens    data.TokensHandler
+	tagsCount tags.CountTags
+	accounts  data.AlteredAccountsHandler
+	txsMap    map[string]*data.Transaction
+	scrsMap   map[string]*data.ScResult
+	scDeploys map[string]*data.ScDeployInfo
 }
 
 // NewLogsAndEventsProcessor will create a new instance for the logsAndEventsProcessor
@@ -37,11 +45,12 @@ func NewLogsAndEventsProcessor(
 
 	nftsProc := newNFTsProcessor(shardCoordinator, pubKeyConverter, marshalizer)
 	fungibleProc := newFungibleESDTProcessor(pubKeyConverter, shardCoordinator)
+	scDeploysProc := newSCDeploysProcessor(pubKeyConverter)
 
 	return &logsAndEventsProcessor{
 		pubKeyConverter: pubKeyConverter,
 		eventsProcessors: []eventsProcessor{
-			fungibleProc, nftsProc,
+			fungibleProc, nftsProc, scDeploysProc,
 		},
 	}, nil
 }
@@ -51,74 +60,62 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogsAndPutInAltered(
 	logsAndEvents map[string]nodeData.LogHandler,
 	preparedResults *data.PreparedResults,
 	timestamp uint64,
-) (data.TokensHandler, tags.CountTags) {
-	txsMap := converters.ConvertTxsSliceIntoMap(preparedResults.Transactions)
-	scrsMap := converters.ConvertScrsSliceIntoMap(preparedResults.ScResults)
+) (data.TokensHandler, tags.CountTags, map[string]*data.ScDeployInfo) {
+	lep.txsMap = converters.ConvertTxsSliceIntoMap(preparedResults.Transactions)
+	lep.scrsMap = converters.ConvertScrsSliceIntoMap(preparedResults.ScResults)
+	lep.tagsCount = tags.NewTagsCount()
+	lep.tokens = data.NewTokensInfo()
+	lep.accounts = preparedResults.AlteredAccts
+	lep.timestamp = timestamp
+	lep.scDeploys = make(map[string]*data.ScDeployInfo)
 
-	tagsCount := tags.NewTagsCount()
-	tokens := data.NewTokensInfo()
 	for logHash, log := range logsAndEvents {
 		if check.IfNil(log) {
 			continue
 		}
 
 		events := log.GetLogEvents()
-		lep.processEvents(logHash, timestamp, events, tokens, tagsCount, preparedResults.AlteredAccts, txsMap, scrsMap)
+		lep.processEvents(logHash, events)
 	}
 
-	return tokens, tagsCount
+	return lep.tokens, lep.tagsCount, lep.scDeploys
 }
 
-func (lep *logsAndEventsProcessor) processEvents(
-	logHash string,
-	timestamp uint64,
-	events []nodeData.EventHandler,
-	tokens data.TokensHandler,
-	tagsCount tags.CountTags,
-	accounts data.AlteredAccountsHandler,
-	txsMap map[string]*data.Transaction,
-	scrsMap map[string]*data.ScResult,
-) {
+func (lep *logsAndEventsProcessor) processEvents(logHash string, events []nodeData.EventHandler) {
 	for _, event := range events {
 		if check.IfNil(event) {
 			continue
 		}
 
-		lep.processEvent(logHash, timestamp, event, tokens, tagsCount, accounts, txsMap, scrsMap)
+		lep.processEvent(logHash, event)
 	}
 }
 
-func (lep *logsAndEventsProcessor) processEvent(
-	logHash string,
-	timestamp uint64,
-	events nodeData.EventHandler,
-	tokens data.TokensHandler,
-	tagsCount tags.CountTags,
-	accounts data.AlteredAccountsHandler,
-	txsMap map[string]*data.Transaction,
-	scrsMap map[string]*data.ScResult,
-) {
+func (lep *logsAndEventsProcessor) processEvent(logHash string, events nodeData.EventHandler) {
 	logHashHexEncoded := hex.EncodeToString([]byte(logHash))
 	for _, proc := range lep.eventsProcessors {
 		identifier, processed := proc.processEvent(&argsProcessEvent{
-			event:     events,
-			accounts:  accounts,
-			tokens:    tokens,
-			tagsCount: tagsCount,
-			timestamp: timestamp,
+			event:            events,
+			accounts:         lep.accounts,
+			tokens:           lep.tokens,
+			tagsCount:        lep.tagsCount,
+			timestamp:        lep.timestamp,
+			scDeploys:        lep.scDeploys,
+			txHashHexEncoded: logHashHexEncoded,
 		})
-		if identifier == "" {
-			continue
+		emptyIdentifier := identifier == ""
+		if emptyIdentifier && processed {
+			return
 		}
 
-		tx, ok := txsMap[logHashHexEncoded]
-		if ok {
+		tx, ok := lep.txsMap[logHashHexEncoded]
+		if ok && !emptyIdentifier {
 			tx.EsdtTokenIdentifier = identifier
 			continue
 		}
 
-		scr, ok := scrsMap[logHashHexEncoded]
-		if ok {
+		scr, ok := lep.scrsMap[logHashHexEncoded]
+		if ok && !emptyIdentifier {
 			scr.EsdtTokenIdentifier = identifier
 			return
 		}

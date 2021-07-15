@@ -104,14 +104,6 @@ type PreparedResults struct {
 	Transactions []*Transaction
 	ScResults    []*ScResult
 	Receipts     []*Receipt
-	DeploysInfo  []*ScDeployInfo
 	AlteredAccts AlteredAccountsHandler
 	Tokens       []*TokenInfo
-}
-
-// ScDeployInfo is the DTO that holds information about a smart contract deployment
-type ScDeployInfo struct {
-	ScAddress string `json:"-"`
-	TxHash    string `json:"deployTxHash"`
-	Creator   string `json:"deployer"`
 }
