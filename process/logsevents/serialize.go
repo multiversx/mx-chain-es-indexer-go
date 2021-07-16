@@ -36,17 +36,23 @@ func (logsAndEventsProcessor) SerializeSCDeploys(deploys map[string]*data.ScDepl
 			return nil, errPrepareD
 		}
 
-		upgradeSerialized, errPrepareU := json.Marshal(&data.Upgrade{
+		upgradeData := &data.Upgrade{
 			TxHash:    deployInfo.TxHash,
 			Upgrader:  deployInfo.Creator,
 			Timestamp: deployInfo.Timestamp,
-		})
+		}
+		upgradeSerialized, errPrepareU := json.Marshal(upgradeData)
 		if errPrepareU != nil {
 			return nil, errPrepareU
 		}
 
 		meta := []byte(fmt.Sprintf(`{ "update" : { "_id" : "%s", "_type" : "_doc" } }%s`, scAddr, "\n"))
-		serializedDataStr := fmt.Sprintf(`{"script": {"source": "ctx._source.upgrades.add(params.elem);","lang": "painless","params": {"elem": %s}},"upsert": %s}`, string(upgradeSerialized), string(serializedData))
+		serializedDataStr := fmt.Sprintf(`{"script": {`+
+			`"source": "ctx._source.upgrades.add(params.elem);",`+
+			`"lang": "painless",`+
+			`"params": {"elem": %s}},`+
+			`"upsert": %s}`,
+			string(upgradeSerialized), string(serializedData))
 
 		err := buffSlice.PutData(meta, []byte(serializedDataStr))
 		if err != nil {

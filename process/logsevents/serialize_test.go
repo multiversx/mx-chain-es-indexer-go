@@ -50,8 +50,8 @@ func TestLogsAndEventsProcessor_SerializeSCDeploys(t *testing.T) {
 	res, err := (&logsAndEventsProcessor{}).SerializeSCDeploys(scDeploys)
 	require.Nil(t, err)
 
-	expectedRes := `{ "index" : { "_id" : "747848617368" } }
-{"address":"61646472657373","events":[{"address":"61646472","identifier":"ESDTNFTTransfer","topics":["bXktdG9rZW4=","AQ==","cmVjZWl2ZXI="],"data":"ZGF0YQ=="}]}
+	expectedRes := `{ "update" : { "_id" : "scAddr", "_type" : "_doc" } }
+{"script": {"source": "ctx._source.upgrades.add(params.elem);","lang": "painless","params": {"elem": {"upgradeTxHash":"hash","upgrader":"creator","timestamp":123}}},"upsert": {"deployTxHash":"hash","deployer":"creator","timestamp":123,"upgrades":[]}}
 `
 	require.Equal(t, expectedRes, res[0].String())
 }
