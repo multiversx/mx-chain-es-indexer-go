@@ -1,6 +1,6 @@
 package workItems
 
-import "github.com/ElrondNetwork/elrond-go/core/statistics"
+import "github.com/ElrondNetwork/elrond-go/common/statistics"
 
 type itemTpsBenchmark struct {
 	indexer      saveTpsBenchmark

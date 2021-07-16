@@ -3,12 +3,12 @@ package workItems
 import (
 	"fmt"
 
+	"github.com/ElrondNetwork/elrond-go-core/core/check"
+	data2 "github.com/ElrondNetwork/elrond-go-core/data"
+	"github.com/ElrondNetwork/elrond-go-core/data/block"
+	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/marshal"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
-	"github.com/ElrondNetwork/elrond-go/core/check"
-	"github.com/ElrondNetwork/elrond-go/data"
-	"github.com/ElrondNetwork/elrond-go/data/block"
-	"github.com/ElrondNetwork/elrond-go/data/indexer"
-	"github.com/ElrondNetwork/elrond-go/marshal"
 )
 
 var log = logger.GetOrCreate("core/indexer/workItems")
@@ -96,7 +96,7 @@ func ComputeSizeOfTxs(marshalizer marshal.Marshalizer, pool *indexer.Pool) int {
 	return sizeTxs
 }
 
-func computeSizeOfMap(marshalizer marshal.Marshalizer, mapTxs map[string]data.TransactionHandler) int {
+func computeSizeOfMap(marshalizer marshal.Marshalizer, mapTxs map[string]data2.TransactionHandler) int {
 	txsSize := 0
 	for _, tx := range mapTxs {
 		txBytes, err := marshalizer.Marshal(tx)
