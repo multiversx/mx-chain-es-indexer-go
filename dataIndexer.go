@@ -8,6 +8,7 @@ import (
 	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
+	"github.com/ElrondNetwork/elrond-go/common"
 	"github.com/ElrondNetwork/elrond-go/common/statistics"
 	"github.com/ElrondNetwork/elrond-go/epochStart"
 	"github.com/ElrondNetwork/elrond-go/epochStart/notifier"
@@ -81,7 +82,7 @@ func (di *dataIndexer) epochStartEventHandler() epochStart.ActionHandler {
 
 		go di.SaveValidatorsPubKeys(validatorsPubKeys, currentEpoch)
 
-	}, func(_ nodeData.HeaderHandler) {}, core.IndexerOrder)
+	}, func(_ nodeData.HeaderHandler) {}, common.IndexerOrder)
 
 	return subscribeHandler
 }
