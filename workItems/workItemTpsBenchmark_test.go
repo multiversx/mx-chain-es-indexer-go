@@ -6,7 +6,7 @@ import (
 
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
-	"github.com/ElrondNetwork/elrond-go/core/statistics"
+	"github.com/ElrondNetwork/elrond-go/common/statistics"
 	"github.com/stretchr/testify/require"
 )
 

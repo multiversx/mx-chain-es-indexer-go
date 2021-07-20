@@ -13,15 +13,15 @@ import (
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
-	"github.com/ElrondNetwork/elrond-go/core"
-	nodeData "github.com/ElrondNetwork/elrond-go/data"
-	dataBlock "github.com/ElrondNetwork/elrond-go/data/block"
-	"github.com/ElrondNetwork/elrond-go/data/indexer"
-	"github.com/ElrondNetwork/elrond-go/data/receipt"
-	"github.com/ElrondNetwork/elrond-go/data/rewardTx"
-	"github.com/ElrondNetwork/elrond-go/data/smartContractResult"
-	"github.com/ElrondNetwork/elrond-go/data/transaction"
-	"github.com/ElrondNetwork/elrond-go/testscommon"
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
+	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
+	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/receipt"
+	"github.com/ElrondNetwork/elrond-go-core/data/rewardTx"
+	"github.com/ElrondNetwork/elrond-go-core/data/smartContractResult"
+	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
+	nodeTestsCommon "github.com/ElrondNetwork/elrond-go/testscommon"
 	"github.com/ElrondNetwork/elrond-go/testscommon/economicsmocks"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
@@ -61,7 +61,7 @@ func createMockElasticProcessorArgs() ArgElasticProcessor {
 		EnabledIndexes: map[string]struct{}{
 			blockIndex: {}, txIndex: {}, miniblocksIndex: {}, tpsIndex: {}, validatorsIndex: {}, roundIndex: {}, accountsIndex: {}, ratingIndex: {}, accountsHistoryIndex: {},
 		},
-		AccountsDB:               &mock.AccountsStub{},
+		AccountsDB:               &nodeTestsCommon.AccountsStub{},
 		TransactionFeeCalculator: &economicsmocks.EconomicsHandlerStub{},
 		ShardCoordinator:         &mock.ShardCoordinatorMock{},
 	}
@@ -378,7 +378,7 @@ func TestElasticsearch_saveShardValidatorsPubKeys(t *testing.T) {
 }
 
 func TestElasticsearch_saveShardStatistics_reqError(t *testing.T) {
-	tpsBenchmark := &testscommon.TpsBenchmarkMock{}
+	tpsBenchmark := &nodeTestsCommon.TpsBenchmarkMock{}
 	metaBlock := &dataBlock.MetaBlock{
 		TxCount: 2, Nonce: 1,
 		ShardInfo: []dataBlock.ShardData{{HeaderHash: []byte("hash")}},
@@ -400,7 +400,7 @@ func TestElasticsearch_saveShardStatistics_reqError(t *testing.T) {
 }
 
 func TestElasticsearch_saveShardStatistics(t *testing.T) {
-	tpsBenchmark := &testscommon.TpsBenchmarkMock{}
+	tpsBenchmark := &nodeTestsCommon.TpsBenchmarkMock{}
 	metaBlock := &dataBlock.MetaBlock{
 		TxCount: 2, Nonce: 1,
 		ShardInfo: []dataBlock.ShardData{{HeaderHash: []byte("hash")}},
@@ -472,7 +472,7 @@ func TestUpdateMiniBlock(t *testing.T) {
 		EnabledIndexes: map[string]struct{}{
 			"miniblocks": {},
 		},
-		AccountsDB:               &mock.AccountsStub{},
+		AccountsDB:               &nodeTestsCommon.AccountsStub{},
 		ShardCoordinator:         &mock.ShardCoordinatorMock{},
 		TransactionFeeCalculator: &economicsmocks.EconomicsHandlerStub{},
 	}
@@ -548,7 +548,7 @@ func TestUpdateTransaction(t *testing.T) {
 		ShardCoordinator:         &mock.ShardCoordinatorMock{},
 		IsInImportDBMode:         false,
 		AddressPubkeyConverter:   mock.NewPubkeyConverterMock(32),
-		AccountsDB:               &mock.AccountsStub{},
+		AccountsDB:               &nodeTestsCommon.AccountsStub{},
 		ValidatorPubkeyConverter: mock.NewPubkeyConverterMock(96),
 		TransactionFeeCalculator: &economicsmocks.EconomicsHandlerStub{},
 		EnabledIndexes: map[string]struct{}{

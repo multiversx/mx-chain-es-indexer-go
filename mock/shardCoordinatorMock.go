@@ -1,8 +1,6 @@
 package mock
 
-import (
-	"github.com/ElrondNetwork/elrond-go/core"
-)
+import "github.com/ElrondNetwork/elrond-go-core/core"
 
 // ShardCoordinatorMock -
 type ShardCoordinatorMock struct {
