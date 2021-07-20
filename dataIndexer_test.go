@@ -12,9 +12,9 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/disabled"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
-	core2 "github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
-	data2 "github.com/ElrondNetwork/elrond-go-core/data"
+	"github.com/ElrondNetwork/elrond-go-core/data"
 	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
@@ -60,7 +60,7 @@ func TestDataIndexer_NewIndexerWithNilNodesCoordinatorShouldErr(t *testing.T) {
 	ei, err := NewDataIndexer(arguments)
 
 	require.Nil(t, ei)
-	require.Equal(t, core2.ErrNilNodesCoordinator, err)
+	require.Equal(t, core.ErrNilNodesCoordinator, err)
 }
 
 func TestDataIndexer_NewIndexerWithNilDataDispatcherShouldErr(t *testing.T) {
@@ -87,7 +87,7 @@ func TestDataIndexer_NewIndexerWithNilMarshalizerShouldErr(t *testing.T) {
 	ei, err := NewDataIndexer(arguments)
 
 	require.Nil(t, ei)
-	require.Equal(t, core2.ErrNilMarshalizer, err)
+	require.Equal(t, core.ErrNilMarshalizer, err)
 }
 
 func TestDataIndexer_NewIndexerWithNilEpochStartNotifierShouldErr(t *testing.T) {
@@ -96,7 +96,7 @@ func TestDataIndexer_NewIndexerWithNilEpochStartNotifierShouldErr(t *testing.T) 
 	ei, err := NewDataIndexer(arguments)
 
 	require.Nil(t, ei)
-	require.Equal(t, core2.ErrNilEpochStartNotifier, err)
+	require.Equal(t, core.ErrNilEpochStartNotifier, err)
 }
 
 func TestDataIndexer_NewIndexerWithCorrectParamsShouldWork(t *testing.T) {
@@ -255,7 +255,7 @@ func TestDataIndexer_EpochChange(t *testing.T) {
 	arguments := NewDataIndexerArguments()
 	arguments.Marshalizer = &mock.MarshalizerMock{Fail: true}
 	arguments.ShardCoordinator = &mock.ShardCoordinatorMock{
-		SelfID: core2.MetachainShardId,
+		SelfID: core.MetachainShardId,
 	}
 	epochChangeNotifier := &mock.EpochStartNotifierStub{}
 	arguments.EpochStartNotifier = epochChangeNotifier
@@ -289,7 +289,7 @@ func TestDataIndexer_EpochChangeValidators(t *testing.T) {
 	arguments := NewDataIndexerArguments()
 	arguments.Marshalizer = &mock.MarshalizerMock{Fail: true}
 	arguments.ShardCoordinator = &mock.ShardCoordinatorMock{
-		SelfID: core2.MetachainShardId,
+		SelfID: core.MetachainShardId,
 	}
 	epochChangeNotifier := &mock.EpochStartNotifierStub{}
 	arguments.EpochStartNotifier = epochChangeNotifier
@@ -302,12 +302,12 @@ func TestDataIndexer_EpochChangeValidators(t *testing.T) {
 	val2MetaPubKey := []byte("val4")
 
 	validatorsEpoch1 := map[uint32][][]byte{
-		0:                      {val1PubKey, val2PubKey},
-		core2.MetachainShardId: {val1MetaPubKey, val2MetaPubKey},
+		0:                     {val1PubKey, val2PubKey},
+		core.MetachainShardId: {val1MetaPubKey, val2MetaPubKey},
 	}
 	validatorsEpoch2 := map[uint32][][]byte{
-		0:                      {val2PubKey, val1PubKey},
-		core2.MetachainShardId: {val2MetaPubKey, val1MetaPubKey},
+		0:                     {val2PubKey, val1PubKey},
+		core.MetachainShardId: {val2MetaPubKey, val1MetaPubKey},
 	}
 	var firstEpochCalled, secondEpochCalled bool
 	arguments.NodesCoordinator = &mock.NodesCoordinatorMock{
@@ -390,7 +390,7 @@ func testCreateIndexer(t *testing.T) {
 		header := &dataBlock.Header{
 			Nonce: uint64(i),
 		}
-		txsPool := make(map[string]data2.TransactionHandler)
+		txsPool := make(map[string]data.TransactionHandler)
 		for j := 0; j < numTransactions; j++ {
 			txsPool[hashes[j]] = &txs[j]
 		}
@@ -456,23 +456,23 @@ func getIndexTemplateAndPolicies() (map[string]*bytes.Buffer, map[string]*bytes.
 	indexPolicies := make(map[string]*bytes.Buffer)
 
 	template := &bytes.Buffer{}
-	_ = core2.LoadJsonFile(template, "./testdata/opendistro.json")
+	_ = core.LoadJsonFile(template, "./testdata/opendistro.json")
 	indexTemplates["opendistro"] = template
-	_ = core2.LoadJsonFile(template, "./testdata/transactions.json")
+	_ = core.LoadJsonFile(template, "./testdata/transactions.json")
 	indexTemplates["transactions"] = template
 
-	_ = core2.LoadJsonFile(template, "./testdata/blocks.json")
+	_ = core.LoadJsonFile(template, "./testdata/blocks.json")
 	indexTemplates["blocks"] = template
-	_ = core2.LoadJsonFile(template, "./testdata/miniblocks.json")
+	_ = core.LoadJsonFile(template, "./testdata/miniblocks.json")
 	indexTemplates["miniblocks"] = template
 
-	_ = core2.LoadJsonFile(template, "./testdata/tps.json")
+	_ = core.LoadJsonFile(template, "./testdata/tps.json")
 	indexTemplates["tps"] = template
 
 	policy := &bytes.Buffer{}
-	_ = core2.LoadJsonFile(template, "./testdata/transactions_policy.json")
+	_ = core.LoadJsonFile(template, "./testdata/transactions_policy.json")
 	indexPolicies["transactions_policy"] = policy
-	_ = core2.LoadJsonFile(template, "./testdata/blocks_policy.json")
+	_ = core.LoadJsonFile(template, "./testdata/blocks_policy.json")
 	indexPolicies["blocks_policy"] = policy
 
 	return indexTemplates, indexPolicies

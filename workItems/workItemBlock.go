@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
-	data2 "github.com/ElrondNetwork/elrond-go-core/data"
+	"github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
@@ -96,7 +96,7 @@ func ComputeSizeOfTxs(marshalizer marshal.Marshalizer, pool *indexer.Pool) int {
 	return sizeTxs
 }
 
-func computeSizeOfMap(marshalizer marshal.Marshalizer, mapTxs map[string]data2.TransactionHandler) int {
+func computeSizeOfMap(marshalizer marshal.Marshalizer, mapTxs map[string]data.TransactionHandler) int {
 	txsSize := 0
 	for _, tx := range mapTxs {
 		txBytes, err := marshalizer.Marshal(tx)

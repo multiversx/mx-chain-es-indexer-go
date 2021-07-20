@@ -13,7 +13,7 @@ import (
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
-	core2 "github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/core"
 	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
 	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
@@ -176,8 +176,8 @@ func TestElasticProcessor_RemoveMiniblocks(t *testing.T) {
 
 	args := createMockElasticProcessorArgs()
 
-	mbHash2, _ := core2.CalculateHash(args.Marshalizer, args.Hasher, mb2)
-	mbHash3, _ := core2.CalculateHash(args.Marshalizer, args.Hasher, mb3)
+	mbHash2, _ := core.CalculateHash(args.Marshalizer, args.Hasher, mb2)
+	mbHash3, _ := core.CalculateHash(args.Marshalizer, args.Hasher, mb3)
 
 	args.DBClient = &mock.DatabaseWriterStub{
 		DoBulkRemoveCalled: func(index string, hashes []string) error {
@@ -251,7 +251,7 @@ func TestElasticseachDatabaseSaveHeader_CheckRequestBody(t *testing.T) {
 
 	arguments := createMockElasticProcessorArgs()
 
-	mbHash, _ := core2.CalculateHash(arguments.Marshalizer, arguments.Hasher, miniBlock)
+	mbHash, _ := core.CalculateHash(arguments.Marshalizer, arguments.Hasher, miniBlock)
 	hexEncodedHash := hex.EncodeToString(mbHash)
 
 	dbWriter := &mock.DatabaseWriterStub{
