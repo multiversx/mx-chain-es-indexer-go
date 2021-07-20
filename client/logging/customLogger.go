@@ -11,8 +11,10 @@ import (
 
 var log = logger.GetOrCreate("indexer/client/requests")
 
+// CustomLogger defines a custom logger for the elastic client
 type CustomLogger struct{}
 
+// LogRoundTrip logs useful information about the client request and response
 func (cl *CustomLogger) LogRoundTrip(
 	req *http.Request,
 	res *http.Response,
@@ -21,15 +23,15 @@ func (cl *CustomLogger) LogRoundTrip(
 	dur time.Duration,
 ) error {
 	var (
-		nReq int64
-		nRes int64
+		reqSize int64
+		resSize int64
 	)
 
 	if req != nil && req.Body != nil && req.Body != http.NoBody {
-		nReq, _ = io.Copy(ioutil.Discard, req.Body)
+		reqSize, _ = io.Copy(ioutil.Discard, req.Body)
 	}
 	if res != nil && res.Body != nil && res.Body != http.NoBody {
-		nRes, _ = io.Copy(ioutil.Discard, res.Body)
+		resSize, _ = io.Copy(ioutil.Discard, res.Body)
 	}
 
 	if err != nil {
@@ -37,7 +39,7 @@ func (cl *CustomLogger) LogRoundTrip(
 	}
 
 	if req != nil && res != nil {
-		logInformation(req, res, err, dur, nReq, nRes)
+		logInformation(req, res, err, dur, reqSize, resSize)
 	}
 
 	return nil
@@ -48,15 +50,15 @@ func logInformation(
 	res *http.Response,
 	err error,
 	dur time.Duration,
-	nReq int64,
-	nRes int64,
+	reqSize int64,
+	resSize int64,
 ) {
 	logData := []interface{}{
 		"method", req.Method,
 		"status code", res.StatusCode,
 		"duration", dur,
-		"request bytes", nReq,
-		"response bytes", nRes,
+		"request bytes", reqSize,
+		"response bytes", resSize,
 		"URL", req.URL.String(),
 	}
 	if err != nil {
