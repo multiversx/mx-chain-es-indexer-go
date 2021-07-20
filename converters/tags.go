@@ -41,8 +41,27 @@ func extractFromAttributes(attributes []byte, key string) []string {
 			continue
 		}
 
-		return strings.Split(sKeyValuesPair[1], valuesSeparator)
+		tagsSplit := strings.Split(sKeyValuesPair[1], valuesSeparator)
+
+		return extractNonEmpty(tagsSplit)
 	}
 
 	return nil
+}
+
+func extractNonEmpty(tags []string) []string {
+	nonEmptyTags := make([]string, 0)
+	for _, tag := range tags {
+		if tag == "" {
+			continue
+		}
+
+		nonEmptyTags = append(nonEmptyTags, tag)
+	}
+
+	if len(nonEmptyTags) == 0 {
+		return nil
+	}
+
+	return nonEmptyTags
 }

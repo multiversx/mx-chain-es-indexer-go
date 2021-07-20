@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
+	"github.com/ElrondNetwork/elastic-indexer-go/client/logging"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/stretchr/testify/require"
@@ -57,6 +58,7 @@ func TestElasticClient_DoMultiGet(t *testing.T) {
 
 	esClient, _ := NewElasticClient(elasticsearch.Config{
 		Addresses: []string{ts.URL},
+		Logger:    &logging.CustomLogger{},
 	})
 
 	ids := []string{"id"}

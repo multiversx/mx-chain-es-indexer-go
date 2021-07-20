@@ -299,7 +299,6 @@ func (ei *elasticProcessor) SaveHeader(
 		Index:      elasticIndexer.BlockIndex,
 		DocumentID: elasticBlock.Hash,
 		Body:       bytes.NewReader(buff.Bytes()),
-		Refresh:    "true",
 	}
 
 	err = ei.elasticClient.DoRequest(req)
@@ -325,7 +324,6 @@ func (ei *elasticProcessor) indexEpochInfoData(header nodeData.HeaderHandler) er
 		Index:      elasticIndexer.EpochInfoIndex,
 		DocumentID: fmt.Sprintf("%d", header.GetEpoch()),
 		Body:       bytes.NewReader(buff.Bytes()),
-		Refresh:    "true",
 	}
 
 	return ei.elasticClient.DoRequest(req)
@@ -547,7 +545,6 @@ func (ei *elasticProcessor) SaveShardValidatorsPubKeys(shardID, epoch uint32, sh
 		Index:      elasticIndexer.ValidatorsIndex,
 		DocumentID: fmt.Sprintf("%d_%d", shardID, epoch),
 		Body:       bytes.NewReader(buff.Bytes()),
-		Refresh:    "true",
 	}
 
 	return ei.elasticClient.DoRequest(req)
