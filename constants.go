@@ -10,7 +10,6 @@ const (
 	blockIndex           = "blocks"
 	miniblocksIndex      = "miniblocks"
 	txIndex              = "transactions"
-	tpsIndex             = "tps"
 	validatorsIndex      = "validators"
 	roundIndex           = "rounds"
 	ratingIndex          = "rating"
@@ -24,9 +23,6 @@ const (
 	roundPolicy           = "rounds_policy"
 	ratingPolicy          = "rating_policy"
 	accountsHistoryPolicy = "accountshistory_policy"
-
-	metachainTpsDocID   = "meta"
-	shardTpsDocIDPrefix = "shard"
 
 	bulkSizeThreshold = 800000 // 0.8MB
 )

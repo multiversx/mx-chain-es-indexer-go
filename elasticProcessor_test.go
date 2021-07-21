@@ -59,7 +59,7 @@ func createMockElasticProcessorArgs() ArgElasticProcessor {
 		DBClient:                 &mock.DatabaseWriterStub{},
 		IsInImportDBMode:         false,
 		EnabledIndexes: map[string]struct{}{
-			blockIndex: {}, txIndex: {}, miniblocksIndex: {}, tpsIndex: {}, validatorsIndex: {}, roundIndex: {}, accountsIndex: {}, ratingIndex: {}, accountsHistoryIndex: {},
+			blockIndex: {}, txIndex: {}, miniblocksIndex: {}, validatorsIndex: {}, roundIndex: {}, accountsIndex: {}, ratingIndex: {}, accountsHistoryIndex: {},
 		},
 		AccountsDB:               &nodeTestsCommon.AccountsStub{},
 		TransactionFeeCalculator: &economicsmocks.EconomicsHandlerStub{},
@@ -374,49 +374,6 @@ func TestElasticsearch_saveShardValidatorsPubKeys(t *testing.T) {
 	elasticDatabase := newTestElasticSearchDatabase(dbWriter, arguments)
 
 	err := elasticDatabase.SaveShardValidatorsPubKeys(shardID, epoch, valPubKeys)
-	require.Nil(t, err)
-}
-
-func TestElasticsearch_saveShardStatistics_reqError(t *testing.T) {
-	tpsBenchmark := &nodeTestsCommon.TpsBenchmarkMock{}
-	metaBlock := &dataBlock.MetaBlock{
-		TxCount: 2, Nonce: 1,
-		ShardInfo: []dataBlock.ShardData{{HeaderHash: []byte("hash")}},
-	}
-	tpsBenchmark.UpdateWithShardStats(metaBlock)
-
-	localError := errors.New("local err")
-	arguments := createMockElasticProcessorArgs()
-	dbWriter := &mock.DatabaseWriterStub{
-		DoBulkRequestCalled: func(buff *bytes.Buffer, index string) error {
-			return localError
-		},
-	}
-
-	elasticDatabase := newTestElasticSearchDatabase(dbWriter, arguments)
-
-	err := elasticDatabase.SaveShardStatistics(tpsBenchmark)
-	require.Equal(t, localError, err)
-}
-
-func TestElasticsearch_saveShardStatistics(t *testing.T) {
-	tpsBenchmark := &nodeTestsCommon.TpsBenchmarkMock{}
-	metaBlock := &dataBlock.MetaBlock{
-		TxCount: 2, Nonce: 1,
-		ShardInfo: []dataBlock.ShardData{{HeaderHash: []byte("hash")}},
-	}
-	tpsBenchmark.UpdateWithShardStats(metaBlock)
-
-	arguments := createMockElasticProcessorArgs()
-	dbWriter := &mock.DatabaseWriterStub{
-		DoBulkRequestCalled: func(buff *bytes.Buffer, index string) error {
-			require.Equal(t, tpsIndex, index)
-			return nil
-		},
-	}
-	elasticDatabase := newTestElasticSearchDatabase(dbWriter, arguments)
-
-	err := elasticDatabase.SaveShardStatistics(tpsBenchmark)
 	require.Nil(t, err)
 }
 
