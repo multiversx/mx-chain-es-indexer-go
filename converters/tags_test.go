@@ -40,4 +40,16 @@ func TestPrepareTagsShouldWork(t *testing.T) {
 	attributes = []byte("shard:1,3")
 	prepared = ExtractTagsFromAttributes(attributes)
 	require.Nil(t, prepared)
+
+	attributes = []byte("tags:;metadata:")
+	prepared = ExtractTagsFromAttributes(attributes)
+	require.Nil(t, prepared)
+
+	attributes = []byte("tags:,,,,,,;metadata:")
+	prepared = ExtractTagsFromAttributes(attributes)
+	require.Nil(t, prepared)
+
+	attributes = []byte("tags")
+	prepared = ExtractTagsFromAttributes(attributes)
+	require.Nil(t, prepared)
 }
