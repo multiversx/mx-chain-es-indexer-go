@@ -22,26 +22,10 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-go/process"
-	"github.com/ElrondNetwork/elrond-go/testscommon"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-func newTestMetaBlock() *dataBlock.MetaBlock {
-	shardData := dataBlock.ShardData{
-		ShardID:               1,
-		HeaderHash:            []byte{1},
-		ShardMiniBlockHeaders: []dataBlock.MiniBlockHeader{},
-		TxCount:               100,
-	}
-	return &dataBlock.MetaBlock{
-		Nonce:     1,
-		Round:     2,
-		TxCount:   100,
-		ShardInfo: []dataBlock.ShardData{shardData},
-	}
-}
 
 func NewDataIndexerArguments() ArgDataIndexer {
 	return ArgDataIndexer{
@@ -107,40 +91,6 @@ func TestDataIndexer_NewIndexerWithCorrectParamsShouldWork(t *testing.T) {
 	require.Nil(t, err)
 	require.False(t, check.IfNil(ei))
 	require.False(t, ei.IsNilIndexer())
-}
-
-func TestDataIndexer_UpdateTPS(t *testing.T) {
-	t.Parallel()
-
-	called := false
-	arguments := NewDataIndexerArguments()
-	arguments.DataDispatcher = &mock.DispatcherMock{
-		AddCalled: func(item workItems.WorkItemHandler) {
-			called = true
-		},
-	}
-	ei, err := NewDataIndexer(arguments)
-	require.Nil(t, err)
-	_ = ei.Close()
-
-	tpsBench := testscommon.TpsBenchmarkMock{}
-	tpsBench.Update(newTestMetaBlock())
-
-	ei.UpdateTPS(&tpsBench)
-	require.True(t, called)
-}
-
-func TestDataIndexer_UpdateTPSNil(t *testing.T) {
-	//TODO fix this test without logging subsystem
-
-	_ = logger.SetLogLevel("core/indexer:TRACE")
-	arguments := NewDataIndexerArguments()
-
-	ei, err := NewDataIndexer(arguments)
-	require.Nil(t, err)
-	_ = ei.Close()
-
-	ei.UpdateTPS(nil)
 }
 
 func TestDataIndexer_SaveBlock(t *testing.T) {

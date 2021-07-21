@@ -9,7 +9,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
 	"github.com/ElrondNetwork/elrond-go/common"
-	"github.com/ElrondNetwork/elrond-go/common/statistics"
 	"github.com/ElrondNetwork/elrond-go/epochStart"
 	"github.com/ElrondNetwork/elrond-go/epochStart/notifier"
 	"github.com/ElrondNetwork/elrond-go/process"
@@ -154,17 +153,6 @@ func (di *dataIndexer) SaveValidatorsPubKeys(validatorsPubKeys map[uint32][][]by
 		epoch,
 		validatorsPubKeys,
 	)
-	di.dispatcher.Add(wi)
-}
-
-// UpdateTPS updates the tps and statistics into elasticsearch index
-func (di *dataIndexer) UpdateTPS(tpsBenchmark statistics.TPSBenchmark) {
-	if tpsBenchmark == nil {
-		log.Debug("indexer: update tps called, but the tpsBenchmark is nil")
-		return
-	}
-
-	wi := workItems.NewItemTpsBenchmark(di.elasticProcessor, tpsBenchmark)
 	di.dispatcher.Add(wi)
 }
 

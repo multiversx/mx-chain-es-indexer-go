@@ -19,7 +19,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/data/rewardTx"
 	"github.com/ElrondNetwork/elrond-go-core/data/smartContractResult"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	"github.com/ElrondNetwork/elrond-go/common/statistics"
 	"github.com/ElrondNetwork/elrond-go/process"
 	"github.com/ElrondNetwork/elrond-go/sharding"
 )
@@ -31,70 +30,6 @@ type commonProcessor struct {
 	addressPubkeyConverter   core.PubkeyConverter
 	validatorPubkeyConverter core.PubkeyConverter
 	txFeeCalculator          process.TransactionFeeCalculator
-}
-
-func prepareGeneralInfo(tpsBenchmark statistics.TPSBenchmark) bytes.Buffer {
-	var buff bytes.Buffer
-
-	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s", "_type" : "%s" } }%s`, metachainTpsDocID, tpsIndex, "\n"))
-	generalInfo := data.TPS{
-		LiveTPS:               tpsBenchmark.LiveTPS(),
-		PeakTPS:               tpsBenchmark.PeakTPS(),
-		NrOfShards:            tpsBenchmark.NrOfShards(),
-		BlockNumber:           tpsBenchmark.BlockNumber(),
-		RoundNumber:           tpsBenchmark.RoundNumber(),
-		RoundTime:             tpsBenchmark.RoundTime(),
-		AverageBlockTxCount:   tpsBenchmark.AverageBlockTxCount(),
-		LastBlockTxCount:      tpsBenchmark.LastBlockTxCount(),
-		TotalProcessedTxCount: tpsBenchmark.TotalProcessedTxCount(),
-	}
-
-	serializedInfo, err := json.Marshal(generalInfo)
-	if err != nil {
-		log.Debug("indexer: could not serialize tps info, will skip indexing tps this round")
-		return buff
-	}
-	// append a newline foreach element in the bulk we create
-	serializedInfo = append(serializedInfo, "\n"...)
-
-	buff.Grow(len(meta) + len(serializedInfo))
-	_, err = buff.Write(meta)
-	if err != nil {
-		log.Warn("elastic search: update TPS write meta", "error", err.Error())
-	}
-	_, err = buff.Write(serializedInfo)
-	if err != nil {
-		log.Warn("elastic search: update TPS write serialized info", "error", err.Error())
-	}
-
-	return buff
-}
-
-func serializeShardInfo(shardInfo statistics.ShardStatistic) ([]byte, []byte) {
-	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s%d", "_type" : "%s" } }%s`,
-		shardTpsDocIDPrefix, shardInfo.ShardID(), tpsIndex, "\n"))
-
-	bigTxCount := big.NewInt(int64(shardInfo.AverageBlockTxCount()))
-	shardTPS := data.TPS{
-		ShardID:               shardInfo.ShardID(),
-		LiveTPS:               shardInfo.LiveTPS(),
-		PeakTPS:               shardInfo.PeakTPS(),
-		AverageTPS:            shardInfo.AverageTPS(),
-		AverageBlockTxCount:   bigTxCount,
-		CurrentBlockNonce:     shardInfo.CurrentBlockNonce(),
-		LastBlockTxCount:      shardInfo.LastBlockTxCount(),
-		TotalProcessedTxCount: shardInfo.TotalProcessedTxCount(),
-	}
-
-	serializedInfo, err := json.Marshal(shardTPS)
-	if err != nil {
-		log.Debug("indexer: could not serialize tps info, will skip indexing tps this shard")
-		return nil, nil
-	}
-	// append a newline foreach element in the bulk we create
-	serializedInfo = append(serializedInfo, "\n"...)
-
-	return serializedInfo, meta
 }
 
 func (cm *commonProcessor) buildTransaction(
@@ -543,7 +478,6 @@ func getTemplatesKibana() map[string]*bytes.Buffer {
 	indexTemplates[txIndex] = withKibana.Transactions.ToBuffer()
 	indexTemplates[blockIndex] = withKibana.Blocks.ToBuffer()
 	indexTemplates[miniblocksIndex] = withKibana.Miniblocks.ToBuffer()
-	indexTemplates[tpsIndex] = withKibana.TPS.ToBuffer()
 	indexTemplates[ratingIndex] = withKibana.Rating.ToBuffer()
 	indexTemplates[roundIndex] = withKibana.Rounds.ToBuffer()
 	indexTemplates[validatorsIndex] = withKibana.Validators.ToBuffer()
@@ -560,7 +494,6 @@ func getTemplatesNoKibana() map[string]*bytes.Buffer {
 	indexTemplates[txIndex] = noKibana.Transactions.ToBuffer()
 	indexTemplates[blockIndex] = noKibana.Blocks.ToBuffer()
 	indexTemplates[miniblocksIndex] = noKibana.Miniblocks.ToBuffer()
-	indexTemplates[tpsIndex] = noKibana.TPS.ToBuffer()
 	indexTemplates[ratingIndex] = noKibana.Rating.ToBuffer()
 	indexTemplates[roundIndex] = noKibana.Rounds.ToBuffer()
 	indexTemplates[validatorsIndex] = noKibana.Validators.ToBuffer()

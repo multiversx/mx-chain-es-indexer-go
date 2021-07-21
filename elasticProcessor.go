@@ -15,7 +15,6 @@ import (
 	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
-	"github.com/ElrondNetwork/elrond-go/common/statistics"
 	"github.com/ElrondNetwork/elrond-go/process"
 	"github.com/ElrondNetwork/elrond-go/state"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
@@ -192,7 +191,7 @@ func (ei *elasticProcessor) createOpenDistroTemplates(indexTemplates map[string]
 }
 
 func (ei *elasticProcessor) createIndexTemplates(indexTemplates map[string]*bytes.Buffer) error {
-	indexes := []string{txIndex, blockIndex, miniblocksIndex, tpsIndex, ratingIndex, roundIndex, validatorsIndex, accountsIndex, accountsHistoryIndex}
+	indexes := []string{txIndex, blockIndex, miniblocksIndex, ratingIndex, roundIndex, validatorsIndex, accountsIndex, accountsHistoryIndex}
 	for _, index := range indexes {
 		indexTemplate := getTemplateByName(index, indexTemplates)
 		if indexTemplate != nil {
@@ -207,7 +206,7 @@ func (ei *elasticProcessor) createIndexTemplates(indexTemplates map[string]*byte
 }
 
 func (ei *elasticProcessor) createIndexes() error {
-	indexes := []string{txIndex, blockIndex, miniblocksIndex, tpsIndex, ratingIndex, roundIndex, validatorsIndex, accountsIndex, accountsHistoryIndex}
+	indexes := []string{txIndex, blockIndex, miniblocksIndex, ratingIndex, roundIndex, validatorsIndex, accountsIndex, accountsHistoryIndex}
 	for _, index := range indexes {
 		indexName := fmt.Sprintf("%s-000001", index)
 		err := ei.elasticClient.CheckAndCreateIndex(indexName)
@@ -220,7 +219,7 @@ func (ei *elasticProcessor) createIndexes() error {
 }
 
 func (ei *elasticProcessor) createAliases() error {
-	indexes := []string{txIndex, blockIndex, miniblocksIndex, tpsIndex, ratingIndex, roundIndex, validatorsIndex, accountsIndex, accountsHistoryIndex}
+	indexes := []string{txIndex, blockIndex, miniblocksIndex, ratingIndex, roundIndex, validatorsIndex, accountsIndex, accountsHistoryIndex}
 	for _, index := range indexes {
 		indexName := fmt.Sprintf("%s-000001", index)
 		err := ei.elasticClient.CheckAndCreateAlias(index, indexName)
@@ -403,34 +402,6 @@ func mergeSliceOfMaps(sliceMaps []map[string]nodeData.TransactionHandler) map[st
 	}
 
 	return allTxs
-}
-
-// SaveShardStatistics will prepare and save information about a shard statistics in elasticsearch server
-func (ei *elasticProcessor) SaveShardStatistics(tpsBenchmark statistics.TPSBenchmark) error {
-	if !ei.isIndexEnabled(tpsIndex) {
-		return nil
-	}
-
-	buff := prepareGeneralInfo(tpsBenchmark)
-
-	for _, shardInfo := range tpsBenchmark.ShardStatistics() {
-		serializedShardInfo, serializedMetaInfo := serializeShardInfo(shardInfo)
-		if serializedShardInfo == nil {
-			continue
-		}
-
-		buff.Grow(len(serializedMetaInfo) + len(serializedShardInfo))
-		_, err := buff.Write(serializedMetaInfo)
-		if err != nil {
-			log.Warn("elastic search: update TPS write meta", "error", err.Error())
-		}
-		_, err = buff.Write(serializedShardInfo)
-		if err != nil {
-			log.Warn("elastic search: update TPS write serialized data", "error", err.Error())
-		}
-	}
-
-	return ei.elasticClient.DoBulkRequest(&buff, tpsIndex)
 }
 
 // SaveValidatorsRating will save validators rating
