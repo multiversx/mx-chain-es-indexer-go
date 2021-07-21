@@ -8,19 +8,14 @@ import (
 	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
-	"github.com/ElrondNetwork/elrond-go/common"
 	"github.com/ElrondNetwork/elrond-go/common/statistics"
-	"github.com/ElrondNetwork/elrond-go/epochStart"
-	"github.com/ElrondNetwork/elrond-go/epochStart/notifier"
 	"github.com/ElrondNetwork/elrond-go/process"
-	"github.com/ElrondNetwork/elrond-go/sharding"
 	"github.com/ElrondNetwork/elrond-go/state"
 )
 
 type dataIndexer struct {
 	isNilIndexer     bool
 	dispatcher       DispatcherHandler
-	coordinator      sharding.NodesCoordinator
 	elasticProcessor ElasticProcessor
 	marshalizer      marshal.Marshalizer
 }
@@ -35,13 +30,8 @@ func NewDataIndexer(arguments ArgDataIndexer) (*dataIndexer, error) {
 	dataIndexerObj := &dataIndexer{
 		isNilIndexer:     false,
 		dispatcher:       arguments.DataDispatcher,
-		coordinator:      arguments.NodesCoordinator,
 		elasticProcessor: arguments.ElasticProcessor,
 		marshalizer:      arguments.Marshalizer,
-	}
-
-	if arguments.ShardCoordinator.SelfId() == core.MetachainShardId {
-		arguments.EpochStartNotifier.RegisterHandler(dataIndexerObj.epochStartEventHandler())
 	}
 
 	return dataIndexerObj, nil
@@ -54,12 +44,6 @@ func checkIndexerArgs(arguments ArgDataIndexer) error {
 	if check.IfNil(arguments.ElasticProcessor) {
 		return ErrNilElasticProcessor
 	}
-	if check.IfNil(arguments.NodesCoordinator) {
-		return core.ErrNilNodesCoordinator
-	}
-	if check.IfNil(arguments.EpochStartNotifier) {
-		return core.ErrNilEpochStartNotifier
-	}
 	if check.IfNil(arguments.Marshalizer) {
 		return core.ErrNilMarshalizer
 	}
@@ -68,23 +52,6 @@ func checkIndexerArgs(arguments ArgDataIndexer) error {
 	}
 
 	return nil
-}
-
-func (di *dataIndexer) epochStartEventHandler() epochStart.ActionHandler {
-	subscribeHandler := notifier.NewHandlerForEpochStart(func(hdr nodeData.HeaderHandler) {
-		currentEpoch := hdr.GetEpoch()
-		validatorsPubKeys, err := di.coordinator.GetAllEligibleValidatorsPublicKeys(currentEpoch)
-		if err != nil {
-			log.Warn("GetAllEligibleValidatorPublicKeys for current epoch failed",
-				"epoch", currentEpoch,
-				"error", err.Error())
-		}
-
-		go di.SaveValidatorsPubKeys(validatorsPubKeys, currentEpoch)
-
-	}, func(_ nodeData.HeaderHandler) {}, common.IndexerOrder)
-
-	return subscribeHandler
 }
 
 // SaveBlock saves the block info in the queue to be sent to elastic
