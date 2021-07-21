@@ -3,7 +3,7 @@ module github.com/ElrondNetwork/elastic-indexer-go
 go 1.15
 
 require (
-	github.com/ElrondNetwork/elrond-go v1.2.5-0.20210721100257-5825918006fa
+	github.com/ElrondNetwork/elrond-go v1.2.5-0.20210721114515-9cf18b676c7a
 	github.com/ElrondNetwork/elrond-go-core v1.0.0
 	github.com/ElrondNetwork/elrond-go-logger v1.0.4
 	github.com/ElrondNetwork/elrond-vm-common v1.1.0
@@ -14,3 +14,5 @@ require (
 replace github.com/ElrondNetwork/arwen-wasm-vm/v1_2 v1.2.26 => github.com/ElrondNetwork/arwen-wasm-vm v1.2.26
 
 replace github.com/ElrondNetwork/arwen-wasm-vm/v1_3 v1.3.25 => github.com/ElrondNetwork/arwen-wasm-vm v1.3.25
+
+replace github.com/ElrondNetwork/arwen-wasm-vm/v1_4 v1.4.1 => github.com/ElrondNetwork/arwen-wasm-vm v1.4.2-0.20210720092934-6b2c1c46a8ae
