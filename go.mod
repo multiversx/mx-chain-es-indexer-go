@@ -14,5 +14,3 @@ require (
 replace github.com/ElrondNetwork/arwen-wasm-vm/v1_2 v1.2.26 => github.com/ElrondNetwork/arwen-wasm-vm v1.2.26
 
 replace github.com/ElrondNetwork/arwen-wasm-vm/v1_3 v1.3.25 => github.com/ElrondNetwork/arwen-wasm-vm v1.3.25
-
-replace github.com/ElrondNetwork/elrond-go => /home/mihai/go/src/github.com/ElrondNetwork/elrond-go
