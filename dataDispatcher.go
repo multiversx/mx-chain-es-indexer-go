@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
+	"github.com/ElrondNetwork/elrond-go-core/core/atomic"
+	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
-	"github.com/ElrondNetwork/elrond-go/core/atomic"
-	"github.com/ElrondNetwork/elrond-go/core/check"
 )
 
 var log = logger.GetOrCreate("indexer")

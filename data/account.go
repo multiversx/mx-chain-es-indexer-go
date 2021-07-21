@@ -3,7 +3,7 @@ package data
 import (
 	"time"
 
-	"github.com/ElrondNetwork/elrond-go/data/state"
+	"github.com/ElrondNetwork/elrond-go/state"
 )
 
 // AccountInfo holds (serializable) data about an account

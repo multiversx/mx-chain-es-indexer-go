@@ -3,7 +3,7 @@ package logsevents
 import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
-	nodeData "github.com/ElrondNetwork/elrond-go/data"
+	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
 )
 
 type argsProcessEvent struct {

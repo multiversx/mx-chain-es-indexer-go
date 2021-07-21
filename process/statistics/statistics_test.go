@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/ElrondNetwork/elastic-indexer-go"
-	"github.com/ElrondNetwork/elrond-go/core/statistics"
+	"github.com/ElrondNetwork/elrond-go/common/statistics"
 	"github.com/stretchr/testify/require"
 )
 

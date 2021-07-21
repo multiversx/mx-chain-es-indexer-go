@@ -4,15 +4,15 @@ import (
 	"testing"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/core/pubkeyConverter"
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
 	"github.com/stretchr/testify/require"
 )
 
 func TestScDeploy_TransactionWithDeploy(t *testing.T) {
 	t.Parallel()
 
-	pubKeyConverter, _ := pubkeyConverter.NewBech32PubkeyConverter(32)
+	pubKeyConverter, _ := pubkeyConverter.NewBech32PubkeyConverter(32, log)
 	scProc := newScDeploysProc(pubKeyConverter, 0)
 
 	res := scProc.searchSCDeployTransactionsOrSCRS([]*data.Transaction{
@@ -42,7 +42,7 @@ func TestScDeploy_TransactionWithDeploy(t *testing.T) {
 func TestScDeploy_TransactionCreateDelegationManager(t *testing.T) {
 	t.Parallel()
 
-	pubKeyConverter, _ := pubkeyConverter.NewBech32PubkeyConverter(32)
+	pubKeyConverter, _ := pubkeyConverter.NewBech32PubkeyConverter(32, log)
 	scProc := newScDeploysProc(pubKeyConverter, core.MetachainShardId)
 
 	res := scProc.searchSCDeployTransactionsOrSCRS([]*data.Transaction{
@@ -80,7 +80,7 @@ func TestScDeploy_TransactionCreateDelegationManager(t *testing.T) {
 func TestScDeploy_SCRDelegationManagerWithDeploy(t *testing.T) {
 	t.Parallel()
 
-	pubKeyConverter, _ := pubkeyConverter.NewBech32PubkeyConverter(32)
+	pubKeyConverter, _ := pubkeyConverter.NewBech32PubkeyConverter(32, log)
 	scProc := newScDeploysProc(pubKeyConverter, core.MetachainShardId)
 
 	res := scProc.searchSCDeployTransactionsOrSCRS(nil, []*data.ScResult{
@@ -113,7 +113,7 @@ func TestScDeploy_SCRDelegationManagerWithDeploy(t *testing.T) {
 func TestScDeploy_ScrWithDeploy(t *testing.T) {
 	t.Parallel()
 
-	pubKeyConverter, _ := pubkeyConverter.NewBech32PubkeyConverter(32)
+	pubKeyConverter, _ := pubkeyConverter.NewBech32PubkeyConverter(32, log)
 	scProc := newScDeploysProc(pubKeyConverter, 0)
 
 	res := scProc.searchSCDeployTransactionsOrSCRS(nil, []*data.ScResult{

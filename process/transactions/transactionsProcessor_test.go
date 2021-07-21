@@ -8,15 +8,15 @@ import (
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
-	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/core/pubkeyConverter"
-	nodeData "github.com/ElrondNetwork/elrond-go/data"
-	"github.com/ElrondNetwork/elrond-go/data/block"
-	"github.com/ElrondNetwork/elrond-go/data/indexer"
-	"github.com/ElrondNetwork/elrond-go/data/receipt"
-	"github.com/ElrondNetwork/elrond-go/data/rewardTx"
-	"github.com/ElrondNetwork/elrond-go/data/smartContractResult"
-	"github.com/ElrondNetwork/elrond-go/data/transaction"
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
+	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
+	"github.com/ElrondNetwork/elrond-go-core/data/block"
+	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/receipt"
+	"github.com/ElrondNetwork/elrond-go-core/data/rewardTx"
+	"github.com/ElrondNetwork/elrond-go-core/data/smartContractResult"
+	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -704,7 +704,7 @@ func TestTxsDatabaseProcessor_IssueESDTTx(t *testing.T) {
 	t.Parallel()
 
 	args := createMockArgsTxsDBProc()
-	pubKeyConv, _ := pubkeyConverter.NewBech32PubkeyConverter(32)
+	pubKeyConv, _ := pubkeyConverter.NewBech32PubkeyConverter(32, log)
 	args.AddressPubkeyConverter = pubKeyConv
 	args.ShardCoordinator = &mock.ShardCoordinatorMock{SelfID: core.MetachainShardId}
 	txDbProc, _ := NewTransactionsProcessor(args)

@@ -4,9 +4,9 @@ import (
 	"bytes"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	nodeData "github.com/ElrondNetwork/elrond-go/data"
-	"github.com/ElrondNetwork/elrond-go/data/block"
-	"github.com/ElrondNetwork/elrond-go/data/indexer"
+	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
+	"github.com/ElrondNetwork/elrond-go-core/data/block"
+	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 	dataProcess "github.com/ElrondNetwork/elrond-go/process"
 )
 

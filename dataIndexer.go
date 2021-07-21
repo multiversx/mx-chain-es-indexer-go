@@ -3,17 +3,18 @@ package indexer
 import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
-	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/core/check"
-	"github.com/ElrondNetwork/elrond-go/core/statistics"
-	nodeData "github.com/ElrondNetwork/elrond-go/data"
-	"github.com/ElrondNetwork/elrond-go/data/indexer"
-	"github.com/ElrondNetwork/elrond-go/data/state"
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/core/check"
+	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
+	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/marshal"
+	"github.com/ElrondNetwork/elrond-go/common"
+	"github.com/ElrondNetwork/elrond-go/common/statistics"
 	"github.com/ElrondNetwork/elrond-go/epochStart"
 	"github.com/ElrondNetwork/elrond-go/epochStart/notifier"
-	"github.com/ElrondNetwork/elrond-go/marshal"
 	"github.com/ElrondNetwork/elrond-go/process"
 	"github.com/ElrondNetwork/elrond-go/sharding"
+	"github.com/ElrondNetwork/elrond-go/state"
 )
 
 // ArgDataIndexer is a structure that is used to store all the components that are needed to create an indexer
@@ -91,7 +92,7 @@ func (di *dataIndexer) epochStartEventHandler() epochStart.ActionHandler {
 
 		go di.SaveValidatorsPubKeys(validatorsPubKeys, currentEpoch)
 
-	}, func(_ nodeData.HeaderHandler) {}, core.IndexerOrder)
+	}, func(_ nodeData.HeaderHandler) {}, common.IndexerOrder)
 
 	return subscribeHandler
 }

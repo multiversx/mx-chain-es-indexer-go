@@ -3,8 +3,8 @@ package mock
 import (
 	"errors"
 
-	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/data"
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go/state/temporary"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
 
@@ -19,13 +19,13 @@ type AccountsStub struct {
 	RevertToSnapshotCalled   func(snapshot int) error
 	RootHashCalled           func() ([]byte, error)
 	RecreateTrieCalled       func(rootHash []byte) error
-	PruneTrieCalled          func(rootHash []byte, identifier data.TriePruningIdentifier)
-	CancelPruneCalled        func(rootHash []byte, identifier data.TriePruningIdentifier)
+	PruneTrieCalled          func(rootHash []byte, identifier temporary.TriePruningIdentifier)
+	CancelPruneCalled        func(rootHash []byte, identifier temporary.TriePruningIdentifier)
 	SnapshotStateCalled      func(rootHash []byte)
 	SetStateCheckpointCalled func(rootHash []byte)
 	IsPruningEnabledCalled   func() bool
 	GetAllLeavesCalled       func(rootHash []byte) (chan core.KeyValueHolder, error)
-	RecreateAllTriesCalled   func(rootHash []byte) (map[string]data.Trie, error)
+	RecreateAllTriesCalled   func(rootHash []byte) (map[string]temporary.Trie, error)
 	GetNumCheckpointsCalled  func() uint32
 	GetCodeCalled            func([]byte) []byte
 }
@@ -36,7 +36,7 @@ func (as *AccountsStub) Close() error {
 }
 
 // GetTrie -
-func (as *AccountsStub) GetTrie(_ []byte) (data.Trie, error) {
+func (as *AccountsStub) GetTrie(_ []byte) (temporary.Trie, error) {
 	return nil, nil
 }
 
@@ -49,7 +49,7 @@ func (as *AccountsStub) GetCode(codeHash []byte) []byte {
 }
 
 // RecreateAllTries -
-func (as *AccountsStub) RecreateAllTries(rootHash []byte) (map[string]data.Trie, error) {
+func (as *AccountsStub) RecreateAllTries(rootHash []byte) (map[string]temporary.Trie, error) {
 	if as.RecreateAllTriesCalled != nil {
 		return as.RecreateAllTriesCalled(rootHash)
 	}
@@ -146,12 +146,12 @@ func (as *AccountsStub) RecreateTrie(rootHash []byte) error {
 }
 
 // PruneTrie -
-func (as *AccountsStub) PruneTrie(rootHash []byte, identifier data.TriePruningIdentifier) {
+func (as *AccountsStub) PruneTrie(rootHash []byte, identifier temporary.TriePruningIdentifier) {
 	as.PruneTrieCalled(rootHash, identifier)
 }
 
 // CancelPrune -
-func (as *AccountsStub) CancelPrune(rootHash []byte, identifier data.TriePruningIdentifier) {
+func (as *AccountsStub) CancelPrune(rootHash []byte, identifier temporary.TriePruningIdentifier) {
 	if as.CancelPruneCalled != nil {
 		as.CancelPruneCalled(rootHash, identifier)
 	}
