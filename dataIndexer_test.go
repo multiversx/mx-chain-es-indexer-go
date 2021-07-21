@@ -299,9 +299,6 @@ func getIndexTemplateAndPolicies() (map[string]*bytes.Buffer, map[string]*bytes.
 	_ = core.LoadJsonFile(template, "./testdata/miniblocks.json")
 	indexTemplates["miniblocks"] = template
 
-	_ = core.LoadJsonFile(template, "./testdata/tps.json")
-	indexTemplates["tps"] = template
-
 	policy := &bytes.Buffer{}
 	_ = core.LoadJsonFile(template, "./testdata/transactions_policy.json")
 	indexPolicies["transactions_policy"] = policy
