@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/disabled"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
 	"github.com/ElrondNetwork/elrond-go-core/core"
@@ -19,7 +18,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/ElrondNetwork/elrond-go-core/hashing/sha256"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
-	"github.com/ElrondNetwork/elrond-go/process"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/stretchr/testify/require"
 )
@@ -157,21 +155,6 @@ func TestDataIndexer_RevertIndexedBlock(t *testing.T) {
 	ei, _ := NewDataIndexer(arguments)
 
 	ei.RevertIndexedBlock(&dataBlock.Header{}, &dataBlock.Body{})
-	require.True(t, called)
-}
-
-func TestDataIndexer_SetTxLogsProcessor(t *testing.T) {
-	called := false
-
-	arguments := NewDataIndexerArguments()
-	arguments.ElasticProcessor = &mock.ElasticProcessorStub{
-		SetTxLogsProcessorCalled: func(txLogsProc process.TransactionLogProcessorDatabase) {
-			called = true
-		},
-	}
-	ei, _ := NewDataIndexer(arguments)
-
-	ei.SetTxLogsProcessor(disabled.NewNilTxLogsProcessor())
 	require.True(t, called)
 }
 

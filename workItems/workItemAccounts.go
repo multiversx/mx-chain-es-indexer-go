@@ -2,20 +2,20 @@ package workItems
 
 import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elrond-go/state"
+	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
 )
 
 type itemAccounts struct {
 	indexer        saveAccountsIndexer
 	blockTimestamp uint64
-	accounts       []state.UserAccountHandler
+	accounts       []nodeData.UserAccountHandler
 }
 
 // NewItemAccounts will create a new instance of itemAccounts
 func NewItemAccounts(
 	indexer saveAccountsIndexer,
 	blockTimestamp uint64,
-	accounts []state.UserAccountHandler,
+	accounts []nodeData.UserAccountHandler,
 ) WorkItemHandler {
 	return &itemAccounts{
 		indexer:        indexer,

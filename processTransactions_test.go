@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/disabled"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
@@ -16,8 +15,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/data/rewardTx"
 	"github.com/ElrondNetwork/elrond-go-core/data/smartContractResult"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	processTransaction "github.com/ElrondNetwork/elrond-go/process/transaction"
-	"github.com/ElrondNetwork/elrond-go/testscommon/economicsmocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -129,7 +126,7 @@ func TestPrepareTransactionsForDatabase(t *testing.T) {
 		&mock.MarshalizerMock{},
 		&mock.PubkeyConverterMock{},
 		&mock.PubkeyConverterMock{},
-		&economicsmocks.EconomicsHandlerStub{},
+		&mock.EconomicsHandlerStub{},
 		false,
 		&mock.ShardCoordinatorMock{},
 	)
@@ -147,7 +144,7 @@ func TestPrepareTxLog(t *testing.T) {
 		&mock.MarshalizerMock{},
 		&mock.PubkeyConverterMock{},
 		&mock.PubkeyConverterMock{},
-		&economicsmocks.EconomicsHandlerStub{},
+		&mock.EconomicsHandlerStub{},
 		false,
 		&mock.ShardCoordinatorMock{},
 	)
@@ -238,7 +235,7 @@ func TestRelayedTransactions(t *testing.T) {
 		&mock.MarshalizerMock{},
 		&mock.PubkeyConverterMock{},
 		&mock.PubkeyConverterMock{},
-		&economicsmocks.EconomicsHandlerStub{},
+		&mock.EconomicsHandlerStub{},
 		false,
 		&mock.ShardCoordinatorMock{},
 	)
@@ -267,7 +264,7 @@ func TestSetTransactionSearchOrder(t *testing.T) {
 		&mock.MarshalizerMock{},
 		&mock.PubkeyConverterMock{},
 		&mock.PubkeyConverterMock{},
-		&economicsmocks.EconomicsHandlerStub{},
+		&mock.EconomicsHandlerStub{},
 		false,
 		&mock.ShardCoordinatorMock{},
 	)
@@ -295,7 +292,7 @@ func TestGetGasUsedFromReceipt_RefundedGas(t *testing.T) {
 	rec := &receipt.Receipt{
 		Value:   recValue,
 		SndAddr: nil,
-		Data:    []byte(processTransaction.RefundGasMessage),
+		Data:    []byte(RefundGasMessage),
 		TxHash:  txHash,
 	}
 	tx := &data.Transaction{
@@ -453,16 +450,14 @@ func TestAlteredAddresses(t *testing.T) {
 		},
 	}
 
-	txLogProc := disabled.NewNilTxLogsProcessor()
 	txProc := &txDatabaseProcessor{
 		commonProcessor: &commonProcessor{
 			addressPubkeyConverter: mock.NewPubkeyConverterMock(32),
-			txFeeCalculator:        &economicsmocks.EconomicsHandlerStub{},
+			txFeeCalculator:        &mock.EconomicsHandlerStub{},
 			shardCoordinator:       shardCoordinator,
 		},
 		marshalizer:      &mock.MarshalizerMock{},
 		hasher:           &mock.HasherMock{},
-		txLogsProcessor:  txLogProc,
 		shardCoordinator: shardCoordinator,
 	}
 
@@ -517,7 +512,7 @@ func TestCheckGasUsedInvalidTransaction(t *testing.T) {
 		&mock.MarshalizerMock{},
 		&mock.PubkeyConverterMock{},
 		&mock.PubkeyConverterMock{},
-		&economicsmocks.EconomicsHandlerStub{},
+		&mock.EconomicsHandlerStub{},
 		false,
 		&mock.ShardCoordinatorMock{},
 	)
@@ -566,7 +561,7 @@ func TestCheckGasUsedRelayedTransaction(t *testing.T) {
 		&mock.MarshalizerMock{},
 		&mock.PubkeyConverterMock{},
 		&mock.PubkeyConverterMock{},
-		&economicsmocks.EconomicsHandlerStub{},
+		&mock.EconomicsHandlerStub{},
 		false,
 		&mock.ShardCoordinatorMock{},
 	)

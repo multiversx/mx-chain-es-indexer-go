@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/disabled"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
@@ -17,9 +16,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/ElrondNetwork/elrond-go-core/hashing"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
-	"github.com/ElrondNetwork/elrond-go/process"
-	processTransaction "github.com/ElrondNetwork/elrond-go/process/transaction"
-	"github.com/ElrondNetwork/elrond-go/sharding"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
 
@@ -31,12 +27,11 @@ const (
 
 type txDatabaseProcessor struct {
 	*commonProcessor
-	txLogsProcessor  process.TransactionLogProcessorDatabase
 	hasher           hashing.Hasher
 	marshalizer      marshal.Marshalizer
 	isInImportMode   bool
-	shardCoordinator sharding.Coordinator
-	txFeeCalculator  process.TransactionFeeCalculator
+	shardCoordinator Coordinator
+	txFeeCalculator  FeesProcessorHandler
 }
 
 func newTxDatabaseProcessor(
@@ -44,9 +39,9 @@ func newTxDatabaseProcessor(
 	marshalizer marshal.Marshalizer,
 	addressPubkeyConverter core.PubkeyConverter,
 	validatorPubkeyConverter core.PubkeyConverter,
-	txFeeCalculator process.TransactionFeeCalculator,
+	txFeeCalculator FeesProcessorHandler,
 	isInImportMode bool,
-	shardCoordinator sharding.Coordinator,
+	shardCoordinator Coordinator,
 ) *txDatabaseProcessor {
 	return &txDatabaseProcessor{
 		hasher:      hasher,
@@ -57,7 +52,6 @@ func newTxDatabaseProcessor(
 			txFeeCalculator:          txFeeCalculator,
 			shardCoordinator:         shardCoordinator,
 		},
-		txLogsProcessor:  disabled.NewNilTxLogsProcessor(),
 		isInImportMode:   isInImportMode,
 		shardCoordinator: shardCoordinator,
 		txFeeCalculator:  txFeeCalculator,
@@ -144,8 +138,6 @@ func (tdp *txDatabaseProcessor) prepareTransactionsForDatabase(
 	//	tx.Log = tdp.prepareTxLog(txLog)
 	//}
 
-	tdp.txLogsProcessor.Clean()
-
 	return append(convertMapTxsToSlice(transactions), rewardsTxs...), alteredAddresses
 }
 
@@ -162,8 +154,12 @@ func (tdp *txDatabaseProcessor) addScrsReceiverToAlteredAccounts(
 	}
 }
 
+// RefundGasMessage is the message returned in the data field of a receipt,
+// for move balance transactions that provide more gas than needed
+const RefundGasMessage = "refundedGas"
+
 func getGasUsedFromReceipt(rec *receipt.Receipt, tx *data.Transaction) uint64 {
-	if rec.Data != nil && string(rec.Data) == processTransaction.RefundGasMessage {
+	if rec.Data != nil && string(rec.Data) == RefundGasMessage {
 		// in this gas receipt contains the refunded value
 		gasUsed := big.NewInt(0).SetUint64(tx.GasPrice)
 		gasUsed.Mul(gasUsed, big.NewInt(0).SetUint64(tx.GasLimit))

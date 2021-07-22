@@ -15,8 +15,6 @@ import (
 	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
-	"github.com/ElrondNetwork/elrond-go/process"
-	"github.com/ElrondNetwork/elrond-go/state"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
 
@@ -28,7 +26,7 @@ type elasticProcessor struct {
 	elasticClient          DatabaseClientHandler
 	parser                 *dataParser
 	enabledIndexes         map[string]struct{}
-	accountsDB             state.AccountsAdapter
+	accountsDB             AccountsAdapter
 	dividerForDenomination float64
 	balancePrecision       float64
 }
@@ -337,11 +335,6 @@ func (ei *elasticProcessor) RemoveTransactions(header nodeData.HeaderHandler, bo
 	return nil
 }
 
-// SetTxLogsProcessor will set tx logs processor
-func (ei *elasticProcessor) SetTxLogsProcessor(txLogsProc process.TransactionLogProcessorDatabase) {
-	ei.txLogsProcessor = txLogsProc
-}
-
 // SaveMiniblocks will prepare and save information about miniblocks in elasticsearch server
 func (ei *elasticProcessor) SaveMiniblocks(header nodeData.HeaderHandler, body *block.Body) (map[string]bool, error) {
 	if !ei.isIndexEnabled(miniblocksIndex) {
@@ -505,7 +498,7 @@ func (ei *elasticProcessor) indexAlteredAccounts(blockTimestamp uint64, accounts
 		return nil
 	}
 
-	accountsToIndex := make([]state.UserAccountHandler, 0)
+	accountsToIndex := make([]nodeData.UserAccountHandler, 0)
 	for address := range accounts {
 		addressBytes, err := ei.addressPubkeyConverter.Decode(address)
 		if err != nil {
@@ -523,7 +516,7 @@ func (ei *elasticProcessor) indexAlteredAccounts(blockTimestamp uint64, accounts
 			continue
 		}
 
-		userAccount, ok := account.(state.UserAccountHandler)
+		userAccount, ok := account.(nodeData.UserAccountHandler)
 		if !ok {
 			log.Warn("cannot cast AccountHandler to type UserAccountHandler")
 			continue

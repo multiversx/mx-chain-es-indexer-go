@@ -6,14 +6,11 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/hashing"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
-	"github.com/ElrondNetwork/elrond-go/process"
-	"github.com/ElrondNetwork/elrond-go/sharding"
-	"github.com/ElrondNetwork/elrond-go/state"
 )
 
 // ArgDataIndexer is struct that is used to store all components that are needed to create a indexer
 type ArgDataIndexer struct {
-	ShardCoordinator sharding.Coordinator
+	ShardCoordinator Coordinator
 	Marshalizer      marshal.Marshalizer
 	UseKibana        bool
 	DataDispatcher   DispatcherHandler
@@ -31,9 +28,9 @@ type ArgElasticProcessor struct {
 	UseKibana                bool
 	DBClient                 DatabaseClientHandler
 	EnabledIndexes           map[string]struct{}
-	AccountsDB               state.AccountsAdapter
+	AccountsDB               AccountsAdapter
 	Denomination             int
-	TransactionFeeCalculator process.TransactionFeeCalculator
+	TransactionFeeCalculator FeesProcessorHandler
 	IsInImportDBMode         bool
-	ShardCoordinator         sharding.Coordinator
+	ShardCoordinator         Coordinator
 }

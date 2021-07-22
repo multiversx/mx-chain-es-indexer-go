@@ -5,7 +5,6 @@ import (
 	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
-	"github.com/ElrondNetwork/elrond-go/process"
 )
 
 // ElasticProcessorStub -
@@ -19,7 +18,6 @@ type ElasticProcessorStub struct {
 	SaveValidatorsRatingCalled       func(index string, validatorsRatingInfo []*data.ValidatorRatingInfo) error
 	SaveRoundsInfoCalled             func(infos []*data.RoundInfo) error
 	SaveShardValidatorsPubKeysCalled func(shardID, epoch uint32, shardValidatorsPubKeys [][]byte) error
-	SetTxLogsProcessorCalled         func(txLogsProc process.TransactionLogProcessorDatabase)
 	SaveAccountsCalled               func(timestamp uint64, acc []*data.Account) error
 }
 
@@ -93,13 +91,6 @@ func (eim *ElasticProcessorStub) SaveShardValidatorsPubKeys(shardID, epoch uint3
 		return eim.SaveShardValidatorsPubKeysCalled(shardID, epoch, shardValidatorsPubKeys)
 	}
 	return nil
-}
-
-// SetTxLogsProcessor -
-func (eim *ElasticProcessorStub) SetTxLogsProcessor(txLogsProc process.TransactionLogProcessorDatabase) {
-	if eim.SetTxLogsProcessorCalled != nil {
-		eim.SetTxLogsProcessorCalled(txLogsProc)
-	}
 }
 
 // SaveAccounts -

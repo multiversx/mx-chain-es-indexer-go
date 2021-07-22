@@ -8,8 +8,6 @@ import (
 	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
-	"github.com/ElrondNetwork/elrond-go/process"
-	"github.com/ElrondNetwork/elrond-go/state"
 )
 
 type dataIndexer struct {
@@ -124,14 +122,9 @@ func (di *dataIndexer) SaveValidatorsPubKeys(validatorsPubKeys map[uint32][][]by
 }
 
 // SaveAccounts will save the provided accounts
-func (di *dataIndexer) SaveAccounts(timestamp uint64, accounts []state.UserAccountHandler) {
+func (di *dataIndexer) SaveAccounts(timestamp uint64, accounts []nodeData.UserAccountHandler) {
 	wi := workItems.NewItemAccounts(di.elasticProcessor, timestamp, accounts)
 	di.dispatcher.Add(wi)
-}
-
-// SetTxLogsProcessor will set tx logs processor
-func (di *dataIndexer) SetTxLogsProcessor(txLogsProc process.TransactionLogProcessorDatabase) {
-	di.elasticProcessor.SetTxLogsProcessor(txLogsProc)
 }
 
 // IsNilIndexer will return a bool value that signals if the indexer's implementation is a NilIndexer

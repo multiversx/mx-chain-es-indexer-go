@@ -19,17 +19,15 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/data/rewardTx"
 	"github.com/ElrondNetwork/elrond-go-core/data/smartContractResult"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	"github.com/ElrondNetwork/elrond-go/process"
-	"github.com/ElrondNetwork/elrond-go/sharding"
 )
 
 type objectsMap = map[string]interface{}
 
 type commonProcessor struct {
-	shardCoordinator         sharding.Coordinator
+	shardCoordinator         Coordinator
 	addressPubkeyConverter   core.PubkeyConverter
 	validatorPubkeyConverter core.PubkeyConverter
-	txFeeCalculator          process.TransactionFeeCalculator
+	txFeeCalculator          FeesProcessorHandler
 }
 
 func (cm *commonProcessor) buildTransaction(

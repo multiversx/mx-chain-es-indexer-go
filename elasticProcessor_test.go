@@ -21,8 +21,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/data/rewardTx"
 	"github.com/ElrondNetwork/elrond-go-core/data/smartContractResult"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	nodeTestsCommon "github.com/ElrondNetwork/elrond-go/testscommon"
-	"github.com/ElrondNetwork/elrond-go/testscommon/economicsmocks"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"github.com/stretchr/testify/assert"
@@ -61,8 +59,8 @@ func createMockElasticProcessorArgs() ArgElasticProcessor {
 		EnabledIndexes: map[string]struct{}{
 			blockIndex: {}, txIndex: {}, miniblocksIndex: {}, validatorsIndex: {}, roundIndex: {}, accountsIndex: {}, ratingIndex: {}, accountsHistoryIndex: {},
 		},
-		AccountsDB:               &nodeTestsCommon.AccountsStub{},
-		TransactionFeeCalculator: &economicsmocks.EconomicsHandlerStub{},
+		AccountsDB:               &mock.AccountsStub{},
+		TransactionFeeCalculator: &mock.EconomicsHandlerStub{},
 		ShardCoordinator:         &mock.ShardCoordinatorMock{},
 	}
 }
@@ -429,9 +427,9 @@ func TestUpdateMiniBlock(t *testing.T) {
 		EnabledIndexes: map[string]struct{}{
 			"miniblocks": {},
 		},
-		AccountsDB:               &nodeTestsCommon.AccountsStub{},
+		AccountsDB:               &mock.AccountsStub{},
 		ShardCoordinator:         &mock.ShardCoordinatorMock{},
-		TransactionFeeCalculator: &economicsmocks.EconomicsHandlerStub{},
+		TransactionFeeCalculator: &mock.EconomicsHandlerStub{},
 	}
 
 	esDatabase, err := NewElasticProcessor(args)
@@ -505,9 +503,9 @@ func TestUpdateTransaction(t *testing.T) {
 		ShardCoordinator:         &mock.ShardCoordinatorMock{},
 		IsInImportDBMode:         false,
 		AddressPubkeyConverter:   mock.NewPubkeyConverterMock(32),
-		AccountsDB:               &nodeTestsCommon.AccountsStub{},
+		AccountsDB:               &mock.AccountsStub{},
 		ValidatorPubkeyConverter: mock.NewPubkeyConverterMock(96),
-		TransactionFeeCalculator: &economicsmocks.EconomicsHandlerStub{},
+		TransactionFeeCalculator: &mock.EconomicsHandlerStub{},
 		EnabledIndexes: map[string]struct{}{
 			"transactions": {},
 		},

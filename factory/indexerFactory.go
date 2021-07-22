@@ -8,9 +8,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	"github.com/ElrondNetwork/elrond-go-core/hashing"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
-	"github.com/ElrondNetwork/elrond-go/process"
-	"github.com/ElrondNetwork/elrond-go/sharding"
-	"github.com/ElrondNetwork/elrond-go/state"
 	"github.com/elastic/go-elasticsearch/v7"
 )
 
@@ -19,7 +16,7 @@ import (
 type ArgsIndexerFactory struct {
 	Enabled                  bool
 	IndexerCacheSize         int
-	ShardCoordinator         sharding.Coordinator
+	ShardCoordinator         indexer.Coordinator
 	Url                      string
 	UserName                 string
 	Password                 string
@@ -30,13 +27,13 @@ type ArgsIndexerFactory struct {
 	UseKibana                bool
 	EnabledIndexes           []string
 	Denomination             int
-	AccountsDB               state.AccountsAdapter
-	TransactionFeeCalculator process.TransactionFeeCalculator
+	AccountsDB               indexer.AccountsAdapter
+	TransactionFeeCalculator indexer.FeesProcessorHandler
 	IsInImportDBMode         bool
 }
 
 // NewIndexer will create a new instance of Indexer
-func NewIndexer(args *ArgsIndexerFactory) (process.Indexer, error) {
+func NewIndexer(args *ArgsIndexerFactory) (indexer.Indexer, error) {
 	err := checkDataIndexerParams(args)
 	if err != nil {
 		return nil, err
