@@ -15,14 +15,6 @@ type EconomicsHandlerStub struct {
 	ComputeMoveBalanceGasUsedCalled              func(tx nodeData.TransactionWithFeeHandler) uint64
 }
 
-// ComputeMoveBalanceGasUsed -
-func (e *EconomicsHandlerStub) ComputeMoveBalanceGasUsed(tx nodeData.TransactionWithFeeHandler) uint64 {
-	if e.ComputeMoveBalanceGasUsedCalled != nil {
-		return e.ComputeMoveBalanceGasUsedCalled(tx)
-	}
-	return 0
-}
-
 // MinGasLimit -
 func (e *EconomicsHandlerStub) MinGasLimit() uint64 {
 	if e.MinGasLimitCalled != nil {

@@ -55,7 +55,6 @@ type DatabaseClientHandler interface {
 type FeesProcessorHandler interface {
 	ComputeGasUsedAndFeeBasedOnRefundValue(tx nodeData.TransactionWithFeeHandler, refundValue *big.Int) (uint64, *big.Int)
 	ComputeTxFeeBasedOnGasUsed(tx nodeData.TransactionWithFeeHandler, gasUsed uint64) *big.Int
-	ComputeMoveBalanceGasUsed(tx nodeData.TransactionWithFeeHandler) uint64
 	ComputeGasLimit(tx nodeData.TransactionWithFeeHandler) uint64
 	IsInterfaceNil() bool
 }
