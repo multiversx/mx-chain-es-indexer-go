@@ -9,7 +9,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
 	"github.com/ElrondNetwork/elrond-go-core/core"
-	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/esdt"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
 )
@@ -80,7 +80,7 @@ func (np *nftsProcessor) processEvent(args *argsProcessEvent) (string, bool) {
 }
 
 func (np *nftsProcessor) processNFTEventOnSender(
-	event nodeData.EventHandler,
+	event coreData.EventHandler,
 	accounts data.AlteredAccountsHandler,
 	tokensCreateInfo data.TokensHandler,
 	timestamp uint64,

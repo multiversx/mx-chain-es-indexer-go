@@ -4,7 +4,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go-core/core"
-	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 )
 
 const (
@@ -53,7 +53,7 @@ func (fep *fungibleESDTProcessor) processEvent(args *argsProcessEvent) (string, 
 	return fep.processEventDestination(args.event, args.accounts, selfShardID), true
 }
 
-func (fep *fungibleESDTProcessor) processEventOnSenderShard(event nodeData.EventHandler, accounts data.AlteredAccountsHandler) {
+func (fep *fungibleESDTProcessor) processEventOnSenderShard(event coreData.EventHandler, accounts data.AlteredAccountsHandler) {
 	topics := event.GetTopics()
 	tokenID := topics[0]
 
@@ -64,7 +64,7 @@ func (fep *fungibleESDTProcessor) processEventOnSenderShard(event nodeData.Event
 	})
 }
 
-func (fep *fungibleESDTProcessor) processEventDestination(event nodeData.EventHandler, accounts data.AlteredAccountsHandler, selfShardID uint32) string {
+func (fep *fungibleESDTProcessor) processEventDestination(event coreData.EventHandler, accounts data.AlteredAccountsHandler, selfShardID uint32) string {
 	topics := event.GetTopics()
 	tokenID := string(topics[0])
 	if len(topics) < numTopicsWithReceiverAddress {

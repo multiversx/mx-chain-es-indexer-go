@@ -10,7 +10,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
-	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
@@ -46,7 +46,7 @@ func checkTxsProcessorArg(args *ArgsTransactionProcessor) error {
 
 func checkPrepareTransactionForDatabaseArguments(
 	body *block.Body,
-	header nodeData.HeaderHandler,
+	header coreData.HeaderHandler,
 	pool *indexer.Pool,
 ) error {
 	if body == nil {

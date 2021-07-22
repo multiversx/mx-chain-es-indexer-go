@@ -9,7 +9,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go-core/core"
-	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/receipt"
 	"github.com/ElrondNetwork/elrond-go-core/data/rewardTx"
@@ -42,7 +42,7 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 	txHash []byte,
 	mbHash []byte,
 	mb *block.MiniBlock,
-	header nodeData.HeaderHandler,
+	header coreData.HeaderHandler,
 	txStatus string,
 ) *data.Transaction {
 	gasUsed := dtb.txFeeCalculator.ComputeGasLimit(tx)
@@ -80,7 +80,7 @@ func (dtb *dbTransactionBuilder) prepareRewardTransaction(
 	txHash []byte,
 	mbHash []byte,
 	mb *block.MiniBlock,
-	header nodeData.HeaderHandler,
+	header coreData.HeaderHandler,
 	txStatus string,
 ) *data.Transaction {
 	return &data.Transaction{
@@ -105,7 +105,7 @@ func (dtb *dbTransactionBuilder) prepareRewardTransaction(
 func (dtb *dbTransactionBuilder) prepareSmartContractResult(
 	scHash string,
 	sc *smartContractResult.SmartContractResult,
-	header nodeData.HeaderHandler,
+	header coreData.HeaderHandler,
 ) *data.ScResult {
 	relayerAddr := ""
 	if len(sc.RelayerAddr) > 0 {
@@ -141,7 +141,7 @@ func (dtb *dbTransactionBuilder) prepareSmartContractResult(
 func (dtb *dbTransactionBuilder) prepareReceipt(
 	recHash string,
 	rec *receipt.Receipt,
-	header nodeData.HeaderHandler,
+	header coreData.HeaderHandler,
 ) *data.Receipt {
 	return &data.Receipt{
 		Hash:      hex.EncodeToString([]byte(recHash)),

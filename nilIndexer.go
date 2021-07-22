@@ -2,7 +2,7 @@ package indexer
 
 import (
 	"github.com/ElrondNetwork/elrond-go-core/data"
-	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 )
 
@@ -36,7 +36,7 @@ func (ni *NilIndexer) SaveValidatorsPubKeys(_ map[uint32][][]byte, _ uint32) {
 }
 
 // SaveAccounts won't do anything as this is a nil implementation
-func (ni *NilIndexer) SaveAccounts(_ uint64, _ []nodeData.UserAccountHandler) {
+func (ni *NilIndexer) SaveAccounts(_ uint64, _ []coreData.UserAccountHandler) {
 }
 
 // Close will do nothing

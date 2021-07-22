@@ -3,11 +3,11 @@ package logsevents
 import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
-	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 )
 
 type argsProcessEvent struct {
-	event     nodeData.EventHandler
+	event     coreData.EventHandler
 	accounts  data.AlteredAccountsHandler
 	tokens    data.TokensHandler
 	tagsCount tags.CountTags

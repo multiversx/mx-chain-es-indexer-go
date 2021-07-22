@@ -2,7 +2,7 @@ package workItems
 
 import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 )
@@ -14,9 +14,9 @@ type WorkItemHandler interface {
 }
 
 type saveBlockIndexer interface {
-	SaveHeader(header nodeData.HeaderHandler, signersIndexes []uint64, body *block.Body, notarizedHeadersHashes []string, txsSize int) error
-	SaveMiniblocks(header nodeData.HeaderHandler, body *block.Body) (map[string]bool, error)
-	SaveTransactions(body *block.Body, header nodeData.HeaderHandler, pool *indexer.Pool, mbsInDb map[string]bool) error
+	SaveHeader(header coreData.HeaderHandler, signersIndexes []uint64, body *block.Body, notarizedHeadersHashes []string, txsSize int) error
+	SaveMiniblocks(header coreData.HeaderHandler, body *block.Body) (map[string]bool, error)
+	SaveTransactions(body *block.Body, header coreData.HeaderHandler, pool *indexer.Pool, mbsInDb map[string]bool) error
 }
 
 type saveRatingIndexer interface {
@@ -24,9 +24,9 @@ type saveRatingIndexer interface {
 }
 
 type removeIndexer interface {
-	RemoveHeader(header nodeData.HeaderHandler) error
-	RemoveMiniblocks(header nodeData.HeaderHandler, body *block.Body) error
-	RemoveTransactions(header nodeData.HeaderHandler, body *block.Body) error
+	RemoveHeader(header coreData.HeaderHandler) error
+	RemoveMiniblocks(header coreData.HeaderHandler, body *block.Body) error
+	RemoveTransactions(header coreData.HeaderHandler, body *block.Body) error
 }
 
 type saveRounds interface {

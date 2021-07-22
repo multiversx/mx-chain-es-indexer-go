@@ -12,7 +12,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
-	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/esdt"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
@@ -89,7 +89,7 @@ func (ap *accountsProcessor) GetAccounts(alteredAccounts data.AlteredAccountsHan
 	return regularAccountsToIndex, accountsToIndexESDT
 }
 
-func splitAlteredAccounts(userAccount nodeData.UserAccountHandler, altered []*data.AlteredAccount) ([]*data.Account, []*data.AccountESDT) {
+func splitAlteredAccounts(userAccount coreData.UserAccountHandler, altered []*data.AlteredAccount) ([]*data.Account, []*data.AccountESDT) {
 	regularAccountsToIndex := make([]*data.Account, 0)
 	accountsToIndexESDT := make([]*data.AccountESDT, 0)
 	for _, info := range altered {
@@ -118,7 +118,7 @@ func splitAlteredAccounts(userAccount nodeData.UserAccountHandler, altered []*da
 	return regularAccountsToIndex, accountsToIndexESDT
 }
 
-func (ap *accountsProcessor) getUserAccount(address string) (nodeData.UserAccountHandler, error) {
+func (ap *accountsProcessor) getUserAccount(address string) (coreData.UserAccountHandler, error) {
 	addressBytes, err := ap.addressPubkeyConverter.Decode(address)
 	if err != nil {
 		return nil, err
@@ -129,7 +129,7 @@ func (ap *accountsProcessor) getUserAccount(address string) (nodeData.UserAccoun
 		return nil, err
 	}
 
-	userAccount, ok := account.(nodeData.UserAccountHandler)
+	userAccount, ok := account.(coreData.UserAccountHandler)
 	if !ok {
 		return nil, indexer.ErrCannotCastAccountHandlerToUserAccount
 	}

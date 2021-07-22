@@ -7,7 +7,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
-	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	indexerArgs "github.com/ElrondNetwork/elrond-go-core/data/indexer"
 	"github.com/ElrondNetwork/elrond-go-core/data/smartContractResult"
@@ -74,7 +74,7 @@ func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txsDatabaseProce
 // PrepareTransactionsForDatabase will prepare transactions for database
 func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 	body *block.Body,
-	header nodeData.HeaderHandler,
+	header coreData.HeaderHandler,
 	pool *indexerArgs.Pool,
 ) *data.PreparedResults {
 	err := checkPrepareTransactionForDatabaseArguments(body, header, pool)
@@ -202,8 +202,8 @@ func hasSCRSWithOk(tx *data.Transaction) bool {
 }
 
 func (tdp *txsDatabaseProcessor) iterateSCRSAndConvert(
-	txPool map[string]nodeData.TransactionHandler,
-	header nodeData.HeaderHandler,
+	txPool map[string]coreData.TransactionHandler,
+	header coreData.HeaderHandler,
 	transactions map[string]*data.Transaction,
 ) ([]*data.ScResult, map[string]int) {
 	// we can not iterate smart contract results directly on the miniblocks contained in the block body
@@ -236,7 +236,7 @@ func (tdp *txsDatabaseProcessor) iterateSCRSAndConvert(
 	return dbSCResults, countScResults
 }
 
-func (tdp *txsDatabaseProcessor) addScResultsInTx(tx *data.Transaction, header nodeData.HeaderHandler, scrs map[string]*smartContractResult.SmartContractResult) {
+func (tdp *txsDatabaseProcessor) addScResultsInTx(tx *data.Transaction, header coreData.HeaderHandler, scrs map[string]*smartContractResult.SmartContractResult) {
 	for childScHash, sc := range scrs {
 		childDBScResult := tdp.txBuilder.prepareSmartContractResult(childScHash, sc, header)
 
@@ -285,7 +285,7 @@ func (tdp *txsDatabaseProcessor) setTransactionSearchOrder(transactions map[stri
 }
 
 // GetRewardsTxsHashesHexEncoded will return reward transactions hashes from body hex encoded
-func (tdp *txsDatabaseProcessor) GetRewardsTxsHashesHexEncoded(header nodeData.HeaderHandler, body *block.Body) []string {
+func (tdp *txsDatabaseProcessor) GetRewardsTxsHashesHexEncoded(header coreData.HeaderHandler, body *block.Body) []string {
 	if body == nil || check.IfNil(header) || len(header.GetMiniBlockHeadersHashes()) == 0 {
 		return nil
 	}

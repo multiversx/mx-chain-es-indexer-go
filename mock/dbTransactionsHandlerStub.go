@@ -4,20 +4,20 @@ import (
 	"bytes"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 )
 
 // DBTransactionProcessorStub -
 type DBTransactionProcessorStub struct {
-	PrepareTransactionsForDatabaseCalled func(body *block.Body, header nodeData.HeaderHandler, pool *indexer.Pool) *data.PreparedResults
+	PrepareTransactionsForDatabaseCalled func(body *block.Body, header coreData.HeaderHandler, pool *indexer.Pool) *data.PreparedResults
 	SerializeReceiptsCalled              func(recs []*data.Receipt) ([]*bytes.Buffer, error)
 	SerializeScResultsCalled             func(scrs []*data.ScResult) ([]*bytes.Buffer, error)
 }
 
 // PrepareTransactionsForDatabase -
-func (tps *DBTransactionProcessorStub) PrepareTransactionsForDatabase(body *block.Body, header nodeData.HeaderHandler, pool *indexer.Pool) *data.PreparedResults {
+func (tps *DBTransactionProcessorStub) PrepareTransactionsForDatabase(body *block.Body, header coreData.HeaderHandler, pool *indexer.Pool) *data.PreparedResults {
 	if tps.PrepareTransactionsForDatabaseCalled != nil {
 		return tps.PrepareTransactionsForDatabaseCalled(body, header, pool)
 	}
@@ -26,7 +26,7 @@ func (tps *DBTransactionProcessorStub) PrepareTransactionsForDatabase(body *bloc
 }
 
 // GetRewardsTxsHashesHexEncoded -
-func (tps *DBTransactionProcessorStub) GetRewardsTxsHashesHexEncoded(_ nodeData.HeaderHandler, _ *block.Body) []string {
+func (tps *DBTransactionProcessorStub) GetRewardsTxsHashesHexEncoded(_ coreData.HeaderHandler, _ *block.Body) []string {
 	return nil
 }
 

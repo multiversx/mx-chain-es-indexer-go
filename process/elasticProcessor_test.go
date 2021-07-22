@@ -22,7 +22,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/process/transactions"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/validators"
 	"github.com/ElrondNetwork/elrond-go-core/core"
-	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
@@ -66,8 +66,8 @@ func createMockElasticProcessorArgs() *ArgElasticProcessor {
 	}
 }
 
-func newTestTxPool() map[string]nodeData.TransactionHandler {
-	txPool := map[string]nodeData.TransactionHandler{
+func newTestTxPool() map[string]coreData.TransactionHandler {
+	txPool := map[string]coreData.TransactionHandler{
 		"tx1": &transaction.Transaction{
 			Nonce:     uint64(1),
 			Value:     big.NewInt(1),
@@ -619,7 +619,7 @@ func TestElasticProcessor_SaveTransactionsIndexSCResults(t *testing.T) {
 	called := false
 	arguments := createMockElasticProcessorArgs()
 	arguments.TransactionsProc = &mock.DBTransactionProcessorStub{
-		PrepareTransactionsForDatabaseCalled: func(body *dataBlock.Body, header nodeData.HeaderHandler, pool *indexer.Pool) *data.PreparedResults {
+		PrepareTransactionsForDatabaseCalled: func(body *dataBlock.Body, header coreData.HeaderHandler, pool *indexer.Pool) *data.PreparedResults {
 			return &data.PreparedResults{
 				Transactions: nil,
 				ScResults:    nil,
@@ -655,7 +655,7 @@ func TestElasticProcessor_SaveTransactionsIndexReceipts(t *testing.T) {
 	called := false
 	arguments := createMockElasticProcessorArgs()
 	arguments.TransactionsProc = &mock.DBTransactionProcessorStub{
-		PrepareTransactionsForDatabaseCalled: func(body *dataBlock.Body, header nodeData.HeaderHandler, pool *indexer.Pool) *data.PreparedResults {
+		PrepareTransactionsForDatabaseCalled: func(body *dataBlock.Body, header coreData.HeaderHandler, pool *indexer.Pool) *data.PreparedResults {
 			return &data.PreparedResults{
 				Transactions: nil,
 				ScResults:    nil,

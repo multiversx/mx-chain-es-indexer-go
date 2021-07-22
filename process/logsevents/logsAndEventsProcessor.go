@@ -9,7 +9,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
-	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
 )
 
@@ -47,7 +47,7 @@ func NewLogsAndEventsProcessor(
 
 // ExtractDataFromLogsAndPutInAltered will extract data from the provided logs and events and put in altered addresses
 func (lep *logsAndEventsProcessor) ExtractDataFromLogsAndPutInAltered(
-	logsAndEvents map[string]nodeData.LogHandler,
+	logsAndEvents map[string]coreData.LogHandler,
 	preparedResults *data.PreparedResults,
 	timestamp uint64,
 ) (data.TokensHandler, tags.CountTags) {
@@ -71,7 +71,7 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogsAndPutInAltered(
 func (lep *logsAndEventsProcessor) processEvents(
 	logHash string,
 	timestamp uint64,
-	events []nodeData.EventHandler,
+	events []coreData.EventHandler,
 	tokens data.TokensHandler,
 	tagsCount tags.CountTags,
 	accounts data.AlteredAccountsHandler,
@@ -90,7 +90,7 @@ func (lep *logsAndEventsProcessor) processEvents(
 func (lep *logsAndEventsProcessor) processEvent(
 	logHash string,
 	timestamp uint64,
-	events nodeData.EventHandler,
+	events coreData.EventHandler,
 	tokens data.TokensHandler,
 	tagsCount tags.CountTags,
 	accounts data.AlteredAccountsHandler,
@@ -129,7 +129,7 @@ func (lep *logsAndEventsProcessor) processEvent(
 }
 
 // PrepareLogsForDB will prepare logs for database
-func (lep *logsAndEventsProcessor) PrepareLogsForDB(logsAndEvents map[string]nodeData.LogHandler) []*data.Logs {
+func (lep *logsAndEventsProcessor) PrepareLogsForDB(logsAndEvents map[string]coreData.LogHandler) []*data.Logs {
 	logs := make([]*data.Logs, 0, len(logsAndEvents))
 
 	for txHash, log := range logsAndEvents {
@@ -143,7 +143,7 @@ func (lep *logsAndEventsProcessor) PrepareLogsForDB(logsAndEvents map[string]nod
 	return logs
 }
 
-func (lep *logsAndEventsProcessor) prepareLogsForDB(id string, logHandler nodeData.LogHandler) *data.Logs {
+func (lep *logsAndEventsProcessor) prepareLogsForDB(id string, logHandler coreData.LogHandler) *data.Logs {
 	events := logHandler.GetLogEvents()
 	logsDB := &data.Logs{
 		ID:      hex.EncodeToString([]byte(id)),

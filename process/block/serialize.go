@@ -8,7 +8,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
-	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 )
 
@@ -35,7 +35,7 @@ func (bp *blockProcessor) SerializeBlock(elasticBlock *data.Block) (*bytes.Buffe
 }
 
 // SerializeEpochInfoData will serialize information about current epoch
-func (bp *blockProcessor) SerializeEpochInfoData(header nodeData.HeaderHandler) (*bytes.Buffer, error) {
+func (bp *blockProcessor) SerializeEpochInfoData(header coreData.HeaderHandler) (*bytes.Buffer, error) {
 	if check.IfNil(header) {
 		return nil, indexer.ErrNilHeaderHandler
 	}

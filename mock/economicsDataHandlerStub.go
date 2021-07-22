@@ -3,16 +3,16 @@ package mock
 import (
 	"math/big"
 
-	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 )
 
 // EconomicsHandlerStub -
 type EconomicsHandlerStub struct {
-	ComputeGasLimitCalled                        func(tx nodeData.TransactionWithFeeHandler) uint64
+	ComputeGasLimitCalled                        func(tx coreData.TransactionWithFeeHandler) uint64
 	MinGasLimitCalled                            func() uint64
-	ComputeGasUsedAndFeeBasedOnRefundValueCalled func(tx nodeData.TransactionWithFeeHandler, refundValue *big.Int) (uint64, *big.Int)
-	ComputeTxFeeBasedOnGasUsedCalled             func(tx nodeData.TransactionWithFeeHandler, gasUsed uint64) *big.Int
-	ComputeMoveBalanceGasUsedCalled              func(tx nodeData.TransactionWithFeeHandler) uint64
+	ComputeGasUsedAndFeeBasedOnRefundValueCalled func(tx coreData.TransactionWithFeeHandler, refundValue *big.Int) (uint64, *big.Int)
+	ComputeTxFeeBasedOnGasUsedCalled             func(tx coreData.TransactionWithFeeHandler, gasUsed uint64) *big.Int
+	ComputeMoveBalanceGasUsedCalled              func(tx coreData.TransactionWithFeeHandler) uint64
 }
 
 // MinGasLimit -
@@ -24,7 +24,7 @@ func (e *EconomicsHandlerStub) MinGasLimit() uint64 {
 }
 
 // ComputeGasLimit -
-func (e *EconomicsHandlerStub) ComputeGasLimit(tx nodeData.TransactionWithFeeHandler) uint64 {
+func (e *EconomicsHandlerStub) ComputeGasLimit(tx coreData.TransactionWithFeeHandler) uint64 {
 	if e.ComputeGasLimitCalled != nil {
 		return e.ComputeGasLimitCalled(tx)
 	}
@@ -32,7 +32,7 @@ func (e *EconomicsHandlerStub) ComputeGasLimit(tx nodeData.TransactionWithFeeHan
 }
 
 // ComputeGasUsedAndFeeBasedOnRefundValue -
-func (e *EconomicsHandlerStub) ComputeGasUsedAndFeeBasedOnRefundValue(tx nodeData.TransactionWithFeeHandler, refundValue *big.Int) (uint64, *big.Int) {
+func (e *EconomicsHandlerStub) ComputeGasUsedAndFeeBasedOnRefundValue(tx coreData.TransactionWithFeeHandler, refundValue *big.Int) (uint64, *big.Int) {
 	if e.ComputeGasUsedAndFeeBasedOnRefundValueCalled != nil {
 		return e.ComputeGasUsedAndFeeBasedOnRefundValueCalled(tx, refundValue)
 	}
@@ -41,7 +41,7 @@ func (e *EconomicsHandlerStub) ComputeGasUsedAndFeeBasedOnRefundValue(tx nodeDat
 }
 
 // ComputeTxFeeBasedOnGasUsed -
-func (e *EconomicsHandlerStub) ComputeTxFeeBasedOnGasUsed(tx nodeData.TransactionWithFeeHandler, gasUsed uint64) *big.Int {
+func (e *EconomicsHandlerStub) ComputeTxFeeBasedOnGasUsed(tx coreData.TransactionWithFeeHandler, gasUsed uint64) *big.Int {
 	if e.ComputeTxFeeBasedOnGasUsedCalled != nil {
 		return e.ComputeTxFeeBasedOnGasUsedCalled(tx, gasUsed)
 	}

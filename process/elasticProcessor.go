@@ -9,7 +9,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
 	"github.com/ElrondNetwork/elrond-go-core/core"
-	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
@@ -274,7 +274,7 @@ func getTemplateByName(templateName string, templateList map[string]*bytes.Buffe
 
 // SaveHeader will prepare and save information about a header in elasticsearch server
 func (ei *elasticProcessor) SaveHeader(
-	header nodeData.HeaderHandler,
+	header coreData.HeaderHandler,
 	signersIndexes []uint64,
 	body *block.Body,
 	notarizedHeadersHashes []string,
@@ -308,7 +308,7 @@ func (ei *elasticProcessor) SaveHeader(
 	return ei.indexEpochInfoData(header)
 }
 
-func (ei *elasticProcessor) indexEpochInfoData(header nodeData.HeaderHandler) error {
+func (ei *elasticProcessor) indexEpochInfoData(header coreData.HeaderHandler) error {
 	if !ei.isIndexEnabled(elasticIndexer.EpochInfoIndex) ||
 		ei.selfShardID != core.MetachainShardId {
 		return nil
@@ -329,7 +329,7 @@ func (ei *elasticProcessor) indexEpochInfoData(header nodeData.HeaderHandler) er
 }
 
 // RemoveHeader will remove a block from elasticsearch server
-func (ei *elasticProcessor) RemoveHeader(header nodeData.HeaderHandler) error {
+func (ei *elasticProcessor) RemoveHeader(header coreData.HeaderHandler) error {
 	headerHash, err := ei.blockProc.ComputeHeaderHash(header)
 	if err != nil {
 		return err
@@ -339,7 +339,7 @@ func (ei *elasticProcessor) RemoveHeader(header nodeData.HeaderHandler) error {
 }
 
 // RemoveMiniblocks will remove all miniblocks that are in header from elasticsearch server
-func (ei *elasticProcessor) RemoveMiniblocks(header nodeData.HeaderHandler, body *block.Body) error {
+func (ei *elasticProcessor) RemoveMiniblocks(header coreData.HeaderHandler, body *block.Body) error {
 	encodedMiniblocksHashes := ei.miniblocksProc.GetMiniblocksHashesHexEncoded(header, body)
 	if len(encodedMiniblocksHashes) == 0 {
 		return nil
@@ -349,7 +349,7 @@ func (ei *elasticProcessor) RemoveMiniblocks(header nodeData.HeaderHandler, body
 }
 
 // RemoveTransactions will remove transaction that are in miniblock from the elasticsearch server
-func (ei *elasticProcessor) RemoveTransactions(header nodeData.HeaderHandler, body *block.Body) error {
+func (ei *elasticProcessor) RemoveTransactions(header coreData.HeaderHandler, body *block.Body) error {
 	encodedTxsHashes := ei.transactionsProc.GetRewardsTxsHashesHexEncoded(header, body)
 	if len(encodedTxsHashes) == 0 {
 		return nil
@@ -361,7 +361,7 @@ func (ei *elasticProcessor) RemoveTransactions(header nodeData.HeaderHandler, bo
 // SaveMiniblocks will prepare and save information about miniblocks in elasticsearch server
 // and returns a map with the hashes of the miniblocks that are already in elasticsearch database
 // the map on miniblocks have to be returned here because the get must be done before the actual miniblocks are indexed
-func (ei *elasticProcessor) SaveMiniblocks(header nodeData.HeaderHandler, body *block.Body) (map[string]bool, error) {
+func (ei *elasticProcessor) SaveMiniblocks(header coreData.HeaderHandler, body *block.Body) (map[string]bool, error) {
 	if !ei.isIndexEnabled(elasticIndexer.MiniblocksIndex) {
 		return map[string]bool{}, nil
 	}
@@ -392,7 +392,7 @@ func (ei *elasticProcessor) miniblocksInDBMap(mbs []*data.Miniblock) (map[string
 // SaveTransactions will prepare and save information about a transactions in elasticsearch server
 func (ei *elasticProcessor) SaveTransactions(
 	body *block.Body,
-	header nodeData.HeaderHandler,
+	header coreData.HeaderHandler,
 	pool *indexer.Pool,
 	mbsInDb map[string]bool,
 ) error {
@@ -442,7 +442,7 @@ func (ei *elasticProcessor) SaveTransactions(
 	return ei.indexScDeploys(preparedResults.DeploysInfo)
 }
 
-func (ei *elasticProcessor) prepareAndIndexLogs(logsAndEvents map[string]nodeData.LogHandler) error {
+func (ei *elasticProcessor) prepareAndIndexLogs(logsAndEvents map[string]coreData.LogHandler) error {
 	if !ei.isIndexEnabled(elasticIndexer.LogsIndex) {
 		return nil
 	}
@@ -482,7 +482,7 @@ func (ei *elasticProcessor) indexScDeploys(deployData []*data.ScDeployInfo) erro
 	return ei.doBulkRequests(elasticIndexer.SCDeploysIndex, buffSlice)
 }
 
-func (ei *elasticProcessor) indexTransactions(txs []*data.Transaction, header nodeData.HeaderHandler, mbsInDb map[string]bool) error {
+func (ei *elasticProcessor) indexTransactions(txs []*data.Transaction, header coreData.HeaderHandler, mbsInDb map[string]bool) error {
 	if !ei.isIndexEnabled(elasticIndexer.TransactionsIndex) {
 		return nil
 	}
