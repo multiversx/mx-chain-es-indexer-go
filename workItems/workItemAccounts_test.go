@@ -7,7 +7,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
-	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/stretchr/testify/require"
 )
 
@@ -21,7 +21,7 @@ func TestItemAccounts_Save(t *testing.T) {
 			},
 		},
 		0,
-		[]nodeData.UserAccountHandler{},
+		[]coreData.UserAccountHandler{},
 	)
 	require.False(t, itemAccounts.IsInterfaceNil())
 
@@ -39,7 +39,7 @@ func TestItemAccounts_SaveAccountsShouldErr(t *testing.T) {
 			},
 		},
 		0,
-		[]nodeData.UserAccountHandler{},
+		[]coreData.UserAccountHandler{},
 	)
 	require.False(t, itemAccounts.IsInterfaceNil())
 

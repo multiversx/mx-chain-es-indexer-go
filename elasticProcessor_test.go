@@ -14,7 +14,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elrond-go-core/core"
-	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 	"github.com/ElrondNetwork/elrond-go-core/data/receipt"
@@ -65,8 +65,8 @@ func createMockElasticProcessorArgs() ArgElasticProcessor {
 	}
 }
 
-func newTestTxPool() map[string]nodeData.TransactionHandler {
-	txPool := map[string]nodeData.TransactionHandler{
+func newTestTxPool() map[string]coreData.TransactionHandler {
+	txPool := map[string]coreData.TransactionHandler{
 		"tx1": &transaction.Transaction{
 			Nonce:     uint64(1),
 			Value:     big.NewInt(1),
@@ -583,7 +583,7 @@ func TestUpdateTransaction(t *testing.T) {
 		},
 	}
 	header := &dataBlock.Header{}
-	txPool := map[string]nodeData.TransactionHandler{
+	txPool := map[string]coreData.TransactionHandler{
 		string(txHash1):  tx1,
 		string(txHash2):  tx2,
 		string(txHash3):  tx3,
@@ -599,7 +599,7 @@ func TestUpdateTransaction(t *testing.T) {
 	fmt.Println(hex.EncodeToString(txHash1))
 
 	header.TimeStamp = 1234
-	txPool = map[string]nodeData.TransactionHandler{
+	txPool = map[string]coreData.TransactionHandler{
 		string(txHash1): tx1,
 		string(txHash2): tx2,
 		string(scHash1): scResult1,
@@ -674,7 +674,7 @@ func TestIndexTransactionDestinationBeforeSourceShard(t *testing.T) {
 	}
 
 	header := &dataBlock.Header{}
-	txPool := map[string]nodeData.TransactionHandler{
+	txPool := map[string]coreData.TransactionHandler{
 		string(txHash1): tx1,
 		string(txHash2): tx2,
 	}
@@ -691,7 +691,7 @@ func TestIndexTransactionDestinationBeforeSourceShard(t *testing.T) {
 	isMBSInDB, _ := esDatabase.SaveMiniblocks(header, body)
 	_ = esDatabase.SaveTransactions(body, header, &indexer.Pool{Txs: txPool}, isMBSInDB)
 
-	txPool = map[string]nodeData.TransactionHandler{
+	txPool = map[string]coreData.TransactionHandler{
 		string(txHash1): tx1,
 		string(txHash2): tx2,
 	}
@@ -727,7 +727,7 @@ func TestDoBulkRequestLimit(t *testing.T) {
 		txs, hashes := generateTransactions(numTransactions, dataSize)
 
 		header := &dataBlock.Header{}
-		txsPool := make(map[string]nodeData.TransactionHandler)
+		txsPool := make(map[string]coreData.TransactionHandler)
 		for j := 0; j < numTransactions; j++ {
 			txsPool[hashes[j]] = &txs[j]
 		}

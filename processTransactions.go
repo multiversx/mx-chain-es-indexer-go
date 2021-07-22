@@ -8,7 +8,7 @@ import (
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go-core/core"
-	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/receipt"
 	"github.com/ElrondNetwork/elrond-go-core/data/rewardTx"
@@ -60,8 +60,8 @@ func newTxDatabaseProcessor(
 
 func (tdp *txDatabaseProcessor) prepareTransactionsForDatabase(
 	body *block.Body,
-	header nodeData.HeaderHandler,
-	txPool map[string]nodeData.TransactionHandler,
+	header coreData.HeaderHandler,
+	txPool map[string]coreData.TransactionHandler,
 	selfShardID uint32,
 ) ([]*data.Transaction, map[string]struct{}) {
 	transactions, rewardsTxs, alteredAddresses := tdp.groupNormalTxsAndRewards(body, txPool, header, selfShardID)
@@ -154,12 +154,8 @@ func (tdp *txDatabaseProcessor) addScrsReceiverToAlteredAccounts(
 	}
 }
 
-// RefundGasMessage is the message returned in the data field of a receipt,
-// for move balance transactions that provide more gas than needed
-const RefundGasMessage = "refundedGas"
-
 func getGasUsedFromReceipt(rec *receipt.Receipt, tx *data.Transaction) uint64 {
-	if rec.Data != nil && string(rec.Data) == RefundGasMessage {
+	if rec.Data != nil && string(rec.Data) == data.RefundGasMessage {
 		// in this gas receipt contains the refunded value
 		gasUsed := big.NewInt(0).SetUint64(tx.GasPrice)
 		gasUsed.Mul(gasUsed, big.NewInt(0).SetUint64(tx.GasLimit))
@@ -228,7 +224,7 @@ func isDataOk(data []byte) bool {
 	return strings.HasPrefix(string(data), dataFieldStr)
 }
 
-func (tdp *txDatabaseProcessor) prepareTxLog(log nodeData.LogHandler) data.TxLog {
+func (tdp *txDatabaseProcessor) prepareTxLog(log coreData.LogHandler) data.TxLog {
 	scAddr := tdp.addressPubkeyConverter.Encode(log.GetAddress())
 	events := log.GetLogEvents()
 
@@ -263,8 +259,8 @@ func convertMapTxsToSlice(txs map[string]*data.Transaction) []*data.Transaction 
 
 func (tdp *txDatabaseProcessor) groupNormalTxsAndRewards(
 	body *block.Body,
-	txPool map[string]nodeData.TransactionHandler,
-	header nodeData.HeaderHandler,
+	txPool map[string]coreData.TransactionHandler,
+	header coreData.HeaderHandler,
 	selfShardID uint32,
 ) (
 	map[string]*data.Transaction,
@@ -366,7 +362,7 @@ func addToAlteredAddresses(
 	}
 }
 
-func groupSmartContractResults(txPool map[string]nodeData.TransactionHandler) map[string]*smartContractResult.SmartContractResult {
+func groupSmartContractResults(txPool map[string]coreData.TransactionHandler) map[string]*smartContractResult.SmartContractResult {
 	scResults := make(map[string]*smartContractResult.SmartContractResult)
 	for hash, tx := range txPool {
 		scResult, ok := tx.(*smartContractResult.SmartContractResult)
@@ -379,7 +375,7 @@ func groupSmartContractResults(txPool map[string]nodeData.TransactionHandler) ma
 	return scResults
 }
 
-func getTransactions(txPool map[string]nodeData.TransactionHandler,
+func getTransactions(txPool map[string]coreData.TransactionHandler,
 	txHashes [][]byte,
 ) map[string]*transaction.Transaction {
 	transactions := make(map[string]*transaction.Transaction)
@@ -398,7 +394,7 @@ func getTransactions(txPool map[string]nodeData.TransactionHandler,
 	return transactions
 }
 
-func getRewardsTransaction(txPool map[string]nodeData.TransactionHandler,
+func getRewardsTransaction(txPool map[string]coreData.TransactionHandler,
 	txHashes [][]byte,
 ) map[string]*rewardTx.RewardTx {
 	rewardsTxs := make(map[string]*rewardTx.RewardTx)

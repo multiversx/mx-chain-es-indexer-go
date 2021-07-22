@@ -5,7 +5,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
-	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
 )
@@ -67,7 +67,7 @@ func (di *dataIndexer) Close() error {
 }
 
 // RevertIndexedBlock will remove from database block and miniblocks
-func (di *dataIndexer) RevertIndexedBlock(header nodeData.HeaderHandler, body nodeData.BodyHandler) {
+func (di *dataIndexer) RevertIndexedBlock(header coreData.HeaderHandler, body coreData.BodyHandler) {
 	wi := workItems.NewItemRemoveBlock(
 		di.elasticProcessor,
 		body,
@@ -122,7 +122,7 @@ func (di *dataIndexer) SaveValidatorsPubKeys(validatorsPubKeys map[uint32][][]by
 }
 
 // SaveAccounts will save the provided accounts
-func (di *dataIndexer) SaveAccounts(timestamp uint64, accounts []nodeData.UserAccountHandler) {
+func (di *dataIndexer) SaveAccounts(timestamp uint64, accounts []coreData.UserAccountHandler) {
 	wi := workItems.NewItemAccounts(di.elasticProcessor, timestamp, accounts)
 	di.dispatcher.Add(wi)
 }

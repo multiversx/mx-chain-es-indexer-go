@@ -9,7 +9,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elrond-go-core/core"
-	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/receipt"
 	"github.com/ElrondNetwork/elrond-go-core/data/rewardTx"
@@ -106,7 +106,7 @@ func TestPrepareTransactionsForDatabase(t *testing.T) {
 		},
 	}
 	header := &block.Header{}
-	txPool := map[string]nodeData.TransactionHandler{
+	txPool := map[string]coreData.TransactionHandler{
 		string(txHash1):  tx1,
 		string(txHash2):  tx2,
 		string(txHash3):  tx3,
@@ -223,7 +223,7 @@ func TestRelayedTransactions(t *testing.T) {
 	}
 
 	header := &block.Header{}
-	txPool := map[string]nodeData.TransactionHandler{
+	txPool := map[string]coreData.TransactionHandler{
 		string(txHash1): tx1,
 		string(scHash1): scResult1,
 		string(scHash2): scResult2,
@@ -292,7 +292,7 @@ func TestGetGasUsedFromReceipt_RefundedGas(t *testing.T) {
 	rec := &receipt.Receipt{
 		Value:   recValue,
 		SndAddr: nil,
-		Data:    []byte(RefundGasMessage),
+		Data:    []byte(data.RefundGasMessage),
 		TxHash:  txHash,
 	}
 	tx := &data.Transaction{
@@ -430,7 +430,7 @@ func TestAlteredAddresses(t *testing.T) {
 	}
 
 	hdr := &block.Header{}
-	txPool := map[string]nodeData.TransactionHandler{
+	txPool := map[string]coreData.TransactionHandler{
 		string(tx1Hash):    tx1,
 		string(tx2Hash):    tx2,
 		string(rwdTx1Hash): rwdTx1,
@@ -543,7 +543,7 @@ func TestCheckGasUsedInvalidTransaction(t *testing.T) {
 
 	header := &block.Header{}
 
-	txPool := map[string]nodeData.TransactionHandler{
+	txPool := map[string]coreData.TransactionHandler{
 		string(txHash1):  tx1,
 		string(recHash1): rec1,
 	}
@@ -592,7 +592,7 @@ func TestCheckGasUsedRelayedTransaction(t *testing.T) {
 
 	header := &block.Header{}
 
-	txPool := map[string]nodeData.TransactionHandler{
+	txPool := map[string]coreData.TransactionHandler{
 		string(txHash1):    tx1,
 		string(scResHash1): scRes1,
 	}
