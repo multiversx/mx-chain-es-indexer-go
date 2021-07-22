@@ -9,7 +9,6 @@ import (
 	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
-	"github.com/ElrondNetwork/elrond-go/common/statistics"
 	"github.com/ElrondNetwork/elrond-go/process"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
@@ -24,7 +23,6 @@ type DispatcherHandler interface {
 
 // ElasticProcessor defines the interface for the elastic search indexer
 type ElasticProcessor interface {
-	SaveShardStatistics(tpsBenchmark statistics.TPSBenchmark) error
 	SaveHeader(header nodeData.HeaderHandler, signersIndexes []uint64, body *block.Body, notarizedHeadersHashes []string, txsSize int) error
 	RemoveHeader(header nodeData.HeaderHandler) error
 	RemoveMiniblocks(header nodeData.HeaderHandler, body *block.Body) error

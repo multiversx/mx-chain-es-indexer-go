@@ -13,13 +13,11 @@ import (
 
 // ArgDataIndexer is struct that is used to store all components that are needed to create a indexer
 type ArgDataIndexer struct {
-	ShardCoordinator   sharding.Coordinator
-	Marshalizer        marshal.Marshalizer
-	EpochStartNotifier sharding.EpochStartEventNotifier
-	NodesCoordinator   sharding.NodesCoordinator
-	UseKibana          bool
-	DataDispatcher     DispatcherHandler
-	ElasticProcessor   ElasticProcessor
+	ShardCoordinator sharding.Coordinator
+	Marshalizer      marshal.Marshalizer
+	UseKibana        bool
+	DataDispatcher   DispatcherHandler
+	ElasticProcessor ElasticProcessor
 }
 
 // ArgElasticProcessor is struct that is used to store all components that are needed to an elastic indexer

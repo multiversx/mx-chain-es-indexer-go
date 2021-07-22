@@ -25,8 +25,6 @@ func createMockIndexerFactoryArgs() *ArgsIndexerFactory {
 		Password:                 "",
 		Marshalizer:              &mock.MarshalizerMock{},
 		Hasher:                   &mock.HasherMock{},
-		EpochStartNotifier:       &mock.EpochStartNotifierStub{},
-		NodesCoordinator:         &mock.NodesCoordinatorMock{},
 		AddressPubkeyConverter:   &mock.PubkeyConverterMock{},
 		ValidatorPubkeyConverter: &mock.PubkeyConverterMock{},
 		EnabledIndexes:           []string{"blocks", "transactions", "miniblocks", "tps", "validators", "round", "accounts", "rating"},
@@ -87,24 +85,6 @@ func TestNewIndexerFactory(t *testing.T) {
 				return args
 			},
 			exError: core.ErrNilHasher,
-		},
-		{
-			name: "NilNodesCoordinator",
-			argsFunc: func() *ArgsIndexerFactory {
-				args := createMockIndexerFactoryArgs()
-				args.NodesCoordinator = nil
-				return args
-			},
-			exError: core.ErrNilNodesCoordinator,
-		},
-		{
-			name: "NilEpochStartNotifier",
-			argsFunc: func() *ArgsIndexerFactory {
-				args := createMockIndexerFactoryArgs()
-				args.EpochStartNotifier = nil
-				return args
-			},
-			exError: core.ErrNilEpochStartNotifier,
 		},
 		{
 			name: "NilAccountsDB",

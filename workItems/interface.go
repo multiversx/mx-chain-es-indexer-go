@@ -5,7 +5,6 @@ import (
 	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
-	"github.com/ElrondNetwork/elrond-go/common/statistics"
 )
 
 // WorkItemHandler defines the interface for item that needs to be saved in elasticsearch database
@@ -31,10 +30,6 @@ type removeIndexer interface {
 
 type saveRounds interface {
 	SaveRoundsInfo(infos []*data.RoundInfo) error
-}
-
-type saveTpsBenchmark interface {
-	SaveShardStatistics(tpsBenchmark statistics.TPSBenchmark) error
 }
 
 type saveValidatorsIndexer interface {

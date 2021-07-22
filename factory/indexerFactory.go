@@ -25,8 +25,6 @@ type ArgsIndexerFactory struct {
 	Password                 string
 	Marshalizer              marshal.Marshalizer
 	Hasher                   hashing.Hasher
-	EpochStartNotifier       sharding.EpochStartEventNotifier
-	NodesCoordinator         sharding.NodesCoordinator
 	AddressPubkeyConverter   core.PubkeyConverter
 	ValidatorPubkeyConverter core.PubkeyConverter
 	UseKibana                bool
@@ -61,13 +59,11 @@ func NewIndexer(args *ArgsIndexerFactory) (process.Indexer, error) {
 	dispatcher.StartIndexData()
 
 	arguments := indexer.ArgDataIndexer{
-		Marshalizer:        args.Marshalizer,
-		UseKibana:          args.UseKibana,
-		NodesCoordinator:   args.NodesCoordinator,
-		EpochStartNotifier: args.EpochStartNotifier,
-		ShardCoordinator:   args.ShardCoordinator,
-		ElasticProcessor:   elasticProcessor,
-		DataDispatcher:     dispatcher,
+		Marshalizer:      args.Marshalizer,
+		UseKibana:        args.UseKibana,
+		ShardCoordinator: args.ShardCoordinator,
+		ElasticProcessor: elasticProcessor,
+		DataDispatcher:   dispatcher,
 	}
 
 	return indexer.NewDataIndexer(arguments)
@@ -138,12 +134,6 @@ func checkDataIndexerParams(arguments *ArgsIndexerFactory) error {
 	}
 	if check.IfNil(arguments.Hasher) {
 		return core.ErrNilHasher
-	}
-	if check.IfNil(arguments.NodesCoordinator) {
-		return core.ErrNilNodesCoordinator
-	}
-	if check.IfNil(arguments.EpochStartNotifier) {
-		return core.ErrNilEpochStartNotifier
 	}
 	if check.IfNil(arguments.TransactionFeeCalculator) {
 		return core.ErrNilTransactionFeeCalculator
