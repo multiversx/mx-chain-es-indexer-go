@@ -8,7 +8,6 @@ import (
 	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
-	"github.com/ElrondNetwork/elrond-go/common/statistics"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
 
@@ -74,9 +73,6 @@ type DBMiniblocksHandler interface {
 
 // DBStatisticsHandler defines the actions that a database statistics handler should do
 type DBStatisticsHandler interface {
-	PrepareStatistics(tpsBenchmark statistics.TPSBenchmark) (*data.TPS, []*data.TPS, error)
-
-	SerializeStatistics(genInfo *data.TPS, shardsInfo []*data.TPS, index string) (*bytes.Buffer, error)
 	SerializeRoundsInfo(roundsInfo []*data.RoundInfo) *bytes.Buffer
 }
 

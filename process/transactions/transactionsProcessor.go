@@ -3,19 +3,18 @@ package transactions
 import (
 	"encoding/hex"
 
+	"github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	indexerArgs "github.com/ElrondNetwork/elrond-go-core/data/indexer"
 	"github.com/ElrondNetwork/elrond-go-core/data/smartContractResult"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/ElrondNetwork/elrond-go-core/hashing"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
-	"github.com/ElrondNetwork/elrond-go/process"
-	"github.com/ElrondNetwork/elrond-go/sharding"
 )
 
 const (
@@ -30,15 +29,15 @@ var log = logger.GetOrCreate("indexer/process/transactions")
 // new instances
 type ArgsTransactionProcessor struct {
 	AddressPubkeyConverter core.PubkeyConverter
-	TxFeeCalculator        process.TransactionFeeCalculator
-	ShardCoordinator       sharding.Coordinator
+	TxFeeCalculator        indexer.FeesProcessorHandler
+	ShardCoordinator       indexer.Coordinator
 	Hasher                 hashing.Hasher
 	Marshalizer            marshal.Marshalizer
 	IsInImportMode         bool
 }
 
 type txsDatabaseProcessor struct {
-	txFeeCalculator process.TransactionFeeCalculator
+	txFeeCalculator indexer.FeesProcessorHandler
 	txBuilder       *dbTransactionBuilder
 	txsGrouper      *txsGrouper
 	scDeploysProc   *scDeploysProc
@@ -76,7 +75,7 @@ func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txsDatabaseProce
 func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 	body *block.Body,
 	header nodeData.HeaderHandler,
-	pool *indexer.Pool,
+	pool *indexerArgs.Pool,
 ) *data.PreparedResults {
 	err := checkPrepareTransactionForDatabaseArguments(body, header, pool)
 	if err != nil {

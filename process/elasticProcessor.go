@@ -13,7 +13,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
-	"github.com/ElrondNetwork/elrond-go/common/statistics"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
 
@@ -28,7 +27,7 @@ var (
 	log = logger.GetOrCreate("indexer/process")
 
 	indexes = []string{
-		elasticIndexer.TransactionsIndex, elasticIndexer.BlockIndex, elasticIndexer.MiniblocksIndex, elasticIndexer.TpsIndex, elasticIndexer.RatingIndex, elasticIndexer.RoundsIndex, elasticIndexer.ValidatorsIndex,
+		elasticIndexer.TransactionsIndex, elasticIndexer.BlockIndex, elasticIndexer.MiniblocksIndex, elasticIndexer.RatingIndex, elasticIndexer.RoundsIndex, elasticIndexer.ValidatorsIndex,
 		elasticIndexer.AccountsIndex, elasticIndexer.AccountsHistoryIndex, elasticIndexer.ReceiptsIndex, elasticIndexer.ScResultsIndex, elasticIndexer.AccountsESDTHistoryIndex, elasticIndexer.AccountsESDTIndex,
 		elasticIndexer.EpochInfoIndex, elasticIndexer.SCDeploysIndex, elasticIndexer.TokensIndex, elasticIndexer.TagsIndex, elasticIndexer.LogsIndex,
 	}
@@ -494,25 +493,6 @@ func (ei *elasticProcessor) indexTransactions(txs []*data.Transaction, header no
 	}
 
 	return ei.doBulkRequests(elasticIndexer.TransactionsIndex, buffSlice)
-}
-
-// SaveShardStatistics will prepare and save information about a shard statistics in elasticsearch server
-func (ei *elasticProcessor) SaveShardStatistics(tpsBenchmark statistics.TPSBenchmark) error {
-	if !ei.isIndexEnabled(elasticIndexer.TpsIndex) {
-		return nil
-	}
-
-	generalInfo, shardsInfo, err := ei.statisticsProc.PrepareStatistics(tpsBenchmark)
-	if err != nil {
-		return err
-	}
-
-	buff, err := ei.statisticsProc.SerializeStatistics(generalInfo, shardsInfo, elasticIndexer.TpsIndex)
-	if err != nil {
-		return err
-	}
-
-	return ei.elasticClient.DoBulkRequest(buff, elasticIndexer.TpsIndex)
 }
 
 // SaveValidatorsRating will save validators rating

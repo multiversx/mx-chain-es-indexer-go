@@ -14,9 +14,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/hashing"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
-	"github.com/ElrondNetwork/elrond-go/process"
-	"github.com/ElrondNetwork/elrond-go/sharding"
-	"github.com/ElrondNetwork/elrond-go/state"
 )
 
 // ArgElasticProcessorFactory is struct that is used to store all components that are needed to create an elastic processor factory
@@ -26,9 +23,9 @@ type ArgElasticProcessorFactory struct {
 	AddressPubkeyConverter   core.PubkeyConverter
 	ValidatorPubkeyConverter core.PubkeyConverter
 	DBClient                 processIndexer.DatabaseClientHandler
-	AccountsDB               state.AccountsAdapter
-	ShardCoordinator         sharding.Coordinator
-	TransactionFeeCalculator process.TransactionFeeCalculator
+	AccountsDB               indexer.AccountsAdapter
+	ShardCoordinator         indexer.Coordinator
+	TransactionFeeCalculator indexer.FeesProcessorHandler
 	EnabledIndexes           []string
 	TemplatesPath            string
 	Denomination             int

@@ -7,7 +7,6 @@ import (
 	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
-	dataProcess "github.com/ElrondNetwork/elrond-go/process"
 )
 
 // DBTransactionProcessorStub -
@@ -15,10 +14,6 @@ type DBTransactionProcessorStub struct {
 	PrepareTransactionsForDatabaseCalled func(body *block.Body, header nodeData.HeaderHandler, pool *indexer.Pool) *data.PreparedResults
 	SerializeReceiptsCalled              func(recs []*data.Receipt) ([]*bytes.Buffer, error)
 	SerializeScResultsCalled             func(scrs []*data.ScResult) ([]*bytes.Buffer, error)
-}
-
-// SetTxLogProcessor -
-func (tps *DBTransactionProcessorStub) SetTxLogProcessor(_ dataProcess.TransactionLogProcessorDatabase) {
 }
 
 // PrepareTransactionsForDatabase -

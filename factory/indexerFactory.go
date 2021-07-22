@@ -11,9 +11,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	"github.com/ElrondNetwork/elrond-go-core/hashing"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
-	"github.com/ElrondNetwork/elrond-go/process"
-	"github.com/ElrondNetwork/elrond-go/sharding"
-	"github.com/ElrondNetwork/elrond-go/state"
 	"github.com/elastic/go-elasticsearch/v7"
 )
 
@@ -31,19 +28,17 @@ type ArgsIndexerFactory struct {
 	Password                 string
 	TemplatesPath            string
 	EnabledIndexes           []string
-	ShardCoordinator         sharding.Coordinator
+	ShardCoordinator         indexer.Coordinator
 	Marshalizer              marshal.Marshalizer
 	Hasher                   hashing.Hasher
-	EpochStartNotifier       sharding.EpochStartEventNotifier
-	NodesCoordinator         sharding.NodesCoordinator
 	AddressPubkeyConverter   core.PubkeyConverter
 	ValidatorPubkeyConverter core.PubkeyConverter
-	AccountsDB               state.AccountsAdapter
-	TransactionFeeCalculator process.TransactionFeeCalculator
+	AccountsDB               indexer.AccountsAdapter
+	TransactionFeeCalculator indexer.FeesProcessorHandler
 }
 
 // NewIndexer will create a new instance of Indexer
-func NewIndexer(args *ArgsIndexerFactory) (process.Indexer, error) {
+func NewIndexer(args *ArgsIndexerFactory) (indexer.Indexer, error) {
 	err := checkDataIndexerParams(args)
 	if err != nil {
 		return nil, err
@@ -66,12 +61,10 @@ func NewIndexer(args *ArgsIndexerFactory) (process.Indexer, error) {
 	dispatcher.StartIndexData()
 
 	arguments := indexer.ArgDataIndexer{
-		Marshalizer:        args.Marshalizer,
-		NodesCoordinator:   args.NodesCoordinator,
-		EpochStartNotifier: args.EpochStartNotifier,
-		ShardCoordinator:   args.ShardCoordinator,
-		ElasticProcessor:   elasticProcessor,
-		DataDispatcher:     dispatcher,
+		Marshalizer:      args.Marshalizer,
+		ShardCoordinator: args.ShardCoordinator,
+		ElasticProcessor: elasticProcessor,
+		DataDispatcher:   dispatcher,
 	}
 
 	return indexer.NewDataIndexer(arguments)
@@ -126,12 +119,6 @@ func checkDataIndexerParams(arguments *ArgsIndexerFactory) error {
 	}
 	if check.IfNil(arguments.Hasher) {
 		return indexer.ErrNilHasher
-	}
-	if check.IfNil(arguments.NodesCoordinator) {
-		return indexer.ErrNilNodesCoordinator
-	}
-	if check.IfNil(arguments.EpochStartNotifier) {
-		return indexer.ErrNilEpochStartNotifier
 	}
 	if check.IfNil(arguments.TransactionFeeCalculator) {
 		return indexer.ErrNilTransactionFeeCalculator

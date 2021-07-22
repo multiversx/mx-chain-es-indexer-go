@@ -3,14 +3,13 @@ package transactions
 import (
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-vm-common/parsers"
 	"github.com/stretchr/testify/require"
 )
 
 func TestArgumentsParserExtended_Split(t *testing.T) {
 	t.Parallel()
 
-	argsParserEx := newArgumentsParser(parsers.NewCallArgsParser())
+	argsParserEx := newArgumentsParser()
 
 	data1 := []byte("@aa@aa")
 	res := argsParserEx.split(string(data1))
@@ -22,7 +21,7 @@ func TestArgumentsParserExtended_Split(t *testing.T) {
 func TestArgumentsParserExtended_HasOkPrefix(t *testing.T) {
 	t.Parallel()
 
-	argsParserEx := newArgumentsParser(parsers.NewCallArgsParser())
+	argsParserEx := newArgumentsParser()
 
 	require.True(t, argsParserEx.hasOKPrefix("@6f6b"))
 	require.False(t, argsParserEx.hasOKPrefix("@"))

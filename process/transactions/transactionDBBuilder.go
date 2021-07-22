@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
@@ -14,22 +15,20 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/data/rewardTx"
 	"github.com/ElrondNetwork/elrond-go-core/data/smartContractResult"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	"github.com/ElrondNetwork/elrond-go/process"
-	"github.com/ElrondNetwork/elrond-go/sharding"
 )
 
 const emptyString = ""
 
 type dbTransactionBuilder struct {
 	addressPubkeyConverter core.PubkeyConverter
-	shardCoordinator       sharding.Coordinator
-	txFeeCalculator        process.TransactionFeeCalculator
+	shardCoordinator       indexer.Coordinator
+	txFeeCalculator        indexer.FeesProcessorHandler
 }
 
 func newTransactionDBBuilder(
 	addressPubkeyConverter core.PubkeyConverter,
-	shardCoordinator sharding.Coordinator,
-	txFeeCalculator process.TransactionFeeCalculator,
+	shardCoordinator indexer.Coordinator,
+	txFeeCalculator indexer.FeesProcessorHandler,
 ) *dbTransactionBuilder {
 	return &dbTransactionBuilder{
 		addressPubkeyConverter: addressPubkeyConverter,

@@ -8,9 +8,10 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/hashing/keccak"
-	"github.com/ElrondNetwork/elrond-go/process/factory"
-	"github.com/ElrondNetwork/elrond-vm-common/parsers"
 )
+
+// ArwenVirtualMachine is a byte array identifier for the smart contract address created for Arwen VM
+var ArwenVirtualMachine = []byte{5, 0}
 
 const (
 	delegationManagerAddress = "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqylllslmq6y6"
@@ -33,13 +34,12 @@ type deployerDto struct {
 
 func newScDeploysProc(pubKeyConverter core.PubkeyConverter, selfShardID uint32) *scDeploysProc {
 	scDeployReceiver := make([]byte, 32)
-	argsParser := parsers.NewCallArgsParser()
 
 	return &scDeploysProc{
 		selfShardID:             selfShardID,
 		pubKeyConverter:         pubKeyConverter,
 		scDeployReceiverAddr:    pubKeyConverter.Encode(scDeployReceiver),
-		argumentsParserExtended: newArgumentsParser(argsParser),
+		argumentsParserExtended: newArgumentsParser(),
 	}
 }
 
@@ -137,7 +137,7 @@ func (sc *scDeploysProc) searchNormalDeploy(deployer *deployerDto, scrs []*data.
 			continue
 		}
 
-		scAddress, err := sc.computeContractAddress(deployer.sender, deployer.nonce, factory.ArwenVirtualMachine)
+		scAddress, err := sc.computeContractAddress(deployer.sender, deployer.nonce, ArwenVirtualMachine)
 		if err != nil {
 			continue
 		}

@@ -26,7 +26,6 @@ import (
 	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	"github.com/ElrondNetwork/elrond-go/testscommon"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"github.com/stretchr/testify/require"
 )
@@ -55,7 +54,7 @@ func createMockElasticProcessorArgs() *ArgElasticProcessor {
 	return &ArgElasticProcessor{
 		DBClient: &mock.DatabaseWriterStub{},
 		EnabledIndexes: map[string]struct{}{
-			elasticIndexer.BlockIndex: {}, elasticIndexer.TransactionsIndex: {}, elasticIndexer.MiniblocksIndex: {}, elasticIndexer.TpsIndex: {}, elasticIndexer.ValidatorsIndex: {}, elasticIndexer.RoundsIndex: {}, elasticIndexer.AccountsIndex: {}, elasticIndexer.RatingIndex: {}, elasticIndexer.AccountsHistoryIndex: {},
+			elasticIndexer.BlockIndex: {}, elasticIndexer.TransactionsIndex: {}, elasticIndexer.MiniblocksIndex: {}, elasticIndexer.ValidatorsIndex: {}, elasticIndexer.RoundsIndex: {}, elasticIndexer.AccountsIndex: {}, elasticIndexer.RatingIndex: {}, elasticIndexer.AccountsHistoryIndex: {},
 		},
 		ValidatorsProc:    vp,
 		StatisticsProc:    statistics.NewStatisticsProcessor(),
@@ -506,49 +505,6 @@ func TestElasticsearch_saveShardValidatorsPubKeys(t *testing.T) {
 	elasticDatabase := newElasticsearchProcessor(dbWriter, arguments)
 
 	err := elasticDatabase.SaveShardValidatorsPubKeys(shardID, epoch, valPubKeys)
-	require.Nil(t, err)
-}
-
-func TestElasticsearch_saveShardStatistics_reqError(t *testing.T) {
-	tpsBenchmark := &testscommon.TpsBenchmarkMock{}
-	metaBlock := &dataBlock.MetaBlock{
-		TxCount: 2, Nonce: 1,
-		ShardInfo: []dataBlock.ShardData{{HeaderHash: []byte("hash")}},
-	}
-	tpsBenchmark.UpdateWithShardStats(metaBlock)
-
-	localError := errors.New("local err")
-	arguments := createMockElasticProcessorArgs()
-	dbWriter := &mock.DatabaseWriterStub{
-		DoBulkRequestCalled: func(buff *bytes.Buffer, index string) error {
-			return localError
-		},
-	}
-
-	elasticDatabase := newElasticsearchProcessor(dbWriter, arguments)
-
-	err := elasticDatabase.SaveShardStatistics(tpsBenchmark)
-	require.Equal(t, localError, err)
-}
-
-func TestElasticsearch_saveShardStatistics(t *testing.T) {
-	tpsBenchmark := &testscommon.TpsBenchmarkMock{}
-	metaBlock := &dataBlock.MetaBlock{
-		TxCount: 2, Nonce: 1,
-		ShardInfo: []dataBlock.ShardData{{HeaderHash: []byte("hash")}},
-	}
-	tpsBenchmark.UpdateWithShardStats(metaBlock)
-
-	arguments := createMockElasticProcessorArgs()
-	dbWriter := &mock.DatabaseWriterStub{
-		DoBulkRequestCalled: func(buff *bytes.Buffer, index string) error {
-			require.Equal(t, elasticIndexer.TpsIndex, index)
-			return nil
-		},
-	}
-	elasticDatabase := newElasticsearchProcessor(dbWriter, arguments)
-
-	err := elasticDatabase.SaveShardStatistics(tpsBenchmark)
 	require.Nil(t, err)
 }
 

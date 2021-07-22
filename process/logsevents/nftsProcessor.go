@@ -4,25 +4,25 @@ import (
 	"math/big"
 	"time"
 
+	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
+	"github.com/ElrondNetwork/elrond-go-core/data/esdt"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
-	"github.com/ElrondNetwork/elrond-go/sharding"
-	"github.com/ElrondNetwork/elrond-vm-common/data/esdt"
 )
 
 type nftsProcessor struct {
 	pubKeyConverter          core.PubkeyConverter
 	nftOperationsIdentifiers map[string]struct{}
-	shardCoordinator         sharding.Coordinator
+	shardCoordinator         elasticIndexer.Coordinator
 	marshalizer              marshal.Marshalizer
 }
 
 func newNFTsProcessor(
-	shardCoordinator sharding.Coordinator,
+	shardCoordinator elasticIndexer.Coordinator,
 	pubKeyConverter core.PubkeyConverter,
 	marshalizer marshal.Marshalizer,
 ) *nftsProcessor {

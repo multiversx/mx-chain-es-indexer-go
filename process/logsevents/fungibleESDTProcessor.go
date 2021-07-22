@@ -1,10 +1,10 @@
 package logsevents
 
 import (
+	"github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
-	"github.com/ElrondNetwork/elrond-go/sharding"
 )
 
 const (
@@ -13,11 +13,11 @@ const (
 
 type fungibleESDTProcessor struct {
 	pubKeyConverter               core.PubkeyConverter
-	shardCoordinator              sharding.Coordinator
+	shardCoordinator              indexer.Coordinator
 	fungibleOperationsIdentifiers map[string]struct{}
 }
 
-func newFungibleESDTProcessor(pubKeyConverter core.PubkeyConverter, shardCoordinator sharding.Coordinator) *fungibleESDTProcessor {
+func newFungibleESDTProcessor(pubKeyConverter core.PubkeyConverter, shardCoordinator indexer.Coordinator) *fungibleESDTProcessor {
 	return &fungibleESDTProcessor{
 		pubKeyConverter:  pubKeyConverter,
 		shardCoordinator: shardCoordinator,

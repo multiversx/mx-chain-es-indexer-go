@@ -9,8 +9,6 @@ const (
 	MiniblocksIndex = "miniblocks"
 	// TransactionsIndex is the Elasticsearch index for the transactions
 	TransactionsIndex = "transactions"
-	// TpsIndex is the Elasticsearch index for the statistics
-	TpsIndex = "tps"
 	// ValidatorsIndex is the Elasticsearch index for the validators information
 	ValidatorsIndex = "validators"
 	// RoundsIndex is the Elasticsearch index for the rounds information

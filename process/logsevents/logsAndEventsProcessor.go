@@ -11,7 +11,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
-	"github.com/ElrondNetwork/elrond-go/sharding"
 )
 
 type logsAndEventsProcessor struct {
@@ -21,7 +20,7 @@ type logsAndEventsProcessor struct {
 
 // NewLogsAndEventsProcessor will create a new instance for the logsAndEventsProcessor
 func NewLogsAndEventsProcessor(
-	shardCoordinator sharding.Coordinator,
+	shardCoordinator elasticIndexer.Coordinator,
 	pubKeyConverter core.PubkeyConverter,
 	marshalizer marshal.Marshalizer,
 ) (*logsAndEventsProcessor, error) {

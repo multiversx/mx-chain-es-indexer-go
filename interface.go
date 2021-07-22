@@ -8,8 +8,7 @@ import (
 	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
-	"github.com/ElrondNetwork/elrond-go/common/statistics"
-	"github.com/ElrondNetwork/elrond-go/process"
+	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
 
 // DispatcherHandler defines the interface for the dispatcher that will manage when items are saved in elasticsearch database
@@ -22,7 +21,6 @@ type DispatcherHandler interface {
 
 // ElasticProcessor defines the interface for the elastic search indexer
 type ElasticProcessor interface {
-	SaveShardStatistics(tpsBenchmark statistics.TPSBenchmark) error
 	SaveHeader(header nodeData.HeaderHandler, signersIndexes []uint64, body *block.Body, notarizedHeadersHashes []string, txsSize int) error
 	RemoveHeader(header nodeData.HeaderHandler) error
 	RemoveMiniblocks(header nodeData.HeaderHandler, body *block.Body) error
@@ -38,7 +36,34 @@ type ElasticProcessor interface {
 
 // FeesProcessorHandler defines the interface for the transaction fees processor
 type FeesProcessorHandler interface {
-	ComputeGasUsedAndFeeBasedOnRefundValue(tx process.TransactionWithFeeHandler, refundValueStr string) (uint64, *big.Int)
-	ComputeTxFeeBasedOnGasUsed(tx process.TransactionWithFeeHandler, gasUsed uint64) *big.Int
-	ComputeMoveBalanceGasUsed(tx process.TransactionWithFeeHandler) uint64
+	ComputeGasUsedAndFeeBasedOnRefundValue(tx nodeData.TransactionWithFeeHandler, refundValue *big.Int) (uint64, *big.Int)
+	ComputeTxFeeBasedOnGasUsed(tx nodeData.TransactionWithFeeHandler, gasUsed uint64) *big.Int
+	ComputeGasLimit(tx nodeData.TransactionWithFeeHandler) uint64
+	IsInterfaceNil() bool
+}
+
+// Coordinator defines what a shard state coordinator should hold
+type Coordinator interface {
+	ComputeId(address []byte) uint32
+	SelfId() uint32
+	IsInterfaceNil() bool
+}
+
+// Indexer is an interface for saving node specific data to other storage.
+// This could be an elastic search index, a MySql database or any other external services.
+type Indexer interface {
+	SaveBlock(args *indexer.ArgsSaveBlockData)
+	RevertIndexedBlock(header nodeData.HeaderHandler, body nodeData.BodyHandler)
+	SaveRoundsInfo(roundsInfos []*indexer.RoundInfo)
+	SaveValidatorsPubKeys(validatorsPubKeys map[uint32][][]byte, epoch uint32)
+	SaveValidatorsRating(indexID string, infoRating []*indexer.ValidatorRatingInfo)
+	SaveAccounts(blockTimestamp uint64, acc []nodeData.UserAccountHandler)
+	Close() error
+	IsInterfaceNil() bool
+	IsNilIndexer() bool
+}
+
+type AccountsAdapter interface {
+	LoadAccount(address []byte) (vmcommon.AccountHandler, error)
+	IsInterfaceNil() bool
 }
