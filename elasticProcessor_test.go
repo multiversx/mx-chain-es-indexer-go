@@ -14,15 +14,13 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elrond-go-core/core"
-	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 	"github.com/ElrondNetwork/elrond-go-core/data/receipt"
 	"github.com/ElrondNetwork/elrond-go-core/data/rewardTx"
 	"github.com/ElrondNetwork/elrond-go-core/data/smartContractResult"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	nodeTestsCommon "github.com/ElrondNetwork/elrond-go/testscommon"
-	"github.com/ElrondNetwork/elrond-go/testscommon/economicsmocks"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"github.com/stretchr/testify/assert"
@@ -61,14 +59,14 @@ func createMockElasticProcessorArgs() ArgElasticProcessor {
 		EnabledIndexes: map[string]struct{}{
 			blockIndex: {}, txIndex: {}, miniblocksIndex: {}, validatorsIndex: {}, roundIndex: {}, accountsIndex: {}, ratingIndex: {}, accountsHistoryIndex: {},
 		},
-		AccountsDB:               &nodeTestsCommon.AccountsStub{},
-		TransactionFeeCalculator: &economicsmocks.EconomicsHandlerStub{},
+		AccountsDB:               &mock.AccountsStub{},
+		TransactionFeeCalculator: &mock.EconomicsHandlerStub{},
 		ShardCoordinator:         &mock.ShardCoordinatorMock{},
 	}
 }
 
-func newTestTxPool() map[string]nodeData.TransactionHandler {
-	txPool := map[string]nodeData.TransactionHandler{
+func newTestTxPool() map[string]coreData.TransactionHandler {
+	txPool := map[string]coreData.TransactionHandler{
 		"tx1": &transaction.Transaction{
 			Nonce:     uint64(1),
 			Value:     big.NewInt(1),
@@ -429,9 +427,9 @@ func TestUpdateMiniBlock(t *testing.T) {
 		EnabledIndexes: map[string]struct{}{
 			"miniblocks": {},
 		},
-		AccountsDB:               &nodeTestsCommon.AccountsStub{},
+		AccountsDB:               &mock.AccountsStub{},
 		ShardCoordinator:         &mock.ShardCoordinatorMock{},
-		TransactionFeeCalculator: &economicsmocks.EconomicsHandlerStub{},
+		TransactionFeeCalculator: &mock.EconomicsHandlerStub{},
 	}
 
 	esDatabase, err := NewElasticProcessor(args)
@@ -505,9 +503,9 @@ func TestUpdateTransaction(t *testing.T) {
 		ShardCoordinator:         &mock.ShardCoordinatorMock{},
 		IsInImportDBMode:         false,
 		AddressPubkeyConverter:   mock.NewPubkeyConverterMock(32),
-		AccountsDB:               &nodeTestsCommon.AccountsStub{},
+		AccountsDB:               &mock.AccountsStub{},
 		ValidatorPubkeyConverter: mock.NewPubkeyConverterMock(96),
-		TransactionFeeCalculator: &economicsmocks.EconomicsHandlerStub{},
+		TransactionFeeCalculator: &mock.EconomicsHandlerStub{},
 		EnabledIndexes: map[string]struct{}{
 			"transactions": {},
 		},
@@ -585,7 +583,7 @@ func TestUpdateTransaction(t *testing.T) {
 		},
 	}
 	header := &dataBlock.Header{}
-	txPool := map[string]nodeData.TransactionHandler{
+	txPool := map[string]coreData.TransactionHandler{
 		string(txHash1):  tx1,
 		string(txHash2):  tx2,
 		string(txHash3):  tx3,
@@ -601,7 +599,7 @@ func TestUpdateTransaction(t *testing.T) {
 	fmt.Println(hex.EncodeToString(txHash1))
 
 	header.TimeStamp = 1234
-	txPool = map[string]nodeData.TransactionHandler{
+	txPool = map[string]coreData.TransactionHandler{
 		string(txHash1): tx1,
 		string(txHash2): tx2,
 		string(scHash1): scResult1,
@@ -676,7 +674,7 @@ func TestIndexTransactionDestinationBeforeSourceShard(t *testing.T) {
 	}
 
 	header := &dataBlock.Header{}
-	txPool := map[string]nodeData.TransactionHandler{
+	txPool := map[string]coreData.TransactionHandler{
 		string(txHash1): tx1,
 		string(txHash2): tx2,
 	}
@@ -693,7 +691,7 @@ func TestIndexTransactionDestinationBeforeSourceShard(t *testing.T) {
 	isMBSInDB, _ := esDatabase.SaveMiniblocks(header, body)
 	_ = esDatabase.SaveTransactions(body, header, &indexer.Pool{Txs: txPool}, isMBSInDB)
 
-	txPool = map[string]nodeData.TransactionHandler{
+	txPool = map[string]coreData.TransactionHandler{
 		string(txHash1): tx1,
 		string(txHash2): tx2,
 	}
@@ -729,7 +727,7 @@ func TestDoBulkRequestLimit(t *testing.T) {
 		txs, hashes := generateTransactions(numTransactions, dataSize)
 
 		header := &dataBlock.Header{}
-		txsPool := make(map[string]nodeData.TransactionHandler)
+		txsPool := make(map[string]coreData.TransactionHandler)
 		for j := 0; j < numTransactions; j++ {
 			txsPool[hashes[j]] = &txs[j]
 		}

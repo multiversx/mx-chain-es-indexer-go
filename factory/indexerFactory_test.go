@@ -9,8 +9,6 @@ import (
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elrond-go-core/core"
-	"github.com/ElrondNetwork/elrond-go/testscommon"
-	"github.com/ElrondNetwork/elrond-go/testscommon/economicsmocks"
 	"github.com/stretchr/testify/require"
 )
 
@@ -28,8 +26,8 @@ func createMockIndexerFactoryArgs() *ArgsIndexerFactory {
 		AddressPubkeyConverter:   &mock.PubkeyConverterMock{},
 		ValidatorPubkeyConverter: &mock.PubkeyConverterMock{},
 		EnabledIndexes:           []string{"blocks", "transactions", "miniblocks", "tps", "validators", "round", "accounts", "rating"},
-		AccountsDB:               &testscommon.AccountsStub{},
-		TransactionFeeCalculator: &economicsmocks.EconomicsHandlerStub{},
+		AccountsDB:               &mock.AccountsStub{},
+		TransactionFeeCalculator: &mock.EconomicsHandlerStub{},
 		ShardCoordinator:         &mock.ShardCoordinatorMock{},
 		IsInImportDBMode:         false,
 	}

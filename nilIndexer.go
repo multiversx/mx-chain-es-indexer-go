@@ -3,8 +3,6 @@ package indexer
 import (
 	"github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
-	"github.com/ElrondNetwork/elrond-go/process"
-	"github.com/ElrondNetwork/elrond-go/state"
 )
 
 // NilIndexer will be used when an Indexer is required, but another one isn't necessary or available
@@ -24,10 +22,6 @@ func (ni *NilIndexer) SaveBlock(_ *indexer.ArgsSaveBlockData) {
 func (ni *NilIndexer) RevertIndexedBlock(_ data.HeaderHandler, _ data.BodyHandler) {
 }
 
-// SetTxLogsProcessor will do nothing
-func (ni *NilIndexer) SetTxLogsProcessor(_ process.TransactionLogProcessorDatabase) {
-}
-
 // SaveRoundsInfo will do nothing
 func (ni *NilIndexer) SaveRoundsInfo(_ []*indexer.RoundInfo) {
 }
@@ -41,7 +35,7 @@ func (ni *NilIndexer) SaveValidatorsPubKeys(_ map[uint32][][]byte, _ uint32) {
 }
 
 // SaveAccounts won't do anything as this is a nil implementation
-func (ni *NilIndexer) SaveAccounts(_ uint64, _ []state.UserAccountHandler) {
+func (ni *NilIndexer) SaveAccounts(_ uint64, _ []data.UserAccountHandler) {
 }
 
 // Close will do nothing

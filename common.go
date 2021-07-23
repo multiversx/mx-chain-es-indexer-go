@@ -14,22 +14,20 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/templates/noKibana"
 	"github.com/ElrondNetwork/elastic-indexer-go/templates/withKibana"
 	"github.com/ElrondNetwork/elrond-go-core/core"
-	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/rewardTx"
 	"github.com/ElrondNetwork/elrond-go-core/data/smartContractResult"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	"github.com/ElrondNetwork/elrond-go/process"
-	"github.com/ElrondNetwork/elrond-go/sharding"
 )
 
 type objectsMap = map[string]interface{}
 
 type commonProcessor struct {
-	shardCoordinator         sharding.Coordinator
+	shardCoordinator         Coordinator
 	addressPubkeyConverter   core.PubkeyConverter
 	validatorPubkeyConverter core.PubkeyConverter
-	txFeeCalculator          process.TransactionFeeCalculator
+	txFeeCalculator          FeesProcessorHandler
 }
 
 func (cm *commonProcessor) buildTransaction(
@@ -37,7 +35,7 @@ func (cm *commonProcessor) buildTransaction(
 	txHash []byte,
 	mbHash []byte,
 	mb *block.MiniBlock,
-	header nodeData.HeaderHandler,
+	header coreData.HeaderHandler,
 	txStatus string,
 ) *data.Transaction {
 	gasUsed := cm.txFeeCalculator.ComputeGasLimit(tx)
@@ -72,7 +70,7 @@ func (cm *commonProcessor) buildRewardTransaction(
 	txHash []byte,
 	mbHash []byte,
 	mb *block.MiniBlock,
-	header nodeData.HeaderHandler,
+	header coreData.HeaderHandler,
 	txStatus string,
 ) *data.Transaction {
 	return &data.Transaction{

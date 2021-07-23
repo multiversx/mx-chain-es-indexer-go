@@ -12,11 +12,9 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
-	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
-	"github.com/ElrondNetwork/elrond-go/process"
-	"github.com/ElrondNetwork/elrond-go/state"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
 
@@ -28,7 +26,7 @@ type elasticProcessor struct {
 	elasticClient          DatabaseClientHandler
 	parser                 *dataParser
 	enabledIndexes         map[string]struct{}
-	accountsDB             state.AccountsAdapter
+	accountsDB             AccountsAdapter
 	dividerForDenomination float64
 	balancePrecision       float64
 }
@@ -256,7 +254,7 @@ func getTemplateByName(templateName string, templateList map[string]*bytes.Buffe
 
 // SaveHeader will prepare and save information about a header in elasticsearch server
 func (ei *elasticProcessor) SaveHeader(
-	header nodeData.HeaderHandler,
+	header coreData.HeaderHandler,
 	signersIndexes []uint64,
 	body *block.Body,
 	notarizedHeadersHashes []string,
@@ -290,7 +288,7 @@ func (ei *elasticProcessor) SaveHeader(
 }
 
 // RemoveHeader will remove a block from elasticsearch server
-func (ei *elasticProcessor) RemoveHeader(header nodeData.HeaderHandler) error {
+func (ei *elasticProcessor) RemoveHeader(header coreData.HeaderHandler) error {
 	headerHash, err := core.CalculateHash(ei.marshalizer, ei.hasher, header)
 	if err != nil {
 		return err
@@ -300,7 +298,7 @@ func (ei *elasticProcessor) RemoveHeader(header nodeData.HeaderHandler) error {
 }
 
 // RemoveMiniblocks will remove all miniblocks that are in header from elasticsearch server
-func (ei *elasticProcessor) RemoveMiniblocks(header nodeData.HeaderHandler, body *block.Body) error {
+func (ei *elasticProcessor) RemoveMiniblocks(header coreData.HeaderHandler, body *block.Body) error {
 	if body == nil || len(header.GetMiniBlockHeadersHashes()) == 0 {
 		return nil
 	}
@@ -332,18 +330,13 @@ func (ei *elasticProcessor) RemoveMiniblocks(header nodeData.HeaderHandler, body
 }
 
 // RemoveTransactions will remove transactions that are in miniblock from the elasticsearch server
-func (ei *elasticProcessor) RemoveTransactions(header nodeData.HeaderHandler, body *block.Body) error {
+func (ei *elasticProcessor) RemoveTransactions(header coreData.HeaderHandler, body *block.Body) error {
 	// TODO next PR will come with the implementation of this method
 	return nil
 }
 
-// SetTxLogsProcessor will set tx logs processor
-func (ei *elasticProcessor) SetTxLogsProcessor(txLogsProc process.TransactionLogProcessorDatabase) {
-	ei.txLogsProcessor = txLogsProc
-}
-
 // SaveMiniblocks will prepare and save information about miniblocks in elasticsearch server
-func (ei *elasticProcessor) SaveMiniblocks(header nodeData.HeaderHandler, body *block.Body) (map[string]bool, error) {
+func (ei *elasticProcessor) SaveMiniblocks(header coreData.HeaderHandler, body *block.Body) (map[string]bool, error) {
 	if !ei.isIndexEnabled(miniblocksIndex) {
 		return map[string]bool{}, nil
 	}
@@ -360,7 +353,7 @@ func (ei *elasticProcessor) SaveMiniblocks(header nodeData.HeaderHandler, body *
 // SaveTransactions will prepare and save information about a transactions in elasticsearch server
 func (ei *elasticProcessor) SaveTransactions(
 	body *block.Body,
-	header nodeData.HeaderHandler,
+	header coreData.HeaderHandler,
 	pool *indexer.Pool,
 	mbsInDb map[string]bool,
 ) error {
@@ -368,7 +361,7 @@ func (ei *elasticProcessor) SaveTransactions(
 		return nil
 	}
 
-	sliceMaps := []map[string]nodeData.TransactionHandler{
+	sliceMaps := []map[string]coreData.TransactionHandler{
 		pool.Txs, pool.Scrs, pool.Receipts, pool.Invalid, pool.Rewards,
 	}
 	allTxs := mergeSliceOfMaps(sliceMaps)
@@ -392,8 +385,8 @@ func (ei *elasticProcessor) SaveTransactions(
 	return ei.indexAlteredAccounts(header.GetTimeStamp(), alteredAccounts)
 }
 
-func mergeSliceOfMaps(sliceMaps []map[string]nodeData.TransactionHandler) map[string]nodeData.TransactionHandler {
-	allTxs := make(map[string]nodeData.TransactionHandler)
+func mergeSliceOfMaps(sliceMaps []map[string]coreData.TransactionHandler) map[string]coreData.TransactionHandler {
+	allTxs := make(map[string]coreData.TransactionHandler)
 
 	for _, txsMap := range sliceMaps {
 		for hash, tx := range txsMap {
@@ -505,7 +498,7 @@ func (ei *elasticProcessor) indexAlteredAccounts(blockTimestamp uint64, accounts
 		return nil
 	}
 
-	accountsToIndex := make([]state.UserAccountHandler, 0)
+	accountsToIndex := make([]coreData.UserAccountHandler, 0)
 	for address := range accounts {
 		addressBytes, err := ei.addressPubkeyConverter.Decode(address)
 		if err != nil {
@@ -523,7 +516,7 @@ func (ei *elasticProcessor) indexAlteredAccounts(blockTimestamp uint64, accounts
 			continue
 		}
 
-		userAccount, ok := account.(state.UserAccountHandler)
+		userAccount, ok := account.(coreData.UserAccountHandler)
 		if !ok {
 			log.Warn("cannot cast AccountHandler to type UserAccountHandler")
 			continue

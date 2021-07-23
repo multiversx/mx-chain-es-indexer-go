@@ -5,11 +5,9 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
-	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
-	"github.com/ElrondNetwork/elrond-go/process"
-	"github.com/ElrondNetwork/elrond-go/state"
 )
 
 type dataIndexer struct {
@@ -69,7 +67,7 @@ func (di *dataIndexer) Close() error {
 }
 
 // RevertIndexedBlock will remove from database block and miniblocks
-func (di *dataIndexer) RevertIndexedBlock(header nodeData.HeaderHandler, body nodeData.BodyHandler) {
+func (di *dataIndexer) RevertIndexedBlock(header coreData.HeaderHandler, body coreData.BodyHandler) {
 	wi := workItems.NewItemRemoveBlock(
 		di.elasticProcessor,
 		body,
@@ -124,14 +122,9 @@ func (di *dataIndexer) SaveValidatorsPubKeys(validatorsPubKeys map[uint32][][]by
 }
 
 // SaveAccounts will save the provided accounts
-func (di *dataIndexer) SaveAccounts(timestamp uint64, accounts []state.UserAccountHandler) {
+func (di *dataIndexer) SaveAccounts(timestamp uint64, accounts []coreData.UserAccountHandler) {
 	wi := workItems.NewItemAccounts(di.elasticProcessor, timestamp, accounts)
 	di.dispatcher.Add(wi)
-}
-
-// SetTxLogsProcessor will set tx logs processor
-func (di *dataIndexer) SetTxLogsProcessor(txLogsProc process.TransactionLogProcessorDatabase) {
-	di.elasticProcessor.SetTxLogsProcessor(txLogsProc)
 }
 
 // IsNilIndexer will return a bool value that signals if the indexer's implementation is a NilIndexer

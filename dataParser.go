@@ -9,7 +9,7 @@ import (
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go-core/core"
-	nodeData "github.com/ElrondNetwork/elrond-go-core/data"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/hashing"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
@@ -21,7 +21,7 @@ type dataParser struct {
 }
 
 func (dp *dataParser) getSerializedElasticBlockAndHeaderHash(
-	header nodeData.HeaderHandler,
+	header coreData.HeaderHandler,
 	signersIndexes []uint64,
 	body *block.Body,
 	notarizedHeadersHashes []string,
@@ -85,7 +85,7 @@ func (dp *dataParser) getSerializedElasticBlockAndHeaderHash(
 	return serializedBlock, headerHash, nil
 }
 
-func (dp *dataParser) getMiniblocks(header nodeData.HeaderHandler, body *block.Body) []*data.Miniblock {
+func (dp *dataParser) getMiniblocks(header coreData.HeaderHandler, body *block.Body) []*data.Miniblock {
 	headerHash, err := core.CalculateHash(dp.marshalizer, dp.hasher, header)
 	if err != nil {
 		log.Warn("indexer: could not calculate header hash", "error", err.Error())
@@ -145,7 +145,7 @@ func serializeRoundInfo(info data.RoundInfo) ([]byte, []byte) {
 	return serializedInfo, meta
 }
 
-func computeBlockSearchOrder(header nodeData.HeaderHandler) uint64 {
+func computeBlockSearchOrder(header coreData.HeaderHandler) uint64 {
 	shardIdentifier := createShardIdentifier(header.GetShardID())
 	stringOrder := fmt.Sprintf("1%02d%d", shardIdentifier, header.GetNonce())
 
