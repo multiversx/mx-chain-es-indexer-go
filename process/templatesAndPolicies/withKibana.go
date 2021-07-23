@@ -29,7 +29,6 @@ func getTemplatesKibana() map[string]*bytes.Buffer {
 	indexTemplates[indexer.TransactionsIndex] = withKibana.Transactions.ToBuffer()
 	indexTemplates[indexer.BlockIndex] = withKibana.Blocks.ToBuffer()
 	indexTemplates[indexer.MiniblocksIndex] = withKibana.Miniblocks.ToBuffer()
-	indexTemplates[indexer.TpsIndex] = withKibana.TPS.ToBuffer()
 	indexTemplates[indexer.RatingIndex] = withKibana.Rating.ToBuffer()
 	indexTemplates[indexer.RoundsIndex] = withKibana.Rounds.ToBuffer()
 	indexTemplates[indexer.ValidatorsIndex] = withKibana.Validators.ToBuffer()

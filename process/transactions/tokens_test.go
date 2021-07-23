@@ -7,9 +7,8 @@ import (
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
-	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/vm"
-	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/data/vm"
 	"github.com/stretchr/testify/require"
 )
 
@@ -18,7 +17,7 @@ func TestNewTokensProcessor_SearchIssueFungibleESDTTransactions(t *testing.T) {
 
 	pubKeyConverter := &mock.PubkeyConverterMock{}
 
-	esdtSCAddr := pubKeyConverter.Encode(vm.ESDTSCAddress)
+	esdtSCAddr := pubKeyConverter.Encode(core.ESDTSCAddress)
 
 	sender := "erd1yp046t9pc009mkaxyws5dm434ydut348va5ypjd3ng57euy3yjkqcnrfh3"
 	txs := []*data.Transaction{
@@ -61,7 +60,7 @@ func TestNewTokensProcessor_SearchIssueSemiFungibleESDTTransactions(t *testing.T
 
 	pubKeyConverter := &mock.PubkeyConverterMock{}
 
-	esdtSCAddr := pubKeyConverter.Encode(vm.ESDTSCAddress)
+	esdtSCAddr := pubKeyConverter.Encode(core.ESDTSCAddress)
 
 	sender := "erd1yp046t9pc009mkaxyws5dm434ydut348va5ypjd3ng57euy3yjkqcnrfh3"
 	txs := []*data.Transaction{
@@ -98,7 +97,7 @@ func TestNewTokensProcessor_SearchIssueNonFungibleESDTTransactions(t *testing.T)
 
 	pubKeyConverter := &mock.PubkeyConverterMock{}
 
-	esdtSCAddr := pubKeyConverter.Encode(vm.ESDTSCAddress)
+	esdtSCAddr := pubKeyConverter.Encode(core.ESDTSCAddress)
 
 	sender := "erd1yp046t9pc009mkaxyws5dm434ydut348va5ypjd3ng57euy3yjkqcnrfh3"
 	txs := []*data.Transaction{
@@ -135,7 +134,7 @@ func TestNewTokensProcessor_SearchIssueFungibleESDTSCResults(t *testing.T) {
 
 	pubKeyConverter := &mock.PubkeyConverterMock{}
 
-	esdtSCAddr := pubKeyConverter.Encode(vm.ESDTSCAddress)
+	esdtSCAddr := pubKeyConverter.Encode(core.ESDTSCAddress)
 
 	sender := "erd1yp046t9pc009mkaxyws5dm434ydut348va5ypjd3ng57euy3yjkqcnrfh3"
 	scrs := []*data.ScResult{
@@ -150,7 +149,7 @@ func TestNewTokensProcessor_SearchIssueFungibleESDTSCResults(t *testing.T) {
 			Sender:   esdtSCAddr,
 			Receiver: sender,
 			Data:     []byte("ESDTTransfer@5553442d326665643930@0ba43b7400"),
-			CallType: fmt.Sprintf("%d", vmcommon.AsynchronousCallBack),
+			CallType: fmt.Sprintf("%d", vm.AsynchronousCallBack),
 		},
 	}
 
@@ -171,7 +170,7 @@ func TestNewTokensProcessor_SearchIssueSemiFungibleESDTScResults(t *testing.T) {
 
 	pubKeyConverter := &mock.PubkeyConverterMock{}
 
-	esdtSCAddr := pubKeyConverter.Encode(vm.ESDTSCAddress)
+	esdtSCAddr := pubKeyConverter.Encode(core.ESDTSCAddress)
 
 	sender := "erd1yp046t9pc009mkaxyws5dm434ydut348va5ypjd3ng57euy3yjkqcnrfh3"
 	scrs := []*data.ScResult{

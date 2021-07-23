@@ -8,15 +8,15 @@ import (
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
-	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/core/pubkeyConverter"
-	nodeData "github.com/ElrondNetwork/elrond-go/data"
-	"github.com/ElrondNetwork/elrond-go/data/block"
-	"github.com/ElrondNetwork/elrond-go/data/indexer"
-	"github.com/ElrondNetwork/elrond-go/data/receipt"
-	"github.com/ElrondNetwork/elrond-go/data/rewardTx"
-	"github.com/ElrondNetwork/elrond-go/data/smartContractResult"
-	"github.com/ElrondNetwork/elrond-go/data/transaction"
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
+	"github.com/ElrondNetwork/elrond-go-core/data/block"
+	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/receipt"
+	"github.com/ElrondNetwork/elrond-go-core/data/rewardTx"
+	"github.com/ElrondNetwork/elrond-go-core/data/smartContractResult"
+	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -176,25 +176,25 @@ func TestPrepareTransactionsForDatabase(t *testing.T) {
 	header := &block.Header{}
 
 	pool := &indexer.Pool{
-		Txs: map[string]nodeData.TransactionHandler{
+		Txs: map[string]coreData.TransactionHandler{
 			string(txHash1): tx1,
 			string(txHash2): tx2,
 			string(txHash3): tx3,
 			string(txHash4): tx4,
 		},
-		Scrs: map[string]nodeData.TransactionHandler{
+		Scrs: map[string]coreData.TransactionHandler{
 			string(scHash1): scResult1,
 			string(scHash2): scResult2,
 			string(scHash3): scResult3,
 		},
-		Rewards: map[string]nodeData.TransactionHandler{
+		Rewards: map[string]coreData.TransactionHandler{
 			string(rTx1Hash): rTx1,
 			string(rTx2Hash): rTx2,
 		},
-		Invalid: map[string]nodeData.TransactionHandler{
+		Invalid: map[string]coreData.TransactionHandler{
 			string(txHash5): tx5,
 		},
-		Receipts: map[string]nodeData.TransactionHandler{
+		Receipts: map[string]coreData.TransactionHandler{
 			string(recHash1): rec1,
 			string(recHash2): rec2,
 		},
@@ -251,10 +251,10 @@ func TestRelayedTransactions(t *testing.T) {
 	header := &block.Header{}
 
 	pool := &indexer.Pool{
-		Txs: map[string]nodeData.TransactionHandler{
+		Txs: map[string]coreData.TransactionHandler{
 			string(txHash1): tx1,
 		},
-		Scrs: map[string]nodeData.TransactionHandler{
+		Scrs: map[string]coreData.TransactionHandler{
 			string(scHash1): scResult1,
 			string(scHash2): scResult2,
 			string(scHash3): scResult3,
@@ -393,15 +393,15 @@ func TestAlteredAddresses(t *testing.T) {
 	hdr := &block.Header{}
 
 	pool := &indexer.Pool{
-		Txs: map[string]nodeData.TransactionHandler{
+		Txs: map[string]coreData.TransactionHandler{
 			string(tx1Hash): tx1,
 			string(tx2Hash): tx2,
 		},
-		Scrs: map[string]nodeData.TransactionHandler{
+		Scrs: map[string]coreData.TransactionHandler{
 			string(scr1Hash): scr1,
 			string(scr2Hash): scr2,
 		},
-		Rewards: map[string]nodeData.TransactionHandler{
+		Rewards: map[string]coreData.TransactionHandler{
 			string(rwdTx1Hash): rwdTx1,
 			string(rwdTx2Hash): rwdTx2,
 		},
@@ -496,10 +496,10 @@ func TestCheckGasUsedInvalidTransaction(t *testing.T) {
 	header := &block.Header{}
 
 	pool := &indexer.Pool{
-		Invalid: map[string]nodeData.TransactionHandler{
+		Invalid: map[string]coreData.TransactionHandler{
 			string(txHash1): tx1,
 		},
-		Receipts: map[string]nodeData.TransactionHandler{
+		Receipts: map[string]coreData.TransactionHandler{
 			string(recHash1): rec1,
 		},
 	}
@@ -541,10 +541,10 @@ func TestCheckGasUsedRelayedTransaction(t *testing.T) {
 	header := &block.Header{}
 
 	pool := &indexer.Pool{
-		Txs: map[string]nodeData.TransactionHandler{
+		Txs: map[string]coreData.TransactionHandler{
 			string(txHash1): tx1,
 		},
-		Scrs: map[string]nodeData.TransactionHandler{
+		Scrs: map[string]coreData.TransactionHandler{
 			string(scResHash1): scRes1,
 		},
 	}
@@ -630,10 +630,10 @@ func TestTxsDatabaseProcessor_PrepareTransactionsForDatabaseInvalidTxWithSCR(t *
 	header := &block.Header{}
 
 	pool := &indexer.Pool{
-		Invalid: map[string]nodeData.TransactionHandler{
+		Invalid: map[string]coreData.TransactionHandler{
 			string(txHash1): tx1,
 		},
-		Scrs: map[string]nodeData.TransactionHandler{
+		Scrs: map[string]coreData.TransactionHandler{
 			string(scResHash1): scRes1,
 		},
 	}
@@ -681,10 +681,10 @@ func TestTxsDatabaseProcessor_PrepareTransactionsForDatabaseESDTNFTTransfer(t *t
 	header := &block.Header{}
 
 	pool := &indexer.Pool{
-		Txs: map[string]nodeData.TransactionHandler{
+		Txs: map[string]coreData.TransactionHandler{
 			string(txHash1): tx1,
 		},
-		Scrs: map[string]nodeData.TransactionHandler{
+		Scrs: map[string]coreData.TransactionHandler{
 			string(scResHash1): scRes1,
 		},
 	}
@@ -704,7 +704,7 @@ func TestTxsDatabaseProcessor_IssueESDTTx(t *testing.T) {
 	t.Parallel()
 
 	args := createMockArgsTxsDBProc()
-	pubKeyConv, _ := pubkeyConverter.NewBech32PubkeyConverter(32)
+	pubKeyConv, _ := pubkeyConverter.NewBech32PubkeyConverter(32, log)
 	args.AddressPubkeyConverter = pubKeyConv
 	args.ShardCoordinator = &mock.ShardCoordinatorMock{SelfID: core.MetachainShardId}
 	txDbProc, _ := NewTransactionsProcessor(args)
@@ -731,14 +731,14 @@ func TestTxsDatabaseProcessor_IssueESDTTx(t *testing.T) {
 	}
 	header := &block.Header{}
 	pool := &indexer.Pool{
-		Txs: map[string]nodeData.TransactionHandler{
+		Txs: map[string]coreData.TransactionHandler{
 			"t1": &transaction.Transaction{
 				SndAddr: decodeBech32("erd1dglncxk6sl9a3xumj78n6z2xux4ghp5c92cstv5zsn56tjgtdwpsk46qrs"),
 				RcvAddr: decodeBech32("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u"),
 				Data:    []byte("issue@4141414141@41414141414141@0186a0@01@63616e467265657a65@74727565@63616e57697065@74727565@63616e5061757365@74727565@63616e4d696e74@74727565@63616e4275726e@74727565@63616e4368616e67654f776e6572@74727565@63616e55706772616465@74727565"),
 			},
 		},
-		Scrs: map[string]nodeData.TransactionHandler{
+		Scrs: map[string]coreData.TransactionHandler{
 			"scr1": &smartContractResult.SmartContractResult{
 				OriginalTxHash: []byte("t1"),
 				Data:           []byte("ESDTTransfer@414141414141412d323436626461@0186a0"),
@@ -763,14 +763,14 @@ func TestTxsDatabaseProcessor_IssueESDTTx(t *testing.T) {
 
 	// transaction fail
 	pool = &indexer.Pool{
-		Txs: map[string]nodeData.TransactionHandler{
+		Txs: map[string]coreData.TransactionHandler{
 			"t1": &transaction.Transaction{
 				SndAddr: decodeBech32("erd1dglncxk6sl9a3xumj78n6z2xux4ghp5c92cstv5zsn56tjgtdwpsk46qrs"),
 				RcvAddr: decodeBech32("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u"),
 				Data:    []byte("issue@4141414141@41414141414141@0186a0@01@63616e467265657a65@74727565@63616e57697065@74727565@63616e5061757365@74727565@63616e4d696e74@74727565@63616e4275726e@74727565@63616e4368616e67654f776e6572@74727565@63616e55706772616465@74727565"),
 			},
 		},
-		Scrs: map[string]nodeData.TransactionHandler{
+		Scrs: map[string]coreData.TransactionHandler{
 			"scr1": &smartContractResult.SmartContractResult{
 				OriginalTxHash: []byte("t1"),
 				Data:           []byte("75736572206572726f72"),

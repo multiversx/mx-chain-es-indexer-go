@@ -5,10 +5,9 @@ import (
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
-	"github.com/ElrondNetwork/elrond-go/core/statistics"
-	nodeData "github.com/ElrondNetwork/elrond-go/data"
-	"github.com/ElrondNetwork/elrond-go/data/block"
-	"github.com/ElrondNetwork/elrond-go/data/indexer"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
+	"github.com/ElrondNetwork/elrond-go-core/data/block"
+	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
 
@@ -41,10 +40,10 @@ type DBAccountHandler interface {
 
 // DBBlockHandler defines the actions that a block handler should do
 type DBBlockHandler interface {
-	PrepareBlockForDB(header nodeData.HeaderHandler, signersIndexes []uint64, body *block.Body, notarizedHeadersHashes []string, sizeTxs int) (*data.Block, error)
-	ComputeHeaderHash(header nodeData.HeaderHandler) ([]byte, error)
+	PrepareBlockForDB(header coreData.HeaderHandler, signersIndexes []uint64, body *block.Body, notarizedHeadersHashes []string, sizeTxs int) (*data.Block, error)
+	ComputeHeaderHash(header coreData.HeaderHandler) ([]byte, error)
 
-	SerializeEpochInfoData(header nodeData.HeaderHandler) (*bytes.Buffer, error)
+	SerializeEpochInfoData(header coreData.HeaderHandler) (*bytes.Buffer, error)
 	SerializeBlock(elasticBlock *data.Block) (*bytes.Buffer, error)
 }
 
@@ -52,10 +51,10 @@ type DBBlockHandler interface {
 type DBTransactionsHandler interface {
 	PrepareTransactionsForDatabase(
 		body *block.Body,
-		header nodeData.HeaderHandler,
+		header coreData.HeaderHandler,
 		pool *indexer.Pool,
 	) *data.PreparedResults
-	GetRewardsTxsHashesHexEncoded(header nodeData.HeaderHandler, body *block.Body) []string
+	GetRewardsTxsHashesHexEncoded(header coreData.HeaderHandler, body *block.Body) []string
 
 	SerializeReceipts(receipts []*data.Receipt) ([]*bytes.Buffer, error)
 	SerializeTransactions(transactions []*data.Transaction, selfShardID uint32, mbsHashInDB map[string]bool) ([]*bytes.Buffer, error)
@@ -66,17 +65,14 @@ type DBTransactionsHandler interface {
 
 // DBMiniblocksHandler defines the actions that a miniblocks handler should do
 type DBMiniblocksHandler interface {
-	PrepareDBMiniblocks(header nodeData.HeaderHandler, body *block.Body) []*data.Miniblock
-	GetMiniblocksHashesHexEncoded(header nodeData.HeaderHandler, body *block.Body) []string
+	PrepareDBMiniblocks(header coreData.HeaderHandler, body *block.Body) []*data.Miniblock
+	GetMiniblocksHashesHexEncoded(header coreData.HeaderHandler, body *block.Body) []string
 
 	SerializeBulkMiniBlocks(bulkMbs []*data.Miniblock, mbsInDB map[string]bool) *bytes.Buffer
 }
 
 // DBStatisticsHandler defines the actions that a database statistics handler should do
 type DBStatisticsHandler interface {
-	PrepareStatistics(tpsBenchmark statistics.TPSBenchmark) (*data.TPS, []*data.TPS, error)
-
-	SerializeStatistics(genInfo *data.TPS, shardsInfo []*data.TPS, index string) (*bytes.Buffer, error)
 	SerializeRoundsInfo(roundsInfo []*data.RoundInfo) *bytes.Buffer
 }
 
@@ -89,9 +85,9 @@ type DBValidatorsHandler interface {
 
 // DBLogsAndEventsHandler defines the actions that a logs and events handler should do
 type DBLogsAndEventsHandler interface {
-	PrepareLogsForDB(logsAndEvents map[string]nodeData.LogHandler) []*data.Logs
+	PrepareLogsForDB(logsAndEvents map[string]coreData.LogHandler) []*data.Logs
 	ExtractDataFromLogsAndPutInAltered(
-		logsAndEvents map[string]nodeData.LogHandler,
+		logsAndEvents map[string]coreData.LogHandler,
 		preparedResults *data.PreparedResults,
 		timestamp uint64,
 	) (data.TokensHandler, tags.CountTags)

@@ -3,33 +3,23 @@ package indexer
 import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
-	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/core/check"
-	"github.com/ElrondNetwork/elrond-go/core/statistics"
-	nodeData "github.com/ElrondNetwork/elrond-go/data"
-	"github.com/ElrondNetwork/elrond-go/data/indexer"
-	"github.com/ElrondNetwork/elrond-go/data/state"
-	"github.com/ElrondNetwork/elrond-go/epochStart"
-	"github.com/ElrondNetwork/elrond-go/epochStart/notifier"
-	"github.com/ElrondNetwork/elrond-go/marshal"
-	"github.com/ElrondNetwork/elrond-go/process"
-	"github.com/ElrondNetwork/elrond-go/sharding"
+	"github.com/ElrondNetwork/elrond-go-core/core/check"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
+	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/marshal"
 )
 
 // ArgDataIndexer is a structure that is used to store all the components that are needed to create an indexer
 type ArgDataIndexer struct {
-	ShardCoordinator   sharding.Coordinator
-	Marshalizer        marshal.Marshalizer
-	EpochStartNotifier sharding.EpochStartEventNotifier
-	NodesCoordinator   sharding.NodesCoordinator
-	DataDispatcher     DispatcherHandler
-	ElasticProcessor   ElasticProcessor
+	ShardCoordinator ShardCoordinator
+	Marshalizer      marshal.Marshalizer
+	DataDispatcher   DispatcherHandler
+	ElasticProcessor ElasticProcessor
 }
 
 type dataIndexer struct {
 	isNilIndexer     bool
 	dispatcher       DispatcherHandler
-	coordinator      sharding.NodesCoordinator
 	elasticProcessor ElasticProcessor
 	marshalizer      marshal.Marshalizer
 }
@@ -44,13 +34,8 @@ func NewDataIndexer(arguments ArgDataIndexer) (*dataIndexer, error) {
 	dataIndexerObj := &dataIndexer{
 		isNilIndexer:     false,
 		dispatcher:       arguments.DataDispatcher,
-		coordinator:      arguments.NodesCoordinator,
 		elasticProcessor: arguments.ElasticProcessor,
 		marshalizer:      arguments.Marshalizer,
-	}
-
-	if arguments.ShardCoordinator.SelfId() == core.MetachainShardId {
-		arguments.EpochStartNotifier.RegisterHandler(dataIndexerObj.epochStartEventHandler())
 	}
 
 	return dataIndexerObj, nil
@@ -63,12 +48,6 @@ func checkIndexerArgs(arguments ArgDataIndexer) error {
 	if check.IfNil(arguments.ElasticProcessor) {
 		return ErrNilElasticProcessor
 	}
-	if check.IfNil(arguments.NodesCoordinator) {
-		return ErrNilNodesCoordinator
-	}
-	if check.IfNil(arguments.EpochStartNotifier) {
-		return ErrNilEpochStartNotifier
-	}
 	if check.IfNil(arguments.Marshalizer) {
 		return ErrNilMarshalizer
 	}
@@ -77,23 +56,6 @@ func checkIndexerArgs(arguments ArgDataIndexer) error {
 	}
 
 	return nil
-}
-
-func (di *dataIndexer) epochStartEventHandler() epochStart.ActionHandler {
-	subscribeHandler := notifier.NewHandlerForEpochStart(func(hdr nodeData.HeaderHandler) {
-		currentEpoch := hdr.GetEpoch()
-		validatorsPubKeys, err := di.coordinator.GetAllEligibleValidatorsPublicKeys(currentEpoch)
-		if err != nil {
-			log.Warn("GetAllEligibleValidatorPublicKeys for current epoch failed",
-				"epoch", currentEpoch,
-				"error", err.Error())
-		}
-
-		go di.SaveValidatorsPubKeys(validatorsPubKeys, currentEpoch)
-
-	}, func(_ nodeData.HeaderHandler) {}, core.IndexerOrder)
-
-	return subscribeHandler
 }
 
 // SaveBlock saves the block info in the queue to be sent to elastic
@@ -112,7 +74,7 @@ func (di *dataIndexer) Close() error {
 }
 
 // RevertIndexedBlock will remove from database block and miniblocks
-func (di *dataIndexer) RevertIndexedBlock(header nodeData.HeaderHandler, body nodeData.BodyHandler) {
+func (di *dataIndexer) RevertIndexedBlock(header coreData.HeaderHandler, body coreData.BodyHandler) {
 	wi := workItems.NewItemRemoveBlock(
 		di.elasticProcessor,
 		body,
@@ -166,25 +128,10 @@ func (di *dataIndexer) SaveValidatorsPubKeys(validatorsPubKeys map[uint32][][]by
 	di.dispatcher.Add(wi)
 }
 
-// UpdateTPS updates the tps and statistics into elasticsearch index
-func (di *dataIndexer) UpdateTPS(tpsBenchmark statistics.TPSBenchmark) {
-	if tpsBenchmark == nil {
-		log.Debug("indexer: update tps called, but the tpsBenchmark is nil")
-		return
-	}
-
-	wi := workItems.NewItemTpsBenchmark(di.elasticProcessor, tpsBenchmark)
-	di.dispatcher.Add(wi)
-}
-
 // SaveAccounts will save the provided accounts
-func (di *dataIndexer) SaveAccounts(timestamp uint64, accounts []state.UserAccountHandler) {
+func (di *dataIndexer) SaveAccounts(timestamp uint64, accounts []coreData.UserAccountHandler) {
 	wi := workItems.NewItemAccounts(di.elasticProcessor, timestamp, accounts)
 	di.dispatcher.Add(wi)
-}
-
-// SetTxLogsProcessor will set tx logs processor
-func (di *dataIndexer) SetTxLogsProcessor(_ process.TransactionLogProcessorDatabase) {
 }
 
 // IsNilIndexer will return a bool value that signals if the indexer's implementation is a NilIndexer

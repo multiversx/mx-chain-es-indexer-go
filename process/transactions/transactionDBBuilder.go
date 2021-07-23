@@ -6,30 +6,29 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elrond-go/core"
-	nodeData "github.com/ElrondNetwork/elrond-go/data"
-	"github.com/ElrondNetwork/elrond-go/data/block"
-	"github.com/ElrondNetwork/elrond-go/data/receipt"
-	"github.com/ElrondNetwork/elrond-go/data/rewardTx"
-	"github.com/ElrondNetwork/elrond-go/data/smartContractResult"
-	"github.com/ElrondNetwork/elrond-go/data/transaction"
-	"github.com/ElrondNetwork/elrond-go/process"
-	"github.com/ElrondNetwork/elrond-go/sharding"
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
+	"github.com/ElrondNetwork/elrond-go-core/data/block"
+	"github.com/ElrondNetwork/elrond-go-core/data/receipt"
+	"github.com/ElrondNetwork/elrond-go-core/data/rewardTx"
+	"github.com/ElrondNetwork/elrond-go-core/data/smartContractResult"
+	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 )
 
 const emptyString = ""
 
 type dbTransactionBuilder struct {
 	addressPubkeyConverter core.PubkeyConverter
-	shardCoordinator       sharding.Coordinator
-	txFeeCalculator        process.TransactionFeeCalculator
+	shardCoordinator       indexer.ShardCoordinator
+	txFeeCalculator        indexer.FeesProcessorHandler
 }
 
 func newTransactionDBBuilder(
 	addressPubkeyConverter core.PubkeyConverter,
-	shardCoordinator sharding.Coordinator,
-	txFeeCalculator process.TransactionFeeCalculator,
+	shardCoordinator indexer.ShardCoordinator,
+	txFeeCalculator indexer.FeesProcessorHandler,
 ) *dbTransactionBuilder {
 	return &dbTransactionBuilder{
 		addressPubkeyConverter: addressPubkeyConverter,
@@ -43,7 +42,7 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 	txHash []byte,
 	mbHash []byte,
 	mb *block.MiniBlock,
-	header nodeData.HeaderHandler,
+	header coreData.HeaderHandler,
 	txStatus string,
 ) *data.Transaction {
 	gasUsed := dtb.txFeeCalculator.ComputeGasLimit(tx)
@@ -81,7 +80,7 @@ func (dtb *dbTransactionBuilder) prepareRewardTransaction(
 	txHash []byte,
 	mbHash []byte,
 	mb *block.MiniBlock,
-	header nodeData.HeaderHandler,
+	header coreData.HeaderHandler,
 	txStatus string,
 ) *data.Transaction {
 	return &data.Transaction{
@@ -106,7 +105,7 @@ func (dtb *dbTransactionBuilder) prepareRewardTransaction(
 func (dtb *dbTransactionBuilder) prepareSmartContractResult(
 	scHash string,
 	sc *smartContractResult.SmartContractResult,
-	header nodeData.HeaderHandler,
+	header coreData.HeaderHandler,
 ) *data.ScResult {
 	relayerAddr := ""
 	if len(sc.RelayerAddr) > 0 {
@@ -142,7 +141,7 @@ func (dtb *dbTransactionBuilder) prepareSmartContractResult(
 func (dtb *dbTransactionBuilder) prepareReceipt(
 	recHash string,
 	rec *receipt.Receipt,
-	header nodeData.HeaderHandler,
+	header coreData.HeaderHandler,
 ) *data.Receipt {
 	return &data.Receipt{
 		Hash:      hex.EncodeToString([]byte(recHash)),

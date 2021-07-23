@@ -2,15 +2,15 @@ package transactions
 
 import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elrond-go/core"
-	nodeData "github.com/ElrondNetwork/elrond-go/data"
-	"github.com/ElrondNetwork/elrond-go/data/block"
-	"github.com/ElrondNetwork/elrond-go/data/receipt"
-	"github.com/ElrondNetwork/elrond-go/data/rewardTx"
-	"github.com/ElrondNetwork/elrond-go/data/smartContractResult"
-	"github.com/ElrondNetwork/elrond-go/data/transaction"
-	"github.com/ElrondNetwork/elrond-go/hashing"
-	"github.com/ElrondNetwork/elrond-go/marshal"
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
+	"github.com/ElrondNetwork/elrond-go-core/data/block"
+	"github.com/ElrondNetwork/elrond-go-core/data/receipt"
+	"github.com/ElrondNetwork/elrond-go-core/data/rewardTx"
+	"github.com/ElrondNetwork/elrond-go-core/data/smartContractResult"
+	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
+	"github.com/ElrondNetwork/elrond-go-core/hashing"
+	"github.com/ElrondNetwork/elrond-go-core/marshal"
 )
 
 type txsGrouper struct {
@@ -39,8 +39,8 @@ func newTxsGrouper(
 
 func (tg *txsGrouper) groupNormalTxs(
 	mb *block.MiniBlock,
-	header nodeData.HeaderHandler,
-	txs map[string]nodeData.TransactionHandler,
+	header coreData.HeaderHandler,
+	txs map[string]coreData.TransactionHandler,
 	alteredAccounts data.AlteredAccountsHandler,
 ) (map[string]*data.Transaction, error) {
 	transactions := make(map[string]*data.Transaction)
@@ -71,8 +71,8 @@ func (tg *txsGrouper) prepareNormalTxForDB(
 	mb *block.MiniBlock,
 	mbStatus string,
 	txHash []byte,
-	txs map[string]nodeData.TransactionHandler,
-	header nodeData.HeaderHandler,
+	txs map[string]coreData.TransactionHandler,
+	header coreData.HeaderHandler,
 ) (*data.Transaction, bool) {
 	txHandler, okGet := txs[string(txHash)]
 	if !okGet {
@@ -91,8 +91,8 @@ func (tg *txsGrouper) prepareNormalTxForDB(
 
 func (tg *txsGrouper) groupRewardsTxs(
 	mb *block.MiniBlock,
-	header nodeData.HeaderHandler,
-	txs map[string]nodeData.TransactionHandler,
+	header coreData.HeaderHandler,
+	txs map[string]coreData.TransactionHandler,
 	alteredAccounts data.AlteredAccountsHandler,
 ) (map[string]*data.Transaction, error) {
 	rewardsTxs := make(map[string]*data.Transaction)
@@ -122,8 +122,8 @@ func (tg *txsGrouper) prepareRewardTxForDB(
 	mb *block.MiniBlock,
 	mbStatus string,
 	txHash []byte,
-	txs map[string]nodeData.TransactionHandler,
-	header nodeData.HeaderHandler,
+	txs map[string]coreData.TransactionHandler,
+	header coreData.HeaderHandler,
 ) (*data.Transaction, bool) {
 	txHandler, okGet := txs[string(txHash)]
 	if !okGet {
@@ -142,8 +142,8 @@ func (tg *txsGrouper) prepareRewardTxForDB(
 
 func (tg *txsGrouper) groupInvalidTxs(
 	mb *block.MiniBlock,
-	header nodeData.HeaderHandler,
-	txs map[string]nodeData.TransactionHandler,
+	header coreData.HeaderHandler,
+	txs map[string]coreData.TransactionHandler,
 	alteredAccounts data.AlteredAccountsHandler,
 ) (map[string]*data.Transaction, error) {
 	transactions := make(map[string]*data.Transaction)
@@ -169,8 +169,8 @@ func (tg *txsGrouper) prepareInvalidTxForDB(
 	mbHash []byte,
 	mb *block.MiniBlock,
 	txHash []byte,
-	txs map[string]nodeData.TransactionHandler,
-	header nodeData.HeaderHandler,
+	txs map[string]coreData.TransactionHandler,
+	header coreData.HeaderHandler,
 ) (*data.Transaction, bool) {
 	txHandler, okGet := txs[string(txHash)]
 	if !okGet {
@@ -199,7 +199,7 @@ func (tg *txsGrouper) shouldIndex(destinationShardID uint32) bool {
 	return tg.selfShardID == destinationShardID
 }
 
-func (tg *txsGrouper) groupReceipts(header nodeData.HeaderHandler, txsPool map[string]nodeData.TransactionHandler) []*data.Receipt {
+func (tg *txsGrouper) groupReceipts(header coreData.HeaderHandler, txsPool map[string]coreData.TransactionHandler) []*data.Receipt {
 	dbReceipts := make([]*data.Receipt, 0)
 	for hash, tx := range txsPool {
 		rec, ok := tx.(*receipt.Receipt)
@@ -221,7 +221,7 @@ func computeStatus(selfShardID uint32, receiverShardID uint32) string {
 	return transaction.TxStatusPending.String()
 }
 
-func groupSmartContractResults(txsPool map[string]nodeData.TransactionHandler) map[string]*smartContractResult.SmartContractResult {
+func groupSmartContractResults(txsPool map[string]coreData.TransactionHandler) map[string]*smartContractResult.SmartContractResult {
 	scResults := make(map[string]*smartContractResult.SmartContractResult)
 	for hash, tx := range txsPool {
 		scResult, ok := tx.(*smartContractResult.SmartContractResult)

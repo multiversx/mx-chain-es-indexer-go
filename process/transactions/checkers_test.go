@@ -8,11 +8,11 @@ import (
 	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
-	"github.com/ElrondNetwork/elrond-go/core"
-	nodeData "github.com/ElrondNetwork/elrond-go/data"
-	"github.com/ElrondNetwork/elrond-go/data/block"
-	"github.com/ElrondNetwork/elrond-go/data/indexer"
-	"github.com/ElrondNetwork/elrond-go/data/transaction"
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
+	"github.com/ElrondNetwork/elrond-go-core/data/block"
+	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 	"github.com/stretchr/testify/require"
 )
@@ -94,26 +94,26 @@ func TestCheckTxsProcessorArg(t *testing.T) {
 
 	tests := []struct {
 		name  string
-		args  func() (body *block.Body, header nodeData.HeaderHandler, pool *indexer.Pool)
+		args  func() (body *block.Body, header coreData.HeaderHandler, pool *indexer.Pool)
 		exErr error
 	}{
 		{
 			name: "NilBlockBody",
-			args: func() (body *block.Body, header nodeData.HeaderHandler, pool *indexer.Pool) {
+			args: func() (body *block.Body, header coreData.HeaderHandler, pool *indexer.Pool) {
 				return nil, &block.Header{}, &indexer.Pool{}
 			},
 			exErr: elasticIndexer.ErrNilBlockBody,
 		},
 		{
 			name: "NilHeaderHandler",
-			args: func() (body *block.Body, header nodeData.HeaderHandler, pool *indexer.Pool) {
+			args: func() (body *block.Body, header coreData.HeaderHandler, pool *indexer.Pool) {
 				return &block.Body{}, nil, &indexer.Pool{}
 			},
 			exErr: elasticIndexer.ErrNilHeaderHandler,
 		},
 		{
 			name: "NilPool",
-			args: func() (body *block.Body, header nodeData.HeaderHandler, pool *indexer.Pool) {
+			args: func() (body *block.Body, header coreData.HeaderHandler, pool *indexer.Pool) {
 				return &block.Body{}, &block.Header{}, nil
 			},
 			exErr: elasticIndexer.ErrNilPool,

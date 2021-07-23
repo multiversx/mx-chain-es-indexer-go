@@ -23,7 +23,6 @@ func (tr *templatesAndPolicyReaderNoKibana) GetElasticTemplatesAndPolicies() (ma
 	indexTemplates[indexer.TransactionsIndex] = noKibana.Transactions.ToBuffer()
 	indexTemplates[indexer.BlockIndex] = noKibana.Blocks.ToBuffer()
 	indexTemplates[indexer.MiniblocksIndex] = noKibana.Miniblocks.ToBuffer()
-	indexTemplates[indexer.TpsIndex] = noKibana.TPS.ToBuffer()
 	indexTemplates[indexer.RatingIndex] = noKibana.Rating.ToBuffer()
 	indexTemplates[indexer.RoundsIndex] = noKibana.Rounds.ToBuffer()
 	indexTemplates[indexer.ValidatorsIndex] = noKibana.Validators.ToBuffer()

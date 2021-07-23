@@ -38,12 +38,6 @@ var ErrNoElasticUrlProvided = errors.New("no elastic url provided")
 // ErrBackOff signals that an error was received from the server
 var ErrBackOff = errors.New("back off something is not working well")
 
-// ErrNilNodesCoordinator signals a nil nodes coordinator has been provided
-var ErrNilNodesCoordinator = errors.New("nil nodes coordinator")
-
-// ErrNilEpochStartNotifier signals that nil epoch start notifier has been provided
-var ErrNilEpochStartNotifier = errors.New("nil epoch start notifier")
-
 // ErrNilTransactionFeeCalculator signals that a nil transaction fee calculator has been provided
 var ErrNilTransactionFeeCalculator = errors.New("nil transaction fee calculator")
 
@@ -94,9 +88,6 @@ var ErrNilValidatorsHandler = errors.New("nil validators handler")
 
 // ErrNilTransactionsHandler signals that a nil transactions handler has been provided
 var ErrNilTransactionsHandler = errors.New("nil transactions handler")
-
-// ErrNilTPSBenchmark signals that a nil TPS benchmark has been provided
-var ErrNilTPSBenchmark = errors.New("nil TPS benchmark")
 
 // ErrNilTransactionsProcessorArguments signals that a nil arguments structure for transactions processor has been provided
 var ErrNilTransactionsProcessorArguments = errors.New("nil transactions processor args")

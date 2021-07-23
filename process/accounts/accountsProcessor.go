@@ -10,12 +10,12 @@ import (
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/core/check"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
+	"github.com/ElrondNetwork/elrond-go-core/data/esdt"
+	"github.com/ElrondNetwork/elrond-go-core/marshal"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
-	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/core/check"
-	"github.com/ElrondNetwork/elrond-go/data/state"
-	"github.com/ElrondNetwork/elrond-go/marshal"
-	"github.com/ElrondNetwork/elrond-vm-common/data/esdt"
 )
 
 var log = logger.GetOrCreate("indexer/process/accounts")
@@ -30,7 +30,7 @@ type accountsProcessor struct {
 	balancePrecisionESDT   float64
 	internalMarshalizer    marshal.Marshalizer
 	addressPubkeyConverter core.PubkeyConverter
-	accountsDB             state.AccountsAdapter
+	accountsDB             indexer.AccountsAdapter
 }
 
 // NewAccountsProcessor will create a new instance of accounts processor
@@ -38,7 +38,7 @@ func NewAccountsProcessor(
 	denomination int,
 	marshalizer marshal.Marshalizer,
 	addressPubkeyConverter core.PubkeyConverter,
-	accountsDB state.AccountsAdapter,
+	accountsDB indexer.AccountsAdapter,
 ) (*accountsProcessor, error) {
 	if denomination < 0 {
 		return nil, indexer.ErrNegativeDenominationValue
@@ -89,7 +89,7 @@ func (ap *accountsProcessor) GetAccounts(alteredAccounts data.AlteredAccountsHan
 	return regularAccountsToIndex, accountsToIndexESDT
 }
 
-func splitAlteredAccounts(userAccount state.UserAccountHandler, altered []*data.AlteredAccount) ([]*data.Account, []*data.AccountESDT) {
+func splitAlteredAccounts(userAccount coreData.UserAccountHandler, altered []*data.AlteredAccount) ([]*data.Account, []*data.AccountESDT) {
 	regularAccountsToIndex := make([]*data.Account, 0)
 	accountsToIndexESDT := make([]*data.AccountESDT, 0)
 	for _, info := range altered {
@@ -118,7 +118,7 @@ func splitAlteredAccounts(userAccount state.UserAccountHandler, altered []*data.
 	return regularAccountsToIndex, accountsToIndexESDT
 }
 
-func (ap *accountsProcessor) getUserAccount(address string) (state.UserAccountHandler, error) {
+func (ap *accountsProcessor) getUserAccount(address string) (coreData.UserAccountHandler, error) {
 	addressBytes, err := ap.addressPubkeyConverter.Decode(address)
 	if err != nil {
 		return nil, err
@@ -129,7 +129,7 @@ func (ap *accountsProcessor) getUserAccount(address string) (state.UserAccountHa
 		return nil, err
 	}
 
-	userAccount, ok := account.(state.UserAccountHandler)
+	userAccount, ok := account.(coreData.UserAccountHandler)
 	if !ok {
 		return nil, indexer.ErrCannotCastAccountHandlerToUserAccount
 	}
@@ -234,7 +234,7 @@ func (ap *accountsProcessor) getESDTInfo(accountESDT *data.AccountESDT) (*big.In
 		tokenKey = append(tokenKey, nonceBig.Bytes()...)
 	}
 
-	valueBytes, err := accountESDT.Account.DataTrieTracker().RetrieveValue(tokenKey)
+	valueBytes, err := accountESDT.Account.RetrieveValueFromDataTrieTracker(tokenKey)
 	if err != nil {
 		return nil, "", nil, err
 	}
