@@ -12,8 +12,8 @@ type UserAccountStub struct {
 	RetrieveValueFromDataTrieTrackerCalled func(key []byte) ([]byte, error)
 }
 
+// IncreaseNonce -
 func (u *UserAccountStub) IncreaseNonce(_ uint64) {
-	panic("implement me")
 }
 
 // GetBalance -
