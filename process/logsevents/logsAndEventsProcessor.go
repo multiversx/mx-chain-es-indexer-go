@@ -69,7 +69,7 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogsAndPutInAltered(
 	return lep.logsData.tokens, lep.logsData.tagsCount, lep.logsData.scDeploys
 }
 
-func (lep *logsAndEventsProcessor) processEvents(logHash string, events []nodeData.EventHandler) {
+func (lep *logsAndEventsProcessor) processEvents(logHash string, events []coreData.EventHandler) {
 	for _, event := range events {
 		if check.IfNil(event) {
 			continue
@@ -79,7 +79,7 @@ func (lep *logsAndEventsProcessor) processEvents(logHash string, events []nodeDa
 	}
 }
 
-func (lep *logsAndEventsProcessor) processEvent(logHash string, events nodeData.EventHandler) {
+func (lep *logsAndEventsProcessor) processEvent(logHash string, events coreData.EventHandler) {
 	logHashHexEncoded := hex.EncodeToString([]byte(logHash))
 	for _, proc := range lep.eventsProcessors {
 		identifier, processed := proc.processEvent(&argsProcessEvent{
