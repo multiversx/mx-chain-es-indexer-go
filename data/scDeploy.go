@@ -8,7 +8,7 @@ type ScDeployInfo struct {
 	Upgrades  []*Upgrade `json:"upgrades"`
 }
 
-// Upgrade is the DTo that holds information about a smart contract upgrade
+// Upgrade is the DTO that holds information about a smart contract upgrade
 type Upgrade struct {
 	TxHash    string `json:"upgradeTxHash"`
 	Upgrader  string `json:"upgrader"`

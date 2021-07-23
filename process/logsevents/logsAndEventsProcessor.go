@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 
 	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
-	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
 	"github.com/ElrondNetwork/elrond-go/core"
@@ -18,13 +17,7 @@ type logsAndEventsProcessor struct {
 	pubKeyConverter  core.PubkeyConverter
 	eventsProcessors []eventsProcessor
 
-	timestamp uint64
-	tokens    data.TokensHandler
-	tagsCount tags.CountTags
-	accounts  data.AlteredAccountsHandler
-	txsMap    map[string]*data.Transaction
-	scrsMap   map[string]*data.ScResult
-	scDeploys map[string]*data.ScDeployInfo
+	logsData *logsData
 }
 
 // NewLogsAndEventsProcessor will create a new instance for the logsAndEventsProcessor
@@ -50,7 +43,9 @@ func NewLogsAndEventsProcessor(
 	return &logsAndEventsProcessor{
 		pubKeyConverter: pubKeyConverter,
 		eventsProcessors: []eventsProcessor{
-			fungibleProc, nftsProc, scDeploysProc,
+			fungibleProc,
+			nftsProc,
+			scDeploysProc,
 		},
 	}, nil
 }
@@ -61,13 +56,7 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogsAndPutInAltered(
 	preparedResults *data.PreparedResults,
 	timestamp uint64,
 ) (data.TokensHandler, tags.CountTags, map[string]*data.ScDeployInfo) {
-	lep.txsMap = converters.ConvertTxsSliceIntoMap(preparedResults.Transactions)
-	lep.scrsMap = converters.ConvertScrsSliceIntoMap(preparedResults.ScResults)
-	lep.tagsCount = tags.NewTagsCount()
-	lep.tokens = data.NewTokensInfo()
-	lep.accounts = preparedResults.AlteredAccts
-	lep.timestamp = timestamp
-	lep.scDeploys = make(map[string]*data.ScDeployInfo)
+	lep.logsData = newLogsData(timestamp, preparedResults.AlteredAccts, preparedResults.Transactions, preparedResults.ScResults)
 
 	for logHash, log := range logsAndEvents {
 		if check.IfNil(log) {
@@ -78,7 +67,7 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogsAndPutInAltered(
 		lep.processEvents(logHash, events)
 	}
 
-	return lep.tokens, lep.tagsCount, lep.scDeploys
+	return lep.logsData.tokens, lep.logsData.tagsCount, lep.logsData.scDeploys
 }
 
 func (lep *logsAndEventsProcessor) processEvents(logHash string, events []nodeData.EventHandler) {
@@ -96,26 +85,26 @@ func (lep *logsAndEventsProcessor) processEvent(logHash string, events nodeData.
 	for _, proc := range lep.eventsProcessors {
 		identifier, processed := proc.processEvent(&argsProcessEvent{
 			event:            events,
-			accounts:         lep.accounts,
-			tokens:           lep.tokens,
-			tagsCount:        lep.tagsCount,
-			timestamp:        lep.timestamp,
-			scDeploys:        lep.scDeploys,
+			accounts:         lep.logsData.accounts,
+			tokens:           lep.logsData.tokens,
+			tagsCount:        lep.logsData.tagsCount,
+			timestamp:        lep.logsData.timestamp,
+			scDeploys:        lep.logsData.scDeploys,
 			txHashHexEncoded: logHashHexEncoded,
 		})
-		emptyIdentifier := identifier == ""
-		if emptyIdentifier && processed {
+		isEmptyIdentifier := identifier == ""
+		if isEmptyIdentifier && processed {
 			return
 		}
 
-		tx, ok := lep.txsMap[logHashHexEncoded]
-		if ok && !emptyIdentifier {
+		tx, ok := lep.logsData.txsMap[logHashHexEncoded]
+		if ok && !isEmptyIdentifier {
 			tx.EsdtTokenIdentifier = identifier
 			continue
 		}
 
-		scr, ok := lep.scrsMap[logHashHexEncoded]
-		if ok && !emptyIdentifier {
+		scr, ok := lep.logsData.scrsMap[logHashHexEncoded]
+		if ok && !isEmptyIdentifier {
 			scr.EsdtTokenIdentifier = identifier
 			return
 		}
