@@ -5,9 +5,7 @@ import (
 	"time"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/vm"
-	"github.com/ElrondNetwork/elrond-vm-common/parsers"
+	"github.com/ElrondNetwork/elrond-go-core/core"
 )
 
 const (
@@ -24,8 +22,6 @@ type tokensProcessor struct {
 }
 
 func newTokensProcessor(selfShardID uint32, pubKeyConverter core.PubkeyConverter) *tokensProcessor {
-	argsParser := parsers.NewCallArgsParser()
-
 	return &tokensProcessor{
 		selfShardID: selfShardID,
 		issueMethods: map[string]struct{}{
@@ -33,8 +29,8 @@ func newTokensProcessor(selfShardID uint32, pubKeyConverter core.PubkeyConverter
 			issueSemiFungibleESDTFunc: {},
 			issueNonFungibleESDTFunc:  {},
 		},
-		argumentParserExtended: newArgumentsParser(argsParser),
-		esdtSCAddress:          pubKeyConverter.Encode(vm.ESDTSCAddress),
+		argumentParserExtended: newArgumentsParser(),
+		esdtSCAddress:          pubKeyConverter.Encode(core.ESDTSCAddress),
 	}
 }
 

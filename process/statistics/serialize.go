@@ -6,73 +6,17 @@ import (
 	"fmt"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	logger "github.com/ElrondNetwork/elrond-go-logger"
 )
 
-// SerializeGeneralInfo will serialize statistics information
-func (sp *statisticsProcessor) SerializeStatistics(genInfo *data.TPS, shardsInfo []*data.TPS, index string) (*bytes.Buffer, error) {
-	buff, err := serializeStatisticInfo(genInfo, index)
-	if err != nil {
-		return nil, err
-	}
+var log = logger.GetOrCreate("indexer/process/statistics")
 
-	for _, shardInfo := range shardsInfo {
-		errSerialize := serializeShardInfo(buff, shardInfo, index)
-		if errSerialize != nil {
-			log.Warn("serializeShardInfo", "shardID", shardInfo.ShardID, "error", errSerialize)
-
-			continue
-		}
-	}
-
-	return buff, nil
+type statisticsProcessor struct {
 }
 
-func serializeStatisticInfo(generalInfo *data.TPS, index string) (*bytes.Buffer, error) {
-	buff := &bytes.Buffer{}
-	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s", "_type" : "%s" } }%s`, metachainTpsDocID, index, "\n"))
-
-	serializedInfo, err := json.Marshal(generalInfo)
-	if err != nil {
-		return nil, err
-	}
-
-	serializedInfo = append(serializedInfo, "\n"...)
-
-	buff.Grow(len(meta) + len(serializedInfo))
-	_, err = buff.Write(meta)
-	if err != nil {
-		return nil, err
-	}
-	_, err = buff.Write(serializedInfo)
-	if err != nil {
-		return nil, err
-	}
-
-	return buff, nil
-}
-
-func serializeShardInfo(buff *bytes.Buffer, shardTPS *data.TPS, index string) error {
-	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s%d", "_type" : "%s" } }%s`,
-		shardTpsDocIDPrefix, shardTPS.ShardID, index, "\n"))
-
-	serializedInfo, err := json.Marshal(shardTPS)
-	if err != nil {
-		return err
-	}
-
-	serializedInfo = append(serializedInfo, "\n"...)
-
-	buff.Grow(len(meta) + len(serializedInfo))
-	_, err = buff.Write(meta)
-	if err != nil {
-		return err
-	}
-	_, err = buff.Write(serializedInfo)
-	if err != nil {
-		return err
-	}
-
-	return nil
+// NewStatisticsProcessor will create a new instance of a statisticsProcessor
+func NewStatisticsProcessor() *statisticsProcessor {
+	return &statisticsProcessor{}
 }
 
 // SerializeRoundsInfo will serialize information about rounds

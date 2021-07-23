@@ -8,8 +8,8 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
-	"github.com/ElrondNetwork/elrond-go/core"
-	dataBlock "github.com/ElrondNetwork/elrond-go/data/block"
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/stretchr/testify/require"
 )
 

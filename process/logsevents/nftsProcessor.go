@@ -4,25 +4,25 @@ import (
 	"math/big"
 	"time"
 
+	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
-	"github.com/ElrondNetwork/elrond-go/core"
-	nodeData "github.com/ElrondNetwork/elrond-go/data"
-	"github.com/ElrondNetwork/elrond-go/marshal"
-	"github.com/ElrondNetwork/elrond-go/sharding"
-	"github.com/ElrondNetwork/elrond-vm-common/data/esdt"
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
+	"github.com/ElrondNetwork/elrond-go-core/data/esdt"
+	"github.com/ElrondNetwork/elrond-go-core/marshal"
 )
 
 type nftsProcessor struct {
 	pubKeyConverter          core.PubkeyConverter
 	nftOperationsIdentifiers map[string]struct{}
-	shardCoordinator         sharding.Coordinator
+	shardCoordinator         elasticIndexer.ShardCoordinator
 	marshalizer              marshal.Marshalizer
 }
 
 func newNFTsProcessor(
-	shardCoordinator sharding.Coordinator,
+	shardCoordinator elasticIndexer.ShardCoordinator,
 	pubKeyConverter core.PubkeyConverter,
 	marshalizer marshal.Marshalizer,
 ) *nftsProcessor {
@@ -80,7 +80,7 @@ func (np *nftsProcessor) processEvent(args *argsProcessEvent) (string, bool) {
 }
 
 func (np *nftsProcessor) processNFTEventOnSender(
-	event nodeData.EventHandler,
+	event coreData.EventHandler,
 	accounts data.AlteredAccountsHandler,
 	tokensCreateInfo data.TokensHandler,
 	timestamp uint64,

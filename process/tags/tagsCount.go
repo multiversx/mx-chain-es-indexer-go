@@ -46,6 +46,10 @@ func (tc *tagsCount) ParseTags(tags []string) {
 
 	newTags := removeDuplicatedTags(tags)
 	for _, tag := range newTags {
+		if tag == "" {
+			continue
+		}
+
 		tc.tags[tag]++
 	}
 }

@@ -5,11 +5,11 @@ import (
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
-	nodeData "github.com/ElrondNetwork/elrond-go/data"
-	"github.com/ElrondNetwork/elrond-go/data/block"
-	"github.com/ElrondNetwork/elrond-go/data/receipt"
-	"github.com/ElrondNetwork/elrond-go/data/rewardTx"
-	"github.com/ElrondNetwork/elrond-go/data/transaction"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
+	"github.com/ElrondNetwork/elrond-go-core/data/block"
+	"github.com/ElrondNetwork/elrond-go-core/data/receipt"
+	"github.com/ElrondNetwork/elrond-go-core/data/rewardTx"
+	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/stretchr/testify/require"
 )
 
@@ -26,7 +26,7 @@ func TestGroupNormalTxs(t *testing.T) {
 		Type:     block.TxBlock,
 	}
 	header := &block.Header{}
-	txs := map[string]nodeData.TransactionHandler{
+	txs := map[string]coreData.TransactionHandler{
 		string(txHash1): &transaction.Transaction{
 			SndAddr: []byte("sender1"),
 			RcvAddr: []byte("receiver1"),
@@ -56,7 +56,7 @@ func TestGroupRewardsTxs(t *testing.T) {
 		Type:     block.RewardsBlock,
 	}
 	header := &block.Header{}
-	txs := map[string]nodeData.TransactionHandler{
+	txs := map[string]coreData.TransactionHandler{
 		string(txHash1): &rewardTx.RewardTx{
 			RcvAddr: []byte("receiver1"),
 		},
@@ -84,7 +84,7 @@ func TestGroupInvalidTxs(t *testing.T) {
 		Type:     block.InvalidBlock,
 	}
 	header := &block.Header{}
-	txs := map[string]nodeData.TransactionHandler{
+	txs := map[string]coreData.TransactionHandler{
 		string(txHash1): &transaction.Transaction{
 			SndAddr: []byte("sender1"),
 			RcvAddr: []byte("receiver1"),
@@ -110,7 +110,7 @@ func TestGroupReceipts(t *testing.T) {
 	txHash1 := []byte("txHash1")
 	txHash2 := []byte("txHash2")
 	header := &block.Header{}
-	txs := map[string]nodeData.TransactionHandler{
+	txs := map[string]coreData.TransactionHandler{
 		string(txHash1): &receipt.Receipt{
 			SndAddr: []byte("sender1"),
 		},

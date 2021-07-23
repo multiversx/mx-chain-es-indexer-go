@@ -3,7 +3,7 @@ package data
 import (
 	"time"
 
-	"github.com/ElrondNetwork/elrond-go/data/state"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 )
 
 // AccountInfo holds (serializable) data about an account
@@ -50,13 +50,13 @@ type AccountBalanceHistory struct {
 
 // Account is a structure that is needed for regular accounts
 type Account struct {
-	UserAccount state.UserAccountHandler
+	UserAccount coreData.UserAccountHandler
 	IsSender    bool
 }
 
 // AccountESDT is a structure that is needed for ESDT accounts
 type AccountESDT struct {
-	Account         state.UserAccountHandler
+	Account         coreData.UserAccountHandler
 	TokenIdentifier string
 	NFTNonce        uint64
 	IsSender        bool

@@ -9,24 +9,23 @@ import (
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
-	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/data/block"
-	"github.com/ElrondNetwork/elrond-go/data/rewardTx"
-	"github.com/ElrondNetwork/elrond-go/data/smartContractResult"
-	"github.com/ElrondNetwork/elrond-go/data/transaction"
-	"github.com/ElrondNetwork/elrond-go/process"
-	"github.com/ElrondNetwork/elrond-go/testscommon/economicsmocks"
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
+	"github.com/ElrondNetwork/elrond-go-core/data/block"
+	"github.com/ElrondNetwork/elrond-go-core/data/rewardTx"
+	"github.com/ElrondNetwork/elrond-go-core/data/smartContractResult"
+	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/stretchr/testify/require"
 )
 
 func createCommonProcessor() dbTransactionBuilder {
 	return dbTransactionBuilder{
 		addressPubkeyConverter: mock.NewPubkeyConverterMock(32),
-		txFeeCalculator: &economicsmocks.EconomicsHandlerStub{
-			ComputeTxFeeBasedOnGasUsedCalled: func(tx process.TransactionWithFeeHandler, gasUsed uint64) *big.Int {
+		txFeeCalculator: &mock.EconomicsHandlerStub{
+			ComputeTxFeeBasedOnGasUsedCalled: func(tx coreData.TransactionWithFeeHandler, gasUsed uint64) *big.Int {
 				return big.NewInt(100)
 			},
-			ComputeGasLimitCalled: func(tx process.TransactionWithFeeHandler) uint64 {
+			ComputeGasLimitCalled: func(tx coreData.TransactionWithFeeHandler) uint64 {
 				return 500
 			},
 		},

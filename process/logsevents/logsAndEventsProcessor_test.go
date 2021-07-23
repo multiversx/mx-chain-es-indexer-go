@@ -7,9 +7,9 @@ import (
 	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
-	"github.com/ElrondNetwork/elrond-go/core"
-	nodeData "github.com/ElrondNetwork/elrond-go/data"
-	"github.com/ElrondNetwork/elrond-go/data/transaction"
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
+	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/stretchr/testify/require"
 )
 
@@ -33,7 +33,7 @@ func TestNewLogsAndEventsProcessor(t *testing.T) {
 func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T) {
 	t.Parallel()
 
-	logsAndEvents := map[string]nodeData.LogHandler{
+	logsAndEvents := map[string]coreData.LogHandler{
 		"wrong": nil,
 		"h3": &transaction.Log{
 			Events: []*transaction.Event{
@@ -100,7 +100,7 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 	t.Parallel()
 
-	logsAndEvents := map[string]nodeData.LogHandler{
+	logsAndEvents := map[string]coreData.LogHandler{
 		"wrong": nil,
 
 		"txHash": &transaction.Log{

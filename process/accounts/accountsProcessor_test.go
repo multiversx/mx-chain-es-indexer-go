@@ -11,11 +11,10 @@ import (
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
-	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/data/state"
-	"github.com/ElrondNetwork/elrond-go/marshal"
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/data/esdt"
+	"github.com/ElrondNetwork/elrond-go-core/marshal"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
-	"github.com/ElrondNetwork/elrond-vm-common/data/esdt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -25,40 +24,40 @@ func TestNewAccountsProcessor(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		argsFunc func() (int, marshal.Marshalizer, core.PubkeyConverter, state.AccountsAdapter)
+		argsFunc func() (int, marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter)
 		exError  error
 	}{
 		{
 			name: "NegativeDenomination",
-			argsFunc: func() (int, marshal.Marshalizer, core.PubkeyConverter, state.AccountsAdapter) {
+			argsFunc: func() (int, marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter) {
 				return -1, &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{}, &mock.AccountsStub{}
 			},
 			exError: indexer.ErrNegativeDenominationValue,
 		},
 		{
 			name: "NilMarshalizer",
-			argsFunc: func() (int, marshal.Marshalizer, core.PubkeyConverter, state.AccountsAdapter) {
+			argsFunc: func() (int, marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter) {
 				return 11, nil, &mock.PubkeyConverterMock{}, &mock.AccountsStub{}
 			},
 			exError: indexer.ErrNilMarshalizer,
 		},
 		{
 			name: "NilPubKeyConverter",
-			argsFunc: func() (int, marshal.Marshalizer, core.PubkeyConverter, state.AccountsAdapter) {
+			argsFunc: func() (int, marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter) {
 				return 11, &mock.MarshalizerMock{}, nil, &mock.AccountsStub{}
 			},
 			exError: indexer.ErrNilPubkeyConverter,
 		},
 		{
 			name: "NilAccounts",
-			argsFunc: func() (int, marshal.Marshalizer, core.PubkeyConverter, state.AccountsAdapter) {
+			argsFunc: func() (int, marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter) {
 				return 11, &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{}, nil
 			},
 			exError: indexer.ErrNilAccountsDB,
 		},
 		{
 			name: "ShouldWork",
-			argsFunc: func() (int, marshal.Marshalizer, core.PubkeyConverter, state.AccountsAdapter) {
+			argsFunc: func() (int, marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter) {
 				return 11, &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{}, &mock.AccountsStub{}
 			},
 			exError: nil,
@@ -144,12 +143,8 @@ func TestGetESDTInfo_CannotRetriveValueShoudError(t *testing.T) {
 	localErr := errors.New("local error")
 	wrapAccount := &data.AccountESDT{
 		Account: &mock.UserAccountStub{
-			DataTrieTrackerCalled: func() state.DataTrieTracker {
-				return &mock.DataTrieTrackerStub{
-					RetrieveValueCalled: func(key []byte) ([]byte, error) {
-						return nil, localErr
-					},
-				}
+			RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
+				return nil, localErr
 			},
 		},
 		TokenIdentifier: "token",
@@ -172,12 +167,8 @@ func TestGetESDTInfo(t *testing.T) {
 	tokenIdentifier := "token-001"
 	wrapAccount := &data.AccountESDT{
 		Account: &mock.UserAccountStub{
-			DataTrieTrackerCalled: func() state.DataTrieTracker {
-				return &mock.DataTrieTrackerStub{
-					RetrieveValueCalled: func(key []byte) ([]byte, error) {
-						return json.Marshal(esdtToken)
-					},
-				}
+			RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
+				return json.Marshal(esdtToken)
 			},
 		},
 		TokenIdentifier: tokenIdentifier,
@@ -202,13 +193,9 @@ func TestGetESDTInfoNFT(t *testing.T) {
 	tokenIdentifier := "token-001"
 	wrapAccount := &data.AccountESDT{
 		Account: &mock.UserAccountStub{
-			DataTrieTrackerCalled: func() state.DataTrieTracker {
-				return &mock.DataTrieTrackerStub{
-					RetrieveValueCalled: func(key []byte) ([]byte, error) {
-						assert.Equal(t, append([]byte("ELRONDesdttoken-001"), 0xa), key)
-						return json.Marshal(esdtToken)
-					},
-				}
+			RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
+				assert.Equal(t, append([]byte("ELRONDesdttoken-001"), 0xa), key)
+				return json.Marshal(esdtToken)
 			},
 		},
 		TokenIdentifier: tokenIdentifier,
@@ -244,13 +231,9 @@ func TestGetESDTInfoNFTWithMetaData(t *testing.T) {
 	tokenIdentifier := "token-001"
 	wrapAccount := &data.AccountESDT{
 		Account: &mock.UserAccountStub{
-			DataTrieTrackerCalled: func() state.DataTrieTracker {
-				return &mock.DataTrieTrackerStub{
-					RetrieveValueCalled: func(key []byte) ([]byte, error) {
-						assert.Equal(t, append([]byte("ELRONDesdttoken-001"), 0xa), key)
-						return json.Marshal(esdtToken)
-					},
-				}
+			RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
+				assert.Equal(t, append([]byte("ELRONDesdttoken-001"), 0xa), key)
+				return json.Marshal(esdtToken)
 			},
 		},
 		TokenIdentifier: tokenIdentifier,
@@ -375,12 +358,8 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 
 	addr := "aaaabbbb"
 	mockAccount := &mock.UserAccountStub{
-		DataTrieTrackerCalled: func() state.DataTrieTracker {
-			return &mock.DataTrieTrackerStub{
-				RetrieveValueCalled: func(key []byte) ([]byte, error) {
-					return json.Marshal(esdtToken)
-				},
-			}
+		RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
+			return json.Marshal(esdtToken)
 		},
 		AddressBytesCalled: func() []byte {
 			return []byte(addr)
@@ -462,14 +441,14 @@ func TestAccountsProcessor_GetUserAccountErrors(t *testing.T) {
 	localErr := errors.New("local error")
 	tests := []struct {
 		name         string
-		argsFunc     func() (int, marshal.Marshalizer, core.PubkeyConverter, state.AccountsAdapter)
+		argsFunc     func() (int, marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter)
 		inputAddress string
 		exError      error
 	}{
 		{
 			name:    "InvalidAddress",
 			exError: localErr,
-			argsFunc: func() (int, marshal.Marshalizer, core.PubkeyConverter, state.AccountsAdapter) {
+			argsFunc: func() (int, marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter) {
 				return 10, &mock.MarshalizerMock{}, &mock.PubkeyConverterStub{
 					DecodeCalled: func(humanReadable string) ([]byte, error) {
 						return nil, localErr
@@ -479,7 +458,7 @@ func TestAccountsProcessor_GetUserAccountErrors(t *testing.T) {
 		{
 			name:    "CannotLoadAccount",
 			exError: localErr,
-			argsFunc: func() (int, marshal.Marshalizer, core.PubkeyConverter, state.AccountsAdapter) {
+			argsFunc: func() (int, marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter) {
 				return 10, &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{}, &mock.AccountsStub{
 					LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
 						return nil, localErr
@@ -490,7 +469,7 @@ func TestAccountsProcessor_GetUserAccountErrors(t *testing.T) {
 		{
 			name:    "CannotCastAccount",
 			exError: indexer.ErrCannotCastAccountHandlerToUserAccount,
-			argsFunc: func() (int, marshal.Marshalizer, core.PubkeyConverter, state.AccountsAdapter) {
+			argsFunc: func() (int, marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter) {
 				return 10, &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{}, &mock.AccountsStub{
 					LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
 						return nil, nil

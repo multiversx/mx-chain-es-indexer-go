@@ -6,13 +6,13 @@ import (
 
 	"github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/core/check"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
+	"github.com/ElrondNetwork/elrond-go-core/data/block"
+	"github.com/ElrondNetwork/elrond-go-core/hashing"
+	"github.com/ElrondNetwork/elrond-go-core/marshal"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
-	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/core/check"
-	nodeData "github.com/ElrondNetwork/elrond-go/data"
-	"github.com/ElrondNetwork/elrond-go/data/block"
-	"github.com/ElrondNetwork/elrond-go/hashing"
-	"github.com/ElrondNetwork/elrond-go/marshal"
 )
 
 var log = logger.GetOrCreate("indexer/process/miniblocks")
@@ -44,7 +44,7 @@ func NewMiniblocksProcessor(
 }
 
 // PrepareDBMiniblocks will prepare miniblocks from body
-func (mp *miniblocksProcessor) PrepareDBMiniblocks(header nodeData.HeaderHandler, body *block.Body) []*data.Miniblock {
+func (mp *miniblocksProcessor) PrepareDBMiniblocks(header coreData.HeaderHandler, body *block.Body) []*data.Miniblock {
 	headerHash, err := mp.calculateHash(header)
 	if err != nil {
 		log.Warn("indexer: could not calculate header hash", "error", err)
@@ -67,7 +67,7 @@ func (mp *miniblocksProcessor) PrepareDBMiniblocks(header nodeData.HeaderHandler
 
 func (mp *miniblocksProcessor) prepareMiniblockForDB(
 	miniblock *block.MiniBlock,
-	header nodeData.HeaderHandler,
+	header coreData.HeaderHandler,
 	headerHash []byte,
 ) (*data.Miniblock, error) {
 	mbHash, err := mp.calculateHash(miniblock)
@@ -100,7 +100,7 @@ func (mp *miniblocksProcessor) prepareMiniblockForDB(
 }
 
 // GetMiniblocksHashesHexEncoded will compute miniblocks hashes in a hexadecimal encoding
-func (mp *miniblocksProcessor) GetMiniblocksHashesHexEncoded(header nodeData.HeaderHandler, body *block.Body) []string {
+func (mp *miniblocksProcessor) GetMiniblocksHashesHexEncoded(header coreData.HeaderHandler, body *block.Body) []string {
 	if body == nil || len(header.GetMiniBlockHeadersHashes()) == 0 {
 		return nil
 	}

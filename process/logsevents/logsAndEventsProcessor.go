@@ -6,11 +6,10 @@ import (
 	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
-	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/core/check"
-	nodeData "github.com/ElrondNetwork/elrond-go/data"
-	"github.com/ElrondNetwork/elrond-go/marshal"
-	"github.com/ElrondNetwork/elrond-go/sharding"
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/core/check"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
+	"github.com/ElrondNetwork/elrond-go-core/marshal"
 )
 
 type logsAndEventsProcessor struct {
@@ -22,7 +21,7 @@ type logsAndEventsProcessor struct {
 
 // NewLogsAndEventsProcessor will create a new instance for the logsAndEventsProcessor
 func NewLogsAndEventsProcessor(
-	shardCoordinator sharding.Coordinator,
+	shardCoordinator elasticIndexer.ShardCoordinator,
 	pubKeyConverter core.PubkeyConverter,
 	marshalizer marshal.Marshalizer,
 ) (*logsAndEventsProcessor, error) {
@@ -52,7 +51,7 @@ func NewLogsAndEventsProcessor(
 
 // ExtractDataFromLogsAndPutInAltered will extract data from the provided logs and events and put in altered addresses
 func (lep *logsAndEventsProcessor) ExtractDataFromLogsAndPutInAltered(
-	logsAndEvents map[string]nodeData.LogHandler,
+	logsAndEvents map[string]coreData.LogHandler,
 	preparedResults *data.PreparedResults,
 	timestamp uint64,
 ) (data.TokensHandler, tags.CountTags, map[string]*data.ScDeployInfo) {
@@ -116,7 +115,7 @@ func (lep *logsAndEventsProcessor) processEvent(logHash string, events nodeData.
 }
 
 // PrepareLogsForDB will prepare logs for database
-func (lep *logsAndEventsProcessor) PrepareLogsForDB(logsAndEvents map[string]nodeData.LogHandler) []*data.Logs {
+func (lep *logsAndEventsProcessor) PrepareLogsForDB(logsAndEvents map[string]coreData.LogHandler) []*data.Logs {
 	logs := make([]*data.Logs, 0, len(logsAndEvents))
 
 	for txHash, log := range logsAndEvents {
@@ -130,7 +129,7 @@ func (lep *logsAndEventsProcessor) PrepareLogsForDB(logsAndEvents map[string]nod
 	return logs
 }
 
-func (lep *logsAndEventsProcessor) prepareLogsForDB(id string, logHandler nodeData.LogHandler) *data.Logs {
+func (lep *logsAndEventsProcessor) prepareLogsForDB(id string, logHandler coreData.LogHandler) *data.Logs {
 	events := logHandler.GetLogEvents()
 	logsDB := &data.Logs{
 		ID:      hex.EncodeToString([]byte(id)),

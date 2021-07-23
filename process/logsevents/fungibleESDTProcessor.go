@@ -1,10 +1,10 @@
 package logsevents
 
 import (
+	"github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elrond-go/core"
-	nodeData "github.com/ElrondNetwork/elrond-go/data"
-	"github.com/ElrondNetwork/elrond-go/sharding"
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 )
 
 const (
@@ -13,11 +13,11 @@ const (
 
 type fungibleESDTProcessor struct {
 	pubKeyConverter               core.PubkeyConverter
-	shardCoordinator              sharding.Coordinator
+	shardCoordinator              indexer.ShardCoordinator
 	fungibleOperationsIdentifiers map[string]struct{}
 }
 
-func newFungibleESDTProcessor(pubKeyConverter core.PubkeyConverter, shardCoordinator sharding.Coordinator) *fungibleESDTProcessor {
+func newFungibleESDTProcessor(pubKeyConverter core.PubkeyConverter, shardCoordinator indexer.ShardCoordinator) *fungibleESDTProcessor {
 	return &fungibleESDTProcessor{
 		pubKeyConverter:  pubKeyConverter,
 		shardCoordinator: shardCoordinator,
@@ -53,7 +53,7 @@ func (fep *fungibleESDTProcessor) processEvent(args *argsProcessEvent) (string, 
 	return fep.processEventDestination(args.event, args.accounts, selfShardID), true
 }
 
-func (fep *fungibleESDTProcessor) processEventOnSenderShard(event nodeData.EventHandler, accounts data.AlteredAccountsHandler) {
+func (fep *fungibleESDTProcessor) processEventOnSenderShard(event coreData.EventHandler, accounts data.AlteredAccountsHandler) {
 	topics := event.GetTopics()
 	tokenID := topics[0]
 
@@ -64,7 +64,7 @@ func (fep *fungibleESDTProcessor) processEventOnSenderShard(event nodeData.Event
 	})
 }
 
-func (fep *fungibleESDTProcessor) processEventDestination(event nodeData.EventHandler, accounts data.AlteredAccountsHandler, selfShardID uint32) string {
+func (fep *fungibleESDTProcessor) processEventDestination(event coreData.EventHandler, accounts data.AlteredAccountsHandler, selfShardID uint32) string {
 	topics := event.GetTopics()
 	tokenID := string(topics[0])
 	if len(topics) < numTopicsWithReceiverAddress {

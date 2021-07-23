@@ -18,7 +18,7 @@ func TestCreateElasticProcessor(t *testing.T) {
 		AccountsDB:               &mock.AccountsStub{},
 		ShardCoordinator:         &mock.ShardCoordinatorMock{},
 		TransactionFeeCalculator: &mock.EconomicsHandlerStub{},
-		EnabledIndexes:           []string{"tps"},
+		EnabledIndexes:           []string{"blocks"},
 		TemplatesPath:            "",
 		Denomination:             1,
 		SaveTxsLogsEnabled:       false,

@@ -3,7 +3,7 @@ package transactions
 import (
 	"strings"
 
-	"github.com/ElrondNetwork/elrond-go/process"
+	"github.com/ElrondNetwork/elrond-vm-common/parsers"
 )
 
 const (
@@ -12,13 +12,17 @@ const (
 	zeroHexConst = "00"
 )
 
-type argumentsParserExtended struct {
-	process.CallArgumentsParser
+type parser interface {
+	ParseData(data string) (string, [][]byte, error)
 }
 
-func newArgumentsParser(argsParser process.CallArgumentsParser) *argumentsParserExtended {
+type argumentsParserExtended struct {
+	parser
+}
+
+func newArgumentsParser() *argumentsParserExtended {
 	return &argumentsParserExtended{
-		CallArgumentsParser: argsParser,
+		parser: parsers.NewCallArgsParser(),
 	}
 }
 
