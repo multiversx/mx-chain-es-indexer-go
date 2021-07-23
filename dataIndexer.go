@@ -11,7 +11,7 @@ import (
 
 // ArgDataIndexer is a structure that is used to store all the components that are needed to create an indexer
 type ArgDataIndexer struct {
-	ShardCoordinator Coordinator
+	ShardCoordinator ShardCoordinator
 	Marshalizer      marshal.Marshalizer
 	DataDispatcher   DispatcherHandler
 	ElasticProcessor ElasticProcessor

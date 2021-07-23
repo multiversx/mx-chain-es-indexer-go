@@ -28,7 +28,7 @@ type ArgsIndexerFactory struct {
 	Password                 string
 	TemplatesPath            string
 	EnabledIndexes           []string
-	ShardCoordinator         indexer.Coordinator
+	ShardCoordinator         indexer.ShardCoordinator
 	Marshalizer              marshal.Marshalizer
 	Hasher                   hashing.Hasher
 	AddressPubkeyConverter   core.PubkeyConverter

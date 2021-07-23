@@ -30,7 +30,7 @@ var log = logger.GetOrCreate("indexer/process/transactions")
 type ArgsTransactionProcessor struct {
 	AddressPubkeyConverter core.PubkeyConverter
 	TxFeeCalculator        indexer.FeesProcessorHandler
-	ShardCoordinator       indexer.Coordinator
+	ShardCoordinator       indexer.ShardCoordinator
 	Hasher                 hashing.Hasher
 	Marshalizer            marshal.Marshalizer
 	IsInImportMode         bool

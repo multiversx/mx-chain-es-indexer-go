@@ -24,7 +24,7 @@ type ArgElasticProcessorFactory struct {
 	ValidatorPubkeyConverter core.PubkeyConverter
 	DBClient                 processIndexer.DatabaseClientHandler
 	AccountsDB               indexer.AccountsAdapter
-	ShardCoordinator         indexer.Coordinator
+	ShardCoordinator         indexer.ShardCoordinator
 	TransactionFeeCalculator indexer.FeesProcessorHandler
 	EnabledIndexes           []string
 	TemplatesPath            string

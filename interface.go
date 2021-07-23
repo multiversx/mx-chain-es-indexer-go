@@ -42,8 +42,8 @@ type FeesProcessorHandler interface {
 	IsInterfaceNil() bool
 }
 
-// Coordinator defines what a shard state coordinator should hold
-type Coordinator interface {
+// ShardCoordinator defines what a shard state coordinator should hold
+type ShardCoordinator interface {
 	ComputeId(address []byte) uint32
 	SelfId() uint32
 	IsInterfaceNil() bool

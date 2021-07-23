@@ -24,6 +24,7 @@ func (u *UserAccountStub) GetBalance() *big.Int {
 	return nil
 }
 
+// RetrieveValueFromDataTrieTracker -
 func (u *UserAccountStub) RetrieveValueFromDataTrieTracker(key []byte) ([]byte, error) {
 	if u.RetrieveValueFromDataTrieTrackerCalled != nil {
 		return u.RetrieveValueFromDataTrieTrackerCalled(key)

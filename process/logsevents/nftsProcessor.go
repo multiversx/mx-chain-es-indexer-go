@@ -17,12 +17,12 @@ import (
 type nftsProcessor struct {
 	pubKeyConverter          core.PubkeyConverter
 	nftOperationsIdentifiers map[string]struct{}
-	shardCoordinator         elasticIndexer.Coordinator
+	shardCoordinator         elasticIndexer.ShardCoordinator
 	marshalizer              marshal.Marshalizer
 }
 
 func newNFTsProcessor(
-	shardCoordinator elasticIndexer.Coordinator,
+	shardCoordinator elasticIndexer.ShardCoordinator,
 	pubKeyConverter core.PubkeyConverter,
 	marshalizer marshal.Marshalizer,
 ) *nftsProcessor {

@@ -20,7 +20,7 @@ type logsAndEventsProcessor struct {
 
 // NewLogsAndEventsProcessor will create a new instance for the logsAndEventsProcessor
 func NewLogsAndEventsProcessor(
-	shardCoordinator elasticIndexer.Coordinator,
+	shardCoordinator elasticIndexer.ShardCoordinator,
 	pubKeyConverter core.PubkeyConverter,
 	marshalizer marshal.Marshalizer,
 ) (*logsAndEventsProcessor, error) {

@@ -21,13 +21,13 @@ const emptyString = ""
 
 type dbTransactionBuilder struct {
 	addressPubkeyConverter core.PubkeyConverter
-	shardCoordinator       indexer.Coordinator
+	shardCoordinator       indexer.ShardCoordinator
 	txFeeCalculator        indexer.FeesProcessorHandler
 }
 
 func newTransactionDBBuilder(
 	addressPubkeyConverter core.PubkeyConverter,
-	shardCoordinator indexer.Coordinator,
+	shardCoordinator indexer.ShardCoordinator,
 	txFeeCalculator indexer.FeesProcessorHandler,
 ) *dbTransactionBuilder {
 	return &dbTransactionBuilder{

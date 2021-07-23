@@ -13,11 +13,11 @@ const (
 
 type fungibleESDTProcessor struct {
 	pubKeyConverter               core.PubkeyConverter
-	shardCoordinator              indexer.Coordinator
+	shardCoordinator              indexer.ShardCoordinator
 	fungibleOperationsIdentifiers map[string]struct{}
 }
 
-func newFungibleESDTProcessor(pubKeyConverter core.PubkeyConverter, shardCoordinator indexer.Coordinator) *fungibleESDTProcessor {
+func newFungibleESDTProcessor(pubKeyConverter core.PubkeyConverter, shardCoordinator indexer.ShardCoordinator) *fungibleESDTProcessor {
 	return &fungibleESDTProcessor{
 		pubKeyConverter:  pubKeyConverter,
 		shardCoordinator: shardCoordinator,
