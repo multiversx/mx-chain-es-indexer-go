@@ -7,11 +7,13 @@ import (
 )
 
 type argsProcessEvent struct {
-	event     coreData.EventHandler
-	accounts  data.AlteredAccountsHandler
-	tokens    data.TokensHandler
-	tagsCount tags.CountTags
-	timestamp uint64
+	txHashHexEncoded string
+	scDeploys        map[string]*data.ScDeployInfo
+	event            coreData.EventHandler
+	accounts         data.AlteredAccountsHandler
+	tokens           data.TokensHandler
+	tagsCount        tags.CountTags
+	timestamp        uint64
 }
 
 type eventsProcessor interface {
