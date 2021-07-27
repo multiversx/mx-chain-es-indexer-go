@@ -5,12 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/ElrondNetwork/elastic-indexer-go/buff"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 )
 
 // SerializeTokens will serialize the provided tokens data in a way that Elastic Search expects a bulk request
 func (tdp *txsDatabaseProcessor) SerializeTokens(tokens []*data.TokenInfo) ([]*bytes.Buffer, error) {
-	buffSlice := data.NewBufferSlice()
+	buffSlice := buff.NewBufferSlice()
 	for _, tokenData := range tokens {
 		meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, tokenData.Token, "\n"))
 		serializedData, errMarshal := json.Marshal(tokenData)
@@ -29,7 +30,7 @@ func (tdp *txsDatabaseProcessor) SerializeTokens(tokens []*data.TokenInfo) ([]*b
 
 // SerializeScResults will serialize the provided smart contract results in a way that Elastic Search expects a bulk request
 func (tdp *txsDatabaseProcessor) SerializeScResults(scResults []*data.ScResult) ([]*bytes.Buffer, error) {
-	buffSlice := data.NewBufferSlice()
+	buffSlice := buff.NewBufferSlice()
 	for _, sc := range scResults {
 		meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, sc.Hash, "\n"))
 		serializedData, errPrepareSc := json.Marshal(sc)
@@ -48,7 +49,7 @@ func (tdp *txsDatabaseProcessor) SerializeScResults(scResults []*data.ScResult) 
 
 // SerializeReceipts will serialize the receipts in a way that Elastic Search expects a bulk request
 func (tdp *txsDatabaseProcessor) SerializeReceipts(receipts []*data.Receipt) ([]*bytes.Buffer, error) {
-	buffSlice := data.NewBufferSlice()
+	buffSlice := buff.NewBufferSlice()
 	for _, rec := range receipts {
 		meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, rec.Hash, "\n"))
 		serializedData, errPrepareReceipt := json.Marshal(rec)
@@ -71,7 +72,7 @@ func (tdp *txsDatabaseProcessor) SerializeTransactions(
 	selfShardID uint32,
 	mbsHashInDB map[string]bool,
 ) ([]*bytes.Buffer, error) {
-	buffSlice := data.NewBufferSlice()
+	buffSlice := buff.NewBufferSlice()
 	for _, tx := range transactions {
 		isMBOfTxInDB := mbsHashInDB[tx.MBHash]
 		meta, serializedData, err := prepareSerializedDataForATransaction(tx, selfShardID, isMBOfTxInDB)

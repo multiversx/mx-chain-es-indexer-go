@@ -21,7 +21,7 @@ func TestProcessLogsAndEventsESDT_IntraShard(t *testing.T) {
 
 		Address:    []byte("addr"),
 		Identifier: []byte(core.BuiltInFunctionESDTTransfer),
-		Topics:     [][]byte{[]byte("my-token"), big.NewInt(0).SetUint64(100).Bytes(), []byte("receiver")},
+		Topics:     [][]byte{[]byte("my-token"), big.NewInt(0).Bytes(), big.NewInt(0).SetUint64(100).Bytes(), []byte("receiver")},
 	}
 	altered := data.NewAlteredAccounts()
 
@@ -59,17 +59,18 @@ func TestProcessLogsAndEventsESDT_CrossShardOnSource(t *testing.T) {
 	})
 
 	event := &transaction.Event{
-
 		Address:    []byte("addr"),
 		Identifier: []byte(core.BuiltInFunctionESDTTransfer),
-		Topics:     [][]byte{[]byte("my-token"), big.NewInt(0).SetUint64(100).Bytes(), receiverAddr},
+		Topics:     [][]byte{[]byte("my-token"), big.NewInt(0).Bytes(), big.NewInt(0).SetUint64(100).Bytes(), receiverAddr},
 	}
 
 	altered := data.NewAlteredAccounts()
 
+	pb := newPendingBalancesProcessor()
 	fungibleProc.processEvent(&argsProcessEvent{
-		event:    event,
-		accounts: altered,
+		event:           event,
+		accounts:        altered,
+		pendingBalances: pb,
 	})
 
 	alteredAddrSender, ok := altered.Get("61646472")
@@ -81,6 +82,13 @@ func TestProcessLogsAndEventsESDT_CrossShardOnSource(t *testing.T) {
 
 	_, ok = altered.Get("7265636569766572")
 	require.False(t, ok)
+
+	all := pb.getAll()
+	require.Equal(t, &data.AccountInfo{
+		Address:   "pending_7265636569766572",
+		Balance:   "100",
+		TokenName: "my-token",
+	}, all["pending_7265636569766572_my-token_00"])
 }
 
 func TestProcessLogsAndEventsESDT_CrossShardOnDestination(t *testing.T) {
@@ -100,7 +108,7 @@ func TestProcessLogsAndEventsESDT_CrossShardOnDestination(t *testing.T) {
 	event := &transaction.Event{
 		Address:    senderAddr,
 		Identifier: []byte(core.BuiltInFunctionESDTTransfer),
-		Topics:     [][]byte{[]byte("my-token"), big.NewInt(0).SetUint64(100).Bytes(), receiverAddr},
+		Topics:     [][]byte{[]byte("my-token"), big.NewInt(0).Bytes(), big.NewInt(0).SetUint64(100).Bytes(), receiverAddr},
 	}
 
 	altered := data.NewAlteredAccounts()

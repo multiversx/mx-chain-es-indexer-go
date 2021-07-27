@@ -5,12 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/ElrondNetwork/elastic-indexer-go/buff"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 )
 
 // SerializeLogs will serialize the provided logs in a way that Elastic Search expects a bulk request
 func (logsAndEventsProcessor) SerializeLogs(logs []*data.Logs) ([]*bytes.Buffer, error) {
-	buffSlice := data.NewBufferSlice()
+	buffSlice := buff.NewBufferSlice()
 	for _, log := range logs {
 		meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, log.ID, "\n"))
 		serializedData, errMarshal := json.Marshal(log)
@@ -29,7 +30,7 @@ func (logsAndEventsProcessor) SerializeLogs(logs []*data.Logs) ([]*bytes.Buffer,
 
 // SerializeSCDeploys will serialize the provided smart contract deploys in a way that Elastic Search expects a bulk request
 func (logsAndEventsProcessor) SerializeSCDeploys(deploys map[string]*data.ScDeployInfo) ([]*bytes.Buffer, error) {
-	buffSlice := data.NewBufferSlice()
+	buffSlice := buff.NewBufferSlice()
 	for scAddr, deployInfo := range deploys {
 		meta := []byte(fmt.Sprintf(`{ "update" : { "_id" : "%s", "_type" : "_doc" } }%s`, scAddr, "\n"))
 

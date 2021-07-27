@@ -397,19 +397,19 @@ func (ei *elasticProcessor) SaveTransactions(
 	mbsInDb map[string]bool,
 ) error {
 	preparedResults := ei.transactionsProc.PrepareTransactionsForDatabase(body, header, pool)
-	nftCreateTokenInfo, tagsCount, deploysInfo := ei.logsAndEventsProc.ExtractDataFromLogsAndPutInAltered(pool.Logs, preparedResults, header.GetTimeStamp())
+	logsData := ei.logsAndEventsProc.ExtractDataFromLogs(pool.Logs, preparedResults, header.GetTimeStamp())
 
 	err := ei.indexTransactions(preparedResults.Transactions, header, mbsInDb)
 	if err != nil {
 		return err
 	}
 
-	err = ei.prepareAndIndexTagsCount(tagsCount)
+	err = ei.prepareAndIndexTagsCount(logsData.TagsCount)
 	if err != nil {
 		return err
 	}
 
-	err = ei.indexNFTCreateInfo(nftCreateTokenInfo)
+	err = ei.indexNFTCreateInfo(logsData.Tokens)
 	if err != nil {
 		return err
 	}
@@ -429,7 +429,7 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
-	err = ei.indexAlteredAccounts(header.GetTimeStamp(), preparedResults.AlteredAccts)
+	err = ei.indexAlteredAccounts(header.GetTimeStamp(), preparedResults.AlteredAccts, logsData.PendingBalances)
 	if err != nil {
 		return err
 	}
@@ -439,7 +439,7 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
-	return ei.indexScDeploys(deploysInfo)
+	return ei.indexScDeploys(logsData.ScDeploys)
 }
 
 func (ei *elasticProcessor) prepareAndIndexLogs(logsAndEvents map[string]coreData.LogHandler) error {
@@ -541,7 +541,11 @@ func (ei *elasticProcessor) SaveRoundsInfo(info []*data.RoundInfo) error {
 	return ei.elasticClient.DoBulkRequest(buff, elasticIndexer.RoundsIndex)
 }
 
-func (ei *elasticProcessor) indexAlteredAccounts(timestamp uint64, alteredAccounts data.AlteredAccountsHandler) error {
+func (ei *elasticProcessor) indexAlteredAccounts(
+	timestamp uint64,
+	alteredAccounts data.AlteredAccountsHandler,
+	pendingBalances map[string]*data.AccountInfo,
+) error {
 	regularAccountsToIndex, accountsToIndexESDT := ei.accountsProc.GetAccounts(alteredAccounts)
 
 	err := ei.SaveAccounts(timestamp, regularAccountsToIndex)
@@ -549,11 +553,20 @@ func (ei *elasticProcessor) indexAlteredAccounts(timestamp uint64, alteredAccoun
 		return err
 	}
 
-	return ei.saveAccountsESDT(timestamp, accountsToIndexESDT)
+	return ei.saveAccountsESDT(timestamp, accountsToIndexESDT, pendingBalances)
 }
 
-func (ei *elasticProcessor) saveAccountsESDT(timestamp uint64, wrappedAccounts []*data.AccountESDT) error {
+func (ei *elasticProcessor) saveAccountsESDT(
+	timestamp uint64,
+	wrappedAccounts []*data.AccountESDT,
+	pendingBalances map[string]*data.AccountInfo,
+) error {
 	accountsESDTMap := ei.accountsProc.PrepareAccountsMapESDT(wrappedAccounts)
+	// merge maps
+	for key, info := range pendingBalances {
+		accountsESDTMap[key] = info
+	}
+
 	err := ei.indexAccountsESDT(accountsESDTMap)
 	if err != nil {
 		return err

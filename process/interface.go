@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
@@ -85,11 +84,11 @@ type DBValidatorsHandler interface {
 // DBLogsAndEventsHandler defines the actions that a logs and events handler should do
 type DBLogsAndEventsHandler interface {
 	PrepareLogsForDB(logsAndEvents map[string]coreData.LogHandler) []*data.Logs
-	ExtractDataFromLogsAndPutInAltered(
+	ExtractDataFromLogs(
 		logsAndEvents map[string]coreData.LogHandler,
 		preparedResults *data.PreparedResults,
 		timestamp uint64,
-	) (data.TokensHandler, tags.CountTags, map[string]*data.ScDeployInfo)
+	) *data.PreparedLogsResults
 
 	SerializeLogs(logs []*data.Logs) ([]*bytes.Buffer, error)
 	SerializeSCDeploys(map[string]*data.ScDeployInfo) ([]*bytes.Buffer, error)

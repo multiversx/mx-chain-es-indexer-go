@@ -75,7 +75,7 @@ func TestNftsProcessor_processLogAndEventsNFTs_TransferNFT(t *testing.T) {
 	events := &transaction.Event{
 		Address:    []byte("addr"),
 		Identifier: []byte(core.BuiltInFunctionESDTNFTTransfer),
-		Topics:     [][]byte{[]byte("my-token"), big.NewInt(0).SetUint64(nonce).Bytes(), []byte("receiver")},
+		Topics:     [][]byte{[]byte("my-token"), big.NewInt(0).SetUint64(nonce).Bytes(), big.NewInt(1).Bytes(), []byte("receiver")},
 	}
 
 	altered := data.NewAlteredAccounts()

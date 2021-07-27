@@ -16,3 +16,15 @@ func ComputeTokenIdentifier(token string, nonce uint64) string {
 	hexEncodedNonce := hex.EncodeToString(nonceBig.Bytes())
 	return fmt.Sprintf("%s-%s", token, hexEncodedNonce)
 }
+
+// EncodeNonceToHex will encode provided nonce in a hex format
+func EncodeNonceToHex(nonce uint64) string {
+	if nonce == 0 {
+		return "00"
+	}
+
+	nonceBigBytes := big.NewInt(0).SetUint64(nonce).Bytes()
+	hexEncodedNonce := hex.EncodeToString(nonceBigBytes)
+
+	return hexEncodedNonce
+}
