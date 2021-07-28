@@ -82,6 +82,7 @@ func (np *nftsProcessor) processEvent(args *argsProcessEvent) (string, bool) {
 		return identifier, true
 	}
 
+	args.pendingBalances.addInfo(encodedReceiver, token, nonceBig.Uint64(), big.NewInt(0).String())
 	args.accounts.Add(encodedReceiver, &data.AlteredAccount{
 		IsNFTOperation:  true,
 		TokenIdentifier: token,

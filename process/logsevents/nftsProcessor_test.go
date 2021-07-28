@@ -29,7 +29,7 @@ func TestNftsProcessor_processLogAndEventsNFTs(t *testing.T) {
 	event := &transaction.Event{
 		Address:    []byte("addr"),
 		Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
-		Topics:     [][]byte{[]byte("my-token"), big.NewInt(0).SetUint64(nonce).Bytes(), esdtDataBytes},
+		Topics:     [][]byte{[]byte("my-token"), big.NewInt(0).SetUint64(nonce).Bytes(), big.NewInt(1).Bytes(), esdtDataBytes},
 	}
 
 	nftsProc := newNFTsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{})
@@ -39,11 +39,12 @@ func TestNftsProcessor_processLogAndEventsNFTs(t *testing.T) {
 	tagsCount := tags.NewTagsCount()
 	tokensCreateInfo := data.NewTokensInfo()
 	nftsProc.processEvent(&argsProcessEvent{
-		event:     event,
-		accounts:  altered,
-		tokens:    tokensCreateInfo,
-		timestamp: 1000,
-		tagsCount: tagsCount,
+		event:           event,
+		accounts:        altered,
+		tokens:          tokensCreateInfo,
+		timestamp:       1000,
+		tagsCount:       tagsCount,
+		pendingBalances: newPendingBalancesProcessor(),
 	})
 
 	alteredAddr, ok := altered.Get("61646472")
@@ -82,10 +83,11 @@ func TestNftsProcessor_processLogAndEventsNFTs_TransferNFT(t *testing.T) {
 
 	tagsCount := tags.NewTagsCount()
 	nftsProc.processEvent(&argsProcessEvent{
-		event:     events,
-		accounts:  altered,
-		timestamp: 10000,
-		tagsCount: tagsCount,
+		event:           events,
+		accounts:        altered,
+		timestamp:       10000,
+		tagsCount:       tagsCount,
+		pendingBalances: newPendingBalancesProcessor(),
 	})
 
 	alteredAddrSender, ok := altered.Get("61646472")

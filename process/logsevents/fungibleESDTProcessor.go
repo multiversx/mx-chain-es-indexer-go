@@ -91,6 +91,7 @@ func (fep *fungibleESDTProcessor) processEventDestination(args *argsProcessEvent
 		return tokenID
 	}
 
+	args.pendingBalances.addInfo(encodedAddr, tokenID, 0, big.NewInt(0).String())
 	args.accounts.Add(encodedAddr, &data.AlteredAccount{
 		IsESDTOperation: true,
 		TokenIdentifier: tokenID,

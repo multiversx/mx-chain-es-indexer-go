@@ -166,7 +166,7 @@ func TestSerializeAccountsESDTDelete(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(res))
 
-	expectedRes := `{ "delete" : { "_id" : "addr1-token-0001-0" } }
+	expectedRes := `{ "delete" : { "_id" : "addr1-token-0001-00" } }
 `
 	require.Equal(t, expectedRes, res[0].String())
 }

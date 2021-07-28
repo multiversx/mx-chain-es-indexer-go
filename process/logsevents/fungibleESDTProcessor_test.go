@@ -26,8 +26,9 @@ func TestProcessLogsAndEventsESDT_IntraShard(t *testing.T) {
 	altered := data.NewAlteredAccounts()
 
 	fungibleProc.processEvent(&argsProcessEvent{
-		event:    event,
-		accounts: altered,
+		event:           event,
+		accounts:        altered,
+		pendingBalances: newPendingBalancesProcessor(),
 	})
 
 	alteredAddrSender, ok := altered.Get("61646472")
@@ -113,8 +114,9 @@ func TestProcessLogsAndEventsESDT_CrossShardOnDestination(t *testing.T) {
 
 	altered := data.NewAlteredAccounts()
 	fungibleProc.processEvent(&argsProcessEvent{
-		event:    event,
-		accounts: altered,
+		event:           event,
+		accounts:        altered,
+		pendingBalances: newPendingBalancesProcessor(),
 	})
 
 	alteredAddrSender, ok := altered.Get("7265636569766572")
