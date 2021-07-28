@@ -81,13 +81,14 @@ func TestNftsProcessor_processLogAndEventsNFTs_TransferNFT(t *testing.T) {
 
 	altered := data.NewAlteredAccounts()
 
+	pp := newPendingBalancesProcessor()
 	tagsCount := tags.NewTagsCount()
 	nftsProc.processEvent(&argsProcessEvent{
 		event:           events,
 		accounts:        altered,
 		timestamp:       10000,
 		tagsCount:       tagsCount,
-		pendingBalances: newPendingBalancesProcessor(),
+		pendingBalances: pp,
 	})
 
 	alteredAddrSender, ok := altered.Get("61646472")
@@ -105,4 +106,6 @@ func TestNftsProcessor_processLogAndEventsNFTs_TransferNFT(t *testing.T) {
 		TokenIdentifier: "my-token",
 		NFTNonce:        19,
 	}, alteredAddrReceiver[0])
+
+	require.Len(t, pp.getAll(), 0)
 }

@@ -654,7 +654,7 @@ func (ei *elasticProcessor) saveAccountsESDTHistory(timestamp uint64, accountsIn
 
 	accountsMap := ei.accountsProc.PrepareAccountsHistory(timestamp, accountsInfoMap)
 
-	return ei.serializeAndIndexAccountsHistory(accountsMap, elasticIndexer.AccountsESDTHistoryIndex)
+	return ei.serializeAndIndexAccountsHistory(accountsMap, elasticIndexer.AccountsESDTHistoryIndex, true)
 }
 
 func (ei *elasticProcessor) saveAccountsHistory(timestamp uint64, accountsInfoMap map[string]*data.AccountInfo) error {
@@ -664,11 +664,11 @@ func (ei *elasticProcessor) saveAccountsHistory(timestamp uint64, accountsInfoMa
 
 	accountsMap := ei.accountsProc.PrepareAccountsHistory(timestamp, accountsInfoMap)
 
-	return ei.serializeAndIndexAccountsHistory(accountsMap, elasticIndexer.AccountsHistoryIndex)
+	return ei.serializeAndIndexAccountsHistory(accountsMap, elasticIndexer.AccountsHistoryIndex, false)
 }
 
-func (ei *elasticProcessor) serializeAndIndexAccountsHistory(accountsMap map[string]*data.AccountBalanceHistory, index string) error {
-	buffSlice, err := ei.accountsProc.SerializeAccountsHistory(accountsMap)
+func (ei *elasticProcessor) serializeAndIndexAccountsHistory(accountsMap map[string]*data.AccountBalanceHistory, index string, areESDTAccounts bool) error {
+	buffSlice, err := ei.accountsProc.SerializeAccountsHistory(accountsMap, areESDTAccounts)
 	if err != nil {
 		return err
 	}

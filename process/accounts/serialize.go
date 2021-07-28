@@ -93,12 +93,13 @@ func prepareSerializedAccountInfo(
 // SerializeAccountsHistory will serialize accounts history in a way that Elastic Search expects a bulk request
 func (ap *accountsProcessor) SerializeAccountsHistory(
 	accounts map[string]*data.AccountBalanceHistory,
+	areESDTAccounts bool,
 ) ([]*bytes.Buffer, error) {
 	var err error
 
 	buffSlice := buff.NewBufferSlice()
 	for _, acc := range accounts {
-		meta, serializedData, errPrepareAcc := prepareSerializedAccountBalanceHistory(acc)
+		meta, serializedData, errPrepareAcc := prepareSerializedAccountBalanceHistory(acc, areESDTAccounts)
 		if errPrepareAcc != nil {
 			return nil, err
 		}
@@ -114,11 +115,16 @@ func (ap *accountsProcessor) SerializeAccountsHistory(
 
 func prepareSerializedAccountBalanceHistory(
 	account *data.AccountBalanceHistory,
+	isESDTAccount bool,
 ) ([]byte, []byte, error) {
-	// no '_id' is specified because an elastic client would never search after the identifier for this index.
-	// this is also an improvement: more details here:
-	// https://www.elastic.co/guide/en/elasticsearch/reference/master/tune-for-indexing-speed.html#_use_auto_generated_ids
-	meta := []byte(fmt.Sprintf(`{ "index" : { } }%s`, "\n"))
+	id := account.Address
+	if isESDTAccount {
+		hexEncodedNonce := converters.EncodeNonceToHex(account.TokenNonce)
+		id += fmt.Sprintf("-%s-%s", account.Token, hexEncodedNonce)
+	}
+
+	id += fmt.Sprintf("-%d", account.Timestamp)
+	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, id, "\n"))
 
 	serializedData, err := json.Marshal(account)
 	if err != nil {

@@ -32,7 +32,7 @@ type DBAccountHandler interface {
 	PrepareAccountsMapESDT(accounts []*data.AccountESDT) map[string]*data.AccountInfo
 	PrepareAccountsHistory(timestamp uint64, accounts map[string]*data.AccountInfo) map[string]*data.AccountBalanceHistory
 
-	SerializeAccountsHistory(accounts map[string]*data.AccountBalanceHistory) ([]*bytes.Buffer, error)
+	SerializeAccountsHistory(accounts map[string]*data.AccountBalanceHistory, areESDTAccounts bool) ([]*bytes.Buffer, error)
 	SerializeAccounts(accounts map[string]*data.AccountInfo, areESDTAccounts bool) ([]*bytes.Buffer, error)
 	SerializeNFTCreateInfo(tokensInfo []*data.TokenInfo) ([]*bytes.Buffer, error)
 }

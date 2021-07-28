@@ -185,11 +185,11 @@ func TestSerializeAccountsHistory(t *testing.T) {
 		},
 	}
 
-	res, err := (&accountsProcessor{}).SerializeAccountsHistory(accsh)
+	res, err := (&accountsProcessor{}).SerializeAccountsHistory(accsh, true)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(res))
 
-	expectedRes := `{ "index" : { } }
+	expectedRes := `{ "index" : { "_id" : "account1-token-0001-00-10" } }
 {"address":"account1","timestamp":10,"balance":"123","token":"token-0001","isSender":true,"isSmartContract":true}
 `
 	require.Equal(t, expectedRes, res[0].String())

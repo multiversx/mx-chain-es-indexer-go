@@ -697,7 +697,7 @@ func TestElasticProcessor_IndexAlteredAccounts(t *testing.T) {
 	}
 	arguments := createMockElasticProcessorArgs()
 	arguments.AccountsProc = &mock.DBAccountsHandlerStub{
-		SerializeAccountsHistoryCalled: func(accounts map[string]*data.AccountBalanceHistory) ([]*bytes.Buffer, error) {
+		SerializeAccountsHistoryCalled: func(accounts map[string]*data.AccountBalanceHistory, esdt bool) ([]*bytes.Buffer, error) {
 			return []*bytes.Buffer{{}}, nil
 		},
 	}

@@ -25,10 +25,11 @@ func TestProcessLogsAndEventsESDT_IntraShard(t *testing.T) {
 	}
 	altered := data.NewAlteredAccounts()
 
+	pp := newPendingBalancesProcessor()
 	fungibleProc.processEvent(&argsProcessEvent{
 		event:           event,
 		accounts:        altered,
-		pendingBalances: newPendingBalancesProcessor(),
+		pendingBalances: pp,
 	})
 
 	alteredAddrSender, ok := altered.Get("61646472")
@@ -44,6 +45,9 @@ func TestProcessLogsAndEventsESDT_IntraShard(t *testing.T) {
 		IsESDTOperation: true,
 		TokenIdentifier: "my-token",
 	}, alteredAddrReceiver[0])
+
+	pending := pp.getAll()
+	require.Len(t, pending, 0)
 }
 
 func TestProcessLogsAndEventsESDT_CrossShardOnSource(t *testing.T) {
@@ -112,11 +116,12 @@ func TestProcessLogsAndEventsESDT_CrossShardOnDestination(t *testing.T) {
 		Topics:     [][]byte{[]byte("my-token"), big.NewInt(0).Bytes(), big.NewInt(0).SetUint64(100).Bytes(), receiverAddr},
 	}
 
+	pp := newPendingBalancesProcessor()
 	altered := data.NewAlteredAccounts()
 	fungibleProc.processEvent(&argsProcessEvent{
 		event:           event,
 		accounts:        altered,
-		pendingBalances: newPendingBalancesProcessor(),
+		pendingBalances: pp,
 	})
 
 	alteredAddrSender, ok := altered.Get("7265636569766572")
@@ -128,4 +133,10 @@ func TestProcessLogsAndEventsESDT_CrossShardOnDestination(t *testing.T) {
 
 	_, ok = altered.Get("61646472")
 	require.False(t, ok)
+
+	require.Equal(t, &data.AccountInfo{
+		Address:   "pending_7265636569766572",
+		Balance:   "0",
+		TokenName: "my-token",
+	}, pp.getAll()["pending_7265636569766572_my-token_00"])
 }

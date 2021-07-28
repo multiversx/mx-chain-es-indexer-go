@@ -63,7 +63,8 @@ func (np *nftsProcessor) processEvent(args *argsProcessEvent) (string, bool) {
 	}
 
 	sender := args.event.GetAddress()
-	if np.shardCoordinator.ComputeId(sender) == np.shardCoordinator.SelfId() {
+	senderShardID := np.shardCoordinator.ComputeId(sender)
+	if senderShardID == np.shardCoordinator.SelfId() {
 		np.processNFTEventOnSender(args.event, args.accounts, args.tokens, args.timestamp, args.tagsCount)
 	}
 
@@ -77,12 +78,16 @@ func (np *nftsProcessor) processEvent(args *argsProcessEvent) (string, bool) {
 	valueBig := big.NewInt(0).SetBytes(topics[2])
 	receiver := args.event.GetTopics()[3]
 	encodedReceiver := np.pubKeyConverter.Encode(topics[3])
-	if np.shardCoordinator.ComputeId(receiver) != np.shardCoordinator.SelfId() {
+	receiverShardID := np.shardCoordinator.ComputeId(receiver)
+	if receiverShardID != np.shardCoordinator.SelfId() {
 		args.pendingBalances.addInfo(encodedReceiver, token, nonceBig.Uint64(), valueBig.String())
 		return identifier, true
 	}
 
-	args.pendingBalances.addInfo(encodedReceiver, token, nonceBig.Uint64(), big.NewInt(0).String())
+	if senderShardID != receiverShardID {
+		args.pendingBalances.addInfo(encodedReceiver, token, nonceBig.Uint64(), big.NewInt(0).String())
+	}
+
 	args.accounts.Add(encodedReceiver, &data.AlteredAccount{
 		IsNFTOperation:  true,
 		TokenIdentifier: token,
