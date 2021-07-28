@@ -6,8 +6,8 @@ import (
 	"fmt"
 
 	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
+	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
@@ -562,12 +562,9 @@ func (ei *elasticProcessor) saveAccountsESDT(
 	pendingBalances map[string]*data.AccountInfo,
 ) error {
 	accountsESDTMap := ei.accountsProc.PrepareAccountsMapESDT(wrappedAccounts)
-	// merge maps
-	for key, info := range accountsESDTMap {
-		pendingBalances[key] = info
-	}
 
-	err := ei.indexAccountsESDT(pendingBalances)
+	resAccountsMap := converters.MergeAccountsInfoMaps(accountsESDTMap, pendingBalances)
+	err := ei.indexAccountsESDT(resAccountsMap)
 	if err != nil {
 		return err
 	}
@@ -575,7 +572,7 @@ func (ei *elasticProcessor) saveAccountsESDT(
 	return ei.saveAccountsESDTHistory(timestamp, accountsESDTMap)
 }
 
-func (ei *elasticProcessor) prepareAndIndexTagsCount(tagsCount tags.CountTags) error {
+func (ei *elasticProcessor) prepareAndIndexTagsCount(tagsCount data.CountTags) error {
 	shouldSkipIndex := !ei.isIndexEnabled(elasticIndexer.TagsIndex) || tagsCount.Len() == 0
 	if shouldSkipIndex {
 		return nil
@@ -654,7 +651,7 @@ func (ei *elasticProcessor) saveAccountsESDTHistory(timestamp uint64, accountsIn
 
 	accountsMap := ei.accountsProc.PrepareAccountsHistory(timestamp, accountsInfoMap)
 
-	return ei.serializeAndIndexAccountsHistory(accountsMap, elasticIndexer.AccountsESDTHistoryIndex, true)
+	return ei.serializeAndIndexAccountsHistory(accountsMap, elasticIndexer.AccountsESDTHistoryIndex)
 }
 
 func (ei *elasticProcessor) saveAccountsHistory(timestamp uint64, accountsInfoMap map[string]*data.AccountInfo) error {
@@ -664,11 +661,11 @@ func (ei *elasticProcessor) saveAccountsHistory(timestamp uint64, accountsInfoMa
 
 	accountsMap := ei.accountsProc.PrepareAccountsHistory(timestamp, accountsInfoMap)
 
-	return ei.serializeAndIndexAccountsHistory(accountsMap, elasticIndexer.AccountsHistoryIndex, false)
+	return ei.serializeAndIndexAccountsHistory(accountsMap, elasticIndexer.AccountsHistoryIndex)
 }
 
-func (ei *elasticProcessor) serializeAndIndexAccountsHistory(accountsMap map[string]*data.AccountBalanceHistory, index string, areESDTAccounts bool) error {
-	buffSlice, err := ei.accountsProc.SerializeAccountsHistory(accountsMap, areESDTAccounts)
+func (ei *elasticProcessor) serializeAndIndexAccountsHistory(accountsMap map[string]*data.AccountBalanceHistory, index string) error {
+	buffSlice, err := ei.accountsProc.SerializeAccountsHistory(accountsMap)
 	if err != nil {
 		return err
 	}

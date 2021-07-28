@@ -185,7 +185,7 @@ func TestSerializeAccountsHistory(t *testing.T) {
 		},
 	}
 
-	res, err := (&accountsProcessor{}).SerializeAccountsHistory(accsh, true)
+	res, err := (&accountsProcessor{}).SerializeAccountsHistory(accsh)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(res))
 

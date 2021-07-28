@@ -1,4 +1,4 @@
-package buff
+package data
 
 import (
 	"crypto/rand"

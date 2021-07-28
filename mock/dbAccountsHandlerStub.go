@@ -9,7 +9,7 @@ import (
 // DBAccountsHandlerStub -
 type DBAccountsHandlerStub struct {
 	PrepareAccountsHistoryCalled   func(timestamp uint64, accounts map[string]*data.AccountInfo) map[string]*data.AccountBalanceHistory
-	SerializeAccountsHistoryCalled func(accounts map[string]*data.AccountBalanceHistory, esdt bool) ([]*bytes.Buffer, error)
+	SerializeAccountsHistoryCalled func(accounts map[string]*data.AccountBalanceHistory) ([]*bytes.Buffer, error)
 }
 
 // GetAccounts -
@@ -37,9 +37,9 @@ func (dba *DBAccountsHandlerStub) PrepareAccountsHistory(timestamp uint64, accou
 }
 
 // SerializeAccountsHistory -
-func (dba *DBAccountsHandlerStub) SerializeAccountsHistory(accounts map[string]*data.AccountBalanceHistory, esdt bool) ([]*bytes.Buffer, error) {
+func (dba *DBAccountsHandlerStub) SerializeAccountsHistory(accounts map[string]*data.AccountBalanceHistory) ([]*bytes.Buffer, error) {
 	if dba.SerializeAccountsHistoryCalled != nil {
-		return dba.SerializeAccountsHistoryCalled(accounts, esdt)
+		return dba.SerializeAccountsHistoryCalled(accounts)
 	}
 	return nil, nil
 }

@@ -46,7 +46,7 @@ func (fep *fungibleESDTProcessor) processEvent(args *argsProcessEvent) (string, 
 	topics := args.event.GetTopics()
 	nonceBig := big.NewInt(0).SetBytes(topics[1])
 	if nonceBig.Uint64() > 0 {
-		// is a semi-fungible token should return
+		// this is a semi-fungible token so we should return
 		return "", false
 	}
 
@@ -75,7 +75,7 @@ func (fep *fungibleESDTProcessor) processEventOnSenderShard(event coreData.Event
 	})
 }
 
-func (fep *fungibleESDTProcessor) processEventDestination(args *argsProcessEvent, senderShardId, selfShardID uint32) string {
+func (fep *fungibleESDTProcessor) processEventDestination(args *argsProcessEvent, senderShardID uint32, selfShardID uint32) string {
 	topics := args.event.GetTopics()
 	tokenID := string(topics[0])
 	if len(topics) < numTopicsWithReceiverAddress {
@@ -91,7 +91,7 @@ func (fep *fungibleESDTProcessor) processEventDestination(args *argsProcessEvent
 		return tokenID
 	}
 
-	if senderShardId != receiverShardID {
+	if senderShardID != receiverShardID {
 		args.pendingBalances.addInfo(encodedAddr, tokenID, 0, big.NewInt(0).String())
 	}
 

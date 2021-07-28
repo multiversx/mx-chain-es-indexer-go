@@ -7,7 +7,6 @@ import (
 	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/esdt"
@@ -51,14 +50,15 @@ func (np *nftsProcessor) processEvent(args *argsProcessEvent) (string, bool) {
 	}
 
 	// topics contains:
-	// [0] -- token identifier
-	// [1] -- nonce of the NFT (bytes)
-	// [2] -- value
-	// [3] -- receiver NFT address -- in case of NFTTransfer OR ESDT token data in case of NFTCreate
+	// [0] --> token identifier
+	// [1] --> nonce of the NFT (bytes)
+	// [2] --> value
+	// [3] --> receiver NFT address in case of NFTTransfer
+	//     --> ESDT token data in case of NFTCreate
 	topics := args.event.GetTopics()
 	nonceBig := big.NewInt(0).SetBytes(topics[1])
 	if nonceBig.Uint64() == 0 {
-		// is a fungible token should return
+		// this is a fungible token so we should return
 		return "", false
 	}
 
@@ -114,7 +114,7 @@ func (np *nftsProcessor) processNFTEventOnSender(
 	accounts data.AlteredAccountsHandler,
 	tokensCreateInfo data.TokensHandler,
 	timestamp uint64,
-	tagsCount tags.CountTags,
+	tagsCount data.CountTags,
 ) {
 	sender := event.GetAddress()
 	topics := event.GetTopics()

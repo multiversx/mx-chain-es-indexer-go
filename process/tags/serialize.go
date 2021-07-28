@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/buff"
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 )
 
 // Serialize will serialize tagsCount in a way that Elastic Search expects a bulk request
 func (tc *tagsCount) Serialize() ([]*bytes.Buffer, error) {
-	buffSlice := buff.NewBufferSlice()
+	buffSlice := data.NewBufferSlice()
 	for tag, count := range tc.tags {
 		if tag == "" {
 			continue

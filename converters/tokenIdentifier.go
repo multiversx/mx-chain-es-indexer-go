@@ -24,7 +24,6 @@ func EncodeNonceToHex(nonce uint64) string {
 	}
 
 	nonceBigBytes := big.NewInt(0).SetUint64(nonce).Bytes()
-	hexEncodedNonce := hex.EncodeToString(nonceBigBytes)
 
-	return hexEncodedNonce
+	return hex.EncodeToString(nonceBigBytes)
 }

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/buff"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 )
 
@@ -32,7 +31,7 @@ func (vp *validatorsProcessor) SerializeValidatorsRating(
 	index string,
 	validatorsRatingInfo []*data.ValidatorRatingInfo,
 ) ([]*bytes.Buffer, error) {
-	buffSlice := buff.NewBufferSlice()
+	buffSlice := data.NewBufferSlice()
 
 	// inside elrond-go, the index is "shardID_epoch" so in order to keep backwards compatibility some adjustments have to be made.
 	// shardID from index name has to be removed because it is sufficient to have document id = blsKey_epoch

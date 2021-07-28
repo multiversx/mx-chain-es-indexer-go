@@ -1,7 +1,5 @@
 package data
 
-import "github.com/ElrondNetwork/elastic-indexer-go/process/tags"
-
 // Logs holds all the fields needed for a logs structure
 type Logs struct {
 	ID      string   `json:"-"`
@@ -20,7 +18,7 @@ type Event struct {
 // PreparedLogsResults is the DTO that holds all the results after processing
 type PreparedLogsResults struct {
 	Tokens          TokensHandler
-	TagsCount       tags.CountTags
+	TagsCount       CountTags
 	ScDeploys       map[string]*ScDeployInfo
 	PendingBalances map[string]*AccountInfo
 }
