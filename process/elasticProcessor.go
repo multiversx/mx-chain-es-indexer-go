@@ -563,11 +563,11 @@ func (ei *elasticProcessor) saveAccountsESDT(
 ) error {
 	accountsESDTMap := ei.accountsProc.PrepareAccountsMapESDT(wrappedAccounts)
 	// merge maps
-	for key, info := range pendingBalances {
-		accountsESDTMap[key] = info
+	for key, info := range accountsESDTMap {
+		pendingBalances[key] = info
 	}
 
-	err := ei.indexAccountsESDT(accountsESDTMap)
+	err := ei.indexAccountsESDT(pendingBalances)
 	if err != nil {
 		return err
 	}

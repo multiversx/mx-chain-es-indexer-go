@@ -202,9 +202,9 @@ func (ap *accountsProcessor) PrepareAccountsHistory(
 	accounts map[string]*data.AccountInfo,
 ) map[string]*data.AccountBalanceHistory {
 	accountsMap := make(map[string]*data.AccountBalanceHistory)
-	for address, userAccount := range accounts {
+	for _, userAccount := range accounts {
 		acc := &data.AccountBalanceHistory{
-			Address:         address,
+			Address:         userAccount.Address,
 			Balance:         userAccount.Balance,
 			Timestamp:       time.Duration(timestamp),
 			Token:           userAccount.TokenName,
@@ -213,8 +213,8 @@ func (ap *accountsProcessor) PrepareAccountsHistory(
 			IsSmartContract: userAccount.IsSmartContract,
 			Identifier:      converters.ComputeTokenIdentifier(userAccount.TokenName, userAccount.TokenNonce),
 		}
-		addressKey := fmt.Sprintf("%s_%d", address, timestamp)
-		accountsMap[addressKey] = acc
+		keyInMap := fmt.Sprintf("%s-%s-%d", acc.Address, acc.Token, acc.TokenNonce)
+		accountsMap[keyInMap] = acc
 	}
 
 	return accountsMap

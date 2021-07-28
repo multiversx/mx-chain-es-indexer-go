@@ -90,10 +90,10 @@ func TestProcessLogsAndEventsESDT_CrossShardOnSource(t *testing.T) {
 
 	all := pb.getAll()
 	require.Equal(t, &data.AccountInfo{
-		Address:   "pending_7265636569766572",
+		Address:   "pending-7265636569766572",
 		Balance:   "100",
 		TokenName: "my-token",
-	}, all["pending_7265636569766572_my-token_00"])
+	}, all["pending-7265636569766572-my-token-00"])
 }
 
 func TestProcessLogsAndEventsESDT_CrossShardOnDestination(t *testing.T) {
@@ -135,8 +135,8 @@ func TestProcessLogsAndEventsESDT_CrossShardOnDestination(t *testing.T) {
 	require.False(t, ok)
 
 	require.Equal(t, &data.AccountInfo{
-		Address:   "pending_7265636569766572",
+		Address:   "pending-7265636569766572",
 		Balance:   "0",
 		TokenName: "my-token",
-	}, pp.getAll()["pending_7265636569766572_my-token_00"])
+	}, pp.getAll()["pending-7265636569766572-my-token-00"])
 }

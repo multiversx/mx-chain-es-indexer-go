@@ -19,10 +19,10 @@ func newPendingBalancesProcessor() *pendingBalancesProc {
 
 func (pbp *pendingBalancesProc) addInfo(receiver string, token string, tokenNonce uint64, value string) {
 	hexEncodedNonce := converters.EncodeNonceToHex(tokenNonce)
-	key := fmt.Sprintf("%s_%s_%s_%s", pendingBalanceIdentifier, receiver, token, hexEncodedNonce)
+	key := fmt.Sprintf("%s-%s-%s-%s", pendingBalanceIdentifier, receiver, token, hexEncodedNonce)
 
 	pbp.pendingBalances[key] = &data.AccountInfo{
-		Address:         fmt.Sprintf("%s_%s", pendingBalanceIdentifier, receiver),
+		Address:         fmt.Sprintf("%s-%s", pendingBalanceIdentifier, receiver),
 		Balance:         value,
 		TokenName:       token,
 		TokenIdentifier: converters.ComputeTokenIdentifier(token, tokenNonce),
