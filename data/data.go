@@ -27,6 +27,7 @@ type RoundInfo struct {
 	SignersIndexes   []uint64      `json:"signersIndexes"`
 	BlockWasProposed bool          `json:"blockWasProposed"`
 	ShardId          uint32        `json:"shardId"`
+	Epoch            uint32        `json:"epoch"`
 	Timestamp        time.Duration `json:"timestamp"`
 }
 
