@@ -92,6 +92,7 @@ func (di *dataIndexer) SaveRoundsInfo(rf []*indexer.RoundInfo) {
 			SignersIndexes:   info.SignersIndexes,
 			BlockWasProposed: info.BlockWasProposed,
 			ShardId:          info.ShardId,
+			Epoch:            info.Epoch,
 			Timestamp:        info.Timestamp,
 		})
 	}
