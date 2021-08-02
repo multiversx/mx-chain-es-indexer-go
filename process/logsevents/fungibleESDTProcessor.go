@@ -1,6 +1,8 @@
 package logsevents
 
 import (
+	"math/big"
+
 	"github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go-core/core"
@@ -8,7 +10,9 @@ import (
 )
 
 const (
-	numTopicsWithReceiverAddress = 3
+	numTopicsWithReceiverAddress = 4
+
+	pendingBalanceIdentifier = "pending"
 )
 
 type fungibleESDTProcessor struct {
@@ -22,11 +26,12 @@ func newFungibleESDTProcessor(pubKeyConverter core.PubkeyConverter, shardCoordin
 		pubKeyConverter:  pubKeyConverter,
 		shardCoordinator: shardCoordinator,
 		fungibleOperationsIdentifiers: map[string]struct{}{
-			core.BuiltInFunctionESDTTransfer:  {},
-			core.BuiltInFunctionESDTBurn:      {},
-			core.BuiltInFunctionESDTLocalMint: {},
-			core.BuiltInFunctionESDTLocalBurn: {},
-			core.BuiltInFunctionESDTWipe:      {},
+			core.BuiltInFunctionESDTTransfer:         {},
+			core.BuiltInFunctionESDTBurn:             {},
+			core.BuiltInFunctionESDTLocalMint:        {},
+			core.BuiltInFunctionESDTLocalBurn:        {},
+			core.BuiltInFunctionESDTWipe:             {},
+			core.BuiltInFunctionMultiESDTNFTTransfer: {},
 		},
 	}
 }
@@ -39,6 +44,12 @@ func (fep *fungibleESDTProcessor) processEvent(args *argsProcessEvent) (string, 
 	}
 
 	topics := args.event.GetTopics()
+	nonceBig := big.NewInt(0).SetBytes(topics[1])
+	if nonceBig.Uint64() > 0 {
+		// this is a semi-fungible token so we should return
+		return "", false
+	}
+
 	address := args.event.GetAddress()
 	if len(topics) < numTopicsWithReceiverAddress-1 {
 		return "", true
@@ -50,7 +61,7 @@ func (fep *fungibleESDTProcessor) processEvent(args *argsProcessEvent) (string, 
 		fep.processEventOnSenderShard(args.event, args.accounts)
 	}
 
-	return fep.processEventDestination(args.event, args.accounts, selfShardID), true
+	return fep.processEventDestination(args, senderShardID, selfShardID), true
 }
 
 func (fep *fungibleESDTProcessor) processEventOnSenderShard(event coreData.EventHandler, accounts data.AlteredAccountsHandler) {
@@ -64,21 +75,27 @@ func (fep *fungibleESDTProcessor) processEventOnSenderShard(event coreData.Event
 	})
 }
 
-func (fep *fungibleESDTProcessor) processEventDestination(event coreData.EventHandler, accounts data.AlteredAccountsHandler, selfShardID uint32) string {
-	topics := event.GetTopics()
+func (fep *fungibleESDTProcessor) processEventDestination(args *argsProcessEvent, senderShardID uint32, selfShardID uint32) string {
+	topics := args.event.GetTopics()
 	tokenID := string(topics[0])
 	if len(topics) < numTopicsWithReceiverAddress {
 		return tokenID
 	}
 
-	receiverAddr := topics[2]
-	receiverShard := fep.shardCoordinator.ComputeId(receiverAddr)
-	if receiverShard != selfShardID {
+	valueBig := big.NewInt(0).SetBytes(topics[2])
+	receiverAddr := topics[3]
+	receiverShardID := fep.shardCoordinator.ComputeId(receiverAddr)
+	encodedAddr := fep.pubKeyConverter.Encode(receiverAddr)
+	if receiverShardID != selfShardID {
+		args.pendingBalances.addInfo(encodedAddr, tokenID, 0, valueBig.String())
 		return tokenID
 	}
 
-	encodedAddr := fep.pubKeyConverter.Encode(receiverAddr)
-	accounts.Add(encodedAddr, &data.AlteredAccount{
+	if senderShardID != receiverShardID {
+		args.pendingBalances.addInfo(encodedAddr, tokenID, 0, big.NewInt(0).String())
+	}
+
+	args.accounts.Add(encodedAddr, &data.AlteredAccount{
 		IsESDTOperation: true,
 		TokenIdentifier: tokenID,
 	})

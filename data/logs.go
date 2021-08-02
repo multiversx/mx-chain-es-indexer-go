@@ -14,3 +14,11 @@ type Event struct {
 	Topics     [][]byte `json:"topics"`
 	Data       []byte   `json:"data"`
 }
+
+// PreparedLogsResults is the DTO that holds all the results after processing
+type PreparedLogsResults struct {
+	Tokens          TokensHandler
+	TagsCount       CountTags
+	ScDeploys       map[string]*ScDeployInfo
+	PendingBalances map[string]*AccountInfo
+}

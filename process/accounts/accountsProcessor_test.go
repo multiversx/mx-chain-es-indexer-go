@@ -423,7 +423,7 @@ func TestAccountsProcessor_PrepareAccountsHistory(t *testing.T) {
 	ap, _ := NewAccountsProcessor(10, &mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), &mock.AccountsStub{})
 
 	res := ap.PrepareAccountsHistory(100, accounts)
-	accountBalanceHistory := res["addr1_100"]
+	accountBalanceHistory := res["addr1-token-112-10"]
 	require.Equal(t, &data.AccountBalanceHistory{
 		Address:    "addr1",
 		Timestamp:  100,

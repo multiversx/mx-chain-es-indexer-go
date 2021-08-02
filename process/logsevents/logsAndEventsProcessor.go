@@ -5,7 +5,6 @@ import (
 
 	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
@@ -49,12 +48,12 @@ func NewLogsAndEventsProcessor(
 	}, nil
 }
 
-// ExtractDataFromLogsAndPutInAltered will extract data from the provided logs and events and put in altered addresses
-func (lep *logsAndEventsProcessor) ExtractDataFromLogsAndPutInAltered(
+// ExtractDataFromLogs will extract data from the provided logs and events and put in altered addresses
+func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 	logsAndEvents map[string]coreData.LogHandler,
 	preparedResults *data.PreparedResults,
 	timestamp uint64,
-) (data.TokensHandler, tags.CountTags, map[string]*data.ScDeployInfo) {
+) *data.PreparedLogsResults {
 	lep.logsData = newLogsData(timestamp, preparedResults.AlteredAccts, preparedResults.Transactions, preparedResults.ScResults)
 
 	for logHash, log := range logsAndEvents {
@@ -66,7 +65,12 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogsAndPutInAltered(
 		lep.processEvents(logHash, events)
 	}
 
-	return lep.logsData.tokens, lep.logsData.tagsCount, lep.logsData.scDeploys
+	return &data.PreparedLogsResults{
+		Tokens:          lep.logsData.tokens,
+		ScDeploys:       lep.logsData.scDeploys,
+		TagsCount:       lep.logsData.tagsCount,
+		PendingBalances: lep.logsData.pendingBalances.getAll(),
+	}
 }
 
 func (lep *logsAndEventsProcessor) processEvents(logHash string, events []coreData.EventHandler) {
@@ -89,6 +93,7 @@ func (lep *logsAndEventsProcessor) processEvent(logHash string, events coreData.
 			tagsCount:        lep.logsData.tagsCount,
 			timestamp:        lep.logsData.timestamp,
 			scDeploys:        lep.logsData.scDeploys,
+			pendingBalances:  lep.logsData.pendingBalances,
 			txHashHexEncoded: logHashHexEncoded,
 		})
 		isEmptyIdentifier := identifier == ""

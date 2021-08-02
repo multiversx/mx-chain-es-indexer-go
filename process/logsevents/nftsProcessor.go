@@ -7,12 +7,14 @@ import (
 	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/esdt"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
+	logger "github.com/ElrondNetwork/elrond-go-logger"
 )
+
+var log = logger.GetOrCreate("indexer/process/logsevents")
 
 type nftsProcessor struct {
 	pubKeyConverter          core.PubkeyConverter
@@ -31,10 +33,11 @@ func newNFTsProcessor(
 		pubKeyConverter:  pubKeyConverter,
 		marshalizer:      marshalizer,
 		nftOperationsIdentifiers: map[string]struct{}{
-			core.BuiltInFunctionESDTNFTTransfer:    {},
-			core.BuiltInFunctionESDTNFTBurn:        {},
-			core.BuiltInFunctionESDTNFTAddQuantity: {},
-			core.BuiltInFunctionESDTNFTCreate:      {},
+			core.BuiltInFunctionESDTNFTTransfer:      {},
+			core.BuiltInFunctionESDTNFTBurn:          {},
+			core.BuiltInFunctionESDTNFTAddQuantity:   {},
+			core.BuiltInFunctionESDTNFTCreate:        {},
+			core.BuiltInFunctionMultiESDTNFTTransfer: {},
 		},
 	}
 }
@@ -46,30 +49,45 @@ func (np *nftsProcessor) processEvent(args *argsProcessEvent) (string, bool) {
 		return "", false
 	}
 
+	// topics contains:
+	// [0] --> token identifier
+	// [1] --> nonce of the NFT (bytes)
+	// [2] --> value
+	// [3] --> receiver NFT address in case of NFTTransfer
+	//     --> ESDT token data in case of NFTCreate
+	topics := args.event.GetTopics()
+	nonceBig := big.NewInt(0).SetBytes(topics[1])
+	if nonceBig.Uint64() == 0 {
+		// this is a fungible token so we should return
+		return "", false
+	}
+
 	sender := args.event.GetAddress()
-	if np.shardCoordinator.ComputeId(sender) == np.shardCoordinator.SelfId() {
+	senderShardID := np.shardCoordinator.ComputeId(sender)
+	if senderShardID == np.shardCoordinator.SelfId() {
 		np.processNFTEventOnSender(args.event, args.accounts, args.tokens, args.timestamp, args.tagsCount)
 	}
 
-	// topics contains:
-	// [0] -- token identifier
-	// [1] -- nonce of the NFT (bytes)
-	// [2] -- receiver NFT address -- in case of NFTTransfer OR ESDT token data in case of NFTCreate
-	topics := args.event.GetTopics()
 	token := string(topics[0])
-	nonceBig := big.NewInt(0).SetBytes(topics[1])
 	identifier := converters.ComputeTokenIdentifier(token, nonceBig.Uint64())
-	shouldReturn := eventIdentifier != core.BuiltInFunctionESDTNFTTransfer || len(topics) < 3
-	if shouldReturn {
+
+	if !np.shouldAddReceiverData(args) {
 		return identifier, true
 	}
 
-	receiver := topics[2]
-	if np.shardCoordinator.ComputeId(receiver) != np.shardCoordinator.SelfId() {
+	valueBig := big.NewInt(0).SetBytes(topics[2])
+	receiver := args.event.GetTopics()[3]
+	encodedReceiver := np.pubKeyConverter.Encode(topics[3])
+	receiverShardID := np.shardCoordinator.ComputeId(receiver)
+	if receiverShardID != np.shardCoordinator.SelfId() {
+		args.pendingBalances.addInfo(encodedReceiver, token, nonceBig.Uint64(), valueBig.String())
 		return identifier, true
 	}
 
-	encodedReceiver := np.pubKeyConverter.Encode(receiver)
+	if senderShardID != receiverShardID {
+		args.pendingBalances.addInfo(encodedReceiver, token, nonceBig.Uint64(), big.NewInt(0).String())
+	}
+
 	args.accounts.Add(encodedReceiver, &data.AlteredAccount{
 		IsNFTOperation:  true,
 		TokenIdentifier: token,
@@ -79,12 +97,24 @@ func (np *nftsProcessor) processEvent(args *argsProcessEvent) (string, bool) {
 	return identifier, true
 }
 
+func (np *nftsProcessor) shouldAddReceiverData(args *argsProcessEvent) bool {
+	eventIdentifier := string(args.event.GetIdentifier())
+	isWrongIdentifier := eventIdentifier != core.BuiltInFunctionESDTNFTTransfer &&
+		eventIdentifier != core.BuiltInFunctionMultiESDTNFTTransfer
+
+	if isWrongIdentifier || len(args.event.GetTopics()) < numTopicsWithReceiverAddress {
+		return false
+	}
+
+	return true
+}
+
 func (np *nftsProcessor) processNFTEventOnSender(
 	event coreData.EventHandler,
 	accounts data.AlteredAccountsHandler,
 	tokensCreateInfo data.TokensHandler,
 	timestamp uint64,
-	tagsCount tags.CountTags,
+	tagsCount data.CountTags,
 ) {
 	sender := event.GetAddress()
 	topics := event.GetTopics()
@@ -100,15 +130,16 @@ func (np *nftsProcessor) processNFTEventOnSender(
 
 	accounts.Add(bech32Addr, alteredAccount)
 
-	shouldReturn := string(event.GetIdentifier()) != core.BuiltInFunctionESDTNFTCreate || len(topics) < 3
+	shouldReturn := string(event.GetIdentifier()) != core.BuiltInFunctionESDTNFTCreate || len(topics) < numTopicsWithReceiverAddress
 	if shouldReturn {
 		return
 	}
 
-	esdtTokenBytes := topics[2]
+	esdtTokenBytes := topics[3]
 	esdtToken := &esdt.ESDigitalToken{}
 	err := np.marshalizer.Unmarshal(esdtToken, esdtTokenBytes)
 	if err != nil {
+		log.Warn("nftsProcessor.processNFTEventOnSender() cannot urmarshal", "error", err.Error())
 		return
 	}
 

@@ -2,11 +2,10 @@ package accounts
 
 import (
 	"bytes"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"math/big"
 
+	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 )
 
@@ -62,7 +61,8 @@ func prepareSerializedAccount(acc *data.AccountInfo, isESDT bool) ([]byte, []byt
 func prepareDeleteAccountInfo(acct *data.AccountInfo, isESDT bool) []byte {
 	id := acct.Address
 	if isESDT {
-		id += fmt.Sprintf("-%s-%d", acct.TokenName, acct.TokenNonce)
+		hexEncodedNonce := converters.EncodeNonceToHex(acct.TokenNonce)
+		id += fmt.Sprintf("-%s-%s", acct.TokenName, hexEncodedNonce)
 	}
 
 	meta := []byte(fmt.Sprintf(`{ "delete" : { "_id" : "%s" } }%s`, id, "\n"))
@@ -76,7 +76,7 @@ func prepareSerializedAccountInfo(
 ) ([]byte, []byte, error) {
 	id := account.Address
 	if isESDTAccount {
-		hexEncodedNonce := encodeNonceToHex(account.TokenNonce)
+		hexEncodedNonce := converters.EncodeNonceToHex(account.TokenNonce)
 		id += fmt.Sprintf("-%s-%s", account.TokenName, hexEncodedNonce)
 	}
 
@@ -89,21 +89,8 @@ func prepareSerializedAccountInfo(
 	return meta, serializedData, nil
 }
 
-func encodeNonceToHex(nonce uint64) string {
-	if nonce == 0 {
-		return "00"
-	}
-
-	nonceBigBytes := big.NewInt(0).SetUint64(nonce).Bytes()
-	hexEncodedNonce := hex.EncodeToString(nonceBigBytes)
-
-	return hexEncodedNonce
-}
-
 // SerializeAccountsHistory will serialize accounts history in a way that Elastic Search expects a bulk request
-func (ap *accountsProcessor) SerializeAccountsHistory(
-	accounts map[string]*data.AccountBalanceHistory,
-) ([]*bytes.Buffer, error) {
+func (ap *accountsProcessor) SerializeAccountsHistory(accounts map[string]*data.AccountBalanceHistory) ([]*bytes.Buffer, error) {
 	var err error
 
 	buffSlice := data.NewBufferSlice()
@@ -125,10 +112,16 @@ func (ap *accountsProcessor) SerializeAccountsHistory(
 func prepareSerializedAccountBalanceHistory(
 	account *data.AccountBalanceHistory,
 ) ([]byte, []byte, error) {
-	// no '_id' is specified because an elastic client would never search after the identifier for this index.
-	// this is also an improvement: more details here:
-	// https://www.elastic.co/guide/en/elasticsearch/reference/master/tune-for-indexing-speed.html#_use_auto_generated_ids
-	meta := []byte(fmt.Sprintf(`{ "index" : { } }%s`, "\n"))
+	id := account.Address
+
+	isESDT := account.Token != ""
+	if isESDT {
+		hexEncodedNonce := converters.EncodeNonceToHex(account.TokenNonce)
+		id += fmt.Sprintf("-%s-%s", account.Token, hexEncodedNonce)
+	}
+
+	id += fmt.Sprintf("-%d", account.Timestamp)
+	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, id, "\n"))
 
 	serializedData, err := json.Marshal(account)
 	if err != nil {

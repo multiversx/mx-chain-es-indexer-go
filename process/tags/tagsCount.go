@@ -1,23 +1,13 @@
 package tags
 
-import (
-	"bytes"
-)
-
-// CountTags defines what a TagCount handler should be able to do
-type CountTags interface {
-	Serialize() ([]*bytes.Buffer, error)
-	ParseTags(attributes []string)
-	GetTags() []string
-	Len() int
-}
+import "github.com/ElrondNetwork/elastic-indexer-go/data"
 
 type tagsCount struct {
 	tags map[string]int
 }
 
 // NewTagsCount will create a new instance of tagsCount, this structure is not concurrent save
-func NewTagsCount() CountTags {
+func NewTagsCount() data.CountTags {
 	return &tagsCount{
 		tags: make(map[string]int),
 	}

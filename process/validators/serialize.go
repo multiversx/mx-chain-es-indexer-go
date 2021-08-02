@@ -16,14 +16,14 @@ func (vp *validatorsProcessor) SerializeValidatorsPubKeys(validatorsPubKeys *dat
 		return nil, err
 	}
 
-	buff := &bytes.Buffer{}
-	buff.Grow(len(marshalizedValidatorPubKeys))
-	_, err = buff.Write(marshalizedValidatorPubKeys)
+	buffer := &bytes.Buffer{}
+	buffer.Grow(len(marshalizedValidatorPubKeys))
+	_, err = buffer.Write(marshalizedValidatorPubKeys)
 	if err != nil {
 		return nil, err
 	}
 
-	return buff, nil
+	return buffer, nil
 }
 
 // SerializeValidatorsRating will serialize validators rating
