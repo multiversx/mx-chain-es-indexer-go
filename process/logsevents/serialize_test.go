@@ -51,7 +51,7 @@ func TestLogsAndEventsProcessor_SerializeSCDeploys(t *testing.T) {
 	require.Nil(t, err)
 
 	expectedRes := `{ "update" : { "_id" : "scAddr", "_type" : "_doc" } }
-{"script": {"source": "ctx._source.upgrades.add(params.elem);","lang": "painless","params": {"elem": {"upgradeTxHash":"hash","upgrader":"creator","timestamp":123}}},"upsert": {"deployTxHash":"hash","deployer":"creator","timestamp":123,"upgrades":[]}}
+{"script": {"source": "if (!ctx._source.containsKey('upgrades')) { ctx._source.upgrades = [ params.elem ]; } else {  ctx._source.upgrades.add(params.elem); }","lang": "painless","params": {"elem": {"upgradeTxHash":"hash","upgrader":"creator","timestamp":123}}},"upsert": {"deployTxHash":"hash","deployer":"creator","timestamp":123,"upgrades":[]}}
 `
 	require.Equal(t, expectedRes, res[0].String())
 }
