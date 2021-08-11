@@ -65,7 +65,7 @@ func serializeDeploy(deployInfo *data.ScDeployInfo) ([]byte, error) {
 	}
 
 	serializedDataStr := fmt.Sprintf(`{"script": {`+
-		`"source": "ctx._source.upgrades.add(params.elem);",`+
+		`"source": "if (!ctx._source.containsKey('upgrades')) { ctx._source.upgrades = [ params.elem ]; } else {  ctx._source.upgrades.add(params.elem); }",`+
 		`"lang": "painless",`+
 		`"params": {"elem": %s}},`+
 		`"upsert": %s}`,
