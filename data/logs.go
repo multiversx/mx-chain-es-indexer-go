@@ -1,10 +1,13 @@
 package data
 
+import "time"
+
 // Logs holds all the fields needed for a logs structure
 type Logs struct {
-	ID      string   `json:"-"`
-	Address string   `json:"address"`
-	Events  []*Event `json:"events"`
+	ID        string        `json:"-"`
+	Address   string        `json:"address"`
+	Events    []*Event      `json:"events"`
+	Timestamp time.Duration `json:"timestamp,omitempty"`
 }
 
 // Event holds all the fields needed for an event structure

@@ -2,6 +2,7 @@ package logsevents
 
 import (
 	"encoding/hex"
+	"time"
 
 	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
@@ -120,7 +121,10 @@ func (lep *logsAndEventsProcessor) processEvent(logHash string, events coreData.
 }
 
 // PrepareLogsForDB will prepare logs for database
-func (lep *logsAndEventsProcessor) PrepareLogsForDB(logsAndEvents map[string]coreData.LogHandler) []*data.Logs {
+func (lep *logsAndEventsProcessor) PrepareLogsForDB(
+	logsAndEvents map[string]coreData.LogHandler,
+	timestamp uint64,
+) []*data.Logs {
 	logs := make([]*data.Logs, 0, len(logsAndEvents))
 
 	for txHash, log := range logsAndEvents {
@@ -128,18 +132,23 @@ func (lep *logsAndEventsProcessor) PrepareLogsForDB(logsAndEvents map[string]cor
 			continue
 		}
 
-		logs = append(logs, lep.prepareLogsForDB(txHash, log))
+		logs = append(logs, lep.prepareLogsForDB(txHash, log, timestamp))
 	}
 
 	return logs
 }
 
-func (lep *logsAndEventsProcessor) prepareLogsForDB(id string, logHandler coreData.LogHandler) *data.Logs {
+func (lep *logsAndEventsProcessor) prepareLogsForDB(
+	id string,
+	logHandler coreData.LogHandler,
+	timestamp uint64,
+) *data.Logs {
 	events := logHandler.GetLogEvents()
 	logsDB := &data.Logs{
-		ID:      hex.EncodeToString([]byte(id)),
-		Address: lep.pubKeyConverter.Encode(logHandler.GetAddress()),
-		Events:  make([]*data.Event, 0, len(events)),
+		ID:        hex.EncodeToString([]byte(id)),
+		Address:   lep.pubKeyConverter.Encode(logHandler.GetAddress()),
+		Timestamp: time.Duration(timestamp),
+		Events:    make([]*data.Event, 0, len(events)),
 	}
 
 	for _, event := range events {

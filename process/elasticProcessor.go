@@ -396,8 +396,10 @@ func (ei *elasticProcessor) SaveTransactions(
 	pool *indexer.Pool,
 	mbsInDb map[string]bool,
 ) error {
+	headerTimestamp := header.GetTimeStamp()
+
 	preparedResults := ei.transactionsProc.PrepareTransactionsForDatabase(body, header, pool)
-	logsData := ei.logsAndEventsProc.ExtractDataFromLogs(pool.Logs, preparedResults, header.GetTimeStamp())
+	logsData := ei.logsAndEventsProc.ExtractDataFromLogs(pool.Logs, preparedResults, headerTimestamp)
 
 	err := ei.indexTransactions(preparedResults.Transactions, header, mbsInDb)
 	if err != nil {
@@ -414,7 +416,7 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
-	err = ei.prepareAndIndexLogs(pool.Logs)
+	err = ei.prepareAndIndexLogs(pool.Logs, headerTimestamp)
 	if err != nil {
 		return err
 	}
@@ -429,7 +431,7 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
-	err = ei.indexAlteredAccounts(header.GetTimeStamp(), preparedResults.AlteredAccts, logsData.PendingBalances)
+	err = ei.indexAlteredAccounts(headerTimestamp, preparedResults.AlteredAccts, logsData.PendingBalances)
 	if err != nil {
 		return err
 	}
@@ -442,12 +444,12 @@ func (ei *elasticProcessor) SaveTransactions(
 	return ei.indexScDeploys(logsData.ScDeploys)
 }
 
-func (ei *elasticProcessor) prepareAndIndexLogs(logsAndEvents map[string]coreData.LogHandler) error {
+func (ei *elasticProcessor) prepareAndIndexLogs(logsAndEvents map[string]coreData.LogHandler, timestamp uint64) error {
 	if !ei.isIndexEnabled(elasticIndexer.LogsIndex) {
 		return nil
 	}
 
-	logsDB := ei.logsAndEventsProc.PrepareLogsForDB(logsAndEvents)
+	logsDB := ei.logsAndEventsProc.PrepareLogsForDB(logsAndEvents, timestamp)
 	buffSlice, err := ei.logsAndEventsProc.SerializeLogs(logsDB)
 	if err != nil {
 		return err
