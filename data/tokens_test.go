@@ -13,10 +13,11 @@ func TestTokensInfo_AddGet(t *testing.T) {
 	tokensData := NewTokensInfo()
 
 	tokensData.Add(&TokenInfo{
-		Token: "my-token-1",
+		Token:      "my-token-1",
+		Identifier: "my-token-1-01",
 	})
 	tokensData.Add(&TokenInfo{
-		Token: "my-token-2",
+		Token: "my-token-1",
 	})
 
 	res := tokensData.GetAllTokens()
@@ -24,6 +25,9 @@ func TestTokensInfo_AddGet(t *testing.T) {
 
 	res2 := tokensData.GetAll()
 	require.Len(t, res2, 2)
+
+	_, found := tokensData.tokensInfo["my-token-1-01"]
+	require.True(t, found)
 }
 
 func TestTokensInfo_AddTypeFromResponse(t *testing.T) {

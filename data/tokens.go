@@ -27,6 +27,7 @@ type TokenInfo struct {
 	Token      string         `json:"token,omitempty"`
 	Issuer     string         `json:"issuer,omitempty"`
 	Type       string         `json:"type,omitempty"`
+	Nonce      uint64         `json:"nonce,omitempty"`
 	Timestamp  time.Duration  `json:"timestamp,omitempty"`
 	Data       *TokenMetaData `json:"data,omitempty"`
 }
@@ -53,7 +54,12 @@ func NewTokensInfo() *tokensInfo {
 
 // Add will add tokenInfo
 func (ti *tokensInfo) Add(tokenInfo *TokenInfo) {
-	ti.tokensInfo[tokenInfo.Token] = tokenInfo
+	mapKey := tokenInfo.Token
+	if tokenInfo.Identifier != "" {
+		mapKey = tokenInfo.Identifier
+	}
+
+	ti.tokensInfo[mapKey] = tokenInfo
 }
 
 // GetAll will return all tokens information
