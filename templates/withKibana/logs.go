@@ -29,5 +29,9 @@ var Logs = Object{
 				},
 			},
 		},
+		"timestamp": Object{
+			"type":   "date",
+			"format": "epoch_second",
+		},
 	},
 }

@@ -3,6 +3,7 @@ package logsevents
 import (
 	"math/big"
 	"testing"
+	"time"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go-core/core"
@@ -14,8 +15,9 @@ func TestLogsAndEventsProcessor_SerializeLogs(t *testing.T) {
 
 	logs := []*data.Logs{
 		{
-			ID:      "747848617368",
-			Address: "61646472657373",
+			ID:        "747848617368",
+			Address:   "61646472657373",
+			Timestamp: time.Duration(1234),
 			Events: []*data.Event{
 				{
 					Address:    "61646472",
@@ -31,7 +33,7 @@ func TestLogsAndEventsProcessor_SerializeLogs(t *testing.T) {
 	require.Nil(t, err)
 
 	expectedRes := `{ "index" : { "_id" : "747848617368" } }
-{"address":"61646472657373","events":[{"address":"61646472","identifier":"ESDTNFTTransfer","topics":["bXktdG9rZW4=","AQ==","cmVjZWl2ZXI="],"data":"ZGF0YQ=="}]}
+{"address":"61646472657373","events":[{"address":"61646472","identifier":"ESDTNFTTransfer","topics":["bXktdG9rZW4=","AQ==","cmVjZWl2ZXI="],"data":"ZGF0YQ=="}],"timestamp":1234}
 `
 	require.Equal(t, expectedRes, res[0].String())
 }

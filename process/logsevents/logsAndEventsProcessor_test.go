@@ -3,6 +3,7 @@ package logsevents
 import (
 	"math/big"
 	"testing"
+	"time"
 
 	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
@@ -117,10 +118,11 @@ func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 
 	proc, _ := NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, mock.NewPubkeyConverterMock(32), &mock.MarshalizerMock{})
 
-	logsDB := proc.PrepareLogsForDB(logsAndEvents)
+	logsDB := proc.PrepareLogsForDB(logsAndEvents, 1234)
 	require.Equal(t, &data.Logs{
-		ID:      "747848617368",
-		Address: "61646472657373",
+		ID:        "747848617368",
+		Address:   "61646472657373",
+		Timestamp: time.Duration(1234),
 		Events: []*data.Event{
 			{
 				Address:    "61646472",
