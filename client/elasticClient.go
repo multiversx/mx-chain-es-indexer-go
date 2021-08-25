@@ -192,13 +192,7 @@ func (ec *elasticClient) PolicyExists(policy string) bool {
 		policy,
 	)
 
-	req, err := newRequest(http.MethodGet, policyRoute, nil)
-	if err != nil {
-		log.Warn("elasticClient.PolicyExists",
-			"could not create request objectsMap", err.Error())
-		return false
-	}
-
+	req := newRequest(http.MethodGet, policyRoute, nil)
 	res, err := ec.es.Transport.Perform(req)
 	if err != nil {
 		log.Warn("elasticClient.PolicyExists",
@@ -230,13 +224,7 @@ func (ec *elasticClient) aliasExists(alias string) bool {
 		alias,
 	)
 
-	req, err := newRequest(http.MethodHead, aliasRoute, nil)
-	if err != nil {
-		log.Warn("elasticClient.AliasExists",
-			"could not create request objectsMap", err.Error())
-		return false
-	}
-
+	req := newRequest(http.MethodHead, aliasRoute, nil)
 	res, err := ec.es.Transport.Perform(req)
 	if err != nil {
 		log.Warn("elasticClient.AliasExists",
@@ -271,11 +259,7 @@ func (ec *elasticClient) createPolicy(policyName string, policy *bytes.Buffer) e
 		policyName,
 	)
 
-	req, err := newRequest(http.MethodPut, policyRoute, policy)
-	if err != nil {
-		return err
-	}
-
+	req := newRequest(http.MethodPut, policyRoute, policy)
 	req.Header[headerContentType] = headerContentTypeJSON
 	req.Header[headerXSRF] = []string{"false"}
 	res, err := ec.es.Transport.Perform(req)
