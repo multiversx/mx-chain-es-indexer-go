@@ -48,7 +48,7 @@ type tokensInfo struct {
 // NewTokensInfo will create a new instance of tokensInfo
 func NewTokensInfo() *tokensInfo {
 	return &tokensInfo{
-		tokensInfo: make(map[string]*TokenInfo, 0),
+		tokensInfo: make(map[string]*TokenInfo),
 	}
 }
 
@@ -74,16 +74,26 @@ func (ti *tokensInfo) GetAll() []*TokenInfo {
 
 // GetAllTokens wil return all tokens names
 func (ti *tokensInfo) GetAllTokens() []string {
-	tokens := make([]string, 0, len(ti.tokensInfo))
+	tokensMap := make(map[string]struct{})
 	for _, tokenData := range ti.tokensInfo {
-		tokens = append(tokens, tokenData.Token)
+		tokensMap[tokenData.Token] = struct{}{}
 	}
 
-	return tokens
+	tokensSlice := make([]string, 0, len(tokensMap))
+	for token := range tokensMap {
+		tokensSlice = append(tokensSlice, token)
+	}
+
+	return tokensSlice
 }
 
 // AddTypeFromResponse will add token type from response
 func (ti *tokensInfo) AddTypeFromResponse(res *ResponseTokens) {
+	keyTokenValueIdentifiers := make(map[string][]string)
+	for identifier, tokenData := range ti.tokensInfo {
+		keyTokenValueIdentifiers[tokenData.Token] = append(keyTokenValueIdentifiers[tokenData.Token], identifier)
+	}
+
 	if res == nil {
 		return
 	}
@@ -93,12 +103,14 @@ func (ti *tokensInfo) AddTypeFromResponse(res *ResponseTokens) {
 			continue
 		}
 
-		_, ok := ti.tokensInfo[tokenData.ID]
-		if !ok {
-			continue
-		}
+		for _, identifier := range keyTokenValueIdentifiers[tokenData.ID] {
+			_, ok := ti.tokensInfo[identifier]
+			if !ok {
+				continue
+			}
 
-		ti.tokensInfo[tokenData.ID].Type = tokenData.Source.Type
+			ti.tokensInfo[identifier].Type = tokenData.Source.Type
+		}
 	}
 }
 

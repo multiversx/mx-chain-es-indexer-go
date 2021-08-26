@@ -18,7 +18,6 @@ import (
 func exists(res *esapi.Response, err error) bool {
 	defer func() {
 		if res != nil && res.Body != nil {
-			_, _ = io.Copy(ioutil.Discard, res.Body)
 			err = res.Body.Close()
 			if err != nil {
 				log.Warn("elasticClient.exists", "could not close body: ", err.Error())
@@ -211,7 +210,7 @@ func kibanaResponseErrorHandler(res *esapi.Response) error {
 	return indexer.ErrBackOff
 }
 
-func newRequest(method, path string, body *bytes.Buffer) (*http.Request, error) {
+func newRequest(method, path string, body *bytes.Buffer) *http.Request {
 	r := http.Request{
 		Method:     method,
 		URL:        &url.URL{Path: path},
@@ -226,7 +225,7 @@ func newRequest(method, path string, body *bytes.Buffer) (*http.Request, error) 
 		r.ContentLength = int64(body.Len())
 	}
 
-	return &r, nil
+	return &r
 }
 
 /**
