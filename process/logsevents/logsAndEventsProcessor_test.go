@@ -89,7 +89,7 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 	require.NotNil(t, resLogs.Tokens)
 	require.NotNil(t, resLogs.TagsCount)
 	require.True(t, res.Transactions[0].HasOperations)
-	require.True(t, res.ScResults[0].HashOperations)
+	require.True(t, res.ScResults[0].HasOperations)
 
 	require.Equal(t, &data.ScDeployInfo{
 		TxHash:    "6833",
