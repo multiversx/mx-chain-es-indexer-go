@@ -26,11 +26,11 @@ type Transaction struct {
 	Timestamp            time.Duration `json:"timestamp"`
 	Status               string        `json:"status"`
 	SearchOrder          uint32        `json:"searchOrder"`
-	EsdtTokenIdentifier  string        `json:"token,omitempty"`
 	SenderUserName       []byte        `json:"senderUserName,omitempty"`
 	ReceiverUserName     []byte        `json:"receiverUserName,omitempty"`
 	HasSCR               bool          `json:"hasScResults,omitempty"`
 	IsScCall             bool          `json:"isScCall,omitempty"`
+	HasOperations        bool          `json:"hasOperations,omitempty"`
 	SmartContractResults []*ScResult   `json:"-"`
 	ReceiverAddressBytes []byte        `json:"-"`
 	Hash                 string        `json:"-"`
@@ -79,24 +79,24 @@ type Receipt struct {
 
 // ScResult is a structure containing all the fields that need to be saved for a smart contract result
 type ScResult struct {
-	Hash                string        `json:"-"`
-	Nonce               uint64        `json:"nonce"`
-	GasLimit            uint64        `json:"gasLimit"`
-	GasPrice            uint64        `json:"gasPrice"`
-	Value               string        `json:"value"`
-	Sender              string        `json:"sender"`
-	Receiver            string        `json:"receiver"`
-	RelayerAddr         string        `json:"relayerAddr,omitempty"`
-	RelayedValue        string        `json:"relayedValue,omitempty"`
-	Code                string        `json:"code,omitempty"`
-	Data                []byte        `json:"data,omitempty"`
-	PrevTxHash          string        `json:"prevTxHash"`
-	OriginalTxHash      string        `json:"originalTxHash"`
-	CallType            string        `json:"callType"`
-	CodeMetadata        []byte        `json:"codeMetaData,omitempty"`
-	ReturnMessage       string        `json:"returnMessage,omitempty"`
-	Timestamp           time.Duration `json:"timestamp"`
-	EsdtTokenIdentifier string        `json:"token,omitempty"`
+	Hash           string        `json:"-"`
+	Nonce          uint64        `json:"nonce"`
+	GasLimit       uint64        `json:"gasLimit"`
+	GasPrice       uint64        `json:"gasPrice"`
+	Value          string        `json:"value"`
+	Sender         string        `json:"sender"`
+	Receiver       string        `json:"receiver"`
+	RelayerAddr    string        `json:"relayerAddr,omitempty"`
+	RelayedValue   string        `json:"relayedValue,omitempty"`
+	Code           string        `json:"code,omitempty"`
+	Data           []byte        `json:"data,omitempty"`
+	PrevTxHash     string        `json:"prevTxHash"`
+	OriginalTxHash string        `json:"originalTxHash"`
+	CallType       string        `json:"callType"`
+	CodeMetadata   []byte        `json:"codeMetaData,omitempty"`
+	ReturnMessage  string        `json:"returnMessage,omitempty"`
+	Timestamp      time.Duration `json:"timestamp"`
+	HashOperations bool          `json:"hasOperations,omitempty"`
 }
 
 // PreparedResults is the DTO that holds all the results after processing

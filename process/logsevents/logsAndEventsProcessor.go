@@ -104,13 +104,13 @@ func (lep *logsAndEventsProcessor) processEvent(logHash string, events coreData.
 
 		tx, ok := lep.logsData.txsMap[logHashHexEncoded]
 		if ok && !isEmptyIdentifier {
-			tx.EsdtTokenIdentifier = identifier
+			tx.HasOperations = true
 			continue
 		}
 
 		scr, ok := lep.logsData.scrsMap[logHashHexEncoded]
 		if ok && !isEmptyIdentifier {
-			scr.EsdtTokenIdentifier = identifier
+			scr.HashOperations = true
 			return
 		}
 
