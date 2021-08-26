@@ -88,8 +88,8 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 	resLogs := proc.ExtractDataFromLogs(logsAndEvents, res, 1000)
 	require.NotNil(t, resLogs.Tokens)
 	require.NotNil(t, resLogs.TagsCount)
-	require.Equal(t, "my-token-01", res.Transactions[0].EsdtTokenIdentifier)
-	require.Equal(t, "esdt", res.ScResults[0].EsdtTokenIdentifier)
+	require.True(t, res.Transactions[0].HasOperations)
+	require.True(t, res.ScResults[0].HasOperations)
 
 	require.Equal(t, &data.ScDeployInfo{
 		TxHash:    "6833",
