@@ -110,7 +110,7 @@ func (lep *logsAndEventsProcessor) processEvent(logHash string, events coreData.
 
 		scr, ok := lep.logsData.scrsMap[logHashHexEncoded]
 		if ok && !isEmptyIdentifier {
-			scr.HashOperations = true
+			scr.HasOperations = true
 			return
 		}
 

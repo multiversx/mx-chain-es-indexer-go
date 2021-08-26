@@ -96,7 +96,7 @@ type ScResult struct {
 	CodeMetadata   []byte        `json:"codeMetaData,omitempty"`
 	ReturnMessage  string        `json:"returnMessage,omitempty"`
 	Timestamp      time.Duration `json:"timestamp"`
-	HashOperations bool          `json:"hasOperations,omitempty"`
+	HasOperations  bool          `json:"hasOperations,omitempty"`
 }
 
 // PreparedResults is the DTO that holds all the results after processing
