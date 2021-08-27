@@ -36,23 +36,23 @@ func newFungibleESDTProcessor(pubKeyConverter core.PubkeyConverter, shardCoordin
 	}
 }
 
-func (fep *fungibleESDTProcessor) processEvent(args *argsProcessEvent) (string, bool) {
+func (fep *fungibleESDTProcessor) processEvent(args *argsProcessEvent) (string, string, bool) {
 	identifier := args.event.GetIdentifier()
 	_, ok := fep.fungibleOperationsIdentifiers[string(identifier)]
 	if !ok {
-		return "", false
+		return "", "", false
 	}
 
 	topics := args.event.GetTopics()
 	nonceBig := big.NewInt(0).SetBytes(topics[1])
 	if nonceBig.Uint64() > 0 {
 		// this is a semi-fungible token so we should return
-		return "", false
+		return "", "", false
 	}
 
 	address := args.event.GetAddress()
 	if len(topics) < numTopicsWithReceiverAddress-1 {
-		return "", true
+		return "", "", true
 	}
 
 	selfShardID := fep.shardCoordinator.SelfId()
@@ -61,7 +61,8 @@ func (fep *fungibleESDTProcessor) processEvent(args *argsProcessEvent) (string, 
 		fep.processEventOnSenderShard(args.event, args.accounts)
 	}
 
-	return fep.processEventDestination(args, senderShardID, selfShardID), true
+	tokenID, valueStr := fep.processEventDestination(args, senderShardID, selfShardID)
+	return tokenID, valueStr, true
 }
 
 func (fep *fungibleESDTProcessor) processEventOnSenderShard(event coreData.EventHandler, accounts data.AlteredAccountsHandler) {
@@ -75,20 +76,21 @@ func (fep *fungibleESDTProcessor) processEventOnSenderShard(event coreData.Event
 	})
 }
 
-func (fep *fungibleESDTProcessor) processEventDestination(args *argsProcessEvent, senderShardID uint32, selfShardID uint32) string {
+func (fep *fungibleESDTProcessor) processEventDestination(args *argsProcessEvent, senderShardID uint32, selfShardID uint32) (string, string) {
 	topics := args.event.GetTopics()
 	tokenID := string(topics[0])
+	valueBig := big.NewInt(0).SetBytes(topics[2])
+
 	if len(topics) < numTopicsWithReceiverAddress {
-		return tokenID
+		return tokenID, valueBig.String()
 	}
 
-	valueBig := big.NewInt(0).SetBytes(topics[2])
 	receiverAddr := topics[3]
 	receiverShardID := fep.shardCoordinator.ComputeId(receiverAddr)
 	encodedAddr := fep.pubKeyConverter.Encode(receiverAddr)
 	if receiverShardID != selfShardID {
 		args.pendingBalances.addInfo(encodedAddr, tokenID, 0, valueBig.String())
-		return tokenID
+		return tokenID, valueBig.String()
 	}
 
 	if senderShardID != receiverShardID {
@@ -100,5 +102,5 @@ func (fep *fungibleESDTProcessor) processEventDestination(args *argsProcessEvent
 		TokenIdentifier: tokenID,
 	})
 
-	return tokenID
+	return tokenID, valueBig.String()
 }

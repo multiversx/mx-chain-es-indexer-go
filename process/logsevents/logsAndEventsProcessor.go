@@ -87,7 +87,7 @@ func (lep *logsAndEventsProcessor) processEvents(logHash string, events []coreDa
 func (lep *logsAndEventsProcessor) processEvent(logHash string, events coreData.EventHandler) {
 	logHashHexEncoded := hex.EncodeToString([]byte(logHash))
 	for _, proc := range lep.eventsProcessors {
-		identifier, processed := proc.processEvent(&argsProcessEvent{
+		identifier, value, processed := proc.processEvent(&argsProcessEvent{
 			event:            events,
 			accounts:         lep.logsData.accounts,
 			tokens:           lep.logsData.tokens,
@@ -105,11 +105,15 @@ func (lep *logsAndEventsProcessor) processEvent(logHash string, events coreData.
 		tx, ok := lep.logsData.txsMap[logHashHexEncoded]
 		if ok && !isEmptyIdentifier {
 			tx.HasOperations = true
+			tx.Tokens = append(tx.Tokens, identifier)
+			tx.ESDTValues = append(tx.ESDTValues, value)
 			continue
 		}
 
 		scr, ok := lep.logsData.scrsMap[logHashHexEncoded]
 		if ok && !isEmptyIdentifier {
+			scr.Tokens = append(scr.Tokens, identifier)
+			scr.ESDTValues = append(scr.ESDTValues, value)
 			scr.HasOperations = true
 			return
 		}

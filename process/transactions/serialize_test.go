@@ -142,7 +142,7 @@ func TestSerializeTransactionsCrossShardTxDestination(t *testing.T) {
 	require.Nil(t, err)
 
 	expectedBuff := `{"update":{"_id":"txHash", "_type": "_doc"}}
-{"script":{"source":"ctx._source.status = params.status;ctx._source.miniBlockHash = params.miniBlockHash;ctx._source.timestamp = params.timestamp;ctx._source.gasUsed = params.gasUsed;ctx._source.fee = params.fee;ctx._source.hasScResults = params.hasScResults;","lang": "painless","params":{"status": "", "miniBlockHash": "", "timestamp": 0, "gasUsed": 0, "fee": "", "hasScResults": false}},"upsert":{"miniBlockHash":"","nonce":0,"round":0,"value":"","receiver":"","sender":"","receiverShard":0,"senderShard":1,"gasPrice":0,"gasLimit":0,"gasUsed":0,"fee":"","data":null,"signature":"","timestamp":0,"status":"","searchOrder":0}}
+{"script":{"source":"ctx._source.status = params.status;ctx._source.miniBlockHash = params.miniBlockHash;ctx._source.timestamp = params.timestamp;ctx._source.gasUsed = params.gasUsed;ctx._source.fee = params.fee;ctx._source.hasScResults = params.hasScResults;if (params.tokens != null) { ctx._source.tokens = params.tokens; };if (params.esdtValues != null) { ctx._source.esdtValues = params.esdtValues; };if (params.hasOperations) { ctx._source.hasOperations = params.hasOperations; };","lang": "painless","params":{"status": "", "miniBlockHash": "", "timestamp": 0, "gasUsed": 0, "fee": "", "hasScResults": false, "tokens": null, "esdtValues": null, "hasOperations": false}},"upsert":{"miniBlockHash":"","nonce":0,"round":0,"value":"","receiver":"","sender":"","receiverShard":0,"senderShard":1,"gasPrice":0,"gasLimit":0,"gasUsed":0,"fee":"","data":null,"signature":"","timestamp":0,"status":"","searchOrder":0}}
 `
 	require.Equal(t, expectedBuff, buffers[0].String())
 }
