@@ -22,7 +22,7 @@ func TestScDeploysProcessor(t *testing.T) {
 	}
 
 	scDeploys := map[string]*data.ScDeployInfo{}
-	_, processed := scDeploysProc.processEvent(&argsProcessEvent{
+	_, _, processed := scDeploysProc.processEvent(&argsProcessEvent{
 		event:            event,
 		timestamp:        1000,
 		scDeploys:        scDeploys,

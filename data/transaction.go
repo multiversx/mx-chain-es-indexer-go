@@ -31,6 +31,8 @@ type Transaction struct {
 	HasSCR               bool          `json:"hasScResults,omitempty"`
 	IsScCall             bool          `json:"isScCall,omitempty"`
 	HasOperations        bool          `json:"hasOperations,omitempty"`
+	Tokens               []string      `json:"tokens,omitempty"`
+	ESDTValues           []string      `json:"esdtValues,omitempty"`
 	SmartContractResults []*ScResult   `json:"-"`
 	ReceiverAddressBytes []byte        `json:"-"`
 	Hash                 string        `json:"-"`
@@ -97,6 +99,8 @@ type ScResult struct {
 	ReturnMessage  string        `json:"returnMessage,omitempty"`
 	Timestamp      time.Duration `json:"timestamp"`
 	HasOperations  bool          `json:"hasOperations,omitempty"`
+	Tokens         []string      `json:"tokens,omitempty"`
+	ESDTValues     []string      `json:"esdtValues,omitempty"`
 }
 
 // PreparedResults is the DTO that holds all the results after processing

@@ -72,11 +72,14 @@ func TestProcessLogsAndEventsESDT_CrossShardOnSource(t *testing.T) {
 	altered := data.NewAlteredAccounts()
 
 	pb := newPendingBalancesProcessor()
-	fungibleProc.processEvent(&argsProcessEvent{
+	token, value, processed := fungibleProc.processEvent(&argsProcessEvent{
 		event:           event,
 		accounts:        altered,
 		pendingBalances: pb,
 	})
+	require.Equal(t, "my-token", token)
+	require.Equal(t, "100", value)
+	require.Equal(t, true, processed)
 
 	alteredAddrSender, ok := altered.Get("61646472")
 	require.True(t, ok)
@@ -118,11 +121,15 @@ func TestProcessLogsAndEventsESDT_CrossShardOnDestination(t *testing.T) {
 
 	pp := newPendingBalancesProcessor()
 	altered := data.NewAlteredAccounts()
-	fungibleProc.processEvent(&argsProcessEvent{
+
+	token, value, processed := fungibleProc.processEvent(&argsProcessEvent{
 		event:           event,
 		accounts:        altered,
 		pendingBalances: pp,
 	})
+	require.Equal(t, "my-token", token)
+	require.Equal(t, "100", value)
+	require.Equal(t, true, processed)
 
 	alteredAddrSender, ok := altered.Get("7265636569766572")
 	require.True(t, ok)

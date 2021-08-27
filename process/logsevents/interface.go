@@ -17,5 +17,5 @@ type argsProcessEvent struct {
 }
 
 type eventsProcessor interface {
-	processEvent(args *argsProcessEvent) (string, bool)
+	processEvent(args *argsProcessEvent) (string, string, bool)
 }

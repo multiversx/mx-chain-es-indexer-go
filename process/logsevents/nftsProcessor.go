@@ -42,11 +42,11 @@ func newNFTsProcessor(
 	}
 }
 
-func (np *nftsProcessor) processEvent(args *argsProcessEvent) (string, bool) {
+func (np *nftsProcessor) processEvent(args *argsProcessEvent) (string, string, bool) {
 	eventIdentifier := string(args.event.GetIdentifier())
 	_, ok := np.nftOperationsIdentifiers[eventIdentifier]
 	if !ok {
-		return "", false
+		return "", "", false
 	}
 
 	// topics contains:
@@ -59,7 +59,7 @@ func (np *nftsProcessor) processEvent(args *argsProcessEvent) (string, bool) {
 	nonceBig := big.NewInt(0).SetBytes(topics[1])
 	if nonceBig.Uint64() == 0 {
 		// this is a fungible token so we should return
-		return "", false
+		return "", "", false
 	}
 
 	sender := args.event.GetAddress()
@@ -70,18 +70,18 @@ func (np *nftsProcessor) processEvent(args *argsProcessEvent) (string, bool) {
 
 	token := string(topics[0])
 	identifier := converters.ComputeTokenIdentifier(token, nonceBig.Uint64())
+	valueBig := big.NewInt(0).SetBytes(topics[2])
 
 	if !np.shouldAddReceiverData(args) {
-		return identifier, true
+		return identifier, valueBig.String(), true
 	}
 
-	valueBig := big.NewInt(0).SetBytes(topics[2])
 	receiver := args.event.GetTopics()[3]
 	encodedReceiver := np.pubKeyConverter.Encode(topics[3])
 	receiverShardID := np.shardCoordinator.ComputeId(receiver)
 	if receiverShardID != np.shardCoordinator.SelfId() {
 		args.pendingBalances.addInfo(encodedReceiver, token, nonceBig.Uint64(), valueBig.String())
-		return identifier, true
+		return identifier, valueBig.String(), true
 	}
 
 	if senderShardID != receiverShardID {
@@ -94,7 +94,7 @@ func (np *nftsProcessor) processEvent(args *argsProcessEvent) (string, bool) {
 		NFTNonce:        nonceBig.Uint64(),
 	})
 
-	return identifier, true
+	return identifier, valueBig.String(), true
 }
 
 func (np *nftsProcessor) shouldAddReceiverData(args *argsProcessEvent) bool {
