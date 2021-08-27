@@ -151,9 +151,9 @@ func prepareCrossShardTxForDestinationSerialized(tx *data.Transaction, marshaled
 		`ctx._source.gasUsed = params.gasUsed;`+
 		`ctx._source.fee = params.fee;`+
 		`ctx._source.hasScResults = params.hasScResults;`+
-		`if (params.tokens != null) { ctx._source.tokens = params.tokens; };`+
-		`if (params.esdtValues != null) { ctx._source.esdtValues = params.esdtValues; };`+
-		`if (params.hasOperations) { ctx._source.hasOperations = params.hasOperations; };`+
+		`if (params.tokens != null) { ctx._source.tokens = params.tokens; }`+
+		`if (params.esdtValues != null) { ctx._source.esdtValues = params.esdtValues; }`+
+		`if (params.hasOperations) { ctx._source.hasOperations = params.hasOperations; }`+
 		`","lang": "painless","params":`+
 		`{"status": "%s", "miniBlockHash": "%s", "timestamp": %s, "gasUsed": %d, "fee": "%s", "hasScResults": %t, "tokens": %s, "esdtValues": %s, "hasOperations": %t}},"upsert":%s}`,
 		tx.Status, tx.MBHash, string(marshaledTimestamp), tx.GasUsed, tx.Fee, tx.HasSCR, string(marshaledTokens), string(marshaledESDTValues), tx.HasOperations, string(marshaledTx)))
