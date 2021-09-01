@@ -87,19 +87,19 @@ func (fep *fungibleESDTProcessor) processEventDestination(args *argsProcessEvent
 
 	receiverAddr := topics[3]
 	receiverShardID := fep.shardCoordinator.ComputeId(receiverAddr)
-	encodedAddr := fep.pubKeyConverter.Encode(receiverAddr)
+	encodedReceiver := fep.pubKeyConverter.Encode(receiverAddr)
 	if receiverShardID != selfShardID {
-		args.pendingBalances.addInfo(encodedAddr, tokenID, 0, valueBig.String())
+		args.pendingBalances.addInfo(encodedReceiver, tokenID, 0, valueBig.String())
 		return tokenID, valueBig.String()
 	}
 
 	if senderShardID != receiverShardID {
 		encodedSender := fep.pubKeyConverter.Encode(args.event.GetAddress())
 		args.pendingBalances.addInfo(encodedSender, tokenID, 0, big.NewInt(0).String())
-		args.pendingBalances.addInfo(encodedAddr, tokenID, 0, big.NewInt(0).String())
+		args.pendingBalances.addInfo(encodedReceiver, tokenID, 0, big.NewInt(0).String())
 	}
 
-	args.accounts.Add(encodedAddr, &data.AlteredAccount{
+	args.accounts.Add(encodedReceiver, &data.AlteredAccount{
 		IsESDTOperation: true,
 		TokenIdentifier: tokenID,
 	})

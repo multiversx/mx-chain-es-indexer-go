@@ -34,7 +34,7 @@ func (pbp *pendingBalancesProc) addInfo(receiver string, token string, tokenNonc
 		return
 	}
 
-	balanceBigMap, ok := big.NewInt(0).SetString(pbp.pendingBalances[key].Balance, 10)
+	balanceBigInt, ok := big.NewInt(0).SetString(pbp.pendingBalances[key].Balance, 10)
 	if !ok {
 		pbp.pendingBalances[key].Balance = value
 	}
@@ -44,8 +44,8 @@ func (pbp *pendingBalancesProc) addInfo(receiver string, token string, tokenNonc
 		return
 	}
 
-	sumBig := balanceBigMap.Add(balanceBigMap, valueBig)
-	pbp.pendingBalances[key].Balance = sumBig.String()
+	balanceBigInt.Add(balanceBigInt, valueBig)
+	pbp.pendingBalances[key].Balance = balanceBigInt.String()
 }
 
 func (pbp *pendingBalancesProc) getAll() map[string]*data.AccountInfo {

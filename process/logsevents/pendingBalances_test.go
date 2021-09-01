@@ -1,6 +1,7 @@
 package logsevents
 
 import (
+	"math/big"
 	"testing"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
@@ -31,6 +32,8 @@ func TestPendingBalancesProcessorSameTokenInPendingShouldAddToBalances(t *testin
 
 	pp.addInfo("receiver", "token", 10, "5")
 	pp.addInfo("receiver", "token", 10, "5")
+	pp.addInfo("receiver", "token", 10, big.NewInt(0).String())
+	pp.addInfo("receiver", "token", 10, "")
 
 	res := pp.getAll()
 	require.Len(t, res, 1)
