@@ -25,7 +25,7 @@ func TestPendingBalancesProcessor(t *testing.T) {
 	}, res["pending-receiver-token-0a"])
 }
 
-func TestPendingBalancesProcessorExits(t *testing.T) {
+func TestPendingBalancesProcessorSameTokenInPendingShouldAddToBalances(t *testing.T) {
 
 	pp := newPendingBalancesProcessor()
 
