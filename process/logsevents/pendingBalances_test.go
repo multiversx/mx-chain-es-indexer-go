@@ -24,3 +24,21 @@ func TestPendingBalancesProcessor(t *testing.T) {
 		TokenNonce:      10,
 	}, res["pending-receiver-token-0a"])
 }
+
+func TestPendingBalancesProcessorExits(t *testing.T) {
+
+	pp := newPendingBalancesProcessor()
+
+	pp.addInfo("receiver", "token", 10, "5")
+	pp.addInfo("receiver", "token", 10, "5")
+
+	res := pp.getAll()
+	require.Len(t, res, 1)
+	require.Equal(t, &data.AccountInfo{
+		Address:         "pending-receiver",
+		Balance:         "10",
+		TokenIdentifier: "token-0a",
+		TokenName:       "token",
+		TokenNonce:      10,
+	}, res["pending-receiver-token-0a"])
+}

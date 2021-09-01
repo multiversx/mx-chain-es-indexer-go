@@ -94,6 +94,8 @@ func (fep *fungibleESDTProcessor) processEventDestination(args *argsProcessEvent
 	}
 
 	if senderShardID != receiverShardID {
+		encodedSnd := fep.pubKeyConverter.Encode(args.event.GetAddress())
+		args.pendingBalances.addInfo(encodedSnd, tokenID, 0, big.NewInt(0).String())
 		args.pendingBalances.addInfo(encodedAddr, tokenID, 0, big.NewInt(0).String())
 	}
 

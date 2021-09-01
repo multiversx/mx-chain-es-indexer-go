@@ -85,6 +85,8 @@ func (np *nftsProcessor) processEvent(args *argsProcessEvent) (string, string, b
 	}
 
 	if senderShardID != receiverShardID {
+		encodedSnd := np.pubKeyConverter.Encode(args.event.GetAddress())
+		args.pendingBalances.addInfo(encodedSnd, token, nonceBig.Uint64(), big.NewInt(0).String())
 		args.pendingBalances.addInfo(encodedReceiver, token, nonceBig.Uint64(), big.NewInt(0).String())
 	}
 
