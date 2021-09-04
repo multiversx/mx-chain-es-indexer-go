@@ -61,6 +61,10 @@ func (st *scrsDataToTransactions) addScResultInfoInTx(dbScResult *data.ScResult,
 
 func (st *scrsDataToTransactions) processTransactionsAfterSCRsWasAttached(transactions map[string]*data.Transaction) {
 	for _, tx := range transactions {
+		if len(tx.SmartContractResults) == 0 {
+			continue
+		}
+
 		st.setDetailsOfATxWithSCRS(tx)
 	}
 }

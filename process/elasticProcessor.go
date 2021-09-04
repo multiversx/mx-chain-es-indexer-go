@@ -359,8 +359,6 @@ func (ei *elasticProcessor) RemoveTransactions(header coreData.HeaderHandler, bo
 }
 
 // SaveMiniblocks will prepare and save information about miniblocks in elasticsearch server
-// and returns a map with the hashes of the miniblocks that are already in elasticsearch database
-// the map on miniblocks have to be returned here because the get must be done before the actual miniblocks are indexed
 func (ei *elasticProcessor) SaveMiniblocks(header coreData.HeaderHandler, body *block.Body) error {
 	if !ei.isIndexEnabled(elasticIndexer.MiniblocksIndex) {
 		return nil

@@ -27,9 +27,7 @@ type ArgElasticProcessorFactory struct {
 	ShardCoordinator         indexer.ShardCoordinator
 	TransactionFeeCalculator indexer.FeesProcessorHandler
 	EnabledIndexes           []string
-	TemplatesPath            string
 	Denomination             int
-	SaveTxsLogsEnabled       bool
 	IsInImportDBMode         bool
 	UseKibana                bool
 }
