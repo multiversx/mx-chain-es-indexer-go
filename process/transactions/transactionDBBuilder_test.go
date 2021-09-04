@@ -13,7 +13,6 @@ import (
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/rewardTx"
-	"github.com/ElrondNetwork/elrond-go-core/data/smartContractResult"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/stretchr/testify/require"
 )
@@ -87,44 +86,6 @@ func TestGetMoveBalanceTransaction(t *testing.T) {
 	require.Equal(t, expectedTx, dbTx)
 }
 
-func TestGetTransactionByType_SC(t *testing.T) {
-	t.Parallel()
-
-	cp := createCommonProcessor()
-
-	nonce := uint64(10)
-	txHash := []byte("txHash")
-	code := []byte("code")
-	sndAddr, rcvAddr := []byte("snd"), []byte("rec")
-	scHash := "scHash"
-	smartContractRes := &smartContractResult.SmartContractResult{
-		Nonce:      nonce,
-		PrevTxHash: txHash,
-		Code:       code,
-		Data:       []byte(""),
-		SndAddr:    sndAddr,
-		RcvAddr:    rcvAddr,
-		CallType:   1,
-	}
-	header := &block.Header{TimeStamp: 100}
-
-	scRes := cp.prepareSmartContractResult(scHash, smartContractRes, header)
-	expectedTx := &data.ScResult{
-		Nonce:      nonce,
-		Hash:       hex.EncodeToString([]byte(scHash)),
-		PrevTxHash: hex.EncodeToString(txHash),
-		Code:       string(code),
-		Data:       make([]byte, 0),
-		Sender:     cp.addressPubkeyConverter.Encode(sndAddr),
-		Receiver:   cp.addressPubkeyConverter.Encode(rcvAddr),
-		Value:      "<nil>",
-		CallType:   "1",
-		Timestamp:  time.Duration(100),
-	}
-
-	require.Equal(t, expectedTx, scRes)
-}
-
 func TestGetTransactionByType_RewardTx(t *testing.T) {
 	t.Parallel()
 
@@ -152,25 +113,4 @@ func TestGetTransactionByType_RewardTx(t *testing.T) {
 	}
 
 	require.Equal(t, expectedTx, resultTx)
-}
-
-func TestAddScrsReceiverToAlteredAccounts_ShouldWork(t *testing.T) {
-	t.Parallel()
-
-	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{}, &mock.EconomicsHandlerStub{})
-
-	alteredAddress := data.NewAlteredAccounts()
-	scrs := []*data.ScResult{
-		{
-			Sender:   "010101",
-			Receiver: "020202",
-			Data:     []byte("ESDTTransfer@544b4e2d626231323061@010f0cf064dd59200000"),
-			Value:    "1",
-		},
-	}
-	txBuilder.addScrsReceiverToAlteredAccounts(alteredAddress, scrs)
-	require.Equal(t, 1, alteredAddress.Len())
-
-	_, ok := alteredAddress.Get("020202")
-	require.True(t, ok)
 }

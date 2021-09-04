@@ -97,10 +97,6 @@ func isRelayedTx(tx *data.Transaction) bool {
 	return strings.HasPrefix(string(tx.Data), core.RelayedTransaction) && len(tx.SmartContractResults) > 0
 }
 
-func isESDTNFTTransfer(tx *data.Transaction) bool {
-	return strings.HasPrefix(string(tx.Data), core.BuiltInFunctionESDTNFTTransfer) && len(tx.SmartContractResults) > 0
-}
-
 func isCrossShardDstMe(tx *data.Transaction, selfShardID uint32) bool {
 	return tx.SenderShard != tx.ReceiverShard && tx.ReceiverShard == selfShardID
 }

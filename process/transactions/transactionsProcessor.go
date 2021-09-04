@@ -10,17 +10,9 @@ import (
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	indexerArgs "github.com/ElrondNetwork/elrond-go-core/data/indexer"
-	"github.com/ElrondNetwork/elrond-go-core/data/smartContractResult"
-	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/ElrondNetwork/elrond-go-core/hashing"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
-)
-
-const (
-	// A smart contract action (deploy, call, ...) should have minimum 2 smart contract results
-	// exception to this rule are smart contract calls to ESDT contract
-	minimumNumberOfSmartContractResults = 2
 )
 
 var log = logger.GetOrCreate("indexer/process/transactions")
@@ -41,6 +33,8 @@ type txsDatabaseProcessor struct {
 	txBuilder       *dbTransactionBuilder
 	txsGrouper      *txsGrouper
 	tokensProcessor *tokensProcessor
+	scrsProc        *smartContractResultsProcessor
+	scrsDataToTxs   *scrsDataToTransactions
 }
 
 // NewTransactionsProcessor will create a new instance of transactions database processor
@@ -54,6 +48,8 @@ func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txsDatabaseProce
 	txBuilder := newTransactionDBBuilder(args.AddressPubkeyConverter, args.ShardCoordinator, args.TxFeeCalculator)
 	txsDBGrouper := newTxsGrouper(txBuilder, args.IsInImportMode, selfShardID, args.Hasher, args.Marshalizer)
 	tokensProc := newTokensProcessor(selfShardID, args.AddressPubkeyConverter)
+	scrProc := newSmartContractResultsProcessor(args.AddressPubkeyConverter, args.ShardCoordinator, args.Marshalizer, args.Hasher)
+	scrsDataToTxs := newScrsDataToTransactions(args.TxFeeCalculator)
 
 	if args.IsInImportMode {
 		log.Warn("the node is in import mode! Cross shard transactions and rewards where destination shard is " +
@@ -65,6 +61,8 @@ func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txsDatabaseProce
 		txBuilder:       txBuilder,
 		txsGrouper:      txsDBGrouper,
 		tokensProcessor: tokensProc,
+		scrsProc:        scrProc,
+		scrsDataToTxs:   scrsDataToTxs,
 	}, nil
 }
 
@@ -120,10 +118,13 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 
 	normalTxs = tdp.setTransactionSearchOrder(normalTxs)
 	dbReceipts := tdp.txsGrouper.groupReceipts(header, pool.Receipts)
-	dbSCResults, countScResults := tdp.iterateSCRSAndConvert(pool.Scrs, header, normalTxs)
+	dbSCResults := tdp.scrsProc.processSCRs(body, header, pool.Scrs)
 
-	tdp.txBuilder.addScrsReceiverToAlteredAccounts(alteredAccounts, dbSCResults)
-	tdp.setDetailsOfTxsWithSCRS(normalTxs, countScResults)
+	tdp.scrsProc.addScrsReceiverToAlteredAccounts(alteredAccounts, dbSCResults)
+
+	srcsNoTxInCurrentShard := tdp.scrsDataToTxs.attachSCRsToTransactions(normalTxs, dbSCResults)
+	tdp.scrsDataToTxs.processTransactionsAfterSCRsWasAttached(normalTxs)
+	txHashStatus := tdp.scrsDataToTxs.processSCRsWithoutTx(srcsNoTxInCurrentShard)
 
 	sliceNormalTxs := convertMapTxsToSlice(normalTxs)
 	sliceRewardsTxs := convertMapTxsToSlice(rewardsTxs)
@@ -138,134 +139,8 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 		Receipts:     dbReceipts,
 		AlteredAccts: alteredAccounts,
 		Tokens:       tokens,
+		TxHashStatus: txHashStatus,
 	}
-}
-
-func (tdp *txsDatabaseProcessor) setDetailsOfTxsWithSCRS(
-	transactions map[string]*data.Transaction,
-	countScResults map[string]int,
-) {
-	for hash, nrScResults := range countScResults {
-		tx, ok := transactions[hash]
-		if !ok {
-			continue
-		}
-
-		tdp.setDetailsOfATxWithSCRS(tx, nrScResults)
-	}
-}
-
-func (tdp *txsDatabaseProcessor) setDetailsOfATxWithSCRS(tx *data.Transaction, nrScResults int) {
-	tx.HasSCR = true
-
-	if isRelayedTx(tx) || isESDTNFTTransfer(tx) {
-		tx.GasUsed = tx.GasLimit
-		fee := tdp.txFeeCalculator.ComputeTxFeeBasedOnGasUsed(tx, tx.GasUsed)
-		tx.Fee = fee.String()
-
-		return
-	}
-
-	// ignore invalid transaction because status and gas fields were already set
-	if tx.Status == transaction.TxStatusInvalid.String() {
-		return
-	}
-
-	if nrScResults > minimumNumberOfSmartContractResults {
-		return
-	}
-
-	if hasSCRSWithOk(tx) {
-		return
-	}
-
-	tx.Status = transaction.TxStatusFail.String()
-	tx.GasUsed = tx.GasLimit
-	fee := tdp.txFeeCalculator.ComputeTxFeeBasedOnGasUsed(tx, tx.GasUsed)
-	tx.Fee = fee.String()
-}
-
-func hasSCRSWithOk(tx *data.Transaction) bool {
-	for _, scr := range tx.SmartContractResults {
-		if isScResultSuccessful(scr.Data) {
-			return true
-		}
-	}
-
-	return false
-}
-
-func (tdp *txsDatabaseProcessor) iterateSCRSAndConvert(
-	txPool map[string]coreData.TransactionHandler,
-	header coreData.HeaderHandler,
-	transactions map[string]*data.Transaction,
-) ([]*data.ScResult, map[string]int) {
-	// we can not iterate smart contract results directly on the miniblocks contained in the block body
-	// as some miniblocks might be missing. Example: intra-shard miniblock that holds smart contract results
-	scResults := groupSmartContractResults(txPool)
-
-	dbSCResults := make([]*data.ScResult, 0)
-	countScResults := make(map[string]int)
-	for scHash, scResult := range scResults {
-		dbScResult := tdp.txBuilder.prepareSmartContractResult(scHash, scResult, header)
-		dbSCResults = append(dbSCResults, dbScResult)
-
-		tx, ok := transactions[string(scResult.OriginalTxHash)]
-		if !ok {
-			continue
-		}
-
-		tx = tdp.addScResultInfoInTx(dbScResult, tx)
-		countScResults[string(scResult.OriginalTxHash)]++
-		delete(scResults, scHash)
-
-		// append child smart contract results
-		childSCRS := findAllChildScrResults(scHash, scResults)
-
-		tdp.addScResultsInTx(tx, header, childSCRS)
-
-		countScResults[string(scResult.OriginalTxHash)] += len(childSCRS)
-	}
-
-	return dbSCResults, countScResults
-}
-
-func (tdp *txsDatabaseProcessor) addScResultsInTx(tx *data.Transaction, header coreData.HeaderHandler, scrs map[string]*smartContractResult.SmartContractResult) {
-	for childScHash, sc := range scrs {
-		childDBScResult := tdp.txBuilder.prepareSmartContractResult(childScHash, sc, header)
-
-		tx = tdp.addScResultInfoInTx(childDBScResult, tx)
-	}
-}
-
-func findAllChildScrResults(hash string, scrs map[string]*smartContractResult.SmartContractResult) map[string]*smartContractResult.SmartContractResult {
-	scrResults := make(map[string]*smartContractResult.SmartContractResult)
-	for scrHash, scr := range scrs {
-		if string(scr.OriginalTxHash) == hash {
-			scrResults[scrHash] = scr
-			delete(scrs, scrHash)
-		}
-	}
-
-	return scrResults
-}
-
-func (tdp *txsDatabaseProcessor) addScResultInfoInTx(dbScResult *data.ScResult, tx *data.Transaction) *data.Transaction {
-	tx.SmartContractResults = append(tx.SmartContractResults, dbScResult)
-
-	// ignore invalid transaction because status and gas fields was already set
-	if tx.Status == transaction.TxStatusInvalid.String() {
-		return tx
-	}
-
-	if isSCRForSenderWithRefund(dbScResult, tx) {
-		refundValue := stringValueToBigInt(dbScResult.Value)
-		gasUsed, fee := tdp.txFeeCalculator.ComputeGasUsedAndFeeBasedOnRefundValue(tx, refundValue)
-		tx.GasUsed = gasUsed
-		tx.Fee = fee.String()
-	}
-
-	return tx
 }
 
 func (tdp *txsDatabaseProcessor) setTransactionSearchOrder(transactions map[string]*data.Transaction) map[string]*data.Transaction {
