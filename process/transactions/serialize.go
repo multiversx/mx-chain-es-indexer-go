@@ -117,7 +117,7 @@ func prepareSerializedDataForATransaction(
 		return nil, nil, err
 	}
 
-	if !isCrossShardDstMe(tx, selfShardID) {
+	if isCrossShardOnSourceShard(tx, selfShardID) {
 		// if transaction is cross-shard and current shard ID is source, use upsert without updating anything
 		serializedData :=
 			[]byte(fmt.Sprintf(`{"script":{"source":"return"},"upsert":%s}`,

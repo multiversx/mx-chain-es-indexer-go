@@ -97,8 +97,8 @@ func isRelayedTx(tx *data.Transaction) bool {
 	return strings.HasPrefix(string(tx.Data), core.RelayedTransaction) && len(tx.SmartContractResults) > 0
 }
 
-func isCrossShardDstMe(tx *data.Transaction, selfShardID uint32) bool {
-	return tx.SenderShard != tx.ReceiverShard && tx.ReceiverShard == selfShardID
+func isCrossShardOnSourceShard(tx *data.Transaction, selfShardID uint32) bool {
+	return tx.SenderShard != tx.ReceiverShard && tx.SenderShard == selfShardID
 }
 
 func isIntraShardOrInvalid(tx *data.Transaction, selfShardID uint32) bool {

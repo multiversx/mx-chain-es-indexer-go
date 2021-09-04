@@ -32,6 +32,7 @@ func (st *scrsDataToTransactions) attachSCRsToTransactions(txs map[string]*data.
 		tx, ok := txs[string(decodedOriginalTxHash)]
 		if !ok {
 			scrsWithoutTx = append(scrsWithoutTx, scr)
+			continue
 		}
 
 		st.addScResultInfoInTx(scr, tx)
