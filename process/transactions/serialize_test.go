@@ -104,7 +104,7 @@ func TestSerializeTransactionsIntraShardTx(t *testing.T) {
 	buffers, err := (&txsDatabaseProcessor{}).SerializeTransactions([]*data.Transaction{{
 		Hash:                 "txHash",
 		SmartContractResults: []*data.ScResult{{}},
-	}}, 0, nil)
+	}}, map[string]string{}, 0)
 	require.Nil(t, err)
 
 	expectedBuff := `{ "index" : { "_id" : "txHash", "_type" : "_doc" } }
@@ -121,7 +121,7 @@ func TestSerializeTransactionCrossShardTxSource(t *testing.T) {
 		SenderShard:          0,
 		ReceiverShard:        1,
 		SmartContractResults: []*data.ScResult{{}},
-	}}, 0, nil)
+	}}, map[string]string{}, 0)
 	require.Nil(t, err)
 
 	expectedBuff := `{"update":{"_id":"txHash", "_type": "_doc"}}
@@ -138,7 +138,7 @@ func TestSerializeTransactionsCrossShardTxDestination(t *testing.T) {
 		SenderShard:          1,
 		ReceiverShard:        0,
 		SmartContractResults: []*data.ScResult{{}},
-	}}, 0, nil)
+	}}, map[string]string{}, 0)
 	require.Nil(t, err)
 
 	expectedBuff := `{"update":{"_id":"txHash", "_type": "_doc"}}
