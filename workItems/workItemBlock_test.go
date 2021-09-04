@@ -71,7 +71,7 @@ func TestItemBlock_SaveHeaderShouldErr(t *testing.T) {
 	require.True(t, errors.Is(err, localErr))
 }
 
-func TestItemBlock_SaveNoMiniblocksShoulCallSaveHeader(t *testing.T) {
+func TestItemBlock_SaveNoMiniblocksShouldCallSaveHeader(t *testing.T) {
 	countCalled := 0
 	itemBlock := workItems.NewItemBlock(
 		&mock.ElasticProcessorStub{

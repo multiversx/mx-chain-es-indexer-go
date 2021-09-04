@@ -216,7 +216,7 @@ func TestElasticProcessor_RemoveMiniblocks(t *testing.T) {
 	require.True(t, called)
 }
 
-func TestElasticseachDatabaseSaveHeader_RequestError(t *testing.T) {
+func TestElasticSearchDatabaseSaveHeader_RequestError(t *testing.T) {
 	localErr := errors.New("localErr")
 	header := &dataBlock.Header{Nonce: 1}
 	signerIndexes := []uint64{0, 1}
@@ -232,7 +232,7 @@ func TestElasticseachDatabaseSaveHeader_RequestError(t *testing.T) {
 	require.Equal(t, localErr, err)
 }
 
-func TestElasticseachDatabaseSaveHeader_CheckRequestBody(t *testing.T) {
+func TestElasticSearchDatabaseSaveHeader_CheckRequestBody(t *testing.T) {
 	header := &dataBlock.Header{
 		Nonce: 1,
 	}
@@ -272,7 +272,7 @@ func TestElasticseachDatabaseSaveHeader_CheckRequestBody(t *testing.T) {
 	require.Nil(t, err)
 }
 
-func TestElasticseachSaveTransactions(t *testing.T) {
+func TestElasticSearchSaveTransactions(t *testing.T) {
 	localErr := errors.New("localErr")
 	arguments := createMockElasticProcessorArgs()
 	dbWriter := &mock.DatabaseWriterStub{
