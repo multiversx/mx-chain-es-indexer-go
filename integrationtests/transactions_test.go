@@ -70,5 +70,6 @@ func TestElasticIndexerSaveTransactions(t *testing.T) {
 	genericResponse := &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexer2.TransactionsIndex, true, genericResponse)
 	require.Nil(t, err)
-	require.Equal(t, expectedTx1, string(genericResponse.Docs[0].Source))
+
+	compareTxs(t, expectedTx1, string(genericResponse.Docs[0].Source))
 }

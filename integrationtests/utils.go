@@ -1,13 +1,17 @@
 package integrationtests
 
 import (
+	"encoding/json"
 	"fmt"
+	"testing"
 
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elastic-indexer-go/process"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/factory"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
+	"github.com/stretchr/testify/require"
 )
 
 func setLogLevelDebug() {
@@ -38,4 +42,16 @@ func CreateElasticProcessor(
 	}
 
 	return factory.CreateElasticProcessor(args)
+}
+
+func compareTxs(t *testing.T, expected string, actual string) {
+	expectedTx := &data.Transaction{}
+	err := json.Unmarshal([]byte(expected), expectedTx)
+	require.Nil(t, err)
+
+	actualTx := &data.Transaction{}
+	err = json.Unmarshal([]byte(actual), actualTx)
+	require.Nil(t, err)
+
+	require.Equal(t, expectedTx, actualTx)
 }
