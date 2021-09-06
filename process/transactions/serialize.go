@@ -86,6 +86,15 @@ func (tdp *txsDatabaseProcessor) SerializeTransactions(
 		}
 	}
 
+	err := serializeTxHashStatus(buffSlice, txHashStatus)
+	if err != nil {
+		return nil, err
+	}
+
+	return buffSlice.Buffers(), nil
+}
+
+func serializeTxHashStatus(buffSlice *data.BufferSlice, txHashStatus map[string]string) error {
 	for txHash, status := range txHashStatus {
 		metaData := []byte(fmt.Sprintf(`{"update":{"_id":"%s", "_type": "_doc"}}%s`, txHash, "\n"))
 
@@ -94,17 +103,17 @@ func (tdp *txsDatabaseProcessor) SerializeTransactions(
 		}
 		marshaledTx, err := json.Marshal(newTx)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		serializedData := []byte(fmt.Sprintf(`{"script": {"source": "ctx._source.status = params.status","lang": "painless","params": {"status": "%s"}},"upsert": %s }`, status, string(marshaledTx)))
 		err = buffSlice.PutData(metaData, serializedData)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	return buffSlice.Buffers(), nil
+	return nil
 }
 
 func prepareSerializedDataForATransaction(

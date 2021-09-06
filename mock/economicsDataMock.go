@@ -1,12 +1,14 @@
 package mock
 
 import (
-	"fmt"
 	"math/big"
 
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
+	logger "github.com/ElrondNetwork/elrond-go-logger"
 )
+
+var log = logger.GetOrCreate("mock/economicsData")
 
 const (
 	minGasLimit      = uint64(50000)
@@ -108,7 +110,7 @@ func (e *EconomicsHandlerMock) SplitTxGasInCategories(tx coreData.TransactionWit
 	gasLimitMove = e.ComputeGasLimit(tx)
 	gasLimitProcess, err = core.SafeSubUint64(tx.GetGasLimit(), gasLimitMove)
 	if err != nil {
-		fmt.Println("SplitTxGasInCategories - insufficient gas for move",
+		log.Error("SplitTxGasInCategories - insufficient gas for move",
 			"providedGas", tx.GetGasLimit(),
 			"computedMinimumRequired", gasLimitMove,
 			"dataLen", len(tx.GetData()),

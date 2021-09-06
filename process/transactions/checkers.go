@@ -13,7 +13,6 @@ import (
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
-	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
 
@@ -94,13 +93,10 @@ func stringValueToBigInt(strValue string) *big.Int {
 }
 
 func isRelayedTx(tx *data.Transaction) bool {
-	return strings.HasPrefix(string(tx.Data), core.RelayedTransaction) && len(tx.SmartContractResults) > 0
+	isRelayed := strings.HasPrefix(string(tx.Data), core.RelayedTransaction) || strings.HasPrefix(string(tx.Data), core.RelayedTransactionV2)
+	return isRelayed && len(tx.SmartContractResults) > 0
 }
 
 func isCrossShardOnSourceShard(tx *data.Transaction, selfShardID uint32) bool {
 	return tx.SenderShard != tx.ReceiverShard && tx.SenderShard == selfShardID
-}
-
-func isIntraShardOrInvalid(tx *data.Transaction, selfShardID uint32) bool {
-	return (tx.SenderShard == tx.ReceiverShard && tx.ReceiverShard == selfShardID) || tx.Status == transaction.TxStatusInvalid.String()
 }

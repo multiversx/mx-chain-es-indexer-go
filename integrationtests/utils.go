@@ -2,7 +2,6 @@ package integrationtests
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
 
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
@@ -17,10 +16,7 @@ import (
 )
 
 func setLogLevelDebug() {
-	err := logger.SetLogLevel("indexer:DEBUG")
-	if err != nil {
-		fmt.Printf("cannot set log level: error %s", err.Error())
-	}
+	_ = logger.SetLogLevel("indexer:DEBUG")
 }
 
 func createESClient(url string) (process.DatabaseClientHandler, error) {

@@ -20,8 +20,12 @@ const (
 
 	expectedTxNFTTransfer                  = `{"miniBlockHash":"83c60064098aa89220b5adc9d71f22b489bfc78cb3dcb516381102d7fec959e8","nonce":79,"round":50,"value":"0","receiver":"65726431757265376561323437636c6a3679716a673830756e7a36787a6a686c6a327a776d3467746736737564636d747364326377337873373468617376","sender":"65726431757265376561323437636c6a3679716a673830756e7a36787a6a686c6a327a776d3467746736737564636d747364326377337873373468617376","receiverShard":0,"senderShard":0,"gasPrice":1000000000,"gasLimit":5000000,"gasUsed":963500,"fee":"232880000000000","data":"RVNEVE5GVFRyYW5zZmVyQDQzNGY0YzQ1NDM1NDQ5NDUyZDMyMzY2MzMxMzgzOEAwMUAwMUAwMDAwMDAwMDAwMDAwMDAwMDUwMGE3YTAyNzcxYWEwNzA5MGU2MDdmMDJiMjVmNGQ2ZDI0MWJmZjMyYjk5MGEy","signature":"","timestamp":5040,"status":"success","searchOrder":0,"hasScResults":true}`
 	expectedTxNFTTransferFailOnDestination = `{"miniBlockHash":"83c60064098aa89220b5adc9d71f22b489bfc78cb3dcb516381102d7fec959e8","nonce":79,"round":50,"value":"0","receiver":"65726431757265376561323437636c6a3679716a673830756e7a36787a6a686c6a327a776d3467746736737564636d747364326377337873373468617376","sender":"65726431757265376561323437636c6a3679716a673830756e7a36787a6a686c6a327a776d3467746736737564636d747364326377337873373468617376","receiverShard":0,"senderShard":0,"gasPrice":1000000000,"gasLimit":5000000,"gasUsed":963500,"fee":"232880000000000","data":"RVNEVE5GVFRyYW5zZmVyQDQzNGY0YzQ1NDM1NDQ5NDUyZDMyMzY2MzMxMzgzOEAwMUAwMUAwMDAwMDAwMDAwMDAwMDAwMDUwMGE3YTAyNzcxYWEwNzA5MGU2MDdmMDJiMjVmNGQ2ZDI0MWJmZjMyYjk5MGEy","signature":"","timestamp":5040,"status":"fail","searchOrder":0,"hasScResults":true}`
+
+	txWithStatusOnly     = `{"miniBlockHash":"","nonce":0,"round":0,"value":"","receiver":"","sender":"","receiverShard":0,"senderShard":0,"gasPrice":0,"gasLimit":0,"gasUsed":0,"fee":"","data":null,"signature":"","timestamp":0,"status":"fail","searchOrder":0}`
+	completeTxWithStatus = `{"receiver":"65726431757265376561323437636c6a3679716a673830756e7a36787a6a686c6a327a776d3467746736737564636d747364326377337873373468617376","data":"RVNEVE5GVFRyYW5zZmVyQDQzNGY0YzQ1NDM1NDQ5NDUyZDMyMzY2MzMxMzgzOEAwMUAwMUAwMDAwMDAwMDAwMDAwMDAwMDUwMGE3YTAyNzcxYWEwNzA5MGU2MDdmMDJiMjVmNGQ2ZDI0MWJmZjMyYjk5MGEy","signature":"","fee":"232880000000000","nonce":79,"gasLimit":5000000,"gasUsed":963500,"miniBlockHash":"db7161a83f08489cba131e55f042536ee49116b622e33e70335a13e51a6c268c","round":50,"hasScResults":true,"sender":"65726431757265376561323437636c6a3679716a673830756e7a36787a6a686c6a327a776d3467746736737564636d747364326377337873373468617376","receiverShard":0,"senderShard":0,"value":"0","gasPrice":1000000000,"timestamp":5040,"status":"fail","searchOrder":0}`
 )
 
+// TODO check also indexes that are altered
 func TestNFTTransferCrossShard(t *testing.T) {
 	setLogLevelDebug()
 
@@ -139,11 +143,6 @@ func TestNFTTransferCrossShard(t *testing.T) {
 
 	compareTxs(t, []byte(expectedTxNFTTransferFailOnDestination), genericResponse.Docs[0].Source)
 }
-
-const (
-	txWithStatusOnly     = `{"miniBlockHash":"","nonce":0,"round":0,"value":"","receiver":"","sender":"","receiverShard":0,"senderShard":0,"gasPrice":0,"gasLimit":0,"gasUsed":0,"fee":"","data":null,"signature":"","timestamp":0,"status":"fail","searchOrder":0}`
-	completeTxWithStatus = `{"receiver":"65726431757265376561323437636c6a3679716a673830756e7a36787a6a686c6a327a776d3467746736737564636d747364326377337873373468617376","data":"RVNEVE5GVFRyYW5zZmVyQDQzNGY0YzQ1NDM1NDQ5NDUyZDMyMzY2MzMxMzgzOEAwMUAwMUAwMDAwMDAwMDAwMDAwMDAwMDUwMGE3YTAyNzcxYWEwNzA5MGU2MDdmMDJiMjVmNGQ2ZDI0MWJmZjMyYjk5MGEy","signature":"","fee":"232880000000000","nonce":79,"gasLimit":5000000,"gasUsed":963500,"miniBlockHash":"db7161a83f08489cba131e55f042536ee49116b622e33e70335a13e51a6c268c","round":50,"hasScResults":true,"sender":"65726431757265376561323437636c6a3679716a673830756e7a36787a6a686c6a327a776d3467746736737564636d747364326377337873373468617376","receiverShard":0,"senderShard":0,"value":"0","gasPrice":1000000000,"timestamp":5040,"status":"fail","searchOrder":0}`
-)
 
 func TestNFTTransferCrossShardImportDBScenarioFirstIndexDestinationAfterSource(t *testing.T) {
 	setLogLevelDebug()
