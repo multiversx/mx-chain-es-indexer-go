@@ -6,11 +6,13 @@ import (
 	"testing"
 
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
+	"github.com/ElrondNetwork/elastic-indexer-go/client"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elastic-indexer-go/process"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/factory"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
+	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/stretchr/testify/require"
 )
 
@@ -21,6 +23,13 @@ func setLogLevelDebug() {
 	}
 }
 
+func createESClient(url string) (process.DatabaseClientHandler, error) {
+	return client.NewElasticClient(elasticsearch.Config{
+		Addresses: []string{url},
+	})
+}
+
+// CreateElasticProcessor -
 func CreateElasticProcessor(
 	esClient process.DatabaseClientHandler,
 	accountsDB indexer.AccountsAdapter,
@@ -44,13 +53,13 @@ func CreateElasticProcessor(
 	return factory.CreateElasticProcessor(args)
 }
 
-func compareTxs(t *testing.T, expected string, actual string) {
+func compareTxs(t *testing.T, expected []byte, actual []byte) {
 	expectedTx := &data.Transaction{}
-	err := json.Unmarshal([]byte(expected), expectedTx)
+	err := json.Unmarshal(expected, expectedTx)
 	require.Nil(t, err)
 
 	actualTx := &data.Transaction{}
-	err = json.Unmarshal([]byte(actual), actualTx)
+	err = json.Unmarshal(actual, actualTx)
 	require.Nil(t, err)
 
 	require.Equal(t, expectedTx, actualTx)

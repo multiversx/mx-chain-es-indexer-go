@@ -5,16 +5,13 @@ import (
 	"math/big"
 	"testing"
 
-	indexer2 "github.com/ElrondNetwork/elastic-indexer-go"
-	"github.com/ElrondNetwork/elastic-indexer-go/client"
-	"github.com/ElrondNetwork/elastic-indexer-go/client/logging"
+	indexerData "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 	"github.com/ElrondNetwork/elrond-go-core/data/smartContractResult"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/stretchr/testify/require"
 )
 
@@ -26,10 +23,7 @@ const (
 func TestTransactionWithSCCallFail(t *testing.T) {
 	setLogLevelDebug()
 
-	esClient, err := client.NewElasticClient(elasticsearch.Config{
-		Addresses: []string{"http://localhost:9200"},
-		Logger:    &logging.CustomLogger{},
-	})
+	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
 	accounts := &mock.AccountsStub{}
@@ -88,19 +82,16 @@ func TestTransactionWithSCCallFail(t *testing.T) {
 
 	ids := []string{hex.EncodeToString(txHash)}
 	genericResponse := &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexer2.TransactionsIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, indexerData.TransactionsIndex, true, genericResponse)
 	require.Nil(t, err)
 
-	compareTxs(t, scCallFailTx, string(genericResponse.Docs[0].Source))
+	compareTxs(t, []byte(scCallFailTx), genericResponse.Docs[0].Source)
 }
 
 func TestTransactionWithScCallSuccess(t *testing.T) {
 	setLogLevelDebug()
 
-	esClient, err := client.NewElasticClient(elasticsearch.Config{
-		Addresses: []string{"http://localhost:9200"},
-		Logger:    &logging.CustomLogger{},
-	})
+	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
 	accounts := &mock.AccountsStub{}
@@ -158,8 +149,8 @@ func TestTransactionWithScCallSuccess(t *testing.T) {
 
 	ids := []string{hex.EncodeToString(txHash)}
 	genericResponse := &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexer2.TransactionsIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, indexerData.TransactionsIndex, true, genericResponse)
 	require.Nil(t, err)
 
-	compareTxs(t, claimRewardsTx, string(genericResponse.Docs[0].Source))
+	compareTxs(t, []byte(claimRewardsTx), genericResponse.Docs[0].Source)
 }

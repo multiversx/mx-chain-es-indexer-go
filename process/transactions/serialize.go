@@ -161,7 +161,7 @@ func isNFTTransferOrMultiTransfer(tx *data.Transaction) bool {
 	}
 
 	splitData := strings.Split(string(tx.Data), atSeparator)
-	if len(splitData) < 4 {
+	if len(splitData) < minNumOfArgumentsNFTTransferORMultiTransfer {
 		return false
 	}
 

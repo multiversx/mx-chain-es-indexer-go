@@ -89,6 +89,7 @@ func (proc *smartContractResultsProcessor) processSCRsFromMiniblock(
 	mbHash, err := core.CalculateHash(proc.marshalizer, proc.hasher, mb)
 	if err != nil {
 		log.Warn("smartContractResultsProcessor.processSCRsFromMiniblock cannot calculate miniblock hash")
+		return []*indexerData.ScResult{}
 	}
 
 	indexerSCRs := make([]*indexerData.ScResult, 0, len(mb.TxHashes))
@@ -168,8 +169,8 @@ func (proc *smartContractResultsProcessor) addScrsReceiverToAlteredAccounts(
 			continue
 		}
 
-		egldBalanceNotChanged := scr.Value == emptyString || scr.Value == "0"
-		if egldBalanceNotChanged {
+		balanceNotChanged := scr.Value == emptyString || scr.Value == "0"
+		if balanceNotChanged {
 			// the smart contract results that don't alter the balance of the receiver address should be ignored
 			continue
 		}

@@ -7,7 +7,7 @@ type GenericResponse struct {
 	Docs []GenericResponseDB `json:"docs"`
 }
 
-// GenericResponseDB is the structure for the  generic response database
+// GenericResponseDB is the structure for the generic response database
 type GenericResponseDB struct {
 	Found  bool            `json:"found"`
 	ID     string          `json:"_id"`

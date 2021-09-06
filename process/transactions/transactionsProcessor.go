@@ -122,8 +122,8 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 
 	tdp.scrsProc.addScrsReceiverToAlteredAccounts(alteredAccounts, dbSCResults)
 
-	srcsNoTxInCurrentShard := tdp.scrsDataToTxs.attachSCRsToTransactions(normalTxs, dbSCResults)
-	tdp.scrsDataToTxs.processTransactionsAfterSCRsWasAttached(normalTxs)
+	srcsNoTxInCurrentShard := tdp.scrsDataToTxs.attachSCRsToTransactionsAndReturnSCRsWithoutTx(normalTxs, dbSCResults)
+	tdp.scrsDataToTxs.processTransactionsAfterSCRsWereAttached(normalTxs)
 	txHashStatus := tdp.scrsDataToTxs.processSCRsWithoutTx(srcsNoTxInCurrentShard)
 
 	sliceNormalTxs := convertMapTxsToSlice(normalTxs)

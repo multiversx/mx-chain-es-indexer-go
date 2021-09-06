@@ -17,7 +17,7 @@ stop() {
 delete() {
   curl -XDELETE http://localhost:9200/_all
 
-  curl -X DELETE "http://localhost:9200/_template/*"
+  curl -XDELETE http://localhost:9200/_template/*
 }
 
 "$@"

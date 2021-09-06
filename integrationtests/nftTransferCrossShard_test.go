@@ -5,29 +5,27 @@ import (
 	"math/big"
 	"testing"
 
-	indexer2 "github.com/ElrondNetwork/elastic-indexer-go"
-	"github.com/ElrondNetwork/elastic-indexer-go/client"
-	"github.com/ElrondNetwork/elastic-indexer-go/client/logging"
+	indexerdata "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 	"github.com/ElrondNetwork/elrond-go-core/data/smartContractResult"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/stretchr/testify/require"
 )
 
-const expectedTxNFTTransfer = `{"miniBlockHash":"83c60064098aa89220b5adc9d71f22b489bfc78cb3dcb516381102d7fec959e8","nonce":79,"round":50,"value":"0","receiver":"65726431757265376561323437636c6a3679716a673830756e7a36787a6a686c6a327a776d3467746736737564636d747364326377337873373468617376","sender":"65726431757265376561323437636c6a3679716a673830756e7a36787a6a686c6a327a776d3467746736737564636d747364326377337873373468617376","receiverShard":0,"senderShard":0,"gasPrice":1000000000,"gasLimit":5000000,"gasUsed":963500,"fee":"232880000000000","data":"RVNEVE5GVFRyYW5zZmVyQDQzNGY0YzQ1NDM1NDQ5NDUyZDMyMzY2MzMxMzgzOEAwMUAwMUAwMDAwMDAwMDAwMDAwMDAwMDUwMGE3YTAyNzcxYWEwNzA5MGU2MDdmMDJiMjVmNGQ2ZDI0MWJmZjMyYjk5MGEy","signature":"","timestamp":5040,"status":"success","searchOrder":0,"hasScResults":true}`
-const expectedTxNFTTransferFailOnDestination = `{"miniBlockHash":"83c60064098aa89220b5adc9d71f22b489bfc78cb3dcb516381102d7fec959e8","nonce":79,"round":50,"value":"0","receiver":"65726431757265376561323437636c6a3679716a673830756e7a36787a6a686c6a327a776d3467746736737564636d747364326377337873373468617376","sender":"65726431757265376561323437636c6a3679716a673830756e7a36787a6a686c6a327a776d3467746736737564636d747364326377337873373468617376","receiverShard":0,"senderShard":0,"gasPrice":1000000000,"gasLimit":5000000,"gasUsed":963500,"fee":"232880000000000","data":"RVNEVE5GVFRyYW5zZmVyQDQzNGY0YzQ1NDM1NDQ5NDUyZDMyMzY2MzMxMzgzOEAwMUAwMUAwMDAwMDAwMDAwMDAwMDAwMDUwMGE3YTAyNzcxYWEwNzA5MGU2MDdmMDJiMjVmNGQ2ZDI0MWJmZjMyYjk5MGEy","signature":"","timestamp":5040,"status":"fail","searchOrder":0,"hasScResults":true}`
+const (
+	esURL = "http://localhost:9200"
+
+	expectedTxNFTTransfer                  = `{"miniBlockHash":"83c60064098aa89220b5adc9d71f22b489bfc78cb3dcb516381102d7fec959e8","nonce":79,"round":50,"value":"0","receiver":"65726431757265376561323437636c6a3679716a673830756e7a36787a6a686c6a327a776d3467746736737564636d747364326377337873373468617376","sender":"65726431757265376561323437636c6a3679716a673830756e7a36787a6a686c6a327a776d3467746736737564636d747364326377337873373468617376","receiverShard":0,"senderShard":0,"gasPrice":1000000000,"gasLimit":5000000,"gasUsed":963500,"fee":"232880000000000","data":"RVNEVE5GVFRyYW5zZmVyQDQzNGY0YzQ1NDM1NDQ5NDUyZDMyMzY2MzMxMzgzOEAwMUAwMUAwMDAwMDAwMDAwMDAwMDAwMDUwMGE3YTAyNzcxYWEwNzA5MGU2MDdmMDJiMjVmNGQ2ZDI0MWJmZjMyYjk5MGEy","signature":"","timestamp":5040,"status":"success","searchOrder":0,"hasScResults":true}`
+	expectedTxNFTTransferFailOnDestination = `{"miniBlockHash":"83c60064098aa89220b5adc9d71f22b489bfc78cb3dcb516381102d7fec959e8","nonce":79,"round":50,"value":"0","receiver":"65726431757265376561323437636c6a3679716a673830756e7a36787a6a686c6a327a776d3467746736737564636d747364326377337873373468617376","sender":"65726431757265376561323437636c6a3679716a673830756e7a36787a6a686c6a327a776d3467746736737564636d747364326377337873373468617376","receiverShard":0,"senderShard":0,"gasPrice":1000000000,"gasLimit":5000000,"gasUsed":963500,"fee":"232880000000000","data":"RVNEVE5GVFRyYW5zZmVyQDQzNGY0YzQ1NDM1NDQ5NDUyZDMyMzY2MzMxMzgzOEAwMUAwMUAwMDAwMDAwMDAwMDAwMDAwMDUwMGE3YTAyNzcxYWEwNzA5MGU2MDdmMDJiMjVmNGQ2ZDI0MWJmZjMyYjk5MGEy","signature":"","timestamp":5040,"status":"fail","searchOrder":0,"hasScResults":true}`
+)
 
 func TestNFTTransferCrossShard(t *testing.T) {
 	setLogLevelDebug()
 
-	esClient, err := client.NewElasticClient(elasticsearch.Config{
-		Addresses: []string{"http://localhost:9200"},
-		Logger:    &logging.CustomLogger{},
-	})
+	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
 	accounts := &mock.AccountsStub{}
@@ -103,10 +101,10 @@ func TestNFTTransferCrossShard(t *testing.T) {
 
 	ids := []string{hex.EncodeToString(txHash)}
 	genericResponse := &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexer2.TransactionsIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, indexerdata.TransactionsIndex, true, genericResponse)
 	require.Nil(t, err)
 
-	compareTxs(t, expectedTxNFTTransfer, string(genericResponse.Docs[0].Source))
+	compareTxs(t, []byte(expectedTxNFTTransfer), genericResponse.Docs[0].Source)
 
 	// EXECUTE transfer on the destination shard
 	bodyDstShard := &dataBlock.Body{
@@ -136,24 +134,21 @@ func TestNFTTransferCrossShard(t *testing.T) {
 	err = esProc.SaveTransactions(bodyDstShard, header, poolDstShard)
 	require.Nil(t, err)
 
-	err = esClient.DoMultiGet(ids, indexer2.TransactionsIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, indexerdata.TransactionsIndex, true, genericResponse)
 	require.Nil(t, err)
 
-	compareTxs(t, expectedTxNFTTransferFailOnDestination, string(genericResponse.Docs[0].Source))
+	compareTxs(t, []byte(expectedTxNFTTransferFailOnDestination), genericResponse.Docs[0].Source)
 }
 
 const (
-	txWithOnlyStatus     = `{"miniBlockHash":"","nonce":0,"round":0,"value":"","receiver":"","sender":"","receiverShard":0,"senderShard":0,"gasPrice":0,"gasLimit":0,"gasUsed":0,"fee":"","data":null,"signature":"","timestamp":0,"status":"fail","searchOrder":0}`
-	txCompleteWithStatus = `{"receiver":"65726431757265376561323437636c6a3679716a673830756e7a36787a6a686c6a327a776d3467746736737564636d747364326377337873373468617376","data":"RVNEVE5GVFRyYW5zZmVyQDQzNGY0YzQ1NDM1NDQ5NDUyZDMyMzY2MzMxMzgzOEAwMUAwMUAwMDAwMDAwMDAwMDAwMDAwMDUwMGE3YTAyNzcxYWEwNzA5MGU2MDdmMDJiMjVmNGQ2ZDI0MWJmZjMyYjk5MGEy","signature":"","fee":"232880000000000","nonce":79,"gasLimit":5000000,"gasUsed":963500,"miniBlockHash":"db7161a83f08489cba131e55f042536ee49116b622e33e70335a13e51a6c268c","round":50,"hasScResults":true,"sender":"65726431757265376561323437636c6a3679716a673830756e7a36787a6a686c6a327a776d3467746736737564636d747364326377337873373468617376","receiverShard":0,"senderShard":0,"value":"0","gasPrice":1000000000,"timestamp":5040,"status":"fail","searchOrder":0}`
+	txWithStatusOnly     = `{"miniBlockHash":"","nonce":0,"round":0,"value":"","receiver":"","sender":"","receiverShard":0,"senderShard":0,"gasPrice":0,"gasLimit":0,"gasUsed":0,"fee":"","data":null,"signature":"","timestamp":0,"status":"fail","searchOrder":0}`
+	completeTxWithStatus = `{"receiver":"65726431757265376561323437636c6a3679716a673830756e7a36787a6a686c6a327a776d3467746736737564636d747364326377337873373468617376","data":"RVNEVE5GVFRyYW5zZmVyQDQzNGY0YzQ1NDM1NDQ5NDUyZDMyMzY2MzMxMzgzOEAwMUAwMUAwMDAwMDAwMDAwMDAwMDAwMDUwMGE3YTAyNzcxYWEwNzA5MGU2MDdmMDJiMjVmNGQ2ZDI0MWJmZjMyYjk5MGEy","signature":"","fee":"232880000000000","nonce":79,"gasLimit":5000000,"gasUsed":963500,"miniBlockHash":"db7161a83f08489cba131e55f042536ee49116b622e33e70335a13e51a6c268c","round":50,"hasScResults":true,"sender":"65726431757265376561323437636c6a3679716a673830756e7a36787a6a686c6a327a776d3467746736737564636d747364326377337873373468617376","receiverShard":0,"senderShard":0,"value":"0","gasPrice":1000000000,"timestamp":5040,"status":"fail","searchOrder":0}`
 )
 
 func TestNFTTransferCrossShardImportDBScenarioFirstIndexDestinationAfterSource(t *testing.T) {
 	setLogLevelDebug()
 
-	esClient, err := client.NewElasticClient(elasticsearch.Config{
-		Addresses: []string{"http://localhost:9200"},
-		Logger:    &logging.CustomLogger{},
-	})
+	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
 	accounts := &mock.AccountsStub{}
@@ -211,10 +206,10 @@ func TestNFTTransferCrossShardImportDBScenarioFirstIndexDestinationAfterSource(t
 	err = esProc.SaveTransactions(bodyDstShard, header, poolDstShard)
 	require.Nil(t, err)
 
-	err = esClient.DoMultiGet(ids, indexer2.TransactionsIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, indexerdata.TransactionsIndex, true, genericResponse)
 	require.Nil(t, err)
 
-	compareTxs(t, txWithOnlyStatus, string(genericResponse.Docs[0].Source))
+	compareTxs(t, []byte(txWithStatusOnly), genericResponse.Docs[0].Source)
 
 	// execute on source
 
@@ -265,8 +260,8 @@ func TestNFTTransferCrossShardImportDBScenarioFirstIndexDestinationAfterSource(t
 	err = esProc.SaveTransactions(body, header, pool)
 	require.Nil(t, err)
 
-	err = esClient.DoMultiGet(ids, indexer2.TransactionsIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, indexerdata.TransactionsIndex, true, genericResponse)
 	require.Nil(t, err)
 
-	compareTxs(t, txCompleteWithStatus, string(genericResponse.Docs[0].Source))
+	compareTxs(t, []byte(completeTxWithStatus), genericResponse.Docs[0].Source)
 }

@@ -11,6 +11,8 @@ import (
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
 
+const minNumOfArgumentsNFTTransferORMultiTransfer = 4
+
 type scrsDataToTransactions struct {
 	txFeeCalculator indexer.FeesProcessorHandler
 }
@@ -21,7 +23,7 @@ func newScrsDataToTransactions(txFeeCalculator indexer.FeesProcessorHandler) *sc
 	}
 }
 
-func (st *scrsDataToTransactions) attachSCRsToTransactions(txs map[string]*data.Transaction, scrs []*data.ScResult) []*data.ScResult {
+func (st *scrsDataToTransactions) attachSCRsToTransactionsAndReturnSCRsWithoutTx(txs map[string]*data.Transaction, scrs []*data.ScResult) []*data.ScResult {
 	scrsWithoutTx := make([]*data.ScResult, 0)
 	for _, scr := range scrs {
 		decodedOriginalTxHash, err := hex.DecodeString(scr.OriginalTxHash)
@@ -35,13 +37,13 @@ func (st *scrsDataToTransactions) attachSCRsToTransactions(txs map[string]*data.
 			continue
 		}
 
-		st.addScResultInfoInTx(scr, tx)
+		st.addScResultInfoIntoTx(scr, tx)
 	}
 
 	return scrsWithoutTx
 }
 
-func (st *scrsDataToTransactions) addScResultInfoInTx(dbScResult *data.ScResult, tx *data.Transaction) {
+func (st *scrsDataToTransactions) addScResultInfoIntoTx(dbScResult *data.ScResult, tx *data.Transaction) {
 	tx.SmartContractResults = append(tx.SmartContractResults, dbScResult)
 
 	// ignore invalid transaction because status and gas fields was already set
@@ -59,17 +61,17 @@ func (st *scrsDataToTransactions) addScResultInfoInTx(dbScResult *data.ScResult,
 	return
 }
 
-func (st *scrsDataToTransactions) processTransactionsAfterSCRsWasAttached(transactions map[string]*data.Transaction) {
+func (st *scrsDataToTransactions) processTransactionsAfterSCRsWereAttached(transactions map[string]*data.Transaction) {
 	for _, tx := range transactions {
 		if len(tx.SmartContractResults) == 0 {
 			continue
 		}
 
-		st.setDetailsOfATxWithSCRS(tx)
+		st.fillTxWithSCRsFields(tx)
 	}
 }
 
-func (st *scrsDataToTransactions) setDetailsOfATxWithSCRS(tx *data.Transaction) {
+func (st *scrsDataToTransactions) fillTxWithSCRsFields(tx *data.Transaction) {
 	tx.HasSCR = true
 
 	if isRelayedTx(tx) {
@@ -85,7 +87,7 @@ func (st *scrsDataToTransactions) setDetailsOfATxWithSCRS(tx *data.Transaction) 
 		return
 	}
 
-	if hasSCRSWithOk(tx) {
+	if hasSuccessfulSCRs(tx) {
 		return
 	}
 
@@ -95,7 +97,7 @@ func (st *scrsDataToTransactions) setDetailsOfATxWithSCRS(tx *data.Transaction) 
 	tx.Fee = fee.String()
 }
 
-func hasSCRSWithOk(tx *data.Transaction) bool {
+func hasSuccessfulSCRs(tx *data.Transaction) bool {
 	for _, scr := range tx.SmartContractResults {
 		if isScResultSuccessful(scr.Data) {
 			return true
@@ -119,11 +121,9 @@ func (st *scrsDataToTransactions) processSCRsWithoutTx(scrs []*data.ScResult) ma
 }
 
 func isESDTNFTTransferWithUserError(scrData string) bool {
-	const minNumOfArguments = 4
-
 	splitData := strings.Split(scrData, atSeparator)
-	isCorrectOperation := splitData[0] == core.BuiltInFunctionESDTNFTTransfer || splitData[0] == core.BuiltInFunctionMultiESDTNFTTransfer
-	if !isCorrectOperation || len(splitData) < minNumOfArguments {
+	isMultiTransferOrNFTTransfer := splitData[0] == core.BuiltInFunctionESDTNFTTransfer || splitData[0] == core.BuiltInFunctionMultiESDTNFTTransfer
+	if !isMultiTransferOrNFTTransfer || len(splitData) < minNumOfArgumentsNFTTransferORMultiTransfer {
 		return false
 	}
 
