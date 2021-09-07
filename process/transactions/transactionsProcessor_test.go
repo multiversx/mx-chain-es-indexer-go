@@ -227,11 +227,6 @@ func TestRelayedTransactions(t *testing.T) {
 		PrevTxHash:     txHash1,
 		GasLimit:       1,
 	}
-	scHash3 := []byte("scHash3")
-	scResult3 := &smartContractResult.SmartContractResult{
-		OriginalTxHash: scHash1,
-		Data:           []byte("@" + "6F6B"),
-	}
 
 	body := &block.Body{
 		MiniBlocks: []*block.MiniBlock{
@@ -240,7 +235,7 @@ func TestRelayedTransactions(t *testing.T) {
 				Type:     block.TxBlock,
 			},
 			{
-				TxHashes: [][]byte{scHash1, scHash2, scHash3},
+				TxHashes: [][]byte{scHash1, scHash2},
 				Type:     block.SmartContractResultBlock,
 			},
 		},
@@ -255,7 +250,6 @@ func TestRelayedTransactions(t *testing.T) {
 		Scrs: map[string]coreData.TransactionHandler{
 			string(scHash1): scResult1,
 			string(scHash2): scResult2,
-			string(scHash3): scResult3,
 		},
 	}
 
@@ -263,7 +257,7 @@ func TestRelayedTransactions(t *testing.T) {
 
 	results := txDbProc.PrepareTransactionsForDatabase(body, header, pool)
 	assert.Equal(t, 1, len(results.Transactions))
-	assert.Equal(t, 3, len(results.Transactions[0].SmartContractResults))
+	assert.Equal(t, 2, len(results.Transactions[0].SmartContractResults))
 	assert.Equal(t, transaction.TxStatusSuccess.String(), results.Transactions[0].Status)
 }
 
@@ -651,6 +645,10 @@ func TestTxsDatabaseProcessor_PrepareTransactionsForDatabaseESDTNFTTransfer(t *t
 	t.Parallel()
 
 	txDbProc, _ := NewTransactionsProcessor(createMockArgsTxsDBProc())
+	txDbProc.scrsDataToTxs.txFeeCalculator = &mock.EconomicsHandlerStub{
+		ComputeGasUsedAndFeeBasedOnRefundValueCalled: func(tx coreData.TransactionWithFeeHandler, refundValue *big.Int) (uint64, *big.Int) {
+			return 100, big.NewInt(10000)
+		}}
 
 	txHash1 := []byte("txHash1")
 	tx1 := &transaction.Transaction{
@@ -660,7 +658,10 @@ func TestTxsDatabaseProcessor_PrepareTransactionsForDatabaseESDTNFTTransfer(t *t
 	}
 	scResHash1 := []byte("scResHash1")
 	scRes1 := &smartContractResult.SmartContractResult{
+		Nonce:          1,
+		Data:           []byte("@" + okHexEncoded),
 		OriginalTxHash: txHash1,
+		PrevTxHash:     txHash1,
 	}
 
 	body := &block.Body{

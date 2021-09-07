@@ -416,7 +416,7 @@ func TestElasticseachSaveTransactions(t *testing.T) {
 
 	elasticDatabase := newElasticsearchProcessor(dbWriter, arguments)
 	pool := &indexer.Pool{Txs: txPool}
-	err := elasticDatabase.SaveTransactions(body, header, pool, map[string]bool{})
+	err := elasticDatabase.SaveTransactions(body, header, pool)
 	require.Equal(t, localErr, err)
 }
 
@@ -468,9 +468,8 @@ func TestElasticProcessor_SaveMiniblocks(t *testing.T) {
 	body := &dataBlock.Body{MiniBlocks: dataBlock.MiniBlockSlice{
 		{SenderShardID: 0, ReceiverShardID: 1},
 	}}
-	mbsInDB, err := elasticProc.SaveMiniblocks(header, body)
+	err := elasticProc.SaveMiniblocks(header, body)
 	require.Equal(t, localErr, err)
-	require.Equal(t, 0, len(mbsInDB))
 }
 
 func TestElasticsearch_saveShardValidatorsPubKeys_RequestError(t *testing.T) {
@@ -646,7 +645,7 @@ func TestElasticProcessor_SaveTransactionsIndexSCResults(t *testing.T) {
 	elasticSearchProc := newElasticsearchProcessor(dbWriter, arguments)
 	elasticSearchProc.enabledIndexes[elasticIndexer.ScResultsIndex] = struct{}{}
 
-	err := elasticSearchProc.SaveTransactions(&dataBlock.Body{}, &dataBlock.Header{}, &indexer.Pool{}, nil)
+	err := elasticSearchProc.SaveTransactions(&dataBlock.Body{}, &dataBlock.Header{}, &indexer.Pool{})
 	require.Nil(t, err)
 	require.True(t, called)
 }
@@ -682,7 +681,7 @@ func TestElasticProcessor_SaveTransactionsIndexReceipts(t *testing.T) {
 	elasticSearchProc := newElasticsearchProcessor(dbWriter, arguments)
 	elasticSearchProc.enabledIndexes[elasticIndexer.ReceiptsIndex] = struct{}{}
 
-	err := elasticSearchProc.SaveTransactions(&dataBlock.Body{}, &dataBlock.Header{}, &indexer.Pool{}, nil)
+	err := elasticSearchProc.SaveTransactions(&dataBlock.Body{}, &dataBlock.Header{}, &indexer.Pool{})
 	require.Nil(t, err)
 	require.True(t, called)
 }

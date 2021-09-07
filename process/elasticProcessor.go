@@ -359,16 +359,14 @@ func (ei *elasticProcessor) RemoveTransactions(header coreData.HeaderHandler, bo
 }
 
 // SaveMiniblocks will prepare and save information about miniblocks in elasticsearch server
-// and returns a map with the hashes of the miniblocks that are already in elasticsearch database
-// the map on miniblocks have to be returned here because the get must be done before the actual miniblocks are indexed
-func (ei *elasticProcessor) SaveMiniblocks(header coreData.HeaderHandler, body *block.Body) (map[string]bool, error) {
+func (ei *elasticProcessor) SaveMiniblocks(header coreData.HeaderHandler, body *block.Body) error {
 	if !ei.isIndexEnabled(elasticIndexer.MiniblocksIndex) {
-		return map[string]bool{}, nil
+		return nil
 	}
 
 	mbs := ei.miniblocksProc.PrepareDBMiniblocks(header, body)
 	if len(mbs) == 0 {
-		return make(map[string]bool), nil
+		return nil
 	}
 
 	miniblocksInDBMap, err := ei.miniblocksInDBMap(mbs)
@@ -377,7 +375,7 @@ func (ei *elasticProcessor) SaveMiniblocks(header coreData.HeaderHandler, body *
 	}
 
 	buff := ei.miniblocksProc.SerializeBulkMiniBlocks(mbs, miniblocksInDBMap)
-	return miniblocksInDBMap, ei.elasticClient.DoBulkRequest(buff, elasticIndexer.MiniblocksIndex)
+	return ei.elasticClient.DoBulkRequest(buff, elasticIndexer.MiniblocksIndex)
 }
 
 func (ei *elasticProcessor) miniblocksInDBMap(mbs []*data.Miniblock) (map[string]bool, error) {
@@ -394,14 +392,13 @@ func (ei *elasticProcessor) SaveTransactions(
 	body *block.Body,
 	header coreData.HeaderHandler,
 	pool *indexer.Pool,
-	mbsInDb map[string]bool,
 ) error {
 	headerTimestamp := header.GetTimeStamp()
 
 	preparedResults := ei.transactionsProc.PrepareTransactionsForDatabase(body, header, pool)
 	logsData := ei.logsAndEventsProc.ExtractDataFromLogs(pool.Logs, preparedResults, headerTimestamp)
 
-	err := ei.indexTransactions(preparedResults.Transactions, header, mbsInDb)
+	err := ei.indexTransactions(preparedResults.Transactions, preparedResults.TxHashStatus, header)
 	if err != nil {
 		return err
 	}
@@ -484,12 +481,12 @@ func (ei *elasticProcessor) indexScDeploys(deployData map[string]*data.ScDeployI
 	return ei.doBulkRequests(elasticIndexer.SCDeploysIndex, buffSlice)
 }
 
-func (ei *elasticProcessor) indexTransactions(txs []*data.Transaction, header coreData.HeaderHandler, mbsInDb map[string]bool) error {
+func (ei *elasticProcessor) indexTransactions(txs []*data.Transaction, txHashStatus map[string]string, header coreData.HeaderHandler) error {
 	if !ei.isIndexEnabled(elasticIndexer.TransactionsIndex) {
 		return nil
 	}
 
-	buffSlice, err := ei.transactionsProc.SerializeTransactions(txs, header.GetShardID(), mbsInDb)
+	buffSlice, err := ei.transactionsProc.SerializeTransactions(txs, txHashStatus, header.GetShardID())
 	if err != nil {
 		return err
 	}

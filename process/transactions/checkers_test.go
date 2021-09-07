@@ -12,7 +12,6 @@ import (
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
-	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 	"github.com/stretchr/testify/require"
 )
@@ -167,25 +166,12 @@ func TestIsRelayedTx(t *testing.T) {
 	require.False(t, isRelayedTx(tx2))
 }
 
-func TestIsCrossShardDstMe(t *testing.T) {
+func TestIsCrossShardSourceMe(t *testing.T) {
 	t.Parallel()
 
 	tx1 := &data.Transaction{SenderShard: 2, ReceiverShard: 1}
-	require.True(t, isCrossShardDstMe(tx1, 1))
+	require.True(t, isCrossShardOnSourceShard(tx1, 2))
 
 	tx2 := &data.Transaction{SenderShard: 1, ReceiverShard: 1}
-	require.False(t, isCrossShardDstMe(tx2, 1))
-}
-
-func TestIsIntraShardOrInvalid(t *testing.T) {
-	t.Parallel()
-
-	tx1 := &data.Transaction{SenderShard: 1, ReceiverShard: 1}
-	require.True(t, isIntraShardOrInvalid(tx1, 1))
-
-	tx2 := &data.Transaction{SenderShard: 2, ReceiverShard: 1}
-	require.False(t, isIntraShardOrInvalid(tx2, 1))
-
-	tx3 := &data.Transaction{SenderShard: 2, ReceiverShard: 1, Status: transaction.TxStatusInvalid.String()}
-	require.True(t, isIntraShardOrInvalid(tx3, 1))
+	require.False(t, isCrossShardOnSourceShard(tx2, 1))
 }

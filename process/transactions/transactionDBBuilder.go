@@ -3,7 +3,6 @@ package transactions
 import (
 	"encoding/hex"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/ElrondNetwork/elastic-indexer-go"
@@ -13,7 +12,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/receipt"
 	"github.com/ElrondNetwork/elrond-go-core/data/rewardTx"
-	"github.com/ElrondNetwork/elrond-go-core/data/smartContractResult"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 )
 
@@ -102,42 +100,6 @@ func (dtb *dbTransactionBuilder) prepareRewardTransaction(
 	}
 }
 
-func (dtb *dbTransactionBuilder) prepareSmartContractResult(
-	scHash string,
-	sc *smartContractResult.SmartContractResult,
-	header coreData.HeaderHandler,
-) *data.ScResult {
-	relayerAddr := ""
-	if len(sc.RelayerAddr) > 0 {
-		relayerAddr = dtb.addressPubkeyConverter.Encode(sc.RelayerAddr)
-	}
-
-	relayedValue := ""
-	if sc.RelayedValue != nil {
-		relayedValue = sc.RelayedValue.String()
-	}
-
-	return &data.ScResult{
-		Hash:           hex.EncodeToString([]byte(scHash)),
-		Nonce:          sc.Nonce,
-		GasLimit:       sc.GasLimit,
-		GasPrice:       sc.GasPrice,
-		Value:          sc.Value.String(),
-		Sender:         dtb.addressPubkeyConverter.Encode(sc.SndAddr),
-		Receiver:       dtb.addressPubkeyConverter.Encode(sc.RcvAddr),
-		RelayerAddr:    relayerAddr,
-		RelayedValue:   relayedValue,
-		Code:           string(sc.Code),
-		Data:           sc.Data,
-		PrevTxHash:     hex.EncodeToString(sc.PrevTxHash),
-		OriginalTxHash: hex.EncodeToString(sc.OriginalTxHash),
-		CallType:       strconv.Itoa(int(sc.CallType)),
-		CodeMetadata:   sc.CodeMetadata,
-		ReturnMessage:  string(sc.ReturnMessage),
-		Timestamp:      time.Duration(header.GetTimeStamp()),
-	}
-}
-
 func (dtb *dbTransactionBuilder) prepareReceipt(
 	recHash string,
 	rec *receipt.Receipt,
@@ -150,29 +112,6 @@ func (dtb *dbTransactionBuilder) prepareReceipt(
 		Data:      string(rec.Data),
 		TxHash:    hex.EncodeToString(rec.TxHash),
 		Timestamp: time.Duration(header.GetTimeStamp()),
-	}
-}
-
-func (dtb *dbTransactionBuilder) addScrsReceiverToAlteredAccounts(
-	alteredAccounts data.AlteredAccountsHandler,
-	scrs []*data.ScResult,
-) {
-	for _, scr := range scrs {
-		receiverAddr, _ := dtb.addressPubkeyConverter.Decode(scr.Receiver)
-		shardID := dtb.shardCoordinator.ComputeId(receiverAddr)
-		if shardID != dtb.shardCoordinator.SelfId() {
-			continue
-		}
-
-		egldBalanceNotChanged := scr.Value == emptyString || scr.Value == "0"
-		if egldBalanceNotChanged {
-			// the smart contract results that don't alter the balance of the receiver address should be ignored
-			continue
-		}
-
-		alteredAccounts.Add(scr.Receiver, &data.AlteredAccount{
-			IsSender: false,
-		})
 	}
 }
 

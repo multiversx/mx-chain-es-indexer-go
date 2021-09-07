@@ -20,7 +20,6 @@ type ArgsIndexerFactory struct {
 	Enabled                  bool
 	UseKibana                bool
 	IsInImportDBMode         bool
-	SaveTxsLogsEnabled       bool
 	IndexerCacheSize         int
 	Denomination             int
 	Url                      string
@@ -93,9 +92,7 @@ func createElasticProcessor(args *ArgsIndexerFactory) (indexer.ElasticProcessor,
 		TransactionFeeCalculator: args.TransactionFeeCalculator,
 		IsInImportDBMode:         args.IsInImportDBMode,
 		ShardCoordinator:         args.ShardCoordinator,
-		SaveTxsLogsEnabled:       args.SaveTxsLogsEnabled,
 		EnabledIndexes:           args.EnabledIndexes,
-		TemplatesPath:            args.TemplatesPath,
 	}
 
 	return factory.CreateElasticProcessor(argsElasticProcFac)

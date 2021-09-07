@@ -45,16 +45,20 @@ func TestSerializeScResults(t *testing.T) {
 	t.Parallel()
 
 	scResult1 := &data.ScResult{
-		Hash:     "hash1",
-		Nonce:    1,
-		GasPrice: 10,
-		GasLimit: 50,
+		Hash:          "hash1",
+		Nonce:         1,
+		GasPrice:      10,
+		GasLimit:      50,
+		SenderShard:   0,
+		ReceiverShard: 1,
 	}
 	scResult2 := &data.ScResult{
-		Hash:     "hash2",
-		Nonce:    2,
-		GasPrice: 10,
-		GasLimit: 50,
+		Hash:          "hash2",
+		Nonce:         2,
+		GasPrice:      10,
+		GasLimit:      50,
+		SenderShard:   2,
+		ReceiverShard: 3,
 	}
 	scrs := []*data.ScResult{scResult1, scResult2}
 
@@ -63,9 +67,9 @@ func TestSerializeScResults(t *testing.T) {
 	require.Equal(t, 1, len(res))
 
 	expectedRes := `{ "index" : { "_id" : "hash1" } }
-{"nonce":1,"gasLimit":50,"gasPrice":10,"value":"","sender":"","receiver":"","prevTxHash":"","originalTxHash":"","callType":"","timestamp":0}
+{"nonce":1,"gasLimit":50,"gasPrice":10,"value":"","sender":"","receiver":"","senderShard":0,"receiverShard":1,"prevTxHash":"","originalTxHash":"","callType":"","timestamp":0}
 { "index" : { "_id" : "hash2" } }
-{"nonce":2,"gasLimit":50,"gasPrice":10,"value":"","sender":"","receiver":"","prevTxHash":"","originalTxHash":"","callType":"","timestamp":0}
+{"nonce":2,"gasLimit":50,"gasPrice":10,"value":"","sender":"","receiver":"","senderShard":2,"receiverShard":3,"prevTxHash":"","originalTxHash":"","callType":"","timestamp":0}
 `
 	require.Equal(t, expectedRes, res[0].String())
 }
@@ -104,7 +108,7 @@ func TestSerializeTransactionsIntraShardTx(t *testing.T) {
 	buffers, err := (&txsDatabaseProcessor{}).SerializeTransactions([]*data.Transaction{{
 		Hash:                 "txHash",
 		SmartContractResults: []*data.ScResult{{}},
-	}}, 0, nil)
+	}}, map[string]string{}, 0)
 	require.Nil(t, err)
 
 	expectedBuff := `{ "index" : { "_id" : "txHash", "_type" : "_doc" } }
@@ -121,7 +125,7 @@ func TestSerializeTransactionCrossShardTxSource(t *testing.T) {
 		SenderShard:          0,
 		ReceiverShard:        1,
 		SmartContractResults: []*data.ScResult{{}},
-	}}, 0, nil)
+	}}, map[string]string{}, 0)
 	require.Nil(t, err)
 
 	expectedBuff := `{"update":{"_id":"txHash", "_type": "_doc"}}
@@ -138,11 +142,11 @@ func TestSerializeTransactionsCrossShardTxDestination(t *testing.T) {
 		SenderShard:          1,
 		ReceiverShard:        0,
 		SmartContractResults: []*data.ScResult{{}},
-	}}, 0, nil)
+	}}, map[string]string{}, 0)
 	require.Nil(t, err)
 
-	expectedBuff := `{"update":{"_id":"txHash", "_type": "_doc"}}
-{"script":{"source":"ctx._source.status = params.status;ctx._source.miniBlockHash = params.miniBlockHash;ctx._source.timestamp = params.timestamp;ctx._source.gasUsed = params.gasUsed;ctx._source.fee = params.fee;ctx._source.hasScResults = params.hasScResults;if (params.tokens != null) { ctx._source.tokens = params.tokens; }if (params.esdtValues != null) { ctx._source.esdtValues = params.esdtValues; }if (params.hasOperations) { ctx._source.hasOperations = params.hasOperations; }","lang": "painless","params":{"status": "", "miniBlockHash": "", "timestamp": 0, "gasUsed": 0, "fee": "", "hasScResults": false, "tokens": null, "esdtValues": null, "hasOperations": false}},"upsert":{"miniBlockHash":"","nonce":0,"round":0,"value":"","receiver":"","sender":"","receiverShard":0,"senderShard":1,"gasPrice":0,"gasLimit":0,"gasUsed":0,"fee":"","data":null,"signature":"","timestamp":0,"status":"","searchOrder":0}}
+	expectedBuff := `{ "index" : { "_id" : "txHash", "_type" : "_doc" } }
+{"miniBlockHash":"","nonce":0,"round":0,"value":"","receiver":"","sender":"","receiverShard":0,"senderShard":1,"gasPrice":0,"gasLimit":0,"gasUsed":0,"fee":"","data":null,"signature":"","timestamp":0,"status":"","searchOrder":0}
 `
 	require.Equal(t, expectedBuff, buffers[0].String())
 }

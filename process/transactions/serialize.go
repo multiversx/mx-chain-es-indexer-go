@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elrond-go-core/core"
 )
 
 // SerializeTokens will serialize the provided tokens data in a way that Elastic Search expects a bulk request
@@ -68,13 +70,12 @@ func (tdp *txsDatabaseProcessor) SerializeReceipts(receipts []*data.Receipt) ([]
 // SerializeTransactions will serialize the transactions in a way that Elastic Search expects a bulk request
 func (tdp *txsDatabaseProcessor) SerializeTransactions(
 	transactions []*data.Transaction,
+	txHashStatus map[string]string,
 	selfShardID uint32,
-	mbsHashInDB map[string]bool,
 ) ([]*bytes.Buffer, error) {
 	buffSlice := data.NewBufferSlice()
 	for _, tx := range transactions {
-		isMBOfTxInDB := mbsHashInDB[tx.MBHash]
-		meta, serializedData, err := prepareSerializedDataForATransaction(tx, selfShardID, isMBOfTxInDB)
+		meta, serializedData, err := prepareSerializedDataForATransaction(tx, selfShardID)
 		if err != nil {
 			return nil, err
 		}
@@ -85,30 +86,47 @@ func (tdp *txsDatabaseProcessor) SerializeTransactions(
 		}
 	}
 
+	err := serializeTxHashStatus(buffSlice, txHashStatus)
+	if err != nil {
+		return nil, err
+	}
+
 	return buffSlice.Buffers(), nil
+}
+
+func serializeTxHashStatus(buffSlice *data.BufferSlice, txHashStatus map[string]string) error {
+	for txHash, status := range txHashStatus {
+		metaData := []byte(fmt.Sprintf(`{"update":{"_id":"%s", "_type": "_doc"}}%s`, txHash, "\n"))
+
+		newTx := &data.Transaction{
+			Status: status,
+		}
+		marshaledTx, err := json.Marshal(newTx)
+		if err != nil {
+			return err
+		}
+
+		serializedData := []byte(fmt.Sprintf(`{"script": {"source": "ctx._source.status = params.status","lang": "painless","params": {"status": "%s"}},"upsert": %s }`, status, string(marshaledTx)))
+		err = buffSlice.PutData(metaData, serializedData)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func prepareSerializedDataForATransaction(
 	tx *data.Transaction,
 	selfShardID uint32,
-	_ bool,
 ) ([]byte, []byte, error) {
 	metaData := []byte(fmt.Sprintf(`{"update":{"_id":"%s", "_type": "_doc"}}%s`, tx.Hash, "\n"))
-
 	marshaledTx, err := json.Marshal(tx)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	if isIntraShardOrInvalid(tx, selfShardID) {
-		// if transaction is intra-shard, use basic insert as data can be re-written at forks
-		meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s", "_type" : "%s" } }%s`, tx.Hash, "_doc", "\n"))
-		log.Trace("indexer tx is intra shard or invalid tx", "meta", string(meta), "marshaledTx", string(marshaledTx))
-
-		return meta, marshaledTx, nil
-	}
-
-	if !isCrossShardDstMe(tx, selfShardID) {
+	if isCrossShardOnSourceShard(tx, selfShardID) {
 		// if transaction is cross-shard and current shard ID is source, use upsert without updating anything
 		serializedData :=
 			[]byte(fmt.Sprintf(`{"script":{"source":"return"},"upsert":%s}`,
@@ -118,45 +136,43 @@ func prepareSerializedDataForATransaction(
 		return metaData, serializedData, nil
 	}
 
-	serializedData, err := prepareCrossShardTxForDestinationSerialized(tx, marshaledTx)
-	if err != nil {
-		return nil, nil, err
+	if isNFTTransferOrMultiTransfer(tx) {
+		serializedData, errPrep := prepareNFTESDTTransferOrMultiESDTTransfer(marshaledTx)
+		if errPrep != nil {
+			return nil, nil, err
+		}
+
+		return metaData, serializedData, nil
 	}
 
-	log.Trace("indexer tx is on destination shard", "metaData", string(metaData), "serializedData", string(serializedData))
+	// transaction is intra-shard, invalid or cross-shard destination me
+	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s", "_type" : "%s" } }%s`, tx.Hash, "_doc", "\n"))
+	log.Trace("indexer tx is intra shard or invalid tx", "meta", string(meta), "marshaledTx", string(marshaledTx))
 
-	return metaData, serializedData, nil
+	return meta, marshaledTx, nil
 }
 
-func prepareCrossShardTxForDestinationSerialized(tx *data.Transaction, marshaledTx []byte) ([]byte, error) {
-	// if transaction is cross-shard and current shard ID is destination, use upsert with updating fields
-
-	marshaledTimestamp, err := json.Marshal(tx.Timestamp)
-	if err != nil {
-		return nil, err
-	}
-	marshaledTokens, err := json.Marshal(tx.Tokens)
-	if err != nil {
-		return nil, err
-	}
-	marshaledESDTValues, err := json.Marshal(tx.ESDTValues)
-	if err != nil {
-		return nil, err
-	}
-
+func prepareNFTESDTTransferOrMultiESDTTransfer(marshaledTx []byte) ([]byte, error) {
 	serializedData := []byte(fmt.Sprintf(`{"script":{"source":"`+
-		`ctx._source.status = params.status;`+
-		`ctx._source.miniBlockHash = params.miniBlockHash;`+
-		`ctx._source.timestamp = params.timestamp;`+
-		`ctx._source.gasUsed = params.gasUsed;`+
-		`ctx._source.fee = params.fee;`+
-		`ctx._source.hasScResults = params.hasScResults;`+
-		`if (params.tokens != null) { ctx._source.tokens = params.tokens; }`+
-		`if (params.esdtValues != null) { ctx._source.esdtValues = params.esdtValues; }`+
-		`if (params.hasOperations) { ctx._source.hasOperations = params.hasOperations; }`+
+		`def status = ctx._source.status;`+
+		`ctx._source = params.tx;`+
+		`ctx._source.status = status;`+
 		`","lang": "painless","params":`+
-		`{"status": "%s", "miniBlockHash": "%s", "timestamp": %s, "gasUsed": %d, "fee": "%s", "hasScResults": %t, "tokens": %s, "esdtValues": %s, "hasOperations": %t}},"upsert":%s}`,
-		tx.Status, tx.MBHash, string(marshaledTimestamp), tx.GasUsed, tx.Fee, tx.HasSCR, string(marshaledTokens), string(marshaledESDTValues), tx.HasOperations, string(marshaledTx)))
+		`{"tx": %s}},"upsert":%s}`,
+		string(marshaledTx), string(marshaledTx)))
 
 	return serializedData, nil
+}
+
+func isNFTTransferOrMultiTransfer(tx *data.Transaction) bool {
+	if len(tx.SmartContractResults) < 0 || tx.SenderShard != tx.ReceiverShard {
+		return false
+	}
+
+	splitData := strings.Split(string(tx.Data), atSeparator)
+	if len(splitData) < minNumOfArgumentsNFTTransferORMultiTransfer {
+		return false
+	}
+
+	return splitData[0] == core.BuiltInFunctionESDTNFTTransfer || splitData[0] == core.BuiltInFunctionMultiESDTNFTTransfer
 }
