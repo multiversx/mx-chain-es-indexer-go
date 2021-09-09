@@ -91,15 +91,40 @@ func (st *scrsDataToTransactions) fillTxWithSCRsFields(tx *data.Transaction) {
 		return
 	}
 
-	tx.Status = transaction.TxStatusFail.String()
 	tx.GasUsed = tx.GasLimit
 	fee := st.txFeeCalculator.ComputeTxFeeBasedOnGasUsed(tx, tx.GasUsed)
 	tx.Fee = fee.String()
+
+	if hasCrossShardPendingTransfer(tx) {
+		return
+	}
+
+	tx.Status = transaction.TxStatusFail.String()
 }
 
 func hasSuccessfulSCRs(tx *data.Transaction) bool {
 	for _, scr := range tx.SmartContractResults {
 		if isScResultSuccessful(scr.Data) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func hasCrossShardPendingTransfer(tx *data.Transaction) bool {
+	for _, scr := range tx.SmartContractResults {
+		splitData := strings.Split(string(scr.Data), atSeparator)
+		if len(splitData) < 2 {
+			continue
+		}
+
+		isMultiTransferOrNFTTransfer := splitData[0] == core.BuiltInFunctionESDTNFTTransfer || splitData[0] == core.BuiltInFunctionMultiESDTNFTTransfer
+		if !isMultiTransferOrNFTTransfer {
+			continue
+		}
+
+		if scr.SenderShard != scr.ReceiverShard {
 			return true
 		}
 	}
