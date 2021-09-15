@@ -39,7 +39,14 @@ type DBAccountHandler interface {
 
 // DBBlockHandler defines the actions that a block handler should do
 type DBBlockHandler interface {
-	PrepareBlockForDB(header coreData.HeaderHandler, signersIndexes []uint64, body *block.Body, notarizedHeadersHashes []string, sizeTxs int) (*data.Block, error)
+	PrepareBlockForDB(
+		header coreData.HeaderHandler,
+		signersIndexes []uint64,
+		body *block.Body,
+		notarizedHeadersHashes []string,
+		gasConsumptionData indexer.HeaderGasConsumption,
+		sizeTxs int,
+	) (*data.Block, error)
 	ComputeHeaderHash(header coreData.HeaderHandler) ([]byte, error)
 
 	SerializeEpochInfoData(header coreData.HeaderHandler) (*bytes.Buffer, error)

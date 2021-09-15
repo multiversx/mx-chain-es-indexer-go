@@ -345,7 +345,7 @@ func TestElasticseachDatabaseSaveHeader_RequestError(t *testing.T) {
 	arguments.BlockProc, _ = block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 	elasticDatabase := newElasticsearchProcessor(dbWriter, arguments)
 
-	err := elasticDatabase.SaveHeader(header, signerIndexes, &dataBlock.Body{}, nil, 1)
+	err := elasticDatabase.SaveHeader(header, signerIndexes, &dataBlock.Body{}, nil, indexer.HeaderGasConsumption{}, 1)
 	require.Equal(t, localErr, err)
 }
 
@@ -386,7 +386,7 @@ func TestElasticseachDatabaseSaveHeader_CheckRequestBody(t *testing.T) {
 
 	arguments.BlockProc, _ = block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 	elasticDatabase := newElasticsearchProcessor(dbWriter, arguments)
-	err := elasticDatabase.SaveHeader(header, signerIndexes, blockBody, nil, 1)
+	err := elasticDatabase.SaveHeader(header, signerIndexes, blockBody, nil, indexer.HeaderGasConsumption{}, 1)
 	require.Nil(t, err)
 }
 
