@@ -29,6 +29,7 @@ type Block struct {
 	EpochStartBlock       bool          `json:"epochStartBlock"`
 	SearchOrder           uint64        `json:"searchOrder"`
 	GasConsumed           uint64        `json:"gasConsumed"`
+	GasRefunded           uint64        `json:"gasRefunded"`
 	MaxGasLimit           uint64        `json:"maxGasLimit"`
 }
 
