@@ -9,7 +9,7 @@ import (
 
 // ElasticProcessorStub -
 type ElasticProcessorStub struct {
-	SaveHeaderCalled                 func(header coreData.HeaderHandler, signersIndexes []uint64, body *block.Body, notarizedHeadersHashes []string, txsSize int) error
+	SaveHeaderCalled                 func(header coreData.HeaderHandler, signersIndexes []uint64, body *block.Body, notarizedHeadersHashes []string, gasConsumptionData indexer.HeaderGasConsumption, txsSize int) error
 	RemoveHeaderCalled               func(header coreData.HeaderHandler) error
 	RemoveMiniblocksCalled           func(header coreData.HeaderHandler, body *block.Body) error
 	RemoveTransactionsCalled         func(header coreData.HeaderHandler, body *block.Body) error
@@ -22,9 +22,9 @@ type ElasticProcessorStub struct {
 }
 
 // SaveHeader -
-func (eim *ElasticProcessorStub) SaveHeader(header coreData.HeaderHandler, signersIndexes []uint64, body *block.Body, notarizedHeadersHashes []string, txsSize int) error {
+func (eim *ElasticProcessorStub) SaveHeader(header coreData.HeaderHandler, signersIndexes []uint64, body *block.Body, notarizedHeadersHashes []string, gasConsumptionData indexer.HeaderGasConsumption, txsSize int) error {
 	if eim.SaveHeaderCalled != nil {
-		return eim.SaveHeaderCalled(header, signersIndexes, body, notarizedHeadersHashes, txsSize)
+		return eim.SaveHeaderCalled(header, signersIndexes, body, notarizedHeadersHashes, gasConsumptionData, txsSize)
 	}
 	return nil
 }

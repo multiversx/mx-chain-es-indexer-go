@@ -14,7 +14,7 @@ type WorkItemHandler interface {
 }
 
 type saveBlockIndexer interface {
-	SaveHeader(header coreData.HeaderHandler, signersIndexes []uint64, body *block.Body, notarizedHeadersHashes []string, txsSize int) error
+	SaveHeader(header coreData.HeaderHandler, signersIndexes []uint64, body *block.Body, notarizedHeadersHashes []string, gasConsumptionData indexer.HeaderGasConsumption, txsSize int) error
 	SaveMiniblocks(header coreData.HeaderHandler, body *block.Body) (map[string]bool, error)
 	SaveTransactions(body *block.Body, header coreData.HeaderHandler, pool *indexer.Pool, mbsInDb map[string]bool) error
 }

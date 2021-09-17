@@ -216,7 +216,7 @@ func TestElasticProcessor_RemoveMiniblocks(t *testing.T) {
 	require.True(t, called)
 }
 
-func TestElasticseachDatabaseSaveHeader_RequestError(t *testing.T) {
+func TestElasticsearchDatabaseSaveHeader_RequestError(t *testing.T) {
 	localErr := errors.New("localErr")
 	header := &dataBlock.Header{Nonce: 1}
 	signerIndexes := []uint64{0, 1}
@@ -228,11 +228,11 @@ func TestElasticseachDatabaseSaveHeader_RequestError(t *testing.T) {
 	}
 	elasticDatabase := newTestElasticSearchDatabase(dbWriter, arguments)
 
-	err := elasticDatabase.SaveHeader(header, signerIndexes, &dataBlock.Body{}, nil, 1)
+	err := elasticDatabase.SaveHeader(header, signerIndexes, &dataBlock.Body{}, nil, indexer.HeaderGasConsumption{}, 1)
 	require.Equal(t, localErr, err)
 }
 
-func TestElasticseachDatabaseSaveHeader_CheckRequestBody(t *testing.T) {
+func TestElasticsearchDatabaseSaveHeader_CheckRequestBody(t *testing.T) {
 	header := &dataBlock.Header{
 		Nonce: 1,
 	}
@@ -268,11 +268,11 @@ func TestElasticseachDatabaseSaveHeader_CheckRequestBody(t *testing.T) {
 	}
 
 	elasticDatabase := newTestElasticSearchDatabase(dbWriter, arguments)
-	err := elasticDatabase.SaveHeader(header, signerIndexes, blockBody, nil, 1)
+	err := elasticDatabase.SaveHeader(header, signerIndexes, blockBody, nil, indexer.HeaderGasConsumption{}, 1)
 	require.Nil(t, err)
 }
 
-func TestElasticseachSaveTransactions(t *testing.T) {
+func TestElasticsearchSaveTransactions(t *testing.T) {
 	localErr := errors.New("localErr")
 	arguments := createMockElasticProcessorArgs()
 	dbWriter := &mock.DatabaseWriterStub{
