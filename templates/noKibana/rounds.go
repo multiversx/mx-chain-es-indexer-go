@@ -8,6 +8,14 @@ var Rounds = Object{
 	"settings": Object{
 		"number_of_shards":   3,
 		"number_of_replicas": 0,
+		"index": Object{
+			"sort.field": Array{
+				"timestamp",
+			},
+			"sort.order": Array{
+				"desc",
+			},
+		},
 	},
 	"mappings": Object{
 		"properties": Object{
