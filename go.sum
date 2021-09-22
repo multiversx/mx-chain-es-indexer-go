@@ -1,5 +1,5 @@
-github.com/ElrondNetwork/elrond-go-core v1.1.1-0.20210917153134-d6e10327a8c0 h1:EjEXCuR2VkazGw3wvU0dqYtL8SRCwD0HMQUR5uKkkuk=
-github.com/ElrondNetwork/elrond-go-core v1.1.1-0.20210917153134-d6e10327a8c0/go.mod h1:O9FkkTT2H9kxCzfn40TbhoCDXzGmUrRVusMomhK/Y3g=
+github.com/ElrondNetwork/elrond-go-core v1.1.1 h1:g/KReRoJlEWfzP8oMEqd7CYFSisEjaVMnqNIgnvhRo0=
+github.com/ElrondNetwork/elrond-go-core v1.1.1/go.mod h1:O9FkkTT2H9kxCzfn40TbhoCDXzGmUrRVusMomhK/Y3g=
 github.com/ElrondNetwork/elrond-go-logger v1.0.4 h1:i5Yu4qyjTZDwvBY/ykbNpp2SP9jxwk/QTivRwSZSTAQ=
 github.com/ElrondNetwork/elrond-go-logger v1.0.4/go.mod h1:e5D+c97lKUfFdAzFX7rrI2Igl/z4Y0RkKYKWyzprTGk=
 github.com/ElrondNetwork/elrond-vm-common v1.1.0 h1:zSIXrNbIb/SyKB2+JIOWenUSky5+NgEr0iQtFiWp17o=
