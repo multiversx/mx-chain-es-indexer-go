@@ -54,7 +54,7 @@ func TestItemBlock_SaveHeaderShouldErr(t *testing.T) {
 	localErr := errors.New("local err")
 	itemBlock := workItems.NewItemBlock(
 		&mock.ElasticProcessorStub{
-			SaveHeaderCalled: func(header data.HeaderHandler, signersIndexes []uint64, body *dataBlock.Body, notarizedHeadersHashes []string, txsSize int) error {
+			SaveHeaderCalled: func(header data.HeaderHandler, signersIndexes []uint64, body *dataBlock.Body, notarizedHeadersHashes []string, gasConsumptionData indexer.HeaderGasConsumption, txsSize int) error {
 				return localErr
 			},
 		},
@@ -75,7 +75,7 @@ func TestItemBlock_SaveNoMiniblocksShoulCallSaveHeader(t *testing.T) {
 	countCalled := 0
 	itemBlock := workItems.NewItemBlock(
 		&mock.ElasticProcessorStub{
-			SaveHeaderCalled: func(header data.HeaderHandler, signersIndexes []uint64, body *dataBlock.Body, notarizedHeadersHashes []string, txsSize int) error {
+			SaveHeaderCalled: func(header data.HeaderHandler, signersIndexes []uint64, body *dataBlock.Body, notarizedHeadersHashes []string, gasConsumptionData indexer.HeaderGasConsumption, txsSize int) error {
 				countCalled++
 				return nil
 			},
@@ -148,7 +148,7 @@ func TestItemBlock_SaveShouldWork(t *testing.T) {
 	countCalled := 0
 	itemBlock := workItems.NewItemBlock(
 		&mock.ElasticProcessorStub{
-			SaveHeaderCalled: func(header data.HeaderHandler, signersIndexes []uint64, body *dataBlock.Body, notarizedHeadersHashes []string, txsSize int) error {
+			SaveHeaderCalled: func(header data.HeaderHandler, signersIndexes []uint64, body *dataBlock.Body, notarizedHeadersHashes []string, gasConsumptionData indexer.HeaderGasConsumption, txsSize int) error {
 				countCalled++
 				return nil
 			},

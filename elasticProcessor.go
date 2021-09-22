@@ -258,6 +258,7 @@ func (ei *elasticProcessor) SaveHeader(
 	signersIndexes []uint64,
 	body *block.Body,
 	notarizedHeadersHashes []string,
+	gasConsumptionData indexer.HeaderGasConsumption,
 	txsSize int,
 ) error {
 	if !ei.isIndexEnabled(blockIndex) {
@@ -266,7 +267,7 @@ func (ei *elasticProcessor) SaveHeader(
 
 	var buff bytes.Buffer
 
-	serializedBlock, headerHash, err := ei.parser.getSerializedElasticBlockAndHeaderHash(header, signersIndexes, body, notarizedHeadersHashes, txsSize)
+	serializedBlock, headerHash, err := ei.parser.getSerializedElasticBlockAndHeaderHash(header, signersIndexes, body, notarizedHeadersHashes, gasConsumptionData, txsSize)
 	if err != nil {
 		return err
 	}

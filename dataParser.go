@@ -11,6 +11,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
+	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 	"github.com/ElrondNetwork/elrond-go-core/hashing"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
 )
@@ -25,6 +26,7 @@ func (dp *dataParser) getSerializedElasticBlockAndHeaderHash(
 	signersIndexes []uint64,
 	body *block.Body,
 	notarizedHeadersHashes []string,
+	gasConsumptionData indexer.HeaderGasConsumption,
 	sizeTxs int,
 ) ([]byte, []byte, error) {
 	headerBytes, err := dp.marshalizer.Marshal(header)
@@ -75,6 +77,9 @@ func (dp *dataParser) getSerializedElasticBlockAndHeaderHash(
 		StateRootHash:         hex.EncodeToString(header.GetRootHash()),
 		PrevHash:              hex.EncodeToString(header.GetPrevHash()),
 		SearchOrder:           computeBlockSearchOrder(header),
+		GasConsumed:           gasConsumptionData.GasConsumed,
+		GasRefunded:           gasConsumptionData.GasRefunded,
+		MaxGasLimit:           gasConsumptionData.MaxGasPerBlock,
 	}
 
 	serializedBlock, err := json.Marshal(elasticBlock)
