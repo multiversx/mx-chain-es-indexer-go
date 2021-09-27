@@ -13,7 +13,7 @@ import (
 
 const (
 	minNumOfArgumentsNFTTransferORMultiTransfer = 4
-	gasRefundForRelayedMessage                  = "gas refund for relayer"
+	gasRefundForRelayerMessage                  = "gas refund for relayer"
 )
 
 type scrsDataToTransactions struct {
@@ -156,7 +156,7 @@ func (st *scrsDataToTransactions) processSCRsWithoutTx(scrs []*data.ScResult) (m
 func isSCRWithRefund(scr *data.ScResult) bool {
 	hasRefund := scr.Value != "0" && scr.Value != emptyString
 	isSuccessful := isScResultSuccessful(scr.Data)
-	isRefundForRelayed := scr.ReturnMessage == gasRefundForRelayedMessage
+	isRefundForRelayed := scr.ReturnMessage == gasRefundForRelayerMessage
 	ok := isSuccessful || isRefundForRelayed
 
 	return ok && scr.OriginalTxHash != scr.PrevTxHash && hasRefund
