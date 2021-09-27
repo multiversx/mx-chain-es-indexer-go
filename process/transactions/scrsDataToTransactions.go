@@ -132,9 +132,14 @@ func hasCrossShardPendingTransfer(tx *data.Transaction) bool {
 	return false
 }
 
-func (st *scrsDataToTransactions) processSCRsWithoutTx(scrs []*data.ScResult) map[string]string {
+func (st *scrsDataToTransactions) processSCRsWithoutTx(scrs []*data.ScResult) (map[string]string, map[string]string) {
 	txHashStatus := make(map[string]string)
+	txHashRefund := make(map[string]string)
 	for _, scr := range scrs {
+		if isSCRWithRefund(scr) {
+			txHashRefund[scr.OriginalTxHash] = scr.Value
+		}
+
 		if !isESDTNFTTransferWithUserError(string(scr.Data)) {
 			continue
 		}
@@ -142,7 +147,12 @@ func (st *scrsDataToTransactions) processSCRsWithoutTx(scrs []*data.ScResult) ma
 		txHashStatus[scr.OriginalTxHash] = transaction.TxStatusFail.String()
 	}
 
-	return txHashStatus
+	return txHashStatus, txHashRefund
+}
+
+func isSCRWithRefund(scr *data.ScResult) bool {
+	hasRefund := scr.Value != "0" && scr.Value != emptyString
+	return isScResultSuccessful(scr.Data) && scr.OriginalTxHash != scr.PrevTxHash && hasRefund
 }
 
 func isESDTNFTTransferWithUserError(scrData string) bool {

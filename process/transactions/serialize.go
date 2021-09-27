@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"math/big"
 	"strings"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
@@ -56,6 +57,40 @@ func (tdp *txsDatabaseProcessor) SerializeReceipts(receipts []*data.Receipt) ([]
 		serializedData, errPrepareReceipt := json.Marshal(rec)
 		if errPrepareReceipt != nil {
 			return nil, errPrepareReceipt
+		}
+
+		err := buffSlice.PutData(meta, serializedData)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return buffSlice.Buffers(), nil
+}
+
+func (tdp *txsDatabaseProcessor) SerializeTransactionWithRefund(
+	txs map[string]*data.Transaction,
+	txHashRefund map[string]string,
+) ([]*bytes.Buffer, error) {
+	buffSlice := data.NewBufferSlice()
+	for txHash, tx := range txs {
+		refundForTx, ok := txHashRefund[txHash]
+		if !ok {
+			continue
+		}
+
+		refundValueBig, ok := big.NewInt(0).SetString(refundForTx, 10)
+		if !ok {
+			continue
+		}
+		gasUsed, fee := tdp.txFeeCalculator.ComputeGasUsedAndFeeBasedOnRefundValue(tx, refundValueBig)
+		tx.GasUsed = gasUsed
+		tx.Fee = fee.String()
+
+		meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, txHash, "\n"))
+		serializedData, errPrepareSc := json.Marshal(tx)
+		if errPrepareSc != nil {
+			return nil, errPrepareSc
 		}
 
 		err := buffSlice.PutData(meta, serializedData)

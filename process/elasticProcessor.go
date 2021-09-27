@@ -403,6 +403,11 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
+	err = ei.indexTransactionsWithRefund(preparedResults.TxHashRefund)
+	if err != nil {
+		return err
+	}
+
 	err = ei.prepareAndIndexTagsCount(logsData.TagsCount)
 	if err != nil {
 		return err
@@ -439,6 +444,39 @@ func (ei *elasticProcessor) SaveTransactions(
 	}
 
 	return ei.indexScDeploys(logsData.ScDeploys)
+}
+
+func (ei *elasticProcessor) indexTransactionsWithRefund(txsHashRefund map[string]string) error {
+	if len(txsHashRefund) == 0 {
+		return nil
+	}
+	txsHashes := make([]string, len(txsHashRefund))
+	for txHash := range txsHashRefund {
+		txsHashes = append(txsHashes, txHash)
+	}
+
+	responseTransactions := &data.ResponseTransactions{}
+	err := ei.elasticClient.DoMultiGet(txsHashes, elasticIndexer.TransactionsIndex, true, responseTransactions)
+	if err != nil {
+		return err
+	}
+
+	txsFromDB := make(map[string]*data.Transaction)
+	for idx := 0; idx < len(responseTransactions.Docs); idx++ {
+		txRes := responseTransactions.Docs[idx]
+		if !txRes.Found {
+			continue
+		}
+
+		txsFromDB[txRes.ID] = &txRes.Source
+	}
+
+	buffSlice, err := ei.transactionsProc.SerializeTransactionWithRefund(txsFromDB, txsHashRefund)
+	if err != nil {
+		return err
+	}
+
+	return ei.doBulkRequests(elasticIndexer.TransactionsIndex, buffSlice)
 }
 
 func (ei *elasticProcessor) prepareAndIndexLogs(logsAndEvents map[string]coreData.LogHandler, timestamp uint64) error {
