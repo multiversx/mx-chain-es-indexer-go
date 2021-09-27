@@ -11,7 +11,10 @@ import (
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
 
-const minNumOfArgumentsNFTTransferORMultiTransfer = 4
+const (
+	minNumOfArgumentsNFTTransferORMultiTransfer = 4
+	gasRefundForRelayedMessage                  = "gas refund for relayer"
+)
 
 type scrsDataToTransactions struct {
 	txFeeCalculator indexer.FeesProcessorHandler
@@ -152,7 +155,11 @@ func (st *scrsDataToTransactions) processSCRsWithoutTx(scrs []*data.ScResult) (m
 
 func isSCRWithRefund(scr *data.ScResult) bool {
 	hasRefund := scr.Value != "0" && scr.Value != emptyString
-	return isScResultSuccessful(scr.Data) && scr.OriginalTxHash != scr.PrevTxHash && hasRefund
+	isSuccessful := isScResultSuccessful(scr.Data)
+	isRefundForRelayed := scr.ReturnMessage == gasRefundForRelayedMessage
+	ok := isSuccessful || isRefundForRelayed
+
+	return ok && scr.OriginalTxHash != scr.PrevTxHash && hasRefund
 }
 
 func isESDTNFTTransferWithUserError(scrData string) bool {
