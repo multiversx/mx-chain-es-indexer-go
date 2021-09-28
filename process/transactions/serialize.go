@@ -68,6 +68,7 @@ func (tdp *txsDatabaseProcessor) SerializeReceipts(receipts []*data.Receipt) ([]
 	return buffSlice.Buffers(), nil
 }
 
+// SerializeTransactionWithRefund will serialize transaction based on refund
 func (tdp *txsDatabaseProcessor) SerializeTransactionWithRefund(
 	txs map[string]*data.Transaction,
 	txHashRefund map[string]string,
@@ -88,9 +89,9 @@ func (tdp *txsDatabaseProcessor) SerializeTransactionWithRefund(
 		tx.Fee = fee.String()
 
 		meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, txHash, "\n"))
-		serializedData, errPrepareSc := json.Marshal(tx)
-		if errPrepareSc != nil {
-			return nil, errPrepareSc
+		serializedData, errPrepare := json.Marshal(tx)
+		if errPrepare != nil {
+			return nil, errPrepare
 		}
 
 		err := buffSlice.PutData(meta, serializedData)

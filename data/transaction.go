@@ -119,7 +119,7 @@ type PreparedResults struct {
 
 // ResponseTransactions is the structure for the transactions response
 type ResponseTransactions struct {
-	Docs []ResponseTransactionDB `json:"docs"`
+	Docs []*ResponseTransactionDB `json:"docs"`
 }
 
 // ResponseTransactionDB is the structure for the transaction response
