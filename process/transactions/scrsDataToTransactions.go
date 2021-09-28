@@ -54,7 +54,7 @@ func (st *scrsDataToTransactions) addScResultInfoIntoTx(dbScResult *data.ScResul
 		return
 	}
 
-	if isSCRForSenderWithRefund(dbScResult, tx) {
+	if isSCRForSenderWithRefund(dbScResult, tx) || isRefundForRelayed(dbScResult, tx) {
 		refundValue := stringValueToBigInt(dbScResult.Value)
 		gasUsed, fee := st.txFeeCalculator.ComputeGasUsedAndFeeBasedOnRefundValue(tx, refundValue)
 		tx.GasUsed = gasUsed
@@ -78,10 +78,6 @@ func (st *scrsDataToTransactions) fillTxWithSCRsFields(tx *data.Transaction) {
 	tx.HasSCR = true
 
 	if isRelayedTx(tx) {
-		tx.GasUsed = tx.GasLimit
-		fee := st.txFeeCalculator.ComputeTxFeeBasedOnGasUsed(tx, tx.GasUsed)
-		tx.Fee = fee.String()
-
 		return
 	}
 

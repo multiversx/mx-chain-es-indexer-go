@@ -77,6 +77,14 @@ func isSCRForSenderWithRefund(dbScResult *data.ScResult, tx *data.Transaction) b
 	return isFromCurrentTx && isForSender && isRightNonce && isScrDataOk
 }
 
+func isRefundForRelayed(dbScResult *data.ScResult, tx *data.Transaction) bool {
+	isForRelayed := dbScResult.ReturnMessage == gasRefundForRelayerMessage
+	isForSender := dbScResult.Receiver == tx.Sender
+	differentHash := dbScResult.OriginalTxHash != dbScResult.PrevTxHash
+
+	return isForRelayed && isForSender && differentHash
+}
+
 func isDataOk(data []byte) bool {
 	dataFieldStr := "@" + okHexEncoded
 
