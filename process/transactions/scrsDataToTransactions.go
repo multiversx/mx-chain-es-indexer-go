@@ -48,6 +48,11 @@ func (st *scrsDataToTransactions) attachSCRsToTransactionsAndReturnSCRsWithoutTx
 
 func (st *scrsDataToTransactions) addScResultInfoIntoTx(dbScResult *data.ScResult, tx *data.Transaction) {
 	tx.SmartContractResults = append(tx.SmartContractResults, dbScResult)
+	if isRelayedTx(tx) && len(tx.SmartContractResults) == 1 {
+		tx.GasUsed = tx.GasLimit
+		fee := st.txFeeCalculator.ComputeTxFeeBasedOnGasUsed(tx, tx.GasUsed)
+		tx.Fee = fee.String()
+	}
 
 	// ignore invalid transaction because status and gas fields was already set
 	if tx.Status == transaction.TxStatusInvalid.String() {
