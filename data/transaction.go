@@ -114,7 +114,7 @@ type PreparedResults struct {
 	AlteredAccts AlteredAccountsHandler
 	Tokens       []*TokenInfo
 	TxHashStatus map[string]string
-	TxHashRefund map[string]string
+	TxHashRefund map[string]*RefundData
 }
 
 // ResponseTransactions is the structure for the transactions response
@@ -127,4 +127,10 @@ type ResponseTransactionDB struct {
 	Found  bool        `json:"found"`
 	ID     string      `json:"_id"`
 	Source Transaction `json:"_source"`
+}
+
+// RefundData is the structure that contains data about a refund
+type RefundData struct {
+	Value    string
+	Receiver string
 }

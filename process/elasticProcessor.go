@@ -446,7 +446,7 @@ func (ei *elasticProcessor) SaveTransactions(
 	return ei.indexScDeploys(logsData.ScDeploys)
 }
 
-func (ei *elasticProcessor) indexTransactionsWithRefund(txsHashRefund map[string]string) error {
+func (ei *elasticProcessor) indexTransactionsWithRefund(txsHashRefund map[string]*data.RefundData) error {
 	if len(txsHashRefund) == 0 {
 		return nil
 	}

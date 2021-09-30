@@ -48,7 +48,8 @@ func (st *scrsDataToTransactions) attachSCRsToTransactionsAndReturnSCRsWithoutTx
 
 func (st *scrsDataToTransactions) addScResultInfoIntoTx(dbScResult *data.ScResult, tx *data.Transaction) {
 	tx.SmartContractResults = append(tx.SmartContractResults, dbScResult)
-	if isRelayedTx(tx) && len(tx.SmartContractResults) == 1 {
+	isRelayedTxFirstSCR := isRelayedTx(tx) && len(tx.SmartContractResults) == 1
+	if isRelayedTxFirstSCR {
 		tx.GasUsed = tx.GasLimit
 		fee := st.txFeeCalculator.ComputeTxFeeBasedOnGasUsed(tx, tx.GasUsed)
 		tx.Fee = fee.String()
@@ -136,12 +137,15 @@ func hasCrossShardPendingTransfer(tx *data.Transaction) bool {
 	return false
 }
 
-func (st *scrsDataToTransactions) processSCRsWithoutTx(scrs []*data.ScResult) (map[string]string, map[string]string) {
+func (st *scrsDataToTransactions) processSCRsWithoutTx(scrs []*data.ScResult) (map[string]string, map[string]*data.RefundData) {
 	txHashStatus := make(map[string]string)
-	txHashRefund := make(map[string]string)
+	txHashRefund := make(map[string]*data.RefundData)
 	for _, scr := range scrs {
 		if isSCRWithRefund(scr) {
-			txHashRefund[scr.OriginalTxHash] = scr.Value
+			txHashRefund[scr.OriginalTxHash] = &data.RefundData{
+				Value:    scr.Value,
+				Receiver: scr.Receiver,
+			}
 		}
 
 		if !isESDTNFTTransferWithUserError(string(scr.Data)) {

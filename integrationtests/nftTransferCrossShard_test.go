@@ -120,7 +120,7 @@ func TestNFTTransferCrossShardWithSCCall(t *testing.T) {
 			string(scrHash1): scr1,
 			string(scrWithRefund): &smartContractResult.SmartContractResult{
 				SndAddr:        []byte("erd1qqqqqqqqqqqqqpgq57szwud2quysucrlq2e97ntdysdl7v4ejz3qn3njq4"),
-				RcvAddr:        []byte("erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv"),
+				RcvAddr:        []byte("erd1ef9xx3k3m89azf4c4xc98wpcdnx5h0cnxy6em47r6dc4alud0uwqx24f50"),
 				PrevTxHash:     []byte("f639cb7a0231191e04ec19dcb1359bd93a03fe8dc4a28a80d00835c5d1c988f8"),
 				OriginalTxHash: txHash,
 				Value:          refundValueBig,

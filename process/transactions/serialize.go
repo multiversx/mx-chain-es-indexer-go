@@ -71,7 +71,7 @@ func (tdp *txsDatabaseProcessor) SerializeReceipts(receipts []*data.Receipt) ([]
 // SerializeTransactionWithRefund will serialize transaction based on refund
 func (tdp *txsDatabaseProcessor) SerializeTransactionWithRefund(
 	txs map[string]*data.Transaction,
-	txHashRefund map[string]string,
+	txHashRefund map[string]*data.RefundData,
 ) ([]*bytes.Buffer, error) {
 	buffSlice := data.NewBufferSlice()
 	for txHash, tx := range txs {
@@ -80,7 +80,11 @@ func (tdp *txsDatabaseProcessor) SerializeTransactionWithRefund(
 			continue
 		}
 
-		refundValueBig, ok := big.NewInt(0).SetString(refundForTx, 10)
+		if refundForTx.Receiver != tx.Sender {
+			continue
+		}
+
+		refundValueBig, ok := big.NewInt(0).SetString(refundForTx.Value, 10)
 		if !ok {
 			continue
 		}

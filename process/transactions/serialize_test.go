@@ -163,8 +163,11 @@ func TestTxsDatabaseProcessor_SerializeTransactionWithRefund(t *testing.T) {
 			GasPrice: 1000000000,
 		},
 	}
-	txHashRefund := map[string]string{
-		"txHash": "101676480000000",
+	txHashRefund := map[string]*data.RefundData{
+		"txHash": {
+			Value:    "101676480000000",
+			Receiver: "sender",
+		},
 	}
 	buffers, err := (&txsDatabaseProcessor{
 		txFeeCalculator: &mock.EconomicsHandlerMock{},
