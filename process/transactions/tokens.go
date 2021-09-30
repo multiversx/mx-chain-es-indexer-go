@@ -52,7 +52,10 @@ func (tp *tokensProcessor) searchForTokenIssueTransactions(txs []*data.Transacti
 		}
 
 		if funcName == issueFungibleESDTFunc {
-			tokenInfo.Token = tp.searchTokenIdentifierFungibleESDT(tx.Sender, tx.SmartContractResults)
+			token := tp.searchTokenIdentifierFungibleESDT(tx.Sender, tx.SmartContractResults)
+			if token != emptyString {
+				tokenInfo.Token = token
+			}
 		}
 
 		tokenInfo.Timestamp = time.Duration(timestamp)
