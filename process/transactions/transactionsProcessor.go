@@ -124,7 +124,7 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 
 	srcsNoTxInCurrentShard := tdp.scrsDataToTxs.attachSCRsToTransactionsAndReturnSCRsWithoutTx(normalTxs, dbSCResults)
 	tdp.scrsDataToTxs.processTransactionsAfterSCRsWereAttached(normalTxs)
-	txHashStatus := tdp.scrsDataToTxs.processSCRsWithoutTx(srcsNoTxInCurrentShard)
+	txHashStatus, txHashRefund := tdp.scrsDataToTxs.processSCRsWithoutTx(srcsNoTxInCurrentShard)
 
 	sliceNormalTxs := convertMapTxsToSlice(normalTxs)
 	sliceRewardsTxs := convertMapTxsToSlice(rewardsTxs)
@@ -140,6 +140,7 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 		AlteredAccts: alteredAccounts,
 		Tokens:       tokens,
 		TxHashStatus: txHashStatus,
+		TxHashRefund: txHashRefund,
 	}
 }
 
