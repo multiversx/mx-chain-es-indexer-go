@@ -32,16 +32,18 @@ func newIssueESDTProcessor() *issueESDTProcessor {
 	}
 }
 
-func (iep *issueESDTProcessor) processEvent(args *argsProcessEvent) (string, string, bool) {
+func (iep *issueESDTProcessor) processEvent(args *argsProcessEvent) argOutputProcessEvent {
 	identifier := args.event.GetIdentifier()
 	_, ok := iep.issueOperationsIdentifiers[string(identifier)]
 	if !ok {
-		return "", "", false
+		return argOutputProcessEvent{}
 	}
 
 	topics := args.event.GetTopics()
 	if len(topics) < numIssueLogTopics {
-		return "", "", true
+		return argOutputProcessEvent{
+			processed: true,
+		}
 	}
 
 	// TOPICS contains
@@ -50,7 +52,9 @@ func (iep *issueESDTProcessor) processEvent(args *argsProcessEvent) (string, str
 	// topics[2] -- token ticker
 	// topics[3] -- token type
 	if len(topics[0]) == 0 {
-		return "", "", true
+		return argOutputProcessEvent{
+			processed: true,
+		}
 	}
 
 	tokenInfo := &data.TokenInfo{
@@ -61,7 +65,7 @@ func (iep *issueESDTProcessor) processEvent(args *argsProcessEvent) (string, str
 		Timestamp: time.Duration(args.timestamp),
 	}
 
-	*args.tokensInfo = append(*args.tokensInfo, tokenInfo)
-
-	return "", "", true
+	return argOutputProcessEvent{
+		tokenInfo: tokenInfo,
+	}
 }

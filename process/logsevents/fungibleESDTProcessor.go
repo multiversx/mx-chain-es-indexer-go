@@ -36,23 +36,25 @@ func newFungibleESDTProcessor(pubKeyConverter core.PubkeyConverter, shardCoordin
 	}
 }
 
-func (fep *fungibleESDTProcessor) processEvent(args *argsProcessEvent) (string, string, bool) {
+func (fep *fungibleESDTProcessor) processEvent(args *argsProcessEvent) argOutputProcessEvent {
 	identifier := args.event.GetIdentifier()
 	_, ok := fep.fungibleOperationsIdentifiers[string(identifier)]
 	if !ok {
-		return "", "", false
+		return argOutputProcessEvent{}
 	}
 
 	topics := args.event.GetTopics()
 	nonceBig := big.NewInt(0).SetBytes(topics[1])
 	if nonceBig.Uint64() > 0 {
 		// this is a semi-fungible token so we should return
-		return "", "", false
+		return argOutputProcessEvent{}
 	}
 
 	address := args.event.GetAddress()
 	if len(topics) < numTopicsWithReceiverAddress-1 {
-		return "", "", true
+		return argOutputProcessEvent{
+			processed: true,
+		}
 	}
 
 	selfShardID := fep.shardCoordinator.SelfId()
@@ -62,7 +64,11 @@ func (fep *fungibleESDTProcessor) processEvent(args *argsProcessEvent) (string, 
 	}
 
 	tokenID, valueStr := fep.processEventDestination(args, senderShardID, selfShardID)
-	return tokenID, valueStr, true
+	return argOutputProcessEvent{
+		identifier: tokenID,
+		value:      valueStr,
+		processed:  true,
+	}
 }
 
 func (fep *fungibleESDTProcessor) processEventOnSenderShard(event coreData.EventHandler, accounts data.AlteredAccountsHandler) {

@@ -42,11 +42,11 @@ func newNFTsProcessor(
 	}
 }
 
-func (np *nftsProcessor) processEvent(args *argsProcessEvent) (string, string, bool) {
+func (np *nftsProcessor) processEvent(args *argsProcessEvent) argOutputProcessEvent {
 	eventIdentifier := string(args.event.GetIdentifier())
 	_, ok := np.nftOperationsIdentifiers[eventIdentifier]
 	if !ok {
-		return "", "", false
+		return argOutputProcessEvent{}
 	}
 
 	// topics contains:
@@ -59,7 +59,7 @@ func (np *nftsProcessor) processEvent(args *argsProcessEvent) (string, string, b
 	nonceBig := big.NewInt(0).SetBytes(topics[1])
 	if nonceBig.Uint64() == 0 {
 		// this is a fungible token so we should return
-		return "", "", false
+		return argOutputProcessEvent{}
 	}
 
 	sender := args.event.GetAddress()
@@ -73,7 +73,11 @@ func (np *nftsProcessor) processEvent(args *argsProcessEvent) (string, string, b
 	valueBig := big.NewInt(0).SetBytes(topics[2])
 
 	if !np.shouldAddReceiverData(args) {
-		return identifier, valueBig.String(), true
+		return argOutputProcessEvent{
+			identifier: identifier,
+			value:      valueBig.String(),
+			processed:  true,
+		}
 	}
 
 	receiver := args.event.GetTopics()[3]
@@ -81,7 +85,11 @@ func (np *nftsProcessor) processEvent(args *argsProcessEvent) (string, string, b
 	receiverShardID := np.shardCoordinator.ComputeId(receiver)
 	if receiverShardID != np.shardCoordinator.SelfId() {
 		args.pendingBalances.addInfo(encodedReceiver, token, nonceBig.Uint64(), valueBig.String())
-		return identifier, valueBig.String(), true
+		return argOutputProcessEvent{
+			identifier: identifier,
+			value:      valueBig.String(),
+			processed:  true,
+		}
 	}
 
 	if senderShardID != receiverShardID {
@@ -96,7 +104,11 @@ func (np *nftsProcessor) processEvent(args *argsProcessEvent) (string, string, b
 		NFTNonce:        nonceBig.Uint64(),
 	})
 
-	return identifier, valueBig.String(), true
+	return argOutputProcessEvent{
+		identifier: identifier,
+		value:      valueBig.String(),
+		processed:  true,
+	}
 }
 
 func (np *nftsProcessor) shouldAddReceiverData(args *argsProcessEvent) bool {

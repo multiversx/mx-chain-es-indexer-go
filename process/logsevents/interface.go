@@ -14,9 +14,15 @@ type argsProcessEvent struct {
 	tokens           data.TokensHandler
 	tagsCount        data.CountTags
 	timestamp        uint64
-	tokensInfo       *[]*data.TokenInfo
+}
+
+type argOutputProcessEvent struct {
+	identifier string
+	value      string
+	processed  bool
+	tokenInfo  *data.TokenInfo
 }
 
 type eventsProcessor interface {
-	processEvent(args *argsProcessEvent) (string, string, bool)
+	processEvent(args *argsProcessEvent) argOutputProcessEvent
 }

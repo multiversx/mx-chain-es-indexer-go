@@ -90,7 +90,7 @@ func (lep *logsAndEventsProcessor) processEvents(logHash string, events []coreDa
 func (lep *logsAndEventsProcessor) processEvent(logHash string, events coreData.EventHandler) {
 	logHashHexEncoded := hex.EncodeToString([]byte(logHash))
 	for _, proc := range lep.eventsProcessors {
-		identifier, value, processed := proc.processEvent(&argsProcessEvent{
+		res := proc.processEvent(&argsProcessEvent{
 			event:            events,
 			txHashHexEncoded: logHashHexEncoded,
 			accounts:         lep.logsData.accounts,
@@ -99,30 +99,33 @@ func (lep *logsAndEventsProcessor) processEvent(logHash string, events coreData.
 			timestamp:        lep.logsData.timestamp,
 			scDeploys:        lep.logsData.scDeploys,
 			pendingBalances:  lep.logsData.pendingBalances,
-			tokensInfo:       &lep.logsData.tokensInfo,
 		})
-		isEmptyIdentifier := identifier == ""
-		if isEmptyIdentifier && processed {
+		if res.tokenInfo != nil {
+			lep.logsData.tokensInfo = append(lep.logsData.tokensInfo, res.tokenInfo)
+		}
+
+		isEmptyIdentifier := res.identifier == ""
+		if isEmptyIdentifier && res.processed {
 			return
 		}
 
 		tx, ok := lep.logsData.txsMap[logHashHexEncoded]
 		if ok && !isEmptyIdentifier {
 			tx.HasOperations = true
-			tx.Tokens = append(tx.Tokens, identifier)
-			tx.ESDTValues = append(tx.ESDTValues, value)
+			tx.Tokens = append(tx.Tokens, res.identifier)
+			tx.ESDTValues = append(tx.ESDTValues, res.value)
 			continue
 		}
 
 		scr, ok := lep.logsData.scrsMap[logHashHexEncoded]
 		if ok && !isEmptyIdentifier {
-			scr.Tokens = append(scr.Tokens, identifier)
-			scr.ESDTValues = append(scr.ESDTValues, value)
+			scr.Tokens = append(scr.Tokens, res.identifier)
+			scr.ESDTValues = append(scr.ESDTValues, res.value)
 			scr.HasOperations = true
 			return
 		}
 
-		if processed {
+		if res.processed {
 			return
 		}
 	}
@@ -135,12 +138,12 @@ func (lep *logsAndEventsProcessor) PrepareLogsForDB(
 ) []*data.Logs {
 	logs := make([]*data.Logs, 0, len(logsAndEvents))
 
-	for txHash, log := range logsAndEvents {
-		if check.IfNil(log) {
+	for txHash, txLog := range logsAndEvents {
+		if check.IfNil(txLog) {
 			continue
 		}
 
-		logs = append(logs, lep.prepareLogsForDB(txHash, log, timestamp))
+		logs = append(logs, lep.prepareLogsForDB(txHash, txLog, timestamp))
 	}
 
 	return logs

@@ -20,14 +20,12 @@ func TestIssueESDTProcessor(t *testing.T) {
 		Identifier: []byte(issueNonFungibleESDTFunc),
 		Topics:     [][]byte{[]byte("MYTOKEN-abcd"), []byte("my-token"), []byte("MYTOKEN"), []byte(core.NonFungibleESDT)},
 	}
-	tokensInfo := make([]*data.TokenInfo, 0)
 	args := &argsProcessEvent{
-		tokensInfo: &tokensInfo,
-		timestamp:  1234,
-		event:      event,
+		timestamp: 1234,
+		event:     event,
 	}
 
-	issueESDTProc.processEvent(args)
+	res := issueESDTProc.processEvent(args)
 
 	require.Equal(t, &data.TokenInfo{
 		Token:     "MYTOKEN-abcd",
@@ -35,5 +33,5 @@ func TestIssueESDTProcessor(t *testing.T) {
 		Ticker:    "MYTOKEN",
 		Timestamp: time.Duration(1234),
 		Type:      core.NonFungibleESDT,
-	}, tokensInfo[0])
+	}, res.tokenInfo)
 }
