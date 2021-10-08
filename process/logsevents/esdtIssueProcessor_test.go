@@ -13,7 +13,7 @@ import (
 func TestIssueESDTProcessor(t *testing.T) {
 	t.Parallel()
 
-	issueESDTProc := newIssueESDTProcessor()
+	issueESDTProc := newESDTIssueProcessor()
 
 	event := &transaction.Event{
 		Address:    []byte("addr"),

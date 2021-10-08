@@ -38,7 +38,7 @@ func NewLogsAndEventsProcessor(
 	nftsProc := newNFTsProcessor(shardCoordinator, pubKeyConverter, marshalizer)
 	fungibleProc := newFungibleESDTProcessor(pubKeyConverter, shardCoordinator)
 	scDeploysProc := newSCDeploysProcessor(pubKeyConverter)
-	issueESDTProc := newIssueESDTProcessor()
+	issueESDTProc := newESDTIssueProcessor()
 
 	return &logsAndEventsProcessor{
 		pubKeyConverter: pubKeyConverter,

@@ -19,8 +19,8 @@ type argsProcessEvent struct {
 type argOutputProcessEvent struct {
 	identifier string
 	value      string
-	processed  bool
 	tokenInfo  *data.TokenInfo
+	processed  bool
 }
 
 type eventsProcessor interface {

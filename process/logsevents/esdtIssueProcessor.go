@@ -16,12 +16,12 @@ const (
 	changeSFTToMetaESDTFunc   = "changeSFTToMetaESDT"
 )
 
-type issueESDTProcessor struct {
+type esdtIssueProcessor struct {
 	issueOperationsIdentifiers map[string]struct{}
 }
 
-func newIssueESDTProcessor() *issueESDTProcessor {
-	return &issueESDTProcessor{
+func newESDTIssueProcessor() *esdtIssueProcessor {
+	return &esdtIssueProcessor{
 		issueOperationsIdentifiers: map[string]struct{}{
 			issueFungibleESDTFunc:     {},
 			issueSemiFungibleESDTFunc: {},
@@ -32,7 +32,7 @@ func newIssueESDTProcessor() *issueESDTProcessor {
 	}
 }
 
-func (iep *issueESDTProcessor) processEvent(args *argsProcessEvent) argOutputProcessEvent {
+func (iep *esdtIssueProcessor) processEvent(args *argsProcessEvent) argOutputProcessEvent {
 	identifier := args.event.GetIdentifier()
 	_, ok := iep.issueOperationsIdentifiers[string(identifier)]
 	if !ok {
@@ -46,7 +46,7 @@ func (iep *issueESDTProcessor) processEvent(args *argsProcessEvent) argOutputPro
 		}
 	}
 
-	// TOPICS contains
+	// topics slice contains:
 	// topics[0] -- token identifier
 	// topics[1] -- token name
 	// topics[2] -- token ticker
