@@ -99,7 +99,7 @@ func (lep *logsAndEventsProcessor) processEvent(logHash string, events coreData.
 			timestamp:        lep.logsData.timestamp,
 			scDeploys:        lep.logsData.scDeploys,
 			pendingBalances:  lep.logsData.pendingBalances,
-			tokensInfo:       lep.logsData.tokensInfo,
+			tokensInfo:       &lep.logsData.tokensInfo,
 		})
 		isEmptyIdentifier := identifier == ""
 		if isEmptyIdentifier && processed {

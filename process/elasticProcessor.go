@@ -498,7 +498,7 @@ func (ei *elasticProcessor) indexTokens(tokensData []*data.TokenInfo) error {
 		return nil
 	}
 
-	buffSlice, err := ei.transactionsProc.SerializeTokens(tokensData)
+	buffSlice, err := ei.logsAndEventsProc.SerializeTokens(tokensData)
 	if err != nil {
 		return err
 	}

@@ -18,7 +18,6 @@ func TestProcessLogsAndEventsESDT_IntraShard(t *testing.T) {
 	fungibleProc := newFungibleESDTProcessor(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{})
 
 	event := &transaction.Event{
-
 		Address:    []byte("addr"),
 		Identifier: []byte(core.BuiltInFunctionESDTTransfer),
 		Topics:     [][]byte{[]byte("my-token"), big.NewInt(0).Bytes(), big.NewInt(0).SetUint64(100).Bytes(), []byte("receiver")},

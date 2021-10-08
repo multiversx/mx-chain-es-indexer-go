@@ -61,7 +61,7 @@ func (iep *issueESDTProcessor) processEvent(args *argsProcessEvent) (string, str
 		Timestamp: time.Duration(args.timestamp),
 	}
 
-	args.tokensInfo = append(args.tokensInfo, tokenInfo)
+	*args.tokensInfo = append(*args.tokensInfo, tokenInfo)
 
 	return "", "", true
 }

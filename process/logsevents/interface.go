@@ -14,7 +14,7 @@ type argsProcessEvent struct {
 	tokens           data.TokensHandler
 	tagsCount        data.CountTags
 	timestamp        uint64
-	tokensInfo       []*data.TokenInfo
+	tokensInfo       *[]*data.TokenInfo
 }
 
 type eventsProcessor interface {
