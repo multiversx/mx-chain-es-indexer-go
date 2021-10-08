@@ -24,4 +24,5 @@ type PreparedLogsResults struct {
 	TagsCount       CountTags
 	ScDeploys       map[string]*ScDeployInfo
 	PendingBalances map[string]*AccountInfo
+	TokensInfo      []*TokenInfo
 }

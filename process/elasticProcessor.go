@@ -438,7 +438,7 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
-	err = ei.indexTokens(preparedResults.Tokens)
+	err = ei.indexTokens(logsData.TokensInfo)
 	if err != nil {
 		return err
 	}

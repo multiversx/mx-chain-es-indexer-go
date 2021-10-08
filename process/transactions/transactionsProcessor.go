@@ -32,7 +32,6 @@ type txsDatabaseProcessor struct {
 	txFeeCalculator indexer.FeesProcessorHandler
 	txBuilder       *dbTransactionBuilder
 	txsGrouper      *txsGrouper
-	tokensProcessor *tokensProcessor
 	scrsProc        *smartContractResultsProcessor
 	scrsDataToTxs   *scrsDataToTransactions
 }
@@ -47,7 +46,6 @@ func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txsDatabaseProce
 	selfShardID := args.ShardCoordinator.SelfId()
 	txBuilder := newTransactionDBBuilder(args.AddressPubkeyConverter, args.ShardCoordinator, args.TxFeeCalculator)
 	txsDBGrouper := newTxsGrouper(txBuilder, args.IsInImportMode, selfShardID, args.Hasher, args.Marshalizer)
-	tokensProc := newTokensProcessor(selfShardID, args.AddressPubkeyConverter)
 	scrProc := newSmartContractResultsProcessor(args.AddressPubkeyConverter, args.ShardCoordinator, args.Marshalizer, args.Hasher)
 	scrsDataToTxs := newScrsDataToTransactions(args.TxFeeCalculator)
 
@@ -60,7 +58,6 @@ func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txsDatabaseProce
 		txFeeCalculator: args.TxFeeCalculator,
 		txBuilder:       txBuilder,
 		txsGrouper:      txsDBGrouper,
-		tokensProcessor: tokensProc,
 		scrsProc:        scrProc,
 		scrsDataToTxs:   scrsDataToTxs,
 	}, nil
@@ -130,15 +127,11 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 	sliceRewardsTxs := convertMapTxsToSlice(rewardsTxs)
 	txsSlice := append(sliceNormalTxs, sliceRewardsTxs...)
 
-	tokens := tdp.tokensProcessor.searchForTokenIssueTransactions(txsSlice, header.GetTimeStamp())
-	tokens = append(tokens, tdp.tokensProcessor.searchForTokenIssueScrs(dbSCResults, header.GetTimeStamp())...)
-
 	return &data.PreparedResults{
 		Transactions: txsSlice,
 		ScResults:    dbSCResults,
 		Receipts:     dbReceipts,
 		AlteredAccts: alteredAccounts,
-		Tokens:       tokens,
 		TxHashStatus: txHashStatus,
 		TxHashRefund: txHashRefund,
 	}

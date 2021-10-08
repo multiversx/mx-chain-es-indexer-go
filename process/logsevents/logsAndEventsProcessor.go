@@ -38,6 +38,7 @@ func NewLogsAndEventsProcessor(
 	nftsProc := newNFTsProcessor(shardCoordinator, pubKeyConverter, marshalizer)
 	fungibleProc := newFungibleESDTProcessor(pubKeyConverter, shardCoordinator)
 	scDeploysProc := newSCDeploysProcessor(pubKeyConverter)
+	issueESDTProc := newIssueESDTProcessor()
 
 	return &logsAndEventsProcessor{
 		pubKeyConverter: pubKeyConverter,
@@ -45,6 +46,7 @@ func NewLogsAndEventsProcessor(
 			fungibleProc,
 			nftsProc,
 			scDeploysProc,
+			issueESDTProc,
 		},
 	}, nil
 }
@@ -57,12 +59,12 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 ) *data.PreparedLogsResults {
 	lep.logsData = newLogsData(timestamp, preparedResults.AlteredAccts, preparedResults.Transactions, preparedResults.ScResults)
 
-	for logHash, log := range logsAndEvents {
-		if check.IfNil(log) {
+	for logHash, txLog := range logsAndEvents {
+		if check.IfNil(txLog) {
 			continue
 		}
 
-		events := log.GetLogEvents()
+		events := txLog.GetLogEvents()
 		lep.processEvents(logHash, events)
 	}
 
@@ -71,6 +73,7 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 		ScDeploys:       lep.logsData.scDeploys,
 		TagsCount:       lep.logsData.tagsCount,
 		PendingBalances: lep.logsData.pendingBalances.getAll(),
+		TokensInfo:      lep.logsData.tokensInfo,
 	}
 }
 
@@ -89,13 +92,14 @@ func (lep *logsAndEventsProcessor) processEvent(logHash string, events coreData.
 	for _, proc := range lep.eventsProcessors {
 		identifier, value, processed := proc.processEvent(&argsProcessEvent{
 			event:            events,
+			txHashHexEncoded: logHashHexEncoded,
 			accounts:         lep.logsData.accounts,
 			tokens:           lep.logsData.tokens,
 			tagsCount:        lep.logsData.tagsCount,
 			timestamp:        lep.logsData.timestamp,
 			scDeploys:        lep.logsData.scDeploys,
 			pendingBalances:  lep.logsData.pendingBalances,
-			txHashHexEncoded: logHashHexEncoded,
+			tokensInfo:       lep.logsData.tokensInfo,
 		})
 		isEmptyIdentifier := identifier == ""
 		if isEmptyIdentifier && processed {
