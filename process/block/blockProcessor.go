@@ -86,6 +86,7 @@ func (bp *blockProcessor) PrepareBlockForDB(
 		EpochStartBlock:       header.IsStartOfEpochBlock(),
 		GasConsumed:           gasConsumptionData.GasConsumed,
 		GasRefunded:           gasConsumptionData.GasRefunded,
+		GasPenalized:          gasConsumptionData.GasPenalized,
 		MaxGasLimit:           gasConsumptionData.MaxGasPerBlock,
 	}
 
