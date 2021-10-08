@@ -21,7 +21,14 @@ type DispatcherHandler interface {
 
 // ElasticProcessor defines the interface for the elastic search indexer
 type ElasticProcessor interface {
-	SaveHeader(header coreData.HeaderHandler, signersIndexes []uint64, body *block.Body, notarizedHeadersHashes []string, txsSize int) error
+	SaveHeader(
+		header coreData.HeaderHandler,
+		signersIndexes []uint64,
+		body *block.Body,
+		notarizedHeadersHashes []string,
+		gasConsumptionData indexer.HeaderGasConsumption,
+		txsSize int,
+	) error
 	RemoveHeader(header coreData.HeaderHandler) error
 	RemoveMiniblocks(header coreData.HeaderHandler, body *block.Body) error
 	RemoveTransactions(header coreData.HeaderHandler, body *block.Body) error

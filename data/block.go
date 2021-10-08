@@ -29,6 +29,10 @@ type Block struct {
 	EpochStartBlock       bool            `json:"epochStartBlock"`
 	SearchOrder           uint64          `json:"searchOrder"`
 	EpochStartInfo        *EpochStartInfo `json:"epochStartInfo,omitempty"`
+	GasConsumed           uint64          `json:"gasConsumed"`
+	GasRefunded           uint64          `json:"gasRefunded"`
+	GasPenalized          uint64          `json:"gasPenalized"`
+	MaxGasLimit           uint64          `json:"maxGasLimit"`
 }
 
 // EpochStartInfo is a structure that hold information about epoch start meta block

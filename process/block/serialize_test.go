@@ -29,7 +29,7 @@ func TestBlockProcessor_SerializeBlock(t *testing.T) {
 
 	buff, err := bp.SerializeBlock(&data.Block{Nonce: 1})
 	require.Nil(t, err)
-	require.Equal(t, `{"nonce":1,"round":0,"epoch":0,"miniBlocksHashes":null,"notarizedBlocksHashes":null,"proposer":0,"validators":null,"pubKeyBitmap":"","size":0,"sizeTxs":0,"timestamp":0,"stateRootHash":"","prevHash":"","shardId":0,"txCount":0,"accumulatedFees":"","developerFees":"","epochStartBlock":false,"searchOrder":0}`, buff.String())
+	require.Equal(t, `{"nonce":1,"round":0,"epoch":0,"miniBlocksHashes":null,"notarizedBlocksHashes":null,"proposer":0,"validators":null,"pubKeyBitmap":"","size":0,"sizeTxs":0,"timestamp":0,"stateRootHash":"","prevHash":"","shardId":0,"txCount":0,"accumulatedFees":"","developerFees":"","epochStartBlock":false,"searchOrder":0,"gasConsumed":0,"gasRefunded":0,"gasPenalized":0,"maxGasLimit":0}`, buff.String())
 }
 
 func TestBlockProcessor_SerializeEpochInfoDataErrors(t *testing.T) {
@@ -93,5 +93,5 @@ func TestBlockProcessor_SerializeBlockEpochStartMeta(t *testing.T) {
 		},
 	})
 	require.Nil(t, err)
-	require.Equal(t, `{"nonce":1,"round":2,"epoch":3,"miniBlocksHashes":["mb1Hash","mbHash2"],"notarizedBlocksHashes":["notarized1"],"proposer":5,"validators":[0,1,2,3,4,5],"pubKeyBitmap":"00000110","size":345,"sizeTxs":0,"timestamp":123456,"stateRootHash":"stateHash","prevHash":"prevHash","shardId":4294967295,"txCount":0,"accumulatedFees":"1000","developerFees":"50","epochStartBlock":true,"searchOrder":1010,"epochStartInfo":{"totalSupply":"100","totalToDistribute":"55","totalNewlyMinted":"20","rewardsPerBlock":"15","rewardsForProtocolSustainability":"2","nodePrice":"10","prevEpochStartRound":222,"prevEpochStartHash":"7072657645706f6368"}}`, buff.String())
+	require.Equal(t, `{"nonce":1,"round":2,"epoch":3,"miniBlocksHashes":["mb1Hash","mbHash2"],"notarizedBlocksHashes":["notarized1"],"proposer":5,"validators":[0,1,2,3,4,5],"pubKeyBitmap":"00000110","size":345,"sizeTxs":0,"timestamp":123456,"stateRootHash":"stateHash","prevHash":"prevHash","shardId":4294967295,"txCount":0,"accumulatedFees":"1000","developerFees":"50","epochStartBlock":true,"searchOrder":1010,"epochStartInfo":{"totalSupply":"100","totalToDistribute":"55","totalNewlyMinted":"20","rewardsPerBlock":"15","rewardsForProtocolSustainability":"2","nodePrice":"10","prevEpochStartRound":222,"prevEpochStartHash":"7072657645706f6368"},"gasConsumed":0,"gasRefunded":0,"gasPenalized":0,"maxGasLimit":0}`, buff.String())
 }

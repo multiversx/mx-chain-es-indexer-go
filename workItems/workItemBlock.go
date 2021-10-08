@@ -59,7 +59,13 @@ func (wib *itemBlock) Save() error {
 	}
 
 	txsSizeInBytes := ComputeSizeOfTxs(wib.marshalizer, wib.argsSaveBlock.TransactionsPool)
-	err := wib.indexer.SaveHeader(wib.argsSaveBlock.Header, wib.argsSaveBlock.SignersIndexes, body, wib.argsSaveBlock.NotarizedHeadersHashes, txsSizeInBytes)
+	err := wib.indexer.SaveHeader(
+		wib.argsSaveBlock.Header,
+		wib.argsSaveBlock.SignersIndexes,
+		body,
+		wib.argsSaveBlock.NotarizedHeadersHashes,
+		wib.argsSaveBlock.HeaderGasConsumption,
+		txsSizeInBytes)
 	if err != nil {
 		return fmt.Errorf("%w when saving header block, hash %s, nonce %d",
 			err, hex.EncodeToString(wib.argsSaveBlock.HeaderHash), wib.argsSaveBlock.Header.GetNonce())
