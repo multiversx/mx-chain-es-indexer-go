@@ -22,13 +22,13 @@ func TestScDeploysProcessor(t *testing.T) {
 	}
 
 	scDeploys := map[string]*data.ScDeployInfo{}
-	_, _, processed := scDeploysProc.processEvent(&argsProcessEvent{
+	res := scDeploysProc.processEvent(&argsProcessEvent{
 		event:            event,
 		timestamp:        1000,
 		scDeploys:        scDeploys,
 		txHashHexEncoded: "01020304",
 	})
-	require.True(t, processed)
+	require.True(t, res.processed)
 
 	require.Equal(t, &data.ScDeployInfo{
 		TxHash:    "01020304",

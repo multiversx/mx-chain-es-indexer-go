@@ -20,16 +20,18 @@ func newSCDeploysProcessor(pubKeyConverter core.PubkeyConverter) *scDeploysProce
 	}
 }
 
-func (sdp *scDeploysProcessor) processEvent(args *argsProcessEvent) (string, string, bool) {
+func (sdp *scDeploysProcessor) processEvent(args *argsProcessEvent) argOutputProcessEvent {
 	eventIdentifier := string(args.event.GetIdentifier())
 	_, ok := sdp.scDeploysIdentifiers[eventIdentifier]
 	if !ok {
-		return "", "", false
+		return argOutputProcessEvent{}
 	}
 
 	topics := args.event.GetTopics()
 	if len(topics) < 2 {
-		return "", "", true
+		return argOutputProcessEvent{
+			processed: true,
+		}
 	}
 
 	scAddress := sdp.pubKeyConverter.Encode(topics[0])
@@ -39,5 +41,7 @@ func (sdp *scDeploysProcessor) processEvent(args *argsProcessEvent) (string, str
 		Timestamp: args.timestamp,
 	}
 
-	return "", "", true
+	return argOutputProcessEvent{
+		processed: true,
+	}
 }

@@ -16,6 +16,13 @@ type argsProcessEvent struct {
 	timestamp        uint64
 }
 
+type argOutputProcessEvent struct {
+	identifier string
+	value      string
+	tokenInfo  *data.TokenInfo
+	processed  bool
+}
+
 type eventsProcessor interface {
-	processEvent(args *argsProcessEvent) (string, string, bool)
+	processEvent(args *argsProcessEvent) argOutputProcessEvent
 }

@@ -67,6 +67,16 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 				nil,
 			},
 		},
+		"h4": &transaction.Log{
+			Events: []*transaction.Event{
+				{
+					Address:    []byte("addr"),
+					Identifier: []byte(issueSemiFungibleESDTFunc),
+					Topics:     [][]byte{[]byte("SEMI-abcd"), []byte("semi-token"), []byte("SEMI"), []byte(core.SemiFungibleESDT)},
+				},
+				nil,
+			},
+		},
 	}
 
 	altered := data.NewAlteredAccounts()
@@ -96,6 +106,14 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 		Creator:   "6164647232",
 		Timestamp: uint64(1000),
 	}, resLogs.ScDeploys["6164647231"])
+
+	require.Equal(t, resLogs.TokensInfo[0], &data.TokenInfo{
+		Name:      "semi-token",
+		Ticker:    "SEMI",
+		Token:     "SEMI-abcd",
+		Type:      core.SemiFungibleESDT,
+		Timestamp: 1000,
+	})
 }
 
 func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {

@@ -12,6 +12,7 @@ import (
 )
 
 const (
+	atSeparator                                 = "@"
 	minNumOfArgumentsNFTTransferORMultiTransfer = 4
 	gasRefundForRelayerMessage                  = "gas refund for relayer"
 )

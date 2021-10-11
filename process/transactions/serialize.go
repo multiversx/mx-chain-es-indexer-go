@@ -11,25 +11,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/core"
 )
 
-// SerializeTokens will serialize the provided tokens data in a way that Elastic Search expects a bulk request
-func (tdp *txsDatabaseProcessor) SerializeTokens(tokens []*data.TokenInfo) ([]*bytes.Buffer, error) {
-	buffSlice := data.NewBufferSlice()
-	for _, tokenData := range tokens {
-		meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, tokenData.Token, "\n"))
-		serializedData, errMarshal := json.Marshal(tokenData)
-		if errMarshal != nil {
-			return nil, errMarshal
-		}
-
-		err := buffSlice.PutData(meta, serializedData)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return buffSlice.Buffers(), nil
-}
-
 // SerializeScResults will serialize the provided smart contract results in a way that Elastic Search expects a bulk request
 func (tdp *txsDatabaseProcessor) SerializeScResults(scResults []*data.ScResult) ([]*bytes.Buffer, error) {
 	buffSlice := data.NewBufferSlice()

@@ -66,7 +66,6 @@ type DBTransactionsHandler interface {
 	SerializeTransactions(transactions []*data.Transaction, txHashStatus map[string]string, selfShardID uint32) ([]*bytes.Buffer, error)
 	SerializeTransactionWithRefund(txs map[string]*data.Transaction, txHashRefund map[string]*data.RefundData) ([]*bytes.Buffer, error)
 	SerializeScResults(scResults []*data.ScResult) ([]*bytes.Buffer, error)
-	SerializeTokens(tokens []*data.TokenInfo) ([]*bytes.Buffer, error)
 }
 
 // DBMiniblocksHandler defines the actions that a miniblocks handler should do
@@ -100,4 +99,5 @@ type DBLogsAndEventsHandler interface {
 
 	SerializeLogs(logs []*data.Logs) ([]*bytes.Buffer, error)
 	SerializeSCDeploys(map[string]*data.ScDeployInfo) ([]*bytes.Buffer, error)
+	SerializeTokens(tokens []*data.TokenInfo) ([]*bytes.Buffer, error)
 }

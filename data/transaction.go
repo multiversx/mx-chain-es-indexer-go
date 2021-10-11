@@ -112,7 +112,6 @@ type PreparedResults struct {
 	ScResults    []*ScResult
 	Receipts     []*Receipt
 	AlteredAccts AlteredAccountsHandler
-	Tokens       []*TokenInfo
 	TxHashStatus map[string]string
 	TxHashRefund map[string]*RefundData
 }
