@@ -98,6 +98,7 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 		TagsCount:       lep.logsData.tagsCount,
 		PendingBalances: lep.logsData.pendingBalances.getAll(),
 		TokensInfo:      lep.logsData.tokensInfo,
+		Delegators:      lep.logsData.delegators,
 	}
 }
 
@@ -127,6 +128,9 @@ func (lep *logsAndEventsProcessor) processEvent(logHash string, logAddress []byt
 		})
 		if res.tokenInfo != nil {
 			lep.logsData.tokensInfo = append(lep.logsData.tokensInfo, res.tokenInfo)
+		}
+		if res.delegator != nil {
+			lep.logsData.delegators[res.delegator.Address] = res.delegator
 		}
 
 		isEmptyIdentifier := res.identifier == ""
