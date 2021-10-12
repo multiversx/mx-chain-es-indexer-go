@@ -100,4 +100,5 @@ type DBLogsAndEventsHandler interface {
 	SerializeLogs(logs []*data.Logs) ([]*bytes.Buffer, error)
 	SerializeSCDeploys(map[string]*data.ScDeployInfo) ([]*bytes.Buffer, error)
 	SerializeTokens(tokens []*data.TokenInfo) ([]*bytes.Buffer, error)
+	SerializeDelegators(delegators map[string]*data.Delegator) ([]*bytes.Buffer, error)
 }

@@ -444,7 +444,25 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
+	err = ei.prepareAndIndexDelegators(logsData.Delegators)
+	if err != nil {
+		return err
+	}
+
 	return ei.indexScDeploys(logsData.ScDeploys)
+}
+
+func (ei *elasticProcessor) prepareAndIndexDelegators(delegators map[string]*data.Delegator) error {
+	if !ei.isIndexEnabled(elasticIndexer.DelegatorsIndex) {
+		return nil
+	}
+
+	buffSlice, err := ei.logsAndEventsProc.SerializeDelegators(delegators)
+	if err != nil {
+		return err
+	}
+
+	return ei.doBulkRequests(elasticIndexer.DelegatorsIndex, buffSlice)
 }
 
 func (ei *elasticProcessor) indexTransactionsWithRefund(txsHashRefund map[string]*data.RefundData) error {

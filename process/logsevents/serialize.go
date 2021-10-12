@@ -2,6 +2,7 @@ package logsevents
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 
@@ -91,4 +92,31 @@ func (logsAndEventsProcessor) SerializeTokens(tokens []*data.TokenInfo) ([]*byte
 	}
 
 	return buffSlice.Buffers(), nil
+}
+
+func (lep *logsAndEventsProcessor) SerializeDelegators(delegators map[string]*data.Delegator) ([]*bytes.Buffer, error) {
+	buffSlice := data.NewBufferSlice()
+	for _, delegator := range delegators {
+		id := lep.computeDelegatorID(delegator)
+		meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, id, "\n"))
+		serializedData, errMarshal := json.Marshal(log)
+		if errMarshal != nil {
+			return nil, errMarshal
+		}
+
+		err := buffSlice.PutData(meta, serializedData)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return buffSlice.Buffers(), nil
+}
+
+func (lep *logsAndEventsProcessor) computeDelegatorID(delegator *data.Delegator) string {
+	delegatorContract := delegator.Address + delegator.Contract
+
+	hashBytes := lep.hahser.Compute(delegatorContract)
+
+	return base64.StdEncoding.EncodeToString(hashBytes)
 }

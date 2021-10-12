@@ -10,10 +10,12 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
+	"github.com/ElrondNetwork/elrond-go-core/hashing"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
 )
 
 type logsAndEventsProcessor struct {
+	hahser           hashing.Hasher
 	pubKeyConverter  core.PubkeyConverter
 	eventsProcessors []eventsProcessor
 
@@ -26,6 +28,7 @@ func NewLogsAndEventsProcessor(
 	pubKeyConverter core.PubkeyConverter,
 	marshalizer marshal.Marshalizer,
 	balanceConverter converters.BalanceConverter,
+	hasher hashing.Hasher,
 ) (*logsAndEventsProcessor, error) {
 	if check.IfNil(shardCoordinator) {
 		return nil, elasticIndexer.ErrNilShardCoordinator
@@ -39,12 +42,16 @@ func NewLogsAndEventsProcessor(
 	if check.IfNil(balanceConverter) {
 		return nil, elasticIndexer.ErrNilBalanceConverter
 	}
+	if check.IfNil(hasher) {
+		return nil, elasticIndexer.ErrNilHasher
+	}
 
 	eventsProcessors := createEventsProcessors(shardCoordinator, pubKeyConverter, marshalizer, balanceConverter)
 
 	return &logsAndEventsProcessor{
 		pubKeyConverter:  pubKeyConverter,
 		eventsProcessors: eventsProcessors,
+		hahser:           hasher,
 	}, nil
 }
 

@@ -19,19 +19,19 @@ func TestNewLogsAndEventsProcessor(t *testing.T) {
 	t.Parallel()
 
 	balanceConverter, _ := converters.NewBalanceConverter(10)
-	_, err := NewLogsAndEventsProcessor(nil, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{}, balanceConverter)
+	_, err := NewLogsAndEventsProcessor(nil, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{}, balanceConverter, &mock.HasherMock{})
 	require.Equal(t, elasticIndexer.ErrNilShardCoordinator, err)
 
-	_, err = NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, nil, &mock.MarshalizerMock{}, balanceConverter)
+	_, err = NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, nil, &mock.MarshalizerMock{}, balanceConverter, &mock.HasherMock{})
 	require.Equal(t, elasticIndexer.ErrNilPubkeyConverter, err)
 
-	_, err = NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, nil, balanceConverter)
+	_, err = NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, nil, balanceConverter, &mock.HasherMock{})
 	require.Equal(t, elasticIndexer.ErrNilMarshalizer, err)
 
-	_, err = NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{}, nil)
+	_, err = NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{}, nil, &mock.HasherMock{})
 	require.Equal(t, elasticIndexer.ErrNilBalanceConverter, err)
 
-	proc, err := NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{}, balanceConverter)
+	proc, err := NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{}, balanceConverter, &mock.HasherMock{})
 	require.NotNil(t, proc)
 	require.Nil(t, err)
 }
@@ -102,7 +102,7 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 	balanceConverter, _ := converters.NewBalanceConverter(10)
 	proc, _ := NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{
 		SelfID: core.MetachainShardId,
-	}, mock.NewPubkeyConverterMock(32), &mock.MarshalizerMock{}, balanceConverter)
+	}, mock.NewPubkeyConverterMock(32), &mock.MarshalizerMock{}, balanceConverter, &mock.HasherMock{})
 
 	resLogs := proc.ExtractDataFromLogs(logsAndEvents, res, 1000)
 	require.NotNil(t, resLogs.Tokens)
@@ -144,7 +144,7 @@ func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 	}
 
 	balanceConverter, _ := converters.NewBalanceConverter(10)
-	proc, _ := NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, mock.NewPubkeyConverterMock(32), &mock.MarshalizerMock{}, balanceConverter)
+	proc, _ := NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, mock.NewPubkeyConverterMock(32), &mock.MarshalizerMock{}, balanceConverter, &mock.HasherMock{})
 
 	logsDB := proc.PrepareLogsForDB(logsAndEvents, 1234)
 	require.Equal(t, &data.Logs{
