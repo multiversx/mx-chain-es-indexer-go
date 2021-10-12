@@ -31,6 +31,9 @@ func TestNewLogsAndEventsProcessor(t *testing.T) {
 	_, err = NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{}, nil, &mock.HasherMock{})
 	require.Equal(t, elasticIndexer.ErrNilBalanceConverter, err)
 
+	_, err = NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{}, balanceConverter, nil)
+	require.Equal(t, elasticIndexer.ErrNilHasher, err)
+
 	proc, err := NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{}, balanceConverter, &mock.HasherMock{})
 	require.NotNil(t, proc)
 	require.Nil(t, err)
@@ -82,6 +85,16 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 				nil,
 			},
 		},
+		"h5": &transaction.Log{
+			Address: []byte("contract"),
+			Events: []*transaction.Event{
+				{
+					Address:    []byte("addr"),
+					Identifier: []byte(delegateFunc),
+					Topics:     [][]byte{big.NewInt(1000).Bytes(), big.NewInt(1000000000).Bytes(), big.NewInt(10).Bytes(), big.NewInt(1000000000).Bytes()},
+				},
+			},
+		},
 	}
 
 	altered := data.NewAlteredAccounts()
@@ -116,13 +129,20 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 		Timestamp: uint64(1000),
 	}, resLogs.ScDeploys["6164647231"])
 
-	require.Equal(t, resLogs.TokensInfo[0], &data.TokenInfo{
+	require.Equal(t, &data.TokenInfo{
 		Name:      "semi-token",
 		Ticker:    "SEMI",
 		Token:     "SEMI-abcd",
 		Type:      core.SemiFungibleESDT,
 		Timestamp: 1000,
-	})
+	}, resLogs.TokensInfo[0])
+
+	require.Equal(t, &data.Delegator{
+		Address:        "61646472",
+		Contract:       "636f6e7472616374",
+		ActiveStakeNum: 0.1,
+		ActiveStake:    "1000000000",
+	}, resLogs.Delegators["61646472"])
 }
 
 func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
