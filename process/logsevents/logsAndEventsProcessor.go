@@ -5,6 +5,7 @@ import (
 	"time"
 
 	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
+	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
@@ -24,6 +25,7 @@ func NewLogsAndEventsProcessor(
 	shardCoordinator elasticIndexer.ShardCoordinator,
 	pubKeyConverter core.PubkeyConverter,
 	marshalizer marshal.Marshalizer,
+	balanceConverter converters.BalanceConverter,
 ) (*logsAndEventsProcessor, error) {
 	if check.IfNil(shardCoordinator) {
 		return nil, elasticIndexer.ErrNilShardCoordinator
@@ -34,8 +36,11 @@ func NewLogsAndEventsProcessor(
 	if check.IfNil(marshalizer) {
 		return nil, elasticIndexer.ErrNilMarshalizer
 	}
+	if check.IfNil(balanceConverter) {
+		return nil, elasticIndexer.ErrNilBalanceConverter
+	}
 
-	eventsProcessors := createEventsProcessors(shardCoordinator, pubKeyConverter, marshalizer)
+	eventsProcessors := createEventsProcessors(shardCoordinator, pubKeyConverter, marshalizer, balanceConverter)
 
 	return &logsAndEventsProcessor{
 		pubKeyConverter:  pubKeyConverter,
@@ -47,6 +52,7 @@ func createEventsProcessors(
 	shardCoordinator elasticIndexer.ShardCoordinator,
 	pubKeyConverter core.PubkeyConverter,
 	marshalizer marshal.Marshalizer,
+	balanceConverter converters.BalanceConverter,
 ) []eventsProcessor {
 	nftsProc := newNFTsProcessor(shardCoordinator, pubKeyConverter, marshalizer)
 	fungibleProc := newFungibleESDTProcessor(pubKeyConverter, shardCoordinator)
@@ -61,6 +67,9 @@ func createEventsProcessors(
 	if shardCoordinator.SelfId() == core.MetachainShardId {
 		issueESDTProc := newESDTIssueProcessor()
 		eventsProcs = append(eventsProcs, issueESDTProc)
+
+		delegatorsProcessor := newDelegatorsProcessor(pubKeyConverter, balanceConverter)
+		eventsProcs = append(eventsProcs, delegatorsProcessor)
 	}
 
 	return eventsProcs
@@ -80,7 +89,7 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 		}
 
 		events := txLog.GetLogEvents()
-		lep.processEvents(logHash, events)
+		lep.processEvents(logHash, txLog.GetAddress(), events)
 	}
 
 	return &data.PreparedLogsResults{
@@ -92,22 +101,23 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 	}
 }
 
-func (lep *logsAndEventsProcessor) processEvents(logHash string, events []coreData.EventHandler) {
+func (lep *logsAndEventsProcessor) processEvents(logHash string, logAddress []byte, events []coreData.EventHandler) {
 	for _, event := range events {
 		if check.IfNil(event) {
 			continue
 		}
 
-		lep.processEvent(logHash, event)
+		lep.processEvent(logHash, logAddress, event)
 	}
 }
 
-func (lep *logsAndEventsProcessor) processEvent(logHash string, events coreData.EventHandler) {
+func (lep *logsAndEventsProcessor) processEvent(logHash string, logAddress []byte, event coreData.EventHandler) {
 	logHashHexEncoded := hex.EncodeToString([]byte(logHash))
 	for _, proc := range lep.eventsProcessors {
 		res := proc.processEvent(&argsProcessEvent{
-			event:            events,
+			event:            event,
 			txHashHexEncoded: logHashHexEncoded,
+			logAddress:       logAddress,
 			accounts:         lep.logsData.accounts,
 			tokens:           lep.logsData.tokens,
 			tagsCount:        lep.logsData.tagsCount,

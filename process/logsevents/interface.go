@@ -14,6 +14,7 @@ type argsProcessEvent struct {
 	tokens           data.TokensHandler
 	tagsCount        data.CountTags
 	timestamp        uint64
+	logAddress       []byte
 }
 
 type argOutputProcessEvent struct {

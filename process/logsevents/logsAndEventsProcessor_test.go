@@ -6,6 +6,7 @@ import (
 	"time"
 
 	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
+	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elrond-go-core/core"
@@ -17,16 +18,20 @@ import (
 func TestNewLogsAndEventsProcessor(t *testing.T) {
 	t.Parallel()
 
-	_, err := NewLogsAndEventsProcessor(nil, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{})
+	balanceConverter, _ := converters.NewBalanceConverter(10)
+	_, err := NewLogsAndEventsProcessor(nil, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{}, balanceConverter)
 	require.Equal(t, elasticIndexer.ErrNilShardCoordinator, err)
 
-	_, err = NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, nil, &mock.MarshalizerMock{})
+	_, err = NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, nil, &mock.MarshalizerMock{}, balanceConverter)
 	require.Equal(t, elasticIndexer.ErrNilPubkeyConverter, err)
 
-	_, err = NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, nil)
+	_, err = NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, nil, balanceConverter)
 	require.Equal(t, elasticIndexer.ErrNilMarshalizer, err)
 
-	proc, err := NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{})
+	_, err = NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{}, nil)
+	require.Equal(t, elasticIndexer.ErrNilBalanceConverter, err)
+
+	proc, err := NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{}, balanceConverter)
 	require.NotNil(t, proc)
 	require.Nil(t, err)
 }
@@ -93,7 +98,11 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 		},
 		AlteredAccts: altered,
 	}
-	proc, _ := NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, mock.NewPubkeyConverterMock(32), &mock.MarshalizerMock{})
+
+	balanceConverter, _ := converters.NewBalanceConverter(10)
+	proc, _ := NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{
+		SelfID: core.MetachainShardId,
+	}, mock.NewPubkeyConverterMock(32), &mock.MarshalizerMock{}, balanceConverter)
 
 	resLogs := proc.ExtractDataFromLogs(logsAndEvents, res, 1000)
 	require.NotNil(t, resLogs.Tokens)
@@ -134,7 +143,8 @@ func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 		},
 	}
 
-	proc, _ := NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, mock.NewPubkeyConverterMock(32), &mock.MarshalizerMock{})
+	balanceConverter, _ := converters.NewBalanceConverter(10)
+	proc, _ := NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, mock.NewPubkeyConverterMock(32), &mock.MarshalizerMock{}, balanceConverter)
 
 	logsDB := proc.PrepareLogsForDB(logsAndEvents, 1234)
 	require.Equal(t, &data.Logs{

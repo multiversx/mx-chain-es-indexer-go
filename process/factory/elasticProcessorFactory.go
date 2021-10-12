@@ -2,6 +2,7 @@ package factory
 
 import (
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
+	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	processIndexer "github.com/ElrondNetwork/elastic-indexer-go/process"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/accounts"
 	blockProc "github.com/ElrondNetwork/elastic-indexer-go/process/block"
@@ -48,11 +49,16 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (indexer.Elast
 		return nil, indexer.ErrEmptyEnabledIndexes
 	}
 
+	balanceConverter, err := converters.NewBalanceConverter(arguments.Denomination)
+	if err != nil {
+		return nil, err
+	}
+
 	accountsProc, err := accounts.NewAccountsProcessor(
-		arguments.Denomination,
 		arguments.Marshalizer,
 		arguments.AddressPubkeyConverter,
 		arguments.AccountsDB,
+		balanceConverter,
 	)
 	if err != nil {
 		return nil, err
@@ -91,6 +97,7 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (indexer.Elast
 		arguments.ShardCoordinator,
 		arguments.AddressPubkeyConverter,
 		arguments.Marshalizer,
+		balanceConverter,
 	)
 	if err != nil {
 		return nil, err
