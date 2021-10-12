@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/stretchr/testify/require"
 )
@@ -87,6 +88,42 @@ func TestSerializeTokens(t *testing.T) {
 {"name":"TokenName","ticker":"TKN","token":"TKN-01234","issuer":"erd123","type":"SemiFungibleESDT","timestamp":50000}
 { "index" : { "_id" : "TKN2-51234" } }
 {"name":"Token2","ticker":"TKN2","token":"TKN2-51234","issuer":"erd1231213123","type":"NonFungibleESDT","timestamp":60000}
+`
+	require.Equal(t, expectedRes, res[0].String())
+}
+
+func TestLogsAndEventsProcessor_SerializeDelegators(t *testing.T) {
+	t.Parallel()
+
+	delegator1 := &data.Delegator{
+		Address:        "addr1",
+		Contract:       "contract1",
+		ActiveStake:    "100000000000000",
+		ActiveStakeNum: 0.1,
+	}
+	delegator2 := &data.Delegator{
+		Address:        "addr2",
+		Contract:       "contract2",
+		ActiveStake:    "200000000000000",
+		ActiveStakeNum: 0.2,
+	}
+
+	delegators := map[string]*data.Delegator{
+		"key1": delegator1,
+		"key2": delegator2,
+	}
+
+	logsProc := &logsAndEventsProcessor{
+		hahser: &mock.HasherMock{},
+	}
+
+	res, err := logsProc.SerializeDelegators(delegators)
+	require.Nil(t, err)
+
+	expectedRes := `{ "index" : { "_id" : "/GeogJjDjtpxnceK9t6+BVBYWuuJHbjmsWK0/1BlH9c=" } }
+{"contract":"contract1","activeStake":"100000000000000","activeStakeNum":0.1}
+{ "index" : { "_id" : "2Kxa5xb7Q/rXugoppPmQbU1ihYlkd9STxtnllWRcmNA=" } }
+{"contract":"contract2","activeStake":"200000000000000","activeStakeNum":0.2}
 `
 	require.Equal(t, expectedRes, res[0].String())
 }

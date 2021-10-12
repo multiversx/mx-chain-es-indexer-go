@@ -99,7 +99,7 @@ func (lep *logsAndEventsProcessor) SerializeDelegators(delegators map[string]*da
 	for _, delegator := range delegators {
 		id := lep.computeDelegatorID(delegator)
 		meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, id, "\n"))
-		serializedData, errMarshal := json.Marshal(log)
+		serializedData, errMarshal := json.Marshal(delegator)
 		if errMarshal != nil {
 			return nil, errMarshal
 		}
