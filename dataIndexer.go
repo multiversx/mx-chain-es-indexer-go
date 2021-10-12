@@ -1,8 +1,6 @@
 package indexer
 
 import (
-	"context"
-
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
 	"github.com/ElrondNetwork/elrond-go-core/core"
@@ -54,7 +52,7 @@ func checkIndexerArgs(arguments ArgDataIndexer) error {
 }
 
 // SaveBlock saves the block info in the queue to be sent to elastic
-func (di *dataIndexer) SaveBlock(_ context.Context, args *indexer.ArgsSaveBlockData) {
+func (di *dataIndexer) SaveBlock(args *indexer.ArgsSaveBlockData) {
 	wi := workItems.NewItemBlock(
 		di.elasticProcessor,
 		di.marshalizer,
@@ -69,7 +67,7 @@ func (di *dataIndexer) Close() error {
 }
 
 // RevertIndexedBlock will remove from database block and miniblocks
-func (di *dataIndexer) RevertIndexedBlock(_ context.Context, header coreData.HeaderHandler, body coreData.BodyHandler) {
+func (di *dataIndexer) RevertIndexedBlock(header coreData.HeaderHandler, body coreData.BodyHandler) {
 	wi := workItems.NewItemRemoveBlock(
 		di.elasticProcessor,
 		body,
@@ -79,7 +77,7 @@ func (di *dataIndexer) RevertIndexedBlock(_ context.Context, header coreData.Hea
 }
 
 // SaveRoundsInfo will save data about a slice of rounds in elasticsearch
-func (di *dataIndexer) SaveRoundsInfo(_ context.Context, rf []*indexer.RoundInfo) {
+func (di *dataIndexer) SaveRoundsInfo(rf []*indexer.RoundInfo) {
 	roundsInfo := make([]*data.RoundInfo, 0)
 	for _, info := range rf {
 		roundsInfo = append(roundsInfo, &data.RoundInfo{
@@ -96,7 +94,7 @@ func (di *dataIndexer) SaveRoundsInfo(_ context.Context, rf []*indexer.RoundInfo
 }
 
 // SaveValidatorsRating will save all validators rating info to elasticsearch
-func (di *dataIndexer) SaveValidatorsRating(_ context.Context, indexID string, validatorsRatingInfo []*indexer.ValidatorRatingInfo) {
+func (di *dataIndexer) SaveValidatorsRating(indexID string, validatorsRatingInfo []*indexer.ValidatorRatingInfo) {
 	valRatingInfo := make([]*data.ValidatorRatingInfo, 0)
 	for _, info := range validatorsRatingInfo {
 		valRatingInfo = append(valRatingInfo, &data.ValidatorRatingInfo{
@@ -114,7 +112,7 @@ func (di *dataIndexer) SaveValidatorsRating(_ context.Context, indexID string, v
 }
 
 // SaveValidatorsPubKeys will save all validators public keys to elasticsearch
-func (di *dataIndexer) SaveValidatorsPubKeys(_ context.Context, validatorsPubKeys map[uint32][][]byte, epoch uint32) {
+func (di *dataIndexer) SaveValidatorsPubKeys(validatorsPubKeys map[uint32][][]byte, epoch uint32) {
 	wi := workItems.NewItemValidators(
 		di.elasticProcessor,
 		epoch,
@@ -124,13 +122,13 @@ func (di *dataIndexer) SaveValidatorsPubKeys(_ context.Context, validatorsPubKey
 }
 
 // SaveAccounts will save the provided accounts
-func (di *dataIndexer) SaveAccounts(_ context.Context, timestamp uint64, accounts []coreData.UserAccountHandler) {
+func (di *dataIndexer) SaveAccounts(timestamp uint64, accounts []coreData.UserAccountHandler) {
 	wi := workItems.NewItemAccounts(di.elasticProcessor, timestamp, accounts)
 	di.dispatcher.Add(wi)
 }
 
 // FinalizedBlock does nothing
-func (di *dataIndexer) FinalizedBlock(_ context.Context, _ []byte) {
+func (di *dataIndexer) FinalizedBlock(_ []byte) {
 }
 
 // IsNilIndexer will return a bool value that signals if the indexer's implementation is a NilIndexer

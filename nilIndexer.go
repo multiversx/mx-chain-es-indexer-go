@@ -1,8 +1,6 @@
 package indexer
 
 import (
-	"context"
-
 	"github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 )
@@ -17,27 +15,27 @@ func NewNilIndexer() *NilIndexer {
 }
 
 // SaveBlock will do nothing
-func (ni *NilIndexer) SaveBlock(_ context.Context, _ *indexer.ArgsSaveBlockData) {
+func (ni *NilIndexer) SaveBlock(_ *indexer.ArgsSaveBlockData) {
 }
 
 // RevertIndexedBlock will do nothing
-func (ni *NilIndexer) RevertIndexedBlock(_ context.Context, _ data.HeaderHandler, _ data.BodyHandler) {
+func (ni *NilIndexer) RevertIndexedBlock(_ data.HeaderHandler, _ data.BodyHandler) {
 }
 
 // SaveRoundsInfo will do nothing
-func (ni *NilIndexer) SaveRoundsInfo(_ context.Context, _ []*indexer.RoundInfo) {
+func (ni *NilIndexer) SaveRoundsInfo(_ []*indexer.RoundInfo) {
 }
 
 // SaveValidatorsRating -
-func (ni *NilIndexer) SaveValidatorsRating(_ context.Context, _ string, _ []*indexer.ValidatorRatingInfo) {
+func (ni *NilIndexer) SaveValidatorsRating(_ string, _ []*indexer.ValidatorRatingInfo) {
 }
 
 // SaveValidatorsPubKeys will do nothing
-func (ni *NilIndexer) SaveValidatorsPubKeys(_ context.Context, _ map[uint32][][]byte, _ uint32) {
+func (ni *NilIndexer) SaveValidatorsPubKeys(_ map[uint32][][]byte, _ uint32) {
 }
 
 // SaveAccounts won't do anything as this is a nil implementation
-func (ni *NilIndexer) SaveAccounts(_ context.Context, _ uint64, _ []data.UserAccountHandler) {
+func (ni *NilIndexer) SaveAccounts(_ uint64, _ []data.UserAccountHandler) {
 }
 
 // Close will do nothing
@@ -46,7 +44,7 @@ func (ni *NilIndexer) Close() error {
 }
 
 // FinalizedBlock does nothing
-func (ni *NilIndexer) FinalizedBlock(_ context.Context, _ []byte) {
+func (ni *NilIndexer) FinalizedBlock(_ []byte) {
 }
 
 // IsInterfaceNil returns true if there is no value under the interface
