@@ -101,16 +101,9 @@ func TestLogsAndEventsProcessor_SerializeDelegators(t *testing.T) {
 		ActiveStake:    "100000000000000",
 		ActiveStakeNum: 0.1,
 	}
-	delegator2 := &data.Delegator{
-		Address:        "addr2",
-		Contract:       "contract2",
-		ActiveStake:    "200000000000000",
-		ActiveStakeNum: 0.2,
-	}
 
 	delegators := map[string]*data.Delegator{
 		"key1": delegator1,
-		"key2": delegator2,
 	}
 
 	logsProc := &logsAndEventsProcessor{
@@ -122,8 +115,6 @@ func TestLogsAndEventsProcessor_SerializeDelegators(t *testing.T) {
 
 	expectedRes := `{ "index" : { "_id" : "/GeogJjDjtpxnceK9t6+BVBYWuuJHbjmsWK0/1BlH9c=" } }
 {"contract":"contract1","activeStake":"100000000000000","activeStakeNum":0.1}
-{ "index" : { "_id" : "2Kxa5xb7Q/rXugoppPmQbU1ihYlkd9STxtnllWRcmNA=" } }
-{"contract":"contract2","activeStake":"200000000000000","activeStakeNum":0.2}
 `
 	require.Equal(t, expectedRes, res[0].String())
 }
