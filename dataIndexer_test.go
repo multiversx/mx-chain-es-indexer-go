@@ -2,6 +2,7 @@ package indexer
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"fmt"
 	"math/big"
@@ -83,7 +84,7 @@ func TestDataIndexer_SaveBlock(t *testing.T) {
 		Body:       &dataBlock.Body{MiniBlocks: []*dataBlock.MiniBlock{}},
 		HeaderHash: []byte("hash"),
 	}
-	ei.SaveBlock(args)
+	ei.SaveBlock(context.Background(), args)
 	require.True(t, called)
 }
 
@@ -101,7 +102,7 @@ func TestDataIndexer_SaveRoundInfo(t *testing.T) {
 	ei, _ := NewDataIndexer(arguments)
 	_ = ei.Close()
 
-	ei.SaveRoundsInfo([]*indexer.RoundInfo{})
+	ei.SaveRoundsInfo(context.Background(), []*indexer.RoundInfo{})
 	require.True(t, called)
 }
 
@@ -122,7 +123,7 @@ func TestDataIndexer_SaveValidatorsPubKeys(t *testing.T) {
 	valPubKey[0] = keys
 	epoch := uint32(0)
 
-	ei.SaveValidatorsPubKeys(valPubKey, epoch)
+	ei.SaveValidatorsPubKeys(context.Background(), valPubKey, epoch)
 	require.True(t, called)
 }
 
@@ -137,7 +138,7 @@ func TestDataIndexer_SaveValidatorsRating(t *testing.T) {
 	}
 	ei, _ := NewDataIndexer(arguments)
 
-	ei.SaveValidatorsRating("ID", []*indexer.ValidatorRatingInfo{
+	ei.SaveValidatorsRating(context.Background(), "ID", []*indexer.ValidatorRatingInfo{
 		{Rating: 1}, {Rating: 2},
 	})
 	require.True(t, called)
@@ -154,7 +155,7 @@ func TestDataIndexer_RevertIndexedBlock(t *testing.T) {
 	}
 	ei, _ := NewDataIndexer(arguments)
 
-	ei.RevertIndexedBlock(&dataBlock.Header{}, &dataBlock.Body{})
+	ei.RevertIndexedBlock(context.Background(), &dataBlock.Header{}, &dataBlock.Body{})
 	require.True(t, called)
 }
 
@@ -235,7 +236,7 @@ func testCreateIndexer(t *testing.T) {
 			NotarizedHeadersHashes: []string{"aaaaa", "bbbb"},
 			TransactionsPool:       &indexer.Pool{Txs: txsPool},
 		}
-		di.SaveBlock(args)
+		di.SaveBlock(context.Background(), args)
 	}
 
 	time.Sleep(100 * time.Second)
