@@ -35,20 +35,35 @@ func NewLogsAndEventsProcessor(
 		return nil, elasticIndexer.ErrNilMarshalizer
 	}
 
+	eventsProcessors := createEventsProcessors(shardCoordinator, pubKeyConverter, marshalizer)
+
+	return &logsAndEventsProcessor{
+		pubKeyConverter:  pubKeyConverter,
+		eventsProcessors: eventsProcessors,
+	}, nil
+}
+
+func createEventsProcessors(
+	shardCoordinator elasticIndexer.ShardCoordinator,
+	pubKeyConverter core.PubkeyConverter,
+	marshalizer marshal.Marshalizer,
+) []eventsProcessor {
 	nftsProc := newNFTsProcessor(shardCoordinator, pubKeyConverter, marshalizer)
 	fungibleProc := newFungibleESDTProcessor(pubKeyConverter, shardCoordinator)
 	scDeploysProc := newSCDeploysProcessor(pubKeyConverter)
-	issueESDTProc := newESDTIssueProcessor()
 
-	return &logsAndEventsProcessor{
-		pubKeyConverter: pubKeyConverter,
-		eventsProcessors: []eventsProcessor{
-			fungibleProc,
-			nftsProc,
-			scDeploysProc,
-			issueESDTProc,
-		},
-	}, nil
+	eventsProcs := []eventsProcessor{
+		fungibleProc,
+		nftsProc,
+		scDeploysProc,
+	}
+
+	if shardCoordinator.SelfId() == core.MetachainShardId {
+		issueESDTProc := newESDTIssueProcessor()
+		eventsProcs = append(eventsProcs, issueESDTProc)
+	}
+
+	return eventsProcs
 }
 
 // ExtractDataFromLogs will extract data from the provided logs and events and put in altered addresses

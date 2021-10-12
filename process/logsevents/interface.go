@@ -20,6 +20,7 @@ type argOutputProcessEvent struct {
 	identifier string
 	value      string
 	tokenInfo  *data.TokenInfo
+	delegator  *data.Delegator
 	processed  bool
 }
 
