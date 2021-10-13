@@ -26,7 +26,7 @@ func (ni *NilIndexer) RevertIndexedBlock(_ data.HeaderHandler, _ data.BodyHandle
 func (ni *NilIndexer) SaveRoundsInfo(_ []*indexer.RoundInfo) {
 }
 
-// SaveValidatorsRating --
+// SaveValidatorsRating -
 func (ni *NilIndexer) SaveValidatorsRating(_ string, _ []*indexer.ValidatorRatingInfo) {
 }
 
@@ -41,6 +41,10 @@ func (ni *NilIndexer) SaveAccounts(_ uint64, _ []data.UserAccountHandler) {
 // Close will do nothing
 func (ni *NilIndexer) Close() error {
 	return nil
+}
+
+// FinalizedBlock does nothing
+func (ni *NilIndexer) FinalizedBlock(_ []byte) {
 }
 
 // IsInterfaceNil returns true if there is no value under the interface
