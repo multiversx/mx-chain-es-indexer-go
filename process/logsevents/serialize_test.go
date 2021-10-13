@@ -114,7 +114,7 @@ func TestLogsAndEventsProcessor_SerializeDelegators(t *testing.T) {
 	require.Nil(t, err)
 
 	expectedRes := `{ "index" : { "_id" : "/GeogJjDjtpxnceK9t6+BVBYWuuJHbjmsWK0/1BlH9c=" } }
-{"contract":"contract1","activeStake":"100000000000000","activeStakeNum":0.1}
+{"address":"addr1","contract":"contract1","activeStake":"100000000000000","activeStakeNum":0.1}
 `
 	require.Equal(t, expectedRes, res[0].String())
 }
