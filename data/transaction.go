@@ -5,10 +5,6 @@ import (
 	"time"
 )
 
-// RefundGasMessage is the message returned in the data field of a receipt,
-// for move balance transactions that provide more gas than needed
-const RefundGasMessage = "refundedGas"
-
 // Transaction is a structure containing all the fields that need
 //  to be saved for a transaction. It has all the default fields
 //  plus some extra information for ease of search and filter
