@@ -79,8 +79,7 @@ func serializeDeploy(deployInfo *data.ScDeployInfo) ([]byte, error) {
 func (logsAndEventsProcessor) SerializeTokens(tokens []*data.TokenInfo) ([]*bytes.Buffer, error) {
 	buffSlice := data.NewBufferSlice()
 	for _, tokenData := range tokens {
-		meta := []byte(fmt.Sprintf(`{ "update" : { "_id" : "%s", "_type" : "_doc" } }%s`, tokenData.Token, "\n"))
-		serializedData, err := serializeToken(tokenData)
+		meta, serializedData, err := serializeToken(tokenData)
 		if err != nil {
 			return nil, err
 		}
@@ -94,10 +93,25 @@ func (logsAndEventsProcessor) SerializeTokens(tokens []*data.TokenInfo) ([]*byte
 	return buffSlice.Buffers(), nil
 }
 
-func serializeToken(tokenData *data.TokenInfo) ([]byte, error) {
+func serializeToken(tokenData *data.TokenInfo) ([]byte, []byte, error) {
+	if tokenData.TransferOwnership {
+		return serializeTokenTransferOwnership(tokenData)
+	}
+
+	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, tokenData.Token, "\n"))
+	serializedData, err := json.Marshal(tokenData)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return meta, serializedData, nil
+}
+
+func serializeTokenTransferOwnership(tokenData *data.TokenInfo) ([]byte, []byte, error) {
+	meta := []byte(fmt.Sprintf(`{ "update" : { "_id" : "%s", "_type" : "_doc" } }%s`, tokenData.Token, "\n"))
 	tokenDataSerialized, err := json.Marshal(tokenData)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	var currentOwnerData data.OwnerData
@@ -107,7 +121,7 @@ func serializeToken(tokenData *data.TokenInfo) ([]byte, error) {
 
 	ownerDataSerialized, err := json.Marshal(&currentOwnerData)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	serializedDataStr := fmt.Sprintf(`{"script": {`+
@@ -117,7 +131,7 @@ func serializeToken(tokenData *data.TokenInfo) ([]byte, error) {
 		`"upsert": %s}`,
 		string(ownerDataSerialized), tokenData.CurrentOwner, string(tokenDataSerialized))
 
-	return []byte(serializedDataStr), nil
+	return meta, []byte(serializedDataStr), nil
 }
 
 // SerializeDelegators will serialize the provided delegators in a way that Elastic Search expects a bulk request

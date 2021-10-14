@@ -83,7 +83,7 @@ func (iep *esdtIssueProcessor) processEvent(args *argsProcessEvent) argOutputPro
 
 	if identifierStr == transferOwnershipFunc && len(topics) >= numIssueLogTopics+1 {
 		newOwner := iep.pubkeyConverter.Encode(topics[4])
-
+		tokenInfo.TransferOwnership = true
 		tokenInfo.CurrentOwner = newOwner
 		tokenInfo.OwnersHistory[0].Address = newOwner
 	}

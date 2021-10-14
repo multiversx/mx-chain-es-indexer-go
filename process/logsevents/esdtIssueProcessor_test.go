@@ -76,5 +76,6 @@ func TestIssueESDTProcessor_TransferOwnership(t *testing.T) {
 				Timestamp: time.Duration(1234),
 			},
 		},
+		TransferOwnership: true,
 	}, res.tokenInfo)
 }
