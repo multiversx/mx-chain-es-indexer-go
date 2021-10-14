@@ -13,6 +13,8 @@ const (
 	numDecimalsInFloatBalanceESDT = 18
 )
 
+var zero = big.NewInt(0)
+
 type balanceConverter struct {
 	dividerForDenomination float64
 	balancePrecision       float64
@@ -28,7 +30,7 @@ func NewBalanceConverter(denomination int) (*balanceConverter, error) {
 	return &balanceConverter{
 		balancePrecision:       math.Pow(10, float64(numDecimalsInFloatBalance)),
 		balancePrecisionESDT:   math.Pow(10, float64(numDecimalsInFloatBalanceESDT)),
-		dividerForDenomination: math.Pow(10, float64(core.MaxInt(denomination, 0))),
+		dividerForDenomination: math.Pow(10, float64(denomination)),
 	}, nil
 }
 
@@ -43,7 +45,7 @@ func (bc *balanceConverter) ComputeESDTBalanceAsFloat(balance *big.Int) float64 
 }
 
 func (bc *balanceConverter) computeBalanceAsFloat(balance *big.Int, balancePrecision float64) float64 {
-	if balance == nil || balance == big.NewInt(0) {
+	if balance == nil || balance == zero {
 		return 0
 	}
 
@@ -57,6 +59,7 @@ func (bc *balanceConverter) computeBalanceAsFloat(balance *big.Int, balancePreci
 	return core.MaxFloat64(balanceFloatWithDecimals, 0)
 }
 
+// IsInterfaceNil returns true if there is no value under the interface
 func (bc *balanceConverter) IsInterfaceNil() bool {
 	return bc == nil
 }

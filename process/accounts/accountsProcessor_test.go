@@ -26,40 +26,40 @@ func TestNewAccountsProcessor(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		argsFunc func() (marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter, converters.BalanceConverter)
+		argsFunc func() (marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter, indexer.BalanceConverter)
 		exError  error
 	}{
 		{
 			name: "NilBalanceConverter",
-			argsFunc: func() (marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter, converters.BalanceConverter) {
+			argsFunc: func() (marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter, indexer.BalanceConverter) {
 				return &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{}, &mock.AccountsStub{}, nil
 			},
 			exError: indexer.ErrNilBalanceConverter,
 		},
 		{
 			name: "NilMarshalizer",
-			argsFunc: func() (marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter, converters.BalanceConverter) {
+			argsFunc: func() (marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter, indexer.BalanceConverter) {
 				return nil, &mock.PubkeyConverterMock{}, &mock.AccountsStub{}, balanceConverter
 			},
 			exError: indexer.ErrNilMarshalizer,
 		},
 		{
 			name: "NilPubKeyConverter",
-			argsFunc: func() (marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter, converters.BalanceConverter) {
+			argsFunc: func() (marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter, indexer.BalanceConverter) {
 				return &mock.MarshalizerMock{}, nil, &mock.AccountsStub{}, balanceConverter
 			},
 			exError: indexer.ErrNilPubkeyConverter,
 		},
 		{
 			name: "NilAccounts",
-			argsFunc: func() (marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter, converters.BalanceConverter) {
+			argsFunc: func() (marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter, indexer.BalanceConverter) {
 				return &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{}, nil, balanceConverter
 			},
 			exError: indexer.ErrNilAccountsDB,
 		},
 		{
 			name: "ShouldWork",
-			argsFunc: func() (marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter, converters.BalanceConverter) {
+			argsFunc: func() (marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter, indexer.BalanceConverter) {
 				return &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{}, &mock.AccountsStub{}, balanceConverter
 			},
 			exError: nil,
@@ -400,14 +400,14 @@ func TestAccountsProcessor_GetUserAccountErrors(t *testing.T) {
 	localErr := errors.New("local error")
 	tests := []struct {
 		name         string
-		argsFunc     func() (marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter, converters.BalanceConverter)
+		argsFunc     func() (marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter, indexer.BalanceConverter)
 		inputAddress string
 		exError      error
 	}{
 		{
 			name:    "InvalidAddress",
 			exError: localErr,
-			argsFunc: func() (marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter, converters.BalanceConverter) {
+			argsFunc: func() (marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter, indexer.BalanceConverter) {
 				return &mock.MarshalizerMock{}, &mock.PubkeyConverterStub{
 					DecodeCalled: func(humanReadable string) ([]byte, error) {
 						return nil, localErr
@@ -417,7 +417,7 @@ func TestAccountsProcessor_GetUserAccountErrors(t *testing.T) {
 		{
 			name:    "CannotLoadAccount",
 			exError: localErr,
-			argsFunc: func() (marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter, converters.BalanceConverter) {
+			argsFunc: func() (marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter, indexer.BalanceConverter) {
 				return &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{}, &mock.AccountsStub{
 					LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
 						return nil, localErr
@@ -428,7 +428,7 @@ func TestAccountsProcessor_GetUserAccountErrors(t *testing.T) {
 		{
 			name:    "CannotCastAccount",
 			exError: indexer.ErrCannotCastAccountHandlerToUserAccount,
-			argsFunc: func() (marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter, converters.BalanceConverter) {
+			argsFunc: func() (marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter, indexer.BalanceConverter) {
 				return &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{}, &mock.AccountsStub{
 					LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
 						return nil, nil

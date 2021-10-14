@@ -121,7 +121,7 @@ func TestLogsAndEventsProcessor_SerializeDelegators(t *testing.T) {
 	}
 
 	logsProc := &logsAndEventsProcessor{
-		hahser: &mock.HasherMock{},
+		hasher: &mock.HasherMock{},
 	}
 
 	res, err := logsProc.SerializeDelegators(delegators)
@@ -147,7 +147,7 @@ func TestLogsAndEventsProcessor_SerializeDelegatorsDelete(t *testing.T) {
 	}
 
 	logsProc := &logsAndEventsProcessor{
-		hahser: &mock.HasherMock{},
+		hasher: &mock.HasherMock{},
 	}
 
 	res, err := logsProc.SerializeDelegators(delegators)

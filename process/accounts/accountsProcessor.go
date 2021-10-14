@@ -24,7 +24,7 @@ type accountsProcessor struct {
 	internalMarshalizer    marshal.Marshalizer
 	addressPubkeyConverter core.PubkeyConverter
 	accountsDB             indexer.AccountsAdapter
-	balanceConverter       converters.BalanceConverter
+	balanceConverter       indexer.BalanceConverter
 }
 
 // NewAccountsProcessor will create a new instance of accounts processor
@@ -32,7 +32,7 @@ func NewAccountsProcessor(
 	marshalizer marshal.Marshalizer,
 	addressPubkeyConverter core.PubkeyConverter,
 	accountsDB indexer.AccountsAdapter,
-	balanceConverter converters.BalanceConverter,
+	balanceConverter indexer.BalanceConverter,
 ) (*accountsProcessor, error) {
 	if check.IfNil(marshalizer) {
 		return nil, indexer.ErrNilMarshalizer

@@ -5,7 +5,6 @@ import (
 	"time"
 
 	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
-	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
@@ -15,7 +14,7 @@ import (
 )
 
 type logsAndEventsProcessor struct {
-	hahser           hashing.Hasher
+	hasher           hashing.Hasher
 	pubKeyConverter  core.PubkeyConverter
 	eventsProcessors []eventsProcessor
 
@@ -27,7 +26,7 @@ func NewLogsAndEventsProcessor(
 	shardCoordinator elasticIndexer.ShardCoordinator,
 	pubKeyConverter core.PubkeyConverter,
 	marshalizer marshal.Marshalizer,
-	balanceConverter converters.BalanceConverter,
+	balanceConverter elasticIndexer.BalanceConverter,
 	hasher hashing.Hasher,
 ) (*logsAndEventsProcessor, error) {
 	if check.IfNil(shardCoordinator) {
@@ -51,7 +50,7 @@ func NewLogsAndEventsProcessor(
 	return &logsAndEventsProcessor{
 		pubKeyConverter:  pubKeyConverter,
 		eventsProcessors: eventsProcessors,
-		hahser:           hasher,
+		hasher:           hasher,
 	}, nil
 }
 
@@ -59,7 +58,7 @@ func createEventsProcessors(
 	shardCoordinator elasticIndexer.ShardCoordinator,
 	pubKeyConverter core.PubkeyConverter,
 	marshalizer marshal.Marshalizer,
-	balanceConverter converters.BalanceConverter,
+	balanceConverter elasticIndexer.BalanceConverter,
 ) []eventsProcessor {
 	nftsProc := newNFTsProcessor(shardCoordinator, pubKeyConverter, marshalizer)
 	fungibleProc := newFungibleESDTProcessor(pubKeyConverter, shardCoordinator)
@@ -72,8 +71,8 @@ func createEventsProcessors(
 	}
 
 	if shardCoordinator.SelfId() == core.MetachainShardId {
-		issueESDTProc := newESDTIssueProcessor(pubKeyConverter)
-		eventsProcs = append(eventsProcs, issueESDTProc)
+		esdtIssueProc := newESDTIssueProcessor(pubKeyConverter)
+		eventsProcs = append(eventsProcs, esdtIssueProc)
 
 		delegatorsProcessor := newDelegatorsProcessor(pubKeyConverter, balanceConverter)
 		eventsProcs = append(eventsProcs, delegatorsProcessor)

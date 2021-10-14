@@ -120,6 +120,7 @@ func serializeToken(tokenData *data.TokenInfo) ([]byte, error) {
 	return []byte(serializedDataStr), nil
 }
 
+// SerializeDelegators will serialize the provided delegators in a way that Elastic Search expects a bulk request
 func (lep *logsAndEventsProcessor) SerializeDelegators(delegators map[string]*data.Delegator) ([]*bytes.Buffer, error) {
 	buffSlice := data.NewBufferSlice()
 	for _, delegator := range delegators {
@@ -156,7 +157,7 @@ func (lep *logsAndEventsProcessor) prepareSerializedDelegator(delegator *data.De
 func (lep *logsAndEventsProcessor) computeDelegatorID(delegator *data.Delegator) string {
 	delegatorContract := delegator.Address + delegator.Contract
 
-	hashBytes := lep.hahser.Compute(delegatorContract)
+	hashBytes := lep.hasher.Compute(delegatorContract)
 
 	return base64.StdEncoding.EncodeToString(hashBytes)
 }

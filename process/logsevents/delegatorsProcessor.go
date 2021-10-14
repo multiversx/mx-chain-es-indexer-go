@@ -4,30 +4,29 @@ import (
 	"math/big"
 	"strconv"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/converters"
+	indexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 )
 
 const (
 	minNumTopicsDelegators = 4
-
-	delegateFunc          = "delegate"
-	unDelegateFunc        = "unDelegate"
-	withdrawFunc          = "withdraw"
-	reDelegateRewardsFunc = "reDelegateRewards"
-	claimRewardsFunc      = "claimRewards"
+	delegateFunc           = "delegate"
+	unDelegateFunc         = "unDelegate"
+	withdrawFunc           = "withdraw"
+	reDelegateRewardsFunc  = "reDelegateRewards"
+	claimRewardsFunc       = "claimRewards"
 )
 
 type delegatorsProc struct {
-	balanceConverter     converters.BalanceConverter
+	balanceConverter     indexer.BalanceConverter
 	pubkeyConverter      core.PubkeyConverter
 	delegatorsOperations map[string]struct{}
 }
 
 func newDelegatorsProcessor(
 	pubkeyConverter core.PubkeyConverter,
-	balanceConverter converters.BalanceConverter,
+	balanceConverter indexer.BalanceConverter,
 ) *delegatorsProc {
 	return &delegatorsProc{
 		delegatorsOperations: map[string]struct{}{
@@ -63,9 +62,9 @@ func (dp *delegatorsProc) processEvent(args *argsProcessEvent) argOutputProcessE
 		}
 	}
 
-	// for delegate/ unDelegate/ withdraw/ reDelegateRewards
+	// for delegate / unDelegate / withdraw / reDelegateRewards
 	// topics slice contains:
-	// topics[0] = delegated value / unDelegated value / withdraw value/ reDelegated value
+	// topics[0] = delegated value / unDelegated value / withdraw value / reDelegated value
 	// topics[1] = active stake
 	// topics[2] = num contract users
 	// topics[3] = total contract active stake

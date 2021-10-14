@@ -14,7 +14,7 @@ import (
 func TestIssueESDTProcessor(t *testing.T) {
 	t.Parallel()
 
-	issueESDTProc := newESDTIssueProcessor(&mock.PubkeyConverterMock{})
+	esdtIssueProc := newESDTIssueProcessor(&mock.PubkeyConverterMock{})
 
 	event := &transaction.Event{
 		Address:    []byte("addr"),
@@ -26,7 +26,7 @@ func TestIssueESDTProcessor(t *testing.T) {
 		event:     event,
 	}
 
-	res := issueESDTProc.processEvent(args)
+	res := esdtIssueProc.processEvent(args)
 
 	require.Equal(t, &data.TokenInfo{
 		Token:        "MYTOKEN-abcd",
@@ -48,7 +48,7 @@ func TestIssueESDTProcessor(t *testing.T) {
 func TestIssueESDTProcessor_TransferOwnership(t *testing.T) {
 	t.Parallel()
 
-	issueESDTProc := newESDTIssueProcessor(&mock.PubkeyConverterMock{})
+	esdtIssueProc := newESDTIssueProcessor(&mock.PubkeyConverterMock{})
 
 	event := &transaction.Event{
 		Address:    []byte("addr"),
@@ -60,7 +60,7 @@ func TestIssueESDTProcessor_TransferOwnership(t *testing.T) {
 		event:     event,
 	}
 
-	res := issueESDTProc.processEvent(args)
+	res := esdtIssueProc.processEvent(args)
 
 	require.Equal(t, &data.TokenInfo{
 		Token:        "MYTOKEN-abcd",
