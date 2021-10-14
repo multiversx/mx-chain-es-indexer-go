@@ -2,7 +2,6 @@ package indexer
 
 import (
 	"github.com/ElrondNetwork/elrond-go-core/data"
-	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 )
 
@@ -27,7 +26,7 @@ func (ni *NilIndexer) RevertIndexedBlock(_ data.HeaderHandler, _ data.BodyHandle
 func (ni *NilIndexer) SaveRoundsInfo(_ []*indexer.RoundInfo) {
 }
 
-// SaveValidatorsRating --
+// SaveValidatorsRating will do nothing
 func (ni *NilIndexer) SaveValidatorsRating(_ string, _ []*indexer.ValidatorRatingInfo) {
 }
 
@@ -36,12 +35,16 @@ func (ni *NilIndexer) SaveValidatorsPubKeys(_ map[uint32][][]byte, _ uint32) {
 }
 
 // SaveAccounts won't do anything as this is a nil implementation
-func (ni *NilIndexer) SaveAccounts(_ uint64, _ []coreData.UserAccountHandler) {
+func (ni *NilIndexer) SaveAccounts(_ uint64, _ []data.UserAccountHandler) {
 }
 
 // Close will do nothing
 func (ni *NilIndexer) Close() error {
 	return nil
+}
+
+// FinalizedBlock does nothing
+func (ni *NilIndexer) FinalizedBlock(_ []byte) {
 }
 
 // IsInterfaceNil returns true if there is no value under the interface
