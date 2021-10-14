@@ -26,8 +26,7 @@ func (ni *NilIndexer) RevertIndexedBlock(_ data.HeaderHandler, _ data.BodyHandle
 func (ni *NilIndexer) SaveRoundsInfo(_ []*indexer.RoundInfo) {
 }
 
-// SaveValidatorsRating --
-// SaveValidatorsRating -
+// SaveValidatorsRating will do nothing
 func (ni *NilIndexer) SaveValidatorsRating(_ string, _ []*indexer.ValidatorRatingInfo) {
 }
 
