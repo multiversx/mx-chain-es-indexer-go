@@ -2,6 +2,7 @@ package logsevents
 
 import (
 	"math/big"
+	"strconv"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
@@ -15,6 +16,7 @@ const (
 	unDelegateFunc        = "unDelegate"
 	withdrawFunc          = "withdraw"
 	reDelegateRewardsFunc = "reDelegateRewards"
+	claimRewardsFunc      = "claimRewards"
 )
 
 type delegatorsProc struct {
@@ -33,6 +35,7 @@ func newDelegatorsProcessor(
 			unDelegateFunc:        {},
 			withdrawFunc:          {},
 			reDelegateRewardsFunc: {},
+			claimRewardsFunc:      {},
 		},
 		pubkeyConverter:  pubkeyConverter,
 		balanceConverter: balanceConverter,
@@ -44,6 +47,13 @@ func (dp *delegatorsProc) processEvent(args *argsProcessEvent) argOutputProcessE
 	_, ok := dp.delegatorsOperations[eventIdentifierStr]
 	if !ok {
 		return argOutputProcessEvent{}
+	}
+
+	if eventIdentifierStr == claimRewardsFunc {
+		return argOutputProcessEvent{
+			delegator: dp.getDelegatorFromClaimRewardsEvent(args),
+			processed: true,
+		}
 	}
 
 	topics := args.event.GetTopics()
@@ -59,6 +69,7 @@ func (dp *delegatorsProc) processEvent(args *argsProcessEvent) argOutputProcessE
 	// topics[1] = active stake
 	// topics[2] = num contract users
 	// topics[3] = total contract active stake
+	// topics[4] = true - if delegator was deleted in case of withdrawal
 	activeStake := big.NewInt(0).SetBytes(topics[1])
 
 	delegator := &data.Delegator{
@@ -68,8 +79,41 @@ func (dp *delegatorsProc) processEvent(args *argsProcessEvent) argOutputProcessE
 		ActiveStakeNum: dp.balanceConverter.ComputeBalanceAsFloat(activeStake),
 	}
 
+	if eventIdentifierStr == withdrawFunc && len(topics) >= minNumTopicsDelegators+1 {
+		delegator.ShouldDelete = bytesToBool(topics[4])
+	}
+
 	return argOutputProcessEvent{
 		delegator: delegator,
 		processed: true,
 	}
+}
+
+func (dp *delegatorsProc) getDelegatorFromClaimRewardsEvent(args *argsProcessEvent) *data.Delegator {
+	topics := args.event.GetTopics()
+	// for claimRewards
+	// topics slice contains:
+	// topics[0] -- claimed rewards
+	// topics[1] -- true = if delegator was deleted
+
+	if len(topics) < 2 {
+		return nil
+	}
+
+	shouldDelete := bytesToBool(topics[1])
+	if !shouldDelete {
+		return nil
+	}
+
+	return &data.Delegator{
+		Address:      dp.pubkeyConverter.Encode(args.event.GetAddress()),
+		Contract:     dp.pubkeyConverter.Encode(args.logAddress),
+		ShouldDelete: shouldDelete,
+	}
+}
+
+func bytesToBool(boolBytes []byte) bool {
+	b, _ := strconv.ParseBool(string(boolBytes))
+
+	return b
 }

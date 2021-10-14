@@ -97,20 +97,34 @@ func (logsAndEventsProcessor) SerializeTokens(tokens []*data.TokenInfo) ([]*byte
 func (lep *logsAndEventsProcessor) SerializeDelegators(delegators map[string]*data.Delegator) ([]*bytes.Buffer, error) {
 	buffSlice := data.NewBufferSlice()
 	for _, delegator := range delegators {
-		id := lep.computeDelegatorID(delegator)
-		meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, id, "\n"))
-		serializedData, errMarshal := json.Marshal(delegator)
-		if errMarshal != nil {
-			return nil, errMarshal
+		meta, serializedData, err := lep.prepareSerializedDelegator(delegator)
+		if err != nil {
+			return nil, err
 		}
 
-		err := buffSlice.PutData(meta, serializedData)
+		err = buffSlice.PutData(meta, serializedData)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	return buffSlice.Buffers(), nil
+}
+
+func (lep *logsAndEventsProcessor) prepareSerializedDelegator(delegator *data.Delegator) ([]byte, []byte, error) {
+	id := lep.computeDelegatorID(delegator)
+	if delegator.ShouldDelete {
+		meta := []byte(fmt.Sprintf(`{ "delete" : { "_id" : "%s" } }%s`, id, "\n"))
+		return meta, nil, nil
+	}
+
+	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, id, "\n"))
+	serializedData, errMarshal := json.Marshal(delegator)
+	if errMarshal != nil {
+		return nil, nil, errMarshal
+	}
+
+	return meta, serializedData, nil
 }
 
 func (lep *logsAndEventsProcessor) computeDelegatorID(delegator *data.Delegator) string {

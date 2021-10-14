@@ -118,3 +118,28 @@ func TestLogsAndEventsProcessor_SerializeDelegators(t *testing.T) {
 `
 	require.Equal(t, expectedRes, res[0].String())
 }
+
+func TestLogsAndEventsProcessor_SerializeDelegatorsDelete(t *testing.T) {
+	t.Parallel()
+
+	delegator1 := &data.Delegator{
+		Address:      "addr1",
+		Contract:     "contract1",
+		ShouldDelete: true,
+	}
+
+	delegators := map[string]*data.Delegator{
+		"key1": delegator1,
+	}
+
+	logsProc := &logsAndEventsProcessor{
+		hahser: &mock.HasherMock{},
+	}
+
+	res, err := logsProc.SerializeDelegators(delegators)
+	require.Nil(t, err)
+
+	expectedRes := `{ "delete" : { "_id" : "/GeogJjDjtpxnceK9t6+BVBYWuuJHbjmsWK0/1BlH9c=" } }
+`
+	require.Equal(t, expectedRes, res[0].String())
+}
