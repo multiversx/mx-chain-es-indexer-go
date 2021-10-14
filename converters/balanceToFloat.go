@@ -45,7 +45,7 @@ func (bc *balanceConverter) ComputeESDTBalanceAsFloat(balance *big.Int) float64 
 }
 
 func (bc *balanceConverter) computeBalanceAsFloat(balance *big.Int, balancePrecision float64) float64 {
-	if balance == nil || balance == zero {
+	if balance == nil || balance.Cmp(zero) == 0 {
 		return 0
 	}
 
