@@ -135,6 +135,10 @@ func (di *dataIndexer) SaveAccounts(timestamp uint64, accounts []coreData.UserAc
 	di.dispatcher.Add(wi)
 }
 
+// FinalizedBlock does nothing
+func (di *dataIndexer) FinalizedBlock(_ []byte) {
+}
+
 // IsNilIndexer will return a bool value that signals if the indexer's implementation is a NilIndexer
 func (di *dataIndexer) IsNilIndexer() bool {
 	return di.isNilIndexer
