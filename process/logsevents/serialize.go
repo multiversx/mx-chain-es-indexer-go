@@ -125,7 +125,7 @@ func serializeTokenTransferOwnership(tokenData *data.TokenInfo) ([]byte, []byte,
 	}
 
 	serializedDataStr := fmt.Sprintf(`{"script": {`+
-		`"source": "if (!ctx._source.containsKey('ownersHistory')) { ctx._source.ownersHistory = [ params.elem ]; ctx._source.currentOwner = params.owner; } else {  ctx._source.currentOwner = params.owner; ctx._source.ownersHistory.add(params.elem); }",`+
+		`"source": "if (!ctx._source.containsKey('ownersHistory')) { ctx._source.ownersHistory = [ params.elem ] } else { ctx._source.ownersHistory.add(params.elem) } ctx._source.currentOwner = params.owner ",`+
 		`"lang": "painless",`+
 		`"params": {"elem": %s, "owner": "%s"}},`+
 		`"upsert": %s}`,
