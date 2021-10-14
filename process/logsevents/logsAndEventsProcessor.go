@@ -72,7 +72,7 @@ func createEventsProcessors(
 	}
 
 	if shardCoordinator.SelfId() == core.MetachainShardId {
-		issueESDTProc := newESDTIssueProcessor()
+		issueESDTProc := newESDTIssueProcessor(pubKeyConverter)
 		eventsProcs = append(eventsProcs, issueESDTProc)
 
 		delegatorsProcessor := newDelegatorsProcessor(pubKeyConverter, balanceConverter)

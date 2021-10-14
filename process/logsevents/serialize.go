@@ -79,19 +79,45 @@ func serializeDeploy(deployInfo *data.ScDeployInfo) ([]byte, error) {
 func (logsAndEventsProcessor) SerializeTokens(tokens []*data.TokenInfo) ([]*bytes.Buffer, error) {
 	buffSlice := data.NewBufferSlice()
 	for _, tokenData := range tokens {
-		meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, tokenData.Token, "\n"))
-		serializedData, errMarshal := json.Marshal(tokenData)
-		if errMarshal != nil {
-			return nil, errMarshal
+		meta := []byte(fmt.Sprintf(`{ "update" : { "_id" : "%s", "_type" : "_doc" } }%s`, tokenData.Token, "\n"))
+		serializedData, err := serializeToken(tokenData)
+		if err != nil {
+			return nil, err
 		}
 
-		err := buffSlice.PutData(meta, serializedData)
+		err = buffSlice.PutData(meta, serializedData)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	return buffSlice.Buffers(), nil
+}
+
+func serializeToken(tokenData *data.TokenInfo) ([]byte, error) {
+	tokenDataSerialized, err := json.Marshal(tokenData)
+	if err != nil {
+		return nil, err
+	}
+
+	var currentOwnerData data.OwnerData
+	if len(tokenData.OwnersHistory) > 0 {
+		currentOwnerData = *tokenData.OwnersHistory[0]
+	}
+
+	ownerDataSerialized, err := json.Marshal(&currentOwnerData)
+	if err != nil {
+		return nil, err
+	}
+
+	serializedDataStr := fmt.Sprintf(`{"script": {`+
+		`"source": "if (!ctx._source.containsKey('ownersHistory')) { ctx._source.ownersHistory = [ params.elem ]; ctx._source.currentOwner = params.owner; } else {  ctx._source.currentOwner = params.owner; ctx._source.ownersHistory.add(params.elem); }",`+
+		`"lang": "painless",`+
+		`"params": {"elem": %s, "owner": "%s"}},`+
+		`"upsert": %s}`,
+		string(ownerDataSerialized), tokenData.CurrentOwner, string(tokenDataSerialized))
+
+	return []byte(serializedDataStr), nil
 }
 
 func (lep *logsAndEventsProcessor) SerializeDelegators(delegators map[string]*data.Delegator) ([]*bytes.Buffer, error) {

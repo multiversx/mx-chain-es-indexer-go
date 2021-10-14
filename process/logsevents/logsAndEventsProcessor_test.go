@@ -130,11 +130,19 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 	}, resLogs.ScDeploys["6164647231"])
 
 	require.Equal(t, &data.TokenInfo{
-		Name:      "semi-token",
-		Ticker:    "SEMI",
-		Token:     "SEMI-abcd",
-		Type:      core.SemiFungibleESDT,
-		Timestamp: 1000,
+		Name:         "semi-token",
+		Ticker:       "SEMI",
+		Token:        "SEMI-abcd",
+		Type:         core.SemiFungibleESDT,
+		Timestamp:    1000,
+		Issuer:       "61646472",
+		CurrentOwner: "61646472",
+		OwnersHistory: []*data.OwnerData{
+			{
+				Address:   "61646472",
+				Timestamp: 1000,
+			},
+		},
 	}, resLogs.TokensInfo[0])
 
 	require.Equal(t, &data.Delegator{
