@@ -97,3 +97,6 @@ var ErrNilPool = errors.New("nil transaction pool")
 
 // ErrNilLogsAndEventsHandler signals that a nil logs and events handler has been provided
 var ErrNilLogsAndEventsHandler = errors.New("nil logs and events handler")
+
+// ErrNilBalanceConverter signals that a nil balance converter has been provided
+var ErrNilBalanceConverter = errors.New("nil balance converter")

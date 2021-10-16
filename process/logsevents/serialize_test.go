@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/stretchr/testify/require"
 )
@@ -62,20 +63,35 @@ func TestSerializeTokens(t *testing.T) {
 	t.Parallel()
 
 	tok1 := &data.TokenInfo{
-		Name:      "TokenName",
-		Ticker:    "TKN",
-		Token:     "TKN-01234",
-		Timestamp: 50000,
-		Issuer:    "erd123",
-		Type:      core.SemiFungibleESDT,
+		Name:         "TokenName",
+		Ticker:       "TKN",
+		Token:        "TKN-01234",
+		Timestamp:    50000,
+		Issuer:       "erd123",
+		Type:         core.SemiFungibleESDT,
+		CurrentOwner: "erd123",
+		OwnersHistory: []*data.OwnerData{
+			{
+				Address:   "erd123",
+				Timestamp: 50000,
+			},
+		},
 	}
 	tok2 := &data.TokenInfo{
-		Name:      "Token2",
-		Ticker:    "TKN2",
-		Token:     "TKN2-51234",
-		Issuer:    "erd1231213123",
-		Timestamp: 60000,
-		Type:      core.NonFungibleESDT,
+		Name:         "Token2",
+		Ticker:       "TKN2",
+		Token:        "TKN2-51234",
+		Issuer:       "erd1231213123",
+		Timestamp:    60000,
+		Type:         core.NonFungibleESDT,
+		CurrentOwner: "abde123456",
+		OwnersHistory: []*data.OwnerData{
+			{
+				Address:   "abde123456",
+				Timestamp: 60000,
+			},
+		},
+		TransferOwnership: true,
 	}
 	tokens := []*data.TokenInfo{tok1, tok2}
 
@@ -84,9 +100,61 @@ func TestSerializeTokens(t *testing.T) {
 	require.Equal(t, 1, len(res))
 
 	expectedRes := `{ "index" : { "_id" : "TKN-01234" } }
-{"name":"TokenName","ticker":"TKN","token":"TKN-01234","issuer":"erd123","type":"SemiFungibleESDT","timestamp":50000}
-{ "index" : { "_id" : "TKN2-51234" } }
-{"name":"Token2","ticker":"TKN2","token":"TKN2-51234","issuer":"erd1231213123","type":"NonFungibleESDT","timestamp":60000}
+{"name":"TokenName","ticker":"TKN","token":"TKN-01234","issuer":"erd123","currentOwner":"erd123","type":"SemiFungibleESDT","timestamp":50000,"ownersHistory":[{"address":"erd123","timestamp":50000}]}
+{ "update" : { "_id" : "TKN2-51234", "_type" : "_doc" } }
+{"script": {"source": "if (!ctx._source.containsKey('ownersHistory')) { ctx._source.ownersHistory = [ params.elem ] } else { ctx._source.ownersHistory.add(params.elem) } ctx._source.currentOwner = params.owner ","lang": "painless","params": {"elem": {"address":"abde123456","timestamp":60000}, "owner": "abde123456"}},"upsert": {"name":"Token2","ticker":"TKN2","token":"TKN2-51234","issuer":"erd1231213123","currentOwner":"abde123456","type":"NonFungibleESDT","timestamp":60000,"ownersHistory":[{"address":"abde123456","timestamp":60000}]}}
+`
+	require.Equal(t, expectedRes, res[0].String())
+}
+
+func TestLogsAndEventsProcessor_SerializeDelegators(t *testing.T) {
+	t.Parallel()
+
+	delegator1 := &data.Delegator{
+		Address:        "addr1",
+		Contract:       "contract1",
+		ActiveStake:    "100000000000000",
+		ActiveStakeNum: 0.1,
+	}
+
+	delegators := map[string]*data.Delegator{
+		"key1": delegator1,
+	}
+
+	logsProc := &logsAndEventsProcessor{
+		hasher: &mock.HasherMock{},
+	}
+
+	res, err := logsProc.SerializeDelegators(delegators)
+	require.Nil(t, err)
+
+	expectedRes := `{ "index" : { "_id" : "/GeogJjDjtpxnceK9t6+BVBYWuuJHbjmsWK0/1BlH9c=" } }
+{"address":"addr1","contract":"contract1","activeStake":"100000000000000","activeStakeNum":0.1}
+`
+	require.Equal(t, expectedRes, res[0].String())
+}
+
+func TestLogsAndEventsProcessor_SerializeDelegatorsDelete(t *testing.T) {
+	t.Parallel()
+
+	delegator1 := &data.Delegator{
+		Address:      "addr1",
+		Contract:     "contract1",
+		ShouldDelete: true,
+	}
+
+	delegators := map[string]*data.Delegator{
+		"key1": delegator1,
+	}
+
+	logsProc := &logsAndEventsProcessor{
+		hasher: &mock.HasherMock{},
+	}
+
+	res, err := logsProc.SerializeDelegators(delegators)
+	require.Nil(t, err)
+
+	expectedRes := `{ "delete" : { "_id" : "/GeogJjDjtpxnceK9t6+BVBYWuuJHbjmsWK0/1BlH9c=" } }
 `
 	require.Equal(t, expectedRes, res[0].String())
 }

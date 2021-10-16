@@ -29,7 +29,7 @@ var (
 	indexes = []string{
 		elasticIndexer.TransactionsIndex, elasticIndexer.BlockIndex, elasticIndexer.MiniblocksIndex, elasticIndexer.RatingIndex, elasticIndexer.RoundsIndex, elasticIndexer.ValidatorsIndex,
 		elasticIndexer.AccountsIndex, elasticIndexer.AccountsHistoryIndex, elasticIndexer.ReceiptsIndex, elasticIndexer.ScResultsIndex, elasticIndexer.AccountsESDTHistoryIndex, elasticIndexer.AccountsESDTIndex,
-		elasticIndexer.EpochInfoIndex, elasticIndexer.SCDeploysIndex, elasticIndexer.TokensIndex, elasticIndexer.TagsIndex, elasticIndexer.LogsIndex,
+		elasticIndexer.EpochInfoIndex, elasticIndexer.SCDeploysIndex, elasticIndexer.TokensIndex, elasticIndexer.TagsIndex, elasticIndexer.LogsIndex, elasticIndexer.DelegatorsIndex,
 	}
 )
 
@@ -444,7 +444,25 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
+	err = ei.prepareAndIndexDelegators(logsData.Delegators)
+	if err != nil {
+		return err
+	}
+
 	return ei.indexScDeploys(logsData.ScDeploys)
+}
+
+func (ei *elasticProcessor) prepareAndIndexDelegators(delegators map[string]*data.Delegator) error {
+	if !ei.isIndexEnabled(elasticIndexer.DelegatorsIndex) {
+		return nil
+	}
+
+	buffSlice, err := ei.logsAndEventsProc.SerializeDelegators(delegators)
+	if err != nil {
+		return err
+	}
+
+	return ei.doBulkRequests(elasticIndexer.DelegatorsIndex, buffSlice)
 }
 
 func (ei *elasticProcessor) indexTransactionsWithRefund(txsHashRefund map[string]*data.RefundData) error {

@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
+	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/accounts"
@@ -45,11 +46,13 @@ func newElasticsearchProcessor(elasticsearchWriter DatabaseClientHandler, argume
 }
 
 func createMockElasticProcessorArgs() *ArgElasticProcessor {
-	acp, _ := accounts.NewAccountsProcessor(0, &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{}, &mock.AccountsStub{})
+	balanceConverter, _ := converters.NewBalanceConverter(10)
+
+	acp, _ := accounts.NewAccountsProcessor(&mock.MarshalizerMock{}, &mock.PubkeyConverterMock{}, &mock.AccountsStub{}, balanceConverter)
 	bp, _ := block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 	mp, _ := miniblocks.NewMiniblocksProcessor(0, &mock.HasherMock{}, &mock.MarshalizerMock{})
 	vp, _ := validators.NewValidatorsProcessor(mock.NewPubkeyConverterMock(32))
-	lp, _ := logsevents.NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{})
+	lp, _ := logsevents.NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{}, balanceConverter, &mock.HasherMock{})
 
 	return &ArgElasticProcessor{
 		DBClient: &mock.DatabaseWriterStub{},

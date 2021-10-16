@@ -14,6 +14,7 @@ type logsData struct {
 	txsMap          map[string]*data.Transaction
 	scrsMap         map[string]*data.ScResult
 	scDeploys       map[string]*data.ScDeployInfo
+	delegators      map[string]*data.Delegator
 	pendingBalances *pendingBalancesProc
 	tokensInfo      []*data.TokenInfo
 }
@@ -35,6 +36,7 @@ func newLogsData(
 	ld.scDeploys = make(map[string]*data.ScDeployInfo)
 	ld.pendingBalances = newPendingBalancesProcessor()
 	ld.tokensInfo = make([]*data.TokenInfo, 0)
+	ld.delegators = make(map[string]*data.Delegator)
 
 	return ld
 }

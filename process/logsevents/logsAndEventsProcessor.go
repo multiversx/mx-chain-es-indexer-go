@@ -9,10 +9,12 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
+	"github.com/ElrondNetwork/elrond-go-core/hashing"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
 )
 
 type logsAndEventsProcessor struct {
+	hasher           hashing.Hasher
 	pubKeyConverter  core.PubkeyConverter
 	eventsProcessors []eventsProcessor
 
@@ -24,6 +26,8 @@ func NewLogsAndEventsProcessor(
 	shardCoordinator elasticIndexer.ShardCoordinator,
 	pubKeyConverter core.PubkeyConverter,
 	marshalizer marshal.Marshalizer,
+	balanceConverter elasticIndexer.BalanceConverter,
+	hasher hashing.Hasher,
 ) (*logsAndEventsProcessor, error) {
 	if check.IfNil(shardCoordinator) {
 		return nil, elasticIndexer.ErrNilShardCoordinator
@@ -34,21 +38,47 @@ func NewLogsAndEventsProcessor(
 	if check.IfNil(marshalizer) {
 		return nil, elasticIndexer.ErrNilMarshalizer
 	}
+	if check.IfNil(balanceConverter) {
+		return nil, elasticIndexer.ErrNilBalanceConverter
+	}
+	if check.IfNil(hasher) {
+		return nil, elasticIndexer.ErrNilHasher
+	}
 
+	eventsProcessors := createEventsProcessors(shardCoordinator, pubKeyConverter, marshalizer, balanceConverter)
+
+	return &logsAndEventsProcessor{
+		pubKeyConverter:  pubKeyConverter,
+		eventsProcessors: eventsProcessors,
+		hasher:           hasher,
+	}, nil
+}
+
+func createEventsProcessors(
+	shardCoordinator elasticIndexer.ShardCoordinator,
+	pubKeyConverter core.PubkeyConverter,
+	marshalizer marshal.Marshalizer,
+	balanceConverter elasticIndexer.BalanceConverter,
+) []eventsProcessor {
 	nftsProc := newNFTsProcessor(shardCoordinator, pubKeyConverter, marshalizer)
 	fungibleProc := newFungibleESDTProcessor(pubKeyConverter, shardCoordinator)
 	scDeploysProc := newSCDeploysProcessor(pubKeyConverter)
-	issueESDTProc := newESDTIssueProcessor()
 
-	return &logsAndEventsProcessor{
-		pubKeyConverter: pubKeyConverter,
-		eventsProcessors: []eventsProcessor{
-			fungibleProc,
-			nftsProc,
-			scDeploysProc,
-			issueESDTProc,
-		},
-	}, nil
+	eventsProcs := []eventsProcessor{
+		fungibleProc,
+		nftsProc,
+		scDeploysProc,
+	}
+
+	if shardCoordinator.SelfId() == core.MetachainShardId {
+		esdtIssueProc := newESDTIssueProcessor(pubKeyConverter)
+		eventsProcs = append(eventsProcs, esdtIssueProc)
+
+		delegatorsProcessor := newDelegatorsProcessor(pubKeyConverter, balanceConverter)
+		eventsProcs = append(eventsProcs, delegatorsProcessor)
+	}
+
+	return eventsProcs
 }
 
 // ExtractDataFromLogs will extract data from the provided logs and events and put in altered addresses
@@ -65,7 +95,7 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 		}
 
 		events := txLog.GetLogEvents()
-		lep.processEvents(logHash, events)
+		lep.processEvents(logHash, txLog.GetAddress(), events)
 	}
 
 	return &data.PreparedLogsResults{
@@ -74,25 +104,27 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 		TagsCount:       lep.logsData.tagsCount,
 		PendingBalances: lep.logsData.pendingBalances.getAll(),
 		TokensInfo:      lep.logsData.tokensInfo,
+		Delegators:      lep.logsData.delegators,
 	}
 }
 
-func (lep *logsAndEventsProcessor) processEvents(logHash string, events []coreData.EventHandler) {
+func (lep *logsAndEventsProcessor) processEvents(logHash string, logAddress []byte, events []coreData.EventHandler) {
 	for _, event := range events {
 		if check.IfNil(event) {
 			continue
 		}
 
-		lep.processEvent(logHash, event)
+		lep.processEvent(logHash, logAddress, event)
 	}
 }
 
-func (lep *logsAndEventsProcessor) processEvent(logHash string, events coreData.EventHandler) {
+func (lep *logsAndEventsProcessor) processEvent(logHash string, logAddress []byte, event coreData.EventHandler) {
 	logHashHexEncoded := hex.EncodeToString([]byte(logHash))
 	for _, proc := range lep.eventsProcessors {
 		res := proc.processEvent(&argsProcessEvent{
-			event:            events,
+			event:            event,
 			txHashHexEncoded: logHashHexEncoded,
+			logAddress:       logAddress,
 			accounts:         lep.logsData.accounts,
 			tokens:           lep.logsData.tokens,
 			tagsCount:        lep.logsData.tagsCount,
@@ -102,6 +134,9 @@ func (lep *logsAndEventsProcessor) processEvent(logHash string, events coreData.
 		})
 		if res.tokenInfo != nil {
 			lep.logsData.tokensInfo = append(lep.logsData.tokensInfo, res.tokenInfo)
+		}
+		if res.delegator != nil {
+			lep.logsData.delegators[res.delegator.Address] = res.delegator
 		}
 
 		isEmptyIdentifier := res.identifier == ""

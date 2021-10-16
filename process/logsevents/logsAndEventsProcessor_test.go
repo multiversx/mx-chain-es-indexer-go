@@ -6,6 +6,7 @@ import (
 	"time"
 
 	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
+	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elrond-go-core/core"
@@ -17,16 +18,23 @@ import (
 func TestNewLogsAndEventsProcessor(t *testing.T) {
 	t.Parallel()
 
-	_, err := NewLogsAndEventsProcessor(nil, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{})
+	balanceConverter, _ := converters.NewBalanceConverter(10)
+	_, err := NewLogsAndEventsProcessor(nil, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{}, balanceConverter, &mock.HasherMock{})
 	require.Equal(t, elasticIndexer.ErrNilShardCoordinator, err)
 
-	_, err = NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, nil, &mock.MarshalizerMock{})
+	_, err = NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, nil, &mock.MarshalizerMock{}, balanceConverter, &mock.HasherMock{})
 	require.Equal(t, elasticIndexer.ErrNilPubkeyConverter, err)
 
-	_, err = NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, nil)
+	_, err = NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, nil, balanceConverter, &mock.HasherMock{})
 	require.Equal(t, elasticIndexer.ErrNilMarshalizer, err)
 
-	proc, err := NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{})
+	_, err = NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{}, nil, &mock.HasherMock{})
+	require.Equal(t, elasticIndexer.ErrNilBalanceConverter, err)
+
+	_, err = NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{}, balanceConverter, nil)
+	require.Equal(t, elasticIndexer.ErrNilHasher, err)
+
+	proc, err := NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{}, balanceConverter, &mock.HasherMock{})
 	require.NotNil(t, proc)
 	require.Nil(t, err)
 }
@@ -77,6 +85,16 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 				nil,
 			},
 		},
+		"h5": &transaction.Log{
+			Address: []byte("contract"),
+			Events: []*transaction.Event{
+				{
+					Address:    []byte("addr"),
+					Identifier: []byte(delegateFunc),
+					Topics:     [][]byte{big.NewInt(1000).Bytes(), big.NewInt(1000000000).Bytes(), big.NewInt(10).Bytes(), big.NewInt(1000000000).Bytes()},
+				},
+			},
+		},
 	}
 
 	altered := data.NewAlteredAccounts()
@@ -93,7 +111,11 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 		},
 		AlteredAccts: altered,
 	}
-	proc, _ := NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, mock.NewPubkeyConverterMock(32), &mock.MarshalizerMock{})
+
+	balanceConverter, _ := converters.NewBalanceConverter(10)
+	proc, _ := NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{
+		SelfID: core.MetachainShardId,
+	}, mock.NewPubkeyConverterMock(32), &mock.MarshalizerMock{}, balanceConverter, &mock.HasherMock{})
 
 	resLogs := proc.ExtractDataFromLogs(logsAndEvents, res, 1000)
 	require.NotNil(t, resLogs.Tokens)
@@ -107,13 +129,28 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 		Timestamp: uint64(1000),
 	}, resLogs.ScDeploys["6164647231"])
 
-	require.Equal(t, resLogs.TokensInfo[0], &data.TokenInfo{
-		Name:      "semi-token",
-		Ticker:    "SEMI",
-		Token:     "SEMI-abcd",
-		Type:      core.SemiFungibleESDT,
-		Timestamp: 1000,
-	})
+	require.Equal(t, &data.TokenInfo{
+		Name:         "semi-token",
+		Ticker:       "SEMI",
+		Token:        "SEMI-abcd",
+		Type:         core.SemiFungibleESDT,
+		Timestamp:    1000,
+		Issuer:       "61646472",
+		CurrentOwner: "61646472",
+		OwnersHistory: []*data.OwnerData{
+			{
+				Address:   "61646472",
+				Timestamp: 1000,
+			},
+		},
+	}, resLogs.TokensInfo[0])
+
+	require.Equal(t, &data.Delegator{
+		Address:        "61646472",
+		Contract:       "636f6e7472616374",
+		ActiveStakeNum: 0.1,
+		ActiveStake:    "1000000000",
+	}, resLogs.Delegators["61646472"])
 }
 
 func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
@@ -134,7 +171,8 @@ func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 		},
 	}
 
-	proc, _ := NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, mock.NewPubkeyConverterMock(32), &mock.MarshalizerMock{})
+	balanceConverter, _ := converters.NewBalanceConverter(10)
+	proc, _ := NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, mock.NewPubkeyConverterMock(32), &mock.MarshalizerMock{}, balanceConverter, &mock.HasherMock{})
 
 	logsDB := proc.PrepareLogsForDB(logsAndEvents, 1234)
 	require.Equal(t, &data.Logs{
