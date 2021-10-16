@@ -114,12 +114,12 @@ func serializeTokenTransferOwnership(tokenData *data.TokenInfo) ([]byte, []byte,
 		return nil, nil, err
 	}
 
-	var currentOwnerData data.OwnerData
+	currentOwnerData := &data.OwnerData{}
 	if len(tokenData.OwnersHistory) > 0 {
-		currentOwnerData = *tokenData.OwnersHistory[0]
+		currentOwnerData = tokenData.OwnersHistory[0]
 	}
 
-	ownerDataSerialized, err := json.Marshal(&currentOwnerData)
+	ownerDataSerialized, err := json.Marshal(currentOwnerData)
 	if err != nil {
 		return nil, nil, err
 	}

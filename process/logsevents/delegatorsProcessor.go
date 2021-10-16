@@ -112,7 +112,10 @@ func (dp *delegatorsProc) getDelegatorFromClaimRewardsEvent(args *argsProcessEve
 }
 
 func bytesToBool(boolBytes []byte) bool {
-	b, _ := strconv.ParseBool(string(boolBytes))
+	b, err := strconv.ParseBool(string(boolBytes))
+	if err != nil {
+		log.Warn("delegatorsProc.bytesToBool", "error", err.Error())
+	}
 
 	return b
 }
