@@ -73,10 +73,12 @@ func (pc *prometheusClient) startServer() error {
 	}
 }
 
+// RegisterMetric will register the provided values in a histogram vec
 func (pc *prometheusClient) RegisterMetric(id string, op string, value float64) {
 	pc.histogramVec.WithLabelValues(id, op).Observe(value)
 }
 
+// Close will close the http server
 func (pc *prometheusClient) Close() error {
 	return pc.server.Close()
 }
