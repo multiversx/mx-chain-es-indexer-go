@@ -6,6 +6,8 @@ import (
 
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/client"
+	"github.com/ElrondNetwork/elastic-indexer-go/client/logging"
+	"github.com/ElrondNetwork/elastic-indexer-go/client/prometheus"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elastic-indexer-go/process"
@@ -20,9 +22,11 @@ func setLogLevelDebug() {
 }
 
 func createESClient(url string) (process.DatabaseClientHandler, error) {
+	promHandler, _ := prometheus.CreatePrometheusHandler(false, "")
+
 	return client.NewElasticClient(elasticsearch.Config{
 		Addresses: []string{url},
-	})
+	}, promHandler, &logging.CustomLogger{})
 }
 
 // CreateElasticProcessor -

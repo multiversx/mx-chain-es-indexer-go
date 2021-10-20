@@ -1,7 +1,6 @@
 package prometheus
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -12,12 +11,15 @@ import (
 
 var log = logger.GetOrCreate("indexer/client/prometheus")
 
+const prometheusEndpoint = "/indexer-metrics"
+
 type prometheusClient struct {
 	histogramVec *prometheus.HistogramVec
+	server       *http.Server
 }
 
 func newPrometheusHandler(prometheusAPIInterface string) (*prometheusClient, error) {
-	gaugeVec := prometheus.NewHistogramVec(
+	histogramVec := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: "metrics",
 			Subsystem: "elastic_indexer",
@@ -31,26 +33,29 @@ func newPrometheusHandler(prometheusAPIInterface string) (*prometheusClient, err
 		},
 	)
 
-	err := prometheus.Register(gaugeVec)
+	err := prometheus.Register(histogramVec)
 	if err != nil {
 		return nil, err
 	}
-	http.Handle("/indexer-metrics", promhttp.Handler())
+	http.Handle(prometheusEndpoint, promhttp.Handler())
 
-	err = startServer(prometheusAPIInterface)
+	promClient := &prometheusClient{
+		histogramVec: histogramVec,
+		server:       &http.Server{Addr: prometheusAPIInterface},
+	}
+
+	err = promClient.startServer()
 	if err != nil {
 		return nil, err
 	}
 
-	return &prometheusClient{
-		histogramVec: gaugeVec,
-	}, nil
+	return promClient, nil
 }
 
-func startServer(prometheusAPIInterface string) error {
+func (pc *prometheusClient) startServer() error {
 	c := make(chan error)
 	go func(c chan error) {
-		errStart := http.ListenAndServe(fmt.Sprintf("%s", prometheusAPIInterface), nil)
+		errStart := pc.server.ListenAndServe()
 		if errStart != nil {
 			log.Warn("newPrometheusHandler cannot start prometheus http server", "error", errStart.Error())
 			c <- errStart
@@ -70,4 +75,8 @@ func startServer(prometheusAPIInterface string) error {
 
 func (pc *prometheusClient) RegisterMetric(id string, op string, value float64) {
 	pc.histogramVec.WithLabelValues(id, op).Observe(value)
+}
+
+func (pc *prometheusClient) Close() error {
+	return pc.server.Close()
 }
