@@ -9,15 +9,18 @@ import (
 
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/client/logging"
+	"github.com/ElrondNetwork/elastic-indexer-go/client/prometheus"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/stretchr/testify/require"
 )
 
+var promHandler, _ = prometheus.CreatePrometheusHandler(false, "")
+
 func TestElasticClient_NewClientEmptyUrl(t *testing.T) {
 	esClient, err := NewElasticClient(elasticsearch.Config{
 		Addresses: []string{},
-	})
+	}, promHandler, &logging.CustomLogger{})
 	require.Nil(t, esClient)
 	require.Equal(t, indexer.ErrNoElasticUrlProvided, err)
 }
@@ -36,7 +39,7 @@ func TestElasticClient_NewClient(t *testing.T) {
 
 	esClient, err := NewElasticClient(elasticsearch.Config{
 		Addresses: []string{ts.URL},
-	})
+	}, promHandler, &logging.CustomLogger{})
 	require.Nil(t, err)
 	require.NotNil(t, esClient)
 }
@@ -59,7 +62,7 @@ func TestElasticClient_DoMultiGet(t *testing.T) {
 	esClient, _ := NewElasticClient(elasticsearch.Config{
 		Addresses: []string{ts.URL},
 		Logger:    &logging.CustomLogger{},
-	})
+	}, promHandler, &logging.CustomLogger{})
 
 	ids := []string{"id"}
 	res := &data.ResponseTokens{}
