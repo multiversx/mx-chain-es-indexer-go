@@ -6,6 +6,7 @@ import (
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/client"
 	"github.com/ElrondNetwork/elastic-indexer-go/client/logging"
+	"github.com/ElrondNetwork/elastic-indexer-go/client/prometheus"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/factory"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
@@ -34,6 +35,12 @@ type ArgsIndexerFactory struct {
 	ValidatorPubkeyConverter core.PubkeyConverter
 	AccountsDB               indexer.AccountsAdapter
 	TransactionFeeCalculator indexer.FeesProcessorHandler
+	PrometheusConfig         PrometheusConfig
+}
+
+type PrometheusConfig struct {
+	Enabled      bool
+	APIInterface string
 }
 
 // NewIndexer will create a new instance of Indexer
@@ -70,12 +77,20 @@ func NewIndexer(args *ArgsIndexerFactory) (indexer.Indexer, error) {
 }
 
 func createElasticProcessor(args *ArgsIndexerFactory) (indexer.ElasticProcessor, error) {
-	databaseClient, err := client.NewElasticClient(elasticsearch.Config{
-		Addresses: []string{args.Url},
-		Username:  args.UserName,
-		Password:  args.Password,
-		Logger:    &logging.CustomLogger{},
-	})
+	prometheusHandler, err := prometheus.CreatePrometheusHandler(args.PrometheusConfig.Enabled, args.PrometheusConfig.APIInterface)
+	if err != nil {
+		return nil, err
+	}
+
+	databaseClient, err := client.NewElasticClient(
+		elasticsearch.Config{
+			Addresses: []string{args.Url},
+			Username:  args.UserName,
+			Password:  args.Password,
+		},
+		prometheusHandler,
+		&logging.CustomLogger{},
+	)
 	if err != nil {
 		return nil, err
 	}

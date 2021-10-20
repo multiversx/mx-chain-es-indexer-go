@@ -12,7 +12,11 @@ import (
 var log = logger.GetOrCreate("indexer/client/requests")
 
 // CustomLogger defines a custom logger for the elastic client
-type CustomLogger struct{}
+type CustomLogger struct {
+	currentReqSize int64
+	currentResSize int64
+	duration       time.Duration
+}
 
 // LogRoundTrip logs useful information about the client request and response
 func (cl *CustomLogger) LogRoundTrip(
@@ -39,10 +43,18 @@ func (cl *CustomLogger) LogRoundTrip(
 	}
 
 	if req != nil && res != nil {
+		cl.currentReqSize = reqSize
+		cl.currentResSize = resSize
+		cl.duration = dur
+
 		logInformation(req, res, err, dur, reqSize, resSize)
 	}
 
 	return nil
+}
+
+func (cl *CustomLogger) GetStats() (int64, int64, time.Duration) {
+	return cl.currentReqSize, cl.currentResSize, cl.duration
 }
 
 func logInformation(

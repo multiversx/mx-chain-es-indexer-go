@@ -7,8 +7,11 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/ElrondNetwork/elastic-indexer-go"
+	"github.com/ElrondNetwork/elastic-indexer-go/client/logging"
+	"github.com/ElrondNetwork/elastic-indexer-go/client/prometheus"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/elastic/go-elasticsearch/v7"
@@ -29,24 +32,33 @@ type (
 )
 
 type elasticClient struct {
-	elasticBaseUrl string
-	es             *elasticsearch.Client
+	elasticBaseUrl    string
+	es                *elasticsearch.Client
+	prometheusHandler prometheus.PrometheusHandler
+	getStats          func() (int64, int64, time.Duration)
 }
 
 // NewElasticClient will create a new instance of elasticClient
-func NewElasticClient(cfg elasticsearch.Config) (*elasticClient, error) {
+func NewElasticClient(
+	cfg elasticsearch.Config,
+	prometheusHandler prometheus.PrometheusHandler,
+	logger *logging.CustomLogger,
+) (*elasticClient, error) {
 	if len(cfg.Addresses) == 0 {
 		return nil, indexer.ErrNoElasticUrlProvided
 	}
 
+	cfg.Logger = logger
 	es, err := elasticsearch.NewClient(cfg)
 	if err != nil {
 		return nil, err
 	}
 
 	ec := &elasticClient{
-		es:             es,
-		elasticBaseUrl: cfg.Addresses[0],
+		es:                es,
+		elasticBaseUrl:    cfg.Addresses[0],
+		prometheusHandler: prometheusHandler,
+		getStats:          logger.GetStats,
 	}
 
 	return ec, nil
@@ -95,6 +107,8 @@ func (ec *elasticClient) DoRequest(req *esapi.IndexRequest) error {
 		return err
 	}
 
+	ec.updatePrometheusMetrics(req.Index)
+
 	return parseResponse(res, nil, elasticDefaultErrorResponseHandler)
 }
 
@@ -109,7 +123,17 @@ func (ec *elasticClient) DoBulkRequest(buff *bytes.Buffer, index string) error {
 		return err
 	}
 
+	ec.updatePrometheusMetrics(index)
+
 	return elasticBulkRequestResponseHandler(res)
+}
+
+func (ec *elasticClient) updatePrometheusMetrics(index string) {
+	reqSize, resSize, duration := ec.getStats()
+
+	ec.prometheusHandler.RegisterMetric(index, "request_size", float64(reqSize))
+	ec.prometheusHandler.RegisterMetric(index, "response_size", float64(resSize))
+	ec.prometheusHandler.RegisterMetric(index, "request_duration", float64(duration.Milliseconds()))
 }
 
 // DoMultiGet wil do a multi get request to elaticsearch server
