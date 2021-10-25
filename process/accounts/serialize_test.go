@@ -1,6 +1,7 @@
 package accounts
 
 import (
+	"encoding/hex"
 	"testing"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/converters"
@@ -167,6 +168,30 @@ func TestSerializeAccountsESDTDelete(t *testing.T) {
 	require.Equal(t, 1, len(res))
 
 	expectedRes := `{ "delete" : { "_id" : "addr1-token-0001-00" } }
+`
+	require.Equal(t, expectedRes, res[0].String())
+}
+
+func TestSerializeAccountsNFTWipeShouldRemove(t *testing.T) {
+	t.Parallel()
+
+	nonceBytes, _ := hex.DecodeString("04")
+	accs := map[string]*data.AccountInfo{
+		"addr1": {
+			Address:    "addr1",
+			Nonce:      1,
+			TokenName:  "token-000001" + string(nonceBytes),
+			Properties: "000",
+			Balance:    "0",
+			BalanceNum: 0,
+		},
+	}
+
+	res, err := (&accountsProcessor{}).SerializeAccounts(accs, true)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(res))
+
+	expectedRes := `{ "delete" : { "_id" : "addr1-token-000001-00" } }
 `
 	require.Equal(t, expectedRes, res[0].String())
 }

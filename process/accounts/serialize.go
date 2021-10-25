@@ -4,9 +4,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
+)
+
+const (
+	esdtIdentifierSeparator  = "-"
+	esdtRandomSequenceLength = 6
 )
 
 // SerializeNFTCreateInfo will serialize the provided nft create information in a way that Elastic Search expects a bulk request
@@ -60,14 +66,33 @@ func prepareSerializedAccount(acc *data.AccountInfo, isESDT bool) ([]byte, []byt
 
 func prepareDeleteAccountInfo(acct *data.AccountInfo, isESDT bool) []byte {
 	id := acct.Address
+	tokenName := adjustTokenIdentifierIfNeeded(acct.TokenName)
 	if isESDT {
 		hexEncodedNonce := converters.EncodeNonceToHex(acct.TokenNonce)
-		id += fmt.Sprintf("-%s-%s", acct.TokenName, hexEncodedNonce)
+		id += fmt.Sprintf("-%s-%s", tokenName, hexEncodedNonce)
 	}
 
 	meta := []byte(fmt.Sprintf(`{ "delete" : { "_id" : "%s" } }%s`, id, "\n"))
 
 	return meta
+}
+
+func adjustTokenIdentifierIfNeeded(identifier string) string {
+	splitStr := strings.Split(identifier, esdtIdentifierSeparator)
+	if len(splitStr) != 2 {
+		return identifier
+	}
+
+	randomSequence := splitStr[1]
+	if len(randomSequence) == esdtRandomSequenceLength {
+		return identifier
+	}
+
+	if len(randomSequence) < esdtRandomSequenceLength {
+		return identifier
+	}
+
+	return fmt.Sprintf("%s-%s", splitStr[0], randomSequence[:esdtRandomSequenceLength])
 }
 
 func prepareSerializedAccountInfo(
