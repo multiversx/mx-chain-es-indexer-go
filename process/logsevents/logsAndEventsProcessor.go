@@ -94,8 +94,20 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 			continue
 		}
 
+		logHashHexEncoded := hex.EncodeToString([]byte(logHash))
+
+		tx, ok := lep.logsData.txsMap[logHashHexEncoded]
+		if ok {
+			tx.Logs = append(tx.Logs, lep.prepareLogsForDB(logHash, txLog, lep.logsData.timestamp))
+		}
+
+		scr, ok := lep.logsData.scrsMap[logHashHexEncoded]
+		if ok {
+			scr.Logs = append(scr.Logs, lep.prepareLogsForDB(logHash, txLog, lep.logsData.timestamp))
+		}
+
 		events := txLog.GetLogEvents()
-		lep.processEvents(logHash, txLog.GetAddress(), events)
+		lep.processEvents(logHashHexEncoded, txLog.GetAddress(), events)
 	}
 
 	return &data.PreparedLogsResults{
@@ -108,18 +120,17 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 	}
 }
 
-func (lep *logsAndEventsProcessor) processEvents(logHash string, logAddress []byte, events []coreData.EventHandler) {
+func (lep *logsAndEventsProcessor) processEvents(logHashHexEncoded string, logAddress []byte, events []coreData.EventHandler) {
 	for _, event := range events {
 		if check.IfNil(event) {
 			continue
 		}
 
-		lep.processEvent(logHash, logAddress, event)
+		lep.processEvent(logHashHexEncoded, logAddress, event)
 	}
 }
 
-func (lep *logsAndEventsProcessor) processEvent(logHash string, logAddress []byte, event coreData.EventHandler) {
-	logHashHexEncoded := hex.EncodeToString([]byte(logHash))
+func (lep *logsAndEventsProcessor) processEvent(logHashHexEncoded string, logAddress []byte, event coreData.EventHandler) {
 	for _, proc := range lep.eventsProcessors {
 		res := proc.processEvent(&argsProcessEvent{
 			event:            event,
@@ -178,7 +189,9 @@ func (lep *logsAndEventsProcessor) PrepareLogsForDB(
 			continue
 		}
 
-		logs = append(logs, lep.prepareLogsForDB(txHash, txLog, timestamp))
+		preparedLog := lep.prepareLogsForDB(txHash, txLog, timestamp)
+
+		logs = append(logs, preparedLog)
 	}
 
 	return logs
