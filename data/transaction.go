@@ -38,6 +38,8 @@ type Transaction struct {
 	ReceiverAddressBytes []byte               `json:"-"`
 	Hash                 string               `json:"-"`
 	BlockHash            string               `json:"-"`
+	Receivers            []string             `json:"receivers,omitempty"`
+	ReceiversShardIDs    []uint32             `json:"receiversShardIDs,omitempty"`
 }
 
 // GetGasLimit will return transaction gas limit
