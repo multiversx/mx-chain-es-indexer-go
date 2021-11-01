@@ -48,7 +48,11 @@ func (st *scrsDataToTransactions) attachSCRsToTransactionsAndReturnSCRsWithoutTx
 }
 
 func (st *scrsDataToTransactions) addScResultInfoIntoTx(dbScResult *data.ScResult, tx *data.Transaction) {
-	tx.SmartContractResults = append(tx.SmartContractResults, dbScResult)
+	if tx.SmartContractResults == nil {
+		tx.SmartContractResults = make(map[string]*data.ScResult)
+	}
+
+	tx.SmartContractResults[dbScResult.Hash] = dbScResult
 	isRelayedTxFirstSCR := isRelayedTx(tx) && len(tx.SmartContractResults) == 1
 	if isRelayedTxFirstSCR {
 		tx.GasUsed = tx.GasLimit

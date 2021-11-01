@@ -63,7 +63,12 @@ type DBTransactionsHandler interface {
 	GetRewardsTxsHashesHexEncoded(header coreData.HeaderHandler, body *block.Body) []string
 
 	SerializeReceipts(receipts []*data.Receipt) ([]*bytes.Buffer, error)
-	SerializeTransactions(transactions []*data.Transaction, txHashStatus map[string]string, selfShardID uint32) ([]*bytes.Buffer, error)
+	SerializeTransactions(
+		transactions []*data.Transaction,
+		txHashStatus map[string]string,
+		selfShardID uint32,
+		scrsNoTxInCurrentShard []*data.ScResult,
+	) ([]*bytes.Buffer, error)
 	SerializeTransactionWithRefund(txs map[string]*data.Transaction, txHashRefund map[string]*data.RefundData) ([]*bytes.Buffer, error)
 	SerializeScResults(scResults []*data.ScResult) ([]*bytes.Buffer, error)
 }

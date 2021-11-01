@@ -399,7 +399,7 @@ func (ei *elasticProcessor) SaveTransactions(
 	preparedResults := ei.transactionsProc.PrepareTransactionsForDatabase(body, header, pool)
 	logsData := ei.logsAndEventsProc.ExtractDataFromLogs(pool.Logs, preparedResults, headerTimestamp)
 
-	err := ei.indexTransactions(preparedResults.Transactions, preparedResults.TxHashStatus, header)
+	err := ei.indexTransactions(preparedResults.Transactions, preparedResults.TxHashStatus, header, preparedResults.SCRSNoTx)
 	if err != nil {
 		return err
 	}
@@ -538,12 +538,12 @@ func (ei *elasticProcessor) indexScDeploys(deployData map[string]*data.ScDeployI
 	return ei.doBulkRequests(elasticIndexer.SCDeploysIndex, buffSlice)
 }
 
-func (ei *elasticProcessor) indexTransactions(txs []*data.Transaction, txHashStatus map[string]string, header coreData.HeaderHandler) error {
+func (ei *elasticProcessor) indexTransactions(txs []*data.Transaction, txHashStatus map[string]string, header coreData.HeaderHandler, scrsNoTx []*data.ScResult) error {
 	if !ei.isIndexEnabled(elasticIndexer.TransactionsIndex) {
 		return nil
 	}
 
-	buffSlice, err := ei.transactionsProc.SerializeTransactions(txs, txHashStatus, header.GetShardID())
+	buffSlice, err := ei.transactionsProc.SerializeTransactions(txs, txHashStatus, header.GetShardID(), scrsNoTx)
 	if err != nil {
 		return err
 	}

@@ -9,34 +9,35 @@ import (
 //  to be saved for a transaction. It has all the default fields
 //  plus some extra information for ease of search and filter
 type Transaction struct {
-	MBHash               string        `json:"miniBlockHash"`
-	Nonce                uint64        `json:"nonce"`
-	Round                uint64        `json:"round"`
-	Value                string        `json:"value"`
-	Receiver             string        `json:"receiver"`
-	Sender               string        `json:"sender"`
-	ReceiverShard        uint32        `json:"receiverShard"`
-	SenderShard          uint32        `json:"senderShard"`
-	GasPrice             uint64        `json:"gasPrice"`
-	GasLimit             uint64        `json:"gasLimit"`
-	GasUsed              uint64        `json:"gasUsed"`
-	Fee                  string        `json:"fee"`
-	Data                 []byte        `json:"data"`
-	Signature            string        `json:"signature"`
-	Timestamp            time.Duration `json:"timestamp"`
-	Status               string        `json:"status"`
-	SearchOrder          uint32        `json:"searchOrder"`
-	SenderUserName       []byte        `json:"senderUserName,omitempty"`
-	ReceiverUserName     []byte        `json:"receiverUserName,omitempty"`
-	HasSCR               bool          `json:"hasScResults,omitempty"`
-	IsScCall             bool          `json:"isScCall,omitempty"`
-	HasOperations        bool          `json:"hasOperations,omitempty"`
-	Tokens               []string      `json:"tokens,omitempty"`
-	ESDTValues           []string      `json:"esdtValues,omitempty"`
-	SmartContractResults []*ScResult   `json:"-"`
-	ReceiverAddressBytes []byte        `json:"-"`
-	Hash                 string        `json:"-"`
-	BlockHash            string        `json:"-"`
+	MBHash               string               `json:"miniBlockHash"`
+	Nonce                uint64               `json:"nonce"`
+	Round                uint64               `json:"round"`
+	Value                string               `json:"value"`
+	Receiver             string               `json:"receiver"`
+	Sender               string               `json:"sender"`
+	ReceiverShard        uint32               `json:"receiverShard"`
+	SenderShard          uint32               `json:"senderShard"`
+	GasPrice             uint64               `json:"gasPrice"`
+	GasLimit             uint64               `json:"gasLimit"`
+	GasUsed              uint64               `json:"gasUsed"`
+	Fee                  string               `json:"fee"`
+	Data                 []byte               `json:"data"`
+	Signature            string               `json:"signature"`
+	Timestamp            time.Duration        `json:"timestamp"`
+	Status               string               `json:"status"`
+	SearchOrder          uint32               `json:"searchOrder"`
+	SenderUserName       []byte               `json:"senderUserName,omitempty"`
+	ReceiverUserName     []byte               `json:"receiverUserName,omitempty"`
+	HasSCR               bool                 `json:"hasScResults,omitempty"`
+	IsScCall             bool                 `json:"isScCall,omitempty"`
+	HasOperations        bool                 `json:"hasOperations,omitempty"`
+	Tokens               []string             `json:"tokens,omitempty"`
+	ESDTValues           []string             `json:"esdtValues,omitempty"`
+	SmartContractResults map[string]*ScResult `json:"scresults,omitempty"`
+	LogsMap              map[string]*Logs     `json:"logs,omitempty"`
+	ReceiverAddressBytes []byte               `json:"-"`
+	Hash                 string               `json:"-"`
+	BlockHash            string               `json:"-"`
 }
 
 // GetGasLimit will return transaction gas limit
@@ -81,29 +82,30 @@ type Receipt struct {
 
 // ScResult is a structure containing all the fields that need to be saved for a smart contract result
 type ScResult struct {
-	Hash           string        `json:"-"`
-	MBHash         string        `json:"miniBlockHash,omitempty"`
-	Nonce          uint64        `json:"nonce"`
-	GasLimit       uint64        `json:"gasLimit"`
-	GasPrice       uint64        `json:"gasPrice"`
-	Value          string        `json:"value"`
-	Sender         string        `json:"sender"`
-	Receiver       string        `json:"receiver"`
-	SenderShard    uint32        `json:"senderShard"`
-	ReceiverShard  uint32        `json:"receiverShard"`
-	RelayerAddr    string        `json:"relayerAddr,omitempty"`
-	RelayedValue   string        `json:"relayedValue,omitempty"`
-	Code           string        `json:"code,omitempty"`
-	Data           []byte        `json:"data,omitempty"`
-	PrevTxHash     string        `json:"prevTxHash"`
-	OriginalTxHash string        `json:"originalTxHash"`
-	CallType       string        `json:"callType"`
-	CodeMetadata   []byte        `json:"codeMetaData,omitempty"`
-	ReturnMessage  string        `json:"returnMessage,omitempty"`
-	Timestamp      time.Duration `json:"timestamp"`
-	HasOperations  bool          `json:"hasOperations,omitempty"`
-	Tokens         []string      `json:"tokens,omitempty"`
-	ESDTValues     []string      `json:"esdtValues,omitempty"`
+	Hash           string           `json:"-"`
+	MBHash         string           `json:"miniBlockHash,omitempty"`
+	Nonce          uint64           `json:"nonce"`
+	GasLimit       uint64           `json:"gasLimit"`
+	GasPrice       uint64           `json:"gasPrice"`
+	Value          string           `json:"value"`
+	Sender         string           `json:"sender"`
+	Receiver       string           `json:"receiver"`
+	SenderShard    uint32           `json:"senderShard"`
+	ReceiverShard  uint32           `json:"receiverShard"`
+	RelayerAddr    string           `json:"relayerAddr,omitempty"`
+	RelayedValue   string           `json:"relayedValue,omitempty"`
+	Code           string           `json:"code,omitempty"`
+	Data           []byte           `json:"data,omitempty"`
+	PrevTxHash     string           `json:"prevTxHash"`
+	OriginalTxHash string           `json:"originalTxHash"`
+	CallType       string           `json:"callType"`
+	CodeMetadata   []byte           `json:"codeMetaData,omitempty"`
+	ReturnMessage  string           `json:"returnMessage,omitempty"`
+	Timestamp      time.Duration    `json:"timestamp"`
+	HasOperations  bool             `json:"hasOperations,omitempty"`
+	Tokens         []string         `json:"tokens,omitempty"`
+	ESDTValues     []string         `json:"esdtValues,omitempty"`
+	LogsMap        map[string]*Logs `json:"logs,omitempty"`
 }
 
 // PreparedResults is the DTO that holds all the results after processing
@@ -114,6 +116,7 @@ type PreparedResults struct {
 	AlteredAccts AlteredAccountsHandler
 	TxHashStatus map[string]string
 	TxHashRefund map[string]*RefundData
+	SCRSNoTx     []*ScResult
 }
 
 // ResponseTransactions is the structure for the transactions response

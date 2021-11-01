@@ -134,6 +134,7 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 		AlteredAccts: alteredAccounts,
 		TxHashStatus: txHashStatus,
 		TxHashRefund: txHashRefund,
+		SCRSNoTx:     srcsNoTxInCurrentShard,
 	}
 }
 
