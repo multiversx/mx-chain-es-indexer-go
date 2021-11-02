@@ -6,11 +6,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 )
 
-const (
-	TypeTransaction = "transaction"
-	TypeSCR         = "scResult"
-)
-
 type operationsProcessor struct {
 	shardCoordinator indexer.ShardCoordinator
 }
@@ -26,13 +21,13 @@ func (op *operationsProcessor) ProcessTransactionsAndSCRS(txs []*data.Transactio
 	for _, tx := range txs {
 		tx.Logs = nil
 		tx.SmartContractResults = nil
-		tx.Type = TypeTransaction
+		tx.Type = string(transaction.TxTypeNormal)
 	}
 
 	// TODO check if need to add token identifier and value in case of  ESDT scr
 	for _, scr := range scrs {
 		scr.Logs = nil
-		scr.Type = TypeSCR
+		scr.Type = string(transaction.TxTypeUnsigned)
 
 		selfShard := op.shardCoordinator.SelfId()
 		if selfShard == scr.ReceiverShard {
