@@ -110,6 +110,7 @@ type ScResult struct {
 	Logs              []*Logs       `json:"logs,omitempty"`
 	Receivers         []string      `json:"receivers,omitempty"`
 	ReceiversShardIDs []uint32      `json:"receiversShardIDs,omitempty"`
+	Status            string        `json:"status,omitempty"`
 }
 
 // PreparedResults is the DTO that holds all the results after processing
