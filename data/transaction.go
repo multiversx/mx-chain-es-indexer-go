@@ -40,6 +40,7 @@ type Transaction struct {
 	BlockHash            string               `json:"-"`
 	Receivers            []string             `json:"receivers,omitempty"`
 	ReceiversShardIDs    []uint32             `json:"receiversShardIDs,omitempty"`
+	Type                 string               `json:"type,omitempty"`
 }
 
 // GetGasLimit will return transaction gas limit
@@ -111,6 +112,7 @@ type ScResult struct {
 	Receivers         []string      `json:"receivers,omitempty"`
 	ReceiversShardIDs []uint32      `json:"receiversShardIDs,omitempty"`
 	Status            string        `json:"status,omitempty"`
+	Type              string        `json:"type,omitempty"`
 }
 
 // PreparedResults is the DTO that holds all the results after processing
