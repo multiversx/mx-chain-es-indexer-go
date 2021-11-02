@@ -51,6 +51,7 @@ type ArgElasticProcessor struct {
 	ValidatorsProc    DBValidatorsHandler
 	DBClient          DatabaseClientHandler
 	LogsAndEventsProc DBLogsAndEventsHandler
+	OperationsProc    OperationsHandler
 }
 
 type elasticProcessor struct {
@@ -64,6 +65,7 @@ type elasticProcessor struct {
 	statisticsProc    DBStatisticsHandler
 	validatorsProc    DBValidatorsHandler
 	logsAndEventsProc DBLogsAndEventsHandler
+	operationsProc    OperationsHandler
 }
 
 // NewElasticProcessor handles Elastic Search operations such as initialization, adding, modifying or removing data
@@ -84,6 +86,7 @@ func NewElasticProcessor(arguments *ArgElasticProcessor) (*elasticProcessor, err
 		statisticsProc:    arguments.StatisticsProc,
 		validatorsProc:    arguments.ValidatorsProc,
 		logsAndEventsProc: arguments.LogsAndEventsProc,
+		operationsProc:    arguments.OperationsProc,
 	}
 
 	err = ei.init(arguments.UseKibana, arguments.IndexTemplates, arguments.IndexPolicies)
@@ -127,6 +130,10 @@ func checkArguments(arguments *ArgElasticProcessor) error {
 
 	if arguments.LogsAndEventsProc == nil {
 		return elasticIndexer.ErrNilLogsAndEventsHandler
+	}
+
+	if arguments.OperationsProc == nil {
+		return elasticIndexer.ErrNilOperationsHandler
 	}
 
 	return nil
@@ -449,7 +456,37 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
+	err = ei.prepareAndIndexOperations(preparedResults.Transactions, preparedResults.TxHashStatus, header, preparedResults.ScResults)
+	if err != nil {
+		return err
+	}
+
 	return ei.indexScDeploys(logsData.ScDeploys)
+}
+
+func (ei *elasticProcessor) prepareAndIndexOperations(txs []*data.Transaction, txHashStatus map[string]string, header coreData.HeaderHandler, scrs []*data.ScResult) error {
+	if !ei.isIndexEnabled(elasticIndexer.OperationsIndex) {
+		return nil
+	}
+
+	ei.operationsProc.ProcessTransactionsAndSCRS(txs, scrs)
+
+	buffSlice, err := ei.transactionsProc.SerializeTransactions(txs, txHashStatus, header.GetShardID(), nil)
+	if err != nil {
+		return err
+	}
+
+	err = ei.doBulkRequests(elasticIndexer.OperationsIndex, buffSlice)
+	if err != nil {
+		return err
+	}
+
+	buffSliceSCRs, err := ei.operationsProc.SerializeSCRS(scrs)
+	if err != nil {
+		return err
+	}
+
+	return ei.doBulkRequests(elasticIndexer.OperationsIndex, buffSliceSCRs)
 }
 
 func (ei *elasticProcessor) prepareAndIndexDelegators(delegators map[string]*data.Delegator) error {
