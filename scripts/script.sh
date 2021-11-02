@@ -9,6 +9,7 @@ start() {
   # Wait elastic cluster to start
   echo "Waiting Elasticsearch cluster to start..."
   sleep 30s
+  echo "Elasticsearch cluster started."
 }
 
 stop() {
