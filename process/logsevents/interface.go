@@ -18,11 +18,13 @@ type argsProcessEvent struct {
 }
 
 type argOutputProcessEvent struct {
-	identifier string
-	value      string
-	tokenInfo  *data.TokenInfo
-	delegator  *data.Delegator
-	processed  bool
+	identifier      string
+	value           string
+	receiver        string
+	receiverShardID uint32
+	tokenInfo       *data.TokenInfo
+	delegator       *data.Delegator
+	processed       bool
 }
 
 type eventsProcessor interface {
