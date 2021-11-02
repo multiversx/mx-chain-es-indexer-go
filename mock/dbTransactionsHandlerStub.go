@@ -44,7 +44,7 @@ func (tps *DBTransactionProcessorStub) SerializeReceipts(recs []*data.Receipt) (
 }
 
 // SerializeTransactions -
-func (tps *DBTransactionProcessorStub) SerializeTransactions(_ []*data.Transaction, _ map[string]string, _ uint32) ([]*bytes.Buffer, error) {
+func (tps *DBTransactionProcessorStub) SerializeTransactions(_ []*data.Transaction, _ map[string]string, _ uint32, _ []*data.ScResult) ([]*bytes.Buffer, error) {
 	return nil, nil
 }
 

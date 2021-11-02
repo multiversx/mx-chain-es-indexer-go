@@ -153,14 +153,14 @@ func TestIsRelayedTx(t *testing.T) {
 
 	tx1 := &data.Transaction{
 		Data:                 []byte(core.RelayedTransaction + "@aaaaaa"),
-		SmartContractResults: []*data.ScResult{{}},
+		SmartContractResults: map[string]*data.ScResult{"hash": {}},
 	}
 
 	require.True(t, isRelayedTx(tx1))
 
 	tx2 := &data.Transaction{
 		Data:                 []byte(core.RelayedTransaction + "@aaaaaa"),
-		SmartContractResults: []*data.ScResult{},
+		SmartContractResults: map[string]*data.ScResult{},
 	}
 
 	require.False(t, isRelayedTx(tx2))

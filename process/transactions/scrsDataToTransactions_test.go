@@ -69,8 +69,8 @@ func TestProcessTransactionsAfterSCRsWereAttached(t *testing.T) {
 		GasLimit: 10000000,
 		GasPrice: 1000000000,
 		Data:     []byte("callSomething"),
-		SmartContractResults: []*data.ScResult{
-			{
+		SmartContractResults: map[string]*data.ScResult{
+			"hash": {
 				ReturnMessage: "user error",
 			},
 		},
