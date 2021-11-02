@@ -19,6 +19,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/process/block"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/logsevents"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/miniblocks"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/operations"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/statistics"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/transactions"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/validators"
@@ -53,6 +54,7 @@ func createMockElasticProcessorArgs() *ArgElasticProcessor {
 	mp, _ := miniblocks.NewMiniblocksProcessor(0, &mock.HasherMock{}, &mock.MarshalizerMock{})
 	vp, _ := validators.NewValidatorsProcessor(mock.NewPubkeyConverterMock(32))
 	lp, _ := logsevents.NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{}, balanceConverter, &mock.HasherMock{})
+	op, _ := operations.NewOperationsProcessor(&mock.ShardCoordinatorMock{})
 
 	return &ArgElasticProcessor{
 		DBClient: &mock.DatabaseWriterStub{},
@@ -66,6 +68,7 @@ func createMockElasticProcessorArgs() *ArgElasticProcessor {
 		AccountsProc:      acp,
 		BlockProc:         bp,
 		LogsAndEventsProc: lp,
+		OperationsProc:    op,
 	}
 }
 
