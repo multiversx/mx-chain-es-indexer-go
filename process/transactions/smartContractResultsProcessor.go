@@ -176,7 +176,8 @@ func (proc *smartContractResultsProcessor) addScrsReceiverToAlteredAccounts(
 		}
 
 		alteredAccounts.Add(scr.Receiver, &indexerData.AlteredAccount{
-			IsSender: false,
+			IsSender:      false,
+			BalanceChange: true,
 		})
 	}
 }
