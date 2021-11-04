@@ -96,7 +96,8 @@ func splitAlteredAccounts(userAccount coreData.UserAccountHandler, altered []*da
 			})
 		}
 
-		ignoreESDTReceiver := (info.IsESDTOperation || info.IsNFTOperation) && !info.IsSender
+		// if the balance of the ESDT receiver is 0 the receiver is a new account most probably, and we should index it
+		ignoreESDTReceiver := (info.IsESDTOperation || info.IsNFTOperation) && !info.IsSender && notZeroBalance(userAccount)
 		if ignoreESDTReceiver {
 			continue
 		}
@@ -108,6 +109,14 @@ func splitAlteredAccounts(userAccount coreData.UserAccountHandler, altered []*da
 	}
 
 	return regularAccountsToIndex, accountsToIndexESDT
+}
+
+func notZeroBalance(userAccount coreData.UserAccountHandler) bool {
+	if userAccount.GetBalance() == nil {
+		return false
+	}
+
+	return userAccount.GetBalance().Cmp(big.NewInt(0)) > 0
 }
 
 func (ap *accountsProcessor) getUserAccount(address string) (coreData.UserAccountHandler, error) {
