@@ -97,8 +97,8 @@ func splitAlteredAccounts(userAccount coreData.UserAccountHandler, altered []*da
 		}
 
 		// if the balance of the ESDT receiver is 0 the receiver is a new account most probably, and we should index it
-		ignoreESDTReceiver := (info.IsESDTOperation || info.IsNFTOperation) && !info.IsSender && notZeroBalance(userAccount)
-		if ignoreESDTReceiver {
+		ignoreReceiver := !info.BalanceChange && notZeroBalance(userAccount) && !info.IsSender
+		if ignoreReceiver {
 			continue
 		}
 
