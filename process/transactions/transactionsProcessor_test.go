@@ -54,12 +54,15 @@ func TestAddToAlteredAddresses(t *testing.T) {
 
 	alteredAccounts, ok := alteredAddress.Get(receiver)
 	require.True(t, ok)
-	require.Equal(t, &data.AlteredAccount{}, alteredAccounts[0])
+	require.Equal(t, &data.AlteredAccount{
+		BalanceChange: true,
+	}, alteredAccounts[0])
 
 	alteredAccounts, ok = alteredAddress.Get(sender)
 	require.True(t, ok)
 	require.Equal(t, &data.AlteredAccount{
-		IsSender: true,
+		BalanceChange: true,
+		IsSender:      true,
 	}, alteredAccounts[0])
 }
 
