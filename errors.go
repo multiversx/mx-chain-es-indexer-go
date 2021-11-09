@@ -25,9 +25,6 @@ var ErrNilElasticProcessor = errors.New("nil elastic processor")
 // ErrNilDatabaseClient signals that an operation has been attempted to or with a nil database client implementation
 var ErrNilDatabaseClient = errors.New("nil database client")
 
-// ErrNilOptions signals that structure that contains indexer options is nil
-var ErrNilOptions = errors.New("nil options")
-
 // ErrNegativeCacheSize signals that a invalid cache size has been provided
 var ErrNegativeCacheSize = errors.New("negative cache size")
 

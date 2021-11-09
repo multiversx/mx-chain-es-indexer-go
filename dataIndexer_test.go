@@ -83,8 +83,9 @@ func TestDataIndexer_SaveBlock(t *testing.T) {
 		Body:       &dataBlock.Body{MiniBlocks: []*dataBlock.MiniBlock{}},
 		HeaderHash: []byte("hash"),
 	}
-	ei.SaveBlock(args)
+	err := ei.SaveBlock(args)
 	require.True(t, called)
+	require.Nil(t, err)
 }
 
 func TestDataIndexer_SaveRoundInfo(t *testing.T) {
@@ -154,8 +155,9 @@ func TestDataIndexer_RevertIndexedBlock(t *testing.T) {
 	}
 	ei, _ := NewDataIndexer(arguments)
 
-	ei.RevertIndexedBlock(&dataBlock.Header{}, &dataBlock.Body{})
+	err := ei.RevertIndexedBlock(&dataBlock.Header{}, &dataBlock.Body{})
 	require.True(t, called)
+	require.Nil(t, err)
 }
 
 func TestDataIndexer(t *testing.T) {
@@ -235,7 +237,8 @@ func testCreateIndexer(t *testing.T) {
 			NotarizedHeadersHashes: []string{"aaaaa", "bbbb"},
 			TransactionsPool:       &indexer.Pool{Txs: txsPool},
 		}
-		di.SaveBlock(args)
+		err = di.SaveBlock(args)
+		require.Nil(t, err)
 	}
 
 	time.Sleep(100 * time.Second)

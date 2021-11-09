@@ -69,13 +69,13 @@ type Coordinator interface {
 // Indexer is an interface for saving node specific data to other storage.
 // This could be an elastic search index, a MySql database or any other external services.
 type Indexer interface {
-	SaveBlock(args *indexer.ArgsSaveBlockData)
-	RevertIndexedBlock(header coreData.HeaderHandler, body coreData.BodyHandler)
+	SaveBlock(args *indexer.ArgsSaveBlockData) error
+	RevertIndexedBlock(header coreData.HeaderHandler, body coreData.BodyHandler) error
 	SaveRoundsInfo(roundsInfos []*indexer.RoundInfo)
 	SaveValidatorsPubKeys(validatorsPubKeys map[uint32][][]byte, epoch uint32)
 	SaveValidatorsRating(indexID string, infoRating []*indexer.ValidatorRatingInfo)
 	SaveAccounts(blockTimestamp uint64, acc []coreData.UserAccountHandler)
-	FinalizedBlock(headerHash []byte)
+	FinalizedBlock(headerHash []byte) error
 	Close() error
 	IsInterfaceNil() bool
 	IsNilIndexer() bool

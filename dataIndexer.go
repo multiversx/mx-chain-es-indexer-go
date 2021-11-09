@@ -52,13 +52,15 @@ func checkIndexerArgs(arguments ArgDataIndexer) error {
 }
 
 // SaveBlock saves the block info in the queue to be sent to elastic
-func (di *dataIndexer) SaveBlock(args *indexer.ArgsSaveBlockData) {
+func (di *dataIndexer) SaveBlock(args *indexer.ArgsSaveBlockData) error {
 	wi := workItems.NewItemBlock(
 		di.elasticProcessor,
 		di.marshalizer,
 		args,
 	)
 	di.dispatcher.Add(wi)
+
+	return nil
 }
 
 // Close will stop goroutine that index data in database
@@ -67,13 +69,15 @@ func (di *dataIndexer) Close() error {
 }
 
 // RevertIndexedBlock will remove from database block and miniblocks
-func (di *dataIndexer) RevertIndexedBlock(header coreData.HeaderHandler, body coreData.BodyHandler) {
+func (di *dataIndexer) RevertIndexedBlock(header coreData.HeaderHandler, body coreData.BodyHandler) error {
 	wi := workItems.NewItemRemoveBlock(
 		di.elasticProcessor,
 		body,
 		header,
 	)
 	di.dispatcher.Add(wi)
+
+	return nil
 }
 
 // SaveRoundsInfo will save data about a slice of rounds in elasticsearch
@@ -127,8 +131,9 @@ func (di *dataIndexer) SaveAccounts(timestamp uint64, accounts []coreData.UserAc
 	di.dispatcher.Add(wi)
 }
 
-// FinalizedBlock does nothing
-func (di *dataIndexer) FinalizedBlock(_ []byte) {
+// FinalizedBlock returns nil
+func (di *dataIndexer) FinalizedBlock(_ []byte) error {
+	return nil
 }
 
 // IsNilIndexer will return a bool value that signals if the indexer's implementation is a NilIndexer

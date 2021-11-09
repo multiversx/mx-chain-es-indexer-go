@@ -14,12 +14,14 @@ func NewNilIndexer() *NilIndexer {
 	return new(NilIndexer)
 }
 
-// SaveBlock will do nothing
-func (ni *NilIndexer) SaveBlock(_ *indexer.ArgsSaveBlockData) {
+// SaveBlock returns nil
+func (ni *NilIndexer) SaveBlock(_ *indexer.ArgsSaveBlockData) error {
+	return nil
 }
 
-// RevertIndexedBlock will do nothing
-func (ni *NilIndexer) RevertIndexedBlock(_ data.HeaderHandler, _ data.BodyHandler) {
+// RevertIndexedBlock returns nil
+func (ni *NilIndexer) RevertIndexedBlock(_ data.HeaderHandler, _ data.BodyHandler) error {
+	return nil
 }
 
 // SaveRoundsInfo will do nothing
@@ -43,8 +45,9 @@ func (ni *NilIndexer) Close() error {
 	return nil
 }
 
-// FinalizedBlock does nothing
-func (ni *NilIndexer) FinalizedBlock(_ []byte) {
+// FinalizedBlock returns nil
+func (ni *NilIndexer) FinalizedBlock(_ []byte) error {
+	return nil
 }
 
 // IsInterfaceNil returns true if there is no value under the interface
