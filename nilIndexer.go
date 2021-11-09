@@ -14,28 +14,34 @@ func NewNilIndexer() *NilIndexer {
 	return new(NilIndexer)
 }
 
-// SaveBlock will do nothing
-func (ni *NilIndexer) SaveBlock(_ *indexer.ArgsSaveBlockData) {
+// SaveBlock returns nil
+func (ni *NilIndexer) SaveBlock(_ *indexer.ArgsSaveBlockData) error {
+	return nil
 }
 
-// RevertIndexedBlock will do nothing
-func (ni *NilIndexer) RevertIndexedBlock(_ data.HeaderHandler, _ data.BodyHandler) {
+// RevertIndexedBlock returns nil
+func (ni *NilIndexer) RevertIndexedBlock(_ data.HeaderHandler, _ data.BodyHandler) error {
+	return nil
 }
 
-// SaveRoundsInfo will do nothing
-func (ni *NilIndexer) SaveRoundsInfo(_ []*indexer.RoundInfo) {
+// SaveRoundsInfo returns nil
+func (ni *NilIndexer) SaveRoundsInfo(_ []*indexer.RoundInfo) error {
+	return nil
 }
 
 // SaveValidatorsRating -
-func (ni *NilIndexer) SaveValidatorsRating(_ string, _ []*indexer.ValidatorRatingInfo) {
+func (ni *NilIndexer) SaveValidatorsRating(_ string, _ []*indexer.ValidatorRatingInfo) error {
+	return nil
 }
 
 // SaveValidatorsPubKeys will do nothing
-func (ni *NilIndexer) SaveValidatorsPubKeys(_ map[uint32][][]byte, _ uint32) {
+func (ni *NilIndexer) SaveValidatorsPubKeys(_ map[uint32][][]byte, _ uint32) error {
+	return nil
 }
 
 // SaveAccounts won't do anything as this is a nil implementation
-func (ni *NilIndexer) SaveAccounts(_ uint64, _ []data.UserAccountHandler) {
+func (ni *NilIndexer) SaveAccounts(_ uint64, _ []data.UserAccountHandler) error {
+	return nil
 }
 
 // Close will do nothing
@@ -43,8 +49,9 @@ func (ni *NilIndexer) Close() error {
 	return nil
 }
 
-// FinalizedBlock does nothing
-func (ni *NilIndexer) FinalizedBlock(_ []byte) {
+// FinalizedBlock returns nil
+func (ni *NilIndexer) FinalizedBlock(_ []byte) error {
+	return nil
 }
 
 // IsInterfaceNil returns true if there is no value under the interface
