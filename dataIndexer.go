@@ -81,7 +81,7 @@ func (di *dataIndexer) RevertIndexedBlock(header coreData.HeaderHandler, body co
 }
 
 // SaveRoundsInfo will save data about a slice of rounds in elasticsearch
-func (di *dataIndexer) SaveRoundsInfo(rf []*indexer.RoundInfo) {
+func (di *dataIndexer) SaveRoundsInfo(rf []*indexer.RoundInfo) error {
 	roundsInfo := make([]*data.RoundInfo, 0)
 	for _, info := range rf {
 		roundsInfo = append(roundsInfo, &data.RoundInfo{
@@ -95,10 +95,12 @@ func (di *dataIndexer) SaveRoundsInfo(rf []*indexer.RoundInfo) {
 
 	wi := workItems.NewItemRounds(di.elasticProcessor, roundsInfo)
 	di.dispatcher.Add(wi)
+
+	return nil
 }
 
 // SaveValidatorsRating will save all validators rating info to elasticsearch
-func (di *dataIndexer) SaveValidatorsRating(indexID string, validatorsRatingInfo []*indexer.ValidatorRatingInfo) {
+func (di *dataIndexer) SaveValidatorsRating(indexID string, validatorsRatingInfo []*indexer.ValidatorRatingInfo) error {
 	valRatingInfo := make([]*data.ValidatorRatingInfo, 0)
 	for _, info := range validatorsRatingInfo {
 		valRatingInfo = append(valRatingInfo, &data.ValidatorRatingInfo{
@@ -113,22 +115,28 @@ func (di *dataIndexer) SaveValidatorsRating(indexID string, validatorsRatingInfo
 		valRatingInfo,
 	)
 	di.dispatcher.Add(wi)
+
+	return nil
 }
 
 // SaveValidatorsPubKeys will save all validators public keys to elasticsearch
-func (di *dataIndexer) SaveValidatorsPubKeys(validatorsPubKeys map[uint32][][]byte, epoch uint32) {
+func (di *dataIndexer) SaveValidatorsPubKeys(validatorsPubKeys map[uint32][][]byte, epoch uint32) error {
 	wi := workItems.NewItemValidators(
 		di.elasticProcessor,
 		epoch,
 		validatorsPubKeys,
 	)
 	di.dispatcher.Add(wi)
+
+	return nil
 }
 
 // SaveAccounts will save the provided accounts
-func (di *dataIndexer) SaveAccounts(timestamp uint64, accounts []coreData.UserAccountHandler) {
+func (di *dataIndexer) SaveAccounts(timestamp uint64, accounts []coreData.UserAccountHandler) error {
 	wi := workItems.NewItemAccounts(di.elasticProcessor, timestamp, accounts)
 	di.dispatcher.Add(wi)
+
+	return nil
 }
 
 // FinalizedBlock returns nil

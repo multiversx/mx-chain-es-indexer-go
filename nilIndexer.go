@@ -24,20 +24,24 @@ func (ni *NilIndexer) RevertIndexedBlock(_ data.HeaderHandler, _ data.BodyHandle
 	return nil
 }
 
-// SaveRoundsInfo will do nothing
-func (ni *NilIndexer) SaveRoundsInfo(_ []*indexer.RoundInfo) {
+// SaveRoundsInfo returns nil
+func (ni *NilIndexer) SaveRoundsInfo(_ []*indexer.RoundInfo) error {
+	return nil
 }
 
 // SaveValidatorsRating -
-func (ni *NilIndexer) SaveValidatorsRating(_ string, _ []*indexer.ValidatorRatingInfo) {
+func (ni *NilIndexer) SaveValidatorsRating(_ string, _ []*indexer.ValidatorRatingInfo) error {
+	return nil
 }
 
 // SaveValidatorsPubKeys will do nothing
-func (ni *NilIndexer) SaveValidatorsPubKeys(_ map[uint32][][]byte, _ uint32) {
+func (ni *NilIndexer) SaveValidatorsPubKeys(_ map[uint32][][]byte, _ uint32) error {
+	return nil
 }
 
 // SaveAccounts won't do anything as this is a nil implementation
-func (ni *NilIndexer) SaveAccounts(_ uint64, _ []data.UserAccountHandler) {
+func (ni *NilIndexer) SaveAccounts(_ uint64, _ []data.UserAccountHandler) error {
+	return nil
 }
 
 // Close will do nothing
