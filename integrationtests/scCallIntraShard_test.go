@@ -21,6 +21,8 @@ const (
 )
 
 func TestTransactionWithSCCallFail(t *testing.T) {
+	t.Skip("integration test, should be run only when doing debugging")
+
 	setLogLevelDebug()
 
 	esClient, err := createESClient(esURL)
@@ -89,6 +91,8 @@ func TestTransactionWithSCCallFail(t *testing.T) {
 }
 
 func TestTransactionWithScCallSuccess(t *testing.T) {
+	t.Skip("integration test, should be run only when doing debugging")
+
 	setLogLevelDebug()
 
 	esClient, err := createESClient(esURL)
