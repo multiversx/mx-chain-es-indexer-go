@@ -63,6 +63,7 @@ func (tdp *txDatabaseProcessor) prepareTransactionsForDatabase(
 	header coreData.HeaderHandler,
 	txPool map[string]coreData.TransactionHandler,
 	selfShardID uint32,
+	logs map[string]coreData.LogHandler,
 ) ([]*data.Transaction, map[string]struct{}) {
 	transactions, rewardsTxs, alteredAddresses := tdp.groupNormalTxsAndRewards(body, txPool, header, selfShardID)
 	//we can not iterate smart contract results directly on the miniblocks contained in the block body
@@ -113,7 +114,7 @@ func (tdp *txDatabaseProcessor) prepareTransactionsForDatabase(
 		if nrScResult < minimumNumberOfSmartContractResults {
 			if len(tx.SmartContractResults) > 0 {
 				scResultData := tx.SmartContractResults[0].Data
-				if isScResultSuccessful(scResultData) {
+				if isScResultOrLogSuccessful(scResultData) {
 					// ESDT contract calls generate just one smart contract result
 					continue
 				}
@@ -127,18 +128,43 @@ func (tdp *txDatabaseProcessor) prepareTransactionsForDatabase(
 		}
 	}
 
-	// TODO for the moment do not save logs in database
-	// uncomment this when transaction logs need to be saved in database
-	//for hash, tx := range transactions {
-	//	txLog, ok := tdp.txLogsProcessor.GetLogFromCache([]byte(hash))
-	//	if !ok {
-	//		continue
-	//	}
-	//
-	//	tx.Log = tdp.prepareTxLog(txLog)
-	//}
+	tdp.processTransactionsLogs(transactions, logs)
 
 	return append(convertMapTxsToSlice(transactions), rewardsTxs...), alteredAddresses
+}
+
+func (tdp *txDatabaseProcessor) processTransactionsLogs(
+	txs map[string]*data.Transaction,
+	logs map[string]coreData.LogHandler,
+) {
+	for txHash, txLog := range logs {
+		tx, ok := txs[txHash]
+		if !ok {
+			continue
+		}
+
+		tdp.processLogEvents(tx, txLog.GetLogEvents())
+	}
+}
+
+func (tdp *txDatabaseProcessor) processLogEvents(tx *data.Transaction, events []coreData.EventHandler) {
+	for _, event := range events {
+		identifier := string(event.GetIdentifier())
+		if identifier == "writeLog" {
+			tx.GasUsed = tx.GasLimit
+			fee := tdp.txFeeCalculator.ComputeTxFeeBasedOnGasUsed(tx, tx.GasLimit)
+			tx.Fee = fee.String()
+			tx.Status = transaction.TxStatusSuccess.String()
+		}
+
+		if identifier == "signalError" {
+			tx.GasUsed = tx.GasLimit
+			fee := tdp.txFeeCalculator.ComputeTxFeeBasedOnGasUsed(tx, tx.GasLimit)
+			tx.Fee = fee.String()
+
+			tx.Status = transaction.TxStatusFail.String()
+		}
+	}
 }
 
 func (tdp *txDatabaseProcessor) addScrsReceiverToAlteredAccounts(
@@ -171,7 +197,7 @@ func getGasUsedFromReceipt(rec *receipt.Receipt, tx *data.Transaction) uint64 {
 	return gasUsed.Uint64()
 }
 
-func isScResultSuccessful(scResultData []byte) bool {
+func isScResultOrLogSuccessful(scResultData []byte) bool {
 	okReturnDataNewVersion := []byte("@" + hex.EncodeToString([]byte(vmcommon.Ok.String())))
 	okReturnDataOldVersion := []byte("@" + vmcommon.Ok.String()) // backwards compatible
 	return bytes.Contains(scResultData, okReturnDataNewVersion) || bytes.Contains(scResultData, okReturnDataOldVersion)

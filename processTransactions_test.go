@@ -131,7 +131,7 @@ func TestPrepareTransactionsForDatabase(t *testing.T) {
 		&mock.ShardCoordinatorMock{},
 	)
 
-	transactions, _ := txDbProc.prepareTransactionsForDatabase(body, header, txPool, 0)
+	transactions, _ := txDbProc.prepareTransactionsForDatabase(body, header, txPool, 0, nil)
 	assert.Equal(t, 7, len(transactions))
 
 }
@@ -240,7 +240,7 @@ func TestRelayedTransactions(t *testing.T) {
 		&mock.ShardCoordinatorMock{},
 	)
 
-	transactions, _ := txDbProc.prepareTransactionsForDatabase(body, header, txPool, 0)
+	transactions, _ := txDbProc.prepareTransactionsForDatabase(body, header, txPool, 0, nil)
 	assert.Equal(t, 1, len(transactions))
 	assert.Equal(t, 3, len(transactions[0].SmartContractResults))
 	assert.Equal(t, transaction.TxStatusSuccess.String(), transactions[0].Status)
@@ -461,7 +461,7 @@ func TestAlteredAddresses(t *testing.T) {
 		shardCoordinator: shardCoordinator,
 	}
 
-	_, alteredAddresses := txProc.prepareTransactionsForDatabase(body, hdr, txPool, selfShardID)
+	_, alteredAddresses := txProc.prepareTransactionsForDatabase(body, hdr, txPool, selfShardID, nil)
 	require.Equal(t, len(expectedAlteredAccounts), len(alteredAddresses))
 
 	for addrActual := range alteredAddresses {
@@ -548,7 +548,7 @@ func TestCheckGasUsedInvalidTransaction(t *testing.T) {
 		string(recHash1): rec1,
 	}
 
-	txs, _ := txProc.prepareTransactionsForDatabase(body, header, txPool, 0)
+	txs, _ := txProc.prepareTransactionsForDatabase(body, header, txPool, 0, nil)
 	require.Len(t, txs, 1)
 	require.Equal(t, tx1.GasLimit, txs[0].GasUsed)
 }
@@ -597,7 +597,7 @@ func TestCheckGasUsedRelayedTransaction(t *testing.T) {
 		string(scResHash1): scRes1,
 	}
 
-	txs, _ := txProc.prepareTransactionsForDatabase(body, header, txPool, 0)
+	txs, _ := txProc.prepareTransactionsForDatabase(body, header, txPool, 0, nil)
 	require.Len(t, txs, 1)
 	require.Equal(t, tx1.GasLimit, txs[0].GasUsed)
 }

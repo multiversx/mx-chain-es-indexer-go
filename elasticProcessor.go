@@ -368,7 +368,7 @@ func (ei *elasticProcessor) SaveTransactions(
 	allTxs := mergeSliceOfMaps(sliceMaps)
 
 	selfShardID := ei.shardCoordinator.SelfId()
-	txs, alteredAccounts := ei.prepareTransactionsForDatabase(body, header, allTxs, selfShardID)
+	txs, alteredAccounts := ei.prepareTransactionsForDatabase(body, header, allTxs, selfShardID, pool.Logs)
 	buffSlice, err := serializeTransactions(txs, selfShardID, ei.getExistingObjMap, mbsInDb)
 	if err != nil {
 		return err
