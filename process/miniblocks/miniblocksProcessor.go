@@ -18,9 +18,10 @@ import (
 var log = logger.GetOrCreate("indexer/process/miniblocks")
 
 type miniblocksProcessor struct {
-	hasher      hashing.Hasher
-	marshalier  marshal.Marshalizer
-	selfShardID uint32
+	importDBMode bool
+	hasher       hashing.Hasher
+	marshalier   marshal.Marshalizer
+	selfShardID  uint32
 }
 
 // NewMiniblocksProcessor will create a new instance of miniblocksProcessor
@@ -28,6 +29,7 @@ func NewMiniblocksProcessor(
 	selfShardID uint32,
 	hasher hashing.Hasher,
 	marshalier marshal.Marshalizer,
+	isImportDBMode bool,
 ) (*miniblocksProcessor, error) {
 	if check.IfNil(marshalier) {
 		return nil, indexer.ErrNilMarshalizer
@@ -37,9 +39,10 @@ func NewMiniblocksProcessor(
 	}
 
 	return &miniblocksProcessor{
-		hasher:      hasher,
-		marshalier:  marshalier,
-		selfShardID: selfShardID,
+		hasher:       hasher,
+		marshalier:   marshalier,
+		selfShardID:  selfShardID,
+		importDBMode: isImportDBMode,
 	}, nil
 }
 
@@ -112,8 +115,13 @@ func (mp *miniblocksProcessor) GetMiniblocksHashesHexEncoded(header coreData.Hea
 			continue
 		}
 
-		isDstMe := selfShardID == miniblock.ReceiverShardID
 		isCrossShard := miniblock.ReceiverShardID != miniblock.SenderShardID
+		shouldIgnore := selfShardID == miniblock.SenderShardID && mp.importDBMode && isCrossShard
+		if shouldIgnore {
+			continue
+		}
+
+		isDstMe := selfShardID == miniblock.ReceiverShardID
 		if isDstMe && isCrossShard {
 			continue
 		}

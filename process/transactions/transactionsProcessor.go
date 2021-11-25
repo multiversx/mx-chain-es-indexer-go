@@ -160,6 +160,12 @@ func (tdp *txsDatabaseProcessor) GetRewardsTxsHashesHexEncoded(header coreData.H
 			continue
 		}
 
+		shouldIgnore := tdp.txsGrouper.isInImportMode && selfShardID == miniblock.SenderShardID
+		if shouldIgnore {
+			// do not delete rewards transactions from source shard on import DB
+			continue
+		}
+
 		isDstMe := selfShardID == miniblock.ReceiverShardID
 		if isDstMe {
 			// reward miniblock is always cross-shard
