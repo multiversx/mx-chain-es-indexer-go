@@ -150,7 +150,7 @@ func (tdp *txDatabaseProcessor) processTransactionsLogs(
 func (tdp *txDatabaseProcessor) processLogEvents(tx *data.Transaction, events []coreData.EventHandler) {
 	for _, event := range events {
 		identifier := string(event.GetIdentifier())
-		if identifier == "writeLog" {
+		if identifier == "writeLog" && !isESDTTokenTransfer(tx) {
 			tx.GasUsed = tx.GasLimit
 			fee := tdp.txFeeCalculator.ComputeTxFeeBasedOnGasUsed(tx, tx.GasLimit)
 			tx.Fee = fee.String()
@@ -165,6 +165,14 @@ func (tdp *txDatabaseProcessor) processLogEvents(tx *data.Transaction, events []
 			tx.Status = transaction.TxStatusFail.String()
 		}
 	}
+}
+
+func isESDTTokenTransfer(tx *data.Transaction) bool {
+	isESDTTransfer := strings.HasPrefix(string(tx.Data), core.BuiltInFunctionESDTTransfer)
+	isNFTTransfer := strings.HasPrefix(string(tx.Data), core.BuiltInFunctionESDTNFTTransfer)
+	isMultiTransfer := strings.HasPrefix(string(tx.Data), core.BuiltInFunctionMultiESDTNFTTransfer)
+
+	return isESDTTransfer || isNFTTransfer || isMultiTransfer
 }
 
 func (tdp *txDatabaseProcessor) addScrsReceiverToAlteredAccounts(
