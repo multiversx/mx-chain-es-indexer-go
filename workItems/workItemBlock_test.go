@@ -79,11 +79,11 @@ func TestItemBlock_SaveNoMiniblocksShoulCallSaveHeader(t *testing.T) {
 				countCalled++
 				return nil
 			},
-			SaveMiniblocksCalled: func(header data.HeaderHandler, body *dataBlock.Body) (map[string]bool, error) {
+			SaveMiniblocksCalled: func(header data.HeaderHandler, body *dataBlock.Body) error {
 				countCalled++
-				return nil, nil
+				return nil
 			},
-			SaveTransactionsCalled: func(body *dataBlock.Body, header data.HeaderHandler, pool *indexer.Pool, mbsInDb map[string]bool) error {
+			SaveTransactionsCalled: func(body *dataBlock.Body, header data.HeaderHandler, pool *indexer.Pool) error {
 				countCalled++
 				return nil
 			},
@@ -106,8 +106,8 @@ func TestItemBlock_SaveMiniblocksShouldErr(t *testing.T) {
 	localErr := errors.New("local err")
 	itemBlock := workItems.NewItemBlock(
 		&mock.ElasticProcessorStub{
-			SaveMiniblocksCalled: func(header data.HeaderHandler, body *dataBlock.Body) (map[string]bool, error) {
-				return nil, localErr
+			SaveMiniblocksCalled: func(header data.HeaderHandler, body *dataBlock.Body) error {
+				return localErr
 			},
 		},
 		&mock.MarshalizerMock{},
@@ -127,7 +127,7 @@ func TestItemBlock_SaveTransactionsShouldErr(t *testing.T) {
 	localErr := errors.New("local err")
 	itemBlock := workItems.NewItemBlock(
 		&mock.ElasticProcessorStub{
-			SaveTransactionsCalled: func(body *dataBlock.Body, header data.HeaderHandler, pool *indexer.Pool, mbsInDb map[string]bool) error {
+			SaveTransactionsCalled: func(body *dataBlock.Body, header data.HeaderHandler, pool *indexer.Pool) error {
 				return localErr
 			},
 		},
@@ -152,11 +152,11 @@ func TestItemBlock_SaveShouldWork(t *testing.T) {
 				countCalled++
 				return nil
 			},
-			SaveMiniblocksCalled: func(header data.HeaderHandler, body *dataBlock.Body) (map[string]bool, error) {
+			SaveMiniblocksCalled: func(header data.HeaderHandler, body *dataBlock.Body) error {
 				countCalled++
-				return nil, nil
+				return nil
 			},
-			SaveTransactionsCalled: func(body *dataBlock.Body, header data.HeaderHandler, pool *indexer.Pool, mbsInDb map[string]bool) error {
+			SaveTransactionsCalled: func(body *dataBlock.Body, header data.HeaderHandler, pool *indexer.Pool) error {
 				countCalled++
 				return nil
 			},

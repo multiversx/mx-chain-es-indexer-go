@@ -9,12 +9,19 @@ import (
 
 // ElasticProcessorStub -
 type ElasticProcessorStub struct {
-	SaveHeaderCalled                 func(header coreData.HeaderHandler, signersIndexes []uint64, body *block.Body, notarizedHeadersHashes []string, gasConsumptionData indexer.HeaderGasConsumption, txsSize int) error
+	SaveHeaderCalled func(
+		header coreData.HeaderHandler,
+		signersIndexes []uint64,
+		body *block.Body,
+		notarizedHeadersHashes []string,
+		gasConsumptionData indexer.HeaderGasConsumption,
+		txsSize int,
+	) error
 	RemoveHeaderCalled               func(header coreData.HeaderHandler) error
 	RemoveMiniblocksCalled           func(header coreData.HeaderHandler, body *block.Body) error
 	RemoveTransactionsCalled         func(header coreData.HeaderHandler, body *block.Body) error
-	SaveMiniblocksCalled             func(header coreData.HeaderHandler, body *block.Body) (map[string]bool, error)
-	SaveTransactionsCalled           func(body *block.Body, header coreData.HeaderHandler, pool *indexer.Pool, mbsInDb map[string]bool) error
+	SaveMiniblocksCalled             func(header coreData.HeaderHandler, body *block.Body) error
+	SaveTransactionsCalled           func(body *block.Body, header coreData.HeaderHandler, pool *indexer.Pool) error
 	SaveValidatorsRatingCalled       func(index string, validatorsRatingInfo []*data.ValidatorRatingInfo) error
 	SaveRoundsInfoCalled             func(infos []*data.RoundInfo) error
 	SaveShardValidatorsPubKeysCalled func(shardID, epoch uint32, shardValidatorsPubKeys [][]byte) error
@@ -22,7 +29,13 @@ type ElasticProcessorStub struct {
 }
 
 // SaveHeader -
-func (eim *ElasticProcessorStub) SaveHeader(header coreData.HeaderHandler, signersIndexes []uint64, body *block.Body, notarizedHeadersHashes []string, gasConsumptionData indexer.HeaderGasConsumption, txsSize int) error {
+func (eim *ElasticProcessorStub) SaveHeader(
+	header coreData.HeaderHandler,
+	signersIndexes []uint64,
+	body *block.Body,
+	notarizedHeadersHashes []string,
+	gasConsumptionData indexer.HeaderGasConsumption,
+	txsSize int) error {
 	if eim.SaveHeaderCalled != nil {
 		return eim.SaveHeaderCalled(header, signersIndexes, body, notarizedHeadersHashes, gasConsumptionData, txsSize)
 	}
@@ -54,17 +67,17 @@ func (eim *ElasticProcessorStub) RemoveTransactions(header coreData.HeaderHandle
 }
 
 // SaveMiniblocks -
-func (eim *ElasticProcessorStub) SaveMiniblocks(header coreData.HeaderHandler, body *block.Body) (map[string]bool, error) {
+func (eim *ElasticProcessorStub) SaveMiniblocks(header coreData.HeaderHandler, body *block.Body) error {
 	if eim.SaveMiniblocksCalled != nil {
 		return eim.SaveMiniblocksCalled(header, body)
 	}
-	return nil, nil
+	return nil
 }
 
 // SaveTransactions -
-func (eim *ElasticProcessorStub) SaveTransactions(body *block.Body, header coreData.HeaderHandler, pool *indexer.Pool, mbsInDb map[string]bool) error {
+func (eim *ElasticProcessorStub) SaveTransactions(body *block.Body, header coreData.HeaderHandler, pool *indexer.Pool) error {
 	if eim.SaveTransactionsCalled != nil {
-		return eim.SaveTransactionsCalled(body, header, pool, mbsInDb)
+		return eim.SaveTransactionsCalled(body, header, pool)
 	}
 	return nil
 }

@@ -6,15 +6,15 @@ import "bytes"
 const BulkSizeThreshold = 838860 // 0.8MB
 
 // BufferSlice extend structure bytes.Buffer with new methods
-type bufferSlice struct {
+type BufferSlice struct {
 	buffSlice         []*bytes.Buffer
 	bulkSizeThreshold int
 	idx               int
 }
 
 // NewBufferSlice will create a new buffer
-func NewBufferSlice() *bufferSlice {
-	return &bufferSlice{
+func NewBufferSlice() *BufferSlice {
+	return &BufferSlice{
 		buffSlice:         make([]*bytes.Buffer, 0),
 		bulkSizeThreshold: BulkSizeThreshold,
 		idx:               0,
@@ -22,7 +22,7 @@ func NewBufferSlice() *bufferSlice {
 }
 
 // PutData will put meta bytes and serializeData in buffer
-func (bs *bufferSlice) PutData(meta []byte, serializedData []byte) error {
+func (bs *BufferSlice) PutData(meta []byte, serializedData []byte) error {
 	if len(bs.buffSlice) == 0 {
 		bs.buffSlice = append(bs.buffSlice, &bytes.Buffer{})
 	}
@@ -35,7 +35,9 @@ func (bs *bufferSlice) PutData(meta []byte, serializedData []byte) error {
 		bs.idx++
 	}
 
-	serializedData = append(serializedData, "\n"...)
+	if len(serializedData) > 0 {
+		serializedData = append(serializedData, "\n"...)
+	}
 
 	currentBuff.Grow(len(meta) + len(serializedData))
 	_, err := currentBuff.Write(meta)
@@ -51,11 +53,11 @@ func (bs *bufferSlice) PutData(meta []byte, serializedData []byte) error {
 }
 
 // Buffers will return the slice of buffers
-func (bs *bufferSlice) Buffers() []*bytes.Buffer {
+func (bs *BufferSlice) Buffers() []*bytes.Buffer {
 	return bs.buffSlice
 }
 
-func (bs *bufferSlice) aNewElementIsNeeded(meta []byte, serializedData []byte) bool {
+func (bs *BufferSlice) aNewElementIsNeeded(meta []byte, serializedData []byte) bool {
 	currentBuff := bs.buffSlice[bs.idx]
 
 	buffLenWithCurrentAcc := currentBuff.Len() + len(meta) + len(serializedData)

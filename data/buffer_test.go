@@ -24,6 +24,18 @@ func TestBufferSlice_PutDataShouldWork(t *testing.T) {
 	require.Equal(t, 2, len(returnedBuffSlice))
 }
 
+func TestBufferSlice_PutDataShouldWorkNilSerializedData(t *testing.T) {
+	buffSlice := NewBufferSlice()
+
+	meta := []byte("my data")
+
+	err := buffSlice.PutData(meta, nil)
+	require.Nil(t, err)
+
+	returnedBuffSlice := buffSlice.Buffers()
+	require.Equal(t, 1, len(returnedBuffSlice))
+}
+
 func generateRandomBytes(n int) []byte {
 	b := make([]byte, n)
 	_, _ = rand.Read(b)

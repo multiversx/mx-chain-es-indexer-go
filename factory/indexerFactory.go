@@ -4,6 +4,9 @@ import (
 	"fmt"
 
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
+	"github.com/ElrondNetwork/elastic-indexer-go/client"
+	"github.com/ElrondNetwork/elastic-indexer-go/client/logging"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/factory"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	"github.com/ElrondNetwork/elrond-go-core/hashing"
@@ -15,21 +18,22 @@ import (
 // new instances
 type ArgsIndexerFactory struct {
 	Enabled                  bool
+	UseKibana                bool
+	IsInImportDBMode         bool
 	IndexerCacheSize         int
-	ShardCoordinator         indexer.Coordinator
+	Denomination             int
 	Url                      string
 	UserName                 string
 	Password                 string
+	TemplatesPath            string
+	EnabledIndexes           []string
+	ShardCoordinator         indexer.ShardCoordinator
 	Marshalizer              marshal.Marshalizer
 	Hasher                   hashing.Hasher
 	AddressPubkeyConverter   core.PubkeyConverter
 	ValidatorPubkeyConverter core.PubkeyConverter
-	UseKibana                bool
-	EnabledIndexes           []string
-	Denomination             int
 	AccountsDB               indexer.AccountsAdapter
 	TransactionFeeCalculator indexer.FeesProcessorHandler
-	IsInImportDBMode         bool
 }
 
 // NewIndexer will create a new instance of Indexer
@@ -57,7 +61,6 @@ func NewIndexer(args *ArgsIndexerFactory) (indexer.Indexer, error) {
 
 	arguments := indexer.ArgDataIndexer{
 		Marshalizer:      args.Marshalizer,
-		UseKibana:        args.UseKibana,
 		ShardCoordinator: args.ShardCoordinator,
 		ElasticProcessor: elasticProcessor,
 		DataDispatcher:   dispatcher,
@@ -66,51 +69,33 @@ func NewIndexer(args *ArgsIndexerFactory) (indexer.Indexer, error) {
 	return indexer.NewDataIndexer(arguments)
 }
 
-func createDatabaseClient(url, userName, password string) (indexer.DatabaseClientHandler, error) {
-	return indexer.NewElasticClient(elasticsearch.Config{
-		Addresses: []string{url},
-		Username:  userName,
-		Password:  password,
-	})
-}
-
 func createElasticProcessor(args *ArgsIndexerFactory) (indexer.ElasticProcessor, error) {
-	databaseClient, err := createDatabaseClient(args.Url, args.UserName, args.Password)
+	databaseClient, err := client.NewElasticClient(elasticsearch.Config{
+		Addresses: []string{args.Url},
+		Username:  args.UserName,
+		Password:  args.Password,
+		Logger:    &logging.CustomLogger{},
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	indexTemplates, indexPolicies, err := indexer.GetElasticTemplatesAndPolicies(args.UseKibana)
-	if err != nil {
-		return nil, err
-	}
-
-	enabledIndexesMap := make(map[string]struct{})
-	for _, index := range args.EnabledIndexes {
-		enabledIndexesMap[index] = struct{}{}
-	}
-	if len(enabledIndexesMap) == 0 {
-		return nil, indexer.ErrEmptyEnabledIndexes
-	}
-
-	esIndexerArgs := indexer.ArgElasticProcessor{
-		IndexTemplates:           indexTemplates,
-		IndexPolicies:            indexPolicies,
+	argsElasticProcFac := factory.ArgElasticProcessorFactory{
 		Marshalizer:              args.Marshalizer,
 		Hasher:                   args.Hasher,
 		AddressPubkeyConverter:   args.AddressPubkeyConverter,
 		ValidatorPubkeyConverter: args.ValidatorPubkeyConverter,
 		UseKibana:                args.UseKibana,
 		DBClient:                 databaseClient,
-		EnabledIndexes:           enabledIndexesMap,
 		AccountsDB:               args.AccountsDB,
 		Denomination:             args.Denomination,
 		TransactionFeeCalculator: args.TransactionFeeCalculator,
 		IsInImportDBMode:         args.IsInImportDBMode,
 		ShardCoordinator:         args.ShardCoordinator,
+		EnabledIndexes:           args.EnabledIndexes,
 	}
 
-	return indexer.NewElasticProcessor(esIndexerArgs)
+	return factory.CreateElasticProcessor(argsElasticProcFac)
 }
 
 func checkDataIndexerParams(arguments *ArgsIndexerFactory) error {
@@ -124,16 +109,22 @@ func checkDataIndexerParams(arguments *ArgsIndexerFactory) error {
 		return fmt.Errorf("%w when setting ValidatorPubkeyConverter in indexer", indexer.ErrNilPubkeyConverter)
 	}
 	if arguments.Url == "" {
-		return core.ErrNilUrl
+		return indexer.ErrNilUrl
 	}
 	if check.IfNil(arguments.Marshalizer) {
-		return core.ErrNilMarshalizer
+		return indexer.ErrNilMarshalizer
 	}
 	if check.IfNil(arguments.Hasher) {
-		return core.ErrNilHasher
+		return indexer.ErrNilHasher
 	}
 	if check.IfNil(arguments.TransactionFeeCalculator) {
-		return core.ErrNilTransactionFeeCalculator
+		return indexer.ErrNilTransactionFeeCalculator
+	}
+	if check.IfNil(arguments.AccountsDB) {
+		return indexer.ErrNilAccountsDB
+	}
+	if check.IfNil(arguments.ShardCoordinator) {
+		return indexer.ErrNilShardCoordinator
 	}
 
 	return nil

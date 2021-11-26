@@ -29,17 +29,17 @@ func (ni *NilIndexer) SaveRoundsInfo(_ []*indexer.RoundInfo) error {
 	return nil
 }
 
-// SaveValidatorsRating -
+// SaveValidatorsRating returns nil
 func (ni *NilIndexer) SaveValidatorsRating(_ string, _ []*indexer.ValidatorRatingInfo) error {
 	return nil
 }
 
-// SaveValidatorsPubKeys will do nothing
+// SaveValidatorsPubKeys returns nil
 func (ni *NilIndexer) SaveValidatorsPubKeys(_ map[uint32][][]byte, _ uint32) error {
 	return nil
 }
 
-// SaveAccounts won't do anything as this is a nil implementation
+// SaveAccounts returns nil
 func (ni *NilIndexer) SaveAccounts(_ uint64, _ []data.UserAccountHandler) error {
 	return nil
 }

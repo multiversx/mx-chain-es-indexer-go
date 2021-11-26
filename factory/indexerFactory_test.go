@@ -1,14 +1,13 @@
 package factory
 
 import (
-	"errors"
+	errorsGo "errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
-	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/stretchr/testify/require"
 )
 
@@ -25,7 +24,8 @@ func createMockIndexerFactoryArgs() *ArgsIndexerFactory {
 		Hasher:                   &mock.HasherMock{},
 		AddressPubkeyConverter:   &mock.PubkeyConverterMock{},
 		ValidatorPubkeyConverter: &mock.PubkeyConverterMock{},
-		EnabledIndexes:           []string{"blocks", "transactions", "miniblocks", "tps", "validators", "round", "accounts", "rating"},
+		TemplatesPath:            "../testdata",
+		EnabledIndexes:           []string{"blocks", "transactions", "miniblocks", "validators", "round", "accounts", "rating"},
 		AccountsDB:               &mock.AccountsStub{},
 		TransactionFeeCalculator: &mock.EconomicsHandlerStub{},
 		ShardCoordinator:         &mock.ShardCoordinatorMock{},
@@ -73,7 +73,7 @@ func TestNewIndexerFactory(t *testing.T) {
 				args.Marshalizer = nil
 				return args
 			},
-			exError: core.ErrNilMarshalizer,
+			exError: indexer.ErrNilMarshalizer,
 		},
 		{
 			name: "NilHasher",
@@ -82,7 +82,7 @@ func TestNewIndexerFactory(t *testing.T) {
 				args.Hasher = nil
 				return args
 			},
-			exError: core.ErrNilHasher,
+			exError: indexer.ErrNilHasher,
 		},
 		{
 			name: "NilAccountsDB",
@@ -100,16 +100,25 @@ func TestNewIndexerFactory(t *testing.T) {
 				args.Url = ""
 				return args
 			},
-			exError: core.ErrNilUrl,
+			exError: indexer.ErrNilUrl,
 		},
 		{
-			name: "NilEconomicsHandler",
+			name: "NilTransactionFeeCalculator",
 			argsFunc: func() *ArgsIndexerFactory {
 				args := createMockIndexerFactoryArgs()
 				args.TransactionFeeCalculator = nil
 				return args
 			},
-			exError: core.ErrNilTransactionFeeCalculator,
+			exError: indexer.ErrNilTransactionFeeCalculator,
+		},
+		{
+			name: "NilShardCoordinator",
+			argsFunc: func() *ArgsIndexerFactory {
+				args := createMockIndexerFactoryArgs()
+				args.ShardCoordinator = nil
+				return args
+			},
+			exError: indexer.ErrNilShardCoordinator,
 		},
 		{
 			name: "All arguments ok",
@@ -123,7 +132,7 @@ func TestNewIndexerFactory(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := NewIndexer(tt.argsFunc())
-			require.True(t, errors.Is(err, tt.exError))
+			require.True(t, errorsGo.Is(err, tt.exError))
 		})
 	}
 }

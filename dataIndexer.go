@@ -3,12 +3,19 @@ package indexer
 import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
-	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
 )
+
+// ArgDataIndexer is a structure that is used to store all the components that are needed to create an indexer
+type ArgDataIndexer struct {
+	ShardCoordinator ShardCoordinator
+	Marshalizer      marshal.Marshalizer
+	DataDispatcher   DispatcherHandler
+	ElasticProcessor ElasticProcessor
+}
 
 type dataIndexer struct {
 	isNilIndexer     bool
@@ -42,7 +49,7 @@ func checkIndexerArgs(arguments ArgDataIndexer) error {
 		return ErrNilElasticProcessor
 	}
 	if check.IfNil(arguments.Marshalizer) {
-		return core.ErrNilMarshalizer
+		return ErrNilMarshalizer
 	}
 	if check.IfNil(arguments.ShardCoordinator) {
 		return ErrNilShardCoordinator
@@ -89,6 +96,7 @@ func (di *dataIndexer) SaveRoundsInfo(rf []*indexer.RoundInfo) error {
 			SignersIndexes:   info.SignersIndexes,
 			BlockWasProposed: info.BlockWasProposed,
 			ShardId:          info.ShardId,
+			Epoch:            info.Epoch,
 			Timestamp:        info.Timestamp,
 		})
 	}

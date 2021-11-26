@@ -9,22 +9,16 @@ type ValidatorsPublicKeys struct {
 	PublicKeys []string `json:"publicKeys"`
 }
 
-// KibanaResponse -
-type KibanaResponse struct {
-	Ok    bool   `json:"ok"`
-	Error string `json:"error,omitempty"`
+// Response is a structure that holds response from Kibana
+type Response struct {
+	Error  interface{} `json:"error,omitempty"`
+	Status int         `json:"status"`
 }
 
 // ValidatorRatingInfo is a structure containing validator rating information
 type ValidatorRatingInfo struct {
-	PublicKey string  `json:"publicKey"`
+	PublicKey string  `json:"-"`
 	Rating    float32 `json:"rating"`
-}
-
-// TODO this will be removed in the next PR
-// ValidatorsRatingInfo is a structure containing validators information
-type ValidatorsRatingInfo struct {
-	ValidatorsInfos []*ValidatorRatingInfo `json:"validatorsRating"`
 }
 
 // RoundInfo is a structure containing block signers and shard id
@@ -33,6 +27,7 @@ type RoundInfo struct {
 	SignersIndexes   []uint64      `json:"signersIndexes"`
 	BlockWasProposed bool          `json:"blockWasProposed"`
 	ShardId          uint32        `json:"shardId"`
+	Epoch            uint32        `json:"epoch"`
 	Timestamp        time.Duration `json:"timestamp"`
 }
 

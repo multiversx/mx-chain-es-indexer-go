@@ -1,6 +1,8 @@
 package workItems
 
 import (
+	"encoding/hex"
+	"errors"
 	"fmt"
 
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
@@ -11,7 +13,10 @@ import (
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 )
 
-var log = logger.GetOrCreate("core/indexer/workItems")
+// ErrBodyTypeAssertion signals that body type assertion failed
+var ErrBodyTypeAssertion = errors.New("elasticsearch - body type assertion failed")
+
+var log = logger.GetOrCreate("indexer/workItems")
 
 type itemBlock struct {
 	indexer       saveBlockIndexer
@@ -54,26 +59,32 @@ func (wib *itemBlock) Save() error {
 	}
 
 	txsSizeInBytes := ComputeSizeOfTxs(wib.marshalizer, wib.argsSaveBlock.TransactionsPool)
-	err := wib.indexer.SaveHeader(wib.argsSaveBlock.Header, wib.argsSaveBlock.SignersIndexes, body, wib.argsSaveBlock.NotarizedHeadersHashes, wib.argsSaveBlock.HeaderGasConsumption, txsSizeInBytes)
+	err := wib.indexer.SaveHeader(
+		wib.argsSaveBlock.Header,
+		wib.argsSaveBlock.SignersIndexes,
+		body,
+		wib.argsSaveBlock.NotarizedHeadersHashes,
+		wib.argsSaveBlock.HeaderGasConsumption,
+		txsSizeInBytes)
 	if err != nil {
 		return fmt.Errorf("%w when saving header block, hash %s, nonce %d",
-			err, wib.argsSaveBlock.HeaderHash, wib.argsSaveBlock.Header.GetNonce())
+			err, hex.EncodeToString(wib.argsSaveBlock.HeaderHash), wib.argsSaveBlock.Header.GetNonce())
 	}
 
 	if len(body.MiniBlocks) == 0 {
 		return nil
 	}
 
-	mbsInDb, err := wib.indexer.SaveMiniblocks(wib.argsSaveBlock.Header, body)
+	err = wib.indexer.SaveMiniblocks(wib.argsSaveBlock.Header, body)
 	if err != nil {
 		return fmt.Errorf("%w when saving miniblocks, block hash %s, nonce %d",
-			err, wib.argsSaveBlock.HeaderHash, wib.argsSaveBlock.Header.GetNonce())
+			err, hex.EncodeToString(wib.argsSaveBlock.HeaderHash), wib.argsSaveBlock.Header.GetNonce())
 	}
 
-	err = wib.indexer.SaveTransactions(body, wib.argsSaveBlock.Header, wib.argsSaveBlock.TransactionsPool, mbsInDb)
+	err = wib.indexer.SaveTransactions(body, wib.argsSaveBlock.Header, wib.argsSaveBlock.TransactionsPool)
 	if err != nil {
 		return fmt.Errorf("%w when saving transactions, block hash %s, nonce %d",
-			err, wib.argsSaveBlock.HeaderHash, wib.argsSaveBlock.Header.GetNonce())
+			err, hex.EncodeToString(wib.argsSaveBlock.HeaderHash), wib.argsSaveBlock.Header.GetNonce())
 	}
 
 	return nil

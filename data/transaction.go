@@ -5,17 +5,11 @@ import (
 	"time"
 )
 
-// RefundGasMessage is the message returned in the data field of a receipt,
-// for move balance transactions that provide more gas than needed
-const RefundGasMessage = "refundedGas"
-
 // Transaction is a structure containing all the fields that need
 //  to be saved for a transaction. It has all the default fields
 //  plus some extra information for ease of search and filter
 type Transaction struct {
-	Hash                 string        `json:"-"`
 	MBHash               string        `json:"miniBlockHash"`
-	BlockHash            string        `json:"-"`
 	Nonce                uint64        `json:"nonce"`
 	Round                uint64        `json:"round"`
 	Value                string        `json:"value"`
@@ -32,11 +26,17 @@ type Transaction struct {
 	Timestamp            time.Duration `json:"timestamp"`
 	Status               string        `json:"status"`
 	SearchOrder          uint32        `json:"searchOrder"`
-	SmartContractResults []ScResult    `json:"scResults,omitempty"`
-	SenderUserName       []byte        `json:"senderUsername,omitempty"`
-	ReceiverUserName     []byte        `json:"receiverUsername,omitempty"`
-	Log                  TxLog         `json:"-"`
+	SenderUserName       []byte        `json:"senderUserName,omitempty"`
+	ReceiverUserName     []byte        `json:"receiverUserName,omitempty"`
+	HasSCR               bool          `json:"hasScResults,omitempty"`
+	IsScCall             bool          `json:"isScCall,omitempty"`
+	HasOperations        bool          `json:"hasOperations,omitempty"`
+	Tokens               []string      `json:"tokens,omitempty"`
+	ESDTValues           []string      `json:"esdtValues,omitempty"`
+	SmartContractResults []*ScResult   `json:"-"`
 	ReceiverAddressBytes []byte        `json:"-"`
+	Hash                 string        `json:"-"`
+	BlockHash            string        `json:"-"`
 }
 
 // GetGasLimit will return transaction gas limit
@@ -81,42 +81,55 @@ type Receipt struct {
 
 // ScResult is a structure containing all the fields that need to be saved for a smart contract result
 type ScResult struct {
-	Hash           string `json:"hash"`
-	Nonce          uint64 `json:"nonce"`
-	GasLimit       uint64 `json:"gasLimit"`
-	GasPrice       uint64 `json:"gasPrice"`
-	Value          string `json:"value"`
-	Sender         string `json:"sender"`
-	Receiver       string `json:"receiver"`
-	RelayerAddr    string `json:"relayerAddr,omitempty"`
-	RelayedValue   string `json:"relayedValue,omitempty"`
-	Code           string `json:"code,omitempty"`
-	Data           []byte `json:"data,omitempty"`
-	PreTxHash      string `json:"prevTxHash"`
-	OriginalTxHash string `json:"originalTxHash"`
-	CallType       string `json:"callType"`
-	CodeMetadata   []byte `json:"codeMetaData,omitempty"`
-	ReturnMessage  string `json:"returnMessage,omitempty"`
+	Hash           string        `json:"-"`
+	MBHash         string        `json:"miniBlockHash,omitempty"`
+	Nonce          uint64        `json:"nonce"`
+	GasLimit       uint64        `json:"gasLimit"`
+	GasPrice       uint64        `json:"gasPrice"`
+	Value          string        `json:"value"`
+	Sender         string        `json:"sender"`
+	Receiver       string        `json:"receiver"`
+	SenderShard    uint32        `json:"senderShard"`
+	ReceiverShard  uint32        `json:"receiverShard"`
+	RelayerAddr    string        `json:"relayerAddr,omitempty"`
+	RelayedValue   string        `json:"relayedValue,omitempty"`
+	Code           string        `json:"code,omitempty"`
+	Data           []byte        `json:"data,omitempty"`
+	PrevTxHash     string        `json:"prevTxHash"`
+	OriginalTxHash string        `json:"originalTxHash"`
+	CallType       string        `json:"callType"`
+	CodeMetadata   []byte        `json:"codeMetaData,omitempty"`
+	ReturnMessage  string        `json:"returnMessage,omitempty"`
+	Timestamp      time.Duration `json:"timestamp"`
+	HasOperations  bool          `json:"hasOperations,omitempty"`
+	Tokens         []string      `json:"tokens,omitempty"`
+	ESDTValues     []string      `json:"esdtValues,omitempty"`
 }
 
-// TxLog holds all the data needed for a log structure
-type TxLog struct {
-	Address string  `json:"scAddress"`
-	Events  []Event `json:"events"`
-}
-
-// Event holds all the data needed for an event structure
-type Event struct {
-	Address    string   `json:"address"`
-	Identifier string   `json:"identifier"`
-	Topics     []string `json:"topics"`
-	Data       string   `json:"data"`
-}
-
-// PreparedResults is the TDO that holds all the results after processing
+// PreparedResults is the DTO that holds all the results after processing
 type PreparedResults struct {
-	Transactions    []*Transaction
-	ScResults       []*ScResult
-	Receipts        []*Receipt
-	AlteredAccounts map[string]*AlteredAccount
+	Transactions []*Transaction
+	ScResults    []*ScResult
+	Receipts     []*Receipt
+	AlteredAccts AlteredAccountsHandler
+	TxHashStatus map[string]string
+	TxHashRefund map[string]*RefundData
+}
+
+// ResponseTransactions is the structure for the transactions response
+type ResponseTransactions struct {
+	Docs []*ResponseTransactionDB `json:"docs"`
+}
+
+// ResponseTransactionDB is the structure for the transaction response
+type ResponseTransactionDB struct {
+	Found  bool        `json:"found"`
+	ID     string      `json:"_id"`
+	Source Transaction `json:"_source"`
+}
+
+// RefundData is the structure that contains data about a refund
+type RefundData struct {
+	Value    string
+	Receiver string
 }

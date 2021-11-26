@@ -1,7 +1,6 @@
 package indexer
 
 import (
-	"bytes"
 	"math/big"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
@@ -10,7 +9,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
-	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
 
 // DispatcherHandler defines the interface for the dispatcher that will manage when items are saved in elasticsearch database
@@ -23,31 +21,23 @@ type DispatcherHandler interface {
 
 // ElasticProcessor defines the interface for the elastic search indexer
 type ElasticProcessor interface {
-	SaveHeader(header coreData.HeaderHandler, signersIndexes []uint64, body *block.Body, notarizedHeadersHashes []string, gasConsumptionData indexer.HeaderGasConsumption, txsSize int) error
+	SaveHeader(
+		header coreData.HeaderHandler,
+		signersIndexes []uint64,
+		body *block.Body,
+		notarizedHeadersHashes []string,
+		gasConsumptionData indexer.HeaderGasConsumption,
+		txsSize int,
+	) error
 	RemoveHeader(header coreData.HeaderHandler) error
 	RemoveMiniblocks(header coreData.HeaderHandler, body *block.Body) error
 	RemoveTransactions(header coreData.HeaderHandler, body *block.Body) error
-	SaveMiniblocks(header coreData.HeaderHandler, body *block.Body) (map[string]bool, error)
-	SaveTransactions(body *block.Body, header coreData.HeaderHandler, pool *indexer.Pool, mbsInDb map[string]bool) error
+	SaveMiniblocks(header coreData.HeaderHandler, body *block.Body) error
+	SaveTransactions(body *block.Body, header coreData.HeaderHandler, pool *indexer.Pool) error
 	SaveValidatorsRating(index string, validatorsRatingInfo []*data.ValidatorRatingInfo) error
 	SaveRoundsInfo(infos []*data.RoundInfo) error
 	SaveShardValidatorsPubKeys(shardID, epoch uint32, shardValidatorsPubKeys [][]byte) error
 	SaveAccounts(blockTimestamp uint64, accounts []*data.Account) error
-	IsInterfaceNil() bool
-}
-
-// DatabaseClientHandler is an interface that do requests to elasticsearch server
-type DatabaseClientHandler interface {
-	DoRequest(req *esapi.IndexRequest) error
-	DoBulkRequest(buff *bytes.Buffer, index string) error
-	DoBulkRemove(index string, hashes []string) error
-	DoMultiGet(query objectsMap, index string) (objectsMap, error)
-
-	CheckAndCreateIndex(index string) error
-	CheckAndCreateAlias(alias string, index string) error
-	CheckAndCreateTemplate(templateName string, template *bytes.Buffer) error
-	CheckAndCreatePolicy(policyName string, policy *bytes.Buffer) error
-
 	IsInterfaceNil() bool
 }
 
@@ -59,8 +49,8 @@ type FeesProcessorHandler interface {
 	IsInterfaceNil() bool
 }
 
-// Coordinator defines what a shard state coordinator should hold
-type Coordinator interface {
+// ShardCoordinator defines what a shard state coordinator should hold
+type ShardCoordinator interface {
 	ComputeId(address []byte) uint32
 	SelfId() uint32
 	IsInterfaceNil() bool
@@ -83,5 +73,12 @@ type Indexer interface {
 
 type AccountsAdapter interface {
 	LoadAccount(address []byte) (vmcommon.AccountHandler, error)
+	IsInterfaceNil() bool
+}
+
+// BalanceConverter defines what a balance converter should be able to do
+type BalanceConverter interface {
+	ComputeBalanceAsFloat(balance *big.Int) float64
+	ComputeESDTBalanceAsFloat(balance *big.Int) float64
 	IsInterfaceNil() bool
 }

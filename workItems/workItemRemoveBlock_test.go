@@ -23,6 +23,10 @@ func TestItemRemoveBlock_Save(t *testing.T) {
 				countCalled++
 				return nil
 			},
+			RemoveTransactionsCalled: func(header data.HeaderHandler, body *dataBlock.Body) error {
+				countCalled++
+				return nil
+			},
 		},
 		&dataBlock.Body{},
 		&dataBlock.Header{},
@@ -31,7 +35,7 @@ func TestItemRemoveBlock_Save(t *testing.T) {
 
 	err := itemRemove.Save()
 	require.NoError(t, err)
-	require.Equal(t, 2, countCalled)
+	require.Equal(t, 3, countCalled)
 }
 
 func TestItemRemoveBlock_SaveRemoveHeaderShouldErr(t *testing.T) {
