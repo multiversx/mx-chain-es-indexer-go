@@ -9,6 +9,7 @@ type argsProcessEvent struct {
 	txHashHexEncoded string
 	pendingBalances  *pendingBalancesProc
 	scDeploys        map[string]*data.ScDeployInfo
+	txs              map[string]*data.Transaction
 	event            coreData.EventHandler
 	accounts         data.AlteredAccountsHandler
 	tokens           data.TokensHandler

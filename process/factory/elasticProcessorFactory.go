@@ -99,6 +99,7 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (indexer.Elast
 		arguments.Marshalizer,
 		balanceConverter,
 		arguments.Hasher,
+		arguments.TransactionFeeCalculator,
 	)
 	if err != nil {
 		return nil, err

@@ -28,6 +28,7 @@ func NewLogsAndEventsProcessor(
 	marshalizer marshal.Marshalizer,
 	balanceConverter elasticIndexer.BalanceConverter,
 	hasher hashing.Hasher,
+	txFeeCalculator elasticIndexer.FeesProcessorHandler,
 ) (*logsAndEventsProcessor, error) {
 	if check.IfNil(shardCoordinator) {
 		return nil, elasticIndexer.ErrNilShardCoordinator
@@ -44,8 +45,11 @@ func NewLogsAndEventsProcessor(
 	if check.IfNil(hasher) {
 		return nil, elasticIndexer.ErrNilHasher
 	}
+	if check.IfNil(txFeeCalculator) {
+		return nil, elasticIndexer.ErrNilTransactionFeeCalculator
+	}
 
-	eventsProcessors := createEventsProcessors(shardCoordinator, pubKeyConverter, marshalizer, balanceConverter)
+	eventsProcessors := createEventsProcessors(shardCoordinator, pubKeyConverter, marshalizer, balanceConverter, txFeeCalculator)
 
 	return &logsAndEventsProcessor{
 		pubKeyConverter:  pubKeyConverter,
@@ -59,15 +63,18 @@ func createEventsProcessors(
 	pubKeyConverter core.PubkeyConverter,
 	marshalizer marshal.Marshalizer,
 	balanceConverter elasticIndexer.BalanceConverter,
+	txFeeCalculator elasticIndexer.FeesProcessorHandler,
 ) []eventsProcessor {
 	nftsProc := newNFTsProcessor(shardCoordinator, pubKeyConverter, marshalizer)
 	fungibleProc := newFungibleESDTProcessor(pubKeyConverter, shardCoordinator)
 	scDeploysProc := newSCDeploysProcessor(pubKeyConverter)
+	informativeProc := newInformativeLogsProcessor(txFeeCalculator)
 
 	eventsProcs := []eventsProcessor{
 		fungibleProc,
 		nftsProc,
 		scDeploysProc,
+		informativeProc,
 	}
 
 	if shardCoordinator.SelfId() == core.MetachainShardId {
@@ -131,6 +138,7 @@ func (lep *logsAndEventsProcessor) processEvent(logHash string, logAddress []byt
 			timestamp:        lep.logsData.timestamp,
 			scDeploys:        lep.logsData.scDeploys,
 			pendingBalances:  lep.logsData.pendingBalances,
+			txs:              lep.logsData.txsMap,
 		})
 		if res.tokenInfo != nil {
 			lep.logsData.tokensInfo = append(lep.logsData.tokensInfo, res.tokenInfo)
