@@ -223,12 +223,10 @@ func (tg *txsGrouper) groupReceiptsAndAttachToTxs(
 }
 
 func addReceiptToTx(tx *data.Transaction, rec *data.Receipt) {
-	clonedRec := *rec
-	clonedRec.TxHash = ""
-	clonedRec.Timestamp = 0
-	clonedRec.Sender = ""
-
-	tx.Receipt = &clonedRec
+	tx.Receipt = &data.Receipt{
+		Data:  rec.Data,
+		Value: rec.Value,
+	}
 }
 
 func computeStatus(selfShardID uint32, receiverShardID uint32) string {
