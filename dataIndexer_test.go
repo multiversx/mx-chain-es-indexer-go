@@ -77,8 +77,9 @@ func TestDataIndexer_SaveBlock(t *testing.T) {
 		NotarizedHeadersHashes: nil,
 		TransactionsPool:       nil,
 	}
-	ei.SaveBlock(args)
+	err := ei.SaveBlock(args)
 	require.True(t, called)
+	require.Nil(t, err)
 }
 
 func TestDataIndexer_SaveRoundInfo(t *testing.T) {
@@ -95,8 +96,9 @@ func TestDataIndexer_SaveRoundInfo(t *testing.T) {
 	ei, _ := NewDataIndexer(arguments)
 	_ = ei.Close()
 
-	ei.SaveRoundsInfo([]*indexer.RoundInfo{})
+	err := ei.SaveRoundsInfo([]*indexer.RoundInfo{})
 	require.True(t, called)
+	require.Nil(t, err)
 }
 
 func TestDataIndexer_SaveValidatorsPubKeys(t *testing.T) {
@@ -116,8 +118,9 @@ func TestDataIndexer_SaveValidatorsPubKeys(t *testing.T) {
 	valPubKey[0] = keys
 	epoch := uint32(0)
 
-	ei.SaveValidatorsPubKeys(valPubKey, epoch)
+	err := ei.SaveValidatorsPubKeys(valPubKey, epoch)
 	require.True(t, called)
+	require.Nil(t, err)
 }
 
 func TestDataIndexer_SaveValidatorsRating(t *testing.T) {
@@ -131,10 +134,11 @@ func TestDataIndexer_SaveValidatorsRating(t *testing.T) {
 	}
 	ei, _ := NewDataIndexer(arguments)
 
-	ei.SaveValidatorsRating("ID", []*indexer.ValidatorRatingInfo{
+	err := ei.SaveValidatorsRating("ID", []*indexer.ValidatorRatingInfo{
 		{Rating: 1}, {Rating: 2},
 	})
 	require.True(t, called)
+	require.Nil(t, err)
 }
 
 func TestDataIndexer_RevertIndexedBlock(t *testing.T) {
@@ -148,6 +152,7 @@ func TestDataIndexer_RevertIndexedBlock(t *testing.T) {
 	}
 	ei, _ := NewDataIndexer(arguments)
 
-	ei.RevertIndexedBlock(&dataBlock.Header{}, &dataBlock.Body{})
+	err := ei.RevertIndexedBlock(&dataBlock.Header{}, &dataBlock.Body{})
 	require.True(t, called)
+	require.Nil(t, err)
 }

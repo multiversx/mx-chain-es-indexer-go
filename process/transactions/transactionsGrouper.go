@@ -239,7 +239,8 @@ func (tg *txsGrouper) addToAlteredAddresses(
 ) {
 	if selfShardID == miniBlock.SenderShardID && !isRewardTx {
 		alteredAccounts.Add(tx.Sender, &data.AlteredAccount{
-			IsSender: true,
+			IsSender:      true,
+			BalanceChange: true,
 		})
 	}
 
@@ -250,7 +251,8 @@ func (tg *txsGrouper) addToAlteredAddresses(
 
 	if selfShardID == miniBlock.ReceiverShardID || miniBlock.ReceiverShardID == core.AllShardId {
 		alteredAccounts.Add(tx.Receiver, &data.AlteredAccount{
-			IsSender: false,
+			IsSender:      false,
+			BalanceChange: true,
 		})
 	}
 }

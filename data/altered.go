@@ -2,6 +2,7 @@ package data
 
 // AlteredAccount is a structure that holds information about an altered account
 type AlteredAccount struct {
+	BalanceChange   bool
 	IsSender        bool
 	IsESDTOperation bool
 	IsNFTOperation  bool

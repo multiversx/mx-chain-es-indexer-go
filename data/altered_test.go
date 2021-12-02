@@ -13,7 +13,9 @@ func TestAlteredAccounts_Add(t *testing.T) {
 	altAccounts := NewAlteredAccounts()
 
 	addr := "my-addr"
-	acct1 := &AlteredAccount{}
+	acct1 := &AlteredAccount{
+		BalanceChange: true,
+	}
 	altAccounts.Add(addr, acct1)
 
 	acct2 := &AlteredAccount{
@@ -25,6 +27,30 @@ func TestAlteredAccounts_Add(t *testing.T) {
 	require.True(t, ok)
 	require.Equal(t, 1, len(res))
 	require.True(t, res[0].IsSender)
+	require.True(t, res[0].BalanceChange)
+}
+
+func TestAlteredAccounts_AddTokenAddFunds(t *testing.T) {
+	t.Parallel()
+
+	altAccounts := NewAlteredAccounts()
+
+	addr := "my-addr"
+	acct1 := &AlteredAccount{
+		BalanceChange: true,
+	}
+	altAccounts.Add(addr, acct1)
+
+	acct2 := &AlteredAccount{
+		IsESDTOperation: true,
+		TokenIdentifier: "my-token",
+	}
+	altAccounts.Add(addr, acct2)
+
+	res, ok := altAccounts.Get(addr)
+	require.True(t, ok)
+	require.Equal(t, 1, len(res))
+	require.True(t, res[0].BalanceChange)
 }
 
 func TestAlteredAccounts_AddESDT(t *testing.T) {
@@ -32,7 +58,9 @@ func TestAlteredAccounts_AddESDT(t *testing.T) {
 
 	altAccounts := NewAlteredAccounts()
 
-	acct1 := &AlteredAccount{}
+	acct1 := &AlteredAccount{
+		BalanceChange: true,
+	}
 	addr := "my-addr"
 	altAccounts.Add(addr, acct1)
 
@@ -83,6 +111,7 @@ func TestAlteredAccounts_AddESDT(t *testing.T) {
 	require.True(t, ok)
 	require.Equal(t, 3, len(res))
 	require.Equal(t, &AlteredAccount{
+		BalanceChange:   true,
 		IsSender:        true,
 		IsESDTOperation: true,
 		TokenIdentifier: "my-token",

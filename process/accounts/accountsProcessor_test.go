@@ -240,7 +240,11 @@ func TestAccountsProcessor_GetAccountsESDTAccount(t *testing.T) {
 	t.Parallel()
 
 	addr := "aaaabbbb"
-	mockAccount := &mock.UserAccountStub{}
+	mockAccount := &mock.UserAccountStub{
+		GetBalanceCalled: func() *big.Int {
+			return big.NewInt(1)
+		},
+	}
 	accountsStub := &mock.AccountsStub{
 		LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
 			return mockAccount, nil
@@ -259,6 +263,39 @@ func TestAccountsProcessor_GetAccountsESDTAccount(t *testing.T) {
 	require.Equal(t, []*data.AccountESDT{
 		{Account: mockAccount, TokenIdentifier: "token"},
 	}, esdtAccounts)
+}
+
+func TestAccountsProcessor_GetAccountsESDTAccountNewAccountShouldBeInRegularAccounts(t *testing.T) {
+	t.Parallel()
+
+	addr := "aaaabbbb"
+	mockAccount := &mock.UserAccountStub{
+		GetBalanceCalled: func() *big.Int {
+			return big.NewInt(0)
+		},
+	}
+	accountsStub := &mock.AccountsStub{
+		LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
+			return mockAccount, nil
+		},
+	}
+	ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), accountsStub, balanceConverter)
+	require.NotNil(t, ap)
+
+	alteredAccounts := data.NewAlteredAccounts()
+	alteredAccounts.Add(addr, &data.AlteredAccount{
+		IsESDTOperation: true,
+		TokenIdentifier: "token",
+	})
+	accounts, esdtAccounts := ap.GetAccounts(alteredAccounts)
+	require.Equal(t, 1, len(accounts))
+	require.Equal(t, []*data.AccountESDT{
+		{Account: mockAccount, TokenIdentifier: "token"},
+	}, esdtAccounts)
+
+	require.Equal(t, []*data.Account{
+		{UserAccount: mockAccount, IsSender: false},
+	}, accounts)
 }
 
 func TestAccountsProcessor_PrepareAccountsMapEGLD(t *testing.T) {
