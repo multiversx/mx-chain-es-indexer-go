@@ -1,3 +1,6 @@
+//go:build integration
+// +build integration
+
 package integrationtests
 
 import (
@@ -17,8 +20,6 @@ import (
 const moveBalanceTransaction = `{"miniBlockHash":"24c374c9405540e88a36959ea83eede6ad50f6872f82d2e2a2280975615e1811","nonce":1,"round":50,"value":"1234","receiver":"7265636569766572","sender":"73656e646572","receiverShard":0,"senderShard":0,"gasPrice":1000000000,"gasLimit":70000,"gasUsed":62000,"fee":"62000000000000","data":"dHJhbnNmZXI=","signature":"","timestamp":5040,"status":"success","searchOrder":0}`
 
 func TestElasticIndexerSaveTransactions(t *testing.T) {
-	t.Skip("integration test, should be run only when doing debugging")
-
 	setLogLevelDebug()
 
 	esClient, err := createESClient(esURL)
