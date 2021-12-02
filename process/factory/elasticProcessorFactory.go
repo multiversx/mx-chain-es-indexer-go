@@ -81,7 +81,7 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (indexer.Elast
 
 	generalInfoProc := statistics.NewStatisticsProcessor()
 
-	operationsProc, err := operations.NewOperationsProcessor(arguments.ShardCoordinator)
+	operationsProc, err := operations.NewOperationsProcessor(arguments.IsInImportDBMode, arguments.ShardCoordinator)
 	if err != nil {
 		return nil, err
 	}
