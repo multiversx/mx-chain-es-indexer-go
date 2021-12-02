@@ -23,6 +23,7 @@ func (op *operationsProcessor) ProcessTransactionsAndSCRS(txs []*data.Transactio
 	for _, tx := range txs {
 		tx.Logs = nil
 		tx.SmartContractResults = nil
+		tx.Receipt = nil
 		tx.Type = string(transaction.TxTypeNormal)
 	}
 

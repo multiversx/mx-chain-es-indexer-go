@@ -12,11 +12,12 @@ import (
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/receipt"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/stretchr/testify/require"
 )
 
-const moveBalanceTransaction = `{"miniBlockHash":"24c374c9405540e88a36959ea83eede6ad50f6872f82d2e2a2280975615e1811","nonce":1,"round":50,"value":"1234","receiver":"7265636569766572","sender":"73656e646572","receiverShard":0,"senderShard":0,"gasPrice":1000000000,"gasLimit":70000,"gasUsed":62000,"fee":"62000000000000","data":"dHJhbnNmZXI=","signature":"","timestamp":5040,"status":"success","searchOrder":0}`
+const moveBalanceTransaction = `{"miniBlockHash":"24c374c9405540e88a36959ea83eede6ad50f6872f82d2e2a2280975615e1811","nonce":1,"round":50,"value":"1234","receiver":"7265636569766572","sender":"73656e646572","receiverShard":0,"senderShard":0,"gasPrice":1000000000,"gasLimit":70000,"gasUsed":62000,"fee":"62000000000000","data":"dHJhbnNmZXI=","signature":"","timestamp":5040,"status":"success","searchOrder":0,"receipt":{"value":"1000","data":"gasRefund"}}`
 
 func TestElasticIndexerSaveTransactions(t *testing.T) {
 	setLogLevelDebug()
@@ -56,6 +57,14 @@ func TestElasticIndexerSaveTransactions(t *testing.T) {
 				GasPrice: 1000000000,
 				Data:     []byte("transfer"),
 				Value:    big.NewInt(1234),
+			},
+		},
+		Receipts: map[string]coreData.TransactionHandler{
+			string("recHash"): &receipt.Receipt{
+				SndAddr: []byte("sender"),
+				Value:   big.NewInt(1000),
+				Data:    []byte("gasRefund"),
+				TxHash:  txHash,
 			},
 		},
 	}

@@ -119,6 +119,6 @@ func TestGroupReceipts(t *testing.T) {
 		},
 	}
 
-	normalTxs := grouper.groupReceipts(header, txs)
+	normalTxs := grouper.groupReceiptsAndAttachToTxs(header, txs, nil)
 	require.Len(t, normalTxs, 2)
 }

@@ -54,7 +54,7 @@ func createMockElasticProcessorArgs() *ArgElasticProcessor {
 	mp, _ := miniblocks.NewMiniblocksProcessor(0, &mock.HasherMock{}, &mock.MarshalizerMock{})
 	vp, _ := validators.NewValidatorsProcessor(mock.NewPubkeyConverterMock(32))
 	lp, _ := logsevents.NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{}, balanceConverter, &mock.HasherMock{})
-	op, _ := operations.NewOperationsProcessor(&mock.ShardCoordinatorMock{})
+	op, _ := operations.NewOperationsProcessor(false, &mock.ShardCoordinatorMock{})
 
 	return &ArgElasticProcessor{
 		DBClient: &mock.DatabaseWriterStub{},

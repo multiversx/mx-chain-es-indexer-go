@@ -35,6 +35,7 @@ type Transaction struct {
 	ESDTValues           []string             `json:"esdtValues,omitempty"`
 	SmartContractResults map[string]*ScResult `json:"scresults,omitempty"`
 	Logs                 []*Logs              `json:"logs,omitempty"`
+	Receipt              *Receipt             `json:"receipt,omitempty"`
 	ReceiverAddressBytes []byte               `json:"-"`
 	Hash                 string               `json:"-"`
 	BlockHash            string               `json:"-"`
@@ -77,10 +78,10 @@ func (t *Transaction) GetValue() *big.Int {
 type Receipt struct {
 	Hash      string        `json:"-"`
 	Value     string        `json:"value"`
-	Sender    string        `json:"sender"`
+	Sender    string        `json:"sender,omitempty"`
 	Data      string        `json:"data,omitempty"`
-	TxHash    string        `json:"txHash"`
-	Timestamp time.Duration `json:"timestamp"`
+	TxHash    string        `json:"txHash,omitempty"`
+	Timestamp time.Duration `json:"timestamp,omitempty"`
 }
 
 // ScResult is a structure containing all the fields that need to be saved for a smart contract result

@@ -198,18 +198,37 @@ func (tg *txsGrouper) shouldIndex(destinationShardID uint32) bool {
 	return tg.selfShardID == destinationShardID
 }
 
-func (tg *txsGrouper) groupReceipts(header coreData.HeaderHandler, txsPool map[string]coreData.TransactionHandler) []*data.Receipt {
+func (tg *txsGrouper) groupReceiptsAndAttachToTxs(
+	header coreData.HeaderHandler,
+	receiptsPool map[string]coreData.TransactionHandler,
+	txs map[string]*data.Transaction,
+) []*data.Receipt {
 	dbReceipts := make([]*data.Receipt, 0)
-	for hash, tx := range txsPool {
-		rec, ok := tx.(*receipt.Receipt)
+	for recHash, txHandler := range receiptsPool {
+		rec, ok := txHandler.(*receipt.Receipt)
 		if !ok {
 			continue
 		}
 
-		dbReceipts = append(dbReceipts, tg.txBuilder.prepareReceipt(hash, rec, header))
+		dbRec := tg.txBuilder.prepareReceipt(recHash, rec, header)
+		dbReceipts = append(dbReceipts, dbRec)
+
+		tx, ok := txs[string(rec.TxHash)]
+		if ok {
+			addReceiptToTx(tx, dbRec)
+		}
 	}
 
 	return dbReceipts
+}
+
+func addReceiptToTx(tx *data.Transaction, rec *data.Receipt) {
+	clonedRec := *rec
+	clonedRec.TxHash = ""
+	clonedRec.Timestamp = 0
+	clonedRec.Sender = ""
+
+	tx.Receipt = &clonedRec
 }
 
 func computeStatus(selfShardID uint32, receiverShardID uint32) string {

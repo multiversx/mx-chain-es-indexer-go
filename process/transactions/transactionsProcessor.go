@@ -114,7 +114,7 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 	}
 
 	normalTxs = tdp.setTransactionSearchOrder(normalTxs)
-	dbReceipts := tdp.txsGrouper.groupReceipts(header, pool.Receipts)
+	dbReceipts := tdp.txsGrouper.groupReceiptsAndAttachToTxs(header, pool.Receipts, normalTxs)
 	dbSCResults := tdp.scrsProc.processSCRs(body, header, pool.Scrs)
 
 	tdp.scrsProc.addScrsReceiverToAlteredAccounts(alteredAccounts, dbSCResults)
