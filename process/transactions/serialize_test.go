@@ -62,9 +62,9 @@ func TestSerializeReceipts(t *testing.T) {
 	require.Equal(t, 1, len(res))
 
 	expectedRes := `{ "index" : { "_id" : "recHash1" } }
-{"value":"","sender":"sender1","txHash":"txHash1","timestamp":0}
+{"value":"","sender":"sender1","txHash":"txHash1"}
 { "index" : { "_id" : "recHash2" } }
-{"value":"","sender":"sender2","txHash":"txHash2","timestamp":0}
+{"value":"","sender":"sender2","txHash":"txHash2"}
 `
 	require.Equal(t, expectedRes, res[0].String())
 }
