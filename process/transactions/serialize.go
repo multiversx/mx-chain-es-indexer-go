@@ -84,6 +84,7 @@ func (tdp *txsDatabaseProcessor) SerializeReceipts(receipts []*data.Receipt) ([]
 }
 
 // SerializeTransactionWithRefund will serialize transaction based on refund
+// TODO this should be done also on the operations index
 func (tdp *txsDatabaseProcessor) SerializeTransactionWithRefund(
 	txs map[string]*data.Transaction,
 	txHashRefund map[string]*data.RefundData,
@@ -197,7 +198,7 @@ func prepareSerializedDataForATransaction(
 		return metaData, serializedData, nil
 	}
 
-	if isNFTTransferOrMultiTransfer(tx) {
+	if isNFTTransferOrMultiTransfer(tx) || tx.HasSCR {
 		serializedData, errPrep := prepareNFTESDTTransferOrMultiESDTTransfer(marshaledTx)
 		if errPrep != nil {
 			return nil, nil, err
@@ -216,8 +217,11 @@ func prepareSerializedDataForATransaction(
 func prepareNFTESDTTransferOrMultiESDTTransfer(marshaledTx []byte) ([]byte, error) {
 	serializedData := []byte(fmt.Sprintf(`{"script":{"source":"`+
 		`def status = ctx._source.status;`+
+		`def allSCRS = (ctx._source.containsKey('scresults')) ? ctx._source.scresults: new HashMap();`+
+		`if (params.tx.containsKey('scresults')) { allSCRS.putAll(params.tx.scresults) }`+
 		`ctx._source = params.tx;`+
-		`ctx._source.status = status;`+
+		`if ( status != null && !status.trim().isEmpty() ) { ctx._source.status = status }`+
+		`if ( allSCRS.size() != 0 ) { ctx._source.scresults = allSCRS }`+
 		`","lang": "painless","params":`+
 		`{"tx": %s}},"upsert":%s}`,
 		string(marshaledTx), string(marshaledTx)))
