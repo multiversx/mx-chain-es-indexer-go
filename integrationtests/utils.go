@@ -58,5 +58,18 @@ func compareTxs(t *testing.T, expected []byte, actual []byte) {
 	err = json.Unmarshal(actual, actualTx)
 	require.Nil(t, err)
 
+	mapSCRSActualTX := actualTx.SmartContractResults
+	mapSCRSExpectedTX := expectedTx.SmartContractResults
+
+	actualTx.SmartContractResults = nil
+	expectedTx.SmartContractResults = nil
 	require.Equal(t, expectedTx, actualTx)
+
+	require.Equal(t, len(mapSCRSExpectedTX), len(mapSCRSActualTX))
+
+	for scrHash, expectedSCR := range mapSCRSExpectedTX {
+		actualSCR, ok := mapSCRSActualTX[scrHash]
+		require.True(t, ok)
+		require.Equal(t, expectedSCR, actualSCR)
+	}
 }
