@@ -469,9 +469,9 @@ func (ei *elasticProcessor) prepareAndIndexOperations(txs []*data.Transaction, t
 		return nil
 	}
 
-	ei.operationsProc.ProcessTransactionsAndSCRS(txs, scrs)
+	processedTxs, processedSCRs := ei.operationsProc.ProcessTransactionsAndSCRS(txs, scrs)
 
-	buffSlice, err := ei.transactionsProc.SerializeTransactions(txs, txHashStatus, header.GetShardID(), nil)
+	buffSlice, err := ei.transactionsProc.SerializeTransactions(processedTxs, txHashStatus, header.GetShardID(), nil)
 	if err != nil {
 		return err
 	}
@@ -481,7 +481,7 @@ func (ei *elasticProcessor) prepareAndIndexOperations(txs []*data.Transaction, t
 		return err
 	}
 
-	buffSliceSCRs, err := ei.operationsProc.SerializeSCRS(scrs)
+	buffSliceSCRs, err := ei.operationsProc.SerializeSCRS(processedSCRs)
 	if err != nil {
 		return err
 	}
