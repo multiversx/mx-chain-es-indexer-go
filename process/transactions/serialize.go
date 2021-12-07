@@ -215,13 +215,20 @@ func prepareSerializedDataForATransaction(
 }
 
 func prepareNFTESDTTransferOrMultiESDTTransfer(marshaledTx []byte) ([]byte, error) {
+	//serializedData := []byte(fmt.Sprintf(`{"script":{"source":"`+
+	//	`def status = ctx._source.status;`+
+	//	`def allSCRS = (ctx._source.containsKey('scresults')) ? ctx._source.scresults: new HashMap();`+
+	//	`if (params.tx.containsKey('scresults')) { allSCRS.putAll(params.tx.scresults) }`+
+	//	`ctx._source = params.tx;`+
+	//	`if ( status != null && !status.trim().isEmpty() ) { ctx._source.status = status }`+
+	//	`if ( allSCRS.size() != 0 ) { ctx._source.scresults = allSCRS }`+
+	//	`","lang": "painless","params":`+
+	//	`{"tx": %s}},"upsert":%s}`,
+	//	string(marshaledTx), string(marshaledTx)))
 	serializedData := []byte(fmt.Sprintf(`{"script":{"source":"`+
 		`def status = ctx._source.status;`+
-		`def allSCRS = (ctx._source.containsKey('scresults')) ? ctx._source.scresults: new HashMap();`+
-		`if (params.tx.containsKey('scresults')) { allSCRS.putAll(params.tx.scresults) }`+
 		`ctx._source = params.tx;`+
-		`if ( status != null && !status.trim().isEmpty() ) { ctx._source.status = status }`+
-		`if ( allSCRS.size() != 0 ) { ctx._source.scresults = allSCRS }`+
+		`ctx._source.status = status;`+
 		`","lang": "painless","params":`+
 		`{"tx": %s}},"upsert":%s}`,
 		string(marshaledTx), string(marshaledTx)))
