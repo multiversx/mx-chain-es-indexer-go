@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
-	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
@@ -441,7 +440,7 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
-	err = ei.indexAlteredAccounts(headerTimestamp, preparedResults.AlteredAccts, logsData.PendingBalances)
+	err = ei.indexAlteredAccounts(headerTimestamp, preparedResults.AlteredAccts)
 	if err != nil {
 		return err
 	}
@@ -637,7 +636,6 @@ func (ei *elasticProcessor) SaveRoundsInfo(info []*data.RoundInfo) error {
 func (ei *elasticProcessor) indexAlteredAccounts(
 	timestamp uint64,
 	alteredAccounts data.AlteredAccountsHandler,
-	pendingBalances map[string]*data.AccountInfo,
 ) error {
 	regularAccountsToIndex, accountsToIndexESDT := ei.accountsProc.GetAccounts(alteredAccounts)
 
@@ -646,18 +644,16 @@ func (ei *elasticProcessor) indexAlteredAccounts(
 		return err
 	}
 
-	return ei.saveAccountsESDT(timestamp, accountsToIndexESDT, pendingBalances)
+	return ei.saveAccountsESDT(timestamp, accountsToIndexESDT)
 }
 
 func (ei *elasticProcessor) saveAccountsESDT(
 	timestamp uint64,
 	wrappedAccounts []*data.AccountESDT,
-	pendingBalances map[string]*data.AccountInfo,
 ) error {
 	accountsESDTMap := ei.accountsProc.PrepareAccountsMapESDT(wrappedAccounts)
 
-	resAccountsMap := converters.MergeAccountsInfoMaps(accountsESDTMap, pendingBalances)
-	err := ei.indexAccountsESDT(resAccountsMap)
+	err := ei.indexAccountsESDT(accountsESDTMap)
 	if err != nil {
 		return err
 	}

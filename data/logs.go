@@ -20,10 +20,9 @@ type Event struct {
 
 // PreparedLogsResults is the DTO that holds all the results after processing
 type PreparedLogsResults struct {
-	Tokens          TokensHandler
-	TagsCount       CountTags
-	ScDeploys       map[string]*ScDeployInfo
-	PendingBalances map[string]*AccountInfo
-	Delegators      map[string]*Delegator
-	TokensInfo      []*TokenInfo
+	Tokens     TokensHandler
+	TagsCount  CountTags
+	ScDeploys  map[string]*ScDeployInfo
+	Delegators map[string]*Delegator
+	TokensInfo []*TokenInfo
 }

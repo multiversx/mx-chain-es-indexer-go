@@ -7,7 +7,6 @@ import (
 
 type argsProcessEvent struct {
 	txHashHexEncoded string
-	pendingBalances  *pendingBalancesProc
 	scDeploys        map[string]*data.ScDeployInfo
 	event            coreData.EventHandler
 	accounts         data.AlteredAccountsHandler
