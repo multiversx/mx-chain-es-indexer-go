@@ -15,32 +15,32 @@ func serializeSCRSNoTxInCurrentShard(
 	buffSlice *data.BufferSlice,
 	scrs []*data.ScResult,
 ) error {
-	for idx := 0; idx < len(scrs); idx++ {
-		scr := scrs[idx]
-
-		metaData := []byte(fmt.Sprintf(`{"update":{"_id":"%s", "_type": "_doc"}}%s`, scr.OriginalTxHash, "\n"))
-
-		newTx := &data.Transaction{
-			SmartContractResults: map[string]*data.ScResult{
-				scr.Hash: scr,
-			},
-		}
-		marshaledTx, err := json.Marshal(newTx)
-		if err != nil {
-			return err
-		}
-
-		marshaledSCR, err := json.Marshal(scr)
-		if err != nil {
-			return err
-		}
-
-		serializedData := []byte(fmt.Sprintf(`{"script": {"source": "if (!ctx._source.containsKey('scresults')) {ctx._source.scresults = new HashMap() } ctx._source.scresults.put(params.hash, params.scr)","lang": "painless","params": {"hash": "%s", "scr" : %s}},"upsert": %s }`, scr.Hash, string(marshaledSCR), string(marshaledTx)))
-		err = buffSlice.PutData(metaData, serializedData)
-		if err != nil {
-			return err
-		}
-	}
+	//for idx := 0; idx < len(scrs); idx++ {
+	//	scr := scrs[idx]
+	//
+	//	metaData := []byte(fmt.Sprintf(`{"update":{"_id":"%s", "_type": "_doc"}}%s`, scr.OriginalTxHash, "\n"))
+	//
+	//	newTx := &data.Transaction{
+	//		SmartContractResults: map[string]*data.ScResult{
+	//			scr.Hash: scr,
+	//		},
+	//	}
+	//	marshaledTx, err := json.Marshal(newTx)
+	//	if err != nil {
+	//		return err
+	//	}
+	//
+	//	marshaledSCR, err := json.Marshal(scr)
+	//	if err != nil {
+	//		return err
+	//	}
+	//
+	//	serializedData := []byte(fmt.Sprintf(`{"script": {"source": "if (!ctx._source.containsKey('scresults')) {ctx._source.scresults = new HashMap() } ctx._source.scresults.put(params.hash, params.scr)","lang": "painless","params": {"hash": "%s", "scr" : %s}},"upsert": %s }`, scr.Hash, string(marshaledSCR), string(marshaledTx)))
+	//	err = buffSlice.PutData(metaData, serializedData)
+	//	if err != nil {
+	//		return err
+	//	}
+	//}
 
 	return nil
 }
