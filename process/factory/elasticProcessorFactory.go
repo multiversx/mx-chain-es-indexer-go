@@ -93,13 +93,15 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (indexer.Elast
 		return nil, err
 	}
 
-	logsAndEventsProc, err := logsevents.NewLogsAndEventsProcessor(
-		arguments.ShardCoordinator,
-		arguments.AddressPubkeyConverter,
-		arguments.Marshalizer,
-		balanceConverter,
-		arguments.Hasher,
-	)
+	argsLogsAndEventsProc := &logsevents.ArgsLogsAndEventsProcessor{
+		ShardCoordinator: arguments.ShardCoordinator,
+		PubKeyConverter:  arguments.AddressPubkeyConverter,
+		Marshalizer:      arguments.Marshalizer,
+		BalanceConverter: balanceConverter,
+		Hasher:           arguments.Hasher,
+		TxFeeCalculator:  arguments.TransactionFeeCalculator,
+	}
+	logsAndEventsProc, err := logsevents.NewLogsAndEventsProcessor(argsLogsAndEventsProc)
 	if err != nil {
 		return nil, err
 	}

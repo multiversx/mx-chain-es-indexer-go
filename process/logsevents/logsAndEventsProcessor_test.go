@@ -15,26 +15,53 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func createMockArgs() *ArgsLogsAndEventsProcessor {
+	balanceConverter, _ := converters.NewBalanceConverter(10)
+	return &ArgsLogsAndEventsProcessor{
+		ShardCoordinator: &mock.ShardCoordinatorMock{},
+		PubKeyConverter:  &mock.PubkeyConverterMock{},
+		Marshalizer:      &mock.MarshalizerMock{},
+		BalanceConverter: balanceConverter,
+		Hasher:           &mock.HasherMock{},
+		TxFeeCalculator:  &mock.EconomicsHandlerStub{},
+	}
+}
+
 func TestNewLogsAndEventsProcessor(t *testing.T) {
 	t.Parallel()
 
-	balanceConverter, _ := converters.NewBalanceConverter(10)
-	_, err := NewLogsAndEventsProcessor(nil, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{}, balanceConverter, &mock.HasherMock{})
+	args := createMockArgs()
+	args.ShardCoordinator = nil
+	_, err := NewLogsAndEventsProcessor(args)
 	require.Equal(t, elasticIndexer.ErrNilShardCoordinator, err)
 
-	_, err = NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, nil, &mock.MarshalizerMock{}, balanceConverter, &mock.HasherMock{})
+	args = createMockArgs()
+	args.PubKeyConverter = nil
+	_, err = NewLogsAndEventsProcessor(args)
 	require.Equal(t, elasticIndexer.ErrNilPubkeyConverter, err)
 
-	_, err = NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, nil, balanceConverter, &mock.HasherMock{})
+	args = createMockArgs()
+	args.Marshalizer = nil
+	_, err = NewLogsAndEventsProcessor(args)
 	require.Equal(t, elasticIndexer.ErrNilMarshalizer, err)
 
-	_, err = NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{}, nil, &mock.HasherMock{})
+	args = createMockArgs()
+	args.BalanceConverter = nil
+	_, err = NewLogsAndEventsProcessor(args)
 	require.Equal(t, elasticIndexer.ErrNilBalanceConverter, err)
 
-	_, err = NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{}, balanceConverter, nil)
+	args = createMockArgs()
+	args.Hasher = nil
+	_, err = NewLogsAndEventsProcessor(args)
 	require.Equal(t, elasticIndexer.ErrNilHasher, err)
 
-	proc, err := NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{}, balanceConverter, &mock.HasherMock{})
+	args = createMockArgs()
+	args.TxFeeCalculator = nil
+	_, err = NewLogsAndEventsProcessor(args)
+	require.Equal(t, elasticIndexer.ErrNilTransactionFeeCalculator, err)
+
+	args = createMockArgs()
+	proc, err := NewLogsAndEventsProcessor(args)
 	require.NotNil(t, proc)
 	require.Nil(t, err)
 }
@@ -112,10 +139,13 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 		AlteredAccts: altered,
 	}
 
+	args := createMockArgs()
 	balanceConverter, _ := converters.NewBalanceConverter(10)
-	proc, _ := NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{
+	args.BalanceConverter = balanceConverter
+	args.ShardCoordinator = &mock.ShardCoordinatorMock{
 		SelfID: core.MetachainShardId,
-	}, mock.NewPubkeyConverterMock(32), &mock.MarshalizerMock{}, balanceConverter, &mock.HasherMock{})
+	}
+	proc, _ := NewLogsAndEventsProcessor(args)
 
 	resLogs := proc.ExtractDataFromLogs(logsAndEvents, res, 1000)
 	require.NotNil(t, resLogs.Tokens)
@@ -171,8 +201,8 @@ func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 		},
 	}
 
-	balanceConverter, _ := converters.NewBalanceConverter(10)
-	proc, _ := NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, mock.NewPubkeyConverterMock(32), &mock.MarshalizerMock{}, balanceConverter, &mock.HasherMock{})
+	args := createMockArgs()
+	proc, _ := NewLogsAndEventsProcessor(args)
 
 	logsDB := proc.PrepareLogsForDB(logsAndEvents, 1234)
 	require.Equal(t, &data.Logs{
