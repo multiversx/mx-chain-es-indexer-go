@@ -13,6 +13,16 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
 )
 
+// ArgsLogsAndEventsProcessor  holds all dependencies required to create new instances of logsAndEventsProcessor
+type ArgsLogsAndEventsProcessor struct {
+	ShardCoordinator elasticIndexer.ShardCoordinator
+	PubKeyConverter  core.PubkeyConverter
+	Marshalizer      marshal.Marshalizer
+	BalanceConverter elasticIndexer.BalanceConverter
+	Hasher           hashing.Hasher
+	TxFeeCalculator  elasticIndexer.FeesProcessorHandler
+}
+
 type logsAndEventsProcessor struct {
 	hasher           hashing.Hasher
 	pubKeyConverter  core.PubkeyConverter
@@ -22,53 +32,49 @@ type logsAndEventsProcessor struct {
 }
 
 // NewLogsAndEventsProcessor will create a new instance for the logsAndEventsProcessor
-func NewLogsAndEventsProcessor(
-	shardCoordinator elasticIndexer.ShardCoordinator,
-	pubKeyConverter core.PubkeyConverter,
-	marshalizer marshal.Marshalizer,
-	balanceConverter elasticIndexer.BalanceConverter,
-	hasher hashing.Hasher,
-	txFeeCalculator elasticIndexer.FeesProcessorHandler,
-) (*logsAndEventsProcessor, error) {
-	if check.IfNil(shardCoordinator) {
-		return nil, elasticIndexer.ErrNilShardCoordinator
-	}
-	if check.IfNil(pubKeyConverter) {
-		return nil, elasticIndexer.ErrNilPubkeyConverter
-	}
-	if check.IfNil(marshalizer) {
-		return nil, elasticIndexer.ErrNilMarshalizer
-	}
-	if check.IfNil(balanceConverter) {
-		return nil, elasticIndexer.ErrNilBalanceConverter
-	}
-	if check.IfNil(hasher) {
-		return nil, elasticIndexer.ErrNilHasher
-	}
-	if check.IfNil(txFeeCalculator) {
-		return nil, elasticIndexer.ErrNilTransactionFeeCalculator
+func NewLogsAndEventsProcessor(args *ArgsLogsAndEventsProcessor) (*logsAndEventsProcessor, error) {
+	err := checkArgsLogsAndEventsProcessor(args)
+	if err != nil {
+		return nil, err
 	}
 
-	eventsProcessors := createEventsProcessors(shardCoordinator, pubKeyConverter, marshalizer, balanceConverter, txFeeCalculator)
+	eventsProcessors := createEventsProcessors(args)
 
 	return &logsAndEventsProcessor{
-		pubKeyConverter:  pubKeyConverter,
+		pubKeyConverter:  args.PubKeyConverter,
 		eventsProcessors: eventsProcessors,
-		hasher:           hasher,
+		hasher:           args.Hasher,
 	}, nil
 }
 
-func createEventsProcessors(
-	shardCoordinator elasticIndexer.ShardCoordinator,
-	pubKeyConverter core.PubkeyConverter,
-	marshalizer marshal.Marshalizer,
-	balanceConverter elasticIndexer.BalanceConverter,
-	txFeeCalculator elasticIndexer.FeesProcessorHandler,
-) []eventsProcessor {
-	nftsProc := newNFTsProcessor(shardCoordinator, pubKeyConverter, marshalizer)
-	fungibleProc := newFungibleESDTProcessor(pubKeyConverter, shardCoordinator)
-	scDeploysProc := newSCDeploysProcessor(pubKeyConverter)
-	informativeProc := newInformativeLogsProcessor(txFeeCalculator)
+func checkArgsLogsAndEventsProcessor(args *ArgsLogsAndEventsProcessor) error {
+	if check.IfNil(args.ShardCoordinator) {
+		return elasticIndexer.ErrNilShardCoordinator
+	}
+	if check.IfNil(args.PubKeyConverter) {
+		return elasticIndexer.ErrNilPubkeyConverter
+	}
+	if check.IfNil(args.Marshalizer) {
+		return elasticIndexer.ErrNilMarshalizer
+	}
+	if check.IfNil(args.BalanceConverter) {
+		return elasticIndexer.ErrNilBalanceConverter
+	}
+	if check.IfNil(args.Hasher) {
+		return elasticIndexer.ErrNilHasher
+	}
+	if check.IfNil(args.TxFeeCalculator) {
+		return elasticIndexer.ErrNilTransactionFeeCalculator
+	}
+
+	return nil
+}
+
+func createEventsProcessors(args *ArgsLogsAndEventsProcessor) []eventsProcessor {
+	nftsProc := newNFTsProcessor(args.ShardCoordinator, args.PubKeyConverter, args.Marshalizer)
+	fungibleProc := newFungibleESDTProcessor(args.PubKeyConverter, args.ShardCoordinator)
+	scDeploysProc := newSCDeploysProcessor(args.PubKeyConverter)
+	informativeProc := newInformativeLogsProcessor(args.TxFeeCalculator)
 
 	eventsProcs := []eventsProcessor{
 		fungibleProc,
@@ -77,11 +83,11 @@ func createEventsProcessors(
 		informativeProc,
 	}
 
-	if shardCoordinator.SelfId() == core.MetachainShardId {
-		esdtIssueProc := newESDTIssueProcessor(pubKeyConverter)
+	if args.ShardCoordinator.SelfId() == core.MetachainShardId {
+		esdtIssueProc := newESDTIssueProcessor(args.PubKeyConverter)
 		eventsProcs = append(eventsProcs, esdtIssueProc)
 
-		delegatorsProcessor := newDelegatorsProcessor(pubKeyConverter, balanceConverter)
+		delegatorsProcessor := newDelegatorsProcessor(args.PubKeyConverter, args.BalanceConverter)
 		eventsProcs = append(eventsProcs, delegatorsProcessor)
 	}
 
