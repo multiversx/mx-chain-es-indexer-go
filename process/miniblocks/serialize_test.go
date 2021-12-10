@@ -11,7 +11,7 @@ import (
 func TestMiniblocksProcessor_SerializeBulkMiniBlocks(t *testing.T) {
 	t.Parallel()
 
-	mp, _ := NewMiniblocksProcessor(0, mock.HasherMock{}, &mock.MarshalizerMock{})
+	mp, _ := NewMiniblocksProcessor(0, mock.HasherMock{}, &mock.MarshalizerMock{}, false)
 
 	miniblocks := []*data.Miniblock{
 		{Hash: "h1", SenderShardID: 0, ReceiverShardID: 1},
@@ -31,7 +31,7 @@ func TestMiniblocksProcessor_SerializeBulkMiniBlocks(t *testing.T) {
 func TestMiniblocksProcessor_SerializeBulkMiniBlocksInDB(t *testing.T) {
 	t.Parallel()
 
-	mp, _ := NewMiniblocksProcessor(0, mock.HasherMock{}, &mock.MarshalizerMock{})
+	mp, _ := NewMiniblocksProcessor(0, mock.HasherMock{}, &mock.MarshalizerMock{}, false)
 
 	miniblocks := []*data.Miniblock{
 		{Hash: "h1", SenderShardID: 0, ReceiverShardID: 1},
