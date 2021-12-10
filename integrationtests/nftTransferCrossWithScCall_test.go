@@ -1,3 +1,5 @@
+//go:build integration
+
 package integrationtests
 
 import (
@@ -20,8 +22,6 @@ const (
 )
 
 func TestNFTTransferCrossShardWithScCall(t *testing.T) {
-	t.Skip("integration test, should be run only when doing debugging")
-
 	setLogLevelDebug()
 
 	esClient, err := createESClient(esURL)
