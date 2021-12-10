@@ -86,9 +86,11 @@ func (np *nftsProcessor) processEvent(args *argsProcessEvent) argOutputProcessEv
 	if receiverShardID != np.shardCoordinator.SelfId() {
 		args.pendingBalances.addInfo(encodedReceiver, token, nonceBig.Uint64(), valueBig.String())
 		return argOutputProcessEvent{
-			identifier: identifier,
-			value:      valueBig.String(),
-			processed:  true,
+			identifier:      identifier,
+			value:           valueBig.String(),
+			processed:       true,
+			receiver:        encodedReceiver,
+			receiverShardID: receiverShardID,
 		}
 	}
 
@@ -105,9 +107,11 @@ func (np *nftsProcessor) processEvent(args *argsProcessEvent) argOutputProcessEv
 	})
 
 	return argOutputProcessEvent{
-		identifier: identifier,
-		value:      valueBig.String(),
-		processed:  true,
+		identifier:      identifier,
+		value:           valueBig.String(),
+		processed:       true,
+		receiver:        encodedReceiver,
+		receiverShardID: receiverShardID,
 	}
 }
 

@@ -29,7 +29,7 @@ var (
 	indexes = []string{
 		elasticIndexer.TransactionsIndex, elasticIndexer.BlockIndex, elasticIndexer.MiniblocksIndex, elasticIndexer.RatingIndex, elasticIndexer.RoundsIndex, elasticIndexer.ValidatorsIndex,
 		elasticIndexer.AccountsIndex, elasticIndexer.AccountsHistoryIndex, elasticIndexer.ReceiptsIndex, elasticIndexer.ScResultsIndex, elasticIndexer.AccountsESDTHistoryIndex, elasticIndexer.AccountsESDTIndex,
-		elasticIndexer.EpochInfoIndex, elasticIndexer.SCDeploysIndex, elasticIndexer.TokensIndex, elasticIndexer.TagsIndex, elasticIndexer.LogsIndex, elasticIndexer.DelegatorsIndex,
+		elasticIndexer.EpochInfoIndex, elasticIndexer.SCDeploysIndex, elasticIndexer.TokensIndex, elasticIndexer.TagsIndex, elasticIndexer.LogsIndex, elasticIndexer.DelegatorsIndex, elasticIndexer.OperationsIndex,
 	}
 )
 
@@ -51,6 +51,7 @@ type ArgElasticProcessor struct {
 	ValidatorsProc    DBValidatorsHandler
 	DBClient          DatabaseClientHandler
 	LogsAndEventsProc DBLogsAndEventsHandler
+	OperationsProc    OperationsHandler
 }
 
 type elasticProcessor struct {
@@ -64,6 +65,7 @@ type elasticProcessor struct {
 	statisticsProc    DBStatisticsHandler
 	validatorsProc    DBValidatorsHandler
 	logsAndEventsProc DBLogsAndEventsHandler
+	operationsProc    OperationsHandler
 }
 
 // NewElasticProcessor handles Elastic Search operations such as initialization, adding, modifying or removing data
@@ -84,6 +86,7 @@ func NewElasticProcessor(arguments *ArgElasticProcessor) (*elasticProcessor, err
 		statisticsProc:    arguments.StatisticsProc,
 		validatorsProc:    arguments.ValidatorsProc,
 		logsAndEventsProc: arguments.LogsAndEventsProc,
+		operationsProc:    arguments.OperationsProc,
 	}
 
 	err = ei.init(arguments.UseKibana, arguments.IndexTemplates, arguments.IndexPolicies)
@@ -127,6 +130,10 @@ func checkArguments(arguments *ArgElasticProcessor) error {
 
 	if arguments.LogsAndEventsProc == nil {
 		return elasticIndexer.ErrNilLogsAndEventsHandler
+	}
+
+	if arguments.OperationsProc == nil {
+		return elasticIndexer.ErrNilOperationsHandler
 	}
 
 	return nil
@@ -449,6 +456,11 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
+	err = ei.prepareAndIndexOperations(preparedResults.Transactions, preparedResults.TxHashStatus, header, preparedResults.ScResults)
+	if err != nil {
+		return err
+	}
+
 	return ei.indexScDeploys(logsData.ScDeploys)
 }
 
@@ -549,6 +561,31 @@ func (ei *elasticProcessor) indexTransactions(txs []*data.Transaction, txHashSta
 	}
 
 	return ei.doBulkRequests(elasticIndexer.TransactionsIndex, buffSlice)
+}
+
+func (ei *elasticProcessor) prepareAndIndexOperations(txs []*data.Transaction, txHashStatus map[string]string, header coreData.HeaderHandler, scrs []*data.ScResult) error {
+	if !ei.isIndexEnabled(elasticIndexer.OperationsIndex) {
+		return nil
+	}
+
+	processedTxs, processedSCRs := ei.operationsProc.ProcessTransactionsAndSCRS(txs, scrs)
+
+	buffSlice, err := ei.transactionsProc.SerializeTransactions(processedTxs, txHashStatus, header.GetShardID())
+	if err != nil {
+		return err
+	}
+
+	err = ei.doBulkRequests(elasticIndexer.OperationsIndex, buffSlice)
+	if err != nil {
+		return err
+	}
+
+	buffSliceSCRs, err := ei.operationsProc.SerializeSCRS(processedSCRs)
+	if err != nil {
+		return err
+	}
+
+	return ei.doBulkRequests(elasticIndexer.OperationsIndex, buffSliceSCRs)
 }
 
 // SaveValidatorsRating will save validators rating

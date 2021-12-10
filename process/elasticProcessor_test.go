@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/operations"
 	"io/ioutil"
 	"math/big"
 	"strconv"
@@ -61,6 +62,7 @@ func createMockElasticProcessorArgs() *ArgElasticProcessor {
 		TxFeeCalculator:  &mock.EconomicsHandlerStub{},
 	}
 	lp, _ := logsevents.NewLogsAndEventsProcessor(args)
+	op, _ := operations.NewOperationsProcessor(false, &mock.ShardCoordinatorMock{})
 
 	return &ArgElasticProcessor{
 		DBClient: &mock.DatabaseWriterStub{},
@@ -74,6 +76,7 @@ func createMockElasticProcessorArgs() *ArgElasticProcessor {
 		AccountsProc:      acp,
 		BlockProc:         bp,
 		LogsAndEventsProc: lp,
+		OperationsProc:    op,
 	}
 }
 

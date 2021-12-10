@@ -63,11 +63,13 @@ func (fep *fungibleESDTProcessor) processEvent(args *argsProcessEvent) argOutput
 		fep.processEventOnSenderShard(args.event, args.accounts)
 	}
 
-	tokenID, valueStr := fep.processEventDestination(args, senderShardID, selfShardID)
+	tokenID, valueStr, receiver, receiverShardID := fep.processEventDestination(args, senderShardID, selfShardID)
 	return argOutputProcessEvent{
-		identifier: tokenID,
-		value:      valueStr,
-		processed:  true,
+		identifier:      tokenID,
+		value:           valueStr,
+		processed:       true,
+		receiver:        receiver,
+		receiverShardID: receiverShardID,
 	}
 }
 
@@ -82,13 +84,17 @@ func (fep *fungibleESDTProcessor) processEventOnSenderShard(event coreData.Event
 	})
 }
 
-func (fep *fungibleESDTProcessor) processEventDestination(args *argsProcessEvent, senderShardID uint32, selfShardID uint32) (string, string) {
+func (fep *fungibleESDTProcessor) processEventDestination(
+	args *argsProcessEvent,
+	senderShardID uint32,
+	selfShardID uint32,
+) (string, string, string, uint32) {
 	topics := args.event.GetTopics()
 	tokenID := string(topics[0])
 	valueBig := big.NewInt(0).SetBytes(topics[2])
 
 	if len(topics) < numTopicsWithReceiverAddress {
-		return tokenID, valueBig.String()
+		return tokenID, valueBig.String(), "", 0
 	}
 
 	receiverAddr := topics[3]
@@ -96,7 +102,7 @@ func (fep *fungibleESDTProcessor) processEventDestination(args *argsProcessEvent
 	encodedReceiver := fep.pubKeyConverter.Encode(receiverAddr)
 	if receiverShardID != selfShardID {
 		args.pendingBalances.addInfo(encodedReceiver, tokenID, 0, valueBig.String())
-		return tokenID, valueBig.String()
+		return tokenID, valueBig.String(), "", 0
 	}
 
 	if senderShardID != receiverShardID {
@@ -110,5 +116,5 @@ func (fep *fungibleESDTProcessor) processEventDestination(args *argsProcessEvent
 		TokenIdentifier: tokenID,
 	})
 
-	return tokenID, valueBig.String()
+	return tokenID, valueBig.String(), encodedReceiver, receiverShardID
 }
