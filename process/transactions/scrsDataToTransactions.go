@@ -11,7 +11,11 @@ import (
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
 
-const minNumOfArgumentsNFTTransferORMultiTransfer = 4
+const (
+	atSeparator                                 = "@"
+	minNumOfArgumentsNFTTransferORMultiTransfer = 4
+	gasRefundForRelayerMessage                  = "gas refund for relayer"
+)
 
 type scrsDataToTransactions struct {
 	txFeeCalculator indexer.FeesProcessorHandler
@@ -45,13 +49,19 @@ func (st *scrsDataToTransactions) attachSCRsToTransactionsAndReturnSCRsWithoutTx
 
 func (st *scrsDataToTransactions) addScResultInfoIntoTx(dbScResult *data.ScResult, tx *data.Transaction) {
 	tx.SmartContractResults = append(tx.SmartContractResults, dbScResult)
+	isRelayedTxFirstSCR := isRelayedTx(tx) && len(tx.SmartContractResults) == 1
+	if isRelayedTxFirstSCR {
+		tx.GasUsed = tx.GasLimit
+		fee := st.txFeeCalculator.ComputeTxFeeBasedOnGasUsed(tx, tx.GasUsed)
+		tx.Fee = fee.String()
+	}
 
 	// ignore invalid transaction because status and gas fields was already set
 	if tx.Status == transaction.TxStatusInvalid.String() {
 		return
 	}
 
-	if isSCRForSenderWithRefund(dbScResult, tx) {
+	if isSCRForSenderWithRefund(dbScResult, tx) || isRefundForRelayed(dbScResult, tx) {
 		refundValue := stringValueToBigInt(dbScResult.Value)
 		gasUsed, fee := st.txFeeCalculator.ComputeGasUsedAndFeeBasedOnRefundValue(tx, refundValue)
 		tx.GasUsed = gasUsed
@@ -75,10 +85,6 @@ func (st *scrsDataToTransactions) fillTxWithSCRsFields(tx *data.Transaction) {
 	tx.HasSCR = true
 
 	if isRelayedTx(tx) {
-		tx.GasUsed = tx.GasLimit
-		fee := st.txFeeCalculator.ComputeTxFeeBasedOnGasUsed(tx, tx.GasUsed)
-		tx.Fee = fee.String()
-
 		return
 	}
 
@@ -132,9 +138,17 @@ func hasCrossShardPendingTransfer(tx *data.Transaction) bool {
 	return false
 }
 
-func (st *scrsDataToTransactions) processSCRsWithoutTx(scrs []*data.ScResult) map[string]string {
+func (st *scrsDataToTransactions) processSCRsWithoutTx(scrs []*data.ScResult) (map[string]string, map[string]*data.RefundData) {
 	txHashStatus := make(map[string]string)
+	txHashRefund := make(map[string]*data.RefundData)
 	for _, scr := range scrs {
+		if isSCRWithRefund(scr) {
+			txHashRefund[scr.OriginalTxHash] = &data.RefundData{
+				Value:    scr.Value,
+				Receiver: scr.Receiver,
+			}
+		}
+
 		if !isESDTNFTTransferWithUserError(string(scr.Data)) {
 			continue
 		}
@@ -142,7 +156,16 @@ func (st *scrsDataToTransactions) processSCRsWithoutTx(scrs []*data.ScResult) ma
 		txHashStatus[scr.OriginalTxHash] = transaction.TxStatusFail.String()
 	}
 
-	return txHashStatus
+	return txHashStatus, txHashRefund
+}
+
+func isSCRWithRefund(scr *data.ScResult) bool {
+	hasRefund := scr.Value != "0" && scr.Value != emptyString
+	isSuccessful := isScResultSuccessful(scr.Data)
+	isRefundForRelayed := scr.ReturnMessage == gasRefundForRelayerMessage
+	ok := isSuccessful || isRefundForRelayed
+
+	return ok && scr.OriginalTxHash != scr.PrevTxHash && hasRefund
 }
 
 func isESDTNFTTransferWithUserError(scrData string) bool {

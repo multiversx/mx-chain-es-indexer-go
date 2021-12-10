@@ -18,7 +18,6 @@ func TestProcessLogsAndEventsESDT_IntraShard(t *testing.T) {
 	fungibleProc := newFungibleESDTProcessor(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{})
 
 	event := &transaction.Event{
-
 		Address:    []byte("addr"),
 		Identifier: []byte(core.BuiltInFunctionESDTTransfer),
 		Topics:     [][]byte{[]byte("my-token"), big.NewInt(0).Bytes(), big.NewInt(0).SetUint64(100).Bytes(), []byte("receiver")},
@@ -72,14 +71,14 @@ func TestProcessLogsAndEventsESDT_CrossShardOnSource(t *testing.T) {
 	altered := data.NewAlteredAccounts()
 
 	pb := newPendingBalancesProcessor()
-	token, value, processed := fungibleProc.processEvent(&argsProcessEvent{
+	res := fungibleProc.processEvent(&argsProcessEvent{
 		event:           event,
 		accounts:        altered,
 		pendingBalances: pb,
 	})
-	require.Equal(t, "my-token", token)
-	require.Equal(t, "100", value)
-	require.Equal(t, true, processed)
+	require.Equal(t, "my-token", res.identifier)
+	require.Equal(t, "100", res.value)
+	require.Equal(t, true, res.processed)
 
 	alteredAddrSender, ok := altered.Get("61646472")
 	require.True(t, ok)
@@ -122,14 +121,14 @@ func TestProcessLogsAndEventsESDT_CrossShardOnDestination(t *testing.T) {
 	pp := newPendingBalancesProcessor()
 	altered := data.NewAlteredAccounts()
 
-	token, value, processed := fungibleProc.processEvent(&argsProcessEvent{
+	res := fungibleProc.processEvent(&argsProcessEvent{
 		event:           event,
 		accounts:        altered,
 		pendingBalances: pp,
 	})
-	require.Equal(t, "my-token", token)
-	require.Equal(t, "100", value)
-	require.Equal(t, true, processed)
+	require.Equal(t, "my-token", res.identifier)
+	require.Equal(t, "100", res.value)
+	require.Equal(t, true, res.processed)
 
 	alteredAddrSender, ok := altered.Get("7265636569766572")
 	require.True(t, ok)

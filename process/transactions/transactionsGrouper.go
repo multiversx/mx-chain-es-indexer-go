@@ -7,7 +7,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/receipt"
 	"github.com/ElrondNetwork/elrond-go-core/data/rewardTx"
-	"github.com/ElrondNetwork/elrond-go-core/data/smartContractResult"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/ElrondNetwork/elrond-go-core/hashing"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
@@ -221,19 +220,6 @@ func computeStatus(selfShardID uint32, receiverShardID uint32) string {
 	return transaction.TxStatusPending.String()
 }
 
-func groupSmartContractResults(txsPool map[string]coreData.TransactionHandler) map[string]*smartContractResult.SmartContractResult {
-	scResults := make(map[string]*smartContractResult.SmartContractResult)
-	for hash, tx := range txsPool {
-		scResult, ok := tx.(*smartContractResult.SmartContractResult)
-		if !ok {
-			continue
-		}
-		scResults[hash] = scResult
-	}
-
-	return scResults
-}
-
 func convertMapTxsToSlice(txs map[string]*data.Transaction) []*data.Transaction {
 	transactions := make([]*data.Transaction, len(txs))
 	i := 0
@@ -253,7 +239,8 @@ func (tg *txsGrouper) addToAlteredAddresses(
 ) {
 	if selfShardID == miniBlock.SenderShardID && !isRewardTx {
 		alteredAccounts.Add(tx.Sender, &data.AlteredAccount{
-			IsSender: true,
+			IsSender:      true,
+			BalanceChange: true,
 		})
 	}
 
@@ -264,7 +251,8 @@ func (tg *txsGrouper) addToAlteredAddresses(
 
 	if selfShardID == miniBlock.ReceiverShardID || miniBlock.ReceiverShardID == core.AllShardId {
 		alteredAccounts.Add(tx.Receiver, &data.AlteredAccount{
-			IsSender: false,
+			IsSender:      false,
+			BalanceChange: true,
 		})
 	}
 }

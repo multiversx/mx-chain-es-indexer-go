@@ -29,7 +29,7 @@ var (
 	indexes = []string{
 		elasticIndexer.TransactionsIndex, elasticIndexer.BlockIndex, elasticIndexer.MiniblocksIndex, elasticIndexer.RatingIndex, elasticIndexer.RoundsIndex, elasticIndexer.ValidatorsIndex,
 		elasticIndexer.AccountsIndex, elasticIndexer.AccountsHistoryIndex, elasticIndexer.ReceiptsIndex, elasticIndexer.ScResultsIndex, elasticIndexer.AccountsESDTHistoryIndex, elasticIndexer.AccountsESDTIndex,
-		elasticIndexer.EpochInfoIndex, elasticIndexer.SCDeploysIndex, elasticIndexer.TokensIndex, elasticIndexer.TagsIndex, elasticIndexer.LogsIndex,
+		elasticIndexer.EpochInfoIndex, elasticIndexer.SCDeploysIndex, elasticIndexer.TokensIndex, elasticIndexer.TagsIndex, elasticIndexer.LogsIndex, elasticIndexer.DelegatorsIndex,
 	}
 )
 
@@ -278,13 +278,14 @@ func (ei *elasticProcessor) SaveHeader(
 	signersIndexes []uint64,
 	body *block.Body,
 	notarizedHeadersHashes []string,
+	gasConsumptionData indexer.HeaderGasConsumption,
 	txsSize int,
 ) error {
 	if !ei.isIndexEnabled(elasticIndexer.BlockIndex) {
 		return nil
 	}
 
-	elasticBlock, err := ei.blockProc.PrepareBlockForDB(header, signersIndexes, body, notarizedHeadersHashes, txsSize)
+	elasticBlock, err := ei.blockProc.PrepareBlockForDB(header, signersIndexes, body, notarizedHeadersHashes, gasConsumptionData, txsSize)
 	if err != nil {
 		return err
 	}
@@ -403,6 +404,11 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
+	err = ei.indexTransactionsWithRefund(preparedResults.TxHashRefund)
+	if err != nil {
+		return err
+	}
+
 	err = ei.prepareAndIndexTagsCount(logsData.TagsCount)
 	if err != nil {
 		return err
@@ -433,12 +439,63 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
-	err = ei.indexTokens(preparedResults.Tokens)
+	err = ei.indexTokens(logsData.TokensInfo)
+	if err != nil {
+		return err
+	}
+
+	err = ei.prepareAndIndexDelegators(logsData.Delegators)
 	if err != nil {
 		return err
 	}
 
 	return ei.indexScDeploys(logsData.ScDeploys)
+}
+
+func (ei *elasticProcessor) prepareAndIndexDelegators(delegators map[string]*data.Delegator) error {
+	if !ei.isIndexEnabled(elasticIndexer.DelegatorsIndex) {
+		return nil
+	}
+
+	buffSlice, err := ei.logsAndEventsProc.SerializeDelegators(delegators)
+	if err != nil {
+		return err
+	}
+
+	return ei.doBulkRequests(elasticIndexer.DelegatorsIndex, buffSlice)
+}
+
+func (ei *elasticProcessor) indexTransactionsWithRefund(txsHashRefund map[string]*data.RefundData) error {
+	if len(txsHashRefund) == 0 {
+		return nil
+	}
+	txsHashes := make([]string, len(txsHashRefund))
+	for txHash := range txsHashRefund {
+		txsHashes = append(txsHashes, txHash)
+	}
+
+	responseTransactions := &data.ResponseTransactions{}
+	err := ei.elasticClient.DoMultiGet(txsHashes, elasticIndexer.TransactionsIndex, true, responseTransactions)
+	if err != nil {
+		return err
+	}
+
+	txsFromDB := make(map[string]*data.Transaction)
+	for idx := 0; idx < len(responseTransactions.Docs); idx++ {
+		txRes := responseTransactions.Docs[idx]
+		if !txRes.Found {
+			continue
+		}
+
+		txsFromDB[txRes.ID] = &txRes.Source
+	}
+
+	buffSlice, err := ei.transactionsProc.SerializeTransactionWithRefund(txsFromDB, txsHashRefund)
+	if err != nil {
+		return err
+	}
+
+	return ei.doBulkRequests(elasticIndexer.TransactionsIndex, buffSlice)
 }
 
 func (ei *elasticProcessor) prepareAndIndexLogs(logsAndEvents map[string]coreData.LogHandler, timestamp uint64) error {
@@ -460,7 +517,7 @@ func (ei *elasticProcessor) indexTokens(tokensData []*data.TokenInfo) error {
 		return nil
 	}
 
-	buffSlice, err := ei.transactionsProc.SerializeTokens(tokensData)
+	buffSlice, err := ei.logsAndEventsProc.SerializeTokens(tokensData)
 	if err != nil {
 		return err
 	}

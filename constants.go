@@ -39,6 +39,8 @@ const (
 	TagsIndex = "tags"
 	// LogsIndex is the Elasticsearch index for logs
 	LogsIndex = "logs"
+	// DelegatorsIndex is the Elasticsearch index for delegators
+	DelegatorsIndex = "delegators"
 
 	// TransactionsPolicy is the Elasticsearch policy for the transactions
 	TransactionsPolicy = "transactions_policy"

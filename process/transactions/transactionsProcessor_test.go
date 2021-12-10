@@ -54,12 +54,15 @@ func TestAddToAlteredAddresses(t *testing.T) {
 
 	alteredAccounts, ok := alteredAddress.Get(receiver)
 	require.True(t, ok)
-	require.Equal(t, &data.AlteredAccount{}, alteredAccounts[0])
+	require.Equal(t, &data.AlteredAccount{
+		BalanceChange: true,
+	}, alteredAccounts[0])
 
 	alteredAccounts, ok = alteredAddress.Get(sender)
 	require.True(t, ok)
 	require.Equal(t, &data.AlteredAccount{
-		IsSender: true,
+		BalanceChange: true,
+		IsSender:      true,
 	}, alteredAccounts[0])
 }
 
@@ -493,51 +496,6 @@ func TestCheckGasUsedInvalidTransaction(t *testing.T) {
 		},
 		Receipts: map[string]coreData.TransactionHandler{
 			string(recHash1): rec1,
-		},
-	}
-
-	results := txDbProc.PrepareTransactionsForDatabase(body, header, pool)
-	require.Len(t, results.Transactions, 1)
-	require.Equal(t, tx1.GasLimit, results.Transactions[0].GasUsed)
-}
-
-func TestCheckGasUsedRelayedTransaction(t *testing.T) {
-	t.Parallel()
-
-	txDbProc, _ := NewTransactionsProcessor(createMockArgsTxsDBProc())
-
-	txHash1 := []byte("txHash1")
-	tx1 := &transaction.Transaction{
-		GasLimit: 100,
-		GasPrice: 123456,
-		Data:     []byte("relayedTx@1231231231239129312"),
-	}
-	scResHash1 := []byte("scResHash1")
-	scRes1 := &smartContractResult.SmartContractResult{
-		OriginalTxHash: txHash1,
-	}
-
-	body := &block.Body{
-		MiniBlocks: []*block.MiniBlock{
-			{
-				TxHashes: [][]byte{txHash1},
-				Type:     block.TxBlock,
-			},
-			{
-				TxHashes: [][]byte{scResHash1},
-				Type:     block.SmartContractResultBlock,
-			},
-		},
-	}
-
-	header := &block.Header{}
-
-	pool := &indexer.Pool{
-		Txs: map[string]coreData.TransactionHandler{
-			string(txHash1): tx1,
-		},
-		Scrs: map[string]coreData.TransactionHandler{
-			string(scResHash1): scRes1,
 		},
 	}
 

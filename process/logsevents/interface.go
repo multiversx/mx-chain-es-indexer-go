@@ -9,13 +9,23 @@ type argsProcessEvent struct {
 	txHashHexEncoded string
 	pendingBalances  *pendingBalancesProc
 	scDeploys        map[string]*data.ScDeployInfo
+	txs              map[string]*data.Transaction
 	event            coreData.EventHandler
 	accounts         data.AlteredAccountsHandler
 	tokens           data.TokensHandler
 	tagsCount        data.CountTags
 	timestamp        uint64
+	logAddress       []byte
+}
+
+type argOutputProcessEvent struct {
+	identifier string
+	value      string
+	tokenInfo  *data.TokenInfo
+	delegator  *data.Delegator
+	processed  bool
 }
 
 type eventsProcessor interface {
-	processEvent(args *argsProcessEvent) (string, string, bool)
+	processEvent(args *argsProcessEvent) argOutputProcessEvent
 }

@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
+	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/accounts"
@@ -45,11 +46,21 @@ func newElasticsearchProcessor(elasticsearchWriter DatabaseClientHandler, argume
 }
 
 func createMockElasticProcessorArgs() *ArgElasticProcessor {
-	acp, _ := accounts.NewAccountsProcessor(0, &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{}, &mock.AccountsStub{})
+	balanceConverter, _ := converters.NewBalanceConverter(10)
+
+	acp, _ := accounts.NewAccountsProcessor(&mock.MarshalizerMock{}, &mock.PubkeyConverterMock{}, &mock.AccountsStub{}, balanceConverter)
 	bp, _ := block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
-	mp, _ := miniblocks.NewMiniblocksProcessor(0, &mock.HasherMock{}, &mock.MarshalizerMock{})
+	mp, _ := miniblocks.NewMiniblocksProcessor(0, &mock.HasherMock{}, &mock.MarshalizerMock{}, false)
 	vp, _ := validators.NewValidatorsProcessor(mock.NewPubkeyConverterMock(32))
-	lp, _ := logsevents.NewLogsAndEventsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{})
+	args := &logsevents.ArgsLogsAndEventsProcessor{
+		ShardCoordinator: &mock.ShardCoordinatorMock{},
+		PubKeyConverter:  &mock.PubkeyConverterMock{},
+		Marshalizer:      &mock.MarshalizerMock{},
+		BalanceConverter: balanceConverter,
+		Hasher:           &mock.HasherMock{},
+		TxFeeCalculator:  &mock.EconomicsHandlerStub{},
+	}
+	lp, _ := logsevents.NewLogsAndEventsProcessor(args)
 
 	return &ArgElasticProcessor{
 		DBClient: &mock.DatabaseWriterStub{},
@@ -300,7 +311,7 @@ func TestElasticProcessor_RemoveMiniblocks(t *testing.T) {
 		},
 	}
 
-	args.MiniblocksProc, _ = miniblocks.NewMiniblocksProcessor(0, &mock.HasherMock{}, &mock.MarshalizerMock{})
+	args.MiniblocksProc, _ = miniblocks.NewMiniblocksProcessor(0, &mock.HasherMock{}, &mock.MarshalizerMock{}, false)
 
 	elasticProc, err := NewElasticProcessor(args)
 	require.NoError(t, err)
@@ -345,7 +356,7 @@ func TestElasticseachDatabaseSaveHeader_RequestError(t *testing.T) {
 	arguments.BlockProc, _ = block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 	elasticDatabase := newElasticsearchProcessor(dbWriter, arguments)
 
-	err := elasticDatabase.SaveHeader(header, signerIndexes, &dataBlock.Body{}, nil, 1)
+	err := elasticDatabase.SaveHeader(header, signerIndexes, &dataBlock.Body{}, nil, indexer.HeaderGasConsumption{}, 1)
 	require.Equal(t, localErr, err)
 }
 
@@ -386,7 +397,7 @@ func TestElasticseachDatabaseSaveHeader_CheckRequestBody(t *testing.T) {
 
 	arguments.BlockProc, _ = block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 	elasticDatabase := newElasticsearchProcessor(dbWriter, arguments)
-	err := elasticDatabase.SaveHeader(header, signerIndexes, blockBody, nil, 1)
+	err := elasticDatabase.SaveHeader(header, signerIndexes, blockBody, nil, indexer.HeaderGasConsumption{}, 1)
 	require.Nil(t, err)
 }
 
@@ -461,7 +472,7 @@ func TestElasticProcessor_SaveMiniblocks(t *testing.T) {
 		},
 	}
 
-	arguments.MiniblocksProc, _ = miniblocks.NewMiniblocksProcessor(0, &mock.HasherMock{}, &mock.MarshalizerMock{})
+	arguments.MiniblocksProc, _ = miniblocks.NewMiniblocksProcessor(0, &mock.HasherMock{}, &mock.MarshalizerMock{}, false)
 	elasticProc, _ := NewElasticProcessor(arguments)
 
 	header := &dataBlock.Header{}

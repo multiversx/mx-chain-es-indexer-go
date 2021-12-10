@@ -2,6 +2,7 @@ package factory
 
 import (
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
+	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	processIndexer "github.com/ElrondNetwork/elastic-indexer-go/process"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/accounts"
 	blockProc "github.com/ElrondNetwork/elastic-indexer-go/process/block"
@@ -48,11 +49,16 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (indexer.Elast
 		return nil, indexer.ErrEmptyEnabledIndexes
 	}
 
+	balanceConverter, err := converters.NewBalanceConverter(arguments.Denomination)
+	if err != nil {
+		return nil, err
+	}
+
 	accountsProc, err := accounts.NewAccountsProcessor(
-		arguments.Denomination,
 		arguments.Marshalizer,
 		arguments.AddressPubkeyConverter,
 		arguments.AccountsDB,
+		balanceConverter,
 	)
 	if err != nil {
 		return nil, err
@@ -63,7 +69,7 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (indexer.Elast
 		return nil, err
 	}
 
-	miniblocksProc, err := miniblocks.NewMiniblocksProcessor(arguments.ShardCoordinator.SelfId(), arguments.Hasher, arguments.Marshalizer)
+	miniblocksProc, err := miniblocks.NewMiniblocksProcessor(arguments.ShardCoordinator.SelfId(), arguments.Hasher, arguments.Marshalizer, arguments.IsInImportDBMode)
 	if err != nil {
 		return nil, err
 	}
@@ -87,11 +93,15 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (indexer.Elast
 		return nil, err
 	}
 
-	logsAndEventsProc, err := logsevents.NewLogsAndEventsProcessor(
-		arguments.ShardCoordinator,
-		arguments.AddressPubkeyConverter,
-		arguments.Marshalizer,
-	)
+	argsLogsAndEventsProc := &logsevents.ArgsLogsAndEventsProcessor{
+		ShardCoordinator: arguments.ShardCoordinator,
+		PubKeyConverter:  arguments.AddressPubkeyConverter,
+		Marshalizer:      arguments.Marshalizer,
+		BalanceConverter: balanceConverter,
+		Hasher:           arguments.Hasher,
+		TxFeeCalculator:  arguments.TransactionFeeCalculator,
+	}
+	logsAndEventsProc, err := logsevents.NewLogsAndEventsProcessor(argsLogsAndEventsProc)
 	if err != nil {
 		return nil, err
 	}

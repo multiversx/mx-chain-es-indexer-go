@@ -59,13 +59,15 @@ func checkIndexerArgs(arguments ArgDataIndexer) error {
 }
 
 // SaveBlock saves the block info in the queue to be sent to elastic
-func (di *dataIndexer) SaveBlock(args *indexer.ArgsSaveBlockData) {
+func (di *dataIndexer) SaveBlock(args *indexer.ArgsSaveBlockData) error {
 	wi := workItems.NewItemBlock(
 		di.elasticProcessor,
 		di.marshalizer,
 		args,
 	)
 	di.dispatcher.Add(wi)
+
+	return nil
 }
 
 // Close will stop goroutine that index data in database
@@ -74,17 +76,19 @@ func (di *dataIndexer) Close() error {
 }
 
 // RevertIndexedBlock will remove from database block and miniblocks
-func (di *dataIndexer) RevertIndexedBlock(header coreData.HeaderHandler, body coreData.BodyHandler) {
+func (di *dataIndexer) RevertIndexedBlock(header coreData.HeaderHandler, body coreData.BodyHandler) error {
 	wi := workItems.NewItemRemoveBlock(
 		di.elasticProcessor,
 		body,
 		header,
 	)
 	di.dispatcher.Add(wi)
+
+	return nil
 }
 
 // SaveRoundsInfo will save data about a slice of rounds in elasticsearch
-func (di *dataIndexer) SaveRoundsInfo(rf []*indexer.RoundInfo) {
+func (di *dataIndexer) SaveRoundsInfo(rf []*indexer.RoundInfo) error {
 	roundsInfo := make([]*data.RoundInfo, 0)
 	for _, info := range rf {
 		roundsInfo = append(roundsInfo, &data.RoundInfo{
@@ -99,10 +103,12 @@ func (di *dataIndexer) SaveRoundsInfo(rf []*indexer.RoundInfo) {
 
 	wi := workItems.NewItemRounds(di.elasticProcessor, roundsInfo)
 	di.dispatcher.Add(wi)
+
+	return nil
 }
 
 // SaveValidatorsRating will save all validators rating info to elasticsearch
-func (di *dataIndexer) SaveValidatorsRating(indexID string, validatorsRatingInfo []*indexer.ValidatorRatingInfo) {
+func (di *dataIndexer) SaveValidatorsRating(indexID string, validatorsRatingInfo []*indexer.ValidatorRatingInfo) error {
 	valRatingInfo := make([]*data.ValidatorRatingInfo, 0)
 	for _, info := range validatorsRatingInfo {
 		valRatingInfo = append(valRatingInfo, &data.ValidatorRatingInfo{
@@ -117,22 +123,33 @@ func (di *dataIndexer) SaveValidatorsRating(indexID string, validatorsRatingInfo
 		valRatingInfo,
 	)
 	di.dispatcher.Add(wi)
+
+	return nil
 }
 
 // SaveValidatorsPubKeys will save all validators public keys to elasticsearch
-func (di *dataIndexer) SaveValidatorsPubKeys(validatorsPubKeys map[uint32][][]byte, epoch uint32) {
+func (di *dataIndexer) SaveValidatorsPubKeys(validatorsPubKeys map[uint32][][]byte, epoch uint32) error {
 	wi := workItems.NewItemValidators(
 		di.elasticProcessor,
 		epoch,
 		validatorsPubKeys,
 	)
 	di.dispatcher.Add(wi)
+
+	return nil
 }
 
 // SaveAccounts will save the provided accounts
-func (di *dataIndexer) SaveAccounts(timestamp uint64, accounts []coreData.UserAccountHandler) {
+func (di *dataIndexer) SaveAccounts(timestamp uint64, accounts []coreData.UserAccountHandler) error {
 	wi := workItems.NewItemAccounts(di.elasticProcessor, timestamp, accounts)
 	di.dispatcher.Add(wi)
+
+	return nil
+}
+
+// FinalizedBlock returns nil
+func (di *dataIndexer) FinalizedBlock(_ []byte) error {
+	return nil
 }
 
 // IsNilIndexer will return a bool value that signals if the indexer's implementation is a NilIndexer

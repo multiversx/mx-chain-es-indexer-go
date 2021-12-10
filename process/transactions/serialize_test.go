@@ -4,42 +4,9 @@ import (
 	"testing"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/stretchr/testify/require"
 )
-
-func TestSerializeTokens(t *testing.T) {
-	t.Parallel()
-
-	tok1 := &data.TokenInfo{
-		Name:      "TokenName",
-		Ticker:    "TKN",
-		Token:     "TKN-01234",
-		Timestamp: 50000,
-		Issuer:    "erd123",
-		Type:      core.SemiFungibleESDT,
-	}
-	tok2 := &data.TokenInfo{
-		Name:      "Token2",
-		Ticker:    "TKN2",
-		Token:     "TKN2-51234",
-		Issuer:    "erd1231213123",
-		Timestamp: 60000,
-		Type:      core.NonFungibleESDT,
-	}
-	tokens := []*data.TokenInfo{tok1, tok2}
-
-	res, err := (&txsDatabaseProcessor{}).SerializeTokens(tokens)
-	require.Nil(t, err)
-	require.Equal(t, 1, len(res))
-
-	expectedRes := `{ "index" : { "_id" : "TKN-01234" } }
-{"name":"TokenName","ticker":"TKN","token":"TKN-01234","issuer":"erd123","type":"SemiFungibleESDT","timestamp":50000}
-{ "index" : { "_id" : "TKN2-51234" } }
-{"name":"Token2","ticker":"TKN2","token":"TKN2-51234","issuer":"erd1231213123","type":"NonFungibleESDT","timestamp":60000}
-`
-	require.Equal(t, expectedRes, res[0].String())
-}
 
 func TestSerializeScResults(t *testing.T) {
 	t.Parallel()
@@ -147,6 +114,34 @@ func TestSerializeTransactionsCrossShardTxDestination(t *testing.T) {
 
 	expectedBuff := `{ "index" : { "_id" : "txHash", "_type" : "_doc" } }
 {"miniBlockHash":"","nonce":0,"round":0,"value":"","receiver":"","sender":"","receiverShard":0,"senderShard":1,"gasPrice":0,"gasLimit":0,"gasUsed":0,"fee":"","data":null,"signature":"","timestamp":0,"status":"","searchOrder":0}
+`
+	require.Equal(t, expectedBuff, buffers[0].String())
+}
+
+func TestTxsDatabaseProcessor_SerializeTransactionWithRefund(t *testing.T) {
+	t.Parallel()
+
+	txs := map[string]*data.Transaction{
+		"txHash": {
+			Sender:   "sender",
+			Receiver: "receiver",
+			GasLimit: 150000000,
+			GasPrice: 1000000000,
+		},
+	}
+	txHashRefund := map[string]*data.RefundData{
+		"txHash": {
+			Value:    "101676480000000",
+			Receiver: "sender",
+		},
+	}
+	buffers, err := (&txsDatabaseProcessor{
+		txFeeCalculator: &mock.EconomicsHandlerMock{},
+	}).SerializeTransactionWithRefund(txs, txHashRefund)
+	require.Nil(t, err)
+
+	expectedBuff := `{ "index" : { "_id" : "txHash" } }
+{"miniBlockHash":"","nonce":0,"round":0,"value":"","receiver":"receiver","sender":"sender","receiverShard":0,"senderShard":0,"gasPrice":1000000000,"gasLimit":150000000,"gasUsed":139832352,"fee":"1447823520000000","data":null,"signature":"","timestamp":0,"status":"","searchOrder":0}
 `
 	require.Equal(t, expectedBuff, buffers[0].String())
 }

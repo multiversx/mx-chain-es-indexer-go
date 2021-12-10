@@ -3,7 +3,6 @@ package accounts
 import (
 	"encoding/hex"
 	"fmt"
-	"math"
 	"math/big"
 	"time"
 
@@ -20,29 +19,21 @@ import (
 
 var log = logger.GetOrCreate("indexer/process/accounts")
 
-const numDecimalsInFloatBalance = 10
-const numDecimalsInFloatBalanceESDT = 18
-
 // accountsProcessor a is structure responsible for processing accounts
 type accountsProcessor struct {
-	dividerForDenomination float64
-	balancePrecision       float64
-	balancePrecisionESDT   float64
 	internalMarshalizer    marshal.Marshalizer
 	addressPubkeyConverter core.PubkeyConverter
 	accountsDB             indexer.AccountsAdapter
+	balanceConverter       indexer.BalanceConverter
 }
 
 // NewAccountsProcessor will create a new instance of accounts processor
 func NewAccountsProcessor(
-	denomination int,
 	marshalizer marshal.Marshalizer,
 	addressPubkeyConverter core.PubkeyConverter,
 	accountsDB indexer.AccountsAdapter,
+	balanceConverter indexer.BalanceConverter,
 ) (*accountsProcessor, error) {
-	if denomination < 0 {
-		return nil, indexer.ErrNegativeDenominationValue
-	}
 	if check.IfNil(marshalizer) {
 		return nil, indexer.ErrNilMarshalizer
 	}
@@ -52,14 +43,15 @@ func NewAccountsProcessor(
 	if check.IfNil(accountsDB) {
 		return nil, indexer.ErrNilAccountsDB
 	}
+	if check.IfNil(balanceConverter) {
+		return nil, indexer.ErrNilBalanceConverter
+	}
 
 	return &accountsProcessor{
 		internalMarshalizer:    marshalizer,
 		addressPubkeyConverter: addressPubkeyConverter,
-		balancePrecision:       math.Pow(10, float64(numDecimalsInFloatBalance)),
-		balancePrecisionESDT:   math.Pow(10, float64(numDecimalsInFloatBalanceESDT)),
-		dividerForDenomination: math.Pow(10, float64(core.MaxInt(denomination, 0))),
 		accountsDB:             accountsDB,
+		balanceConverter:       balanceConverter,
 	}, nil
 }
 
@@ -104,8 +96,9 @@ func splitAlteredAccounts(userAccount coreData.UserAccountHandler, altered []*da
 			})
 		}
 
-		ignoreESDTReceiver := (info.IsESDTOperation || info.IsNFTOperation) && !info.IsSender
-		if ignoreESDTReceiver {
+		// if the balance of the ESDT receiver is 0 the receiver is a new account most probably, and we should index it
+		ignoreReceiver := !info.BalanceChange && notZeroBalance(userAccount) && !info.IsSender
+		if ignoreReceiver {
 			continue
 		}
 
@@ -116,6 +109,14 @@ func splitAlteredAccounts(userAccount coreData.UserAccountHandler, altered []*da
 	}
 
 	return regularAccountsToIndex, accountsToIndexESDT
+}
+
+func notZeroBalance(userAccount coreData.UserAccountHandler) bool {
+	if userAccount.GetBalance() == nil {
+		return false
+	}
+
+	return userAccount.GetBalance().Cmp(big.NewInt(0)) > 0
 }
 
 func (ap *accountsProcessor) getUserAccount(address string) (coreData.UserAccountHandler, error) {
@@ -143,7 +144,7 @@ func (ap *accountsProcessor) PrepareRegularAccountsMap(accounts []*data.Account)
 	for _, userAccount := range accounts {
 		address := ap.addressPubkeyConverter.Encode(userAccount.UserAccount.AddressBytes())
 		balance := userAccount.UserAccount.GetBalance()
-		balanceAsFloat := ap.computeBalanceAsFloat(balance, ap.balancePrecision)
+		balanceAsFloat := ap.balanceConverter.ComputeBalanceAsFloat(balance)
 		acc := &data.AccountInfo{
 			Address:                  address,
 			Nonce:                    userAccount.UserAccount.GetNonce(),
@@ -182,7 +183,7 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(
 			TokenIdentifier: converters.ComputeTokenIdentifier(accountESDT.TokenIdentifier, accountESDT.NFTNonce),
 			TokenNonce:      accountESDT.NFTNonce,
 			Balance:         balance.String(),
-			BalanceNum:      ap.computeBalanceAsFloat(balance, ap.balancePrecisionESDT),
+			BalanceNum:      ap.balanceConverter.ComputeESDTBalanceAsFloat(balance),
 			Properties:      properties,
 			IsSender:        accountESDT.IsSender,
 			IsSmartContract: core.IsSmartContractAddress(accountESDT.Account.AddressBytes()),
@@ -252,19 +253,4 @@ func (ap *accountsProcessor) getESDTInfo(accountESDT *data.AccountESDT) (*big.In
 	tokenMetaData := converters.PrepareTokenMetaData(ap.addressPubkeyConverter, esdtToken)
 
 	return esdtToken.Value, hex.EncodeToString(esdtToken.Properties), tokenMetaData, nil
-}
-
-func (ap *accountsProcessor) computeBalanceAsFloat(balance *big.Int, balancePrecision float64) float64 {
-	if balance == nil || balance == big.NewInt(0) {
-		return 0
-	}
-
-	balanceBigFloat := big.NewFloat(0).SetInt(balance)
-	balanceFloat64, _ := balanceBigFloat.Float64()
-
-	bal := balanceFloat64 / ap.dividerForDenomination
-
-	balanceFloatWithDecimals := math.Round(bal*balancePrecision) / balancePrecision
-
-	return core.MaxFloat64(balanceFloatWithDecimals, 0)
 }
