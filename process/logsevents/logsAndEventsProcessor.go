@@ -112,12 +112,11 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 	}
 
 	return &data.PreparedLogsResults{
-		Tokens:          lep.logsData.tokens,
-		ScDeploys:       lep.logsData.scDeploys,
-		TagsCount:       lep.logsData.tagsCount,
-		PendingBalances: lep.logsData.pendingBalances.getAll(),
-		TokensInfo:      lep.logsData.tokensInfo,
-		Delegators:      lep.logsData.delegators,
+		Tokens:     lep.logsData.tokens,
+		ScDeploys:  lep.logsData.scDeploys,
+		TagsCount:  lep.logsData.tagsCount,
+		TokensInfo: lep.logsData.tokensInfo,
+		Delegators: lep.logsData.delegators,
 	}
 }
 
@@ -143,7 +142,6 @@ func (lep *logsAndEventsProcessor) processEvent(logHash string, logAddress []byt
 			tagsCount:        lep.logsData.tagsCount,
 			timestamp:        lep.logsData.timestamp,
 			scDeploys:        lep.logsData.scDeploys,
-			pendingBalances:  lep.logsData.pendingBalances,
 			txs:              lep.logsData.txsMap,
 		})
 		if res.tokenInfo != nil {

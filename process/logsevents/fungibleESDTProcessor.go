@@ -11,8 +11,6 @@ import (
 
 const (
 	numTopicsWithReceiverAddress = 4
-
-	pendingBalanceIdentifier = "pending"
 )
 
 type fungibleESDTProcessor struct {
@@ -63,7 +61,7 @@ func (fep *fungibleESDTProcessor) processEvent(args *argsProcessEvent) argOutput
 		fep.processEventOnSenderShard(args.event, args.accounts)
 	}
 
-	tokenID, valueStr, receiver, receiverShardID := fep.processEventDestination(args, senderShardID, selfShardID)
+	tokenID, valueStr, receiver, receiverShardID := fep.processEventDestination(args, selfShardID)
 	return argOutputProcessEvent{
 		identifier:      tokenID,
 		value:           valueStr,
@@ -86,7 +84,6 @@ func (fep *fungibleESDTProcessor) processEventOnSenderShard(event coreData.Event
 
 func (fep *fungibleESDTProcessor) processEventDestination(
 	args *argsProcessEvent,
-	senderShardID uint32,
 	selfShardID uint32,
 ) (string, string, string, uint32) {
 	topics := args.event.GetTopics()
@@ -101,14 +98,7 @@ func (fep *fungibleESDTProcessor) processEventDestination(
 	receiverShardID := fep.shardCoordinator.ComputeId(receiverAddr)
 	encodedReceiver := fep.pubKeyConverter.Encode(receiverAddr)
 	if receiverShardID != selfShardID {
-		args.pendingBalances.addInfo(encodedReceiver, tokenID, 0, valueBig.String())
 		return tokenID, valueBig.String(), "", 0
-	}
-
-	if senderShardID != receiverShardID {
-		encodedSender := fep.pubKeyConverter.Encode(args.event.GetAddress())
-		args.pendingBalances.addInfo(encodedSender, tokenID, 0, big.NewInt(0).String())
-		args.pendingBalances.addInfo(encodedReceiver, tokenID, 0, big.NewInt(0).String())
 	}
 
 	args.accounts.Add(encodedReceiver, &data.AlteredAccount{

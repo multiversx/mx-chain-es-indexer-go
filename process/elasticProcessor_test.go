@@ -719,7 +719,7 @@ func TestElasticProcessor_IndexAlteredAccounts(t *testing.T) {
 	elasticSearchProc.enabledIndexes[elasticIndexer.AccountsESDTHistoryIndex] = struct{}{}
 
 	alteredAccounts := data.NewAlteredAccounts()
-	err := elasticSearchProc.indexAlteredAccounts(100, alteredAccounts, nil)
+	err := elasticSearchProc.indexAlteredAccounts(100, alteredAccounts)
 	require.Nil(t, err)
 	require.True(t, called)
 }
