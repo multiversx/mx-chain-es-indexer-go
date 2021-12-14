@@ -36,7 +36,7 @@ type Transaction struct {
 	Receivers            []string      `json:"receivers,omitempty"`
 	ReceiversShardIDs    []uint32      `json:"receiversShardIDs,omitempty"`
 	Type                 string        `json:"type,omitempty"`
-	Operation            string        `json:"operation"`
+	Operation            string        `json:"operation,omitempty"`
 	Function             string        `json:"function,omitempty"`
 	SmartContractResults []*ScResult   `json:"-"`
 	ReceiverAddressBytes []byte        `json:"-"`

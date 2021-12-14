@@ -175,7 +175,7 @@ func TestParseBlockingOperationESDT(t *testing.T) {
 
 	t.Run("SCCall", func(t *testing.T) {
 		dataField := []byte("callMe@01")
-		res := parser.Parse(dataField, sender, receiver)
+		res := parser.Parse(dataField, sender, receiverSC)
 		require.Equal(t, &ResponseParseData{
 			Operation: OperationTransfer,
 			Function:  "callMe",

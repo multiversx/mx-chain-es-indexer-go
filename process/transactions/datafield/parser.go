@@ -51,11 +51,13 @@ func NewOperationDataFieldParser(args *ArgsOperationDataFieldParser) (*operation
 
 // Parse will parse the provided data field
 func (odp *operationDataFieldParser) Parse(dataField []byte, sender, receiver []byte) *ResponseParseData {
+	responseParse := &ResponseParseData{
+		Operation: OperationTransfer,
+	}
+
 	function, args, err := odp.argsParser.ParseData(string(dataField))
 	if err != nil {
-		return &ResponseParseData{
-			Operation: OperationTransfer,
-		}
+		return responseParse
 	}
 
 	switch function {
@@ -71,12 +73,13 @@ func (odp *operationDataFieldParser) Parse(dataField []byte, sender, receiver []
 		return parseBlockingOperationESDT(args, function)
 	case core.BuiltInFunctionESDTNFTCreate, core.BuiltInFunctionESDTNFTBurn, core.BuiltInFunctionESDTNFTAddQuantity:
 		return parseQuantityOperationNFT(args, function)
-	default:
-		return &ResponseParseData{
-			Operation: OperationTransfer,
-			Function:  function,
-		}
 	}
+
+	if function != "" && core.IsSmartContractAddress(receiver) {
+		responseParse.Function = function
+	}
+
+	return responseParse
 }
 
 func parseBlockingOperationESDT(args [][]byte, funcName string) *ResponseParseData {

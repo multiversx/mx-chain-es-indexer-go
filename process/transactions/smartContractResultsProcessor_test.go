@@ -7,16 +7,29 @@ import (
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/transactions/datafield"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/smartContractResult"
 	"github.com/stretchr/testify/require"
 )
 
+func createDataFieldParserMock() DataFieldParser {
+	args := &datafield.ArgsOperationDataFieldParser{
+		PubKeyConverter:  &mock.PubkeyConverterMock{},
+		Marshalizer:      &mock.MarshalizerMock{},
+		ShardCoordinator: &mock.ShardCoordinatorMock{},
+	}
+	parser, _ := datafield.NewOperationDataFieldParser(args)
+
+	return parser
+}
+
 func TestPrepareSmartContractResult(t *testing.T) {
 	t.Parallel()
 
+	parser := createDataFieldParserMock()
 	pubKeyConverter := &mock.PubkeyConverterMock{}
-	scrsProc := newSmartContractResultsProcessor(pubKeyConverter, &mock.ShardCoordinatorMock{}, &mock.MarshalizerMock{}, &mock.HasherMock{})
+	scrsProc := newSmartContractResultsProcessor(pubKeyConverter, &mock.ShardCoordinatorMock{}, &mock.MarshalizerMock{}, &mock.HasherMock{}, parser)
 
 	nonce := uint64(10)
 	txHash := []byte("txHash")
@@ -50,6 +63,7 @@ func TestPrepareSmartContractResult(t *testing.T) {
 		Timestamp:     time.Duration(100),
 		SenderShard:   0,
 		ReceiverShard: 1,
+		Operation:     "transfer",
 	}
 
 	require.Equal(t, expectedTx, scRes)
@@ -58,7 +72,8 @@ func TestPrepareSmartContractResult(t *testing.T) {
 func TestAddScrsReceiverToAlteredAccounts_ShouldWork(t *testing.T) {
 	t.Parallel()
 
-	scrsProc := newSmartContractResultsProcessor(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{}, &mock.MarshalizerMock{}, &mock.HasherMock{})
+	parser := createDataFieldParserMock()
+	scrsProc := newSmartContractResultsProcessor(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{}, &mock.MarshalizerMock{}, &mock.HasherMock{}, parser)
 
 	alteredAddress := data.NewAlteredAccounts()
 	scrs := []*data.ScResult{
