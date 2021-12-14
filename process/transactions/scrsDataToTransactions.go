@@ -162,8 +162,8 @@ func (st *scrsDataToTransactions) processSCRsWithoutTx(scrs []*data.ScResult) (m
 func isSCRWithRefund(scr *data.ScResult) bool {
 	hasRefund := scr.Value != "0" && scr.Value != emptyString
 	isSuccessful := isScResultSuccessful(scr.Data)
-	isRefundForRelayed := scr.ReturnMessage == gasRefundForRelayerMessage
-	ok := isSuccessful || isRefundForRelayed
+	isRefundForRelayTxSender := scr.ReturnMessage == gasRefundForRelayerMessage
+	ok := isSuccessful || isRefundForRelayTxSender
 
 	return ok && scr.OriginalTxHash != scr.PrevTxHash && hasRefund
 }

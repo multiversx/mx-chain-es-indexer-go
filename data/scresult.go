@@ -25,10 +25,12 @@ type ScResult struct {
 	ReturnMessage     string        `json:"returnMessage,omitempty"`
 	Timestamp         time.Duration `json:"timestamp"`
 	HasOperations     bool          `json:"hasOperations,omitempty"`
+	Type              string        `json:"type,omitempty"`
+	Status            string        `json:"status,omitempty"`
 	Tokens            []string      `json:"tokens,omitempty"`
 	ESDTValues        []string      `json:"esdtValues,omitempty"`
 	Receivers         []string      `json:"receivers,omitempty"`
 	ReceiversShardIDs []uint32      `json:"receiversShardIDs,omitempty"`
-	Type              string        `json:"type,omitempty"`
-	Status            string        `json:"status,omitempty"`
+	Operation         string        `json:"operation"`
+	Function          string        `json:"function,omitempty"`
 }

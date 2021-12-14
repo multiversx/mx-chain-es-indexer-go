@@ -159,21 +159,7 @@ func (lep *logsAndEventsProcessor) processEvent(logHash string, logAddress []byt
 		tx, ok := lep.logsData.txsMap[logHashHexEncoded]
 		if ok && !isEmptyIdentifier {
 			tx.HasOperations = true
-			tx.Tokens = append(tx.Tokens, res.identifier)
-			tx.ESDTValues = append(tx.ESDTValues, res.value)
-			tx.Receivers = append(tx.Receivers, res.receiver)
-			tx.ReceiversShardIDs = append(tx.ReceiversShardIDs, res.receiverShardID)
 			continue
-		}
-
-		scr, ok := lep.logsData.scrsMap[logHashHexEncoded]
-		if ok && !isEmptyIdentifier {
-			scr.Tokens = append(scr.Tokens, res.identifier)
-			scr.ESDTValues = append(scr.ESDTValues, res.value)
-			scr.HasOperations = true
-			scr.Receivers = append(scr.Receivers, res.receiver)
-			scr.ReceiversShardIDs = append(scr.ReceiversShardIDs, res.receiverShardID)
-			return
 		}
 
 		if res.processed {
