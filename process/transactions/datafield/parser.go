@@ -10,7 +10,11 @@ import (
 	"math/big"
 )
 
-const OperationTransfer = `transfer`
+const (
+	OperationTransfer                 = `transfer`
+	minArgumentsQuantityOperationESDT = 2
+	minArgumentsQuantityOperationNFT  = 3
+)
 
 type operationDataFieldParser struct {
 	argsParser         vmcommon.CallArgsParser
@@ -84,7 +88,13 @@ func parseBlockingOperationESDT(args [][]byte, funcName string) *ResponseParseDa
 		return responseData
 	}
 
-	responseData.Tokens = append(responseData.Tokens, string(args[0]))
+	token, nonce := extractTokenIdentifierAndNonce(args[0])
+	tokenStr := string(token)
+	if nonce != 0 {
+		tokenStr = converters.ComputeTokenIdentifier(tokenStr, nonce)
+	}
+
+	responseData.Tokens = append(responseData.Tokens, tokenStr)
 	return responseData
 }
 
@@ -93,7 +103,7 @@ func parseQuantityOperationESDT(args [][]byte, funcName string) *ResponseParseDa
 		Operation: funcName,
 	}
 
-	if len(args) < 2 {
+	if len(args) < minArgumentsQuantityOperationESDT {
 		return responseData
 	}
 
@@ -108,7 +118,7 @@ func parseQuantityOperationNFT(args [][]byte, funcName string) *ResponseParseDat
 		Operation: funcName,
 	}
 
-	if len(args) < 3 {
+	if len(args) < minArgumentsQuantityOperationNFT {
 		return responseData
 	}
 
