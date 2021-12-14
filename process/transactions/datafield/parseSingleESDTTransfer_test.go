@@ -22,7 +22,7 @@ func TestParseESDTTransfer(t *testing.T) {
 		dataField := []byte("ESDTTransfer@1234@011")
 		res := parser.Parse(dataField, sender, receiver)
 		require.Equal(t, &ResponseParseData{
-			Operation: OperationTransfer,
+			Operation: operationTransfer,
 		}, res)
 	})
 
