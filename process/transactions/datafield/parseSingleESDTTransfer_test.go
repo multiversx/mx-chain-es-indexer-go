@@ -1,9 +1,10 @@
 package datafield
 
 import (
+	"testing"
+
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestParseESDTTransfer(t *testing.T) {
