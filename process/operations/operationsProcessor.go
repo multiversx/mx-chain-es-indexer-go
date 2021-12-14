@@ -39,7 +39,6 @@ func (op *operationsProcessor) ProcessTransactionsAndSCRS(
 		tx.Type = string(transaction.TxTypeNormal)
 	}
 
-	// TODO check if need to add token identifier and value in case of  ESDT scr
 	for idx := 0; idx < len(scrs); idx++ {
 		if !op.shouldIndex(scrs[idx].ReceiverShard) {
 			// remove scr from slice
