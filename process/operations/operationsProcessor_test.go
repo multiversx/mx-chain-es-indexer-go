@@ -34,7 +34,7 @@ func TestOperationsProcessor_ProcessTransactionsAndSCRSTransactions(t *testing.T
 		},
 	}
 
-	processedTxs, _ := op.ProcessTransactionsAndSCRS(txs, nil)
+	processedTxs, _ := op.ProcessTransactionsAndSCRs(txs, nil)
 	require.Equal(t, []*data.Transaction{
 		{Type: string(transaction.TxTypeNormal)},
 	}, processedTxs)
@@ -52,7 +52,7 @@ func TestOperationsProcessor_ProcessTransactionsAndSCRSSmartContractResults(t *t
 		},
 	}
 
-	_, processedSCRs := op.ProcessTransactionsAndSCRS(nil, scrs)
+	_, processedSCRs := op.ProcessTransactionsAndSCRs(nil, scrs)
 	require.Equal(t, []*data.ScResult{
 		{Type: string(transaction.TxTypeUnsigned), Status: transaction.TxStatusSuccess.String()},
 	}, processedSCRs)

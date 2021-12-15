@@ -9,6 +9,14 @@ var Rounds = Object{
 		"number_of_shards":   3,
 		"number_of_replicas": 0,
 		"opendistro.index_state_management.rollover_alias": "rounds",
+		"index": Object{
+			"sort.field": Array{
+				"timestamp",
+			},
+			"sort.order": Array{
+				"desc",
+			},
+		},
 	},
 	"mappings": Object{
 		"properties": Object{

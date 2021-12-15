@@ -105,6 +105,6 @@ type DBLogsAndEventsHandler interface {
 
 // OperationsHandler defines the actions that an operations' handler should do
 type OperationsHandler interface {
-	ProcessTransactionsAndSCRS(txs []*data.Transaction, scrs []*data.ScResult) ([]*data.Transaction, []*data.ScResult)
-	SerializeSCRS(scrs []*data.ScResult) ([]*bytes.Buffer, error)
+	ProcessTransactionsAndSCRs(txs []*data.Transaction, scrs []*data.ScResult) ([]*data.Transaction, []*data.ScResult)
+	SerializeSCRs(scrs []*data.ScResult) ([]*bytes.Buffer, error)
 }

@@ -9,7 +9,7 @@ import (
 )
 
 // SerializeSCRS will serialize smart contract results
-func (op *operationsProcessor) SerializeSCRS(scrs []*data.ScResult) ([]*bytes.Buffer, error) {
+func (op *operationsProcessor) SerializeSCRs(scrs []*data.ScResult) ([]*bytes.Buffer, error) {
 	buffSlice := data.NewBufferSlice()
 
 	for _, scr := range scrs {
