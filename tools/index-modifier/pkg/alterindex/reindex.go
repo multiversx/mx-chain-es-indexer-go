@@ -54,7 +54,7 @@ func CreateIndexModifier(scrollClientAddress, bulkClientAddress string) (*indexM
 	}, nil
 }
 
-func (im *indexModifier) AlterIndex(index string, modifier func(responseBytes []byte) ([]*bytes.Buffer, error)) error {
+func (im *indexModifier) AlterIndex(indexRead, indexWrite string, modifier func(responseBytes []byte) ([]*bytes.Buffer, error)) error {
 	count := 0
 	handlerFunc := func(responseBytes []byte) error {
 		count++
@@ -64,7 +64,7 @@ func (im *indexModifier) AlterIndex(index string, modifier func(responseBytes []
 		}
 
 		for i := 0; i < len(dataBuffers); i++ {
-			err = im.bulkClient.DoBulkRequest(dataBuffers[i], index)
+			err = im.bulkClient.DoBulkRequest(dataBuffers[i], indexWrite)
 			if err != nil {
 				return fmt.Errorf("%w while r.destinationElastic.DoBulkRequest", err)
 			}
@@ -75,7 +75,7 @@ func (im *indexModifier) AlterIndex(index string, modifier func(responseBytes []
 		return nil
 	}
 
-	err := im.scrollClient.DoScrollRequestAllDocuments(index, []byte(queryMatchAll), handlerFunc)
+	err := im.scrollClient.DoScrollRequestAllDocuments(indexRead, []byte(queryMatchAll), handlerFunc)
 	if err != nil {
 		return fmt.Errorf("%w while r.sourceElastic.DoScrollRequestAllDocuments", err)
 	}
