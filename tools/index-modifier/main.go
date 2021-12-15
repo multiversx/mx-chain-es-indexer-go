@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 
-	indexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/tools/index-modifier/pkg/alterindex"
 	"github.com/ElrondNetwork/elastic-indexer-go/tools/index-modifier/pkg/modifiers"
 )
@@ -24,7 +23,7 @@ func main() {
 		panic("cannot create transactions modifier: " + err.Error())
 	}
 
-	err = indexModifier.AlterIndex(indexer.TransactionsIndex, indexer.TransactionsIndex, txsModifier.Modify)
+	err = indexModifier.AlterIndex("transactions", "transactions", txsModifier.Modify)
 	if err != nil {
 		panic("cannot modify index: " + err.Error())
 	}
