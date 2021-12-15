@@ -2,13 +2,15 @@ package main
 
 import (
 	"fmt"
+
+	indexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/tools/index-modifier/pkg/modifiers"
 	"github.com/ElrondNetwork/elastic-indexer-go/tools/index-modifier/pkg/reindex"
 )
 
 const (
-	scrollClientAddress = "https://new-index.elrond.com"
-	bulkClientAddress   = "http://localhost:9200"
+	scrollClientAddress = ""
+	bulkClientAddress   = ""
 )
 
 func main() {
@@ -22,7 +24,7 @@ func main() {
 		panic("cannot create transactions modifier: " + err.Error())
 	}
 
-	err = indexModifier.AlterIndex("transactions", txsModifier.Modify)
+	err = indexModifier.AlterIndex(indexer.TransactionsIndex, txsModifier.Modify)
 	if err != nil {
 		panic("cannot modify index: " + err.Error())
 	}

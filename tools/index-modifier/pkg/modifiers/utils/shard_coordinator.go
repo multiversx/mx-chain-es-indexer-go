@@ -1,4 +1,4 @@
-package modifiers
+package utils
 
 import (
 	"math"

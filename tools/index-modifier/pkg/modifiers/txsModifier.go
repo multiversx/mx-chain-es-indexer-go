@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/ElrondNetwork/elastic-indexer-go/tools/index-modifier/pkg/modifiers/utils"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/transactions"
@@ -43,7 +44,7 @@ func NewTxsModifier() (*txsModifier, error) {
 }
 
 func createOperationParser(pubkeyConverter core.PubkeyConverter) (transactions.DataFieldParser, error) {
-	shardCoordinator, err := NewMultiShardCoordinator(3, 0)
+	shardCoordinator, err := utils.NewMultiShardCoordinator(3, 0)
 	if err != nil {
 		return nil, err
 	}
