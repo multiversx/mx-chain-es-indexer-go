@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/ElrondNetwork/elastic-indexer-go/tools/index-modifier/pkg/modifiers/utils"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/transactions"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/transactions/datafield"
+	"github.com/ElrondNetwork/elastic-indexer-go/tools/index-modifier/pkg/modifiers/utils"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
 	factoryMarshalizer "github.com/ElrondNetwork/elrond-go-core/marshal/factory"
@@ -82,9 +82,10 @@ func (tm *txsModifier) Modify(responseBody []byte) ([]*bytes.Buffer, error) {
 
 	buffSlice := data.NewBufferSlice()
 	for _, hit := range responseTxs.Hits.Hits {
-		if hit.Source.Sender == "4294967295" || hit.Source.Status == "pending" {
+		if shouldIgnoreTx(hit.Source) {
 			continue
 		}
+
 		errPrep := tm.prepareTxForIndexing(hit.Source)
 		if errPrep != nil {
 			log.Warn("cannot prepare transaction",
@@ -116,6 +117,14 @@ func (tm *txsModifier) Modify(responseBody []byte) ([]*bytes.Buffer, error) {
 	return buffSlice.Buffers(), nil
 }
 
+func shouldIgnoreTx(tx *data.Transaction) bool {
+	if tx.Status == "pending" {
+		return true
+	}
+
+	return false
+}
+
 func serializeTx(hash string, tx *data.Transaction) ([]byte, []byte, error) {
 	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, hash, "\n"))
 	serializedData, errPrepareReceipt := json.Marshal(tx)
@@ -127,6 +136,12 @@ func serializeTx(hash string, tx *data.Transaction) ([]byte, []byte, error) {
 }
 
 func (tm *txsModifier) prepareTxForIndexing(tx *data.Transaction) error {
+	if tx.Sender == "4294967295" {
+		// TODO uncomment this when create index `operations`
+		// tx.Type = string(transaction.TxTypeNormal)
+		return nil
+	}
+
 	sndAddr, err := tm.pubKeyConverter.Decode(tx.Sender)
 	if err != nil {
 		return err
@@ -137,6 +152,9 @@ func (tm *txsModifier) prepareTxForIndexing(tx *data.Transaction) error {
 	}
 
 	res := tm.operationDataParser.Parse(tx.Data, sndAddr, rcvAddr)
+
+	// TODO uncomment this when create index `operations`
+	// tx.Type = string(transaction.TxTypeNormal)
 
 	tx.Operation = res.Operation
 	tx.Function = res.Function

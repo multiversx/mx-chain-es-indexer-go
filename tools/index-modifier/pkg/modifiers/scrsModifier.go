@@ -45,9 +45,10 @@ func (sm *scrsModifier) Modify(responseBody []byte) ([]*bytes.Buffer, error) {
 
 	buffSlice := data.NewBufferSlice()
 	for _, hit := range responseSCRs.Hits.Hits {
-		if hit.Source.Status == "pending" {
+		if shouldIgnoreSCR(hit.Source) {
 			continue
 		}
+
 		errPrep := sm.prepareSCRForIndexing(hit.Source)
 		if errPrep != nil {
 			log.Warn("cannot prepare scr",
@@ -79,6 +80,14 @@ func (sm *scrsModifier) Modify(responseBody []byte) ([]*bytes.Buffer, error) {
 	return buffSlice.Buffers(), nil
 }
 
+func shouldIgnoreSCR(scr *data.ScResult) bool {
+	if scr.Status == "pending" {
+		return true
+	}
+
+	return false
+}
+
 func serializeSCR(hash string, scr *data.ScResult) ([]byte, []byte, error) {
 	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, hash, "\n"))
 	serializedData, errPrepareReceipt := json.Marshal(scr)
@@ -100,6 +109,10 @@ func (sm *scrsModifier) prepareSCRForIndexing(scr *data.ScResult) error {
 	}
 
 	res := sm.operationDataParser.Parse(scr.Data, sndAddr, rcvAddr)
+
+	// TODO uncomment this when create index `operations`
+	//scr.Type = string(transaction.TxTypeUnsigned)
+	//scr.Status = transaction.TxStatusSuccess.String()
 
 	scr.Operation = res.Operation
 	scr.Function = res.Function
