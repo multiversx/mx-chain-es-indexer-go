@@ -15,7 +15,7 @@ import (
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 )
 
-var log = logger.GetOrCreate("index-modifier/pkg/reindex")
+var log = logger.GetOrCreate("index-modifier/pkg/alterindex")
 
 type responseTransactionsBulk struct {
 	Hits struct {

@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
+	"github.com/ElrondNetwork/elastic-indexer-go/tools/index-modifier/pkg/alterindex"
 	"github.com/ElrondNetwork/elastic-indexer-go/tools/index-modifier/pkg/modifiers"
-	"github.com/ElrondNetwork/elastic-indexer-go/tools/index-modifier/pkg/reindex"
 )
 
 const (
@@ -14,7 +14,7 @@ const (
 )
 
 func main() {
-	indexModifier, err := reindex.CreateIndexModifier(scrollClientAddress, bulkClientAddress)
+	indexModifier, err := alterindex.CreateIndexModifier(scrollClientAddress, bulkClientAddress)
 	if err != nil {
 		panic("cannot create index modifier: " + err.Error())
 	}

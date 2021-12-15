@@ -1,4 +1,4 @@
-package reindex
+package alterindex
 
 import (
 	"bytes"
@@ -16,7 +16,7 @@ const (
 	queryMatchAll = `{"query":{"match_all": {}}}`
 )
 
-var log = logger.GetOrCreate("index-modifier/pkg/reindex")
+var log = logger.GetOrCreate("index-modifier/pkg/alterindex")
 
 type indexModifier struct {
 	scrollClient ScrollClient

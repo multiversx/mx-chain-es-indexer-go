@@ -1,4 +1,4 @@
-package reindex
+package alterindex
 
 import "bytes"
 
