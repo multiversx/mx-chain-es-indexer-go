@@ -44,6 +44,7 @@ func getTemplatesKibana() map[string]*bytes.Buffer {
 	indexTemplates[indexer.TagsIndex] = withKibana.Tags.ToBuffer()
 	indexTemplates[indexer.LogsIndex] = withKibana.Logs.ToBuffer()
 	indexTemplates[indexer.DelegatorsIndex] = withKibana.Delegators.ToBuffer()
+	indexTemplates[indexer.OperationsIndex] = withKibana.Operations.ToBuffer()
 
 	return indexTemplates
 }

@@ -8,6 +8,6 @@ test:
 integration-tests:
 	@echo " > Running integration tests"
 	cd scripts && ./script.sh start
-	go test -v ./integrationtests
+	go test -v ./integrationtests -tags integrationtests
 	cd scripts && ./script.sh delete
 	cd scripts && ./script.sh stop

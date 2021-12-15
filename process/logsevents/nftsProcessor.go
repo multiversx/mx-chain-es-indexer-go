@@ -84,18 +84,13 @@ func (np *nftsProcessor) processEvent(args *argsProcessEvent) argOutputProcessEv
 	encodedReceiver := np.pubKeyConverter.Encode(topics[3])
 	receiverShardID := np.shardCoordinator.ComputeId(receiver)
 	if receiverShardID != np.shardCoordinator.SelfId() {
-		args.pendingBalances.addInfo(encodedReceiver, token, nonceBig.Uint64(), valueBig.String())
 		return argOutputProcessEvent{
-			identifier: identifier,
-			value:      valueBig.String(),
-			processed:  true,
+			identifier:      identifier,
+			value:           valueBig.String(),
+			processed:       true,
+			receiver:        encodedReceiver,
+			receiverShardID: receiverShardID,
 		}
-	}
-
-	if senderShardID != receiverShardID {
-		encodedSender := np.pubKeyConverter.Encode(args.event.GetAddress())
-		args.pendingBalances.addInfo(encodedSender, token, nonceBig.Uint64(), big.NewInt(0).String())
-		args.pendingBalances.addInfo(encodedReceiver, token, nonceBig.Uint64(), big.NewInt(0).String())
 	}
 
 	args.accounts.Add(encodedReceiver, &data.AlteredAccount{
@@ -105,9 +100,11 @@ func (np *nftsProcessor) processEvent(args *argsProcessEvent) argOutputProcessEv
 	})
 
 	return argOutputProcessEvent{
-		identifier: identifier,
-		value:      valueBig.String(),
-		processed:  true,
+		identifier:      identifier,
+		value:           valueBig.String(),
+		processed:       true,
+		receiver:        encodedReceiver,
+		receiverShardID: receiverShardID,
 	}
 }
 

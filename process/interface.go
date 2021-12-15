@@ -102,3 +102,9 @@ type DBLogsAndEventsHandler interface {
 	SerializeTokens(tokens []*data.TokenInfo) ([]*bytes.Buffer, error)
 	SerializeDelegators(delegators map[string]*data.Delegator) ([]*bytes.Buffer, error)
 }
+
+// OperationsHandler defines the actions that an operations' handler should do
+type OperationsHandler interface {
+	ProcessTransactionsAndSCRs(txs []*data.Transaction, scrs []*data.ScResult) ([]*data.Transaction, []*data.ScResult)
+	SerializeSCRs(scrs []*data.ScResult) ([]*bytes.Buffer, error)
+}

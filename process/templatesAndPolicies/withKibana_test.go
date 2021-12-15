@@ -14,5 +14,5 @@ func TestTemplatesAndPolicyReaderWithKibana_GetElasticTemplatesAndPolicies(t *te
 	templates, policies, err := reader.GetElasticTemplatesAndPolicies()
 	require.Nil(t, err)
 	require.Len(t, policies, 12)
-	require.Len(t, templates, 19)
+	require.Len(t, templates, 20)
 }

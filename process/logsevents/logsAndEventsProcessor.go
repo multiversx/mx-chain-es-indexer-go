@@ -112,12 +112,11 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 	}
 
 	return &data.PreparedLogsResults{
-		Tokens:          lep.logsData.tokens,
-		ScDeploys:       lep.logsData.scDeploys,
-		TagsCount:       lep.logsData.tagsCount,
-		PendingBalances: lep.logsData.pendingBalances.getAll(),
-		TokensInfo:      lep.logsData.tokensInfo,
-		Delegators:      lep.logsData.delegators,
+		Tokens:     lep.logsData.tokens,
+		ScDeploys:  lep.logsData.scDeploys,
+		TagsCount:  lep.logsData.tagsCount,
+		TokensInfo: lep.logsData.tokensInfo,
+		Delegators: lep.logsData.delegators,
 	}
 }
 
@@ -143,7 +142,6 @@ func (lep *logsAndEventsProcessor) processEvent(logHash string, logAddress []byt
 			tagsCount:        lep.logsData.tagsCount,
 			timestamp:        lep.logsData.timestamp,
 			scDeploys:        lep.logsData.scDeploys,
-			pendingBalances:  lep.logsData.pendingBalances,
 			txs:              lep.logsData.txsMap,
 		})
 		if res.tokenInfo != nil {
@@ -163,6 +161,8 @@ func (lep *logsAndEventsProcessor) processEvent(logHash string, logAddress []byt
 			tx.HasOperations = true
 			tx.Tokens = append(tx.Tokens, res.identifier)
 			tx.ESDTValues = append(tx.ESDTValues, res.value)
+			tx.Receivers = append(tx.Receivers, res.receiver)
+			tx.ReceiversShardIDs = append(tx.ReceiversShardIDs, res.receiverShardID)
 			continue
 		}
 
@@ -171,6 +171,8 @@ func (lep *logsAndEventsProcessor) processEvent(logHash string, logAddress []byt
 			scr.Tokens = append(scr.Tokens, res.identifier)
 			scr.ESDTValues = append(scr.ESDTValues, res.value)
 			scr.HasOperations = true
+			scr.Receivers = append(scr.Receivers, res.receiver)
+			scr.ReceiversShardIDs = append(scr.ReceiversShardIDs, res.receiverShardID)
 			return
 		}
 

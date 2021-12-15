@@ -18,10 +18,10 @@ import (
 var log = logger.GetOrCreate("indexer/process/miniblocks")
 
 type miniblocksProcessor struct {
-	importDBMode bool
 	hasher       hashing.Hasher
 	marshalier   marshal.Marshalizer
 	selfShardID  uint32
+	importDBMode bool
 }
 
 // NewMiniblocksProcessor will create a new instance of miniblocksProcessor

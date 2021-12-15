@@ -19,6 +19,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/process/block"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/logsevents"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/miniblocks"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/operations"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/statistics"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/transactions"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/validators"
@@ -61,6 +62,7 @@ func createMockElasticProcessorArgs() *ArgElasticProcessor {
 		TxFeeCalculator:  &mock.EconomicsHandlerStub{},
 	}
 	lp, _ := logsevents.NewLogsAndEventsProcessor(args)
+	op, _ := operations.NewOperationsProcessor(false, &mock.ShardCoordinatorMock{})
 
 	return &ArgElasticProcessor{
 		DBClient: &mock.DatabaseWriterStub{},
@@ -74,6 +76,7 @@ func createMockElasticProcessorArgs() *ArgElasticProcessor {
 		AccountsProc:      acp,
 		BlockProc:         bp,
 		LogsAndEventsProc: lp,
+		OperationsProc:    op,
 	}
 }
 
@@ -716,7 +719,7 @@ func TestElasticProcessor_IndexAlteredAccounts(t *testing.T) {
 	elasticSearchProc.enabledIndexes[elasticIndexer.AccountsESDTHistoryIndex] = struct{}{}
 
 	alteredAccounts := data.NewAlteredAccounts()
-	err := elasticSearchProc.indexAlteredAccounts(100, alteredAccounts, nil)
+	err := elasticSearchProc.indexAlteredAccounts(100, alteredAccounts)
 	require.Nil(t, err)
 	require.True(t, called)
 }

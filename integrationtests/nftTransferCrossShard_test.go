@@ -1,3 +1,5 @@
+//go:build integrationtests
+
 package integrationtests
 
 import (
@@ -29,8 +31,6 @@ const (
 )
 
 func TestNFTTransferCrossShardWithSCCall(t *testing.T) {
-	t.Skip("integration test, should be run only when doing debugging")
-
 	setLogLevelDebug()
 
 	esClient, err := createESClient(esURL)
@@ -142,8 +142,6 @@ func TestNFTTransferCrossShardWithSCCall(t *testing.T) {
 
 // TODO check also indexes that are altered
 func TestNFTTransferCrossShard(t *testing.T) {
-	t.Skip("integration test, should be run only when doing debugging")
-
 	setLogLevelDebug()
 
 	esClient, err := createESClient(esURL)
@@ -262,8 +260,6 @@ func TestNFTTransferCrossShard(t *testing.T) {
 }
 
 func TestNFTTransferCrossShardImportDBScenarioFirstIndexDestinationAfterSource(t *testing.T) {
-	t.Skip("integration test, should be run only when doing debugging")
-
 	setLogLevelDebug()
 
 	esClient, err := createESClient(esURL)

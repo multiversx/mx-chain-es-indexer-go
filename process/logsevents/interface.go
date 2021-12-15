@@ -7,7 +7,6 @@ import (
 
 type argsProcessEvent struct {
 	txHashHexEncoded string
-	pendingBalances  *pendingBalancesProc
 	scDeploys        map[string]*data.ScDeployInfo
 	txs              map[string]*data.Transaction
 	event            coreData.EventHandler
@@ -19,11 +18,13 @@ type argsProcessEvent struct {
 }
 
 type argOutputProcessEvent struct {
-	identifier string
-	value      string
-	tokenInfo  *data.TokenInfo
-	delegator  *data.Delegator
-	processed  bool
+	identifier      string
+	value           string
+	receiver        string
+	receiverShardID uint32
+	tokenInfo       *data.TokenInfo
+	delegator       *data.Delegator
+	processed       bool
 }
 
 type eventsProcessor interface {
