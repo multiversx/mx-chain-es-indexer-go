@@ -88,7 +88,7 @@ func elasticDefaultErrorResponseHandler(res *esapi.Response) error {
 	}
 
 	return fmt.Errorf("error while parsing the response: code returned: %v, body: %v, bodyBytes: %v",
-		res.StatusCode, responseBody, bodyBytes)
+		res.StatusCode, responseBody, string(bodyBytes))
 }
 
 func elasticBulkRequestResponseHandler(res *esapi.Response) error {

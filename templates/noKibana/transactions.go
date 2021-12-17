@@ -27,6 +27,12 @@ var Transactions = Object{
 				"type":   "date",
 				"format": "epoch_second",
 			},
+			"gasLimit": Object{
+				"type": "unsigned_long",
+			},
+			"gasPrice": Object{
+				"type": "unsigned_long",
+			},
 		},
 	},
 }

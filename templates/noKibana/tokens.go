@@ -33,6 +33,18 @@ var Tokens = Object{
 					"metadata": Object{
 						"type": "text",
 					},
+					"nonce": Object{
+						"type": "unsigned_long",
+					},
+					"ownersHistory": Object{
+						"type": "nested",
+						"properties": Object{
+							"timestamp": Object{
+								"type":   "date",
+								"format": "epoch_second",
+							},
+						},
+					},
 				},
 			},
 		},
