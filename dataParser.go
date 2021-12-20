@@ -77,7 +77,7 @@ func (dp *dataParser) getSerializedElasticBlockAndHeaderHash(
 		StateRootHash:         hex.EncodeToString(header.GetRootHash()),
 		PrevHash:              hex.EncodeToString(header.GetPrevHash()),
 		SearchOrder:           computeBlockSearchOrder(header),
-		GasConsumed:           gasConsumptionData.GasConsumed,
+		GasConsumed:           gasConsumptionData.GasProvided,
 		GasRefunded:           gasConsumptionData.GasRefunded,
 		GasPenalized:          gasConsumptionData.GasPenalized,
 		MaxGasLimit:           gasConsumptionData.MaxGasPerBlock,
