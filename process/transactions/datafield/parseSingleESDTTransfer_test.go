@@ -19,6 +19,8 @@ func TestParseESDTTransfer(t *testing.T) {
 	parser, _ := NewOperationDataFieldParser(args)
 
 	t.Run("TransferNonHexArguments", func(t *testing.T) {
+		t.Parallel()
+
 		dataField := []byte("ESDTTransfer@1234@011")
 		res := parser.Parse(dataField, sender, receiver)
 		require.Equal(t, &ResponseParseData{
@@ -27,6 +29,8 @@ func TestParseESDTTransfer(t *testing.T) {
 	})
 
 	t.Run("TransferNotEnoughtArguments", func(t *testing.T) {
+		t.Parallel()
+
 		dataField := []byte("ESDTTransfer@1234")
 		res := parser.Parse(dataField, sender, receiver)
 		require.Equal(t, &ResponseParseData{
@@ -35,6 +39,8 @@ func TestParseESDTTransfer(t *testing.T) {
 	})
 
 	t.Run("TransferEmptyArguments", func(t *testing.T) {
+		t.Parallel()
+
 		dataField := []byte("ESDTTransfer@544f4b454e@")
 		res := parser.Parse(dataField, sender, receiver)
 		require.Equal(t, &ResponseParseData{
@@ -45,6 +51,8 @@ func TestParseESDTTransfer(t *testing.T) {
 	})
 
 	t.Run("TransferWithSCCall", func(t *testing.T) {
+		t.Parallel()
+
 		dataField := []byte("ESDTTransfer@544f4b454e@01@63616c6c4d65")
 		res := parser.Parse(dataField, sender, receiverSC)
 		require.Equal(t, &ResponseParseData{

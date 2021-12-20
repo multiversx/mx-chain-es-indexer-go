@@ -19,12 +19,13 @@ func NewOperationsProcessor(importDBMode bool, shardCoordinator indexer.ShardCoo
 	}
 
 	return &operationsProcessor{
-		shardCoordinator: shardCoordinator,
 		importDBMode:     importDBMode,
+		shardCoordinator: shardCoordinator,
 	}, nil
 }
 
-func (op *operationsProcessor) ProcessTransactionsAndSCRS(
+// ProcessTransactionsAndSCRs will prepare transactions and smart contract results to be indexed
+func (op *operationsProcessor) ProcessTransactionsAndSCRs(
 	txs []*data.Transaction,
 	scrs []*data.ScResult,
 ) ([]*data.Transaction, []*data.ScResult) {

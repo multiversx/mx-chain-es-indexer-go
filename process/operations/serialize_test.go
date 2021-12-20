@@ -24,7 +24,7 @@ func TestOperationsProcessor_SerializeSCRS(t *testing.T) {
 		},
 	}
 
-	res, err := op.SerializeSCRS(scrs)
+	res, err := op.SerializeSCRs(scrs)
 	require.Nil(t, err)
 	require.Equal(t, `{"update":{"_id":"", "_type": "_doc"}}
 {"script":{"source":"return"},"upsert":{"nonce":0,"gasLimit":0,"gasPrice":0,"value":"","sender":"","receiver":"","senderShard":0,"receiverShard":1,"prevTxHash":"","originalTxHash":"","callType":"","timestamp":0}}
