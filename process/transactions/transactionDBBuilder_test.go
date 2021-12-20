@@ -29,6 +29,7 @@ func createCommonProcessor() dbTransactionBuilder {
 			},
 		},
 		shardCoordinator: &mock.ShardCoordinatorMock{},
+		dataFieldParser:  createDataFieldParserMock(),
 	}
 }
 
@@ -80,6 +81,7 @@ func TestGetMoveBalanceTransaction(t *testing.T) {
 		Fee:                  "100",
 		ReceiverUserName:     []byte("rcv"),
 		SenderUserName:       []byte("snd"),
+		Operation:            "transfer",
 	}
 
 	dbTx := cp.prepareTransaction(tx, txHash, mbHash, mb, header, status)
