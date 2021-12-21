@@ -65,6 +65,7 @@ func (bp *blockProcessor) PrepareBlockForDB(
 	miniblocksHashes := bp.getEncodedMBSHashes(body)
 	leaderIndex := bp.getLeaderIndex(signersIndexes)
 
+	numTxs, notarizedTxs := getTxsCount(header)
 	elasticBlock := &data.Block{
 		Nonce:                 header.GetNonce(),
 		Round:                 header.GetRound(),
@@ -79,7 +80,8 @@ func (bp *blockProcessor) PrepareBlockForDB(
 		Size:                  int64(blockSizeInBytes),
 		SizeTxs:               int64(sizeTxs),
 		Timestamp:             time.Duration(header.GetTimeStamp()),
-		TxCount:               header.GetTxCount(),
+		TxCount:               numTxs,
+		NotarizedTxsCount:     notarizedTxs,
 		StateRootHash:         hex.EncodeToString(header.GetRootHash()),
 		PrevHash:              hex.EncodeToString(header.GetPrevHash()),
 		SearchOrder:           computeBlockSearchOrder(header),
@@ -103,6 +105,29 @@ func (bp *blockProcessor) PrepareBlockForDB(
 	bp.addEpochStartInfoForMeta(header, elasticBlock)
 
 	return elasticBlock, nil
+}
+
+func getTxsCount(header coreData.HeaderHandler) (numTxs, notarizedTxs uint32) {
+	numTxs = header.GetTxCount()
+
+	if core.MetachainShardId != header.GetShardID() {
+		return numTxs, notarizedTxs
+	}
+
+	metaHeader, ok := header.(*nodeBlock.MetaBlock)
+	if !ok {
+		return 0, 0
+	}
+
+	notarizedTxs = metaHeader.TxCount
+	numTxs = 0
+	for _, mb := range metaHeader.MiniBlockHeaders {
+		numTxs += mb.TxCount
+	}
+
+	notarizedTxs = notarizedTxs - numTxs
+
+	return numTxs, notarizedTxs
 }
 
 func (bp *blockProcessor) addEpochStartInfoForMeta(header coreData.HeaderHandler, block *data.Block) {
