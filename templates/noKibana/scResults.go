@@ -23,6 +23,15 @@ var SCResults = Object{
 				"type":   "date",
 				"format": "epoch_second",
 			},
+			"nonce": Object{
+				"type": "unsigned_long",
+			},
+			"gasLimit": Object{
+				"type": "unsigned_long",
+			},
+			"gasPrice": Object{
+				"type": "unsigned_long",
+			},
 		},
 	},
 }

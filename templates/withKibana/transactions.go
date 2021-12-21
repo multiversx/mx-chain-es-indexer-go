@@ -21,11 +21,17 @@ var Transactions = Object{
 	"mappings": Object{
 		"properties": Object{
 			"nonce": Object{
-				"type": "long",
+				"type": "unsigned_long",
 			},
 			"timestamp": Object{
 				"type":   "date",
 				"format": "epoch_second",
+			},
+			"gasLimit": Object{
+				"type": "unsigned_long",
+			},
+			"gasPrice": Object{
+				"type": "unsigned_long",
 			},
 		},
 	},

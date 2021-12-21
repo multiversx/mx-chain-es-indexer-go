@@ -199,7 +199,7 @@ func (ei *elasticProcessor) createIndexTemplates(indexTemplates map[string]*byte
 		if indexTemplate != nil {
 			err := ei.elasticClient.CheckAndCreateTemplate(index, indexTemplate)
 			if err != nil {
-				return err
+				return fmt.Errorf("index: %s, error: %w", index, err)
 			}
 		}
 	}
@@ -212,7 +212,7 @@ func (ei *elasticProcessor) createIndexes() error {
 		indexName := fmt.Sprintf("%s-%s", index, elasticIndexer.IndexSuffix)
 		err := ei.elasticClient.CheckAndCreateIndex(indexName)
 		if err != nil {
-			return err
+			return fmt.Errorf("index: %s, error: %w", index, err)
 		}
 	}
 	return nil
