@@ -31,6 +31,7 @@ type txsModifier struct {
 	operationDataParser transactions.DataFieldParser
 }
 
+// NewTxsModifier will create a new instance of txsModifier
 func NewTxsModifier() (*txsModifier, error) {
 	pubKeyConverter, parser, err := createPubKeyConverterAndParser()
 	if err != nil {
@@ -73,6 +74,7 @@ func createPubKeyConverterAndParser() (core.PubkeyConverter, transactions.DataFi
 	return pubKeyConverter, parser, nil
 }
 
+// Modify will modify the transactions from the provided responseBody
 func (tm *txsModifier) Modify(responseBody []byte) ([]*bytes.Buffer, error) {
 	responseTxs := &responseTransactionsBulk{}
 	err := json.Unmarshal(responseBody, responseTxs)

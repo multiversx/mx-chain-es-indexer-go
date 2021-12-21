@@ -6,7 +6,7 @@ import (
 	"math"
 	"time"
 
-	client2 "github.com/ElrondNetwork/elastic-indexer-go/client"
+	indexerClient "github.com/ElrondNetwork/elastic-indexer-go/client"
 	"github.com/ElrondNetwork/elastic-indexer-go/tools/index-modifier/pkg/client"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/elastic/go-elasticsearch/v7"
@@ -30,6 +30,7 @@ func backOff(i int) time.Duration {
 	return d
 }
 
+// CreateIndexModifier will create a new instance of indexModifier
 func CreateIndexModifier(scrollClientAddress, bulkClientAddress string) (*indexModifier, error) {
 	cfg := elasticsearch.Config{
 		Addresses:     []string{scrollClientAddress},
@@ -43,7 +44,7 @@ func CreateIndexModifier(scrollClientAddress, bulkClientAddress string) (*indexM
 	}
 
 	cfg.Addresses = []string{bulkClientAddress}
-	bulkClient, err := client2.NewElasticClient(cfg)
+	bulkClient, err := indexerClient.NewElasticClient(cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -54,6 +55,7 @@ func CreateIndexModifier(scrollClientAddress, bulkClientAddress string) (*indexM
 	}, nil
 }
 
+// AlterIndex will alter provided index based on the modifier function
 func (im *indexModifier) AlterIndex(indexRead, indexWrite string, modifier func(responseBytes []byte) ([]*bytes.Buffer, error)) error {
 	count := 0
 	handlerFunc := func(responseBytes []byte) error {

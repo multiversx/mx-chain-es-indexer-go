@@ -23,7 +23,7 @@ func main() {
 		panic("cannot create transactions modifier: " + err.Error())
 	}
 
-	err = indexModifier.AlterIndex("transactions", "transactions", txsModifier.Modify)
+	err = indexModifier.AlterIndex("", "", txsModifier.Modify)
 	if err != nil {
 		panic("cannot modify index: " + err.Error())
 	}

@@ -24,6 +24,7 @@ type scrsModifier struct {
 	operationDataParser transactions.DataFieldParser
 }
 
+// NewSCRsModifier will create a new instance of scrsModifier
 func NewSCRsModifier() (*scrsModifier, error) {
 	pubKeyConverter, parser, err := createPubKeyConverterAndParser()
 	if err != nil {
@@ -36,6 +37,7 @@ func NewSCRsModifier() (*scrsModifier, error) {
 	}, nil
 }
 
+// Modify will modify the smart contract results from the provided responseBody
 func (sm *scrsModifier) Modify(responseBody []byte) ([]*bytes.Buffer, error) {
 	responseSCRs := &responseSCRsBulk{}
 	err := json.Unmarshal(responseBody, responseSCRs)
