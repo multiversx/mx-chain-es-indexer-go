@@ -9,6 +9,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
+	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 	"github.com/ElrondNetwork/elrond-go-core/hashing"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
 )
@@ -96,19 +97,19 @@ func createEventsProcessors(args *ArgsLogsAndEventsProcessor) []eventsProcessor 
 
 // ExtractDataFromLogs will extract data from the provided logs and events and put in altered addresses
 func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
-	logsAndEvents map[string]coreData.LogHandler,
+	logsAndEvents []indexer.LogData,
 	preparedResults *data.PreparedResults,
 	timestamp uint64,
 ) *data.PreparedLogsResults {
 	lep.logsData = newLogsData(timestamp, preparedResults.AlteredAccts, preparedResults.Transactions, preparedResults.ScResults)
 
-	for logHash, txLog := range logsAndEvents {
-		if check.IfNil(txLog) {
+	for _, txLog := range logsAndEvents {
+		if check.IfNil(txLog.LogHandler) {
 			continue
 		}
 
 		events := txLog.GetLogEvents()
-		lep.processEvents(logHash, txLog.GetAddress(), events)
+		lep.processEvents(txLog.TxHash, txLog.GetAddress(), events)
 	}
 
 	return &data.PreparedLogsResults{
@@ -182,17 +183,17 @@ func (lep *logsAndEventsProcessor) processEvent(logHash string, logAddress []byt
 
 // PrepareLogsForDB will prepare logs for database
 func (lep *logsAndEventsProcessor) PrepareLogsForDB(
-	logsAndEvents map[string]coreData.LogHandler,
+	logsAndEvents []indexer.LogData,
 	timestamp uint64,
 ) []*data.Logs {
 	logs := make([]*data.Logs, 0, len(logsAndEvents))
 
-	for txHash, txLog := range logsAndEvents {
-		if check.IfNil(txLog) {
+	for _, txLog := range logsAndEvents {
+		if check.IfNil(txLog.LogHandler) {
 			continue
 		}
 
-		logs = append(logs, lep.prepareLogsForDB(txHash, txLog, timestamp))
+		logs = append(logs, lep.prepareLogsForDB(txLog.TxHash, txLog, timestamp))
 	}
 
 	return logs

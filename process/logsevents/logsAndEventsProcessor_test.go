@@ -11,6 +11,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
+	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/stretchr/testify/require"
 )
@@ -124,6 +125,14 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 		},
 	}
 
+	logsAndEventsSlice := make([]indexer.LogData, 0)
+	for hash, val := range logsAndEvents {
+		logsAndEventsSlice = append(logsAndEventsSlice, indexer.LogData{
+			TxHash:     hash,
+			LogHandler: val,
+		})
+	}
+
 	altered := data.NewAlteredAccounts()
 	res := &data.PreparedResults{
 		Transactions: []*data.Transaction{
@@ -147,7 +156,7 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 	}
 	proc, _ := NewLogsAndEventsProcessor(args)
 
-	resLogs := proc.ExtractDataFromLogs(logsAndEvents, res, 1000)
+	resLogs := proc.ExtractDataFromLogs(logsAndEventsSlice, res, 1000)
 	require.NotNil(t, resLogs.Tokens)
 	require.NotNil(t, resLogs.TagsCount)
 	require.True(t, res.Transactions[0].HasOperations)
@@ -201,10 +210,18 @@ func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 		},
 	}
 
+	logsAndEventsSlice := make([]indexer.LogData, 0)
+	for hash, val := range logsAndEvents {
+		logsAndEventsSlice = append(logsAndEventsSlice, indexer.LogData{
+			TxHash:     hash,
+			LogHandler: val,
+		})
+	}
+
 	args := createMockArgs()
 	proc, _ := NewLogsAndEventsProcessor(args)
 
-	logsDB := proc.PrepareLogsForDB(logsAndEvents, 1234)
+	logsDB := proc.PrepareLogsForDB(logsAndEventsSlice, 1234)
 	require.Equal(t, &data.Logs{
 		ID:        "747848617368",
 		Address:   "61646472657373",
