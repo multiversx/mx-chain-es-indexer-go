@@ -15,6 +15,9 @@ var Tokens = Object{
 				"type":   "date",
 				"format": "epoch_second",
 			},
+			"nonce": Object{
+				"type": "unsigned_long",
+			},
 			"data": Object{
 				"type": "nested",
 				"properties": Object{
@@ -32,9 +35,6 @@ var Tokens = Object{
 					},
 					"metadata": Object{
 						"type": "text",
-					},
-					"nonce": Object{
-						"type": "unsigned_long",
 					},
 					"ownersHistory": Object{
 						"type": "nested",
