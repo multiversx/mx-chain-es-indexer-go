@@ -52,6 +52,10 @@ func NewOperationDataFieldParser(args *ArgsOperationDataFieldParser) (*operation
 
 // Parse will parse the provided data field
 func (odp *operationDataFieldParser) Parse(dataField []byte, sender, receiver []byte) *ResponseParseData {
+	return odp.parse(dataField, sender, receiver, false)
+}
+
+func (odp *operationDataFieldParser) parse(dataField []byte, sender, receiver []byte, ignoreRelayed bool) *ResponseParseData {
 	responseParse := &ResponseParseData{
 		Operation: operationTransfer,
 	}
@@ -75,8 +79,10 @@ func (odp *operationDataFieldParser) Parse(dataField []byte, sender, receiver []
 	case core.BuiltInFunctionESDTNFTCreate, core.BuiltInFunctionESDTNFTBurn, core.BuiltInFunctionESDTNFTAddQuantity:
 		return parseQuantityOperationNFT(args, function)
 	case core.RelayedTransaction, core.RelayedTransactionV2:
-		responseParse.Operation = operationRelayedTx
-		return responseParse
+		if ignoreRelayed {
+			return &ResponseParseData{}
+		}
+		return odp.ParseRelayed(function, args, receiver)
 	}
 
 	if function != "" && core.IsSmartContractAddress(receiver) {

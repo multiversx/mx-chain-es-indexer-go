@@ -33,4 +33,5 @@ type ScResult struct {
 	ReceiversShardIDs []uint32      `json:"receiversShardIDs,omitempty"`
 	Operation         string        `json:"operation,omitempty"`
 	Function          string        `json:"function,omitempty"`
+	IsRelayed         bool          `json:"isRelayed,omitempty"`
 }

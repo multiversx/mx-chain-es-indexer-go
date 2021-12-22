@@ -166,6 +166,7 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 		Tokens:            res.Tokens,
 		Receivers:         res.Receivers,
 		ReceiversShardIDs: res.ReceiversShardID,
+		IsRelayed:         res.IsRelayed,
 	}
 }
 

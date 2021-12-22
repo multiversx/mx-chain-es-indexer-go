@@ -38,6 +38,7 @@ type Transaction struct {
 	Type                 string        `json:"type,omitempty"`
 	Operation            string        `json:"operation,omitempty"`
 	Function             string        `json:"function,omitempty"`
+	IsRelayed            bool          `json:"isRelayed,omitempty"`
 	SmartContractResults []*ScResult   `json:"-"`
 	ReceiverAddressBytes []byte        `json:"-"`
 	Hash                 string        `json:"-"`
