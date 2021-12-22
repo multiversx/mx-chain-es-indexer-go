@@ -27,6 +27,21 @@ var Blocks = Object{
 				"type":   "date",
 				"format": "epoch_second",
 			},
+			"searchOrder": Object{
+				"type": "unsigned_long",
+			},
+			"gasProvided": Object{
+				"type": "unsigned_long",
+			},
+			"gasRefunded": Object{
+				"type": "unsigned_long",
+			},
+			"gasPenalized": Object{
+				"type": "unsigned_long",
+			},
+			"maxGasLimit": Object{
+				"type": "unsigned_long",
+			},
 		},
 	},
 }
