@@ -16,15 +16,16 @@ func TestPrepareTokenMetaData(t *testing.T) {
 	require.Nil(t, PrepareTokenMetaData(&mock.PubkeyConverterMock{}, nil))
 
 	expectedTokenMetaData := &data.TokenMetaData{
-		Name:         "token",
-		Creator:      "63726561746f72",
-		Royalties:    0,
-		Hash:         []byte("hash"),
-		URIs:         [][]byte{[]byte("uri")},
-		Attributes:   []byte("tags:test,free,fun;description:This is a test description for an awesome nft;metadata:metadata-test"),
-		Tags:         []string{"test", "free", "fun"},
-		MetaData:     "metadata-test",
-		NonEmptyURIs: true,
+		Name:               "token",
+		Creator:            "63726561746f72",
+		Royalties:          0,
+		Hash:               []byte("hash"),
+		URIs:               [][]byte{[]byte("https://ipfs.io/ipfs/something"), []byte("uri")},
+		Attributes:         []byte("tags:test,free,fun;description:This is a test description for an awesome nft;metadata:metadata-test"),
+		Tags:               []string{"test", "free", "fun"},
+		MetaData:           "metadata-test",
+		NonEmptyURIs:       true,
+		WhiteListedStorage: true,
 	}
 
 	result := PrepareTokenMetaData(&mock.PubkeyConverterMock{}, &esdt.ESDigitalToken{
@@ -34,7 +35,7 @@ func TestPrepareTokenMetaData(t *testing.T) {
 			Creator:    []byte("creator"),
 			Royalties:  0,
 			Hash:       []byte("hash"),
-			URIs:       [][]byte{[]byte("uri")},
+			URIs:       [][]byte{[]byte(ipfsURL + "something"), []byte("uri")},
 			Attributes: []byte("tags:test,free,fun;description:This is a test description for an awesome nft;metadata:metadata-test"),
 		},
 	})
