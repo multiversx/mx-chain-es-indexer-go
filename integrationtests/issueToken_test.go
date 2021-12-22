@@ -6,6 +6,7 @@ import (
 	indexerdata "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elrond-go-core/core"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
@@ -41,7 +42,7 @@ func TestIssueTokenAndTransferOwnership(t *testing.T) {
 	}
 
 	pool := &indexer.Pool{
-		Logs: []*indexer.LogData{
+		Logs: []*coreData.LogData{
 			{
 				TxHash: "h1",
 				LogHandler: &transaction.Log{
@@ -69,7 +70,7 @@ func TestIssueTokenAndTransferOwnership(t *testing.T) {
 
 	// transfer ownership
 	pool = &indexer.Pool{
-		Logs: []*indexer.LogData{
+		Logs: []*coreData.LogData{
 			{
 				TxHash: "h1",
 				LogHandler: &transaction.Log{

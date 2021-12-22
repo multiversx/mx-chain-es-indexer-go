@@ -498,7 +498,7 @@ func (ei *elasticProcessor) indexTransactionsWithRefund(txsHashRefund map[string
 	return ei.doBulkRequests(elasticIndexer.TransactionsIndex, buffSlice)
 }
 
-func (ei *elasticProcessor) prepareAndIndexLogs(logsAndEvents []*indexer.LogData, timestamp uint64) error {
+func (ei *elasticProcessor) prepareAndIndexLogs(logsAndEvents []*coreData.LogData, timestamp uint64) error {
 	if !ei.isIndexEnabled(elasticIndexer.LogsIndex) {
 		return nil
 	}

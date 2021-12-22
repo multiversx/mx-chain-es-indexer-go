@@ -11,7 +11,6 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
-	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/stretchr/testify/require"
 )
@@ -125,9 +124,9 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 		},
 	}
 
-	logsAndEventsSlice := make([]*indexer.LogData, 0)
+	logsAndEventsSlice := make([]*coreData.LogData, 0)
 	for hash, val := range logsAndEvents {
-		logsAndEventsSlice = append(logsAndEventsSlice, &indexer.LogData{
+		logsAndEventsSlice = append(logsAndEventsSlice, &coreData.LogData{
 			TxHash:     hash,
 			LogHandler: val,
 		})
@@ -210,9 +209,9 @@ func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 		},
 	}
 
-	logsAndEventsSlice := make([]*indexer.LogData, 0)
+	logsAndEventsSlice := make([]*coreData.LogData, 0)
 	for hash, val := range logsAndEvents {
-		logsAndEventsSlice = append(logsAndEventsSlice, &indexer.LogData{
+		logsAndEventsSlice = append(logsAndEventsSlice, &coreData.LogData{
 			TxHash:     hash,
 			LogHandler: val,
 		})

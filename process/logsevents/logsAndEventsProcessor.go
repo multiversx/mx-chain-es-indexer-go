@@ -9,7 +9,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
-	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 	"github.com/ElrondNetwork/elrond-go-core/hashing"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
 )
@@ -97,7 +96,7 @@ func createEventsProcessors(args *ArgsLogsAndEventsProcessor) []eventsProcessor 
 
 // ExtractDataFromLogs will extract data from the provided logs and events and put in altered addresses
 func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
-	logsAndEvents []*indexer.LogData,
+	logsAndEvents []*coreData.LogData,
 	preparedResults *data.PreparedResults,
 	timestamp uint64,
 ) *data.PreparedLogsResults {
@@ -183,7 +182,7 @@ func (lep *logsAndEventsProcessor) processEvent(logHash string, logAddress []byt
 
 // PrepareLogsForDB will prepare logs for database
 func (lep *logsAndEventsProcessor) PrepareLogsForDB(
-	logsAndEvents []*indexer.LogData,
+	logsAndEvents []*coreData.LogData,
 	timestamp uint64,
 ) []*data.Logs {
 	logs := make([]*data.Logs, 0, len(logsAndEvents))
