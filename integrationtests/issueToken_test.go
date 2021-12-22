@@ -41,7 +41,7 @@ func TestIssueTokenAndTransferOwnership(t *testing.T) {
 	}
 
 	pool := &indexer.Pool{
-		Logs: []indexer.LogData{
+		Logs: []*indexer.LogData{
 			{
 				TxHash: "h1",
 				LogHandler: &transaction.Log{
@@ -69,7 +69,7 @@ func TestIssueTokenAndTransferOwnership(t *testing.T) {
 
 	// transfer ownership
 	pool = &indexer.Pool{
-		Logs: []indexer.LogData{
+		Logs: []*indexer.LogData{
 			{
 				TxHash: "h1",
 				LogHandler: &transaction.Log{

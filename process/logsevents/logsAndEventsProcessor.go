@@ -97,7 +97,7 @@ func createEventsProcessors(args *ArgsLogsAndEventsProcessor) []eventsProcessor 
 
 // ExtractDataFromLogs will extract data from the provided logs and events and put in altered addresses
 func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
-	logsAndEvents []indexer.LogData,
+	logsAndEvents []*indexer.LogData,
 	preparedResults *data.PreparedResults,
 	timestamp uint64,
 ) *data.PreparedLogsResults {
@@ -108,8 +108,8 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 			continue
 		}
 
-		events := txLog.GetLogEvents()
-		lep.processEvents(txLog.TxHash, txLog.GetAddress(), events)
+		events := txLog.LogHandler.GetLogEvents()
+		lep.processEvents(txLog.TxHash, txLog.LogHandler.GetAddress(), events)
 	}
 
 	return &data.PreparedLogsResults{
@@ -183,7 +183,7 @@ func (lep *logsAndEventsProcessor) processEvent(logHash string, logAddress []byt
 
 // PrepareLogsForDB will prepare logs for database
 func (lep *logsAndEventsProcessor) PrepareLogsForDB(
-	logsAndEvents []indexer.LogData,
+	logsAndEvents []*indexer.LogData,
 	timestamp uint64,
 ) []*data.Logs {
 	logs := make([]*data.Logs, 0, len(logsAndEvents))
@@ -193,7 +193,7 @@ func (lep *logsAndEventsProcessor) PrepareLogsForDB(
 			continue
 		}
 
-		logs = append(logs, lep.prepareLogsForDB(txLog.TxHash, txLog, timestamp))
+		logs = append(logs, lep.prepareLogsForDB(txLog.TxHash, txLog.LogHandler, timestamp))
 	}
 
 	return logs

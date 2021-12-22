@@ -125,9 +125,9 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 		},
 	}
 
-	logsAndEventsSlice := make([]indexer.LogData, 0)
+	logsAndEventsSlice := make([]*indexer.LogData, 0)
 	for hash, val := range logsAndEvents {
-		logsAndEventsSlice = append(logsAndEventsSlice, indexer.LogData{
+		logsAndEventsSlice = append(logsAndEventsSlice, &indexer.LogData{
 			TxHash:     hash,
 			LogHandler: val,
 		})
@@ -210,9 +210,9 @@ func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 		},
 	}
 
-	logsAndEventsSlice := make([]indexer.LogData, 0)
+	logsAndEventsSlice := make([]*indexer.LogData, 0)
 	for hash, val := range logsAndEvents {
-		logsAndEventsSlice = append(logsAndEventsSlice, indexer.LogData{
+		logsAndEventsSlice = append(logsAndEventsSlice, &indexer.LogData{
 			TxHash:     hash,
 			LogHandler: val,
 		})
