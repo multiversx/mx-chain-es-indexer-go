@@ -103,7 +103,7 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 	lep.logsData = newLogsData(timestamp, preparedResults.AlteredAccts, preparedResults.Transactions, preparedResults.ScResults)
 
 	for _, txLog := range logsAndEvents {
-		if check.IfNil(txLog.LogHandler) {
+		if txLog == nil || check.IfNil(txLog.LogHandler) {
 			continue
 		}
 
@@ -188,7 +188,7 @@ func (lep *logsAndEventsProcessor) PrepareLogsForDB(
 	logs := make([]*data.Logs, 0, len(logsAndEvents))
 
 	for _, txLog := range logsAndEvents {
-		if check.IfNil(txLog.LogHandler) {
+		if txLog == nil || check.IfNil(txLog.LogHandler) {
 			continue
 		}
 
