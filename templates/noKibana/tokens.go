@@ -16,7 +16,7 @@ var Tokens = Object{
 				"format": "epoch_second",
 			},
 			"nonce": Object{
-				"type": "unsigned_long",
+				"type": "double",
 			},
 			"data": Object{
 				"type": "nested",

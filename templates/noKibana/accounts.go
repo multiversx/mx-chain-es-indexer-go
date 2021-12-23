@@ -26,7 +26,7 @@ var Accounts = Object{
 				"type": "double",
 			},
 			"nonce": Object{
-				"type": "unsigned_long",
+				"type": "double",
 			},
 			"address": Object{
 				"type": "text",
