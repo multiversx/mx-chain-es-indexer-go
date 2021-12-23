@@ -20,7 +20,7 @@ var Blocks = Object{
 	"mappings": Object{
 		"properties": Object{
 			"nonce": Object{
-				"type": "long",
+				"type": "double",
 			},
 			"timestamp": Object{
 				"type":   "date",
