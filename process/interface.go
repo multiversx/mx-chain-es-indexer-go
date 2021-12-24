@@ -90,9 +90,9 @@ type DBValidatorsHandler interface {
 
 // DBLogsAndEventsHandler defines the actions that a logs and events handler should do
 type DBLogsAndEventsHandler interface {
-	PrepareLogsForDB(logsAndEvents map[string]coreData.LogHandler, timestamp uint64) []*data.Logs
+	PrepareLogsForDB(logsAndEvents []*coreData.LogData, timestamp uint64) []*data.Logs
 	ExtractDataFromLogs(
-		logsAndEvents map[string]coreData.LogHandler,
+		logsAndEvents []*coreData.LogData,
 		preparedResults *data.PreparedResults,
 		timestamp uint64,
 	) *data.PreparedLogsResults
