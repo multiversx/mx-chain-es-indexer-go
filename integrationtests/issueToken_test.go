@@ -42,15 +42,18 @@ func TestIssueTokenAndTransferOwnership(t *testing.T) {
 	}
 
 	pool := &indexer.Pool{
-		Logs: map[string]coreData.LogHandler{
-			"h1": &transaction.Log{
-				Events: []*transaction.Event{
-					{
-						Address:    []byte("addr"),
-						Identifier: []byte("issueSemiFungible"),
-						Topics:     [][]byte{[]byte("SEMI-abcd"), []byte("semi-token"), []byte("SEMI"), []byte(core.SemiFungibleESDT)},
+		Logs: []*coreData.LogData{
+			{
+				TxHash: "h1",
+				LogHandler: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    []byte("addr"),
+							Identifier: []byte("issueSemiFungible"),
+							Topics:     [][]byte{[]byte("SEMI-abcd"), []byte("semi-token"), []byte("SEMI"), []byte(core.SemiFungibleESDT)},
+						},
+						nil,
 					},
-					nil,
 				},
 			},
 		},
@@ -67,15 +70,18 @@ func TestIssueTokenAndTransferOwnership(t *testing.T) {
 
 	// transfer ownership
 	pool = &indexer.Pool{
-		Logs: map[string]coreData.LogHandler{
-			"h1": &transaction.Log{
-				Events: []*transaction.Event{
-					{
-						Address:    []byte("addr"),
-						Identifier: []byte("transferOwnership"),
-						Topics:     [][]byte{[]byte("SEMI-abcd"), []byte("semi-token"), []byte("SEMI"), []byte(core.SemiFungibleESDT), []byte("new-address")},
+		Logs: []*coreData.LogData{
+			{
+				TxHash: "h1",
+				LogHandler: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    []byte("addr"),
+							Identifier: []byte("transferOwnership"),
+							Topics:     [][]byte{[]byte("SEMI-abcd"), []byte("semi-token"), []byte("SEMI"), []byte(core.SemiFungibleESDT), []byte("new-address")},
+						},
+						nil,
 					},
-					nil,
 				},
 			},
 		},
