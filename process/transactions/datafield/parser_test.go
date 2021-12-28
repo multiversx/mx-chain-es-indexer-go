@@ -1,6 +1,8 @@
 package datafield
 
 import (
+	"encoding/hex"
+	"github.com/ElrondNetwork/elrond-go-core/core"
 	"testing"
 
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
@@ -215,19 +217,117 @@ func TestParseBlockingOperationESDT(t *testing.T) {
 	})
 }
 
-func TestRelayedOperation(t *testing.T) {
+func TestOperationDataFieldParser_ParseRelayed(t *testing.T) {
 	t.Parallel()
 
-	arguments := createMockArgumentsOperationParser()
-	parser, _ := NewOperationDataFieldParser(arguments)
+	args := &ArgsOperationDataFieldParser{
+		PubKeyConverter:  pubKeyConv,
+		Marshalizer:      &mock.MarshalizerMock{},
+		ShardCoordinator: &mock.ShardCoordinatorMock{},
+	}
 
-	t.Run("RelayedTxV1", func(t *testing.T) {
+	parser, _ := NewOperationDataFieldParser(args)
+
+	t.Run("RelayedTxOk", func(t *testing.T) {
 		t.Parallel()
 
-		dataField := []byte("relayedTx@7b226e6f6e6365223a322c2276616c7565223a302c227265636569766572223a22414141414141414141414146414974673738352f736c73554148686b57334569624c6e47524b76496f4e4d3d222c2273656e646572223a22726b6e534a477a343769534e794b43642f504f717075776b5477684534306d7a476a585a51686e622b724d3d222c226761735072696365223a313030303030303030302c226761734c696d6974223a31353030303030302c2264617461223a22633246325a5546306447567a644746306157397551444668597a49314d6a5935596d51335a44497759324a6959544d31596d566c4f4459314d4464684f574e6a4e7a677a5a4755774f445a694e4445334e546b345a54517a59544e6b5a6a566a593245795a5468684d6a6c414d6a51344e54677a4d574e6d4d5445304d54566d596a41354d6a63774e4451324e5755324e7a597a59574d314f4445345a5467314e4751345957526d4e54417a596a63354d6a6c6b4f54526c4e6d49794e6a49775a673d3d222c22636861696e4944223a224d513d3d222c2276657273696f6e223a312c227369676e6174757265223a225239462b34546352415a386d7771324559303163596c337662716c46657176387a76474a775a6833594d4f556b4234643451574e66376744626c484832576b71614a76614845744356617049713365356562384e41773d3d227d")
-		res := parser.Parse(dataField, sender, receiverSC)
+		dataField := []byte("relayedTx@7b226e6f6e6365223a362c2276616c7565223a302c227265636569766572223a2241414141414141414141414641436e626331733351534939726e6d697a69684d7a3631665539446a71786b3d222c2273656e646572223a2248714b386459464a43474144346a756d4e4e742b314530745a6579736376714c7a38624c47574e774177453d222c226761735072696365223a313030303030303030302c226761734c696d6974223a31353030303030302c2264617461223a2252564e45564652795957357a5a6d56795144517a4e446330597a51304d6d517a4f544d794d7a677a4e444d354d7a4a414d444e6c4f4541324d6a63314e7a6b304d7a59344e6a55334d7a6330514745774d4441774d444177222c22636861696e4944223a2252413d3d222c2276657273696f6e223a312c227369676e6174757265223a2262367331755349396f6d4b63514448344337624f534a632f62343166577a3961584d777334526966552b71343870486d315430636f72744b727443484a4258724f67536b3651333254546f7a6e4e2b7074324f4644413d3d227d")
+
+		res := parser.Parse(dataField, sender, receiver)
 		require.Equal(t, &ResponseParseData{
-			Operation: operationRelayedTx,
+			IsRelayed:        true,
+			Operation:        "ESDTTransfer",
+			Function:         "buyChest",
+			Tokens:           []string{"CGLD-928492"},
+			ESDTValues:       []string{"1000"},
+			Receivers:        []string{"erd1qqqqqqqqqqqqqpgq98dhxkehgy3rmtne5t8zsnx04404858r4vvsamdlsv"},
+			ReceiversShardID: []uint32{0},
+		}, res)
+	})
+
+	t.Run("RelayedTxV2Ok", func(t *testing.T) {
+		t.Parallel()
+
+		dataField := []byte(core.RelayedTransactionV2 +
+			"@" +
+			hex.EncodeToString(receiverSC) +
+			"@" +
+			"0A" +
+			"@" +
+			hex.EncodeToString([]byte("callMe@02")) +
+			"@" +
+			"01a2")
+
+		res := parser.Parse(dataField, sender, receiver)
+		require.Equal(t, &ResponseParseData{
+			IsRelayed:        true,
+			Operation:        "transfer",
+			Function:         "callMe",
+			Receivers:        []string{"erd1qqqqqqqqqqqqqpgqp699jngundfqw07d8jzkepucvpzush6k3wvqyc44rx"},
+			ReceiversShardID: []uint32{0},
+		}, res)
+	})
+
+	t.Run("RelayedTxV2NotEnoughtArgs", func(t *testing.T) {
+		t.Parallel()
+
+		dataField := []byte(core.RelayedTransactionV2 + "@abcd")
+		res := parser.Parse(dataField, sender, receiver)
+		require.Equal(t, &ResponseParseData{
+			IsRelayed: true,
+		}, res)
+	})
+
+	t.Run("RelayedTxV1NoArguments", func(t *testing.T) {
+		t.Parallel()
+
+		dataField := []byte(core.RelayedTransaction)
+		res := parser.Parse(dataField, sender, receiver)
+		require.Equal(t, &ResponseParseData{
+			IsRelayed: true,
+		}, res)
+	})
+
+	t.Run("RelayedTxV2WithRelayedTxIn", func(t *testing.T) {
+		t.Parallel()
+
+		dataField := []byte(core.RelayedTransactionV2 +
+			"@" +
+			hex.EncodeToString(receiverSC) +
+			"@" +
+			"0A" +
+			"@" +
+			hex.EncodeToString([]byte(core.RelayedTransaction)) +
+			"@" +
+			"01a2")
+		res := parser.Parse(dataField, sender, receiver)
+		require.Equal(t, &ResponseParseData{
+			IsRelayed: true,
+		}, res)
+	})
+
+	t.Run("RelayedTxV2WithNFTTransfer", func(t *testing.T) {
+		t.Parallel()
+
+		nftTransferData := []byte("ESDTNFTTransfer@4c4b4641524d2d396431656138@34ae14@728faa2c8883760aaf53bb@000000000000000005001e2a1428dd1e3a5146b3960d9e0f4a50369904ee5483@636c61696d5265776172647350726f7879@00000000000000000500a655b2b534218d6d8cfa1f219960be2f462e92565483")
+		dataField := []byte(core.RelayedTransactionV2 +
+			"@" +
+			hex.EncodeToString(receiver) +
+			"@" +
+			"0A" +
+			"@" +
+			hex.EncodeToString(nftTransferData) +
+			"@" +
+			"01a2")
+		res := parser.Parse(dataField, sender, receiver)
+		require.Equal(t, &ResponseParseData{
+			IsRelayed:        true,
+			Operation:        "ESDTNFTTransfer",
+			ESDTValues:       []string{"138495980998569893315957691"},
+			Tokens:           []string{"LKFARM-9d1ea8-34ae14"},
+			Receivers:        []string{"erd1qqqqqqqqqqqqqpgqrc4pg2xarca9z34njcxeur622qmfjp8w2jps89fxnl"},
+			ReceiversShardID: []uint32{0},
+			Function:         "claimRewardsProxy",
 		}, res)
 	})
 }

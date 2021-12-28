@@ -1,20 +1,23 @@
 package datafield
 
 import (
+	"encoding/json"
+	"math/big"
+
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
+	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 	"github.com/ElrondNetwork/elrond-vm-common/parsers"
-	"math/big"
 )
 
 const (
-	operationRelayedTx                = `relayed`
 	operationTransfer                 = `transfer`
 	minArgumentsQuantityOperationESDT = 2
 	minArgumentsQuantityOperationNFT  = 3
+	numArgsRelayedV2                  = 4
 )
 
 type operationDataFieldParser struct {
@@ -52,6 +55,10 @@ func NewOperationDataFieldParser(args *ArgsOperationDataFieldParser) (*operation
 
 // Parse will parse the provided data field
 func (odp *operationDataFieldParser) Parse(dataField []byte, sender, receiver []byte) *ResponseParseData {
+	return odp.parse(dataField, sender, receiver, false)
+}
+
+func (odp *operationDataFieldParser) parse(dataField []byte, sender, receiver []byte, ignoreRelayed bool) *ResponseParseData {
 	responseParse := &ResponseParseData{
 		Operation: operationTransfer,
 	}
@@ -75,8 +82,12 @@ func (odp *operationDataFieldParser) Parse(dataField []byte, sender, receiver []
 	case core.BuiltInFunctionESDTNFTCreate, core.BuiltInFunctionESDTNFTBurn, core.BuiltInFunctionESDTNFTAddQuantity:
 		return parseQuantityOperationNFT(args, function)
 	case core.RelayedTransaction, core.RelayedTransactionV2:
-		responseParse.Operation = operationRelayedTx
-		return responseParse
+		if ignoreRelayed {
+			return &ResponseParseData{
+				IsRelayed: true,
+			}
+		}
+		return odp.parseRelayed(function, args, receiver)
 	}
 
 	if function != "" && core.IsSmartContractAddress(receiver) {
@@ -84,6 +95,66 @@ func (odp *operationDataFieldParser) Parse(dataField []byte, sender, receiver []
 	}
 
 	return responseParse
+}
+
+func (odp *operationDataFieldParser) parseRelayed(function string, args [][]byte, receiver []byte) *ResponseParseData {
+	if len(args) == 0 {
+		return &ResponseParseData{
+			IsRelayed: true,
+		}
+	}
+
+	tx, ok := extractInnerTx(function, args, receiver)
+	if !ok {
+		return &ResponseParseData{
+			IsRelayed: true,
+		}
+	}
+
+	res := odp.parse(tx.Data, tx.SndAddr, tx.RcvAddr, true)
+	if res.IsRelayed {
+		return &ResponseParseData{
+			IsRelayed: true,
+		}
+	}
+
+	receivers := []string{odp.pubKeyConverter.Encode(tx.RcvAddr)}
+	receiversShardID := []uint32{odp.shardCoordinator.ComputeId(tx.RcvAddr)}
+	if res.Operation == core.BuiltInFunctionMultiESDTNFTTransfer || res.Operation == core.BuiltInFunctionESDTNFTTransfer {
+		receivers = res.Receivers
+		receiversShardID = res.ReceiversShardID
+	}
+
+	return &ResponseParseData{
+		Operation:        res.Operation,
+		Function:         res.Function,
+		ESDTValues:       res.ESDTValues,
+		Tokens:           res.Tokens,
+		Receivers:        receivers,
+		ReceiversShardID: receiversShardID,
+		IsRelayed:        true,
+	}
+}
+
+func extractInnerTx(function string, args [][]byte, receiver []byte) (*transaction.Transaction, bool) {
+	tx := &transaction.Transaction{}
+
+	if function == core.RelayedTransaction {
+		err := json.Unmarshal(args[0], &tx)
+
+		return tx, err == nil
+	}
+
+	if len(args) != numArgsRelayedV2 {
+		return nil, false
+	}
+
+	// sender of the inner tx is the receiver of the relayed tx
+	tx.SndAddr = receiver
+	tx.RcvAddr = args[0]
+	tx.Data = args[2]
+
+	return tx, true
 }
 
 func parseBlockingOperationESDT(args [][]byte, funcName string) *ResponseParseData {

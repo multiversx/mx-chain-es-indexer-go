@@ -14,6 +14,7 @@ type ResponseParseData struct {
 	Tokens           []string
 	Receivers        []string
 	ReceiversShardID []uint32
+	IsRelayed        bool
 }
 
 // ArgsOperationDataFieldParser holds all the components required to create a new instance of data field parser
