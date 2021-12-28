@@ -11,7 +11,6 @@ import (
 )
 
 const (
-	operationRelayedTx                = `relayed`
 	operationTransfer                 = `transfer`
 	minArgumentsQuantityOperationESDT = 2
 	minArgumentsQuantityOperationNFT  = 3
@@ -80,7 +79,9 @@ func (odp *operationDataFieldParser) parse(dataField []byte, sender, receiver []
 		return parseQuantityOperationNFT(args, function)
 	case core.RelayedTransaction, core.RelayedTransactionV2:
 		if ignoreRelayed {
-			return &ResponseParseData{}
+			return &ResponseParseData{
+				IsRelayed: true,
+			}
 		}
 		return odp.ParseRelayed(function, args, receiver)
 	}

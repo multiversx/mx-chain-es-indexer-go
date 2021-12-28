@@ -1,9 +1,12 @@
 package datafield
 
 import (
-	"github.com/ElrondNetwork/elastic-indexer-go/mock"
-	"github.com/stretchr/testify/require"
+	"encoding/hex"
 	"testing"
+
+	"github.com/ElrondNetwork/elastic-indexer-go/mock"
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/stretchr/testify/require"
 )
 
 func TestOperationDataFieldParser_ParseRelayed(t *testing.T) {
@@ -31,6 +34,90 @@ func TestOperationDataFieldParser_ParseRelayed(t *testing.T) {
 			ESDTValues:       []string{"1000"},
 			Receivers:        []string{"erd1qqqqqqqqqqqqqpgq98dhxkehgy3rmtne5t8zsnx04404858r4vvsamdlsv"},
 			ReceiversShardID: []uint32{0},
+		}, res)
+	})
+
+	t.Run("RelayedTxV2Ok", func(t *testing.T) {
+		t.Parallel()
+
+		dataField := []byte(core.RelayedTransactionV2 +
+			"@" +
+			hex.EncodeToString(receiverSC) +
+			"@" +
+			"0A" +
+			"@" +
+			hex.EncodeToString([]byte("callMe@02")) +
+			"@" +
+			"01a2")
+
+		res := parser.Parse(dataField, sender, receiver)
+		require.Equal(t, &ResponseParseData{
+			IsRelayed:        true,
+			Operation:        "transfer",
+			Function:         "callMe",
+			Receivers:        []string{"erd1qqqqqqqqqqqqqpgqp699jngundfqw07d8jzkepucvpzush6k3wvqyc44rx"},
+			ReceiversShardID: []uint32{0},
+		}, res)
+	})
+
+	t.Run("RelayedTxV2NotEnoughtArgs", func(t *testing.T) {
+		t.Parallel()
+
+		dataField := []byte(core.RelayedTransactionV2 + "@abcd")
+		res := parser.Parse(dataField, sender, receiver)
+		require.Equal(t, &ResponseParseData{
+			IsRelayed: true,
+		}, res)
+	})
+
+	t.Run("RelayedTxV1NoArguments", func(t *testing.T) {
+		t.Parallel()
+
+		dataField := []byte(core.RelayedTransaction)
+		res := parser.Parse(dataField, sender, receiver)
+		require.Equal(t, &ResponseParseData{
+			IsRelayed: true,
+		}, res)
+	})
+
+	t.Run("RelayedTxV2WithRelayedTxIn", func(t *testing.T) {
+		t.Parallel()
+
+		dataField := []byte(core.RelayedTransactionV2 +
+			"@" +
+			hex.EncodeToString(receiverSC) +
+			"@" +
+			"0A" +
+			"@" +
+			hex.EncodeToString([]byte(core.RelayedTransaction)) +
+			"@" +
+			"01a2")
+		res := parser.Parse(dataField, sender, receiver)
+		require.Equal(t, &ResponseParseData{
+			IsRelayed: true,
+		}, res)
+	})
+
+	t.Run("RelayedTxV2WithNFTTransfer", func(t *testing.T) {
+		nftTransferData := []byte("ESDTNFTTransfer@4c4b4641524d2d396431656138@34ae14@728faa2c8883760aaf53bb@000000000000000005001e2a1428dd1e3a5146b3960d9e0f4a50369904ee5483@636c61696d5265776172647350726f7879@00000000000000000500a655b2b534218d6d8cfa1f219960be2f462e92565483")
+		dataField := []byte(core.RelayedTransactionV2 +
+			"@" +
+			hex.EncodeToString(receiver) +
+			"@" +
+			"0A" +
+			"@" +
+			hex.EncodeToString(nftTransferData) +
+			"@" +
+			"01a2")
+		res := parser.Parse(dataField, sender, receiver)
+		require.Equal(t, &ResponseParseData{
+			IsRelayed:        true,
+			Operation:        "ESDTNFTTransfer",
+			ESDTValues:       []string{"138495980998569893315957691"},
+			Tokens:           []string{"LKFARM-9d1ea8-34ae14"},
+			Receivers:        []string{"erd1qqqqqqqqqqqqqpgqrc4pg2xarca9z34njcxeur622qmfjp8w2jps89fxnl"},
+			ReceiversShardID: []uint32{0},
+			Function:         "claimRewardsProxy",
 		}, res)
 	})
 }

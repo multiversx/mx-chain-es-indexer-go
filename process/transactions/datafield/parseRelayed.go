@@ -12,7 +12,9 @@ const (
 
 func (odp *operationDataFieldParser) ParseRelayed(function string, args [][]byte, receiver []byte) *ResponseParseData {
 	if len(args) == 0 {
-		return nil
+		return &ResponseParseData{
+			IsRelayed: true,
+		}
 	}
 
 	tx, ok := extractInnerTx(function, args, receiver)
@@ -23,6 +25,11 @@ func (odp *operationDataFieldParser) ParseRelayed(function string, args [][]byte
 	}
 
 	res := odp.parse(tx.Data, tx.SndAddr, tx.RcvAddr, true)
+	if res.IsRelayed {
+		return &ResponseParseData{
+			IsRelayed: true,
+		}
+	}
 
 	receivers := []string{odp.pubKeyConverter.Encode(tx.RcvAddr)}
 	receiversShardID := []uint32{odp.shardCoordinator.ComputeId(tx.RcvAddr)}
