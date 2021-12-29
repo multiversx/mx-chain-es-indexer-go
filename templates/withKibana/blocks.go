@@ -21,26 +21,26 @@ var Blocks = Object{
 	"mappings": Object{
 		"properties": Object{
 			"nonce": Object{
-				"type": "long",
+				"type": "double",
 			},
 			"timestamp": Object{
 				"type":   "date",
 				"format": "epoch_second",
 			},
 			"searchOrder": Object{
-				"type": "unsigned_long",
+				"type": "double",
 			},
 			"gasProvided": Object{
-				"type": "unsigned_long",
+				"type": "double",
 			},
 			"gasRefunded": Object{
-				"type": "unsigned_long",
+				"type": "double",
 			},
 			"gasPenalized": Object{
-				"type": "unsigned_long",
+				"type": "double",
 			},
 			"maxGasLimit": Object{
-				"type": "unsigned_long",
+				"type": "double",
 			},
 		},
 	},
