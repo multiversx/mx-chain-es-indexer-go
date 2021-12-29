@@ -211,7 +211,7 @@ func (lep *logsAndEventsProcessor) prepareLogsForDB(
 		Events:    make([]*data.Event, 0, len(events)),
 	}
 
-	for _, event := range events {
+	for idx, event := range events {
 		if check.IfNil(event) {
 			continue
 		}
@@ -221,6 +221,7 @@ func (lep *logsAndEventsProcessor) prepareLogsForDB(
 			Identifier: string(event.GetIdentifier()),
 			Topics:     event.GetTopics(),
 			Data:       event.GetData(),
+			Order:      idx,
 		})
 	}
 

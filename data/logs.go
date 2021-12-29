@@ -16,6 +16,7 @@ type Event struct {
 	Identifier string   `json:"identifier"`
 	Topics     [][]byte `json:"topics"`
 	Data       []byte   `json:"data"`
+	Order      int      `json:"order"`
 }
 
 // PreparedLogsResults is the DTO that holds all the results after processing
