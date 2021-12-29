@@ -6,7 +6,8 @@ import "time"
 type UpdateNFTData struct {
 	ID            string
 	URIsToAdd     [][]byte
-	NewAttributes [][]byte
+	NewAttributes []byte
+	Address       string
 }
 
 // ResponseTokens is the structure for the tokens response

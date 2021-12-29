@@ -75,7 +75,7 @@ func createEventsProcessors(args *ArgsLogsAndEventsProcessor) []eventsProcessor 
 	fungibleProc := newFungibleESDTProcessor(args.PubKeyConverter, args.ShardCoordinator)
 	scDeploysProc := newSCDeploysProcessor(args.PubKeyConverter)
 	informativeProc := newInformativeLogsProcessor(args.TxFeeCalculator)
-	updateNFTProc := newNFTsPropertiesProcessor()
+	updateNFTProc := newNFTsPropertiesProcessor(args.PubKeyConverter)
 
 	eventsProcs := []eventsProcessor{
 		fungibleProc,
