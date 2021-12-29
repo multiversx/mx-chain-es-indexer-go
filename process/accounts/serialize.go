@@ -29,13 +29,30 @@ func (ap *accountsProcessor) SerializeNFTCreateInfo(tokensInfo []*data.TokenInfo
 }
 
 // SerializeAccounts will serialize the provided accounts in a way that Elastic Search expects a bulk request
-func (ap *accountsProcessor) SerializeAccounts(
+func (ap *accountsProcessor) SerializeAccounts(accounts map[string]*data.AccountInfo) ([]*bytes.Buffer, error) {
+	buffSlice := data.NewBufferSlice()
+	for _, acc := range accounts {
+		meta, serializedData, err := prepareSerializedAccount(acc, false)
+		if err != nil {
+			return nil, err
+		}
+
+		err = buffSlice.PutData(meta, serializedData)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return buffSlice.Buffers(), nil
+}
+
+func (ap *accountsProcessor) SerializeAccountsESDT(
 	accounts map[string]*data.AccountInfo,
-	areESDTAccounts bool,
+	updateNFTData []*data.UpdateNFTData,
 ) ([]*bytes.Buffer, error) {
 	buffSlice := data.NewBufferSlice()
 	for _, acc := range accounts {
-		meta, serializedData, err := prepareSerializedAccount(acc, areESDTAccounts)
+		meta, serializedData, err := prepareSerializedAccount(acc, true)
 		if err != nil {
 			return nil, err
 		}

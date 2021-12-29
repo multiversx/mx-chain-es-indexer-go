@@ -76,7 +76,7 @@ func serializeDeploy(deployInfo *data.ScDeployInfo) ([]byte, error) {
 }
 
 // SerializeTokens will serialize the provided tokens data in a way that Elastic Search expects a bulk request
-func (logsAndEventsProcessor) SerializeTokens(tokens []*data.TokenInfo) ([]*bytes.Buffer, error) {
+func (logsAndEventsProcessor) SerializeTokens(tokens []*data.TokenInfo, updateNFTData []*data.UpdateNFTData) ([]*bytes.Buffer, error) {
 	buffSlice := data.NewBufferSlice()
 	for _, tokenData := range tokens {
 		meta, serializedData, err := serializeToken(tokenData)

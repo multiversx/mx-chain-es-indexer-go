@@ -25,6 +25,7 @@ type argOutputProcessEvent struct {
 	tokenInfo       *data.TokenInfo
 	delegator       *data.Delegator
 	processed       bool
+	updatePropNFT   *data.UpdateNFTData
 }
 
 type eventsProcessor interface {

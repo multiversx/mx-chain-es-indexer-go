@@ -440,12 +440,12 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
-	err = ei.indexAlteredAccounts(headerTimestamp, preparedResults.AlteredAccts)
+	err = ei.indexAlteredAccounts(headerTimestamp, preparedResults.AlteredAccts, logsData.UpdatesNFTsData)
 	if err != nil {
 		return err
 	}
 
-	err = ei.indexTokens(logsData.TokensInfo)
+	err = ei.indexTokens(logsData.TokensInfo, logsData.UpdatesNFTsData)
 	if err != nil {
 		return err
 	}
@@ -523,12 +523,12 @@ func (ei *elasticProcessor) prepareAndIndexLogs(logsAndEvents map[string]coreDat
 	return ei.doBulkRequests(elasticIndexer.LogsIndex, buffSlice)
 }
 
-func (ei *elasticProcessor) indexTokens(tokensData []*data.TokenInfo) error {
+func (ei *elasticProcessor) indexTokens(tokensData []*data.TokenInfo, updateNFTData []*data.UpdateNFTData) error {
 	if !ei.isIndexEnabled(elasticIndexer.TokensIndex) {
 		return nil
 	}
 
-	buffSlice, err := ei.logsAndEventsProc.SerializeTokens(tokensData)
+	buffSlice, err := ei.logsAndEventsProc.SerializeTokens(tokensData, updateNFTData)
 	if err != nil {
 		return err
 	}
@@ -636,6 +636,7 @@ func (ei *elasticProcessor) SaveRoundsInfo(info []*data.RoundInfo) error {
 func (ei *elasticProcessor) indexAlteredAccounts(
 	timestamp uint64,
 	alteredAccounts data.AlteredAccountsHandler,
+	updatesNFTsData []*data.UpdateNFTData,
 ) error {
 	regularAccountsToIndex, accountsToIndexESDT := ei.accountsProc.GetAccounts(alteredAccounts)
 
@@ -644,16 +645,17 @@ func (ei *elasticProcessor) indexAlteredAccounts(
 		return err
 	}
 
-	return ei.saveAccountsESDT(timestamp, accountsToIndexESDT)
+	return ei.saveAccountsESDT(timestamp, accountsToIndexESDT, updatesNFTsData)
 }
 
 func (ei *elasticProcessor) saveAccountsESDT(
 	timestamp uint64,
 	wrappedAccounts []*data.AccountESDT,
+	updatesNFTsData []*data.UpdateNFTData,
 ) error {
 	accountsESDTMap := ei.accountsProc.PrepareAccountsMapESDT(wrappedAccounts)
 
-	err := ei.indexAccountsESDT(accountsESDTMap)
+	err := ei.indexAccountsESDT(accountsESDTMap, updatesNFTsData)
 	if err != nil {
 		return err
 	}
@@ -675,12 +677,20 @@ func (ei *elasticProcessor) prepareAndIndexTagsCount(tagsCount data.CountTags) e
 	return ei.doBulkRequests(elasticIndexer.TagsIndex, serializedTags)
 }
 
-func (ei *elasticProcessor) indexAccountsESDT(accountsESDTMap map[string]*data.AccountInfo) error {
+func (ei *elasticProcessor) indexAccountsESDT(
+	accountsESDTMap map[string]*data.AccountInfo,
+	updatesNFTsData []*data.UpdateNFTData,
+) error {
 	if !ei.isIndexEnabled(elasticIndexer.AccountsESDTIndex) {
 		return nil
 	}
 
-	return ei.serializeAndIndexAccounts(accountsESDTMap, elasticIndexer.AccountsESDTIndex, true)
+	buffSlice, err := ei.accountsProc.SerializeAccountsESDT(accountsESDTMap, updatesNFTsData)
+	if err != nil {
+		return err
+	}
+
+	return ei.doBulkRequests(elasticIndexer.AccountsESDTIndex, buffSlice)
 }
 
 func (ei *elasticProcessor) indexNFTCreateInfo(tokensData data.TokensHandler) error {
@@ -708,7 +718,7 @@ func (ei *elasticProcessor) indexNFTCreateInfo(tokensData data.TokensHandler) er
 // SaveAccounts will prepare and save information about provided accounts in elasticsearch server
 func (ei *elasticProcessor) SaveAccounts(timestamp uint64, accts []*data.Account) error {
 	accountsMap := ei.accountsProc.PrepareRegularAccountsMap(accts)
-	err := ei.indexAccounts(accountsMap, elasticIndexer.AccountsIndex, false)
+	err := ei.indexAccounts(accountsMap, elasticIndexer.AccountsIndex)
 	if err != nil {
 		return err
 	}
@@ -716,16 +726,16 @@ func (ei *elasticProcessor) SaveAccounts(timestamp uint64, accts []*data.Account
 	return ei.saveAccountsHistory(timestamp, accountsMap)
 }
 
-func (ei *elasticProcessor) indexAccounts(accountsMap map[string]*data.AccountInfo, index string, areESDTAccounts bool) error {
-	if !ei.isIndexEnabled(elasticIndexer.AccountsIndex) {
+func (ei *elasticProcessor) indexAccounts(accountsMap map[string]*data.AccountInfo, index string) error {
+	if !ei.isIndexEnabled(index) {
 		return nil
 	}
 
-	return ei.serializeAndIndexAccounts(accountsMap, index, areESDTAccounts)
+	return ei.serializeAndIndexAccounts(accountsMap, index)
 }
 
-func (ei *elasticProcessor) serializeAndIndexAccounts(accountsMap map[string]*data.AccountInfo, index string, areESDTAccounts bool) error {
-	buffSlice, err := ei.accountsProc.SerializeAccounts(accountsMap, areESDTAccounts)
+func (ei *elasticProcessor) serializeAndIndexAccounts(accountsMap map[string]*data.AccountInfo, index string) error {
+	buffSlice, err := ei.accountsProc.SerializeAccounts(accountsMap)
 	if err != nil {
 		return err
 	}
