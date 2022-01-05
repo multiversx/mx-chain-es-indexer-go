@@ -6,7 +6,7 @@ require (
 	github.com/ElrondNetwork/elastic-indexer-go v1.1.29-0.20211214150258-c4797dc10a2c
 	github.com/ElrondNetwork/elrond-go-core v1.1.5
 	github.com/ElrondNetwork/elrond-go-logger v1.0.5
-	github.com/elastic/go-elasticsearch/v7 v7.16.0
+	github.com/elastic/go-elasticsearch/v7 v7.12.0
 	github.com/tidwall/gjson v1.12.1
 )
 
