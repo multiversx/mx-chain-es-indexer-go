@@ -34,6 +34,9 @@ var AccountsESDT = Object{
 					},
 				},
 			},
+			"tokenNonce": Object{
+				"type": "double",
+			},
 		},
 	},
 }

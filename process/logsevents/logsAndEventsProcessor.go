@@ -96,19 +96,19 @@ func createEventsProcessors(args *ArgsLogsAndEventsProcessor) []eventsProcessor 
 
 // ExtractDataFromLogs will extract data from the provided logs and events and put in altered addresses
 func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
-	logsAndEvents map[string]coreData.LogHandler,
+	logsAndEvents []*coreData.LogData,
 	preparedResults *data.PreparedResults,
 	timestamp uint64,
 ) *data.PreparedLogsResults {
 	lep.logsData = newLogsData(timestamp, preparedResults.AlteredAccts, preparedResults.Transactions, preparedResults.ScResults)
 
-	for logHash, txLog := range logsAndEvents {
-		if check.IfNil(txLog) {
+	for _, txLog := range logsAndEvents {
+		if txLog == nil || check.IfNil(txLog.LogHandler) {
 			continue
 		}
 
-		events := txLog.GetLogEvents()
-		lep.processEvents(logHash, txLog.GetAddress(), events)
+		events := txLog.LogHandler.GetLogEvents()
+		lep.processEvents(txLog.TxHash, txLog.LogHandler.GetAddress(), events)
 	}
 
 	return &data.PreparedLogsResults{
@@ -175,17 +175,17 @@ func (lep *logsAndEventsProcessor) processEvent(logHash string, logAddress []byt
 
 // PrepareLogsForDB will prepare logs for database
 func (lep *logsAndEventsProcessor) PrepareLogsForDB(
-	logsAndEvents map[string]coreData.LogHandler,
+	logsAndEvents []*coreData.LogData,
 	timestamp uint64,
 ) []*data.Logs {
 	logs := make([]*data.Logs, 0, len(logsAndEvents))
 
-	for txHash, txLog := range logsAndEvents {
-		if check.IfNil(txLog) {
+	for _, txLog := range logsAndEvents {
+		if txLog == nil || check.IfNil(txLog.LogHandler) {
 			continue
 		}
 
-		logs = append(logs, lep.prepareLogsForDB(txHash, txLog, timestamp))
+		logs = append(logs, lep.prepareLogsForDB(txLog.TxHash, txLog.LogHandler, timestamp))
 	}
 
 	return logs
@@ -204,7 +204,7 @@ func (lep *logsAndEventsProcessor) prepareLogsForDB(
 		Events:    make([]*data.Event, 0, len(events)),
 	}
 
-	for _, event := range events {
+	for idx, event := range events {
 		if check.IfNil(event) {
 			continue
 		}
@@ -214,6 +214,7 @@ func (lep *logsAndEventsProcessor) prepareLogsForDB(
 			Identifier: string(event.GetIdentifier()),
 			Topics:     event.GetTopics(),
 			Data:       event.GetData(),
+			Order:      idx,
 		})
 	}
 

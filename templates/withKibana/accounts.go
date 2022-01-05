@@ -25,6 +25,18 @@ var Accounts = Object{
 			"totalBalanceWithStakeNum": Object{
 				"type": "double",
 			},
+			"nonce": Object{
+				"type": "double",
+			},
+			"address": Object{
+				"type": "text",
+			},
+			"balance": Object{
+				"type": "text",
+			},
+			"totalBalanceWithStake": Object{
+				"type": "text",
+			},
 		},
 	},
 }

@@ -89,7 +89,8 @@ func (d *dataDispatcher) stopWorker() {
 
 // Close will close the endless running go routine
 func (d *dataDispatcher) Close() error {
-	if d.wasClosed.Set() {
+	previousState := d.wasClosed.SetReturningPrevious()
+	if previousState {
 		return nil
 	}
 
