@@ -24,6 +24,7 @@ type Block struct {
 	PrevHash              string          `json:"prevHash"`
 	ShardID               uint32          `json:"shardId"`
 	TxCount               uint32          `json:"txCount"`
+	NotarizedTxsCount     uint32          `json:"notarizedTxsCount"`
 	AccumulatedFees       string          `json:"accumulatedFees"`
 	DeveloperFees         string          `json:"developerFees"`
 	EpochStartBlock       bool            `json:"epochStartBlock"`

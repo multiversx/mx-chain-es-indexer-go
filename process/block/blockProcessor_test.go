@@ -160,6 +160,7 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	dbBlock, err := bp.PrepareBlockForDB(&dataBlock.MetaBlock{
+		TxCount: 1000,
 		EpochStart: dataBlock.EpochStart{
 			LastFinalizedHeaders: []dataBlock.EpochStartShardData{{}},
 			Economics: dataBlock.Economics{
@@ -173,25 +174,32 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 				PrevEpochStartHash:               []byte("prevEpoch"),
 			},
 		},
+		MiniBlockHeaders: []dataBlock.MiniBlockHeader{
+			{
+				TxCount: 50,
+			},
+			{
+				TxCount: 120,
+			},
+		},
 	}, nil, &dataBlock.Body{}, nil, coreIndexerData.HeaderGasConsumption{}, 0)
 	require.Equal(t, nil, err)
 	require.Equal(t, &data.Block{
 		Nonce:                 0,
 		Round:                 0,
 		Epoch:                 0,
-		Hash:                  "11cb2a3a28522a11ae646a93aa4d50f87194cead7d6edeb333d502349407b61d",
+		Hash:                  "ae3fe1896d1ecc5fa685a8042b7410378c4ea8451b451f8ade319d7c0b7976e6",
 		MiniBlocksHashes:      []string{},
 		NotarizedBlocksHashes: nil,
 		Proposer:              0,
 		Validators:            nil,
 		PubKeyBitmap:          "",
-		Size:                  345,
+		Size:                  388,
 		SizeTxs:               0,
 		Timestamp:             0,
 		StateRootHash:         "",
 		PrevHash:              "",
 		ShardID:               core.MetachainShardId,
-		TxCount:               0,
 		EpochStartBlock:       true,
 		SearchOrder:           0x3f2,
 		EpochStartInfo: &data.EpochStartInfo{
@@ -204,5 +212,7 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 			PrevEpochStartRound:              222,
 			PrevEpochStartHash:               "7072657645706f6368",
 		},
+		NotarizedTxsCount: 830,
+		TxCount:           170,
 	}, dbBlock)
 }
