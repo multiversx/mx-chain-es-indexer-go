@@ -85,6 +85,7 @@ func (mp *miniblocksProcessor) prepareMiniblockForDB(
 		SenderShardID:   miniblock.SenderShardID,
 		ReceiverShardID: miniblock.ReceiverShardID,
 		Type:            miniblock.Type.String(),
+		ProcessingType:  mp.computeProcessingType(miniblock),
 		Timestamp:       time.Duration(header.GetTimeStamp()),
 	}
 
@@ -100,6 +101,14 @@ func (mp *miniblocksProcessor) prepareMiniblockForDB(
 	}
 
 	return dbMiniblock, nil
+}
+
+func (mp *miniblocksProcessor) computeProcessingType(miniblock *block.MiniBlock) string {
+	if miniblock.IsScheduledMiniBlock() {
+		return block.Scheduled.String()
+	}
+
+	return block.Normal.String()
 }
 
 // GetMiniblocksHashesHexEncoded will compute miniblocks hashes in a hexadecimal encoding

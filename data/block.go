@@ -56,5 +56,6 @@ type Miniblock struct {
 	SenderBlockHash   string        `json:"senderBlockHash"`
 	ReceiverBlockHash string        `json:"receiverBlockHash"`
 	Type              string        `json:"type"`
+	ProcessingType    string        `json:"processingType,omitempty"`
 	Timestamp         time.Duration `json:"timestamp"`
 }
