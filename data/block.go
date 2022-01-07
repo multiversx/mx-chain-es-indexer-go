@@ -50,12 +50,13 @@ type EpochStartInfo struct {
 
 // Miniblock is a structure containing miniblock information
 type Miniblock struct {
-	Hash              string        `json:"-"`
-	SenderShardID     uint32        `json:"senderShard"`
-	ReceiverShardID   uint32        `json:"receiverShard"`
-	SenderBlockHash   string        `json:"senderBlockHash"`
-	ReceiverBlockHash string        `json:"receiverBlockHash"`
-	Type              string        `json:"type"`
-	ProcessingType    string        `json:"processingType,omitempty"`
-	Timestamp         time.Duration `json:"timestamp"`
+	Hash                        string        `json:"-"`
+	SenderShardID               uint32        `json:"senderShard"`
+	ReceiverShardID             uint32        `json:"receiverShard"`
+	SenderBlockHash             string        `json:"senderBlockHash"`
+	ReceiverBlockHash           string        `json:"receiverBlockHash"`
+	Type                        string        `json:"type"`
+	ProcessingTypeOnSource      string        `json:"procTypeS,omitempty"`
+	ProcessingTypeOnDestination string        `json:"procTypeD,omitempty"`
+	Timestamp                   time.Duration `json:"timestamp"`
 }
