@@ -1,6 +1,8 @@
 package converters
 
 import (
+	"fmt"
+
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
@@ -43,4 +45,23 @@ func nonEmptyURIs(uris [][]byte) bool {
 	}
 
 	return false
+}
+
+// PrepareNFTUpdateData will prepare nfts update data
+func PrepareNFTUpdateData(buffSlice *data.BufferSlice, updateNFTData []*data.UpdateNFTData) error {
+	for _, nftUpdate := range updateNFTData {
+		id := fmt.Sprintf("%s-%s", nftUpdate.Address, nftUpdate.Identifier)
+		metaData := []byte(fmt.Sprintf(`{"update":{"_id":"%s", "_type": "_doc"}}%s`, id, "\n"))
+		serializedData := []byte(fmt.Sprintf(`{"script": {"source": "ctx._source.data.attributes = params.attributes","lang": "painless","params": {"attributes": "%s"}}}`, nftUpdate.NewAttributes))
+		if len(nftUpdate.URIsToAdd) != 0 {
+			serializedData = []byte(fmt.Sprintf(`{"script": {"source": "if (!ctx._source.data.containsKey('uris')) { ctx._source.data.uris = [ params.uris ]; } else {  ctx._source.data.uris.addAll(params.uris); }","lang": "painless","params": {"uris": %v}}}`, nftUpdate.URIsToAdd))
+		}
+
+		err := buffSlice.PutData(metaData, serializedData)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

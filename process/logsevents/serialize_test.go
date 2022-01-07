@@ -95,7 +95,7 @@ func TestSerializeTokens(t *testing.T) {
 	}
 	tokens := []*data.TokenInfo{tok1, tok2}
 
-	res, err := (&logsAndEventsProcessor{}).SerializeTokens(tokens)
+	res, err := (&logsAndEventsProcessor{}).SerializeTokens(tokens, nil)
 	require.Nil(t, err)
 	require.Equal(t, 1, len(res))
 

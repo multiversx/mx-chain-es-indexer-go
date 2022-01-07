@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 )
 
@@ -88,6 +89,11 @@ func (logsAndEventsProcessor) SerializeTokens(tokens []*data.TokenInfo, updateNF
 		if err != nil {
 			return nil, err
 		}
+	}
+
+	err := converters.PrepareNFTUpdateData(buffSlice, updateNFTData)
+	if err != nil {
+		return nil, err
 	}
 
 	return buffSlice.Buffers(), nil

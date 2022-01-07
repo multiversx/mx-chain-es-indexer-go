@@ -49,7 +49,7 @@ func TestSerializeAccounts(t *testing.T) {
 		},
 	}
 
-	res, err := (&accountsProcessor{}).SerializeAccounts(accs, false)
+	res, err := (&accountsProcessor{}).SerializeAccounts(accs)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(res))
 
@@ -74,7 +74,7 @@ func TestSerializeAccountsESDTNonceZero(t *testing.T) {
 		},
 	}
 
-	res, err := (&accountsProcessor{}).SerializeAccounts(accs, true)
+	res, err := (&accountsProcessor{}).SerializeAccountsESDT(accs, nil)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(res))
 
@@ -99,7 +99,7 @@ func TestSerializeAccountsESDT(t *testing.T) {
 		},
 	}
 
-	res, err := (&accountsProcessor{}).SerializeAccounts(accs, true)
+	res, err := (&accountsProcessor{}).SerializeAccountsESDT(accs, nil)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(res))
 
@@ -138,7 +138,7 @@ func TestSerializeAccountsNFTWithMedaData(t *testing.T) {
 		},
 	}
 
-	res, err := (&accountsProcessor{}).SerializeAccounts(accs, true)
+	res, err := (&accountsProcessor{}).SerializeAccountsESDT(accs, nil)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(res))
 
@@ -162,7 +162,7 @@ func TestSerializeAccountsESDTDelete(t *testing.T) {
 		},
 	}
 
-	res, err := (&accountsProcessor{}).SerializeAccounts(accs, true)
+	res, err := (&accountsProcessor{}).SerializeAccountsESDT(accs, nil)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(res))
 

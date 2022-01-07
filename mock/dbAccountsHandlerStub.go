@@ -45,7 +45,12 @@ func (dba *DBAccountsHandlerStub) SerializeAccountsHistory(accounts map[string]*
 }
 
 // SerializeAccounts -
-func (dba *DBAccountsHandlerStub) SerializeAccounts(_ map[string]*data.AccountInfo, _ bool) ([]*bytes.Buffer, error) {
+func (dba *DBAccountsHandlerStub) SerializeAccounts(_ map[string]*data.AccountInfo) ([]*bytes.Buffer, error) {
+	return nil, nil
+}
+
+// SerializeAccountsESDT -
+func (dba *DBAccountsHandlerStub) SerializeAccountsESDT(_ map[string]*data.AccountInfo, _ []*data.UpdateNFTData) ([]*bytes.Buffer, error) {
 	return nil, nil
 }
 
