@@ -91,7 +91,7 @@ func (logsAndEventsProcessor) SerializeTokens(tokens []*data.TokenInfo, updateNF
 		}
 	}
 
-	err := converters.PrepareNFTUpdateData(buffSlice, updateNFTData)
+	err := converters.PrepareNFTUpdateData(buffSlice, updateNFTData, false)
 	if err != nil {
 		return nil, err
 	}

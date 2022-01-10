@@ -63,7 +63,7 @@ func (ap *accountsProcessor) SerializeAccountsESDT(
 		}
 	}
 
-	err := converters.PrepareNFTUpdateData(buffSlice, updateNFTData)
+	err := converters.PrepareNFTUpdateData(buffSlice, updateNFTData, true)
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,8 @@
 package converters
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
@@ -48,13 +50,23 @@ func nonEmptyURIs(uris [][]byte) bool {
 }
 
 // PrepareNFTUpdateData will prepare nfts update data
-func PrepareNFTUpdateData(buffSlice *data.BufferSlice, updateNFTData []*data.UpdateNFTData) error {
+func PrepareNFTUpdateData(buffSlice *data.BufferSlice, updateNFTData []*data.UpdateNFTData, accountESDT bool) error {
 	for _, nftUpdate := range updateNFTData {
-		id := fmt.Sprintf("%s-%s", nftUpdate.Address, nftUpdate.Identifier)
+		id := nftUpdate.Identifier
+		if accountESDT {
+			id = fmt.Sprintf("%s-%s", nftUpdate.Address, nftUpdate.Identifier)
+		}
+
 		metaData := []byte(fmt.Sprintf(`{"update":{"_id":"%s", "_type": "_doc"}}%s`, id, "\n"))
-		serializedData := []byte(fmt.Sprintf(`{"script": {"source": "ctx._source.data.attributes = params.attributes","lang": "painless","params": {"attributes": "%s"}}}`, nftUpdate.NewAttributes))
+		base64Attr := base64.StdEncoding.EncodeToString(nftUpdate.NewAttributes)
+		serializedData := []byte(fmt.Sprintf(`{"script": {"source": "if (ctx._source.containsKey('data')) {ctx._source.data.attributes = params.attributes}","lang": "painless","params": {"attributes": "%s"}}, "upsert": {}}`, base64Attr))
 		if len(nftUpdate.URIsToAdd) != 0 {
-			serializedData = []byte(fmt.Sprintf(`{"script": {"source": "if (!ctx._source.data.containsKey('uris')) { ctx._source.data.uris = [ params.uris ]; } else {  ctx._source.data.uris.addAll(params.uris); }","lang": "painless","params": {"uris": %v}}}`, nftUpdate.URIsToAdd))
+			marshalizedURIS, err := json.Marshal(nftUpdate.URIsToAdd)
+			if err != nil {
+				return err
+			}
+
+			serializedData = []byte(fmt.Sprintf(`{"script": {"source": "if (ctx._source.containsKey('data')) { if (!ctx._source.data.containsKey('uris')) { ctx._source.data.uris = params.uris; } else {  ctx._source.data.uris.addAll(params.uris); }}","lang": "painless","params": {"uris": %s}},"upsert": {}}`, marshalizedURIS))
 		}
 
 		err := buffSlice.PutData(metaData, serializedData)

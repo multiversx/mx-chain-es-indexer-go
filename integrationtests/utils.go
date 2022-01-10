@@ -15,6 +15,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const esURL = "http://localhost:9200"
+
 func setLogLevelDebug() {
 	_ = logger.SetLogLevel("indexer:DEBUG")
 }
