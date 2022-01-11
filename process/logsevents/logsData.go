@@ -16,7 +16,7 @@ type logsData struct {
 	scDeploys       map[string]*data.ScDeployInfo
 	delegators      map[string]*data.Delegator
 	tokensInfo      []*data.TokenInfo
-	updatesNFTsData []*data.UpdateNFTData
+	nftsDataUpdates []*data.NFTDataUpdate
 }
 
 func newLogsData(
@@ -36,7 +36,7 @@ func newLogsData(
 	ld.scDeploys = make(map[string]*data.ScDeployInfo)
 	ld.tokensInfo = make([]*data.TokenInfo, 0)
 	ld.delegators = make(map[string]*data.Delegator)
-	ld.updatesNFTsData = make([]*data.UpdateNFTData, 0)
+	ld.nftsDataUpdates = make([]*data.NFTDataUpdate, 0)
 
 	return ld
 }

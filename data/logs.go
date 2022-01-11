@@ -26,5 +26,5 @@ type PreparedLogsResults struct {
 	ScDeploys       map[string]*ScDeployInfo
 	Delegators      map[string]*Delegator
 	TokensInfo      []*TokenInfo
-	UpdatesNFTsData []*UpdateNFTData
+	NFTsDataUpdates []*NFTDataUpdate
 }

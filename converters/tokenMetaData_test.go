@@ -48,7 +48,7 @@ func TestPrepareNFTUpdateData(t *testing.T) {
 
 	buffSlice := data.NewBufferSlice()
 
-	nftUpdateData := []*data.UpdateNFTData{
+	nftUpdateData := []*data.NFTDataUpdate{
 		{
 			Identifier:    "MYTKN-abcd-01",
 			NewAttributes: []byte("aaaa"),

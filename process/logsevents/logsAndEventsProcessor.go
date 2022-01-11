@@ -119,7 +119,7 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 		TagsCount:       lep.logsData.tagsCount,
 		TokensInfo:      lep.logsData.tokensInfo,
 		Delegators:      lep.logsData.delegators,
-		UpdatesNFTsData: lep.logsData.updatesNFTsData,
+		NFTsDataUpdates: lep.logsData.nftsDataUpdates,
 	}
 }
 
@@ -154,7 +154,7 @@ func (lep *logsAndEventsProcessor) processEvent(logHash string, logAddress []byt
 			lep.logsData.delegators[res.delegator.Address] = res.delegator
 		}
 		if res.updatePropNFT != nil {
-			lep.logsData.updatesNFTsData = append(lep.logsData.updatesNFTsData, res.updatePropNFT)
+			lep.logsData.nftsDataUpdates = append(lep.logsData.nftsDataUpdates, res.updatePropNFT)
 		}
 
 		isEmptyIdentifier := res.identifier == ""

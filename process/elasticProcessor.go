@@ -440,12 +440,12 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
-	err = ei.indexAlteredAccounts(headerTimestamp, preparedResults.AlteredAccts, logsData.UpdatesNFTsData)
+	err = ei.indexAlteredAccounts(headerTimestamp, preparedResults.AlteredAccts, logsData.NFTsDataUpdates)
 	if err != nil {
 		return err
 	}
 
-	err = ei.indexTokens(logsData.TokensInfo, logsData.UpdatesNFTsData)
+	err = ei.indexTokens(logsData.TokensInfo, logsData.NFTsDataUpdates)
 	if err != nil {
 		return err
 	}
@@ -523,7 +523,7 @@ func (ei *elasticProcessor) prepareAndIndexLogs(logsAndEvents []*coreData.LogDat
 	return ei.doBulkRequests(elasticIndexer.LogsIndex, buffSlice)
 }
 
-func (ei *elasticProcessor) indexTokens(tokensData []*data.TokenInfo, updateNFTData []*data.UpdateNFTData) error {
+func (ei *elasticProcessor) indexTokens(tokensData []*data.TokenInfo, updateNFTData []*data.NFTDataUpdate) error {
 	if !ei.isIndexEnabled(elasticIndexer.TokensIndex) {
 		return nil
 	}
@@ -636,7 +636,7 @@ func (ei *elasticProcessor) SaveRoundsInfo(info []*data.RoundInfo) error {
 func (ei *elasticProcessor) indexAlteredAccounts(
 	timestamp uint64,
 	alteredAccounts data.AlteredAccountsHandler,
-	updatesNFTsData []*data.UpdateNFTData,
+	updatesNFTsData []*data.NFTDataUpdate,
 ) error {
 	regularAccountsToIndex, accountsToIndexESDT := ei.accountsProc.GetAccounts(alteredAccounts)
 
@@ -651,7 +651,7 @@ func (ei *elasticProcessor) indexAlteredAccounts(
 func (ei *elasticProcessor) saveAccountsESDT(
 	timestamp uint64,
 	wrappedAccounts []*data.AccountESDT,
-	updatesNFTsData []*data.UpdateNFTData,
+	updatesNFTsData []*data.NFTDataUpdate,
 ) error {
 	accountsESDTMap := ei.accountsProc.PrepareAccountsMapESDT(wrappedAccounts)
 
@@ -679,7 +679,7 @@ func (ei *elasticProcessor) prepareAndIndexTagsCount(tagsCount data.CountTags) e
 
 func (ei *elasticProcessor) indexAccountsESDT(
 	accountsESDTMap map[string]*data.AccountInfo,
-	updatesNFTsData []*data.UpdateNFTData,
+	updatesNFTsData []*data.NFTDataUpdate,
 ) error {
 	if !ei.isIndexEnabled(elasticIndexer.AccountsESDTIndex) {
 		return nil

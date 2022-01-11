@@ -61,7 +61,7 @@ func (npp *nftsPropertiesProc) processEvent(args *argsProcessEvent) argOutputPro
 	token := string(topics[0])
 	identifier := converters.ComputeTokenIdentifier(token, nonceBig.Uint64())
 
-	updateNFT := &data.UpdateNFTData{
+	updateNFT := &data.NFTDataUpdate{
 		Identifier: identifier,
 		Address:    callerAddress,
 	}

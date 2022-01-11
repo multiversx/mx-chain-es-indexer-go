@@ -2,8 +2,8 @@ package data
 
 import "time"
 
-// UpdateNFTData will contain the update information for an NFT or SFT
-type UpdateNFTData struct {
+// NFTDataUpdate will contain the update information for an NFT or SFT
+type NFTDataUpdate struct {
 	Identifier    string
 	URIsToAdd     [][]byte
 	NewAttributes []byte

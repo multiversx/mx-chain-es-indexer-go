@@ -64,7 +64,7 @@ func whiteListedStorage(uris [][]byte) bool {
 }
 
 // PrepareNFTUpdateData will prepare nfts update data
-func PrepareNFTUpdateData(buffSlice *data.BufferSlice, updateNFTData []*data.UpdateNFTData, accountESDT bool) error {
+func PrepareNFTUpdateData(buffSlice *data.BufferSlice, updateNFTData []*data.NFTDataUpdate, accountESDT bool) error {
 	for _, nftUpdate := range updateNFTData {
 		id := nftUpdate.Identifier
 		if accountESDT {

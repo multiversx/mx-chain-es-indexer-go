@@ -34,7 +34,7 @@ type DBAccountHandler interface {
 
 	SerializeAccountsHistory(accounts map[string]*data.AccountBalanceHistory) ([]*bytes.Buffer, error)
 	SerializeAccounts(accounts map[string]*data.AccountInfo) ([]*bytes.Buffer, error)
-	SerializeAccountsESDT(accounts map[string]*data.AccountInfo, updateNFTData []*data.UpdateNFTData) ([]*bytes.Buffer, error)
+	SerializeAccountsESDT(accounts map[string]*data.AccountInfo, updateNFTData []*data.NFTDataUpdate) ([]*bytes.Buffer, error)
 	SerializeNFTCreateInfo(tokensInfo []*data.TokenInfo) ([]*bytes.Buffer, error)
 }
 
@@ -100,7 +100,7 @@ type DBLogsAndEventsHandler interface {
 
 	SerializeLogs(logs []*data.Logs) ([]*bytes.Buffer, error)
 	SerializeSCDeploys(map[string]*data.ScDeployInfo) ([]*bytes.Buffer, error)
-	SerializeTokens(tokens []*data.TokenInfo, updateNFTData []*data.UpdateNFTData) ([]*bytes.Buffer, error)
+	SerializeTokens(tokens []*data.TokenInfo, updateNFTData []*data.NFTDataUpdate) ([]*bytes.Buffer, error)
 	SerializeDelegators(delegators map[string]*data.Delegator) ([]*bytes.Buffer, error)
 }
 
