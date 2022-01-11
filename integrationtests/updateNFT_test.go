@@ -50,16 +50,19 @@ func TestNFTUpdateMetadata(t *testing.T) {
 
 	// CREATE NFT data
 	pool := &indexer.Pool{
-		Logs: map[string]coreData.LogHandler{
-			"h1": &transaction.Log{
-				Events: []*transaction.Event{
-					{
-						Address:    []byte("addr"),
-						Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
-						Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(1).Bytes(), marshalizedCreate},
+		Logs: []*coreData.LogData{
+			{
+				LogHandler: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    []byte("addr"),
+							Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
+							Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(1).Bytes(), marshalizedCreate},
+						},
+						nil,
 					},
-					nil,
 				},
+				TxHash: "h1",
 			},
 		},
 	}
@@ -68,16 +71,19 @@ func TestNFTUpdateMetadata(t *testing.T) {
 
 	// Update NFT data
 	pool = &indexer.Pool{
-		Logs: map[string]coreData.LogHandler{
-			"h1": &transaction.Log{
-				Events: []*transaction.Event{
-					{
-						Address:    []byte("addr"),
-						Identifier: []byte(core.BuiltInFunctionESDTNFTAddURI),
-						Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("caller"), []byte("uri1"), []byte("uri2")},
+		Logs: []*coreData.LogData{
+			{
+				LogHandler: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    []byte("addr"),
+							Identifier: []byte(core.BuiltInFunctionESDTNFTAddURI),
+							Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("caller"), []byte("uri1"), []byte("uri2")},
+						},
+						nil,
 					},
-					nil,
 				},
+				TxHash: "h1",
 			},
 		},
 	}
