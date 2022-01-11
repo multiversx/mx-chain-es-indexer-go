@@ -46,7 +46,7 @@ func (ap *accountsProcessor) SerializeAccounts(accounts map[string]*data.Account
 	return buffSlice.Buffers(), nil
 }
 
-// SerializeAccountsESDT will serialize the provided accounts and nfts updates  in a way that Elasticsearch expects a bulk request
+// SerializeAccountsESDT will serialize the provided accounts and nfts updates in a way that Elasticsearch expects a bulk request
 func (ap *accountsProcessor) SerializeAccountsESDT(
 	accounts map[string]*data.AccountInfo,
 	updateNFTData []*data.NFTDataUpdate,
