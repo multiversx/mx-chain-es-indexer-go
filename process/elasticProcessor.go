@@ -205,7 +205,7 @@ func (ei *elasticProcessor) createIndexTemplates(indexTemplates map[string]*byte
 		if indexTemplate != nil {
 			err := ei.elasticClient.CheckAndCreateTemplate(index, indexTemplate)
 			if err != nil {
-				return err
+				return fmt.Errorf("index: %s, error: %w", index, err)
 			}
 		}
 	}
@@ -218,7 +218,7 @@ func (ei *elasticProcessor) createIndexes() error {
 		indexName := fmt.Sprintf("%s-%s", index, elasticIndexer.IndexSuffix)
 		err := ei.elasticClient.CheckAndCreateIndex(indexName)
 		if err != nil {
-			return err
+			return fmt.Errorf("index: %s, error: %w", index, err)
 		}
 	}
 	return nil
@@ -509,7 +509,7 @@ func (ei *elasticProcessor) indexTransactionsWithRefund(txsHashRefund map[string
 	return ei.doBulkRequests(elasticIndexer.TransactionsIndex, buffSlice)
 }
 
-func (ei *elasticProcessor) prepareAndIndexLogs(logsAndEvents map[string]coreData.LogHandler, timestamp uint64) error {
+func (ei *elasticProcessor) prepareAndIndexLogs(logsAndEvents []*coreData.LogData, timestamp uint64) error {
 	if !ei.isIndexEnabled(elasticIndexer.LogsIndex) {
 		return nil
 	}

@@ -25,6 +25,7 @@ func TestLogsAndEventsProcessor_SerializeLogs(t *testing.T) {
 					Identifier: core.BuiltInFunctionESDTNFTTransfer,
 					Topics:     [][]byte{[]byte("my-token"), big.NewInt(0).SetUint64(1).Bytes(), []byte("receiver")},
 					Data:       []byte("data"),
+					Order:      0,
 				},
 			},
 		},
@@ -34,7 +35,7 @@ func TestLogsAndEventsProcessor_SerializeLogs(t *testing.T) {
 	require.Nil(t, err)
 
 	expectedRes := `{ "index" : { "_id" : "747848617368" } }
-{"address":"61646472657373","events":[{"address":"61646472","identifier":"ESDTNFTTransfer","topics":["bXktdG9rZW4=","AQ==","cmVjZWl2ZXI="],"data":"ZGF0YQ=="}],"timestamp":1234}
+{"address":"61646472657373","events":[{"address":"61646472","identifier":"ESDTNFTTransfer","topics":["bXktdG9rZW4=","AQ==","cmVjZWl2ZXI="],"data":"ZGF0YQ==","order":0}],"timestamp":1234}
 `
 	require.Equal(t, expectedRes, res[0].String())
 }

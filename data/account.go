@@ -25,15 +25,16 @@ type AccountInfo struct {
 
 // TokenMetaData holds data about a token metadata
 type TokenMetaData struct {
-	Name         string   `json:"name,omitempty"`
-	Creator      string   `json:"creator,omitempty"`
-	Royalties    uint32   `json:"royalties,omitempty"`
-	Hash         []byte   `json:"hash,omitempty"`
-	URIs         [][]byte `json:"uris,omitempty"`
-	Tags         []string `json:"tags,omitempty"`
-	Attributes   []byte   `json:"attributes,omitempty"`
-	MetaData     string   `json:"metadata,omitempty"`
-	NonEmptyURIs bool     `json:"nonEmptyURIs"`
+	Name               string   `json:"name,omitempty"`
+	Creator            string   `json:"creator,omitempty"`
+	Royalties          uint32   `json:"royalties,omitempty"`
+	Hash               []byte   `json:"hash,omitempty"`
+	URIs               [][]byte `json:"uris,omitempty"`
+	Tags               []string `json:"tags,omitempty"`
+	Attributes         []byte   `json:"attributes,omitempty"`
+	MetaData           string   `json:"metadata,omitempty"`
+	NonEmptyURIs       bool     `json:"nonEmptyURIs"`
+	WhiteListedStorage bool     `json:"whiteListedStorage"`
 }
 
 // AccountBalanceHistory represents an entry in the user accounts balances history

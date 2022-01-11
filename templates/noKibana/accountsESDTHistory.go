@@ -15,6 +15,9 @@ var AccountsESDTHistory = Object{
 				"type":   "date",
 				"format": "epoch_second",
 			},
+			"tokenNonce": Object{
+				"type": "double",
+			},
 		},
 	},
 }
