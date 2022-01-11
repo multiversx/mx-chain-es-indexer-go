@@ -1,4 +1,5 @@
 //go:build integrationtests
+// +build integrationtests
 
 package integrationtests
 
@@ -19,7 +20,7 @@ import (
 )
 
 const (
-	expectedTokenAfterUpdate = `{"identifier":"NFT-abcd-0e","token":"NFT-abcd","nonce":14,"timestamp":5040,"data":{"uris":["dXJp","dXJp","dXJpMQ==","dXJpMg=="],"nonEmptyURIs":true}}`
+	expectedTokenAfterUpdate = `{"identifier":"NFT-abcd-0e","token":"NFT-abcd","nonce":14,"timestamp":5040,"data":{"uris":["dXJp","dXJp","dXJpMQ==","dXJpMg=="],"nonEmptyURIs":true,"whiteListedStorage":false}}`
 )
 
 func TestNFTUpdateMetadata(t *testing.T) {
