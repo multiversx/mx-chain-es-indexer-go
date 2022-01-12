@@ -28,14 +28,11 @@ func (ap *accountsProcessor) SerializeNFTCreateInfo(tokensInfo []*data.TokenInfo
 	return buffSlice.Buffers(), nil
 }
 
-// SerializeAccounts will serialize the provided accounts in a way that Elastic Search expects a bulk request
-func (ap *accountsProcessor) SerializeAccounts(
-	accounts map[string]*data.AccountInfo,
-	areESDTAccounts bool,
-) ([]*bytes.Buffer, error) {
+// SerializeAccounts will serialize the provided accounts in a way that Elasticsearch expects a bulk request
+func (ap *accountsProcessor) SerializeAccounts(accounts map[string]*data.AccountInfo) ([]*bytes.Buffer, error) {
 	buffSlice := data.NewBufferSlice()
 	for _, acc := range accounts {
-		meta, serializedData, err := prepareSerializedAccount(acc, areESDTAccounts)
+		meta, serializedData, err := prepareSerializedAccount(acc, false)
 		if err != nil {
 			return nil, err
 		}
@@ -44,6 +41,32 @@ func (ap *accountsProcessor) SerializeAccounts(
 		if err != nil {
 			return nil, err
 		}
+	}
+
+	return buffSlice.Buffers(), nil
+}
+
+// SerializeAccountsESDT will serialize the provided accounts and nfts updates in a way that Elasticsearch expects a bulk request
+func (ap *accountsProcessor) SerializeAccountsESDT(
+	accounts map[string]*data.AccountInfo,
+	updateNFTData []*data.NFTDataUpdate,
+) ([]*bytes.Buffer, error) {
+	buffSlice := data.NewBufferSlice()
+	for _, acc := range accounts {
+		meta, serializedData, err := prepareSerializedAccount(acc, true)
+		if err != nil {
+			return nil, err
+		}
+
+		err = buffSlice.PutData(meta, serializedData)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	err := converters.PrepareNFTUpdateData(buffSlice, updateNFTData, true)
+	if err != nil {
+		return nil, err
 	}
 
 	return buffSlice.Buffers(), nil

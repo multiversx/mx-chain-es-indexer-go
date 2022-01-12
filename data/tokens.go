@@ -2,6 +2,14 @@ package data
 
 import "time"
 
+// NFTDataUpdate will contain the update information for an NFT or SFT
+type NFTDataUpdate struct {
+	Identifier    string
+	URIsToAdd     [][]byte
+	NewAttributes []byte
+	Address       string
+}
+
 // ResponseTokens is the structure for the tokens response
 type ResponseTokens struct {
 	Docs []ResponseTokenDB `json:"docs"`
