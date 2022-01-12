@@ -17,8 +17,8 @@ const (
 	ipfsNoSecurePrefix = "ipfs://"
 	dwebPrefixURL      = "https://dweb.link/ipfs"
 
-	pinataCloudSuffix = ".pinata.cloud/ipfs"
-	secureURL         = "https://"
+	pinataCloud = ".pinata.cloud/ipfs"
+	secureURL   = "https://"
 )
 
 // PrepareTokenMetaData will prepare the token metadata in a friendly format for database
@@ -70,7 +70,7 @@ func whiteListedStorage(uris [][]byte) bool {
 	whiteListed := strings.HasPrefix(string(uris[0]), ipfsURL)
 	whiteListed = whiteListed || strings.HasPrefix(uri, ipfsNoSecurePrefix)
 	whiteListed = whiteListed || strings.HasPrefix(uri, dwebPrefixURL)
-	whiteListed = whiteListed || (strings.HasSuffix(uri, pinataCloudSuffix) && strings.HasPrefix(uri, secureURL))
+	whiteListed = whiteListed || (strings.Contains(uri, pinataCloud) && strings.HasPrefix(uri, secureURL))
 
 	return whiteListed
 }

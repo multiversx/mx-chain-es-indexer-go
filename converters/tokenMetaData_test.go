@@ -70,7 +70,7 @@ func TestPrepareNFTUpdateData(t *testing.T) {
 func TestWhiteListedStorage(t *testing.T) {
 	t.Parallel()
 
-	uris := [][]byte{[]byte("https://my-test-nft.pinata.cloud/ipfs")}
+	uris := [][]byte{[]byte("https://my-test-nft.pinata.cloud/ipfs/aaaaaa")}
 	require.True(t, whiteListedStorage(uris))
 
 	uris = [][]byte{[]byte("ipfs://my-test-nft")}
