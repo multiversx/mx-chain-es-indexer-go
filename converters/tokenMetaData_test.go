@@ -66,3 +66,22 @@ func TestPrepareNFTUpdateData(t *testing.T) {
 {"script": {"source": "if (ctx._source.containsKey('data')) { if (!ctx._source.data.containsKey('uris')) { ctx._source.data.uris = params.uris; } else {  ctx._source.data.uris.addAll(params.uris); }}","lang": "painless","params": {"uris": ["dXJpMQ==","dXJpMg=="]}},"upsert": {}}
 `, buffSlice.Buffers()[0].String())
 }
+
+func TestWhiteListedStorage(t *testing.T) {
+	t.Parallel()
+
+	uris := [][]byte{[]byte("https://my-test-nft.pinata.cloud/ipfs")}
+	require.True(t, whiteListedStorage(uris))
+
+	uris = [][]byte{[]byte("ipfs://my-test-nft")}
+	require.True(t, whiteListedStorage(uris))
+
+	uris = [][]byte{[]byte("https://dweb.link/ipfs/my-test-nft")}
+	require.True(t, whiteListedStorage(uris))
+
+	uris = [][]byte{[]byte("http://dweb.link/ipfs/my-test-nft")}
+	require.False(t, whiteListedStorage(uris))
+
+	uris = [][]byte{[]byte("https://dwb.link/ipfs/my-test-nft")}
+	require.False(t, whiteListedStorage(uris))
+}

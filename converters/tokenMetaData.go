@@ -13,7 +13,12 @@ import (
 )
 
 const (
-	ipfsURL = "https://ipfs.io/ipfs/"
+	ipfsURL            = "https://ipfs.io/ipfs/"
+	ipfsNoSecurePrefix = "ipfs://"
+	dwebPrefixURL      = "https://dweb.link/ipfs"
+
+	pinataCloudSuffix = ".pinata.cloud/ipfs"
+	secureURL         = "https://"
 )
 
 // PrepareTokenMetaData will prepare the token metadata in a friendly format for database
@@ -60,7 +65,14 @@ func whiteListedStorage(uris [][]byte) bool {
 		return false
 	}
 
-	return strings.HasPrefix(string(uris[0]), ipfsURL)
+	uri := string(uris[0])
+
+	whiteListed := strings.HasPrefix(string(uris[0]), ipfsURL)
+	whiteListed = whiteListed || strings.HasPrefix(uri, ipfsNoSecurePrefix)
+	whiteListed = whiteListed || strings.HasPrefix(uri, dwebPrefixURL)
+	whiteListed = whiteListed || (strings.HasSuffix(uri, pinataCloudSuffix) && strings.HasPrefix(uri, secureURL))
+
+	return whiteListed
 }
 
 // PrepareNFTUpdateData will prepare nfts update data
