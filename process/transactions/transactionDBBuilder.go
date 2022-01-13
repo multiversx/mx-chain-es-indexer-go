@@ -108,6 +108,7 @@ func (dtb *dbTransactionBuilder) prepareRewardTransaction(
 		Signature:     "",
 		Timestamp:     time.Duration(header.GetTimeStamp()),
 		Status:        txStatus,
+		Operation:     rewardsOperation,
 	}
 }
 
