@@ -56,7 +56,8 @@ func extractNonEmpty(tags []string) []string {
 			continue
 		}
 
-		nonEmptyTags = append(nonEmptyTags, tag)
+		lowerCaseTag := strings.ToLower(tag)
+		nonEmptyTags = append(nonEmptyTags, lowerCaseTag)
 	}
 
 	if len(nonEmptyTags) == 0 {

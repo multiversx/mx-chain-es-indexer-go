@@ -13,7 +13,7 @@ func TestPrepareTagsShouldWork(t *testing.T) {
 	prepared := ExtractTagsFromAttributes(attributes)
 	require.Equal(t, []string{"test", "free", "fun"}, prepared)
 
-	attributes = []byte("tags:test,free,fun;description: ")
+	attributes = []byte("tags:TEST,free,fun;description: ")
 	prepared = ExtractTagsFromAttributes(attributes)
 	require.Equal(t, []string{"test", "free", "fun"}, prepared)
 
