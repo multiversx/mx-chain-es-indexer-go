@@ -82,6 +82,8 @@ func TestBlockProcessor_PrepareBlockForDBShouldWork(t *testing.T) {
 		MiniBlocksHashes:      []string{"c57392e53257b4861f5e406349a8deb89c6dbc2127564ee891a41a188edbf01a", "28fda294dc987e5099d75e53cd6f87a9a42b96d55242a634385b5d41175c0c21"},
 		NotarizedBlocksHashes: []string(nil),
 		Size:                  104,
+		AccumulatedFees:       "0",
+		DeveloperFees:         "0",
 	}
 	require.Equal(t, expectedBlock, dbBlock)
 }
@@ -214,5 +216,7 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 		},
 		NotarizedTxsCount: 830,
 		TxCount:           170,
+		AccumulatedFees:   "0",
+		DeveloperFees:     "0",
 	}, dbBlock)
 }

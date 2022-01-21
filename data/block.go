@@ -34,7 +34,7 @@ type Block struct {
 	GasRefunded           uint64          `json:"gasRefunded"`
 	GasPenalized          uint64          `json:"gasPenalized"`
 	MaxGasLimit           uint64          `json:"maxGasLimit"`
-	ScheduledData         *ScheduledData  `json:"scheduledData"`
+	ScheduledData         *ScheduledData  `json:"scheduledData,omitempty"`
 }
 
 // ScheduledData is a structure that hold information about scheduled events
