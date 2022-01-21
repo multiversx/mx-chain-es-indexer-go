@@ -34,6 +34,17 @@ type Block struct {
 	GasRefunded           uint64          `json:"gasRefunded"`
 	GasPenalized          uint64          `json:"gasPenalized"`
 	MaxGasLimit           uint64          `json:"maxGasLimit"`
+	ScheduledData         *ScheduledData  `json:"scheduledData"`
+}
+
+// ScheduledData is a structure that hold information about scheduled events
+type ScheduledData struct {
+	ScheduledRootHash        string `json:"rootHash,omitempty"`
+	ScheduledAccumulatedFees string `json:"accumulatedFees,omitempty"`
+	ScheduledDeveloperFees   string `json:"developerFees,omitempty"`
+	ScheduledGasProvided     uint64 `json:"gasProvided,omitempty"`
+	ScheduledGasPenalized    uint64 `json:"penalized,omitempty"`
+	ScheduledGasRefunded     uint64 `json:"gasRefunded,omitempty"`
 }
 
 // EpochStartInfo is a structure that hold information about epoch start meta block
