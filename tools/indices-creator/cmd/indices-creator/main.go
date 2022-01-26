@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/client"
 	"github.com/ElrondNetwork/elastic-indexer-go/client/logging"
@@ -17,13 +18,13 @@ import (
 
 const configFileName = "cluster.toml"
 
-type Config struct {
+type config struct {
 	ClusterConfig struct {
 		URL            string   `toml:"url"`
 		Username       string   `toml:"username"`
 		Password       string   `toml:"password"`
 		UseKibana      bool     `toml:"use-kibana"`
-		EnabledIndexes []string `toml:"enabled-indexes"`
+		EnabledIndices []string `toml:"enabled-indices"`
 	} `toml:"config"`
 }
 
@@ -34,7 +35,7 @@ var (
 	configPath = cli.StringFlag{
 		Name:  "config-path",
 		Usage: "The path to the config folder",
-		Value: "./config/",
+		Value: "./config",
 	}
 )
 
@@ -59,7 +60,7 @@ func main() {
 	cli.AppHelpTemplate = helpTemplate
 	app.Name = "Index cr"
 	app.Version = "v1.0.0"
-	app.Usage = "This is the entry point for Elasticsearch reindexing tool"
+	app.Usage = "Elasticsearch indices creator tool"
 	app.Flags = []cli.Flag{
 		configPath,
 	}
@@ -89,25 +90,27 @@ func createIndexesAndMappings(ctx *cli.Context) {
 		log.Error("cannot load config file", "error", err.Error())
 	}
 
-	pathToMappings := cfgPath + "noKibana"
+	pathToMappings := path.Join(cfgPath, "noKibana")
 	if cfg.ClusterConfig.UseKibana {
-		pathToMappings = cfgPath + "withKibana"
+		pathToMappings = path.Join(cfgPath, "withKibana")
 	}
 
-	indexesMappings, _, err := reader.GetElasticTemplatesAndPolicies(pathToMappings, cfg.ClusterConfig.EnabledIndexes)
+	indexesMappings, _, err := reader.GetElasticTemplatesAndPolicies(pathToMappings, cfg.ClusterConfig.EnabledIndices)
 	if err != nil {
 		log.Error("cannot load templates", "error", err.Error())
+		return
 	}
 
 	err = createTemplates(cfg, indexesMappings)
 	if err != nil {
 		log.Error("cannot create templates", "error", err.Error())
+		return
 	}
 
-	log.Info("All indexes were created")
+	log.Info("all indices were created")
 }
 
-func createTemplates(cfg *Config, indexesMappings map[string]*bytes.Buffer) error {
+func createTemplates(cfg *config, indexesMappings map[string]*bytes.Buffer) error {
 	databaseClient, err := client.NewElasticClient(elasticsearch.Config{
 		Addresses: []string{cfg.ClusterConfig.URL},
 		Username:  cfg.ClusterConfig.Username,
@@ -139,13 +142,13 @@ func createTemplates(cfg *Config, indexesMappings map[string]*bytes.Buffer) erro
 	return nil
 }
 
-func loadConfigFile(path string) (*Config, error) {
-	tomlBytes, err := loadBytesFromFile(path + configFileName)
+func loadConfigFile(pathStr string) (*config, error) {
+	tomlBytes, err := loadBytesFromFile(path.Join(pathStr, configFileName))
 	if err != nil {
 		return nil, err
 	}
 
-	var cfg Config
+	var cfg config
 	err = toml.Unmarshal(tomlBytes, &cfg)
 	if err != nil {
 		return nil, err

@@ -1,6 +1,0 @@
-[config]
-    url = "http://localhost:9200"
-    username          = ""
-    password          = ""
-    use-kibana         = false
-    enabled-indexes    = ["rating", "transactions", "blocks", "validators", "miniblocks", "rounds", "accounts", "accountshistory", "receipts", "scresults", "accountsesdt", "accountsesdthistory", "epochinfo", "scdeploys", "tokens", "tags", "logs", "delegators", "operations"]
