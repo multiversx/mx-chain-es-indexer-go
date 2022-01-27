@@ -78,7 +78,7 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		Function:             res.Function,
 		ESDTValues:           res.ESDTValues,
 		Tokens:               res.Tokens,
-		Receivers:            res.Receivers,
+		Receivers:            encodeBytesSlice(dtb.addressPubkeyConverter.Encode, res.Receivers),
 		ReceiversShardIDs:    res.ReceiversShardID,
 		IsRelayed:            res.IsRelayed,
 	}

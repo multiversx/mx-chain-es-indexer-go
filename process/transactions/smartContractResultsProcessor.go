@@ -164,7 +164,7 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 		Function:          res.Function,
 		ESDTValues:        res.ESDTValues,
 		Tokens:            res.Tokens,
-		Receivers:         res.Receivers,
+		Receivers:         encodeBytesSlice(proc.pubKeyConverter.Encode, res.Receivers),
 		ReceiversShardIDs: res.ReceiversShardID,
 		IsRelayed:         res.IsRelayed,
 	}
@@ -192,4 +192,13 @@ func (proc *smartContractResultsProcessor) addScrsReceiverToAlteredAccounts(
 			BalanceChange: true,
 		})
 	}
+}
+
+func encodeBytesSlice(encodeFunc func(b []byte) string, rcvs [][]byte) []string {
+	var encodedSlice []string
+	for _, rcv := range rcvs {
+		encodedSlice = append(encodedSlice, encodeFunc(rcv))
+	}
+
+	return encodedSlice
 }

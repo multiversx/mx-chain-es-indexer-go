@@ -1,6 +1,6 @@
 package transactions
 
-import "github.com/ElrondNetwork/elastic-indexer-go/process/transactions/datafield"
+import "github.com/ElrondNetwork/elrond-vm-common/parsers/dataField"
 
 // DataFieldParser defines what a data field parser should be able to do
 type DataFieldParser interface {

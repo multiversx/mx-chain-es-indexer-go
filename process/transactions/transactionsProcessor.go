@@ -5,7 +5,6 @@ import (
 
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/transactions/datafield"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
@@ -14,6 +13,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/hashing"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
+	"github.com/ElrondNetwork/elrond-vm-common/parsers/dataField"
 )
 
 var log = logger.GetOrCreate("indexer/process/transactions")
@@ -45,7 +45,6 @@ func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txsDatabaseProce
 	}
 
 	argsParser := &datafield.ArgsOperationDataFieldParser{
-		PubKeyConverter:  args.AddressPubkeyConverter,
 		Marshalizer:      args.Marshalizer,
 		ShardCoordinator: args.ShardCoordinator,
 	}
