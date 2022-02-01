@@ -8,9 +8,6 @@ var ErrNilMarshalizer = errors.New("nil marshalizer provided")
 // ErrNilPubkeyConverter signals that an operation has been attempted to or with a nil public key converter implementation
 var ErrNilPubkeyConverter = errors.New("nil pubkey converter")
 
-// ErrNilAccountsDB signals that a nil accounts database has been provided
-var ErrNilAccountsDB = errors.New("nil accounts db")
-
 // ErrNegativeDenominationValue signals that a negative denomination value has been provided
 var ErrNegativeDenominationValue = errors.New("negative denomination value")
 
@@ -46,9 +43,6 @@ var ErrNilHasher = errors.New("nil hasher provided")
 
 // ErrNilUrl signals that the provided url is empty
 var ErrNilUrl = errors.New("url is empty")
-
-// ErrCannotCastAccountHandlerToUserAccount signals that cast from AccountHandler to UserAccountHandler was not OK
-var ErrCannotCastAccountHandlerToUserAccount = errors.New("cannot cast AccountHandler to UserAccountHandler")
 
 // ErrNilHeaderHandler signals that a nil header handler has been provided
 var ErrNilHeaderHandler = errors.New("nil header handler")

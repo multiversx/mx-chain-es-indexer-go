@@ -26,7 +26,6 @@ func createMockIndexerFactoryArgs() *ArgsIndexerFactory {
 		ValidatorPubkeyConverter: &mock.PubkeyConverterMock{},
 		TemplatesPath:            "../testdata",
 		EnabledIndexes:           []string{"blocks", "transactions", "miniblocks", "validators", "round", "accounts", "rating"},
-		AccountsDB:               &mock.AccountsStub{},
 		TransactionFeeCalculator: &mock.EconomicsHandlerStub{},
 		ShardCoordinator:         &mock.ShardCoordinatorMock{},
 		IsInImportDBMode:         false,
@@ -83,15 +82,6 @@ func TestNewIndexerFactory(t *testing.T) {
 				return args
 			},
 			exError: indexer.ErrNilHasher,
-		},
-		{
-			name: "NilAccountsDB",
-			argsFunc: func() *ArgsIndexerFactory {
-				args := createMockIndexerFactoryArgs()
-				args.AccountsDB = nil
-				return args
-			},
-			exError: indexer.ErrNilAccountsDB,
 		},
 		{
 			name: "EmptyUrl",

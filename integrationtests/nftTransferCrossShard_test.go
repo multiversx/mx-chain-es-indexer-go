@@ -36,11 +36,10 @@ func TestNFTTransferCrossShardWithSCCall(t *testing.T) {
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	accounts := &mock.AccountsStub{}
 	feeComputer := &mock.EconomicsHandlerMock{}
 	shardCoordinator := &mock.ShardCoordinatorMock{}
 
-	esProc, err := CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
 	require.Nil(t, err)
 
 	txHash := []byte("nftTransferWithSCCall")
@@ -94,7 +93,7 @@ func TestNFTTransferCrossShardWithSCCall(t *testing.T) {
 			string(scrHash1): scr1,
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, nil)
 	require.Nil(t, err)
 
 	ids := []string{hex.EncodeToString(txHash)}
@@ -131,7 +130,7 @@ func TestNFTTransferCrossShardWithSCCall(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(bodyDstShard, header, poolDstShard)
+	err = esProc.SaveTransactions(bodyDstShard, header, poolDstShard, nil)
 	require.Nil(t, err)
 
 	err = esClient.DoMultiGet(ids, indexerdata.TransactionsIndex, true, genericResponse)
@@ -149,11 +148,10 @@ func TestNFTTransferCrossShard(t *testing.T) {
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	accounts := &mock.AccountsStub{}
 	feeComputer := &mock.EconomicsHandlerMock{}
 	shardCoordinator := &mock.ShardCoordinatorMock{}
 
-	esProc, err := CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
 	require.Nil(t, err)
 
 	txHash := []byte("nftTransfer")
@@ -217,7 +215,7 @@ func TestNFTTransferCrossShard(t *testing.T) {
 			string(scrHash2): scr2,
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, nil)
 	require.Nil(t, err)
 
 	ids := []string{hex.EncodeToString(txHash)}
@@ -252,7 +250,7 @@ func TestNFTTransferCrossShard(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(bodyDstShard, header, poolDstShard)
+	err = esProc.SaveTransactions(bodyDstShard, header, poolDstShard, nil)
 	require.Nil(t, err)
 
 	err = esClient.DoMultiGet(ids, indexerdata.TransactionsIndex, true, genericResponse)
@@ -269,11 +267,10 @@ func TestNFTTransferCrossShardImportDBScenarioFirstIndexDestinationAfterSource(t
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	accounts := &mock.AccountsStub{}
 	feeComputer := &mock.EconomicsHandlerMock{}
 	shardCoordinator := &mock.ShardCoordinatorMock{}
 
-	esProc, err := CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
 	require.Nil(t, err)
 
 	txHash := []byte("nftTransferCross")
@@ -321,7 +318,7 @@ func TestNFTTransferCrossShardImportDBScenarioFirstIndexDestinationAfterSource(t
 
 	ids := []string{hex.EncodeToString(txHash)}
 	genericResponse := &GenericResponse{}
-	err = esProc.SaveTransactions(bodyDstShard, header, poolDstShard)
+	err = esProc.SaveTransactions(bodyDstShard, header, poolDstShard, nil)
 	require.Nil(t, err)
 
 	err = esClient.DoMultiGet(ids, indexerdata.TransactionsIndex, true, genericResponse)
@@ -375,7 +372,7 @@ func TestNFTTransferCrossShardImportDBScenarioFirstIndexDestinationAfterSource(t
 			string(scrHash2): scr2,
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, nil)
 	require.Nil(t, err)
 
 	err = esClient.DoMultiGet(ids, indexerdata.TransactionsIndex, true, genericResponse)

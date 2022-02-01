@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 )
 
 // DBAccountsHandlerStub -
@@ -13,7 +14,7 @@ type DBAccountsHandlerStub struct {
 }
 
 // GetAccounts -
-func (dba *DBAccountsHandlerStub) GetAccounts(_ data.AlteredAccountsHandler) ([]*data.Account, []*data.AccountESDT) {
+func (dba *DBAccountsHandlerStub) GetAccounts(_ data.AlteredAccountsHandler, _ map[string]*indexer.AlteredAccount) ([]*data.Account, []*data.AccountESDT) {
 	return nil, nil
 }
 

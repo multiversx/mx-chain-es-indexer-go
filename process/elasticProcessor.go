@@ -393,6 +393,7 @@ func (ei *elasticProcessor) SaveTransactions(
 	body *block.Body,
 	header coreData.HeaderHandler,
 	pool *indexer.Pool,
+	coreAlteredAccounts map[string]*indexer.AlteredAccount,
 ) error {
 	headerTimestamp := header.GetTimeStamp()
 
@@ -434,7 +435,7 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
-	err = ei.indexAlteredAccounts(headerTimestamp, preparedResults.AlteredAccts, logsData.PendingBalances)
+	err = ei.indexAlteredAccounts(headerTimestamp, preparedResults.AlteredAccts, logsData.PendingBalances, coreAlteredAccounts)
 	if err != nil {
 		return err
 	}
@@ -601,8 +602,9 @@ func (ei *elasticProcessor) indexAlteredAccounts(
 	timestamp uint64,
 	alteredAccounts data.AlteredAccountsHandler,
 	pendingBalances map[string]*data.AccountInfo,
+	coreAlteredAccounts map[string]*indexer.AlteredAccount,
 ) error {
-	regularAccountsToIndex, accountsToIndexESDT := ei.accountsProc.GetAccounts(alteredAccounts)
+	regularAccountsToIndex, accountsToIndexESDT := ei.accountsProc.GetAccounts(alteredAccounts, coreAlteredAccounts)
 
 	err := ei.SaveAccounts(timestamp, regularAccountsToIndex)
 	if err != nil {

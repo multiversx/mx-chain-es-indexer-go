@@ -24,7 +24,6 @@ type ArgElasticProcessorFactory struct {
 	AddressPubkeyConverter   core.PubkeyConverter
 	ValidatorPubkeyConverter core.PubkeyConverter
 	DBClient                 processIndexer.DatabaseClientHandler
-	AccountsDB               indexer.AccountsAdapter
 	ShardCoordinator         indexer.ShardCoordinator
 	TransactionFeeCalculator indexer.FeesProcessorHandler
 	EnabledIndexes           []string
@@ -57,7 +56,6 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (indexer.Elast
 	accountsProc, err := accounts.NewAccountsProcessor(
 		arguments.Marshalizer,
 		arguments.AddressPubkeyConverter,
-		arguments.AccountsDB,
 		balanceConverter,
 	)
 	if err != nil {
