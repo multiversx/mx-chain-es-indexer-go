@@ -63,3 +63,12 @@ func (bc *balanceConverter) computeBalanceAsFloat(balance *big.Int, balancePreci
 func (bc *balanceConverter) IsInterfaceNil() bool {
 	return bc == nil
 }
+
+// BigIntToString will convert a big.Int to string
+func BigIntToString(value *big.Int) string {
+	if value == nil {
+		return "0"
+	}
+
+	return value.String()
+}

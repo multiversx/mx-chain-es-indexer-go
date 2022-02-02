@@ -50,3 +50,11 @@ func TestComputeBalanceAsFloat(t *testing.T) {
 		assert.Equal(t, tt.output, out)
 	}
 }
+
+func TestBigIntToString(t *testing.T) {
+	t.Parallel()
+
+	require.Equal(t, "0", BigIntToString(nil))
+	require.Equal(t, "0", BigIntToString(big.NewInt(0)))
+	require.Equal(t, "1", BigIntToString(big.NewInt(1)))
+}
