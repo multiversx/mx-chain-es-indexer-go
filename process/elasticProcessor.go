@@ -67,7 +67,7 @@ type elasticProcessor struct {
 	operationsProc    OperationsHandler
 }
 
-// NewElasticProcessor handles Elastic Search operations such as initialization, adding, modifying or removing data
+// NewElasticProcessor handles Elasticsearch operations such as initialization, adding, modifying or removing data
 func NewElasticProcessor(arguments *ArgElasticProcessor) (*elasticProcessor, error) {
 	err := checkArguments(arguments)
 	if err != nil {
@@ -96,48 +96,7 @@ func NewElasticProcessor(arguments *ArgElasticProcessor) (*elasticProcessor, err
 	return ei, nil
 }
 
-func checkArguments(arguments *ArgElasticProcessor) error {
-	if arguments == nil {
-		return elasticIndexer.ErrNilElasticProcessorArguments
-	}
-	if arguments.EnabledIndexes == nil {
-		return elasticIndexer.ErrNilEnabledIndexesMap
-	}
-	if arguments.DBClient == nil {
-		return elasticIndexer.ErrNilDatabaseClient
-	}
-	if arguments.StatisticsProc == nil {
-		return elasticIndexer.ErrNilStatisticHandler
-	}
-	if arguments.BlockProc == nil {
-		return elasticIndexer.ErrNilBlockHandler
-	}
-	if arguments.AccountsProc == nil {
-		return elasticIndexer.ErrNilAccountsHandler
-	}
-	if arguments.MiniblocksProc == nil {
-		return elasticIndexer.ErrNilMiniblocksHandler
-	}
-
-	if arguments.ValidatorsProc == nil {
-		return elasticIndexer.ErrNilValidatorsHandler
-	}
-
-	if arguments.TransactionsProc == nil {
-		return elasticIndexer.ErrNilTransactionsHandler
-	}
-
-	if arguments.LogsAndEventsProc == nil {
-		return elasticIndexer.ErrNilLogsAndEventsHandler
-	}
-
-	if arguments.OperationsProc == nil {
-		return elasticIndexer.ErrNilOperationsHandler
-	}
-
-	return nil
-}
-
+// TODO move all the index create part in a new component
 func (ei *elasticProcessor) init(useKibana bool, indexTemplates, _ map[string]*bytes.Buffer) error {
 	err := ei.createOpenDistroTemplates(indexTemplates)
 	if err != nil {
@@ -460,6 +419,11 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
+	err = ei.indexNFTBurnInfo(logsData.TokensSupply)
+	if err != nil {
+		return err
+	}
+
 	return ei.indexScDeploys(logsData.ScDeploys)
 }
 
@@ -708,6 +672,28 @@ func (ei *elasticProcessor) indexNFTCreateInfo(tokensData data.TokensHandler) er
 	tokensData.AddTypeFromResponse(responseTokens)
 
 	buffSlice, err := ei.accountsProc.SerializeNFTCreateInfo(tokensData.GetAll())
+	if err != nil {
+		return err
+	}
+
+	return ei.doBulkRequests(elasticIndexer.TokensIndex, buffSlice)
+}
+
+func (ei *elasticProcessor) indexNFTBurnInfo(tokensData data.TokensHandler) error {
+	shouldSkipIndex := !ei.isIndexEnabled(elasticIndexer.TokensIndex) || tokensData.Len() == 0
+	if shouldSkipIndex {
+		return nil
+	}
+
+	responseTokens := &data.ResponseTokens{}
+	err := ei.elasticClient.DoMultiGet(tokensData.GetAllTokens(), elasticIndexer.TokensIndex, true, responseTokens)
+	if err != nil {
+		return err
+	}
+
+	// TODO implement to keep in tokens also the supply
+	tokensData.AddTypeFromResponse(responseTokens)
+	buffSlice, err := ei.logsAndEventsProc.SerializeSupplyData(tokensData)
 	if err != nil {
 		return err
 	}

@@ -9,6 +9,7 @@ import (
 type logsData struct {
 	timestamp       uint64
 	tokens          data.TokensHandler
+	tokensSupply    data.TokensHandler
 	tagsCount       data.CountTags
 	accounts        data.AlteredAccountsHandler
 	txsMap          map[string]*data.Transaction
@@ -31,6 +32,7 @@ func newLogsData(
 	ld.scrsMap = converters.ConvertScrsSliceIntoMap(scrs)
 	ld.tagsCount = tags.NewTagsCount()
 	ld.tokens = data.NewTokensInfo()
+	ld.tokensSupply = data.NewTokensInfo()
 	ld.accounts = accounts
 	ld.timestamp = timestamp
 	ld.scDeploys = make(map[string]*data.ScDeployInfo)
