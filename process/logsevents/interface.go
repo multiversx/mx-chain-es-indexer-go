@@ -12,6 +12,7 @@ type argsProcessEvent struct {
 	event            coreData.EventHandler
 	accounts         data.AlteredAccountsHandler
 	tokens           data.TokensHandler
+	tokensSupply     data.TokensHandler
 	tagsCount        data.CountTags
 	timestamp        uint64
 	logAddress       []byte

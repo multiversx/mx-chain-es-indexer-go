@@ -8,6 +8,7 @@ import (
 
 	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elrond-go-core/core"
 )
 
 // SerializeLogs will serialize the provided logs in a way that Elastic Search expects a bulk request
@@ -180,4 +181,22 @@ func (lep *logsAndEventsProcessor) computeDelegatorID(delegator *data.Delegator)
 	hashBytes := lep.hasher.Compute(delegatorContract)
 
 	return base64.StdEncoding.EncodeToString(hashBytes)
+}
+
+// SerializeSupplyData will serialize the provided supply data
+func (lep *logsAndEventsProcessor) SerializeSupplyData(tokensSupply data.TokensHandler) ([]*bytes.Buffer, error) {
+	buffSlice := data.NewBufferSlice()
+	for _, supplyData := range tokensSupply.GetAll() {
+		if supplyData.Type != core.NonFungibleESDT {
+			continue
+		}
+
+		meta := []byte(fmt.Sprintf(`{ "delete" : { "_id" : "%s" } }%s`, supplyData.Identifier, "\n"))
+		err := buffSlice.PutData(meta, nil)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return buffSlice.Buffers(), nil
 }
