@@ -68,6 +68,39 @@ func TestMiniblocksProcessor_PrepareDBMiniblocks(t *testing.T) {
 	require.Len(t, miniblocks, 3)
 }
 
+func TestMiniblocksProcessor_PrepareScheduledMB(t *testing.T) {
+	t.Parallel()
+
+	mp, _ := NewMiniblocksProcessor(0, &mock.HasherMock{}, &mock.MarshalizerMock{}, false)
+
+	header := &dataBlock.Header{
+		MiniBlockHeaders: []dataBlock.MiniBlockHeader{
+			{
+				Reserved: []byte{0},
+			},
+			{
+				Reserved: []byte{1},
+			},
+		},
+	}
+	body := &dataBlock.Body{
+		MiniBlocks: []*dataBlock.MiniBlock{
+			{
+				SenderShardID:   0,
+				ReceiverShardID: 1,
+			},
+			{
+				SenderShardID:   0,
+				ReceiverShardID: 1,
+			},
+		},
+	}
+
+	miniblocks := mp.PrepareDBMiniblocks(header, body)
+	require.Len(t, miniblocks, 2)
+	require.Equal(t, dataBlock.Scheduled.String(), miniblocks[1].ProcessingTypeOnSource)
+}
+
 func TestMiniblocksProcessor_GetMiniblocksHashesHexEncoded(t *testing.T) {
 	t.Parallel()
 

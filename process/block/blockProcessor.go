@@ -7,6 +7,7 @@ import (
 	"time"
 
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
+	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
@@ -90,16 +91,20 @@ func (bp *blockProcessor) PrepareBlockForDB(
 		GasRefunded:           gasConsumptionData.GasRefunded,
 		GasPenalized:          gasConsumptionData.GasPenalized,
 		MaxGasLimit:           gasConsumptionData.MaxGasPerBlock,
+		AccumulatedFees:       converters.BigIntToString(header.GetAccumulatedFees()),
+		DeveloperFees:         converters.BigIntToString(header.GetDeveloperFees()),
 	}
 
-	accumulatedFees := header.GetAccumulatedFees()
-	if accumulatedFees != nil {
-		elasticBlock.AccumulatedFees = accumulatedFees.String()
-	}
-
-	developerFees := header.GetDeveloperFees()
-	if developerFees != nil {
-		elasticBlock.DeveloperFees = developerFees.String()
+	additionalData := header.GetAdditionalData()
+	if header.GetAdditionalData() != nil {
+		elasticBlock.ScheduledData = &data.ScheduledData{
+			ScheduledRootHash:        hex.EncodeToString(additionalData.GetScheduledRootHash()),
+			ScheduledAccumulatedFees: converters.BigIntToString(additionalData.GetScheduledAccumulatedFees()),
+			ScheduledDeveloperFees:   converters.BigIntToString(additionalData.GetScheduledDeveloperFees()),
+			ScheduledGasProvided:     additionalData.GetScheduledGasProvided(),
+			ScheduledGasPenalized:    additionalData.GetScheduledGasPenalized(),
+			ScheduledGasRefunded:     additionalData.GetScheduledGasRefunded(),
+		}
 	}
 
 	bp.addEpochStartInfoForMeta(header, elasticBlock)

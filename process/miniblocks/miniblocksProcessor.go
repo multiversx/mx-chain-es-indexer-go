@@ -55,8 +55,8 @@ func (mp *miniblocksProcessor) PrepareDBMiniblocks(header coreData.HeaderHandler
 	}
 
 	dbMiniblocks := make([]*data.Miniblock, 0)
-	for _, miniblock := range body.MiniBlocks {
-		dbMiniblock, errPrepareMiniblock := mp.prepareMiniblockForDB(miniblock, header, headerHash)
+	for mbIndex, miniblock := range body.MiniBlocks {
+		dbMiniblock, errPrepareMiniblock := mp.prepareMiniblockForDB(mbIndex, miniblock, header, headerHash)
 		if errPrepareMiniblock != nil {
 			log.Warn("miniblocksProcessor.PrepareDBMiniblocks cannot prepare miniblock", "error", errPrepareMiniblock)
 			continue
@@ -69,6 +69,7 @@ func (mp *miniblocksProcessor) PrepareDBMiniblocks(header coreData.HeaderHandler
 }
 
 func (mp *miniblocksProcessor) prepareMiniblockForDB(
+	mbIndex int,
 	miniblock *block.MiniBlock,
 	header coreData.HeaderHandler,
 	headerHash []byte,
@@ -88,18 +89,38 @@ func (mp *miniblocksProcessor) prepareMiniblockForDB(
 		Timestamp:       time.Duration(header.GetTimeStamp()),
 	}
 
+	processingType := mp.computeProcessingType(mbIndex, header)
+
 	encodedHeaderHash := hex.EncodeToString(headerHash)
 	if dbMiniblock.SenderShardID == header.GetShardID() {
 		dbMiniblock.SenderBlockHash = encodedHeaderHash
+		dbMiniblock.ProcessingTypeOnSource = processingType
 	} else {
 		dbMiniblock.ReceiverBlockHash = encodedHeaderHash
+		dbMiniblock.ProcessingTypeOnDestination = processingType
 	}
 
 	if dbMiniblock.SenderShardID == dbMiniblock.ReceiverShardID {
 		dbMiniblock.ReceiverBlockHash = encodedHeaderHash
+		dbMiniblock.ProcessingTypeOnDestination = processingType
 	}
 
 	return dbMiniblock, nil
+}
+
+func (mp *miniblocksProcessor) computeProcessingType(mbIndex int, header coreData.HeaderHandler) string {
+	miniblockHeaders := header.GetMiniBlockHeaderHandlers()
+	if len(miniblockHeaders) < mbIndex+1 {
+		return ""
+	}
+
+	currentMbHeader := miniblockHeaders[mbIndex]
+	reserved := currentMbHeader.GetReserved()
+	if len(reserved) > 0 && reserved[0] == byte(block.Scheduled) {
+		return block.Scheduled.String()
+	}
+
+	return block.Normal.String()
 }
 
 // GetMiniblocksHashesHexEncoded will compute miniblocks hashes in a hexadecimal encoding

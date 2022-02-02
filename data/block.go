@@ -34,6 +34,17 @@ type Block struct {
 	GasRefunded           uint64          `json:"gasRefunded"`
 	GasPenalized          uint64          `json:"gasPenalized"`
 	MaxGasLimit           uint64          `json:"maxGasLimit"`
+	ScheduledData         *ScheduledData  `json:"scheduledData,omitempty"`
+}
+
+// ScheduledData is a structure that hold information about scheduled events
+type ScheduledData struct {
+	ScheduledRootHash        string `json:"rootHash,omitempty"`
+	ScheduledAccumulatedFees string `json:"accumulatedFees,omitempty"`
+	ScheduledDeveloperFees   string `json:"developerFees,omitempty"`
+	ScheduledGasProvided     uint64 `json:"gasProvided,omitempty"`
+	ScheduledGasPenalized    uint64 `json:"penalized,omitempty"`
+	ScheduledGasRefunded     uint64 `json:"gasRefunded,omitempty"`
 }
 
 // EpochStartInfo is a structure that hold information about epoch start meta block
@@ -50,11 +61,13 @@ type EpochStartInfo struct {
 
 // Miniblock is a structure containing miniblock information
 type Miniblock struct {
-	Hash              string        `json:"-"`
-	SenderShardID     uint32        `json:"senderShard"`
-	ReceiverShardID   uint32        `json:"receiverShard"`
-	SenderBlockHash   string        `json:"senderBlockHash"`
-	ReceiverBlockHash string        `json:"receiverBlockHash"`
-	Type              string        `json:"type"`
-	Timestamp         time.Duration `json:"timestamp"`
+	Hash                        string        `json:"-"`
+	SenderShardID               uint32        `json:"senderShard"`
+	ReceiverShardID             uint32        `json:"receiverShard"`
+	SenderBlockHash             string        `json:"senderBlockHash"`
+	ReceiverBlockHash           string        `json:"receiverBlockHash"`
+	Type                        string        `json:"type"`
+	ProcessingTypeOnSource      string        `json:"procTypeS,omitempty"`
+	ProcessingTypeOnDestination string        `json:"procTypeD,omitempty"`
+	Timestamp                   time.Duration `json:"timestamp"`
 }
