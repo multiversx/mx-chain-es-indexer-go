@@ -67,7 +67,7 @@ type elasticProcessor struct {
 	operationsProc    OperationsHandler
 }
 
-// NewElasticProcessor handles Elastic Search operations such as initialization, adding, modifying or removing data
+// NewElasticProcessor handles Elasticsearch operations such as initialization, adding, modifying or removing data
 func NewElasticProcessor(arguments *ArgElasticProcessor) (*elasticProcessor, error) {
 	err := checkArguments(arguments)
 	if err != nil {

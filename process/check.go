@@ -1,6 +1,9 @@
 package process
 
-import elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
+import (
+	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
+	"github.com/ElrondNetwork/elrond-go-core/core/check"
+)
 
 func checkArguments(arguments *ArgElasticProcessor) error {
 	if arguments == nil {
@@ -9,31 +12,31 @@ func checkArguments(arguments *ArgElasticProcessor) error {
 	if arguments.EnabledIndexes == nil {
 		return elasticIndexer.ErrNilEnabledIndexesMap
 	}
-	if arguments.DBClient == nil {
+	if check.IfNilReflect(arguments.DBClient) {
 		return elasticIndexer.ErrNilDatabaseClient
 	}
-	if arguments.StatisticsProc == nil {
+	if check.IfNilReflect(arguments.StatisticsProc) {
 		return elasticIndexer.ErrNilStatisticHandler
 	}
-	if arguments.BlockProc == nil {
+	if check.IfNilReflect(arguments.BlockProc) {
 		return elasticIndexer.ErrNilBlockHandler
 	}
-	if arguments.AccountsProc == nil {
+	if check.IfNilReflect(arguments.AccountsProc) {
 		return elasticIndexer.ErrNilAccountsHandler
 	}
-	if arguments.MiniblocksProc == nil {
+	if check.IfNilReflect(arguments.MiniblocksProc) {
 		return elasticIndexer.ErrNilMiniblocksHandler
 	}
-	if arguments.ValidatorsProc == nil {
+	if check.IfNilReflect(arguments.ValidatorsProc) {
 		return elasticIndexer.ErrNilValidatorsHandler
 	}
 	if arguments.TransactionsProc == nil {
 		return elasticIndexer.ErrNilTransactionsHandler
 	}
-	if arguments.LogsAndEventsProc == nil {
+	if check.IfNilReflect(arguments.LogsAndEventsProc) {
 		return elasticIndexer.ErrNilLogsAndEventsHandler
 	}
-	if arguments.OperationsProc == nil {
+	if check.IfNilReflect(arguments.OperationsProc) {
 		return elasticIndexer.ErrNilOperationsHandler
 	}
 
