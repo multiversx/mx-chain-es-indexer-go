@@ -17,7 +17,7 @@ func (mp *miniblocksProcessor) SerializeBulkMiniBlocks(
 	for _, mb := range bulkMbs {
 		meta, serializedData, err := mp.prepareMiniblockData(mb, existsInDb[mb.Hash])
 		if err != nil {
-			log.Warn("miniblocksProcessor.SerializeBulkMiniBlocks cannot prepare miniblock data", "error", err)
+			log.Warn("miniblocksProcessor.prepareMiniblockData cannot prepare miniblock data", "error", err)
 			continue
 		}
 
@@ -43,13 +43,13 @@ func (mp *miniblocksProcessor) prepareMiniblockData(miniblockDB *data.Miniblock,
 	meta := []byte(fmt.Sprintf(`{ "update" : { "_id" : "%s" } }%s`, miniblockDB.Hash, "\n"))
 	if mp.selfShardID == miniblockDB.SenderShardID {
 		// prepare for update sender block hash
-		serializedData := []byte(fmt.Sprintf(`{ "doc" : { "senderBlockHash" : "%s" } }`, miniblockDB.SenderBlockHash))
+		serializedData := []byte(fmt.Sprintf(`{ "doc" : { "senderBlockHash" : "%s", "procTypeS": "%s" } }`, miniblockDB.SenderBlockHash, miniblockDB.ProcessingTypeOnSource))
 
 		return meta, serializedData, nil
 	}
 
 	// prepare for update receiver block hash
-	serializedData := []byte(fmt.Sprintf(`{ "doc" : { "receiverBlockHash" : "%s" } }`, miniblockDB.ReceiverBlockHash))
+	serializedData := []byte(fmt.Sprintf(`{ "doc" : { "receiverBlockHash" : "%s", "procTypeD": "%s" } }`, miniblockDB.ReceiverBlockHash, miniblockDB.ProcessingTypeOnDestination))
 
 	return meta, serializedData, nil
 }

@@ -43,7 +43,7 @@ func TestMiniblocksProcessor_SerializeBulkMiniBlocksInDB(t *testing.T) {
 	})
 
 	expectedBuff := `{ "update" : { "_id" : "h1" } }
-{ "doc" : { "senderBlockHash" : "" } }
+{ "doc" : { "senderBlockHash" : "", "procTypeS": "" } }
 { "index" : { "_id" : "h2", "_type" : "_doc" } }
 {"senderShard":0,"receiverShard":2,"senderBlockHash":"","receiverBlockHash":"","type":"","timestamp":0}
 `
