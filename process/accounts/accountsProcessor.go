@@ -164,6 +164,7 @@ func (ap *accountsProcessor) PrepareRegularAccountsMap(accounts []*data.Account)
 
 // PrepareAccountsMapESDT will prepare a map of accounts with ESDT tokens
 func (ap *accountsProcessor) PrepareAccountsMapESDT(
+	timestamp uint64,
 	accounts []*data.AccountESDT,
 ) map[string]*data.AccountInfo {
 	accountsESDTMap := make(map[string]*data.AccountInfo)
@@ -188,6 +189,7 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(
 			IsSender:        accountESDT.IsSender,
 			IsSmartContract: core.IsSmartContractAddress(accountESDT.Account.AddressBytes()),
 			Data:            tokenMetaData,
+			Timestamp:       time.Duration(timestamp),
 		}
 
 		keyInMap := fmt.Sprintf("%s-%s-%d", acc.Address, acc.TokenName, accountESDT.NFTNonce)

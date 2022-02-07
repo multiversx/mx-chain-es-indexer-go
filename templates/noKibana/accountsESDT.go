@@ -37,6 +37,10 @@ var AccountsESDT = Object{
 			"tokenNonce": Object{
 				"type": "double",
 			},
+			"timestamp": Object{
+				"type":   "date",
+				"format": "epoch_second",
+			},
 		},
 	},
 }

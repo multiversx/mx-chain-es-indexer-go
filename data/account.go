@@ -21,6 +21,7 @@ type AccountInfo struct {
 	TotalBalanceWithStake    string         `json:"totalBalanceWithStake,omitempty"`
 	TotalBalanceWithStakeNum float64        `json:"totalBalanceWithStakeNum,omitempty"`
 	Data                     *TokenMetaData `json:"data,omitempty"`
+	Timestamp                time.Duration  `json:"timestamp,omitempty"`
 }
 
 // TokenMetaData holds data about a token metadata
