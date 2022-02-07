@@ -617,7 +617,7 @@ func (ei *elasticProcessor) saveAccountsESDT(
 	wrappedAccounts []*data.AccountESDT,
 	updatesNFTsData []*data.NFTDataUpdate,
 ) error {
-	accountsESDTMap := ei.accountsProc.PrepareAccountsMapESDT(wrappedAccounts)
+	accountsESDTMap := ei.accountsProc.PrepareAccountsMapESDT(timestamp, wrappedAccounts)
 
 	err := ei.indexAccountsESDT(accountsESDTMap, updatesNFTsData)
 	if err != nil {
