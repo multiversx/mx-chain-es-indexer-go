@@ -15,7 +15,6 @@ import (
 	coreIndexerData "github.com/ElrondNetwork/elrond-go-core/data/indexer"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
-	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
 
 var log = logger.GetOrCreate("indexer/process/accounts")
@@ -229,40 +228,16 @@ func (ap *accountsProcessor) getESDTInfo(accountESDT *data.AccountESDT) (*big.In
 	}
 
 	if esdtToken.TokenMetaData == nil && accountESDT.NFTNonce > 0 {
-		metadata, errLoad := ap.loadMetadataFromSystemAccount(tokenKey)
-		if errLoad != nil {
-			return nil, "", nil, errLoad
-		}
-
-		esdtToken.TokenMetaData = metadata
+		// TODO: refactor when elrond-go treats NFTs from sys account and saves it in altered accounts
+		//metadata, errLoad := ap.loadMetadataFromSystemAccount(tokenKey)
+		//if errLoad != nil {
+		//	return nil, "", nil, errLoad
+		//}
+		//
+		//esdtToken.TokenMetaData = metadata
 	}
 
 	tokenMetaData := converters.PrepareTokenMetaData(ap.addressPubkeyConverter, esdtToken)
 
 	return esdtToken.Value, hex.EncodeToString(esdtToken.Properties), tokenMetaData, nil
-}
-
-func (ap *accountsProcessor) loadMetadataFromSystemAccount(tokenKey []byte) (*esdt.MetaData, error) {
-	systemAccount, err := ap.accountsDB.LoadAccount(vmcommon.SystemAccountAddress)
-	if err != nil {
-		return nil, err
-	}
-
-	userAccount, ok := systemAccount.(coreData.UserAccountHandler)
-	if !ok {
-		return nil, indexer.ErrCannotCastAccountHandlerToUserAccount
-	}
-
-	marshaledData, err := userAccount.RetrieveValueFromDataTrieTracker(tokenKey)
-	if err != nil {
-		return nil, err
-	}
-
-	esdtData := &esdt.ESDigitalToken{}
-	err = ap.internalMarshalizer.Unmarshal(esdtData, marshaledData)
-	if err != nil {
-		return nil, err
-	}
-
-	return esdtData.TokenMetaData, nil
 }
