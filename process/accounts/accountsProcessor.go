@@ -62,6 +62,7 @@ func (ap *accountsProcessor) GetAccounts(alteredAccounts data.AlteredAccountsHan
 	for address, altered := range allAlteredAccounts {
 		alteredAccount := coreAlteredAccounts[address]
 		if alteredAccount == nil {
+			log.Warn("account not found in core altered accounts map", "address", address)
 			continue
 		}
 
@@ -76,7 +77,8 @@ func (ap *accountsProcessor) GetAccounts(alteredAccounts data.AlteredAccountsHan
 
 func splitAlteredAccounts(
 	account *coreIndexerData.AlteredAccount,
-	altered []*data.AlteredAccount) ([]*data.Account, []*data.AccountESDT) {
+	altered []*data.AlteredAccount,
+) ([]*data.Account, []*data.AccountESDT) {
 	regularAccountsToIndex := make([]*data.Account, 0)
 	accountsToIndexESDT := make([]*data.AccountESDT, 0)
 	for _, info := range altered {
@@ -120,7 +122,12 @@ func (ap *accountsProcessor) PrepareRegularAccountsMap(accounts []*data.Account)
 			log.Warn("PrepareRegularAccountsMap: cannot decode address", "address", address, "error", err)
 			continue
 		}
-		balance, _ := big.NewInt(0).SetString(userAccount.UserAccount.Balance, 10)
+		balance, ok := big.NewInt(0).SetString(userAccount.UserAccount.Balance, 10)
+		if !ok {
+			log.Warn("cannot cast account's balance to big int", "value", userAccount.UserAccount.Balance)
+			continue
+		}
+
 		balanceAsFloat := ap.balanceConverter.ComputeBalanceAsFloat(balance)
 		acc := &data.AccountInfo{
 			Address:                  address,

@@ -8,7 +8,6 @@ import (
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
-	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
 
 // DispatcherHandler defines the interface for the dispatcher that will manage when items are saved in elasticsearch database
@@ -69,11 +68,6 @@ type Indexer interface {
 	Close() error
 	IsInterfaceNil() bool
 	IsNilIndexer() bool
-}
-
-type AccountsAdapter interface {
-	LoadAccount(address []byte) (vmcommon.AccountHandler, error)
-	IsInterfaceNil() bool
 }
 
 // BalanceConverter defines what a balance converter should be able to do
