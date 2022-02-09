@@ -62,6 +62,23 @@ func TestNewOperationDataFieldParser(t *testing.T) {
 	})
 }
 
+func TestParseSCDeploy(t *testing.T) {
+	arguments := createMockArgumentsOperationParser()
+	parser, _ := NewOperationDataFieldParser(arguments)
+
+	t.Run("ScDeploy", func(t *testing.T) {
+		t.Parallel()
+
+		dataField := []byte("0101020304050607")
+		rcvAddr := make([]byte, 0)
+
+		res := parser.Parse(dataField, sender, rcvAddr)
+		require.Equal(t, &ResponseParseData{
+			Operation: operationDeploy,
+		}, res)
+	})
+}
+
 func TestParseQuantityOperationsESDT(t *testing.T) {
 	t.Parallel()
 

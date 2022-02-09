@@ -15,6 +15,7 @@ import (
 
 const (
 	operationTransfer                 = `transfer`
+	operationDeploy                   = `scDeploy`
 	minArgumentsQuantityOperationESDT = 2
 	minArgumentsQuantityOperationNFT  = 3
 	numArgsRelayedV2                  = 4
@@ -61,6 +62,12 @@ func (odp *operationDataFieldParser) Parse(dataField []byte, sender, receiver []
 func (odp *operationDataFieldParser) parse(dataField []byte, sender, receiver []byte, ignoreRelayed bool) *ResponseParseData {
 	responseParse := &ResponseParseData{
 		Operation: operationTransfer,
+	}
+
+	isSCDeploy := len(dataField) > 0 && isEmptyAddr(odp.pubKeyConverter, receiver)
+	if isSCDeploy {
+		responseParse.Operation = operationDeploy
+		return responseParse
 	}
 
 	function, args, err := odp.argsParser.ParseData(string(dataField))

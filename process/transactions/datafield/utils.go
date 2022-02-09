@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"math/big"
+
+	"github.com/ElrondNetwork/elrond-go-core/core"
 )
 
 const (
@@ -25,4 +27,10 @@ func extractTokenIdentifierAndNonce(arg []byte) ([]byte, uint64) {
 	nonce := big.NewInt(0).SetBytes(argsSplit[1][esdtRandomSequenceLength:])
 
 	return identifier, nonce.Uint64()
+}
+
+func isEmptyAddr(pubKeyConverter core.PubkeyConverter, receiver []byte) bool {
+	emptyAddr := make([]byte, pubKeyConverter.Len())
+
+	return bytes.Equal(receiver, emptyAddr)
 }
