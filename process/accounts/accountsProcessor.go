@@ -227,16 +227,6 @@ func (ap *accountsProcessor) getESDTInfo(accountESDT *data.AccountESDT) (*big.In
 		return big.NewInt(0), "", nil, nil
 	}
 
-	if esdtToken.TokenMetaData == nil && accountESDT.NFTNonce > 0 {
-		// TODO: refactor when elrond-go treats NFTs from sys account and saves it in altered accounts
-		//metadata, errLoad := ap.loadMetadataFromSystemAccount(tokenKey)
-		//if errLoad != nil {
-		//	return nil, "", nil, errLoad
-		//}
-		//
-		//esdtToken.TokenMetaData = metadata
-	}
-
 	tokenMetaData := converters.PrepareTokenMetaData(ap.addressPubkeyConverter, esdtToken)
 
 	return esdtToken.Value, hex.EncodeToString(esdtToken.Properties), tokenMetaData, nil
