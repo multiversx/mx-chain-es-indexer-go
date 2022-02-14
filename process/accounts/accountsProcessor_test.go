@@ -389,7 +389,6 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 			Creator: "63726561746f72",
 		},
 		Timestamp: time.Duration(123),
-		Type:      core.FungibleESDT,
 	}, res[hex.EncodeToString([]byte(addr))+"-token-15"])
 
 	require.Equal(t, &data.AccountInfo{
@@ -404,7 +403,6 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 			Creator: "63726561746f72",
 		},
 		Timestamp: time.Duration(123),
-		Type:      core.FungibleESDT,
 	}, res[hex.EncodeToString([]byte(addr))+"-token-16"])
 }
 
