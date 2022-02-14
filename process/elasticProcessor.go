@@ -8,6 +8,7 @@ import (
 	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
@@ -617,14 +618,35 @@ func (ei *elasticProcessor) saveAccountsESDT(
 	wrappedAccounts []*data.AccountESDT,
 	updatesNFTsData []*data.NFTDataUpdate,
 ) error {
-	accountsESDTMap := ei.accountsProc.PrepareAccountsMapESDT(timestamp, wrappedAccounts)
+	accountsESDTMap, tokensData := ei.accountsProc.PrepareAccountsMapESDT(timestamp, wrappedAccounts)
+	err := ei.addTokenTypeInAccountsESDT(tokensData, accountsESDTMap)
+	if err != nil {
+		return err
+	}
 
-	err := ei.indexAccountsESDT(accountsESDTMap, updatesNFTsData)
+	err = ei.indexAccountsESDT(accountsESDTMap, updatesNFTsData)
 	if err != nil {
 		return err
 	}
 
 	return ei.saveAccountsESDTHistory(timestamp, accountsESDTMap)
+}
+
+func (ei *elasticProcessor) addTokenTypeInAccountsESDT(tokensData data.TokensHandler, accountsESDTMap map[string]*data.AccountInfo) error {
+	if check.IfNil(tokensData) || tokensData.Len() == 0 {
+		return nil
+	}
+
+	responseTokens := &data.ResponseTokens{}
+	err := ei.elasticClient.DoMultiGet(tokensData.GetAllTokens(), elasticIndexer.TokensIndex, true, responseTokens)
+	if err != nil {
+		return err
+	}
+
+	tokensData.AddTypeFromResponse(responseTokens)
+	tokensData.PutTypeInAccountsESDT(accountsESDTMap)
+
+	return nil
 }
 
 func (ei *elasticProcessor) prepareAndIndexTagsCount(tagsCount data.CountTags) error {

@@ -374,7 +374,7 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 		{Account: mockAccount, TokenIdentifier: "token", IsNFTOperation: true, NFTNonce: 15},
 		{Account: mockAccount, TokenIdentifier: "token", IsNFTOperation: true, NFTNonce: 16},
 	}
-	res := ap.PrepareAccountsMapESDT(123, accountsESDT)
+	res, _ := ap.PrepareAccountsMapESDT(123, accountsESDT)
 	require.Len(t, res, 2)
 
 	require.Equal(t, &data.AccountInfo{

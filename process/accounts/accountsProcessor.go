@@ -92,7 +92,6 @@ func splitAlteredAccounts(userAccount coreData.UserAccountHandler, altered []*da
 				IsSender:        info.IsSender,
 				IsNFTOperation:  info.IsNFTOperation,
 				NFTNonce:        info.NFTNonce,
-				Type:            info.Type,
 			})
 		}
 
@@ -166,7 +165,8 @@ func (ap *accountsProcessor) PrepareRegularAccountsMap(accounts []*data.Account)
 func (ap *accountsProcessor) PrepareAccountsMapESDT(
 	timestamp uint64,
 	accounts []*data.AccountESDT,
-) map[string]*data.AccountInfo {
+) (map[string]*data.AccountInfo, data.TokensHandler) {
+	tokensData := data.NewTokensInfo()
 	accountsESDTMap := make(map[string]*data.AccountInfo)
 	for _, accountESDT := range accounts {
 		address := ap.addressPubkeyConverter.Encode(accountESDT.Account.AddressBytes())
@@ -178,10 +178,11 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(
 			continue
 		}
 
+		tokenIdentifier := converters.ComputeTokenIdentifier(accountESDT.TokenIdentifier, accountESDT.NFTNonce)
 		acc := &data.AccountInfo{
 			Address:         address,
 			TokenName:       accountESDT.TokenIdentifier,
-			TokenIdentifier: converters.ComputeTokenIdentifier(accountESDT.TokenIdentifier, accountESDT.NFTNonce),
+			TokenIdentifier: tokenIdentifier,
 			TokenNonce:      accountESDT.NFTNonce,
 			Balance:         balance.String(),
 			BalanceNum:      ap.balanceConverter.ComputeESDTBalanceAsFloat(balance),
@@ -192,11 +193,24 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(
 			Timestamp:       time.Duration(timestamp),
 		}
 
+		if acc.TokenNonce == 0 {
+			acc.Type = core.FungibleESDT
+		}
+
 		keyInMap := fmt.Sprintf("%s-%s-%d", acc.Address, acc.TokenName, accountESDT.NFTNonce)
 		accountsESDTMap[keyInMap] = acc
+
+		if acc.Balance == "0" || acc.Balance == "" {
+			continue
+		}
+
+		tokensData.Add(&data.TokenInfo{
+			Token:      accountESDT.TokenIdentifier,
+			Identifier: tokenIdentifier,
+		})
 	}
 
-	return accountsESDTMap
+	return accountsESDTMap, tokensData
 }
 
 // PrepareAccountsHistory will prepare a map of accounts history balance from a map of accounts
