@@ -707,6 +707,9 @@ func TestElasticProcessor_IndexAlteredAccounts(t *testing.T) {
 			called = true
 			return nil
 		},
+		DoMultiGetCalled: func(ids []string, index string, withSource bool, response interface{}) error {
+			return nil
+		},
 	}
 	arguments := createMockElasticProcessorArgs()
 	arguments.AccountsProc = &mock.DBAccountsHandlerStub{

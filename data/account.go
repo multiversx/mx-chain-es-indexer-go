@@ -22,6 +22,7 @@ type AccountInfo struct {
 	TotalBalanceWithStakeNum float64        `json:"totalBalanceWithStakeNum,omitempty"`
 	Data                     *TokenMetaData `json:"data,omitempty"`
 	Timestamp                time.Duration  `json:"timestamp,omitempty"`
+	Type                     string         `json:"type,omitempty"`
 }
 
 // TokenMetaData holds data about a token metadata
@@ -63,5 +64,4 @@ type AccountESDT struct {
 	NFTNonce        uint64
 	IsSender        bool
 	IsNFTOperation  bool
-	Type            string
 }

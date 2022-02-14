@@ -54,8 +54,10 @@ type TokensHandler interface {
 	Add(tokenInfo *TokenInfo)
 	Len() int
 	AddTypeFromResponse(res *ResponseTokens)
+	PutTypeInAccountsESDT(accountsESDT map[string]*AccountInfo)
 	GetAllTokens() []string
 	GetAll() []*TokenInfo
+	IsInterfaceNil() bool
 }
 
 type tokensInfo struct {
@@ -131,7 +133,24 @@ func (ti *tokensInfo) AddTypeFromResponse(res *ResponseTokens) {
 	}
 }
 
+// PutTypeInAccountsESDT will put in the provided accounts ESDT map token type
+func (ti *tokensInfo) PutTypeInAccountsESDT(accountsESDT map[string]*AccountInfo) {
+	for _, accountESDT := range accountsESDT {
+		tokenData, ok := ti.tokensInfo[accountESDT.TokenIdentifier]
+		if !ok {
+			continue
+		}
+
+		accountESDT.Type = tokenData.Type
+	}
+}
+
 // Len will return the number of tokens
 func (ti *tokensInfo) Len() int {
 	return len(ti.tokensInfo)
+}
+
+// IsInterfaceNil returns true if there is no value under the interface
+func (ti *tokensInfo) IsInterfaceNil() bool {
+	return ti == nil
 }

@@ -23,8 +23,8 @@ func (dba *DBAccountsHandlerStub) PrepareRegularAccountsMap(_ []*data.Account) m
 }
 
 // PrepareAccountsMapESDT -
-func (dba *DBAccountsHandlerStub) PrepareAccountsMapESDT(_ uint64, _ []*data.AccountESDT) map[string]*data.AccountInfo {
-	return nil
+func (dba *DBAccountsHandlerStub) PrepareAccountsMapESDT(_ uint64, _ []*data.AccountESDT) (map[string]*data.AccountInfo, data.TokensHandler) {
+	return nil, nil
 }
 
 // PrepareAccountsHistory -
