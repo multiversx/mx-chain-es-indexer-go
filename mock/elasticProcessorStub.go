@@ -21,7 +21,7 @@ type ElasticProcessorStub struct {
 	RemoveMiniblocksCalled           func(header coreData.HeaderHandler, body *block.Body) error
 	RemoveTransactionsCalled         func(header coreData.HeaderHandler, body *block.Body) error
 	SaveMiniblocksCalled             func(header coreData.HeaderHandler, body *block.Body) error
-	SaveTransactionsCalled           func(body *block.Body, header coreData.HeaderHandler, pool *indexer.Pool) error
+	SaveTransactionsCalled           func(body *block.Body, header coreData.HeaderHandler, pool *indexer.Pool, coreAlteredAccounts map[string]*indexer.AlteredAccount) error
 	SaveValidatorsRatingCalled       func(index string, validatorsRatingInfo []*data.ValidatorRatingInfo) error
 	SaveRoundsInfoCalled             func(infos []*data.RoundInfo) error
 	SaveShardValidatorsPubKeysCalled func(shardID, epoch uint32, shardValidatorsPubKeys [][]byte) error
@@ -75,9 +75,9 @@ func (eim *ElasticProcessorStub) SaveMiniblocks(header coreData.HeaderHandler, b
 }
 
 // SaveTransactions -
-func (eim *ElasticProcessorStub) SaveTransactions(body *block.Body, header coreData.HeaderHandler, pool *indexer.Pool) error {
+func (eim *ElasticProcessorStub) SaveTransactions(body *block.Body, header coreData.HeaderHandler, pool *indexer.Pool, coreAlteredAccounts map[string]*indexer.AlteredAccount) error {
 	if eim.SaveTransactionsCalled != nil {
-		return eim.SaveTransactionsCalled(body, header, pool)
+		return eim.SaveTransactionsCalled(body, header, pool, coreAlteredAccounts)
 	}
 	return nil
 }

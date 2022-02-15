@@ -1,8 +1,8 @@
 package accounts
 
 import (
+	"bytes"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"math/big"
 	"testing"
@@ -14,9 +14,8 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/data/esdt"
+	coreIndexerData "github.com/ElrondNetwork/elrond-go-core/data/indexer"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
-	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -27,41 +26,34 @@ func TestNewAccountsProcessor(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		argsFunc func() (marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter, indexer.BalanceConverter)
+		argsFunc func() (marshal.Marshalizer, core.PubkeyConverter, indexer.BalanceConverter)
 		exError  error
 	}{
 		{
 			name: "NilBalanceConverter",
-			argsFunc: func() (marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter, indexer.BalanceConverter) {
-				return &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{}, &mock.AccountsStub{}, nil
+			argsFunc: func() (marshal.Marshalizer, core.PubkeyConverter, indexer.BalanceConverter) {
+				return &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{}, nil
 			},
 			exError: indexer.ErrNilBalanceConverter,
 		},
 		{
 			name: "NilMarshalizer",
-			argsFunc: func() (marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter, indexer.BalanceConverter) {
-				return nil, &mock.PubkeyConverterMock{}, &mock.AccountsStub{}, balanceConverter
+			argsFunc: func() (marshal.Marshalizer, core.PubkeyConverter, indexer.BalanceConverter) {
+				return nil, &mock.PubkeyConverterMock{}, balanceConverter
 			},
 			exError: indexer.ErrNilMarshalizer,
 		},
 		{
 			name: "NilPubKeyConverter",
-			argsFunc: func() (marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter, indexer.BalanceConverter) {
-				return &mock.MarshalizerMock{}, nil, &mock.AccountsStub{}, balanceConverter
+			argsFunc: func() (marshal.Marshalizer, core.PubkeyConverter, indexer.BalanceConverter) {
+				return &mock.MarshalizerMock{}, nil, balanceConverter
 			},
 			exError: indexer.ErrNilPubkeyConverter,
 		},
 		{
-			name: "NilAccounts",
-			argsFunc: func() (marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter, indexer.BalanceConverter) {
-				return &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{}, nil, balanceConverter
-			},
-			exError: indexer.ErrNilAccountsDB,
-		},
-		{
 			name: "ShouldWork",
-			argsFunc: func() (marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter, indexer.BalanceConverter) {
-				return &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{}, &mock.AccountsStub{}, balanceConverter
+			argsFunc: func() (marshal.Marshalizer, core.PubkeyConverter, indexer.BalanceConverter) {
+				return &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{}, balanceConverter
 			},
 			exError: nil,
 		},
@@ -78,9 +70,9 @@ func TestNewAccountsProcessor(t *testing.T) {
 func TestAccountsProcessor_GetAccountsWithNil(t *testing.T) {
 	t.Parallel()
 
-	ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), &mock.AccountsStub{}, balanceConverter)
+	ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), balanceConverter)
 
-	regularAccounts, esdtAccounts := ap.GetAccounts(nil)
+	regularAccounts, esdtAccounts := ap.GetAccounts(nil, nil)
 	require.Len(t, regularAccounts, 0)
 	require.Len(t, esdtAccounts, 0)
 }
@@ -88,47 +80,30 @@ func TestAccountsProcessor_GetAccountsWithNil(t *testing.T) {
 func TestAccountsProcessor_PrepareRegularAccountsMapWithNil(t *testing.T) {
 	t.Parallel()
 
-	ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), &mock.AccountsStub{}, balanceConverter)
+	ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), balanceConverter)
 
 	accountsInfo := ap.PrepareRegularAccountsMap(nil)
 	require.Len(t, accountsInfo, 0)
 }
 
-func TestGetESDTInfo_CannotRetriveValueShoudError(t *testing.T) {
-	t.Parallel()
-
-	ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), &mock.AccountsStub{}, balanceConverter)
-	require.NotNil(t, ap)
-
-	localErr := errors.New("local error")
-	wrapAccount := &data.AccountESDT{
-		Account: &mock.UserAccountStub{
-			RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
-				return nil, localErr
-			},
-		},
-		TokenIdentifier: "token",
-	}
-	_, _, _, err := ap.getESDTInfo(wrapAccount)
-	require.Equal(t, localErr, err)
-}
-
 func TestGetESDTInfo(t *testing.T) {
 	t.Parallel()
 
-	ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), &mock.AccountsStub{}, balanceConverter)
+	ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), balanceConverter)
 	require.NotNil(t, ap)
-
-	esdtToken := &esdt.ESDigitalToken{
-		Value:      big.NewInt(1000),
-		Properties: []byte("ok"),
-	}
 
 	tokenIdentifier := "token-001"
 	wrapAccount := &data.AccountESDT{
-		Account: &mock.UserAccountStub{
-			RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
-				return json.Marshal(esdtToken)
+		Account: &coreIndexerData.AlteredAccount{
+			Address: "",
+			Balance: "1000",
+			Nonce:   0,
+			Tokens: []*coreIndexerData.AccountTokenData{
+				{
+					Identifier: tokenIdentifier,
+					Balance:    "1000",
+					Properties: "ok",
+				},
 			},
 		},
 		TokenIdentifier: tokenIdentifier,
@@ -142,20 +117,22 @@ func TestGetESDTInfo(t *testing.T) {
 func TestGetESDTInfoNFT(t *testing.T) {
 	t.Parallel()
 
-	ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), &mock.AccountsStub{}, balanceConverter)
+	ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), balanceConverter)
 	require.NotNil(t, ap)
-
-	esdtToken := &esdt.ESDigitalToken{
-		Value:      big.NewInt(1),
-		Properties: []byte("ok"),
-	}
 
 	tokenIdentifier := "token-001"
 	wrapAccount := &data.AccountESDT{
-		Account: &mock.UserAccountStub{
-			RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
-				assert.Equal(t, append([]byte("ELRONDesdttoken-001"), 0xa), key)
-				return json.Marshal(esdtToken)
+		Account: &coreIndexerData.AlteredAccount{
+			Address: "",
+			Balance: "1",
+			Nonce:   10,
+			Tokens: []*coreIndexerData.AccountTokenData{
+				{
+					Identifier: tokenIdentifier,
+					Balance:    "1",
+					Nonce:      10,
+					Properties: "ok",
+				},
 			},
 		},
 		TokenIdentifier: tokenIdentifier,
@@ -172,28 +149,31 @@ func TestGetESDTInfoNFTWithMetaData(t *testing.T) {
 	t.Parallel()
 
 	pubKeyConverter := mock.NewPubkeyConverterMock(32)
-	ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, pubKeyConverter, &mock.AccountsStub{}, balanceConverter)
+	ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, pubKeyConverter, balanceConverter)
 	require.NotNil(t, ap)
 
 	nftName := "Test-nft"
 	creator := []byte("010101")
-	esdtToken := &esdt.ESDigitalToken{
-		Value:      big.NewInt(1),
-		Properties: []byte("ok"),
-		TokenMetaData: &esdt.MetaData{
-			Nonce:     1,
-			Name:      []byte(nftName),
-			Creator:   creator,
-			Royalties: 2,
-		},
-	}
 
 	tokenIdentifier := "token-001"
 	wrapAccount := &data.AccountESDT{
-		Account: &mock.UserAccountStub{
-			RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
-				assert.Equal(t, append([]byte("ELRONDesdttoken-001"), 0xa), key)
-				return json.Marshal(esdtToken)
+		Account: &coreIndexerData.AlteredAccount{
+			Address: "",
+			Balance: "1",
+			Nonce:   1,
+			Tokens: []*coreIndexerData.AccountTokenData{
+				{
+					Identifier: tokenIdentifier,
+					Balance:    "1",
+					Properties: "ok",
+					Nonce:      10,
+					MetaData: &esdt.MetaData{
+						Nonce:     10,
+						Name:      []byte(nftName),
+						Creator:   creator,
+						Royalties: 2,
+					},
+				},
 			},
 		},
 		TokenIdentifier: tokenIdentifier,
@@ -215,13 +195,11 @@ func TestAccountsProcessor_GetAccountsEGLDAccounts(t *testing.T) {
 	t.Parallel()
 
 	addr := "aaaabbbb"
-	mockAccount := &mock.UserAccountStub{}
-	accountsStub := &mock.AccountsStub{
-		LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
-			return mockAccount, nil
-		},
+	acc := &coreIndexerData.AlteredAccount{}
+	alteredAccountsMap := map[string]*coreIndexerData.AlteredAccount{
+		addr: acc,
 	}
-	ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), accountsStub, balanceConverter)
+	ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), balanceConverter)
 	require.NotNil(t, ap)
 
 	alteredAccounts := data.NewAlteredAccounts()
@@ -230,10 +208,12 @@ func TestAccountsProcessor_GetAccountsEGLDAccounts(t *testing.T) {
 		TokenIdentifier: "",
 	})
 
-	accounts, esdtAccounts := ap.GetAccounts(alteredAccounts)
+	accounts, esdtAccounts := ap.GetAccounts(alteredAccounts, alteredAccountsMap)
 	require.Equal(t, 0, len(esdtAccounts))
 	require.Equal(t, []*data.Account{
-		{UserAccount: mockAccount},
+		{
+			UserAccount: acc,
+		},
 	}, accounts)
 }
 
@@ -241,17 +221,14 @@ func TestAccountsProcessor_GetAccountsESDTAccount(t *testing.T) {
 	t.Parallel()
 
 	addr := "aaaabbbb"
-	mockAccount := &mock.UserAccountStub{
-		GetBalanceCalled: func() *big.Int {
-			return big.NewInt(1)
-		},
+	acc := &coreIndexerData.AlteredAccount{
+		Address: addr,
+		Balance: "1",
 	}
-	accountsStub := &mock.AccountsStub{
-		LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
-			return mockAccount, nil
-		},
+	alteredAccountsMap := map[string]*coreIndexerData.AlteredAccount{
+		addr: acc,
 	}
-	ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), accountsStub, balanceConverter)
+	ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), balanceConverter)
 	require.NotNil(t, ap)
 
 	alteredAccounts := data.NewAlteredAccounts()
@@ -259,10 +236,10 @@ func TestAccountsProcessor_GetAccountsESDTAccount(t *testing.T) {
 		IsESDTOperation: true,
 		TokenIdentifier: "token",
 	})
-	accounts, esdtAccounts := ap.GetAccounts(alteredAccounts)
+	accounts, esdtAccounts := ap.GetAccounts(alteredAccounts, alteredAccountsMap)
 	require.Equal(t, 0, len(accounts))
 	require.Equal(t, []*data.AccountESDT{
-		{Account: mockAccount, TokenIdentifier: "token"},
+		{Account: acc, TokenIdentifier: "token"},
 	}, esdtAccounts)
 }
 
@@ -270,17 +247,11 @@ func TestAccountsProcessor_GetAccountsESDTAccountNewAccountShouldBeInRegularAcco
 	t.Parallel()
 
 	addr := "aaaabbbb"
-	mockAccount := &mock.UserAccountStub{
-		GetBalanceCalled: func() *big.Int {
-			return big.NewInt(0)
-		},
+	acc := &coreIndexerData.AlteredAccount{}
+	alteredAccountsMap := map[string]*coreIndexerData.AlteredAccount{
+		addr: acc,
 	}
-	accountsStub := &mock.AccountsStub{
-		LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
-			return mockAccount, nil
-		},
-	}
-	ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), accountsStub, balanceConverter)
+	ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), balanceConverter)
 	require.NotNil(t, ap)
 
 	alteredAccounts := data.NewAlteredAccounts()
@@ -288,91 +259,84 @@ func TestAccountsProcessor_GetAccountsESDTAccountNewAccountShouldBeInRegularAcco
 		IsESDTOperation: true,
 		TokenIdentifier: "token",
 	})
-	accounts, esdtAccounts := ap.GetAccounts(alteredAccounts)
+	accounts, esdtAccounts := ap.GetAccounts(alteredAccounts, alteredAccountsMap)
 	require.Equal(t, 1, len(accounts))
 	require.Equal(t, []*data.AccountESDT{
-		{Account: mockAccount, TokenIdentifier: "token"},
+		{Account: acc, TokenIdentifier: "token"},
 	}, esdtAccounts)
 
 	require.Equal(t, []*data.Account{
-		{UserAccount: mockAccount, IsSender: false},
+		{UserAccount: acc, IsSender: false},
 	}, accounts)
 }
 
 func TestAccountsProcessor_PrepareAccountsMapEGLD(t *testing.T) {
 	t.Parallel()
 
-	addr := string(make([]byte, 32))
-	mockAccount := &mock.UserAccountStub{
-		GetNonceCalled: func() uint64 {
-			return 1
-		},
-		GetBalanceCalled: func() *big.Int {
-			return big.NewInt(1000)
-		},
-		AddressBytesCalled: func() []byte {
-			return []byte(addr)
-		},
+	addrBytes := bytes.Repeat([]byte{0}, 32)
+	addr := hex.EncodeToString(addrBytes)
+
+	account := &coreIndexerData.AlteredAccount{
+		Address: addr,
+		Balance: "1000",
+		Nonce:   1,
 	}
 
 	egldAccount := &data.Account{
-		UserAccount: mockAccount,
+		UserAccount: account,
 		IsSender:    false,
 	}
 
-	accountsStub := &mock.AccountsStub{
-		LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
-			return mockAccount, nil
-		},
-	}
-	ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), accountsStub, balanceConverter)
+	ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), balanceConverter)
 	require.NotNil(t, ap)
 
 	res := ap.PrepareRegularAccountsMap([]*data.Account{egldAccount})
-	require.Equal(t, map[string]*data.AccountInfo{
-		hex.EncodeToString([]byte(addr)): {
-			Address:                  hex.EncodeToString([]byte(addr)),
-			Nonce:                    1,
-			Balance:                  "1000",
-			BalanceNum:               balanceConverter.ComputeBalanceAsFloat(big.NewInt(1000)),
-			TotalBalanceWithStake:    "1000",
-			TotalBalanceWithStakeNum: balanceConverter.ComputeBalanceAsFloat(big.NewInt(1000)),
-			IsSmartContract:          true,
-		},
-	}, res)
+	require.Equal(t, &data.AccountInfo{
+		Address:                  addr,
+		Nonce:                    1,
+		Balance:                  "1000",
+		BalanceNum:               balanceConverter.ComputeBalanceAsFloat(big.NewInt(1000)),
+		TotalBalanceWithStake:    "1000",
+		TotalBalanceWithStakeNum: balanceConverter.ComputeBalanceAsFloat(big.NewInt(1000)),
+		IsSmartContract:          true,
+	},
+		res[addr])
 }
 
 func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 	t.Parallel()
 
-	esdtToken := &esdt.ESDigitalToken{
-		Value:      big.NewInt(1000),
-		Properties: []byte("ok"),
-		TokenMetaData: &esdt.MetaData{
-			Creator: []byte("creator"),
-		},
-	}
-
 	addr := "aaaabbbb"
-	mockAccount := &mock.UserAccountStub{
-		RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
-			return json.Marshal(esdtToken)
-		},
-		AddressBytesCalled: func() []byte {
-			return []byte(addr)
+
+	account := &coreIndexerData.AlteredAccount{
+		Address: hex.EncodeToString([]byte(addr)),
+		Tokens: []*coreIndexerData.AccountTokenData{
+			{
+				Balance:    "1000",
+				Identifier: "token",
+				Nonce:      15,
+				Properties: "ok",
+				MetaData: &esdt.MetaData{
+					Creator: []byte("creator"),
+				},
+			},
+			{
+				Balance:    "1000",
+				Identifier: "token",
+				Nonce:      16,
+				Properties: "ok",
+				MetaData: &esdt.MetaData{
+					Creator: []byte("creator"),
+				},
+			},
 		},
 	}
-	accountsStub := &mock.AccountsStub{
-		LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
-			return mockAccount, nil
-		},
-	}
-	ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), accountsStub, balanceConverter)
+	ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), balanceConverter)
 	require.NotNil(t, ap)
 
 	accountsESDT := []*data.AccountESDT{
-		{Account: mockAccount, TokenIdentifier: "token", IsNFTOperation: true, NFTNonce: 15},
-		{Account: mockAccount, TokenIdentifier: "token", IsNFTOperation: true, NFTNonce: 16},
+		{Account: account, TokenIdentifier: "token", IsNFTOperation: true, NFTNonce: 15},
+		{Account: account, TokenIdentifier: "token", IsNFTOperation: true, NFTNonce: 16},
 	}
 	res, _ := ap.PrepareAccountsMapESDT(123, accountsESDT)
 	require.Len(t, res, 2)
@@ -419,7 +383,7 @@ func TestAccountsProcessor_PrepareAccountsHistory(t *testing.T) {
 		},
 	}
 
-	ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), &mock.AccountsStub{}, balanceConverter)
+	ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), balanceConverter)
 
 	res := ap.PrepareAccountsHistory(100, accounts)
 	accountBalanceHistory := res["addr1-token-112-10"]
@@ -432,57 +396,4 @@ func TestAccountsProcessor_PrepareAccountsHistory(t *testing.T) {
 		TokenNonce: 10,
 		Identifier: "token-112-0a",
 	}, accountBalanceHistory)
-}
-
-func TestAccountsProcessor_GetUserAccountErrors(t *testing.T) {
-	t.Parallel()
-
-	localErr := errors.New("local error")
-	tests := []struct {
-		name         string
-		argsFunc     func() (marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter, indexer.BalanceConverter)
-		inputAddress string
-		exError      error
-	}{
-		{
-			name:    "InvalidAddress",
-			exError: localErr,
-			argsFunc: func() (marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter, indexer.BalanceConverter) {
-				return &mock.MarshalizerMock{}, &mock.PubkeyConverterStub{
-					DecodeCalled: func(humanReadable string) ([]byte, error) {
-						return nil, localErr
-					}}, &mock.AccountsStub{}, balanceConverter
-			},
-		},
-		{
-			name:    "CannotLoadAccount",
-			exError: localErr,
-			argsFunc: func() (marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter, indexer.BalanceConverter) {
-				return &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{}, &mock.AccountsStub{
-					LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
-						return nil, localErr
-					},
-				}, balanceConverter
-			},
-		},
-		{
-			name:    "CannotCastAccount",
-			exError: indexer.ErrCannotCastAccountHandlerToUserAccount,
-			argsFunc: func() (marshal.Marshalizer, core.PubkeyConverter, indexer.AccountsAdapter, indexer.BalanceConverter) {
-				return &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{}, &mock.AccountsStub{
-					LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
-						return nil, nil
-					},
-				}, balanceConverter
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		ap, err := NewAccountsProcessor(tt.argsFunc())
-		require.Nil(t, err)
-
-		_, err = ap.getUserAccount(tt.inputAddress)
-		require.Equal(t, tt.exError, err)
-	}
 }

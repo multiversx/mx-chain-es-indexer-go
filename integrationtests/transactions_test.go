@@ -24,11 +24,10 @@ func TestElasticIndexerSaveTransactions(t *testing.T) {
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	accounts := &mock.AccountsStub{}
 	feeComputer := &mock.EconomicsHandlerMock{}
 	shardCoordinator := &mock.ShardCoordinatorMock{}
 
-	esProc, err := CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
 	require.Nil(t, err)
 
 	txHash := []byte("hash")
@@ -59,7 +58,7 @@ func TestElasticIndexerSaveTransactions(t *testing.T) {
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, nil)
 	require.Nil(t, err)
 
 	ids := []string{hex.EncodeToString(txHash)}

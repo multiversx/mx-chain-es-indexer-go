@@ -359,6 +359,7 @@ func (ei *elasticProcessor) SaveTransactions(
 	body *block.Body,
 	header coreData.HeaderHandler,
 	pool *indexer.Pool,
+	coreAlteredAccounts map[string]*indexer.AlteredAccount,
 ) error {
 	headerTimestamp := header.GetTimeStamp()
 
@@ -602,8 +603,9 @@ func (ei *elasticProcessor) indexAlteredAccounts(
 	timestamp uint64,
 	alteredAccounts data.AlteredAccountsHandler,
 	updatesNFTsData []*data.NFTDataUpdate,
+	coreAlteredAccounts map[string]*indexer.AlteredAccount,
 ) error {
-	regularAccountsToIndex, accountsToIndexESDT := ei.accountsProc.GetAccounts(alteredAccounts)
+	regularAccountsToIndex, accountsToIndexESDT := ei.accountsProc.GetAccounts(alteredAccounts, coreAlteredAccounts)
 
 	err := ei.SaveAccounts(timestamp, regularAccountsToIndex)
 	if err != nil {
