@@ -664,7 +664,10 @@ func (ei *elasticProcessor) indexNFTCreateInfo(tokensData data.TokensHandler) er
 
 	tokensData.AddTypeFromResponse(responseTokens)
 
-	buffSlice, err := ei.accountsProc.SerializeNFTCreateInfo(tokensData.GetAll())
+	tokens := tokensData.GetAll()
+	ei.accountsProc.PutTokenMedataDataInTokens(tokens)
+
+	buffSlice, err := ei.accountsProc.SerializeNFTCreateInfo(tokens)
 	if err != nil {
 		return err
 	}
