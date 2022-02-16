@@ -264,7 +264,6 @@ func (ap *accountsProcessor) getESDTInfo(accountESDT *data.AccountESDT) (*big.In
 func (ap *accountsProcessor) PutTokenMedataDataInTokens(tokensData []*data.TokenInfo) {
 	for _, tokenData := range tokensData {
 		if tokenData.Data != nil || tokenData.Nonce == 0 {
-			log.Warn("token data is not nil")
 			continue
 		}
 

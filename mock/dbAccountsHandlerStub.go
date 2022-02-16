@@ -56,5 +56,4 @@ func (dba *DBAccountsHandlerStub) SerializeNFTCreateInfo(_ []*data.TokenInfo) ([
 
 // PutTokenMedataDataInTokens -
 func (dba *DBAccountsHandlerStub) PutTokenMedataDataInTokens(_ []*data.TokenInfo) {
-
 }
