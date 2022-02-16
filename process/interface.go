@@ -31,6 +31,7 @@ type DBAccountHandler interface {
 	PrepareRegularAccountsMap(accounts []*data.Account) map[string]*data.AccountInfo
 	PrepareAccountsMapESDT(timestamp uint64, accounts []*data.AccountESDT) (map[string]*data.AccountInfo, data.TokensHandler)
 	PrepareAccountsHistory(timestamp uint64, accounts map[string]*data.AccountInfo) map[string]*data.AccountBalanceHistory
+	PutTokenMedataDataInTokens(tokensData []*data.TokenInfo)
 
 	SerializeAccountsHistory(accounts map[string]*data.AccountBalanceHistory) ([]*bytes.Buffer, error)
 	SerializeAccounts(accounts map[string]*data.AccountInfo) ([]*bytes.Buffer, error)
