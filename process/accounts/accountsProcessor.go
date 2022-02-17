@@ -15,6 +15,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/data/esdt"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
+	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
 
 var log = logger.GetOrCreate("indexer/process/accounts")
@@ -245,12 +246,7 @@ func (ap *accountsProcessor) getESDTInfo(accountESDT *data.AccountESDT) (*big.In
 		return big.NewInt(0), "", nil, nil
 	}
 
-	tokenKey := []byte(core.ElrondProtectedKeyPrefix + core.ESDTKeyIdentifier + accountESDT.TokenIdentifier)
-	if accountESDT.IsNFTOperation {
-		nonceBig := big.NewInt(0).SetUint64(accountESDT.NFTNonce)
-		tokenKey = append(tokenKey, nonceBig.Bytes()...)
-	}
-
+	tokenKey := computeTokenKey(accountESDT.TokenIdentifier, accountESDT.NFTNonce)
 	valueBytes, err := accountESDT.Account.RetrieveValueFromDataTrieTracker(tokenKey)
 	if err != nil {
 		return nil, "", nil, err
@@ -266,7 +262,72 @@ func (ap *accountsProcessor) getESDTInfo(accountESDT *data.AccountESDT) (*big.In
 		return big.NewInt(0), "", nil, nil
 	}
 
+	if esdtToken.TokenMetaData == nil && accountESDT.NFTNonce > 0 {
+		metadata, errLoad := ap.loadMetadataFromSystemAccount(tokenKey)
+		if errLoad != nil {
+			return nil, "", nil, errLoad
+		}
+
+		esdtToken.TokenMetaData = metadata
+	}
+
 	tokenMetaData := converters.PrepareTokenMetaData(ap.addressPubkeyConverter, esdtToken)
 
 	return esdtToken.Value, hex.EncodeToString(esdtToken.Properties), tokenMetaData, nil
+}
+
+// PutTokenMedataDataInTokens will put the TokenMedata in provided tokens data
+func (ap *accountsProcessor) PutTokenMedataDataInTokens(tokensData []*data.TokenInfo) {
+	for _, tokenData := range tokensData {
+		if tokenData.Data != nil || tokenData.Nonce == 0 {
+			continue
+		}
+
+		tokenKey := computeTokenKey(tokenData.Token, tokenData.Nonce)
+		metadata, errLoad := ap.loadMetadataFromSystemAccount(tokenKey)
+		if errLoad != nil {
+			log.Warn("cannot load token metadata",
+				"token identifier ", tokenData.Identifier,
+				"error", errLoad.Error())
+
+			continue
+		}
+
+		tokenData.Data = converters.PrepareTokenMetaData(ap.addressPubkeyConverter, &esdt.ESDigitalToken{TokenMetaData: metadata})
+	}
+}
+
+func (ap *accountsProcessor) loadMetadataFromSystemAccount(tokenKey []byte) (*esdt.MetaData, error) {
+	systemAccount, err := ap.accountsDB.LoadAccount(vmcommon.SystemAccountAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	userAccount, ok := systemAccount.(coreData.UserAccountHandler)
+	if !ok {
+		return nil, indexer.ErrCannotCastAccountHandlerToUserAccount
+	}
+
+	marshaledData, err := userAccount.RetrieveValueFromDataTrieTracker(tokenKey)
+	if err != nil {
+		return nil, err
+	}
+
+	esdtData := &esdt.ESDigitalToken{}
+	err = ap.internalMarshalizer.Unmarshal(esdtData, marshaledData)
+	if err != nil {
+		return nil, err
+	}
+
+	return esdtData.TokenMetaData, nil
+}
+
+func computeTokenKey(token string, nonce uint64) []byte {
+	tokenKey := []byte(core.ElrondProtectedKeyPrefix + core.ESDTKeyIdentifier + token)
+	if nonce > 0 {
+		nonceBig := big.NewInt(0).SetUint64(nonce)
+		tokenKey = append(tokenKey, nonceBig.Bytes()...)
+	}
+
+	return tokenKey
 }

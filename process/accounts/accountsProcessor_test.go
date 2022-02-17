@@ -146,8 +146,9 @@ func TestGetESDTInfoNFT(t *testing.T) {
 	require.NotNil(t, ap)
 
 	esdtToken := &esdt.ESDigitalToken{
-		Value:      big.NewInt(1),
-		Properties: []byte("ok"),
+		Value:         big.NewInt(1),
+		Properties:    []byte("ok"),
+		TokenMetaData: &esdt.MetaData{},
 	}
 
 	tokenIdentifier := "token-001"
@@ -485,4 +486,46 @@ func TestAccountsProcessor_GetUserAccountErrors(t *testing.T) {
 		_, err = ap.getUserAccount(tt.inputAddress)
 		require.Equal(t, tt.exError, err)
 	}
+}
+
+func TestGetESDTInfoNFTAndMetadataFromSystemAccount(t *testing.T) {
+	t.Parallel()
+
+	esdtToken := &esdt.ESDigitalToken{
+		Value:      big.NewInt(1),
+		Properties: []byte("ok"),
+	}
+	marshaledESDTData, _ := json.Marshal(esdtToken)
+
+	ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), &mock.AccountsStub{
+		LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
+			return &mock.UserAccountStub{
+				RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
+					esdtToken.TokenMetaData = &esdt.MetaData{
+						Name: []byte("myName"),
+					}
+					return json.Marshal(esdtToken)
+				},
+			}, nil
+		},
+	}, balanceConverter)
+	require.NotNil(t, ap)
+
+	tokenIdentifier := "token-001"
+	wrapAccount := &data.AccountESDT{
+		Account: &mock.UserAccountStub{
+			RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
+				assert.Equal(t, append([]byte("ELRONDesdttoken-001"), 0xa), key)
+				return marshaledESDTData, nil
+			},
+		},
+		TokenIdentifier: tokenIdentifier,
+		IsNFTOperation:  true,
+		NFTNonce:        10,
+	}
+	balance, prop, tokenMetadata, err := ap.getESDTInfo(wrapAccount)
+	require.Nil(t, err)
+	require.Equal(t, big.NewInt(1), balance)
+	require.Equal(t, hex.EncodeToString([]byte("ok")), prop)
+	require.Equal(t, "myName", tokenMetadata.Name)
 }
