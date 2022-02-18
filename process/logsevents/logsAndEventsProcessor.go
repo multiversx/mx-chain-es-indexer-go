@@ -76,6 +76,7 @@ func createEventsProcessors(args *ArgsLogsAndEventsProcessor) []eventsProcessor 
 	scDeploysProc := newSCDeploysProcessor(args.PubKeyConverter)
 	informativeProc := newInformativeLogsProcessor(args.TxFeeCalculator)
 	updateNFTProc := newNFTsPropertiesProcessor(args.PubKeyConverter)
+	rolesProc := newRolesProcessor(args.PubKeyConverter)
 
 	eventsProcs := []eventsProcessor{
 		fungibleProc,
@@ -83,6 +84,7 @@ func createEventsProcessors(args *ArgsLogsAndEventsProcessor) []eventsProcessor 
 		scDeploysProc,
 		informativeProc,
 		updateNFTProc,
+		rolesProc,
 	}
 
 	if args.ShardCoordinator.SelfId() == core.MetachainShardId {
@@ -121,6 +123,7 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 		TokensSupply:    lep.logsData.tokensSupply,
 		Delegators:      lep.logsData.delegators,
 		NFTsDataUpdates: lep.logsData.nftsDataUpdates,
+		RolesData:       lep.logsData.rolesData,
 	}
 }
 
@@ -148,6 +151,7 @@ func (lep *logsAndEventsProcessor) processEvent(logHash string, logAddress []byt
 			timestamp:        lep.logsData.timestamp,
 			scDeploys:        lep.logsData.scDeploys,
 			txs:              lep.logsData.txsMap,
+			rolesData:        lep.logsData.rolesData,
 		})
 		if res.tokenInfo != nil {
 			lep.logsData.tokensInfo = append(lep.logsData.tokensInfo, res.tokenInfo)

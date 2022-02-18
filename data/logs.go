@@ -28,4 +28,5 @@ type PreparedLogsResults struct {
 	Delegators      map[string]*Delegator
 	TokensInfo      []*TokenInfo
 	NFTsDataUpdates []*NFTDataUpdate
+	RolesData       RolesData
 }

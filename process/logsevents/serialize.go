@@ -200,3 +200,45 @@ func (lep *logsAndEventsProcessor) SerializeSupplyData(tokensSupply data.TokensH
 
 	return buffSlice.Buffers(), nil
 }
+
+// SerializeRolesData will serialize the provided roles data
+func (lep *logsAndEventsProcessor) SerializeRolesData(timestamp uint64, rolesData data.RolesData) ([]*bytes.Buffer, error) {
+	buffSlice := data.NewBufferSlice()
+	for role, roleData := range rolesData {
+		for _, rd := range roleData {
+			err := serializeRoleData(buffSlice, rd, timestamp, role)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return buffSlice.Buffers(), nil
+}
+
+func serializeRoleData(buffSlice *data.BufferSlice, rd *data.RoleData, timestamp uint64, role string) error {
+	meta := []byte(fmt.Sprintf(`{ "update" : { "_id" : "%s", "_type" : "_doc" } }%s`, rd.Token, "\n"))
+	var serializedDataStr string
+	if rd.Set {
+		serializedDataStr = fmt.Sprintf(`{"script": {`+
+			`"source": "if (!ctx._source.containsKey('roles')) { ctx._source.roles =  new HashMap();} if (!ctx._source.roles.containsKey(params.role)) { ctx._source.roles.put(params.role, new HashMap());} ctx._source.roles.get(params.role).put(params.address,params.timestamp) ",`+
+			`"lang": "painless",`+
+			`"params": { "role": "%s", "address": "%s", "timestamp": %d }},`+
+			`"upsert": {} }`,
+			role, rd.Address, timestamp)
+	} else {
+		serializedDataStr = fmt.Sprintf(`{"script": {`+
+			`"source": "if (ctx._source.containsKey('roles')) { if (ctx._source.roles.containsKey(params.role)) { ctx._source.roles.get(params.role).remove(params.address); } } ",`+
+			`"lang": "painless",`+
+			`"params": { "role": "%s", "address": "%s" }},`+
+			`"upsert": {} }`,
+			role, rd.Address)
+	}
+
+	err := buffSlice.PutData(meta, []byte(serializedDataStr))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

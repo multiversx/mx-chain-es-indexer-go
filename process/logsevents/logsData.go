@@ -18,6 +18,7 @@ type logsData struct {
 	delegators      map[string]*data.Delegator
 	tokensInfo      []*data.TokenInfo
 	nftsDataUpdates []*data.NFTDataUpdate
+	rolesData       data.RolesData
 }
 
 func newLogsData(
@@ -39,6 +40,7 @@ func newLogsData(
 	ld.tokensInfo = make([]*data.TokenInfo, 0)
 	ld.delegators = make(map[string]*data.Delegator)
 	ld.nftsDataUpdates = make([]*data.NFTDataUpdate, 0)
+	ld.rolesData = data.RolesData{}
 
 	return ld
 }
