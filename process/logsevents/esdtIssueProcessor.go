@@ -16,6 +16,7 @@ const (
 	registerMetaESDTFunc      = "registerMetaESDT"
 	changeSFTToMetaESDTFunc   = "changeSFTToMetaESDT"
 	transferOwnershipFunc     = "transferOwnership"
+	registerAndSetRolesFunc   = "registerAndSetAllRoles"
 )
 
 type esdtIssueProcessor struct {
@@ -33,6 +34,7 @@ func newESDTIssueProcessor(pubkeyConverter core.PubkeyConverter) *esdtIssueProce
 			registerMetaESDTFunc:      {},
 			changeSFTToMetaESDTFunc:   {},
 			transferOwnershipFunc:     {},
+			registerAndSetRolesFunc:   {},
 		},
 	}
 }
