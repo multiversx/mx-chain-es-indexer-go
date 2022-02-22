@@ -104,6 +104,7 @@ type DBLogsAndEventsHandler interface {
 	SerializeTokens(tokens []*data.TokenInfo, updateNFTData []*data.NFTDataUpdate) ([]*bytes.Buffer, error)
 	SerializeDelegators(delegators map[string]*data.Delegator) ([]*bytes.Buffer, error)
 	SerializeSupplyData(tokensSupply data.TokensHandler) ([]*bytes.Buffer, error)
+	SerializeRolesData(timestamp uint64, rolesData data.RolesData) ([]*bytes.Buffer, error)
 }
 
 // OperationsHandler defines the actions that an operations' handler should do

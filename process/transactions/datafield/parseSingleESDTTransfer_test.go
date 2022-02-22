@@ -62,4 +62,12 @@ func TestParseESDTTransfer(t *testing.T) {
 			Tokens:     []string{"TOKEN"},
 		}, res)
 	})
+
+	t.Run("TransferNonAsciStringToken", func(t *testing.T) {
+		dataField := []byte("ESDTTransfer@055de6a779bbac0000@01")
+		res := parser.Parse(dataField, sender, receiverSC)
+		require.Equal(t, &ResponseParseData{
+			Operation: "ESDTTransfer",
+		}, res)
+	})
 }

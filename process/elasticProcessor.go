@@ -425,7 +425,21 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
+	err = ei.prepareAndIndexRolesData(logsData.RolesData, headerTimestamp)
+	if err != nil {
+		return err
+	}
+
 	return ei.indexScDeploys(logsData.ScDeploys)
+}
+
+func (ei *elasticProcessor) prepareAndIndexRolesData(rolesData data.RolesData, timestamp uint64) error {
+	buffSlice, err := ei.logsAndEventsProc.SerializeRolesData(timestamp, rolesData)
+	if err != nil {
+		return err
+	}
+
+	return ei.doBulkRequests(elasticIndexer.TokensIndex, buffSlice)
 }
 
 func (ei *elasticProcessor) prepareAndIndexDelegators(delegators map[string]*data.Delegator) error {

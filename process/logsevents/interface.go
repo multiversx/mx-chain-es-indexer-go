@@ -14,6 +14,7 @@ type argsProcessEvent struct {
 	tokens           data.TokensHandler
 	tokensSupply     data.TokensHandler
 	tagsCount        data.CountTags
+	rolesData        data.RolesData
 	timestamp        uint64
 	logAddress       []byte
 }

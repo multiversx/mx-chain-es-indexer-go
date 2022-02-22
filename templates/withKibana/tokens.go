@@ -47,6 +47,9 @@ var Tokens = Object{
 					},
 				},
 			},
+			"roles": Object{
+				"type": "nested",
+			},
 		},
 	},
 }
