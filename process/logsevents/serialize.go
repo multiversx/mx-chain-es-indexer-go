@@ -105,13 +105,20 @@ func serializeToken(tokenData *data.TokenInfo) ([]byte, []byte, error) {
 		return serializeTokenTransferOwnership(tokenData)
 	}
 
-	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, tokenData.Token, "\n"))
-	serializedData, err := json.Marshal(tokenData)
+	meta := []byte(fmt.Sprintf(`{ "update" : { "_id" : "%s", "_type" : "_doc" } }%s`, tokenData.Token, "\n"))
+	serializedTokenData, err := json.Marshal(tokenData)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return meta, serializedData, nil
+	serializedDataStr := fmt.Sprintf(`{"script": {`+
+		`"source": "if (ctx._source.containsKey('roles')) {HashMap roles = ctx._source.roles; ctx._source = params.token; ctx._source.roles = roles}",`+
+		`"lang": "painless",`+
+		`"params": {"token": %s}},`+
+		`"upsert": %s}`,
+		string(serializedTokenData), string(serializedTokenData))
+
+	return meta, []byte(serializedDataStr), nil
 }
 
 func serializeTokenTransferOwnership(tokenData *data.TokenInfo) ([]byte, []byte, error) {
@@ -224,8 +231,8 @@ func serializeRoleData(buffSlice *data.BufferSlice, rd *data.RoleData, timestamp
 			`"source": "if (!ctx._source.containsKey('roles')) { ctx._source.roles =  new HashMap();} if (!ctx._source.roles.containsKey(params.role)) { ctx._source.roles.put(params.role, new HashMap());} ctx._source.roles.get(params.role).put(params.address,params.timestamp) ",`+
 			`"lang": "painless",`+
 			`"params": { "role": "%s", "address": "%s", "timestamp": %d }},`+
-			`"upsert": {} }`,
-			role, rd.Address, timestamp)
+			`"upsert": { "roles": {"%s": {"%s": %d}}}}`,
+			role, rd.Address, timestamp, role, rd.Address, timestamp)
 	} else {
 		serializedDataStr = fmt.Sprintf(`{"script": {`+
 			`"source": "if (ctx._source.containsKey('roles')) { if (ctx._source.roles.containsKey(params.role)) { ctx._source.roles.get(params.role).remove(params.address); } } ",`+
