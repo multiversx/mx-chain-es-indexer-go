@@ -184,7 +184,7 @@ func TestIssueSetRolesEventAndAfterTokenIssue(t *testing.T) {
 	require.Nil(t, err)
 	require.JSONEq(t, expectedTokenObjAfterSetRolesFirst, string(genericResponse.Docs[0].Source))
 
-        // ISSUE
+	// ISSUE
 	pool = &indexer.Pool{
 		Logs: []*coreData.LogData{
 			{
