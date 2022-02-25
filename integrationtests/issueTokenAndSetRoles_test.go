@@ -18,11 +18,11 @@ import (
 
 const (
 	expectedTokenAfterIssueTok  = `{"name":"semi-token","ticker":"SEMI","token":"TOK-abcd","issuer":"61646472","currentOwner":"61646472","type":"SemiFungibleESDT","timestamp":5040,"ownersHistory":[{"address":"61646472","timestamp":5040}]}`
-	expectedTokenAfterSetRole   = `{"name":"semi-token","ticker":"SEMI","token":"TOK-abcd","issuer":"61646472","currentOwner":"61646472","type":"SemiFungibleESDT","timestamp":5040,"ownersHistory":[{"address":"61646472","timestamp":5040}],"roles":{"ESDTRoleNFTCreate":{"6d792d61646472657373":10000},"ESDTRoleNFTBurn":{"6d792d61646472657373":10000}}}`
-	expectedTokenAfterUnsetRole = `{"name":"semi-token","ticker":"SEMI","token":"TOK-abcd","issuer":"61646472","currentOwner":"61646472","type":"SemiFungibleESDT","timestamp":5040,"ownersHistory":[{"address":"61646472","timestamp":5040}],"roles":{"ESDTRoleNFTCreate":{"6d792d61646472657373":10000},"ESDTRoleNFTBurn":{}}}`
+	expectedTokenAfterSetRole   = `{"name":"semi-token","ticker":"SEMI","token":"TOK-abcd","issuer":"61646472","currentOwner":"61646472","type":"SemiFungibleESDT","timestamp":5040,"ownersHistory":[{"address":"61646472","timestamp":5040}],"roles":{"ESDTRoleNFTCreate":["6d792d61646472657373"],"ESDTRoleNFTBurn":["6d792d61646472657373"]}}`
+	expectedTokenAfterUnsetRole = `{"name":"semi-token","ticker":"SEMI","token":"TOK-abcd","issuer":"61646472","currentOwner":"61646472","type":"SemiFungibleESDT","timestamp":5040,"ownersHistory":[{"address":"61646472","timestamp":5040}],"roles":{"ESDTRoleNFTCreate":["6d792d61646472657373"],"ESDTRoleNFTBurn":[]}}`
 
-	expectedTokenObjAfterSetRolesFirst    = `{"roles":{"ESDTRoleNFTCreate":{"6d792d61646472657373":10000},"ESDTRoleNFTBurn":{"6d792d61646472657373":10000}}}`
-	expectedTokenObjAfterSetRolesAndIssue = `{"ticker":"SEMI","currentOwner":"61646472","roles":{"ESDTRoleNFTCreate":{"6d792d61646472657373":10000},"ESDTRoleNFTBurn":{"6d792d61646472657373":10000}},"name":"semi-token","type":"SemiFungibleESDT","issuer":"61646472","token":"TTT-abcd","timestamp":10000,"ownersHistory":[{"address":"61646472","timestamp":10000}]}`
+	expectedTokenObjAfterSetRolesFirst    = `{"roles":{"ESDTRoleNFTCreate":["6d792d61646472657373"],"ESDTRoleNFTBurn":["6d792d61646472657373"]}}`
+	expectedTokenObjAfterSetRolesAndIssue = `{"ticker":"SEMI","currentOwner":"61646472","roles":{"ESDTRoleNFTCreate":["6d792d61646472657373"],"ESDTRoleNFTBurn":["6d792d61646472657373"]},"name":"semi-token","type":"SemiFungibleESDT","issuer":"61646472","token":"TTT-abcd","timestamp":10000,"ownersHistory":[{"address":"61646472","timestamp":10000}]}`
 )
 
 func TestIssueTokenAndSetRole(t *testing.T) {
