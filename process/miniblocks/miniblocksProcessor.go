@@ -115,8 +115,8 @@ func (mp *miniblocksProcessor) computeProcessingType(mbIndex int, header coreDat
 	}
 
 	currentMbHeader := miniblockHeaders[mbIndex]
-	reserved := currentMbHeader.GetReserved()
-	if len(reserved) > 0 && reserved[0] == byte(block.Scheduled) {
+	processingType := currentMbHeader.GetProcessingType()
+	if processingType == int32(block.Scheduled) {
 		return block.Scheduled.String()
 	}
 

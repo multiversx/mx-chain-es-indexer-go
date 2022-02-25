@@ -71,7 +71,14 @@ func TestMiniblocksProcessor_PrepareDBMiniblocks(t *testing.T) {
 func TestMiniblocksProcessor_PrepareScheduledMB(t *testing.T) {
 	t.Parallel()
 
-	mp, _ := NewMiniblocksProcessor(0, &mock.HasherMock{}, &mock.MarshalizerMock{}, false)
+	marshalizer := &marshal.GogoProtoMarshalizer{}
+	mp, _ := NewMiniblocksProcessor(0, &mock.HasherMock{}, marshalizer, false)
+
+	mbhr := &dataBlock.MiniBlockHeaderReserved{
+		ExecutionType: dataBlock.ProcessingType(1),
+	}
+
+	mbhrBytes, _ := marshalizer.Marshal(mbhr)
 
 	header := &dataBlock.Header{
 		MiniBlockHeaders: []dataBlock.MiniBlockHeader{
@@ -79,7 +86,7 @@ func TestMiniblocksProcessor_PrepareScheduledMB(t *testing.T) {
 				Reserved: []byte{0},
 			},
 			{
-				Reserved: []byte{1},
+				Reserved: mbhrBytes,
 			},
 		},
 	}
