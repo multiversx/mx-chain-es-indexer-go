@@ -209,11 +209,11 @@ func (lep *logsAndEventsProcessor) SerializeSupplyData(tokensSupply data.TokensH
 }
 
 // SerializeRolesData will serialize the provided roles data
-func (lep *logsAndEventsProcessor) SerializeRolesData(timestamp uint64, rolesData data.RolesData) ([]*bytes.Buffer, error) {
+func (lep *logsAndEventsProcessor) SerializeRolesData(rolesData data.RolesData) ([]*bytes.Buffer, error) {
 	buffSlice := data.NewBufferSlice()
 	for role, roleData := range rolesData {
 		for _, rd := range roleData {
-			err := serializeRoleData(buffSlice, rd, timestamp, role)
+			err := serializeRoleData(buffSlice, rd, role)
 			if err != nil {
 				return nil, err
 			}
@@ -223,19 +223,19 @@ func (lep *logsAndEventsProcessor) SerializeRolesData(timestamp uint64, rolesDat
 	return buffSlice.Buffers(), nil
 }
 
-func serializeRoleData(buffSlice *data.BufferSlice, rd *data.RoleData, timestamp uint64, role string) error {
+func serializeRoleData(buffSlice *data.BufferSlice, rd *data.RoleData, role string) error {
 	meta := []byte(fmt.Sprintf(`{ "update" : { "_id" : "%s", "_type" : "_doc" } }%s`, rd.Token, "\n"))
 	var serializedDataStr string
 	if rd.Set {
 		serializedDataStr = fmt.Sprintf(`{"script": {`+
-			`"source": "if (!ctx._source.containsKey('roles')) { ctx._source.roles =  new HashMap();} if (!ctx._source.roles.containsKey(params.role)) { ctx._source.roles.put(params.role, new HashMap());} ctx._source.roles.get(params.role).put(params.address,params.timestamp) ",`+
+			`"source": "if (!ctx._source.containsKey('roles')) { ctx._source.roles =  new HashMap();} if (!ctx._source.roles.containsKey(params.role)) { ctx._source.roles.put(params.role, [ params.address ])} else { ctx._source.roles.get(params.role).add(params.address) } ",`+
 			`"lang": "painless",`+
-			`"params": { "role": "%s", "address": "%s", "timestamp": %d }},`+
-			`"upsert": { "roles": {"%s": {"%s": %d}}}}`,
-			role, rd.Address, timestamp, role, rd.Address, timestamp)
+			`"params": { "role": "%s", "address": "%s"}},`+
+			`"upsert": { "roles": {"%s": ["%s"]}}}`,
+			role, rd.Address, role, rd.Address)
 	} else {
 		serializedDataStr = fmt.Sprintf(`{"script": {`+
-			`"source": "if (ctx._source.containsKey('roles')) { if (ctx._source.roles.containsKey(params.role)) { ctx._source.roles.get(params.role).remove(params.address); } } ",`+
+			`"source": "if (ctx._source.containsKey('roles')) { if (ctx._source.roles.containsKey(params.role)) { ctx._source.roles.get(params.role).removeIf(p -> p.equals(params.address)) } } ",`+
 			`"lang": "painless",`+
 			`"params": { "role": "%s", "address": "%s" }},`+
 			`"upsert": {} }`,

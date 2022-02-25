@@ -425,7 +425,7 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
-	err = ei.prepareAndIndexRolesData(logsData.RolesData, headerTimestamp)
+	err = ei.prepareAndIndexRolesData(logsData.RolesData)
 	if err != nil {
 		return err
 	}
@@ -433,8 +433,8 @@ func (ei *elasticProcessor) SaveTransactions(
 	return ei.indexScDeploys(logsData.ScDeploys)
 }
 
-func (ei *elasticProcessor) prepareAndIndexRolesData(rolesData data.RolesData, timestamp uint64) error {
-	buffSlice, err := ei.logsAndEventsProc.SerializeRolesData(timestamp, rolesData)
+func (ei *elasticProcessor) prepareAndIndexRolesData(rolesData data.RolesData) error {
+	buffSlice, err := ei.logsAndEventsProc.SerializeRolesData(rolesData)
 	if err != nil {
 		return err
 	}
