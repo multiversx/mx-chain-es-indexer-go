@@ -13,6 +13,15 @@ type DatabaseWriterStub struct {
 	DoBulkRemoveCalled        func(index string, hashes []string) error
 	DoMultiGetCalled          func(ids []string, index string, withSource bool, response interface{}) error
 	CheckAndCreateIndexCalled func(index string) error
+	DoScrollRequestCalled     func(index string, body []byte, handlerFunc func(responseBytes []byte) error) error
+}
+
+// DoScrollRequest -
+func (dwm *DatabaseWriterStub) DoScrollRequest(index string, body []byte, handlerFunc func(responseBytes []byte) error) error {
+	if dwm.DoScrollRequestCalled != nil {
+		return dwm.DoScrollRequestCalled(index, body, handlerFunc)
+	}
+	return nil
 }
 
 // DoRequest -
