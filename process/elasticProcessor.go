@@ -502,19 +502,6 @@ func (ei *elasticProcessor) prepareAndIndexLogs(logsAndEvents []*coreData.LogDat
 	return ei.doBulkRequests(elasticIndexer.LogsIndex, buffSlice)
 }
 
-func (ei *elasticProcessor) indexTokens(tokensData []*data.TokenInfo, updateNFTData []*data.NFTDataUpdate) error {
-	if !ei.isIndexEnabled(elasticIndexer.TokensIndex) {
-		return nil
-	}
-
-	buffSlice, err := ei.logsAndEventsProc.SerializeTokens(tokensData, updateNFTData)
-	if err != nil {
-		return err
-	}
-
-	return ei.doBulkRequests(elasticIndexer.TokensIndex, buffSlice)
-}
-
 func (ei *elasticProcessor) indexScDeploys(deployData map[string]*data.ScDeployInfo) error {
 	if !ei.isIndexEnabled(elasticIndexer.SCDeploysIndex) {
 		return nil

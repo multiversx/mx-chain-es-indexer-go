@@ -1,0 +1,77 @@
+package process
+
+import (
+	"encoding/json"
+	"fmt"
+	"time"
+
+	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elrond-go-core/core"
+)
+
+func (ei *elasticProcessor) indexTokens(tokensData []*data.TokenInfo, updateNFTData []*data.NFTDataUpdate) error {
+	if !ei.isIndexEnabled(elasticIndexer.TokensIndex) {
+		return nil
+	}
+
+	buffSlice, err := ei.logsAndEventsProc.SerializeTokens(tokensData, updateNFTData)
+	if err != nil {
+		return err
+	}
+
+	err = ei.doBulkRequests(elasticIndexer.TokensIndex, buffSlice)
+	if err != nil {
+		return err
+	}
+
+	err = ei.addTokenType(tokensData, elasticIndexer.AccountsESDTIndex)
+	if err != nil {
+		return err
+	}
+
+	return ei.addTokenType(tokensData, elasticIndexer.TokensIndex)
+}
+
+func (ei *elasticProcessor) addTokenType(tokensData []*data.TokenInfo, index string) error {
+	if len(tokensData) == 0 {
+		return nil
+	}
+
+	startTime := time.Now()
+	for _, td := range tokensData {
+		if td.Type == core.FungibleESDT {
+			continue
+		}
+
+		handlerFunc := func(responseBytes []byte) error {
+			responseBulk := &data.ResponseBulk{}
+			err := json.Unmarshal(responseBytes, responseBulk)
+			if err != nil {
+				return err
+			}
+
+			ids := make([]string, 0, len(responseBulk.Hits.Hits))
+			for _, res := range responseBulk.Hits.Hits {
+				ids = append(ids, res.ID)
+			}
+
+			buffSlice, err := ei.accountsProc.SerializeTypeForProvidedIDs(ids, td.Type)
+			if err != nil {
+				return err
+			}
+
+			return ei.doBulkRequests(index, buffSlice)
+		}
+
+		query := fmt.Sprintf(`{"_source": false,"query": {"bool": {"must": [{"match": {"token": "%s"}}],"must_not":[{"exists": {"field": "type"}}]}}}`, td.Token)
+		err := ei.elasticClient.DoScrollRequest(index, []byte(query), handlerFunc)
+		if err != nil {
+			return err
+		}
+	}
+
+	log.Debug("elasticProcessor.addTokenType", "index", index, "duration", time.Since(startTime))
+
+	return nil
+}

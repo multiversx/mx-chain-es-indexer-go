@@ -31,6 +31,10 @@ type (
 type elasticClient struct {
 	elasticBaseUrl string
 	es             *elasticsearch.Client
+
+	// countScroll is used to be incremented after each scroll so the scroll duration is different each time,
+	// bypassing any possible caching based on the same request
+	countScroll int
 }
 
 // NewElasticClient will create a new instance of elasticClient

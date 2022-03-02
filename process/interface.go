@@ -16,6 +16,7 @@ type DatabaseClientHandler interface {
 	DoBulkRequest(buff *bytes.Buffer, index string) error
 	DoBulkRemove(index string, hashes []string) error
 	DoMultiGet(ids []string, index string, withSource bool, res interface{}) error
+	DoScrollRequest(index string, body []byte, handlerFunc func(responseBytes []byte) error) error
 
 	CheckAndCreateIndex(index string) error
 	CheckAndCreateAlias(alias string, index string) error
@@ -37,6 +38,7 @@ type DBAccountHandler interface {
 	SerializeAccounts(accounts map[string]*data.AccountInfo) ([]*bytes.Buffer, error)
 	SerializeAccountsESDT(accounts map[string]*data.AccountInfo, updateNFTData []*data.NFTDataUpdate) ([]*bytes.Buffer, error)
 	SerializeNFTCreateInfo(tokensInfo []*data.TokenInfo) ([]*bytes.Buffer, error)
+	SerializeTypeForProvidedIDs(ids []string, tokenType string) ([]*bytes.Buffer, error)
 }
 
 // DBBlockHandler defines the actions that a block handler should do
