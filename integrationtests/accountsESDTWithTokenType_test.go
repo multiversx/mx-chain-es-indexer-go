@@ -151,7 +151,7 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 
 }
 
-func TestIndexAccountESDTWithTokenTypeFirstShardAndAfterMetachain(t *testing.T) {
+func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) {
 	setLogLevelDebug()
 
 	esClient, err := createESClient(esURL)

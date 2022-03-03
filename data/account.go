@@ -1,7 +1,6 @@
 package data
 
 import (
-	"encoding/json"
 	"time"
 
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
@@ -65,14 +64,4 @@ type AccountESDT struct {
 	NFTNonce        uint64
 	IsSender        bool
 	IsNFTOperation  bool
-}
-
-// ResponseBulk defines the structure for response accounts ESDT bulk
-type ResponseBulk struct {
-	Hits struct {
-		Hits []struct {
-			ID     string          `json:"_id"`
-			Source json.RawMessage `json:"_source"`
-		} `json:"hits"`
-	} `json:"hits"`
 }

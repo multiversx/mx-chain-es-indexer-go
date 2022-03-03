@@ -48,14 +48,14 @@ func (ei *elasticProcessor) addTokenType(tokensData []*data.TokenInfo, index str
 		}
 
 		handlerFunc := func(responseBytes []byte) error {
-			responseBulk := &data.ResponseBulk{}
-			err := json.Unmarshal(responseBytes, responseBulk)
+			responseScroll := &data.ResponseScroll{}
+			err := json.Unmarshal(responseBytes, responseScroll)
 			if err != nil {
 				return err
 			}
 
-			ids := make([]string, 0, len(responseBulk.Hits.Hits))
-			for _, res := range responseBulk.Hits.Hits {
+			ids := make([]string, 0, len(responseScroll.Hits.Hits))
+			for _, res := range responseScroll.Hits.Hits {
 				ids = append(ids, res.ID)
 			}
 
