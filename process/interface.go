@@ -16,7 +16,7 @@ type DatabaseClientHandler interface {
 	DoBulkRequest(buff *bytes.Buffer, index string) error
 	DoBulkRemove(index string, hashes []string) error
 	DoMultiGet(ids []string, index string, withSource bool, res interface{}) error
-	DoScrollRequest(index string, body []byte, handlerFunc func(responseBytes []byte) error) error
+	DoScrollRequest(index string, body []byte, withSource bool, handlerFunc func(responseBytes []byte) error) error
 	DoCountRequest(index string, body []byte) (uint64, error)
 
 	CheckAndCreateIndex(index string) error

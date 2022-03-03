@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v7/esapi"
@@ -39,6 +40,7 @@ func (ec *elasticClient) DoCountRequest(index string, body []byte) (uint64, erro
 func (ec *elasticClient) DoScrollRequest(
 	index string,
 	body []byte,
+	withSource bool,
 	handlerFunc func(responseBytes []byte) error,
 ) error {
 	ec.countScroll++
@@ -48,6 +50,7 @@ func (ec *elasticClient) DoScrollRequest(
 		ec.es.Search.WithContext(context.Background()),
 		ec.es.Search.WithIndex(index),
 		ec.es.Search.WithBody(bytes.NewBuffer(body)),
+		ec.es.Search.WithSource(strconv.FormatBool(withSource)),
 	)
 	if err != nil {
 		return err
