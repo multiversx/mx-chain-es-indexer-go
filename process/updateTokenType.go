@@ -38,7 +38,10 @@ func (ei *elasticProcessor) addTokenType(tokensData []*data.TokenInfo, index str
 		return nil
 	}
 
-	startTime := time.Now()
+	defer func(startTime time.Time) {
+		log.Debug("elasticProcessor.addTokenType", "index", index, "duration", time.Since(startTime))
+	}(time.Now())
+
 	for _, td := range tokensData {
 		if td.Type == core.FungibleESDT {
 			continue
@@ -75,8 +78,6 @@ func (ei *elasticProcessor) addTokenType(tokensData []*data.TokenInfo, index str
 			return err
 		}
 	}
-
-	log.Debug("elasticProcessor.addTokenType", "index", index, "duration", time.Since(startTime))
 
 	return nil
 }
