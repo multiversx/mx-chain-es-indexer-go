@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	"github.com/ElrondNetwork/elrond-go-core/data"
@@ -43,6 +44,10 @@ func (wib *itemBlock) Save() error {
 		log.Warn("nil header provided when trying to index block, will skip")
 		return nil
 	}
+
+	defer func(startTime time.Time) {
+		log.Debug("wib.SaveBlockData duration", "time", time.Since(startTime))
+	}(time.Now())
 
 	log.Debug("indexer: starting indexing block",
 		"hash", wib.argsSaveBlock.HeaderHash,

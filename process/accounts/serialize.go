@@ -153,3 +153,26 @@ func prepareSerializedAccountBalanceHistory(
 
 	return meta, serializedData, nil
 }
+
+// SerializeTypeForProvidedIDs will serialize the type for the provided ids
+func (ap *accountsProcessor) SerializeTypeForProvidedIDs(ids []string, tokenType string) ([]*bytes.Buffer, error) {
+	buffSlice := data.NewBufferSlice()
+
+	for _, id := range ids {
+		meta := []byte(fmt.Sprintf(`{ "update" : { "_id" : "%s", "_type" : "_doc" } }%s`, id, "\n"))
+
+		serializedDataStr := fmt.Sprintf(`{"scripted_upsert": true, "script": {`+
+			`"source": "if ( ctx.op == 'create' )  { ctx.op = 'noop' } else  { ctx._source.type = params.type }",`+
+			`"lang": "painless",`+
+			`"params": {"type": "%s"}},`+
+			`"upsert": {}}`,
+			tokenType)
+
+		err := buffSlice.PutData(meta, []byte(serializedDataStr))
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return buffSlice.Buffers(), nil
+}

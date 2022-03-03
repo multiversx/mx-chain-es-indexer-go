@@ -8,4 +8,5 @@ require (
 	github.com/ElrondNetwork/elrond-vm-common v1.2.9
 	github.com/elastic/go-elasticsearch/v7 v7.12.0
 	github.com/stretchr/testify v1.7.0
+	github.com/tidwall/gjson v1.14.0
 )
