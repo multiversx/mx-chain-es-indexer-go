@@ -16,6 +16,11 @@ type DatabaseWriterStub struct {
 	DoScrollRequestCalled     func(index string, body []byte, handlerFunc func(responseBytes []byte) error) error
 }
 
+// DoCountRequest -
+func (dwm *DatabaseWriterStub) DoCountRequest(_ string, _ []byte) (uint64, error) {
+	return 0, nil
+}
+
 // DoScrollRequest -
 func (dwm *DatabaseWriterStub) DoScrollRequest(index string, body []byte, handlerFunc func(responseBytes []byte) error) error {
 	if dwm.DoScrollRequestCalled != nil {
