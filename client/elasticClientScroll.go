@@ -12,6 +12,29 @@ import (
 	"github.com/tidwall/gjson"
 )
 
+// DoCountRequest will get the number of elements that correspond with the provided query
+func (ec *elasticClient) DoCountRequest(index string, body []byte) (uint64, error) {
+	res, err := ec.es.Count(
+		ec.es.Count.WithIndex(index),
+		ec.es.Count.WithBody(bytes.NewBuffer(body)),
+	)
+	if err != nil {
+		return 0, err
+	}
+	if err != nil {
+		return 0, err
+	}
+
+	bodyBytes, err := getBytesFromResponse(res)
+	if err != nil {
+		return 0, err
+	}
+
+	countRes := gjson.Get(string(bodyBytes), "count")
+
+	return countRes.Uint(), nil
+}
+
 // DoScrollRequest will perform a documents request using scroll api
 func (ec *elasticClient) DoScrollRequest(
 	index string,

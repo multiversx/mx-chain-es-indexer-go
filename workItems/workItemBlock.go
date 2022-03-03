@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	"github.com/ElrondNetwork/elrond-go-core/data"
@@ -39,6 +40,7 @@ func NewItemBlock(
 
 // Save will prepare and save a block item in elasticsearch database
 func (wib *itemBlock) Save() error {
+	startTime := time.Now()
 	if check.IfNil(wib.argsSaveBlock.Header) {
 		log.Warn("nil header provided when trying to index block, will skip")
 		return nil
@@ -86,6 +88,8 @@ func (wib *itemBlock) Save() error {
 		return fmt.Errorf("%w when saving transactions, block hash %s, nonce %d",
 			err, hex.EncodeToString(wib.argsSaveBlock.HeaderHash), wib.argsSaveBlock.Header.GetNonce())
 	}
+
+	log.Debug("wib.SaveBlockData duration", "time", time.Since(startTime))
 
 	return nil
 }
