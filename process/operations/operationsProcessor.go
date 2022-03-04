@@ -78,13 +78,14 @@ func (op *operationsProcessor) shouldIndex(destinationShardID uint32) bool {
 
 func setCanBeIgnoredField(scr *data.ScResult) {
 	dataFieldStr := string(scr.Data)
-	hasOkPrefix := strings.HasPrefix(dataFieldStr, hex.EncodeToString([]byte(vmcommon.Ok.String())))
-	if hasOkPrefix {
+	hasOkPrefix := strings.HasPrefix(dataFieldStr, data.AtSeparator+hex.EncodeToString([]byte(vmcommon.Ok.String())))
+	isRefundForRelayed := scr.ReturnMessage == data.GasRefundForRelayerMessage && dataFieldStr == ""
+	if hasOkPrefix || isRefundForRelayed {
 		scr.CanBeIgnored = true
 		return
 	}
 
-	isNFTTransferOrMultiTransfer := strings.HasPrefix(dataFieldStr, core.BuiltInFunctionESDTNFTTransfer) || strings.HasPrefix(dataFieldStr, core.BuiltInFunctionMultiESDTNFTTransfer)
+	isNFTTransferOrMultiTransfer := core.BuiltInFunctionESDTNFTTransfer == scr.Operation || core.BuiltInFunctionMultiESDTNFTTransfer == scr.Operation
 	isSCAddr := core.IsSmartContractAddress(scr.SenderAddressBytes)
 	if isNFTTransferOrMultiTransfer && !isSCAddr {
 		scr.CanBeIgnored = true
