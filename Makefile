@@ -13,6 +13,7 @@ integration-tests:
 	cd scripts && ./script.sh stop
 
 start-cluster-with-kibana:
+	@echo " > Starting Elasticsearch node and Kibana"
 	docker-compose up -d
 
 stop-cluster:
