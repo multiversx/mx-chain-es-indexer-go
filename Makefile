@@ -11,3 +11,9 @@ integration-tests:
 	go test -v ./integrationtests -tags integrationtests
 	cd scripts && ./script.sh delete
 	cd scripts && ./script.sh stop
+
+start-cluster-with-kibana:
+	docker-compose up -d
+
+stop-cluster:
+	docker-compose down
