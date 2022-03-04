@@ -8,7 +8,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 )
 
-// SerializeSCRS will serialize smart contract results
+// SerializeSCRs will serialize smart contract results
 func (op *operationsProcessor) SerializeSCRs(scrs []*data.ScResult) ([]*bytes.Buffer, error) {
 	buffSlice := data.NewBufferSlice()
 

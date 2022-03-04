@@ -78,7 +78,7 @@ func isSCRForSenderWithRefund(dbScResult *data.ScResult, tx *data.Transaction) b
 }
 
 func isRefundForRelayed(dbScResult *data.ScResult, tx *data.Transaction) bool {
-	isForRelayed := dbScResult.ReturnMessage == gasRefundForRelayerMessage
+	isForRelayed := dbScResult.ReturnMessage == data.GasRefundForRelayerMessage
 	isForSender := dbScResult.Receiver == tx.Sender
 	differentHash := dbScResult.OriginalTxHash != dbScResult.PrevTxHash
 

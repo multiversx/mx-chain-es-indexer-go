@@ -57,3 +57,28 @@ func TestOperationsProcessor_ProcessTransactionsAndSCRSSmartContractResults(t *t
 		{Type: string(transaction.TxTypeUnsigned), Status: transaction.TxStatusSuccess.String()},
 	}, processedSCRs)
 }
+
+func TestOperationsProcessor_ShouldIgnoreSCRs(t *testing.T) {
+	t.Parallel()
+
+	op, _ := NewOperationsProcessor(true, &mock.ShardCoordinatorMock{})
+
+	scrs := []*data.ScResult{
+		{
+			ReturnMessage: data.GasRefundForRelayerMessage,
+			Data:          nil,
+		},
+		{
+			Data: []byte("@6f6b"),
+		},
+		{
+			Operation:          "ESDTNFTTransfer",
+			SenderAddressBytes: []byte("sender"),
+		},
+	}
+
+	_, processedSCRs := op.ProcessTransactionsAndSCRs(nil, scrs)
+	for _, scr := range processedSCRs {
+		require.True(t, scr.CanBeIgnored)
+	}
+}
