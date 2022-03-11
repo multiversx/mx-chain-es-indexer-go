@@ -208,12 +208,20 @@ func (lep *logsAndEventsProcessor) prepareLogsForDB(
 	logHandler coreData.LogHandler,
 	timestamp uint64,
 ) *data.Logs {
+	encodedID := hex.EncodeToString([]byte(id))
+	originalTxHash := ""
+	scr, ok := lep.logsData.scrsMap[encodedID]
+	if ok {
+		originalTxHash = scr.OriginalTxHash
+	}
+
 	events := logHandler.GetLogEvents()
 	logsDB := &data.Logs{
-		ID:        hex.EncodeToString([]byte(id)),
-		Address:   lep.pubKeyConverter.Encode(logHandler.GetAddress()),
-		Timestamp: time.Duration(timestamp),
-		Events:    make([]*data.Event, 0, len(events)),
+		ID:             encodedID,
+		OriginalTxHash: originalTxHash,
+		Address:        lep.pubKeyConverter.Encode(logHandler.GetAddress()),
+		Timestamp:      time.Duration(timestamp),
+		Events:         make([]*data.Event, 0, len(events)),
 	}
 
 	for idx, event := range events {

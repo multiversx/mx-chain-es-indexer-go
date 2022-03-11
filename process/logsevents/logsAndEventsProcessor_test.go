@@ -220,11 +220,19 @@ func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 	args := createMockArgs()
 	proc, _ := NewLogsAndEventsProcessor(args)
 
+	_ = proc.ExtractDataFromLogs(nil, &data.PreparedResults{ScResults: []*data.ScResult{
+		{
+			Hash:           "747848617368",
+			OriginalTxHash: "orignalHash",
+		},
+	}}, 1234)
+
 	logsDB := proc.PrepareLogsForDB(logsAndEventsSlice, 1234)
 	require.Equal(t, &data.Logs{
-		ID:        "747848617368",
-		Address:   "61646472657373",
-		Timestamp: time.Duration(1234),
+		ID:             "747848617368",
+		Address:        "61646472657373",
+		OriginalTxHash: "orignalHash",
+		Timestamp:      time.Duration(1234),
 		Events: []*data.Event{
 			{
 				Address:    "61646472",
