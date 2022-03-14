@@ -17,6 +17,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/accounts"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/block"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/indicesCreator"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/logsevents"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/miniblocks"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/operations"
@@ -32,7 +33,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func newElasticsearchProcessor(elasticsearchWriter DatabaseClientHandler, arguments *ArgElasticProcessor) *elasticProcessor {
+func newElasticsearchProcessor(elasticsearchWriter DatabaseClientRequestsHandler, arguments *ArgElasticProcessor) *elasticProcessor {
 	return &elasticProcessor{
 		elasticClient:     elasticsearchWriter,
 		enabledIndexes:    arguments.EnabledIndexes,
@@ -63,11 +64,13 @@ func createMockElasticProcessorArgs() *ArgElasticProcessor {
 	}
 	lp, _ := logsevents.NewLogsAndEventsProcessor(args)
 	op, _ := operations.NewOperationsProcessor(false, &mock.ShardCoordinatorMock{})
+	esClient := &mock.DatabaseWriterStub{}
+	ic, _ := indicesCreator.NewIndicesCreator(esClient)
 
 	return &ArgElasticProcessor{
-		DBClient: &mock.DatabaseWriterStub{},
+		DBClient: esClient,
 		EnabledIndexes: map[string]struct{}{
-			elasticIndexer.BlockIndex: {}, elasticIndexer.TransactionsIndex: {}, elasticIndexer.MiniblocksIndex: {}, elasticIndexer.ValidatorsIndex: {}, elasticIndexer.RoundsIndex: {}, elasticIndexer.AccountsIndex: {}, elasticIndexer.RatingIndex: {}, elasticIndexer.AccountsHistoryIndex: {},
+			data.BlockIndex: {}, data.TransactionsIndex: {}, data.MiniblocksIndex: {}, data.ValidatorsIndex: {}, data.RoundsIndex: {}, data.AccountsIndex: {}, data.RatingIndex: {}, data.AccountsHistoryIndex: {},
 		},
 		ValidatorsProc:    vp,
 		StatisticsProc:    statistics.NewStatisticsProcessor(),
@@ -77,6 +80,7 @@ func createMockElasticProcessorArgs() *ArgElasticProcessor {
 		BlockProc:         bp,
 		LogsAndEventsProc: lp,
 		OperationsProc:    op,
+		IndicesCreator:    ic,
 	}
 }
 
@@ -142,7 +146,6 @@ func newTestBlockBody() *dataBlock.Body {
 func TestNewElasticProcessor(t *testing.T) {
 	t.Parallel()
 
-	expectedErr := errors.New("local error")
 	tests := []struct {
 		name  string
 		args  func() *ArgElasticProcessor
@@ -228,17 +231,13 @@ func TestNewElasticProcessor(t *testing.T) {
 			exErr: elasticIndexer.ErrNilTransactionsHandler,
 		},
 		{
-			name: "InitError",
+			name: "NilIndicesCreator",
 			args: func() *ArgElasticProcessor {
 				arguments := createMockElasticProcessorArgs()
-				arguments.DBClient = &mock.DatabaseWriterStub{
-					CheckAndCreateIndexCalled: func(index string) error {
-						return expectedErr
-					},
-				}
+				arguments.IndicesCreator = nil
 				return arguments
 			},
-			exErr: expectedErr,
+			exErr: elasticIndexer.ErrNilIndicesCreatorHandler,
 		},
 	}
 
@@ -248,16 +247,6 @@ func TestNewElasticProcessor(t *testing.T) {
 			require.True(t, errors.Is(err, tt.exErr))
 		})
 	}
-}
-
-func TestNewElasticProcessorWithKibana(t *testing.T) {
-	args := createMockElasticProcessorArgs()
-	args.UseKibana = true
-	args.DBClient = &mock.DatabaseWriterStub{}
-
-	elasticProc, err := NewElasticProcessor(args)
-	require.NoError(t, err)
-	require.NotNil(t, elasticProc)
 }
 
 func TestElasticProcessor_RemoveHeader(t *testing.T) {
@@ -385,7 +374,7 @@ func TestElasticseachDatabaseSaveHeader_CheckRequestBody(t *testing.T) {
 
 	dbWriter := &mock.DatabaseWriterStub{
 		DoRequestCalled: func(req *esapi.IndexRequest) error {
-			require.Equal(t, elasticIndexer.BlockIndex, req.Index)
+			require.Equal(t, data.BlockIndex, req.Index)
 
 			var bl data.Block
 			blockBytes, _ := ioutil.ReadAll(req.Body)
@@ -562,7 +551,7 @@ func TestElasticProcessor_RemoveTransactions(t *testing.T) {
 	expectedHashes := []string{hex.EncodeToString(txsHashes[0]), hex.EncodeToString(txsHashes[1])}
 	dbWriter := &mock.DatabaseWriterStub{
 		DoBulkRemoveCalled: func(index string, hashes []string) error {
-			require.Equal(t, elasticIndexer.TransactionsIndex, index)
+			require.Equal(t, data.TransactionsIndex, index)
 			require.Equal(t, expectedHashes, expectedHashes)
 			called = true
 			return nil
@@ -615,7 +604,7 @@ func TestElasticProcessor_IndexEpochInfoData(t *testing.T) {
 
 	elasticSearchProc := newElasticsearchProcessor(dbWriter, arguments)
 	elasticSearchProc.selfShardID = core.MetachainShardId
-	elasticSearchProc.enabledIndexes[elasticIndexer.EpochInfoIndex] = struct{}{}
+	elasticSearchProc.enabledIndexes[data.EpochInfoIndex] = struct{}{}
 
 	shardHeader := &dataBlock.Header{}
 	err := elasticSearchProc.indexEpochInfoData(shardHeader)
@@ -646,7 +635,7 @@ func TestElasticProcessor_SaveTransactionsIndexSCResults(t *testing.T) {
 	}
 	dbWriter := &mock.DatabaseWriterStub{
 		DoBulkRequestCalled: func(buff *bytes.Buffer, index string) error {
-			if index == elasticIndexer.ScResultsIndex {
+			if index == data.ScResultsIndex {
 				called = true
 			}
 			return nil
@@ -657,7 +646,7 @@ func TestElasticProcessor_SaveTransactionsIndexSCResults(t *testing.T) {
 	}
 
 	elasticSearchProc := newElasticsearchProcessor(dbWriter, arguments)
-	elasticSearchProc.enabledIndexes[elasticIndexer.ScResultsIndex] = struct{}{}
+	elasticSearchProc.enabledIndexes[data.ScResultsIndex] = struct{}{}
 
 	err := elasticSearchProc.SaveTransactions(&dataBlock.Body{}, &dataBlock.Header{}, &indexer.Pool{})
 	require.Nil(t, err)
@@ -682,7 +671,7 @@ func TestElasticProcessor_SaveTransactionsIndexReceipts(t *testing.T) {
 	}
 	dbWriter := &mock.DatabaseWriterStub{
 		DoBulkRequestCalled: func(buff *bytes.Buffer, index string) error {
-			if index == elasticIndexer.ReceiptsIndex {
+			if index == data.ReceiptsIndex {
 				called = true
 			}
 			return nil
@@ -693,7 +682,7 @@ func TestElasticProcessor_SaveTransactionsIndexReceipts(t *testing.T) {
 	}
 
 	elasticSearchProc := newElasticsearchProcessor(dbWriter, arguments)
-	elasticSearchProc.enabledIndexes[elasticIndexer.ReceiptsIndex] = struct{}{}
+	elasticSearchProc.enabledIndexes[data.ReceiptsIndex] = struct{}{}
 
 	err := elasticSearchProc.SaveTransactions(&dataBlock.Body{}, &dataBlock.Header{}, &indexer.Pool{})
 	require.Nil(t, err)
@@ -718,8 +707,8 @@ func TestElasticProcessor_IndexAlteredAccounts(t *testing.T) {
 		},
 	}
 	elasticSearchProc := newElasticsearchProcessor(dbWriter, arguments)
-	elasticSearchProc.enabledIndexes[elasticIndexer.AccountsESDTIndex] = struct{}{}
-	elasticSearchProc.enabledIndexes[elasticIndexer.AccountsESDTHistoryIndex] = struct{}{}
+	elasticSearchProc.enabledIndexes[data.AccountsESDTIndex] = struct{}{}
+	elasticSearchProc.enabledIndexes[data.AccountsESDTHistoryIndex] = struct{}{}
 
 	alteredAccounts := data.NewAlteredAccounts()
 	err := elasticSearchProc.indexAlteredAccounts(100, alteredAccounts, nil)

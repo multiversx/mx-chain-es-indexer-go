@@ -7,7 +7,7 @@ import (
 	"math/big"
 	"testing"
 
-	indexerData "github.com/ElrondNetwork/elastic-indexer-go"
+	indexerData "github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"

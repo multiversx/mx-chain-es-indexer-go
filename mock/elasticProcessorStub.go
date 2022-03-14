@@ -1,6 +1,8 @@
 package mock
 
 import (
+	"bytes"
+
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
@@ -26,6 +28,11 @@ type ElasticProcessorStub struct {
 	SaveRoundsInfoCalled             func(infos []*data.RoundInfo) error
 	SaveShardValidatorsPubKeysCalled func(shardID, epoch uint32, shardValidatorsPubKeys [][]byte) error
 	SaveAccountsCalled               func(timestamp uint64, acc []*data.Account) error
+}
+
+// CreateIndices -
+func (eim *ElasticProcessorStub) CreateIndices(_, _ map[string]*bytes.Buffer, _ bool) error {
+	return nil
 }
 
 // SaveHeader -

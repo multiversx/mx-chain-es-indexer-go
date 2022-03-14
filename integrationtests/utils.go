@@ -8,7 +8,6 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/client"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
-	"github.com/ElrondNetwork/elastic-indexer-go/process"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/factory"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/elastic/go-elasticsearch/v7"
@@ -21,7 +20,7 @@ func setLogLevelDebug() {
 	_ = logger.SetLogLevel("indexer:DEBUG")
 }
 
-func createESClient(url string) (process.DatabaseClientHandler, error) {
+func createESClient(url string) (indexer.DatabaseClientHandler, error) {
 	return client.NewElasticClient(elasticsearch.Config{
 		Addresses: []string{url},
 	})
@@ -29,7 +28,7 @@ func createESClient(url string) (process.DatabaseClientHandler, error) {
 
 // CreateElasticProcessor -
 func CreateElasticProcessor(
-	esClient process.DatabaseClientHandler,
+	esClient indexer.DatabaseClientHandler,
 	accountsDB indexer.AccountsAdapter,
 	shardCoordinator indexer.ShardCoordinator,
 	feeProcessor indexer.FeesProcessorHandler,
@@ -43,7 +42,7 @@ func CreateElasticProcessor(
 		AccountsDB:               accountsDB,
 		ShardCoordinator:         shardCoordinator,
 		TransactionFeeCalculator: feeProcessor,
-		EnabledIndexes:           []string{indexer.TransactionsIndex, indexer.LogsIndex, indexer.AccountsESDTIndex, indexer.ScResultsIndex, indexer.ReceiptsIndex, indexer.BlockIndex, indexer.AccountsIndex, indexer.TokensIndex},
+		EnabledIndexes:           []string{data.TransactionsIndex, data.LogsIndex, data.AccountsESDTIndex, data.ScResultsIndex, data.ReceiptsIndex, data.BlockIndex, data.AccountsIndex, data.TokensIndex},
 		Denomination:             18,
 		IsInImportDBMode:         false,
 	}

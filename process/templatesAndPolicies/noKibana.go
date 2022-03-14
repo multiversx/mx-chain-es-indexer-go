@@ -3,7 +3,7 @@ package templatesAndPolicies
 import (
 	"bytes"
 
-	indexer "github.com/ElrondNetwork/elastic-indexer-go"
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/templates/noKibana"
 )
 
@@ -20,25 +20,25 @@ func (tr *templatesAndPolicyReaderNoKibana) GetElasticTemplatesAndPolicies() (ma
 	indexTemplates := make(map[string]*bytes.Buffer)
 
 	indexTemplates["opendistro"] = noKibana.OpenDistro.ToBuffer()
-	indexTemplates[indexer.TransactionsIndex] = noKibana.Transactions.ToBuffer()
-	indexTemplates[indexer.BlockIndex] = noKibana.Blocks.ToBuffer()
-	indexTemplates[indexer.MiniblocksIndex] = noKibana.Miniblocks.ToBuffer()
-	indexTemplates[indexer.RatingIndex] = noKibana.Rating.ToBuffer()
-	indexTemplates[indexer.RoundsIndex] = noKibana.Rounds.ToBuffer()
-	indexTemplates[indexer.ValidatorsIndex] = noKibana.Validators.ToBuffer()
-	indexTemplates[indexer.AccountsIndex] = noKibana.Accounts.ToBuffer()
-	indexTemplates[indexer.AccountsHistoryIndex] = noKibana.AccountsHistory.ToBuffer()
-	indexTemplates[indexer.AccountsESDTIndex] = noKibana.AccountsESDT.ToBuffer()
-	indexTemplates[indexer.AccountsESDTHistoryIndex] = noKibana.AccountsESDTHistory.ToBuffer()
-	indexTemplates[indexer.EpochInfoIndex] = noKibana.EpochInfo.ToBuffer()
-	indexTemplates[indexer.ReceiptsIndex] = noKibana.Receipts.ToBuffer()
-	indexTemplates[indexer.ScResultsIndex] = noKibana.SCResults.ToBuffer()
-	indexTemplates[indexer.SCDeploysIndex] = noKibana.SCDeploys.ToBuffer()
-	indexTemplates[indexer.TokensIndex] = noKibana.Tokens.ToBuffer()
-	indexTemplates[indexer.TagsIndex] = noKibana.Tags.ToBuffer()
-	indexTemplates[indexer.LogsIndex] = noKibana.Logs.ToBuffer()
-	indexTemplates[indexer.DelegatorsIndex] = noKibana.Delegators.ToBuffer()
-	indexTemplates[indexer.OperationsIndex] = noKibana.Operations.ToBuffer()
+	indexTemplates[data.TransactionsIndex] = noKibana.Transactions.ToBuffer()
+	indexTemplates[data.BlockIndex] = noKibana.Blocks.ToBuffer()
+	indexTemplates[data.MiniblocksIndex] = noKibana.Miniblocks.ToBuffer()
+	indexTemplates[data.RatingIndex] = noKibana.Rating.ToBuffer()
+	indexTemplates[data.RoundsIndex] = noKibana.Rounds.ToBuffer()
+	indexTemplates[data.ValidatorsIndex] = noKibana.Validators.ToBuffer()
+	indexTemplates[data.AccountsIndex] = noKibana.Accounts.ToBuffer()
+	indexTemplates[data.AccountsHistoryIndex] = noKibana.AccountsHistory.ToBuffer()
+	indexTemplates[data.AccountsESDTIndex] = noKibana.AccountsESDT.ToBuffer()
+	indexTemplates[data.AccountsESDTHistoryIndex] = noKibana.AccountsESDTHistory.ToBuffer()
+	indexTemplates[data.EpochInfoIndex] = noKibana.EpochInfo.ToBuffer()
+	indexTemplates[data.ReceiptsIndex] = noKibana.Receipts.ToBuffer()
+	indexTemplates[data.ScResultsIndex] = noKibana.SCResults.ToBuffer()
+	indexTemplates[data.SCDeploysIndex] = noKibana.SCDeploys.ToBuffer()
+	indexTemplates[data.TokensIndex] = noKibana.Tokens.ToBuffer()
+	indexTemplates[data.TagsIndex] = noKibana.Tags.ToBuffer()
+	indexTemplates[data.LogsIndex] = noKibana.Logs.ToBuffer()
+	indexTemplates[data.DelegatorsIndex] = noKibana.Delegators.ToBuffer()
+	indexTemplates[data.OperationsIndex] = noKibana.Operations.ToBuffer()
 
 	return indexTemplates, indexPolicies, nil
 }

@@ -1,6 +1,7 @@
 package indexer
 
 import (
+	"bytes"
 	"math/big"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
@@ -9,6 +10,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
+	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
 
 // DispatcherHandler defines the interface for the dispatcher that will manage when items are saved in elasticsearch database
@@ -21,6 +23,7 @@ type DispatcherHandler interface {
 
 // ElasticProcessor defines the interface for the elastic search indexer
 type ElasticProcessor interface {
+	CreateIndices(indexTemplates, indexPolicies map[string]*bytes.Buffer, useKibana bool) error
 	SaveHeader(
 		header coreData.HeaderHandler,
 		signersIndexes []uint64,
@@ -80,5 +83,22 @@ type AccountsAdapter interface {
 type BalanceConverter interface {
 	ComputeBalanceAsFloat(balance *big.Int) float64
 	ComputeESDTBalanceAsFloat(balance *big.Int) float64
+	IsInterfaceNil() bool
+}
+
+// DatabaseClientHandler defines the actions that a component that handles requests should do
+type DatabaseClientHandler interface {
+	DoRequest(req *esapi.IndexRequest) error
+	DoBulkRequest(buff *bytes.Buffer, index string) error
+	DoBulkRemove(index string, hashes []string) error
+	DoMultiGet(ids []string, index string, withSource bool, res interface{}) error
+	DoScrollRequest(index string, body []byte, withSource bool, handlerFunc func(responseBytes []byte) error) error
+	DoCountRequest(index string, body []byte) (uint64, error)
+
+	CheckAndCreateIndex(index string) error
+	CheckAndCreateAlias(alias string, index string) error
+	CheckAndCreateTemplate(templateName string, template *bytes.Buffer) error
+	CheckAndCreatePolicy(policyName string, policy *bytes.Buffer) error
+
 	IsInterfaceNil() bool
 }

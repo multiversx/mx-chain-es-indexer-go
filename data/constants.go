@@ -1,4 +1,9 @@
-package indexer
+package data
+
+const (
+	AtSeparator                = "@"
+	GasRefundForRelayerMessage = "gas refund for relayer"
+)
 
 const (
 	// IndexSuffix is the suffix for the Elasticsearch indexes

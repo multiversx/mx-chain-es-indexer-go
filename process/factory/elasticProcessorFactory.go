@@ -6,6 +6,7 @@ import (
 	processIndexer "github.com/ElrondNetwork/elastic-indexer-go/process"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/accounts"
 	blockProc "github.com/ElrondNetwork/elastic-indexer-go/process/block"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/indicesCreator"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/logsevents"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/miniblocks"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/operations"
@@ -24,7 +25,7 @@ type ArgElasticProcessorFactory struct {
 	Hasher                   hashing.Hasher
 	AddressPubkeyConverter   core.PubkeyConverter
 	ValidatorPubkeyConverter core.PubkeyConverter
-	DBClient                 processIndexer.DatabaseClientHandler
+	DBClient                 indexer.DatabaseClientHandler
 	AccountsDB               indexer.AccountsAdapter
 	ShardCoordinator         indexer.ShardCoordinator
 	TransactionFeeCalculator indexer.FeesProcessorHandler
@@ -112,6 +113,11 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (indexer.Elast
 		return nil, err
 	}
 
+	indicesCreatorHandler, err := indicesCreator.NewIndicesCreator(arguments.DBClient)
+	if err != nil {
+		return nil, err
+	}
+
 	args := &processIndexer.ArgElasticProcessor{
 		TransactionsProc:  txsProc,
 		AccountsProc:      accountsProc,
@@ -122,12 +128,20 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (indexer.Elast
 		LogsAndEventsProc: logsAndEventsProc,
 		DBClient:          arguments.DBClient,
 		EnabledIndexes:    enabledIndexesMap,
-		UseKibana:         arguments.UseKibana,
-		IndexTemplates:    indexTemplates,
-		IndexPolicies:     indexPolicies,
 		SelfShardID:       arguments.ShardCoordinator.SelfId(),
 		OperationsProc:    operationsProc,
+		IndicesCreator:    indicesCreatorHandler,
 	}
 
-	return processIndexer.NewElasticProcessor(args)
+	esProc, err := processIndexer.NewElasticProcessor(args)
+	if err != nil {
+		return nil, err
+	}
+
+	err = esProc.CreateIndices(indexTemplates, indexPolicies, arguments.UseKibana)
+	if err != nil {
+		return nil, err
+	}
+
+	return esProc, nil
 }

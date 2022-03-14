@@ -10,8 +10,8 @@ import (
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
 
-// DatabaseClientHandler defines the actions that a component that handles requests should do
-type DatabaseClientHandler interface {
+// DatabaseClientRequestsHandler defines the actions that a component that handles requests should do
+type DatabaseClientRequestsHandler interface {
 	DoRequest(req *esapi.IndexRequest) error
 	DoBulkRequest(buff *bytes.Buffer, index string) error
 	DoBulkRemove(index string, hashes []string) error
@@ -19,12 +19,12 @@ type DatabaseClientHandler interface {
 	DoScrollRequest(index string, body []byte, withSource bool, handlerFunc func(responseBytes []byte) error) error
 	DoCountRequest(index string, body []byte) (uint64, error)
 
-	CheckAndCreateIndex(index string) error
-	CheckAndCreateAlias(alias string, index string) error
-	CheckAndCreateTemplate(templateName string, template *bytes.Buffer) error
-	CheckAndCreatePolicy(policyName string, policy *bytes.Buffer) error
-
 	IsInterfaceNil() bool
+}
+
+// IndicesCreatorHandler defines the actions that a component that handles creation of indices should do
+type IndicesCreatorHandler interface {
+	CreateIndicesIfNeeded(indexTemplates, _ map[string]*bytes.Buffer, useKibana bool) error
 }
 
 // DBAccountHandler defines the actions that an accounts handler should do

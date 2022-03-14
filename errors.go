@@ -103,3 +103,6 @@ var ErrNilBalanceConverter = errors.New("nil balance converter")
 
 // ErrNilOperationsHandler signals that a nil operations handler has been provided
 var ErrNilOperationsHandler = errors.New("nil operations handler")
+
+// ErrNilIndicesCreatorHandler signals that a nil indices creator handler has been provided
+var ErrNilIndicesCreatorHandler = errors.New("nil indices creator handler")

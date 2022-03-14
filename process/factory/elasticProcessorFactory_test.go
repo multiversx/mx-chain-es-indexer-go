@@ -8,13 +8,13 @@ import (
 )
 
 func TestCreateElasticProcessor(t *testing.T) {
-
+	esClient := &mock.DatabaseWriterStub{}
 	args := ArgElasticProcessorFactory{
 		Marshalizer:              &mock.MarshalizerMock{},
 		Hasher:                   &mock.HasherMock{},
 		AddressPubkeyConverter:   &mock.PubkeyConverterMock{},
 		ValidatorPubkeyConverter: &mock.PubkeyConverterMock{},
-		DBClient:                 &mock.DatabaseWriterStub{},
+		DBClient:                 esClient,
 		AccountsDB:               &mock.AccountsStub{},
 		ShardCoordinator:         &mock.ShardCoordinatorMock{},
 		TransactionFeeCalculator: &mock.EconomicsHandlerStub{},

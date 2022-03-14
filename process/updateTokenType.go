@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"time"
 
-	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 )
 
 func (ei *elasticProcessor) indexTokens(tokensData []*data.TokenInfo, updateNFTData []*data.NFTDataUpdate) error {
-	if !ei.isIndexEnabled(elasticIndexer.TokensIndex) {
+	if !ei.isIndexEnabled(data.TokensIndex) {
 		return nil
 	}
 
@@ -20,17 +19,17 @@ func (ei *elasticProcessor) indexTokens(tokensData []*data.TokenInfo, updateNFTD
 		return err
 	}
 
-	err = ei.doBulkRequests(elasticIndexer.TokensIndex, buffSlice)
+	err = ei.doBulkRequests(data.TokensIndex, buffSlice)
 	if err != nil {
 		return err
 	}
 
-	err = ei.addTokenType(tokensData, elasticIndexer.AccountsESDTIndex)
+	err = ei.addTokenType(tokensData, data.AccountsESDTIndex)
 	if err != nil {
 		return err
 	}
 
-	return ei.addTokenType(tokensData, elasticIndexer.TokensIndex)
+	return ei.addTokenType(tokensData, data.TokensIndex)
 }
 
 func (ei *elasticProcessor) addTokenType(tokensData []*data.TokenInfo, index string) error {
