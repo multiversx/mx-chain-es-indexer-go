@@ -3,8 +3,10 @@ package client
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"strings"
 
@@ -24,8 +26,7 @@ const (
 var log = logger.GetOrCreate("indexer/client")
 
 type (
-	responseErrorHandler func(res *esapi.Response) error
-	objectsMap           = map[string]interface{}
+	objectsMap = map[string]interface{}
 )
 
 type elasticClient struct {
@@ -67,10 +68,6 @@ func (ec *elasticClient) CheckAndCreateTemplate(templateName string, template *b
 
 // CheckAndCreatePolicy creates a new index policy if it does not already exist
 func (ec *elasticClient) CheckAndCreatePolicy(policyName string, policy *bytes.Buffer) error {
-	if ec.PolicyExists(policyName) {
-		return nil
-	}
-
 	return ec.createPolicy(policyName, policy)
 }
 
@@ -99,7 +96,7 @@ func (ec *elasticClient) DoRequest(req *esapi.IndexRequest) error {
 		return err
 	}
 
-	return parseResponse(res, nil, elasticDefaultErrorResponseHandler)
+	return parseResponse(res)
 }
 
 // DoBulkRequest will do a bulk of request to elastic server
@@ -113,7 +110,7 @@ func (ec *elasticClient) DoBulkRequest(buff *bytes.Buffer, index string) error {
 		return err
 	}
 
-	return elasticBulkRequestResponseHandler(res)
+	return parseResponse(res)
 }
 
 // DoMultiGet wil do a multi get request to elaticsearch server
@@ -134,14 +131,7 @@ func (ec *elasticClient) DoMultiGet(ids []string, index string, withSource bool,
 		return err
 	}
 
-	err = parseResponse(res, &resBody, elasticDefaultErrorResponseHandler)
-	if err != nil {
-		log.Warn("elasticClient.DoMultiGet",
-			"error parsing response", err.Error())
-		return err
-	}
-
-	return nil
+	return parseResponse(res, resBody)
 }
 
 // DoBulkRemove will do a bulk remove to elasticsearch server
@@ -164,15 +154,7 @@ func (ec *elasticClient) DoBulkRemove(index string, hashes []string) error {
 		return err
 	}
 
-	var decodedBody objectsMap
-	err = parseResponse(res, &decodedBody, elasticDefaultErrorResponseHandler)
-	if err != nil {
-		log.Warn("elasticClient.DoBulkRemove",
-			"error parsing response", err.Error())
-		return err
-	}
-
-	return nil
+	return parseResponse(res)
 }
 
 // TemplateExists checks weather a template is already created
@@ -185,40 +167,6 @@ func (ec *elasticClient) templateExists(index string) bool {
 func (ec *elasticClient) indexExists(index string) bool {
 	res, err := ec.es.Indices.Exists([]string{index})
 	return exists(res, err)
-}
-
-// PolicyExists checks if a policy was already created
-func (ec *elasticClient) PolicyExists(policy string) bool {
-	policyRoute := fmt.Sprintf(
-		"%s/%s/ism/policies/%s",
-		ec.elasticBaseUrl,
-		kibanaPluginPath,
-		policy,
-	)
-
-	req := newRequest(http.MethodGet, policyRoute, nil)
-	res, err := ec.es.Transport.Perform(req)
-	if err != nil {
-		log.Warn("elasticClient.PolicyExists",
-			"error performing request", err.Error())
-		return false
-	}
-
-	response := &esapi.Response{
-		StatusCode: res.StatusCode,
-		Body:       res.Body,
-		Header:     res.Header,
-	}
-
-	existsRes := &data.Response{}
-	err = parseResponse(response, existsRes, kibanaResponseErrorHandler)
-	if err != nil {
-		log.Warn("elasticClient.PolicyExists",
-			"error returned by kibana api", err.Error())
-		return false
-	}
-
-	return existsRes.Status == http.StatusConflict
 }
 
 // AliasExists checks if an index alias already exists
@@ -252,7 +200,7 @@ func (ec *elasticClient) createIndex(index string) error {
 		return err
 	}
 
-	return parseResponse(res, nil, elasticDefaultErrorResponseHandler)
+	return parseResponse(res)
 }
 
 // CreatePolicy creates a new policy for elastic indexes. Policies define rollover parameters
@@ -277,8 +225,19 @@ func (ec *elasticClient) createPolicy(policyName string, policy *bytes.Buffer) e
 		Header:     res.Header,
 	}
 
+	if response.IsError() {
+		return fmt.Errorf("%s", response.String())
+	}
+
+	defer closeBody(response)
+
+	bodyBytes, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return err
+	}
+
 	existsRes := &data.Response{}
-	err = parseResponse(response, existsRes, kibanaResponseErrorHandler)
+	err = json.Unmarshal(bodyBytes, ec)
 	if err != nil {
 		return err
 	}
@@ -298,7 +257,7 @@ func (ec *elasticClient) createIndexTemplate(templateName string, template io.Re
 		return err
 	}
 
-	return parseResponse(res, nil, elasticDefaultErrorResponseHandler)
+	return parseResponse(res)
 }
 
 // CreateAlias creates an index alias
@@ -308,7 +267,7 @@ func (ec *elasticClient) createAlias(alias string, index string) error {
 		return err
 	}
 
-	return parseResponse(res, nil, elasticDefaultErrorResponseHandler)
+	return parseResponse(res)
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

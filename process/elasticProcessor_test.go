@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"math/big"
 	"strconv"
+	"strings"
 	"testing"
 
 	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
@@ -420,7 +421,7 @@ func TestElasticseachSaveTransactions(t *testing.T) {
 	elasticDatabase := newElasticsearchProcessor(dbWriter, arguments)
 	pool := &indexer.Pool{Txs: txPool}
 	err := elasticDatabase.SaveTransactions(body, header, pool)
-	require.Equal(t, localErr, err)
+	require.True(t, strings.Contains(err.Error(), localErr.Error()))
 }
 
 func TestElasticProcessor_SaveValidatorsRating(t *testing.T) {
@@ -448,7 +449,7 @@ func TestElasticProcessor_SaveValidatorsRating(t *testing.T) {
 			},
 		},
 	)
-	require.Equal(t, localErr, err)
+	require.True(t, strings.Contains(err.Error(), localErr.Error()))
 }
 
 func TestElasticProcessor_SaveMiniblocks(t *testing.T) {

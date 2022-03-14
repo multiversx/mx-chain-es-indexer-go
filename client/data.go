@@ -3,7 +3,6 @@ package client
 const (
 	headerXSRF                       = "kbn-xsrf"
 	headerContentType                = "Content-Type"
-	kibanaPluginPath                 = "_plugin/kibana/api"
 	numOfErrorsToExtractBulkResponse = 5
 )
 
@@ -20,9 +19,15 @@ type BulkRequestResponse struct {
 
 // Item defines the structure of a item from a bulk response
 type Item struct {
-	Status int `json:"status"`
+	ID     string `json:"_id"`
+	Result string `json:"result"`
+	Status int    `json:"status"`
 	Error  struct {
 		Type   string `json:"type"`
 		Reason string `json:"reason"`
+		Cause  struct {
+			Type   string `json:"type"`
+			Reason string `json:"reason"`
+		} `json:"caused_by"`
 	} `json:"error"`
 }

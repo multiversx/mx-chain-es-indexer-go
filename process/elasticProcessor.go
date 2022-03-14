@@ -705,7 +705,7 @@ func (ei *elasticProcessor) doBulkRequests(index string, buffSlice []*bytes.Buff
 	for idx := range buffSlice {
 		err = ei.elasticClient.DoBulkRequest(buffSlice[idx], index)
 		if err != nil {
-			return err
+			return fmt.Errorf("index: %s, message: %s", index, err.Error())
 		}
 	}
 
