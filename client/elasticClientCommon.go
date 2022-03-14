@@ -85,7 +85,7 @@ func parseResponse(res *esapi.Response, dstBody ...interface{}) error {
 		return err
 	}
 
-	if dstBody != nil {
+	if dstBody != nil && len(dstBody) > 0 {
 		return json.Unmarshal(bodyBytes, &dstBody[0])
 	}
 
