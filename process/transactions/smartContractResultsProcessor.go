@@ -136,6 +136,10 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 	if scr.RelayedValue != nil {
 		relayedValue = scr.RelayedValue.String()
 	}
+	originalSenderAddr := ""
+	if scr.OriginalSender != nil {
+		originalSenderAddr = proc.pubKeyConverter.Encode(scr.OriginalSender)
+	}
 
 	res := proc.dataFieldParser.Parse(scr.Data, scr.SndAddr, scr.RcvAddr)
 
@@ -168,6 +172,7 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 		Receivers:          res.Receivers,
 		ReceiversShardIDs:  res.ReceiversShardID,
 		IsRelayed:          res.IsRelayed,
+		OriginalSender:     originalSenderAddr,
 	}
 }
 

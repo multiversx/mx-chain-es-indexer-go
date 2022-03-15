@@ -87,6 +87,7 @@ func (mp *miniblocksProcessor) prepareMiniblockForDB(
 		ReceiverShardID: miniblock.ReceiverShardID,
 		Type:            miniblock.Type.String(),
 		Timestamp:       time.Duration(header.GetTimeStamp()),
+		Reserved:        miniblock.Reserved,
 	}
 
 	processingType := mp.computeProcessingType(mbIndex, header)

@@ -35,5 +35,6 @@ type ScResult struct {
 	Function           string        `json:"function,omitempty"`
 	IsRelayed          bool          `json:"isRelayed,omitempty"`
 	CanBeIgnored       bool          `json:"canBeIgnored,omitempty"`
+	OriginalSender     string        `json:"originalSender,omitempty"`
 	SenderAddressBytes []byte        `json:"-"`
 }

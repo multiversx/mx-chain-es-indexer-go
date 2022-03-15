@@ -92,11 +92,12 @@ func TestSerializeTransactionCrossShardTxSource(t *testing.T) {
 		SenderShard:          0,
 		ReceiverShard:        1,
 		SmartContractResults: []*data.ScResult{{}},
+		Version:              1,
 	}}, map[string]string{}, 0)
 	require.Nil(t, err)
 
 	expectedBuff := `{"update":{"_id":"txHash", "_type": "_doc"}}
-{"script":{"source":"return"},"upsert":{"miniBlockHash":"","nonce":0,"round":0,"value":"","receiver":"","sender":"","receiverShard":1,"senderShard":0,"gasPrice":0,"gasLimit":0,"gasUsed":0,"fee":"","data":null,"signature":"","timestamp":0,"status":"","searchOrder":0}}
+{"script":{"source":"return"},"upsert":{"miniBlockHash":"","nonce":0,"round":0,"value":"","receiver":"","sender":"","receiverShard":1,"senderShard":0,"gasPrice":0,"gasLimit":0,"gasUsed":0,"fee":"","data":null,"signature":"","timestamp":0,"status":"","searchOrder":0,"version":1}}
 `
 	require.Equal(t, expectedBuff, buffers[0].String())
 }
@@ -109,11 +110,12 @@ func TestSerializeTransactionsCrossShardTxDestination(t *testing.T) {
 		SenderShard:          1,
 		ReceiverShard:        0,
 		SmartContractResults: []*data.ScResult{{}},
+		Version:              1,
 	}}, map[string]string{}, 0)
 	require.Nil(t, err)
 
 	expectedBuff := `{ "index" : { "_id" : "txHash", "_type" : "_doc" } }
-{"miniBlockHash":"","nonce":0,"round":0,"value":"","receiver":"","sender":"","receiverShard":0,"senderShard":1,"gasPrice":0,"gasLimit":0,"gasUsed":0,"fee":"","data":null,"signature":"","timestamp":0,"status":"","searchOrder":0}
+{"miniBlockHash":"","nonce":0,"round":0,"value":"","receiver":"","sender":"","receiverShard":0,"senderShard":1,"gasPrice":0,"gasLimit":0,"gasUsed":0,"fee":"","data":null,"signature":"","timestamp":0,"status":"","searchOrder":0,"version":1}
 `
 	require.Equal(t, expectedBuff, buffers[0].String())
 }
