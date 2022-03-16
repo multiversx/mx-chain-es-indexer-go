@@ -81,6 +81,7 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		Receivers:            res.Receivers,
 		ReceiversShardIDs:    res.ReceiversShardID,
 		IsRelayed:            res.IsRelayed,
+		Version:              tx.Version,
 	}
 }
 
