@@ -3,7 +3,7 @@ package data
 import "bytes"
 
 // BulkSizeThreshold is the constant for the maximum size of one bulk request that is sent to the elaticsearch database
-const BulkSizeThreshold = 838860 // 0.8MB
+const BulkSizeThreshold = 4000000 // 4MB
 
 // BufferSlice extend structure bytes.Buffer with new methods
 type BufferSlice struct {
