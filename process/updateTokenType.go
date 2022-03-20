@@ -10,17 +10,12 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/core"
 )
 
-func (ei *elasticProcessor) indexTokens(tokensData []*data.TokenInfo, updateNFTData []*data.NFTDataUpdate) error {
+func (ei *elasticProcessor) indexTokens(tokensData []*data.TokenInfo, updateNFTData []*data.NFTDataUpdate, buffSlice *data.BufferSlice) error {
 	if !ei.isIndexEnabled(elasticIndexer.TokensIndex) {
 		return nil
 	}
 
-	buffSlice, err := ei.logsAndEventsProc.SerializeTokens(tokensData, updateNFTData)
-	if err != nil {
-		return err
-	}
-
-	err = ei.doBulkRequests(elasticIndexer.TokensIndex, buffSlice)
+	err := ei.logsAndEventsProc.SerializeTokens(tokensData, updateNFTData, buffSlice, elasticIndexer.TokensIndex)
 	if err != nil {
 		return err
 	}
@@ -59,12 +54,13 @@ func (ei *elasticProcessor) addTokenType(tokensData []*data.TokenInfo, index str
 				ids = append(ids, res.ID)
 			}
 
-			buffSlice, err := ei.accountsProc.SerializeTypeForProvidedIDs(ids, td.Type)
+			buffSlice := data.NewBufferSlice(data.BulkSizeThreshold)
+			err = ei.accountsProc.SerializeTypeForProvidedIDs(ids, td.Type, buffSlice, index)
 			if err != nil {
 				return err
 			}
 
-			return ei.doBulkRequests(index, buffSlice)
+			return ei.doBulkRequests(index, buffSlice.Buffers())
 		}
 
 		query := fmt.Sprintf(`{"query": {"bool": {"must": [{"match": {"token": "%s"}}],"must_not":[{"exists": {"field": "type"}}]}}}`, td.Token)

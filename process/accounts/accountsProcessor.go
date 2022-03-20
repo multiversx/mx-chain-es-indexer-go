@@ -139,7 +139,7 @@ func (ap *accountsProcessor) getUserAccount(address string) (coreData.UserAccoun
 }
 
 // PrepareRegularAccountsMap will prepare a map of regular accounts
-func (ap *accountsProcessor) PrepareRegularAccountsMap(accounts []*data.Account) map[string]*data.AccountInfo {
+func (ap *accountsProcessor) PrepareRegularAccountsMap(timestamp uint64, accounts []*data.Account) map[string]*data.AccountInfo {
 	accountsMap := make(map[string]*data.AccountInfo)
 	for _, userAccount := range accounts {
 		address := ap.addressPubkeyConverter.Encode(userAccount.UserAccount.AddressBytes())
@@ -154,6 +154,7 @@ func (ap *accountsProcessor) PrepareRegularAccountsMap(accounts []*data.Account)
 			IsSmartContract:          core.IsSmartContractAddress(userAccount.UserAccount.AddressBytes()),
 			TotalBalanceWithStake:    balance.String(),
 			TotalBalanceWithStakeNum: balanceAsFloat,
+			Timestamp:                time.Duration(timestamp),
 		}
 
 		accountsMap[address] = acc

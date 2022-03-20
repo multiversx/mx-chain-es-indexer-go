@@ -18,14 +18,15 @@ func TestMiniblocksProcessor_SerializeBulkMiniBlocks(t *testing.T) {
 		{Hash: "h2", SenderShardID: 0, ReceiverShardID: 2},
 	}
 
-	buff := mp.SerializeBulkMiniBlocks(miniblocks, nil)
+	buffSlice := data.NewBufferSlice(data.BulkSizeThreshold)
+	mp.SerializeBulkMiniBlocks(miniblocks, nil, buffSlice, "miniblocks")
 
-	expectedBuff := `{ "index" : { "_id" : "h1", "_type" : "_doc" } }
+	expectedBuff := `{ "index" : { "_index":"miniblocks", "_id" : "h1"} }
 {"senderShard":0,"receiverShard":1,"senderBlockHash":"","receiverBlockHash":"","type":"","timestamp":0}
-{ "index" : { "_id" : "h2", "_type" : "_doc" } }
+{ "index" : { "_index":"miniblocks", "_id" : "h2"} }
 {"senderShard":0,"receiverShard":2,"senderBlockHash":"","receiverBlockHash":"","type":"","timestamp":0}
 `
-	require.Equal(t, expectedBuff, buff.String())
+	require.Equal(t, expectedBuff, buffSlice.Buffers()[0].String())
 }
 
 func TestMiniblocksProcessor_SerializeBulkMiniBlocksInDB(t *testing.T) {
@@ -38,14 +39,15 @@ func TestMiniblocksProcessor_SerializeBulkMiniBlocksInDB(t *testing.T) {
 		{Hash: "h2", SenderShardID: 0, ReceiverShardID: 2},
 	}
 
-	buff := mp.SerializeBulkMiniBlocks(miniblocks, map[string]bool{
+	buffSlice := data.NewBufferSlice(data.BulkSizeThreshold)
+	mp.SerializeBulkMiniBlocks(miniblocks, map[string]bool{
 		"h1": true,
-	})
+	}, buffSlice, "miniblocks")
 
-	expectedBuff := `{ "update" : { "_id" : "h1" } }
+	expectedBuff := `{ "update" : {"_index":"miniblocks", "_id" : "h1" } }
 { "doc" : { "senderBlockHash" : "", "procTypeS": "" } }
-{ "index" : { "_id" : "h2", "_type" : "_doc" } }
+{ "index" : { "_index":"miniblocks", "_id" : "h2"} }
 {"senderShard":0,"receiverShard":2,"senderBlockHash":"","receiverBlockHash":"","type":"","timestamp":0}
 `
-	require.Equal(t, expectedBuff, buff.String())
+	require.Equal(t, expectedBuff, buffSlice.Buffers()[0].String())
 }

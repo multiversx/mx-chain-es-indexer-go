@@ -13,10 +13,10 @@ type BufferSlice struct {
 }
 
 // NewBufferSlice will create a new buffer
-func NewBufferSlice() *BufferSlice {
+func NewBufferSlice(bulkSizeThreshold int) *BufferSlice {
 	return &BufferSlice{
 		buffSlice:         make([]*bytes.Buffer, 0),
-		bulkSizeThreshold: BulkSizeThreshold,
+		bulkSizeThreshold: bulkSizeThreshold,
 		idx:               0,
 	}
 }

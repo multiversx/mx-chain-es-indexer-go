@@ -23,14 +23,15 @@ func TestSerializeNFTCreateInfo(t *testing.T) {
 		},
 	}
 
-	res, err := (&accountsProcessor{}).SerializeNFTCreateInfo(nftsCreateInfo)
+	buffSlice := data.NewBufferSlice(data.BulkSizeThreshold)
+	err := (&accountsProcessor{}).SerializeNFTCreateInfo(nftsCreateInfo, buffSlice, "tokens")
 	require.NoError(t, err)
-	require.Equal(t, 1, len(res))
+	require.Equal(t, 1, len(buffSlice.Buffers()))
 
-	expectedRes := `{ "index" : { "_id" : "my-token-001-0f" } }
+	expectedRes := `{ "index" : { "_index":"tokens", "_id" : "my-token-001-0f" } }
 {"identifier":"my-token-001-0f","token":"my-token-0001","type":"NonFungibleESDT","data":{"creator":"010102","nonEmptyURIs":false,"whiteListedStorage":false}}
 `
-	require.Equal(t, expectedRes, res[0].String())
+	require.Equal(t, expectedRes, buffSlice.Buffers()[0].String())
 }
 
 func TestSerializeAccounts(t *testing.T) {
@@ -49,14 +50,15 @@ func TestSerializeAccounts(t *testing.T) {
 		},
 	}
 
-	res, err := (&accountsProcessor{}).SerializeAccounts(accs)
+	buffSlice := data.NewBufferSlice(data.BulkSizeThreshold)
+	err := (&accountsProcessor{}).SerializeAccounts(accs, buffSlice, "accounts")
 	require.NoError(t, err)
-	require.Equal(t, 1, len(res))
+	require.Equal(t, 1, len(buffSlice.Buffers()))
 
-	expectedRes := `{ "index" : { "_id" : "addr1" } }
+	expectedRes := `{ "index" : { "_index":"accounts", "_id" : "addr1" } }
 {"address":"addr1","nonce":1,"balance":"50","balanceNum":0.1,"totalBalanceWithStake":"50","totalBalanceWithStakeNum":0.1}
 `
-	require.Equal(t, expectedRes, res[0].String())
+	require.Equal(t, expectedRes, buffSlice.Buffers()[0].String())
 }
 
 func TestSerializeAccountsESDTNonceZero(t *testing.T) {
@@ -75,14 +77,15 @@ func TestSerializeAccountsESDTNonceZero(t *testing.T) {
 		},
 	}
 
-	res, err := (&accountsProcessor{}).SerializeAccountsESDT(accs, nil)
+	buffSlice := data.NewBufferSlice(data.BulkSizeThreshold)
+	err := (&accountsProcessor{}).SerializeAccountsESDT(accs, nil, buffSlice, "accountsesdt")
 	require.NoError(t, err)
-	require.Equal(t, 1, len(res))
+	require.Equal(t, 1, len(buffSlice.Buffers()))
 
-	expectedRes := `{ "index" : { "_id" : "addr1-token-abcd-00" } }
+	expectedRes := `{ "index" : { "_index":"accountsesdt", "_id" : "addr1-token-abcd-00" } }
 {"address":"addr1","nonce":1,"balance":"10000000000000","balanceNum":1,"token":"token-abcd","properties":"000","timestamp":123}
 `
-	require.Equal(t, expectedRes, res[0].String())
+	require.Equal(t, expectedRes, buffSlice.Buffers()[0].String())
 }
 
 func TestSerializeAccountsESDT(t *testing.T) {
@@ -100,14 +103,15 @@ func TestSerializeAccountsESDT(t *testing.T) {
 		},
 	}
 
-	res, err := (&accountsProcessor{}).SerializeAccountsESDT(accs, nil)
+	buffSlice := data.NewBufferSlice(data.BulkSizeThreshold)
+	err := (&accountsProcessor{}).SerializeAccountsESDT(accs, nil, buffSlice, "accountsesdt")
 	require.NoError(t, err)
-	require.Equal(t, 1, len(res))
+	require.Equal(t, 1, len(buffSlice.Buffers()))
 
-	expectedRes := `{ "index" : { "_id" : "addr1-token-0001-05" } }
+	expectedRes := `{ "index" : { "_index":"accountsesdt", "_id" : "addr1-token-0001-05" } }
 {"address":"addr1","nonce":1,"balance":"10000000000000","balanceNum":1,"token":"token-0001","tokenNonce":5,"properties":"000"}
 `
-	require.Equal(t, expectedRes, res[0].String())
+	require.Equal(t, expectedRes, buffSlice.Buffers()[0].String())
 }
 
 func TestSerializeAccountsNFTWithMedaData(t *testing.T) {
@@ -139,14 +143,15 @@ func TestSerializeAccountsNFTWithMedaData(t *testing.T) {
 		},
 	}
 
-	res, err := (&accountsProcessor{}).SerializeAccountsESDT(accs, nil)
+	buffSlice := data.NewBufferSlice(data.BulkSizeThreshold)
+	err := (&accountsProcessor{}).SerializeAccountsESDT(accs, nil, buffSlice, "accountsesdt")
 	require.NoError(t, err)
-	require.Equal(t, 1, len(res))
+	require.Equal(t, 1, len(buffSlice.Buffers()))
 
-	expectedRes := `{ "index" : { "_id" : "addr1-token-0001-16" } }
+	expectedRes := `{ "index" : { "_index":"accountsesdt", "_id" : "addr1-token-0001-16" } }
 {"address":"addr1","nonce":1,"balance":"10000000000000","balanceNum":1,"token":"token-0001","identifier":"token-0001-5","tokenNonce":22,"properties":"000","data":{"name":"nft","creator":"010101","royalties":1,"hash":"aGFzaA==","uris":["dXJp"],"tags":["test","free","fun"],"attributes":"dGFnczp0ZXN0LGZyZWUsZnVuO2Rlc2NyaXB0aW9uOlRoaXMgaXMgYSB0ZXN0IGRlc2NyaXB0aW9uIGZvciBhbiBhd2Vzb21lIG5mdA==","metadata":"metadata-test","nonEmptyURIs":true,"whiteListedStorage":false}}
 `
-	require.Equal(t, expectedRes, res[0].String())
+	require.Equal(t, expectedRes, buffSlice.Buffers()[0].String())
 }
 
 func TestSerializeAccountsESDTDelete(t *testing.T) {
@@ -163,13 +168,14 @@ func TestSerializeAccountsESDTDelete(t *testing.T) {
 		},
 	}
 
-	res, err := (&accountsProcessor{}).SerializeAccountsESDT(accs, nil)
+	buffSlice := data.NewBufferSlice(data.BulkSizeThreshold)
+	err := (&accountsProcessor{}).SerializeAccountsESDT(accs, nil, buffSlice, "accountsesdt")
 	require.NoError(t, err)
-	require.Equal(t, 1, len(res))
+	require.Equal(t, 1, len(buffSlice.Buffers()))
 
-	expectedRes := `{ "delete" : { "_id" : "addr1-token-0001-00" } }
+	expectedRes := `{ "delete" : {"_index":"accountsesdt", "_id" : "addr1-token-0001-00" } }
 `
-	require.Equal(t, expectedRes, res[0].String())
+	require.Equal(t, expectedRes, buffSlice.Buffers()[0].String())
 }
 
 func TestSerializeAccountsHistory(t *testing.T) {
@@ -186,12 +192,13 @@ func TestSerializeAccountsHistory(t *testing.T) {
 		},
 	}
 
-	res, err := (&accountsProcessor{}).SerializeAccountsHistory(accsh)
+	buffSlice := data.NewBufferSlice(data.BulkSizeThreshold)
+	err := (&accountsProcessor{}).SerializeAccountsHistory(accsh, buffSlice, "accountshistory")
 	require.NoError(t, err)
-	require.Equal(t, 1, len(res))
+	require.Equal(t, 1, len(buffSlice.Buffers()))
 
-	expectedRes := `{ "index" : { "_id" : "account1-token-0001-00-10" } }
+	expectedRes := `{ "index" : { "_index":"accountshistory", "_id" : "account1-token-0001-00-10" } }
 {"address":"account1","timestamp":10,"balance":"123","token":"token-0001","isSender":true,"isSmartContract":true}
 `
-	require.Equal(t, expectedRes, res[0].String())
+	require.Equal(t, expectedRes, buffSlice.Buffers()[0].String())
 }

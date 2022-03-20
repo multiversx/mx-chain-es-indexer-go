@@ -1,7 +1,6 @@
 package operations
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 
@@ -9,28 +8,27 @@ import (
 )
 
 // SerializeSCRs will serialize smart contract results
-func (op *operationsProcessor) SerializeSCRs(scrs []*data.ScResult) ([]*bytes.Buffer, error) {
-	buffSlice := data.NewBufferSlice()
-
+func (op *operationsProcessor) SerializeSCRs(scrs []*data.ScResult, buffSlice *data.BufferSlice, index string) error {
 	for _, scr := range scrs {
-		meta, serializedData, err := op.prepareSerializedDataForAScResult(scr)
+		meta, serializedData, err := op.prepareSerializedDataForAScResult(scr, index)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		err = buffSlice.PutData(meta, serializedData)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	return buffSlice.Buffers(), nil
+	return nil
 }
 
 func (op *operationsProcessor) prepareSerializedDataForAScResult(
 	scr *data.ScResult,
+	index string,
 ) ([]byte, []byte, error) {
-	metaData := []byte(fmt.Sprintf(`{"update":{"_id":"%s", "_type": "_doc"}}%s`, scr.Hash, "\n"))
+	metaData := []byte(fmt.Sprintf(`{"update":{"_index":"%s","_id":"%s", "_type": "_doc"}}%s`, index, scr.Hash, "\n"))
 	marshaledSCR, err := json.Marshal(scr)
 	if err != nil {
 		return nil, nil, err
@@ -46,7 +44,7 @@ func (op *operationsProcessor) prepareSerializedDataForAScResult(
 		return metaData, serializedData, nil
 	}
 
-	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s", "_type" : "%s" } }%s`, scr.Hash, "_doc", "\n"))
+	meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s","_id" : "%s", "_type" : "%s" } }%s`, index, scr.Hash, "_doc", "\n"))
 
 	return meta, marshaledSCR, nil
 }

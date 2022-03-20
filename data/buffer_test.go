@@ -8,7 +8,7 @@ import (
 )
 
 func TestBufferSlice_PutDataShouldWork(t *testing.T) {
-	buffSlice := NewBufferSlice()
+	buffSlice := NewBufferSlice(BulkSizeThreshold)
 
 	meta := generateRandomBytes(100)
 	serializedData := generateRandomBytes(100)
@@ -25,7 +25,7 @@ func TestBufferSlice_PutDataShouldWork(t *testing.T) {
 }
 
 func TestBufferSlice_PutDataShouldWorkNilSerializedData(t *testing.T) {
-	buffSlice := NewBufferSlice()
+	buffSlice := NewBufferSlice(BulkSizeThreshold)
 
 	meta := []byte("my data")
 
