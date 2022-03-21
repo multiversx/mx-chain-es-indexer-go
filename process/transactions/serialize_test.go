@@ -29,7 +29,7 @@ func TestSerializeScResults(t *testing.T) {
 	}
 	scrs := []*data.ScResult{scResult1, scResult2}
 
-	buffSlice := data.NewBufferSlice(data.BulkSizeThreshold)
+	buffSlice := data.NewBufferSlice(data.DefaultBulkSizeThreshold)
 	err := (&txsDatabaseProcessor{}).SerializeScResults(scrs, buffSlice, "transactions")
 	require.Nil(t, err)
 	require.Equal(t, 1, len(buffSlice.Buffers()))
@@ -58,7 +58,7 @@ func TestSerializeReceipts(t *testing.T) {
 
 	recs := []*data.Receipt{rec1, rec2}
 
-	buffSlice := data.NewBufferSlice(data.BulkSizeThreshold)
+	buffSlice := data.NewBufferSlice(data.DefaultBulkSizeThreshold)
 	err := (&txsDatabaseProcessor{}).SerializeReceipts(recs, buffSlice, "receipts")
 	require.Nil(t, err)
 	require.Equal(t, 1, len(buffSlice.Buffers()))
@@ -74,7 +74,7 @@ func TestSerializeReceipts(t *testing.T) {
 func TestSerializeTransactionsIntraShardTx(t *testing.T) {
 	t.Parallel()
 
-	buffSlice := data.NewBufferSlice(data.BulkSizeThreshold)
+	buffSlice := data.NewBufferSlice(data.DefaultBulkSizeThreshold)
 	err := (&txsDatabaseProcessor{}).SerializeTransactions([]*data.Transaction{{
 		Hash:                 "txHash",
 		SmartContractResults: []*data.ScResult{{}},
@@ -90,7 +90,7 @@ func TestSerializeTransactionsIntraShardTx(t *testing.T) {
 func TestSerializeTransactionCrossShardTxSource(t *testing.T) {
 	t.Parallel()
 
-	buffSlice := data.NewBufferSlice(data.BulkSizeThreshold)
+	buffSlice := data.NewBufferSlice(data.DefaultBulkSizeThreshold)
 	err := (&txsDatabaseProcessor{}).SerializeTransactions([]*data.Transaction{{
 		Hash:                 "txHash",
 		SenderShard:          0,
@@ -109,7 +109,7 @@ func TestSerializeTransactionCrossShardTxSource(t *testing.T) {
 func TestSerializeTransactionsCrossShardTxDestination(t *testing.T) {
 	t.Parallel()
 
-	buffSlice := data.NewBufferSlice(data.BulkSizeThreshold)
+	buffSlice := data.NewBufferSlice(data.DefaultBulkSizeThreshold)
 	err := (&txsDatabaseProcessor{}).SerializeTransactions([]*data.Transaction{{
 		Hash:                 "txHash",
 		SenderShard:          1,
@@ -143,7 +143,7 @@ func TestTxsDatabaseProcessor_SerializeTransactionWithRefund(t *testing.T) {
 		},
 	}
 
-	buffSlice := data.NewBufferSlice(data.BulkSizeThreshold)
+	buffSlice := data.NewBufferSlice(data.DefaultBulkSizeThreshold)
 	err := (&txsDatabaseProcessor{
 		txFeeCalculator: &mock.EconomicsHandlerMock{},
 	}).SerializeTransactionWithRefund(txs, txHashRefund, buffSlice, "transactions")

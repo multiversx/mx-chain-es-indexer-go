@@ -27,7 +27,7 @@ func TestBlockProcessor_SerializeBlock(t *testing.T) {
 
 	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 
-	buffSlice := data.NewBufferSlice(data.BulkSizeThreshold)
+	buffSlice := data.NewBufferSlice(data.DefaultBulkSizeThreshold)
 	err := bp.SerializeBlock(&data.Block{Nonce: 1}, buffSlice, "blocks")
 	require.Nil(t, err)
 	require.Equal(t, `{ "index" : { "_index":"blocks", "_id" : "" } }
@@ -52,7 +52,7 @@ func TestBlockProcessor_SerializeEpochInfoData(t *testing.T) {
 
 	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 
-	buffSlice := data.NewBufferSlice(data.BulkSizeThreshold)
+	buffSlice := data.NewBufferSlice(data.DefaultBulkSizeThreshold)
 	err := bp.SerializeEpochInfoData(&dataBlock.MetaBlock{
 		AccumulatedFeesInEpoch: big.NewInt(1),
 		DevFeesInEpoch:         big.NewInt(2),
@@ -68,7 +68,7 @@ func TestBlockProcessor_SerializeBlockEpochStartMeta(t *testing.T) {
 
 	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 
-	buffSlice := data.NewBufferSlice(data.BulkSizeThreshold)
+	buffSlice := data.NewBufferSlice(data.DefaultBulkSizeThreshold)
 	err := bp.SerializeBlock(&data.Block{
 		Nonce:                 1,
 		Round:                 2,

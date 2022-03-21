@@ -8,7 +8,7 @@ import (
 )
 
 func TestBufferSlice_PutDataShouldWork(t *testing.T) {
-	buffSlice := NewBufferSlice(BulkSizeThreshold)
+	buffSlice := NewBufferSlice(DefaultBulkSizeThreshold)
 
 	meta := generateRandomBytes(100)
 	serializedData := generateRandomBytes(100)
@@ -16,7 +16,7 @@ func TestBufferSlice_PutDataShouldWork(t *testing.T) {
 	err := buffSlice.PutData(meta, serializedData)
 	require.Nil(t, err)
 
-	serializedData = generateRandomBytes(BulkSizeThreshold)
+	serializedData = generateRandomBytes(DefaultBulkSizeThreshold)
 	err = buffSlice.PutData(meta, serializedData)
 	require.Nil(t, err)
 
@@ -25,7 +25,7 @@ func TestBufferSlice_PutDataShouldWork(t *testing.T) {
 }
 
 func TestBufferSlice_PutDataShouldWorkNilSerializedData(t *testing.T) {
-	buffSlice := NewBufferSlice(BulkSizeThreshold)
+	buffSlice := NewBufferSlice(DefaultBulkSizeThreshold)
 
 	meta := []byte("my data")
 

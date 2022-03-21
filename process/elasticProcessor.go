@@ -256,7 +256,7 @@ func (ei *elasticProcessor) SaveHeader(
 		return err
 	}
 
-	buffSlice := data.NewBufferSlice(data.BulkSizeThreshold)
+	buffSlice := data.NewBufferSlice(data.DefaultBulkSizeThreshold)
 	err = ei.blockProc.SerializeBlock(elasticBlock, buffSlice, elasticIndexer.BlockIndex)
 	if err != nil {
 		return err
@@ -325,7 +325,7 @@ func (ei *elasticProcessor) SaveMiniblocks(header coreData.HeaderHandler, body *
 		log.Warn("elasticProcessor.SaveMiniblocks cannot get indexed miniblocks", "error", err)
 	}
 
-	buffSlice := data.NewBufferSlice(data.BulkSizeThreshold)
+	buffSlice := data.NewBufferSlice(data.DefaultBulkSizeThreshold)
 	ei.miniblocksProc.SerializeBulkMiniBlocks(mbs, miniblocksInDBMap, buffSlice, elasticIndexer.MiniblocksIndex)
 
 	return ei.doBulkRequests("", buffSlice.Buffers())
@@ -351,7 +351,7 @@ func (ei *elasticProcessor) SaveTransactions(
 	preparedResults := ei.transactionsProc.PrepareTransactionsForDatabase(body, header, pool)
 	logsData := ei.logsAndEventsProc.ExtractDataFromLogs(pool.Logs, preparedResults, headerTimestamp)
 
-	buffers := data.NewBufferSlice(data.BulkSizeThreshold)
+	buffers := data.NewBufferSlice(data.DefaultBulkSizeThreshold)
 	err := ei.indexTransactions(preparedResults.Transactions, preparedResults.TxHashStatus, header, buffers)
 	if err != nil {
 		return err
@@ -675,7 +675,7 @@ func (ei *elasticProcessor) indexNFTBurnInfo(tokensData data.TokensHandler, buff
 
 // SaveAccounts will prepare and save information about provided accounts in elasticsearch server
 func (ei *elasticProcessor) SaveAccounts(timestamp uint64, accts []*data.Account) error {
-	buffSlice := data.NewBufferSlice(data.BulkSizeThreshold)
+	buffSlice := data.NewBufferSlice(data.DefaultBulkSizeThreshold)
 	return ei.saveAccounts(timestamp, accts, buffSlice)
 }
 

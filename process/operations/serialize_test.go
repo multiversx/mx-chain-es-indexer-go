@@ -24,7 +24,7 @@ func TestOperationsProcessor_SerializeSCRS(t *testing.T) {
 		},
 	}
 
-	buffSlice := data.NewBufferSlice(data.BulkSizeThreshold)
+	buffSlice := data.NewBufferSlice(data.DefaultBulkSizeThreshold)
 	err := op.SerializeSCRs(scrs, buffSlice, "operations")
 	require.Nil(t, err)
 	require.Equal(t, `{"update":{"_index":"operations","_id":"", "_type": "_doc"}}

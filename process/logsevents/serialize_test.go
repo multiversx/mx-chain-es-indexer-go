@@ -31,7 +31,7 @@ func TestLogsAndEventsProcessor_SerializeLogs(t *testing.T) {
 		},
 	}
 
-	buffSlice := data.NewBufferSlice(data.BulkSizeThreshold)
+	buffSlice := data.NewBufferSlice(data.DefaultBulkSizeThreshold)
 	err := (&logsAndEventsProcessor{}).SerializeLogs(logs, buffSlice, "logs")
 	require.Nil(t, err)
 
@@ -52,7 +52,7 @@ func TestLogsAndEventsProcessor_SerializeSCDeploys(t *testing.T) {
 		},
 	}
 
-	buffSlice := data.NewBufferSlice(data.BulkSizeThreshold)
+	buffSlice := data.NewBufferSlice(data.DefaultBulkSizeThreshold)
 	err := (&logsAndEventsProcessor{}).SerializeSCDeploys(scDeploys, buffSlice, "scdeploys")
 	require.Nil(t, err)
 
@@ -98,7 +98,7 @@ func TestSerializeTokens(t *testing.T) {
 	}
 	tokens := []*data.TokenInfo{tok1, tok2}
 
-	buffSlice := data.NewBufferSlice(data.BulkSizeThreshold)
+	buffSlice := data.NewBufferSlice(data.DefaultBulkSizeThreshold)
 	err := (&logsAndEventsProcessor{}).SerializeTokens(tokens, nil, buffSlice, "tokens")
 	require.Nil(t, err)
 	require.Equal(t, 1, len(buffSlice.Buffers()))
@@ -129,7 +129,7 @@ func TestLogsAndEventsProcessor_SerializeDelegators(t *testing.T) {
 		hasher: &mock.HasherMock{},
 	}
 
-	buffSlice := data.NewBufferSlice(data.BulkSizeThreshold)
+	buffSlice := data.NewBufferSlice(data.DefaultBulkSizeThreshold)
 	err := logsProc.SerializeDelegators(delegators, buffSlice, "delegators")
 	require.Nil(t, err)
 
@@ -156,7 +156,7 @@ func TestLogsAndEventsProcessor_SerializeDelegatorsDelete(t *testing.T) {
 		hasher: &mock.HasherMock{},
 	}
 
-	buffSlice := data.NewBufferSlice(data.BulkSizeThreshold)
+	buffSlice := data.NewBufferSlice(data.DefaultBulkSizeThreshold)
 	err := logsProc.SerializeDelegators(delegators, buffSlice, "delegators")
 	require.Nil(t, err)
 

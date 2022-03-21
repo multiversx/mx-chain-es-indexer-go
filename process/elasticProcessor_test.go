@@ -617,7 +617,7 @@ func TestElasticProcessor_IndexEpochInfoData(t *testing.T) {
 	elasticSearchProc.selfShardID = core.MetachainShardId
 	elasticSearchProc.enabledIndexes[elasticIndexer.EpochInfoIndex] = struct{}{}
 
-	buffSlice := data.NewBufferSlice(data.BulkSizeThreshold)
+	buffSlice := data.NewBufferSlice(data.DefaultBulkSizeThreshold)
 	shardHeader := &dataBlock.Header{}
 	err := elasticSearchProc.indexEpochInfoData(shardHeader, buffSlice)
 	require.True(t, errors.Is(err, elasticIndexer.ErrHeaderTypeAssertion))
@@ -682,7 +682,7 @@ func TestElasticProcessor_IndexAlteredAccounts(t *testing.T) {
 	elasticSearchProc.enabledIndexes[elasticIndexer.AccountsESDTIndex] = struct{}{}
 	elasticSearchProc.enabledIndexes[elasticIndexer.AccountsESDTHistoryIndex] = struct{}{}
 
-	buffSlice := data.NewBufferSlice(data.BulkSizeThreshold)
+	buffSlice := data.NewBufferSlice(data.DefaultBulkSizeThreshold)
 	alteredAccounts := data.NewAlteredAccounts()
 	err := elasticSearchProc.indexAlteredAccounts(100, alteredAccounts, nil, buffSlice)
 	require.Nil(t, err)

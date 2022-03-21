@@ -15,7 +15,7 @@ func TestTagsCount_Serialize(t *testing.T) {
 	tagsC.ParseTags([]string{"Art"})
 	tagsC.ParseTags([]string{"Art"})
 
-	buffSlice := data.NewBufferSlice(data.BulkSizeThreshold)
+	buffSlice := data.NewBufferSlice(data.DefaultBulkSizeThreshold)
 	err := tagsC.Serialize(buffSlice, "tags")
 	require.Nil(t, err)
 

@@ -46,7 +46,7 @@ func TestPrepareTokenMetaData(t *testing.T) {
 func TestPrepareNFTUpdateData(t *testing.T) {
 	t.Parallel()
 
-	buffSlice := data.NewBufferSlice(data.BulkSizeThreshold)
+	buffSlice := data.NewBufferSlice(data.DefaultBulkSizeThreshold)
 
 	nftUpdateData := []*data.NFTDataUpdate{
 		{
