@@ -52,7 +52,7 @@ func createMockElasticProcessorArgs() *ArgElasticProcessor {
 	acp, _ := accounts.NewAccountsProcessor(&mock.MarshalizerMock{}, &mock.PubkeyConverterMock{}, &mock.AccountsStub{}, balanceConverter)
 	bp, _ := block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 	mp, _ := miniblocks.NewMiniblocksProcessor(0, &mock.HasherMock{}, &mock.MarshalizerMock{}, false)
-	vp, _ := validators.NewValidatorsProcessor(mock.NewPubkeyConverterMock(32))
+	vp, _ := validators.NewValidatorsProcessor(mock.NewPubkeyConverterMock(32), 0)
 	args := &logsevents.ArgsLogsAndEventsProcessor{
 		ShardCoordinator: &mock.ShardCoordinatorMock{},
 		PubKeyConverter:  &mock.PubkeyConverterMock{},
@@ -447,7 +447,7 @@ func TestElasticProcessor_SaveValidatorsRating(t *testing.T) {
 		},
 	}
 
-	arguments.ValidatorsProc, _ = validators.NewValidatorsProcessor(mock.NewPubkeyConverterMock(32))
+	arguments.ValidatorsProc, _ = validators.NewValidatorsProcessor(mock.NewPubkeyConverterMock(32), 0)
 	elasticProc, _ := NewElasticProcessor(arguments)
 
 	err := elasticProc.SaveValidatorsRating(
@@ -497,7 +497,7 @@ func TestElasticsearch_saveShardValidatorsPubKeys_RequestError(t *testing.T) {
 			return localErr
 		},
 	}
-	arguments.ValidatorsProc, _ = validators.NewValidatorsProcessor(mock.NewPubkeyConverterMock(32))
+	arguments.ValidatorsProc, _ = validators.NewValidatorsProcessor(mock.NewPubkeyConverterMock(32), 0)
 	elasticDatabase := newElasticsearchProcessor(dbWriter, arguments)
 
 	err := elasticDatabase.SaveShardValidatorsPubKeys(shardID, epoch, valPubKeys)

@@ -38,34 +38,36 @@ type objectsMap = map[string]interface{}
 // ArgElasticProcessor holds all dependencies required by the elasticProcessor in order to create
 // new instances
 type ArgElasticProcessor struct {
-	UseKibana         bool
-	SelfShardID       uint32
-	IndexTemplates    map[string]*bytes.Buffer
-	IndexPolicies     map[string]*bytes.Buffer
-	EnabledIndexes    map[string]struct{}
-	TransactionsProc  DBTransactionsHandler
-	AccountsProc      DBAccountHandler
-	BlockProc         DBBlockHandler
-	MiniblocksProc    DBMiniblocksHandler
-	StatisticsProc    DBStatisticsHandler
-	ValidatorsProc    DBValidatorsHandler
-	DBClient          DatabaseClientHandler
-	LogsAndEventsProc DBLogsAndEventsHandler
-	OperationsProc    OperationsHandler
+	BulkRequestMaxSize int
+	UseKibana          bool
+	SelfShardID        uint32
+	IndexTemplates     map[string]*bytes.Buffer
+	IndexPolicies      map[string]*bytes.Buffer
+	EnabledIndexes     map[string]struct{}
+	TransactionsProc   DBTransactionsHandler
+	AccountsProc       DBAccountHandler
+	BlockProc          DBBlockHandler
+	MiniblocksProc     DBMiniblocksHandler
+	StatisticsProc     DBStatisticsHandler
+	ValidatorsProc     DBValidatorsHandler
+	DBClient           DatabaseClientHandler
+	LogsAndEventsProc  DBLogsAndEventsHandler
+	OperationsProc     OperationsHandler
 }
 
 type elasticProcessor struct {
-	selfShardID       uint32
-	enabledIndexes    map[string]struct{}
-	elasticClient     DatabaseClientHandler
-	accountsProc      DBAccountHandler
-	blockProc         DBBlockHandler
-	transactionsProc  DBTransactionsHandler
-	miniblocksProc    DBMiniblocksHandler
-	statisticsProc    DBStatisticsHandler
-	validatorsProc    DBValidatorsHandler
-	logsAndEventsProc DBLogsAndEventsHandler
-	operationsProc    OperationsHandler
+	bulkRequestMaxSize int
+	selfShardID        uint32
+	enabledIndexes     map[string]struct{}
+	elasticClient      DatabaseClientHandler
+	accountsProc       DBAccountHandler
+	blockProc          DBBlockHandler
+	transactionsProc   DBTransactionsHandler
+	miniblocksProc     DBMiniblocksHandler
+	statisticsProc     DBStatisticsHandler
+	validatorsProc     DBValidatorsHandler
+	logsAndEventsProc  DBLogsAndEventsHandler
+	operationsProc     OperationsHandler
 }
 
 // NewElasticProcessor handles Elasticsearch operations such as initialization, adding, modifying or removing data
@@ -76,17 +78,18 @@ func NewElasticProcessor(arguments *ArgElasticProcessor) (*elasticProcessor, err
 	}
 
 	ei := &elasticProcessor{
-		elasticClient:     arguments.DBClient,
-		enabledIndexes:    arguments.EnabledIndexes,
-		accountsProc:      arguments.AccountsProc,
-		blockProc:         arguments.BlockProc,
-		miniblocksProc:    arguments.MiniblocksProc,
-		transactionsProc:  arguments.TransactionsProc,
-		selfShardID:       arguments.SelfShardID,
-		statisticsProc:    arguments.StatisticsProc,
-		validatorsProc:    arguments.ValidatorsProc,
-		logsAndEventsProc: arguments.LogsAndEventsProc,
-		operationsProc:    arguments.OperationsProc,
+		elasticClient:      arguments.DBClient,
+		enabledIndexes:     arguments.EnabledIndexes,
+		accountsProc:       arguments.AccountsProc,
+		blockProc:          arguments.BlockProc,
+		miniblocksProc:     arguments.MiniblocksProc,
+		transactionsProc:   arguments.TransactionsProc,
+		selfShardID:        arguments.SelfShardID,
+		statisticsProc:     arguments.StatisticsProc,
+		validatorsProc:     arguments.ValidatorsProc,
+		logsAndEventsProc:  arguments.LogsAndEventsProc,
+		operationsProc:     arguments.OperationsProc,
+		bulkRequestMaxSize: arguments.BulkRequestMaxSize,
 	}
 
 	err = ei.init(arguments.UseKibana, arguments.IndexTemplates, arguments.IndexPolicies)
@@ -256,7 +259,7 @@ func (ei *elasticProcessor) SaveHeader(
 		return err
 	}
 
-	buffSlice := data.NewBufferSlice(data.DefaultBulkSizeThreshold)
+	buffSlice := data.NewBufferSlice(ei.bulkRequestMaxSize)
 	err = ei.blockProc.SerializeBlock(elasticBlock, buffSlice, elasticIndexer.BlockIndex)
 	if err != nil {
 		return err
@@ -325,7 +328,7 @@ func (ei *elasticProcessor) SaveMiniblocks(header coreData.HeaderHandler, body *
 		log.Warn("elasticProcessor.SaveMiniblocks cannot get indexed miniblocks", "error", err)
 	}
 
-	buffSlice := data.NewBufferSlice(data.DefaultBulkSizeThreshold)
+	buffSlice := data.NewBufferSlice(ei.bulkRequestMaxSize)
 	ei.miniblocksProc.SerializeBulkMiniBlocks(mbs, miniblocksInDBMap, buffSlice, elasticIndexer.MiniblocksIndex)
 
 	return ei.doBulkRequests("", buffSlice.Buffers())
@@ -351,7 +354,7 @@ func (ei *elasticProcessor) SaveTransactions(
 	preparedResults := ei.transactionsProc.PrepareTransactionsForDatabase(body, header, pool)
 	logsData := ei.logsAndEventsProc.ExtractDataFromLogs(pool.Logs, preparedResults, headerTimestamp)
 
-	buffers := data.NewBufferSlice(data.DefaultBulkSizeThreshold)
+	buffers := data.NewBufferSlice(ei.bulkRequestMaxSize)
 	err := ei.indexTransactions(preparedResults.Transactions, preparedResults.TxHashStatus, header, buffers)
 	if err != nil {
 		return err
@@ -675,7 +678,7 @@ func (ei *elasticProcessor) indexNFTBurnInfo(tokensData data.TokensHandler, buff
 
 // SaveAccounts will prepare and save information about provided accounts in elasticsearch server
 func (ei *elasticProcessor) SaveAccounts(timestamp uint64, accts []*data.Account) error {
-	buffSlice := data.NewBufferSlice(data.DefaultBulkSizeThreshold)
+	buffSlice := data.NewBufferSlice(ei.bulkRequestMaxSize)
 	return ei.saveAccounts(timestamp, accts, buffSlice)
 }
 

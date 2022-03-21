@@ -54,7 +54,7 @@ func (ei *elasticProcessor) addTokenType(tokensData []*data.TokenInfo, index str
 				ids = append(ids, res.ID)
 			}
 
-			buffSlice := data.NewBufferSlice(data.DefaultBulkSizeThreshold)
+			buffSlice := data.NewBufferSlice(ei.bulkRequestMaxSize)
 			err = ei.accountsProc.SerializeTypeForProvidedIDs(ids, td.Type, buffSlice, index)
 			if err != nil {
 				return err
