@@ -23,7 +23,7 @@ func TestSerializeNFTCreateInfo(t *testing.T) {
 		},
 	}
 
-	buffSlice := data.NewBufferSlice(data.DefaultBulkSizeThreshold)
+	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
 	err := (&accountsProcessor{}).SerializeNFTCreateInfo(nftsCreateInfo, buffSlice, "tokens")
 	require.NoError(t, err)
 	require.Equal(t, 1, len(buffSlice.Buffers()))
@@ -50,7 +50,7 @@ func TestSerializeAccounts(t *testing.T) {
 		},
 	}
 
-	buffSlice := data.NewBufferSlice(data.DefaultBulkSizeThreshold)
+	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
 	err := (&accountsProcessor{}).SerializeAccounts(accs, buffSlice, "accounts")
 	require.NoError(t, err)
 	require.Equal(t, 1, len(buffSlice.Buffers()))
@@ -77,7 +77,7 @@ func TestSerializeAccountsESDTNonceZero(t *testing.T) {
 		},
 	}
 
-	buffSlice := data.NewBufferSlice(data.DefaultBulkSizeThreshold)
+	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
 	err := (&accountsProcessor{}).SerializeAccountsESDT(accs, nil, buffSlice, "accountsesdt")
 	require.NoError(t, err)
 	require.Equal(t, 1, len(buffSlice.Buffers()))
@@ -103,7 +103,7 @@ func TestSerializeAccountsESDT(t *testing.T) {
 		},
 	}
 
-	buffSlice := data.NewBufferSlice(data.DefaultBulkSizeThreshold)
+	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
 	err := (&accountsProcessor{}).SerializeAccountsESDT(accs, nil, buffSlice, "accountsesdt")
 	require.NoError(t, err)
 	require.Equal(t, 1, len(buffSlice.Buffers()))
@@ -143,7 +143,7 @@ func TestSerializeAccountsNFTWithMedaData(t *testing.T) {
 		},
 	}
 
-	buffSlice := data.NewBufferSlice(data.DefaultBulkSizeThreshold)
+	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
 	err := (&accountsProcessor{}).SerializeAccountsESDT(accs, nil, buffSlice, "accountsesdt")
 	require.NoError(t, err)
 	require.Equal(t, 1, len(buffSlice.Buffers()))
@@ -168,7 +168,7 @@ func TestSerializeAccountsESDTDelete(t *testing.T) {
 		},
 	}
 
-	buffSlice := data.NewBufferSlice(data.DefaultBulkSizeThreshold)
+	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
 	err := (&accountsProcessor{}).SerializeAccountsESDT(accs, nil, buffSlice, "accountsesdt")
 	require.NoError(t, err)
 	require.Equal(t, 1, len(buffSlice.Buffers()))
@@ -192,7 +192,7 @@ func TestSerializeAccountsHistory(t *testing.T) {
 		},
 	}
 
-	buffSlice := data.NewBufferSlice(data.DefaultBulkSizeThreshold)
+	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
 	err := (&accountsProcessor{}).SerializeAccountsHistory(accsh, buffSlice, "accountshistory")
 	require.NoError(t, err)
 	require.Equal(t, 1, len(buffSlice.Buffers()))

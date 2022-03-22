@@ -2,8 +2,8 @@ package data
 
 import "bytes"
 
-// DefaultBulkSizeThreshold is the constant for the maximum size of one bulk request that is sent to the elaticsearch database
-const DefaultBulkSizeThreshold = 4000000 // 4MB
+// DefaultMaxBulkSize is the constant for the maximum size of one bulk request that is sent to the elaticsearch database
+const DefaultMaxBulkSize = 4194304 // 4MB
 
 // BufferSlice extend structure bytes.Buffer with new methods
 type BufferSlice struct {
@@ -15,7 +15,7 @@ type BufferSlice struct {
 // NewBufferSlice will create a new buffer
 func NewBufferSlice(bulkSizeThreshold int) *BufferSlice {
 	if bulkSizeThreshold == 0 {
-		bulkSizeThreshold = DefaultBulkSizeThreshold
+		bulkSizeThreshold = DefaultMaxBulkSize
 	}
 
 	return &BufferSlice{

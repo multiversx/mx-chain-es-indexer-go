@@ -18,7 +18,7 @@ func TestMiniblocksProcessor_SerializeBulkMiniBlocks(t *testing.T) {
 		{Hash: "h2", SenderShardID: 0, ReceiverShardID: 2},
 	}
 
-	buffSlice := data.NewBufferSlice(data.DefaultBulkSizeThreshold)
+	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
 	mp.SerializeBulkMiniBlocks(miniblocks, nil, buffSlice, "miniblocks")
 
 	expectedBuff := `{ "index" : { "_index":"miniblocks", "_id" : "h1"} }
@@ -39,7 +39,7 @@ func TestMiniblocksProcessor_SerializeBulkMiniBlocksInDB(t *testing.T) {
 		{Hash: "h2", SenderShardID: 0, ReceiverShardID: 2},
 	}
 
-	buffSlice := data.NewBufferSlice(data.DefaultBulkSizeThreshold)
+	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
 	mp.SerializeBulkMiniBlocks(miniblocks, map[string]bool{
 		"h1": true,
 	}, buffSlice, "miniblocks")
