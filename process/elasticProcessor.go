@@ -426,7 +426,21 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
+	err = ei.prepareAndIndexRolesData(logsData.RolesData)
+	if err != nil {
+		return err
+	}
+
 	return ei.indexScDeploys(logsData.ScDeploys)
+}
+
+func (ei *elasticProcessor) prepareAndIndexRolesData(rolesData data.RolesData) error {
+	buffSlice, err := ei.logsAndEventsProc.SerializeRolesData(rolesData)
+	if err != nil {
+		return err
+	}
+
+	return ei.doBulkRequests(elasticIndexer.TokensIndex, buffSlice)
 }
 
 func (ei *elasticProcessor) prepareAndIndexDelegators(delegators map[string]*data.Delegator) error {
@@ -487,19 +501,6 @@ func (ei *elasticProcessor) prepareAndIndexLogs(logsAndEvents []*coreData.LogDat
 	}
 
 	return ei.doBulkRequests(elasticIndexer.LogsIndex, buffSlice)
-}
-
-func (ei *elasticProcessor) indexTokens(tokensData []*data.TokenInfo, updateNFTData []*data.NFTDataUpdate) error {
-	if !ei.isIndexEnabled(elasticIndexer.TokensIndex) {
-		return nil
-	}
-
-	buffSlice, err := ei.logsAndEventsProc.SerializeTokens(tokensData, updateNFTData)
-	if err != nil {
-		return err
-	}
-
-	return ei.doBulkRequests(elasticIndexer.TokensIndex, buffSlice)
 }
 
 func (ei *elasticProcessor) indexScDeploys(deployData map[string]*data.ScDeployInfo) error {
@@ -695,7 +696,10 @@ func (ei *elasticProcessor) indexNFTCreateInfo(tokensData data.TokensHandler) er
 
 	tokensData.AddTypeFromResponse(responseTokens)
 
-	buffSlice, err := ei.accountsProc.SerializeNFTCreateInfo(tokensData.GetAll())
+	tokens := tokensData.GetAll()
+	ei.accountsProc.PutTokenMedataDataInTokens(tokens)
+
+	buffSlice, err := ei.accountsProc.SerializeNFTCreateInfo(tokens)
 	if err != nil {
 		return err
 	}

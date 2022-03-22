@@ -50,20 +50,21 @@ func TestPrepareSmartContractResult(t *testing.T) {
 	mbHash := []byte("hash")
 	scRes := scrsProc.prepareSmartContractResult([]byte(scHash), mbHash, smartContractRes, header, 0, 1)
 	expectedTx := &data.ScResult{
-		Nonce:         nonce,
-		Hash:          hex.EncodeToString([]byte(scHash)),
-		PrevTxHash:    hex.EncodeToString(txHash),
-		MBHash:        hex.EncodeToString(mbHash),
-		Code:          string(code),
-		Data:          make([]byte, 0),
-		Sender:        pubKeyConverter.Encode(sndAddr),
-		Receiver:      pubKeyConverter.Encode(rcvAddr),
-		Value:         "<nil>",
-		CallType:      "1",
-		Timestamp:     time.Duration(100),
-		SenderShard:   0,
-		ReceiverShard: 1,
-		Operation:     "transfer",
+		Nonce:              nonce,
+		Hash:               hex.EncodeToString([]byte(scHash)),
+		PrevTxHash:         hex.EncodeToString(txHash),
+		MBHash:             hex.EncodeToString(mbHash),
+		Code:               string(code),
+		Data:               make([]byte, 0),
+		Sender:             pubKeyConverter.Encode(sndAddr),
+		Receiver:           pubKeyConverter.Encode(rcvAddr),
+		Value:              "<nil>",
+		CallType:           "1",
+		Timestamp:          time.Duration(100),
+		SenderShard:        0,
+		ReceiverShard:      1,
+		Operation:          "transfer",
+		SenderAddressBytes: sndAddr,
 	}
 
 	require.Equal(t, expectedTx, scRes)

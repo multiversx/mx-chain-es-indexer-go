@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"math/big"
+	"unicode"
 
 	"github.com/ElrondNetwork/elrond-go-core/core"
 )
@@ -33,4 +34,14 @@ func isEmptyAddr(pubKeyConverter core.PubkeyConverter, receiver []byte) bool {
 	emptyAddr := make([]byte, pubKeyConverter.Len())
 
 	return bytes.Equal(receiver, emptyAddr)
+}
+
+func isASCIIString(input string) bool {
+	for i := 0; i < len(input); i++ {
+		if input[i] > unicode.MaxASCII {
+			return false
+		}
+	}
+
+	return true
 }

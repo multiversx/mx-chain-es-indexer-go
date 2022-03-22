@@ -97,7 +97,7 @@ func (odp *operationDataFieldParser) parse(dataField []byte, sender, receiver []
 		return odp.parseRelayed(function, args, receiver)
 	}
 
-	if function != "" && core.IsSmartContractAddress(receiver) {
+	if function != "" && core.IsSmartContractAddress(receiver) && isASCIIString(function) {
 		responseParse.Function = function
 	}
 
@@ -174,6 +174,10 @@ func parseBlockingOperationESDT(args [][]byte, funcName string) *ResponseParseDa
 	}
 
 	token, nonce := extractTokenIdentifierAndNonce(args[0])
+	if !isASCIIString(string(token)) {
+		return responseData
+	}
+
 	tokenStr := string(token)
 	if nonce != 0 {
 		tokenStr = converters.ComputeTokenIdentifier(tokenStr, nonce)
@@ -192,7 +196,12 @@ func parseQuantityOperationESDT(args [][]byte, funcName string) *ResponseParseDa
 		return responseData
 	}
 
-	responseData.Tokens = append(responseData.Tokens, string(args[0]))
+	token := string(args[0])
+	if !isASCIIString(token) {
+		return responseData
+	}
+
+	responseData.Tokens = append(responseData.Tokens, token)
 	responseData.ESDTValues = append(responseData.ESDTValues, big.NewInt(0).SetBytes(args[1]).String())
 
 	return responseData
@@ -207,9 +216,14 @@ func parseQuantityOperationNFT(args [][]byte, funcName string) *ResponseParseDat
 		return responseData
 	}
 
+	token := string(args[0])
+	if !isASCIIString(token) {
+		return responseData
+	}
+
 	nonce := big.NewInt(0).SetBytes(args[1]).Uint64()
-	token := converters.ComputeTokenIdentifier(string(args[0]), nonce)
-	responseData.Tokens = append(responseData.Tokens, token)
+	tokenIdentifier := converters.ComputeTokenIdentifier(token, nonce)
+	responseData.Tokens = append(responseData.Tokens, tokenIdentifier)
 
 	value := big.NewInt(0).SetBytes(args[2]).String()
 	responseData.ESDTValues = append(responseData.ESDTValues, value)

@@ -4,10 +4,11 @@ import "time"
 
 // Logs holds all the fields needed for a logs structure
 type Logs struct {
-	ID        string        `json:"-"`
-	Address   string        `json:"address"`
-	Events    []*Event      `json:"events"`
-	Timestamp time.Duration `json:"timestamp,omitempty"`
+	ID             string        `json:"-"`
+	OriginalTxHash string        `json:"originalTxHash,omitempty"`
+	Address        string        `json:"address"`
+	Events         []*Event      `json:"events"`
+	Timestamp      time.Duration `json:"timestamp,omitempty"`
 }
 
 // Event holds all the fields needed for an event structure
@@ -28,4 +29,5 @@ type PreparedLogsResults struct {
 	Delegators      map[string]*Delegator
 	TokensInfo      []*TokenInfo
 	NFTsDataUpdates []*NFTDataUpdate
+	RolesData       RolesData
 }

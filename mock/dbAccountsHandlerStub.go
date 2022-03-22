@@ -59,3 +59,12 @@ func (dba *DBAccountsHandlerStub) SerializeAccountsESDT(_ map[string]*data.Accou
 func (dba *DBAccountsHandlerStub) SerializeNFTCreateInfo(_ []*data.TokenInfo) ([]*bytes.Buffer, error) {
 	return nil, nil
 }
+
+// PutTokenMedataDataInTokens -
+func (dba *DBAccountsHandlerStub) PutTokenMedataDataInTokens(_ []*data.TokenInfo) {
+}
+
+// SerializeTypeForProvidedIDs -
+func (dba *DBAccountsHandlerStub) SerializeTypeForProvidedIDs(_ []string, _ string) ([]*bytes.Buffer, error) {
+	return nil, nil
+}

@@ -105,13 +105,20 @@ func serializeToken(tokenData *data.TokenInfo) ([]byte, []byte, error) {
 		return serializeTokenTransferOwnership(tokenData)
 	}
 
-	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, tokenData.Token, "\n"))
-	serializedData, err := json.Marshal(tokenData)
+	meta := []byte(fmt.Sprintf(`{ "update" : { "_id" : "%s", "_type" : "_doc" } }%s`, tokenData.Token, "\n"))
+	serializedTokenData, err := json.Marshal(tokenData)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return meta, serializedData, nil
+	serializedDataStr := fmt.Sprintf(`{"script": {`+
+		`"source": "if (ctx._source.containsKey('roles')) {HashMap roles = ctx._source.roles; ctx._source = params.token; ctx._source.roles = roles}",`+
+		`"lang": "painless",`+
+		`"params": {"token": %s}},`+
+		`"upsert": %s}`,
+		string(serializedTokenData), string(serializedTokenData))
+
+	return meta, []byte(serializedDataStr), nil
 }
 
 func serializeTokenTransferOwnership(tokenData *data.TokenInfo) ([]byte, []byte, error) {
@@ -199,4 +206,46 @@ func (lep *logsAndEventsProcessor) SerializeSupplyData(tokensSupply data.TokensH
 	}
 
 	return buffSlice.Buffers(), nil
+}
+
+// SerializeRolesData will serialize the provided roles data
+func (lep *logsAndEventsProcessor) SerializeRolesData(rolesData data.RolesData) ([]*bytes.Buffer, error) {
+	buffSlice := data.NewBufferSlice()
+	for role, roleData := range rolesData {
+		for _, rd := range roleData {
+			err := serializeRoleData(buffSlice, rd, role)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return buffSlice.Buffers(), nil
+}
+
+func serializeRoleData(buffSlice *data.BufferSlice, rd *data.RoleData, role string) error {
+	meta := []byte(fmt.Sprintf(`{ "update" : { "_id" : "%s", "_type" : "_doc" } }%s`, rd.Token, "\n"))
+	var serializedDataStr string
+	if rd.Set {
+		serializedDataStr = fmt.Sprintf(`{"script": {`+
+			`"source": "if (!ctx._source.containsKey('roles')) { ctx._source.roles =  new HashMap();} if (!ctx._source.roles.containsKey(params.role)) { ctx._source.roles.put(params.role, [ params.address ])} else { ctx._source.roles.get(params.role).add(params.address) } ",`+
+			`"lang": "painless",`+
+			`"params": { "role": "%s", "address": "%s"}},`+
+			`"upsert": { "roles": {"%s": ["%s"]}}}`,
+			role, rd.Address, role, rd.Address)
+	} else {
+		serializedDataStr = fmt.Sprintf(`{"script": {`+
+			`"source": "if (ctx._source.containsKey('roles')) { if (ctx._source.roles.containsKey(params.role)) { ctx._source.roles.get(params.role).removeIf(p -> p.equals(params.address)) } } ",`+
+			`"lang": "painless",`+
+			`"params": { "role": "%s", "address": "%s" }},`+
+			`"upsert": {} }`,
+			role, rd.Address)
+	}
+
+	err := buffSlice.PutData(meta, []byte(serializedDataStr))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

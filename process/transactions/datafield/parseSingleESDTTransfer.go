@@ -14,11 +14,11 @@ func (odp *operationDataFieldParser) parseESDTTransfer(args [][]byte, sender, re
 		return responseParse
 	}
 
-	if core.IsSmartContractAddress(receiver) {
+	if core.IsSmartContractAddress(receiver) && isASCIIString(parsedESDTTransfers.CallFunction) {
 		responseParse.Function = parsedESDTTransfers.CallFunction
 	}
 
-	if len(parsedESDTTransfers.ESDTTransfers) == 0 {
+	if len(parsedESDTTransfers.ESDTTransfers) == 0 || !isASCIIString(string(parsedESDTTransfers.ESDTTransfers[0].ESDTTokenName)) {
 		return responseParse
 	}
 	responseParse.Tokens = append(responseParse.Tokens, string(parsedESDTTransfers.ESDTTransfers[0].ESDTTokenName))

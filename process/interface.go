@@ -16,6 +16,8 @@ type DatabaseClientHandler interface {
 	DoBulkRequest(buff *bytes.Buffer, index string) error
 	DoBulkRemove(index string, hashes []string) error
 	DoMultiGet(ids []string, index string, withSource bool, res interface{}) error
+	DoScrollRequest(index string, body []byte, withSource bool, handlerFunc func(responseBytes []byte) error) error
+	DoCountRequest(index string, body []byte) (uint64, error)
 
 	CheckAndCreateIndex(index string) error
 	CheckAndCreateAlias(alias string, index string) error
@@ -31,11 +33,13 @@ type DBAccountHandler interface {
 	PrepareRegularAccountsMap(accounts []*data.Account) map[string]*data.AccountInfo
 	PrepareAccountsMapESDT(timestamp uint64, accounts []*data.AccountESDT) (map[string]*data.AccountInfo, data.TokensHandler)
 	PrepareAccountsHistory(timestamp uint64, accounts map[string]*data.AccountInfo) map[string]*data.AccountBalanceHistory
+	PutTokenMedataDataInTokens(tokensData []*data.TokenInfo)
 
 	SerializeAccountsHistory(accounts map[string]*data.AccountBalanceHistory) ([]*bytes.Buffer, error)
 	SerializeAccounts(accounts map[string]*data.AccountInfo) ([]*bytes.Buffer, error)
 	SerializeAccountsESDT(accounts map[string]*data.AccountInfo, updateNFTData []*data.NFTDataUpdate) ([]*bytes.Buffer, error)
 	SerializeNFTCreateInfo(tokensInfo []*data.TokenInfo) ([]*bytes.Buffer, error)
+	SerializeTypeForProvidedIDs(ids []string, tokenType string) ([]*bytes.Buffer, error)
 }
 
 // DBBlockHandler defines the actions that a block handler should do
@@ -103,6 +107,7 @@ type DBLogsAndEventsHandler interface {
 	SerializeTokens(tokens []*data.TokenInfo, updateNFTData []*data.NFTDataUpdate) ([]*bytes.Buffer, error)
 	SerializeDelegators(delegators map[string]*data.Delegator) ([]*bytes.Buffer, error)
 	SerializeSupplyData(tokensSupply data.TokensHandler) ([]*bytes.Buffer, error)
+	SerializeRolesData(rolesData data.RolesData) ([]*bytes.Buffer, error)
 }
 
 // OperationsHandler defines the actions that an operations' handler should do
