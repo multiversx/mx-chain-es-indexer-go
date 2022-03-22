@@ -381,7 +381,7 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
-	err = ei.indexNFTCreateInfo(logsData.Tokens)
+	err = ei.indexNFTCreateInfo(logsData.Tokens, coreAlteredAccounts)
 	if err != nil {
 		return err
 	}
@@ -682,7 +682,7 @@ func (ei *elasticProcessor) indexAccountsESDT(
 	return ei.doBulkRequests(elasticIndexer.AccountsESDTIndex, buffSlice)
 }
 
-func (ei *elasticProcessor) indexNFTCreateInfo(tokensData data.TokensHandler) error {
+func (ei *elasticProcessor) indexNFTCreateInfo(tokensData data.TokensHandler, coreAlteredAccounts map[string]*indexer.AlteredAccount) error {
 	shouldSkipIndex := !ei.isIndexEnabled(elasticIndexer.TokensIndex) || tokensData.Len() == 0
 	if shouldSkipIndex {
 		return nil
@@ -697,7 +697,7 @@ func (ei *elasticProcessor) indexNFTCreateInfo(tokensData data.TokensHandler) er
 	tokensData.AddTypeFromResponse(responseTokens)
 
 	tokens := tokensData.GetAll()
-	ei.accountsProc.PutTokenMedataDataInTokens(tokens)
+	ei.accountsProc.PutTokenMedataDataInTokens(tokens, coreAlteredAccounts)
 
 	buffSlice, err := ei.accountsProc.SerializeNFTCreateInfo(tokens)
 	if err != nil {
