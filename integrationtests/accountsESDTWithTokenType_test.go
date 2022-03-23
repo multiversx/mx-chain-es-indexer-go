@@ -3,6 +3,7 @@
 package integrationtests
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"math/big"
 	"testing"
@@ -84,11 +85,16 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 	}
 
 	addr := "aaaabbbb"
+	encodedAddr := hex.EncodeToString([]byte(addr))
 	coreAlteredAccounts := map[string]*indexer.AlteredAccount{
-		addr: {
+		encodedAddr: {
+			Address: encodedAddr,
+			Balance: "1000",
 			Tokens: []*indexer.AccountTokenData{
 				{
+					Identifier: "SEMI-abcd",
 					Balance:    "1000",
+					Nonce:      2,
 					Properties: "ok",
 					MetaData: &esdt.MetaData{
 						Creator: []byte("creator"),
@@ -157,10 +163,15 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 	body := &dataBlock.Body{}
 
 	addr := "aaaabbbb"
+	encodedAddr := hex.EncodeToString([]byte(addr))
 	coreAlteredAccounts := map[string]*indexer.AlteredAccount{
-		addr: {
+		encodedAddr: {
+			Address: encodedAddr,
+			Balance: "1000",
 			Tokens: []*indexer.AccountTokenData{
 				{
+					Identifier: "TTTT-abcd",
+					Nonce:      2,
 					Balance:    "1000",
 					Properties: "ok",
 					MetaData: &esdt.MetaData{
