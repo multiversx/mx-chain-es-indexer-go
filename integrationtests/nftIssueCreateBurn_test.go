@@ -29,7 +29,6 @@ func TestIssueNFTCreateAndBurn(t *testing.T) {
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	accounts := &mock.AccountsStub{}
 	feeComputer := &mock.EconomicsHandlerMock{}
 
 	// ################ ISSUE NON FUNGIBLE TOKEN ##########################
@@ -37,7 +36,7 @@ func TestIssueNFTCreateAndBurn(t *testing.T) {
 		SelfID: core.MetachainShardId,
 	}
 
-	esProc, err := CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
 	require.Nil(t, err)
 
 	body := &dataBlock.Body{}
@@ -64,7 +63,7 @@ func TestIssueNFTCreateAndBurn(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*indexer.AlteredAccount{})
 	require.Nil(t, err)
 
 	ids := []string{"NON-abcd"}
@@ -78,7 +77,7 @@ func TestIssueNFTCreateAndBurn(t *testing.T) {
 		SelfID: 0,
 	}
 
-	esProc, err = CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	esProc, err = CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
 	require.Nil(t, err)
 
 	header = &dataBlock.Header{
@@ -111,7 +110,7 @@ func TestIssueNFTCreateAndBurn(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*indexer.AlteredAccount{})
 	require.Nil(t, err)
 
 	ids = []string{"NON-abcd-02"}
@@ -145,7 +144,7 @@ func TestIssueNFTCreateAndBurn(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*indexer.AlteredAccount{})
 	require.Nil(t, err)
 
 	ids = []string{"NON-abcd-02"}

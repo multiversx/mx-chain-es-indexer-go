@@ -16,7 +16,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/data/esdt"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 	"github.com/stretchr/testify/require"
 )
 
@@ -36,7 +35,6 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	accounts := &mock.AccountsStub{}
 	feeComputer := &mock.EconomicsHandlerMock{}
 
 	// ################ ISSUE NON FUNGIBLE TOKEN ##########################
@@ -44,7 +42,7 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 		SelfID: core.MetachainShardId,
 	}
 
-	esProc, err := CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
 	require.Nil(t, err)
 
 	body := &dataBlock.Body{}
@@ -71,7 +69,7 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*indexer.AlteredAccount{})
 	require.Nil(t, err)
 
 	ids := []string{"SEMI-abcd"}
@@ -85,29 +83,21 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 		SelfID: 0,
 	}
 
-	esdtToken := &esdt.ESDigitalToken{
-		Value:      big.NewInt(1000),
-		Properties: []byte("ok"),
-		TokenMetaData: &esdt.MetaData{
-			Creator: []byte("creator"),
-		},
-	}
-
 	addr := "aaaabbbb"
-	mockAccount := &mock.UserAccountStub{
-		RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
-			return json.Marshal(esdtToken)
-		},
-		AddressBytesCalled: func() []byte {
-			return []byte(addr)
+	coreAlteredAccounts := map[string]*indexer.AlteredAccount{
+		addr: {
+			Tokens: []*indexer.AccountTokenData{
+				{
+					Balance:    "1000",
+					Properties: "ok",
+					MetaData: &esdt.MetaData{
+						Creator: []byte("creator"),
+					},
+				},
+			},
 		},
 	}
-	accounts = &mock.AccountsStub{
-		LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
-			return mockAccount, nil
-		},
-	}
-	esProc, err = CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	esProc, err = CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
 	require.Nil(t, err)
 
 	header = &dataBlock.Header{
@@ -140,7 +130,7 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts)
 	require.Nil(t, err)
 
 	ids = []string{"6161616162626262-SEMI-abcd-02"}
@@ -157,7 +147,6 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	accounts := &mock.AccountsStub{}
 	feeComputer := &mock.EconomicsHandlerMock{}
 
 	// ################ CREATE SEMI FUNGIBLE TOKEN ##########################
@@ -167,29 +156,21 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 
 	body := &dataBlock.Body{}
 
-	esdtToken := &esdt.ESDigitalToken{
-		Value:      big.NewInt(1000),
-		Properties: []byte("ok"),
-		TokenMetaData: &esdt.MetaData{
-			Creator: []byte("creator"),
-		},
-	}
-
 	addr := "aaaabbbb"
-	mockAccount := &mock.UserAccountStub{
-		RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
-			return json.Marshal(esdtToken)
-		},
-		AddressBytesCalled: func() []byte {
-			return []byte(addr)
+	coreAlteredAccounts := map[string]*indexer.AlteredAccount{
+		addr: {
+			Tokens: []*indexer.AccountTokenData{
+				{
+					Balance:    "1000",
+					Properties: "ok",
+					MetaData: &esdt.MetaData{
+						Creator: []byte("creator"),
+					},
+				},
+			},
 		},
 	}
-	accounts = &mock.AccountsStub{
-		LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
-			return mockAccount, nil
-		},
-	}
-	esProc, err := CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
 	require.Nil(t, err)
 
 	header := &dataBlock.Header{
@@ -222,7 +203,7 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts)
 	require.Nil(t, err)
 
 	ids := []string{"6161616162626262-TTTT-abcd-02"}
@@ -242,7 +223,7 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 		TimeStamp: 5040,
 	}
 
-	esProc, err = CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	esProc, err = CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
 	require.Nil(t, err)
 
 	pool = &indexer.Pool{
@@ -263,7 +244,7 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*indexer.AlteredAccount{})
 	require.Nil(t, err)
 
 	ids = []string{"TTTT-abcd"}
