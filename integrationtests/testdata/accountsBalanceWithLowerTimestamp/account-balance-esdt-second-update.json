@@ -1,0 +1,8 @@
+{
+  "address": "6161616162626262",
+  "balance": "1000",
+  "balanceNum": 1e-15,
+  "timestamp": 6000,
+  "token": "TTTT-abcd",
+  "type": "FungibleESDT"
+}

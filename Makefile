@@ -18,3 +18,6 @@ start-cluster-with-kibana:
 
 stop-cluster:
 	docker-compose down
+
+delete-cluster-data:
+	cd scripts && ./script.sh delete
