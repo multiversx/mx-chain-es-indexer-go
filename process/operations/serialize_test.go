@@ -24,11 +24,12 @@ func TestOperationsProcessor_SerializeSCRS(t *testing.T) {
 		},
 	}
 
-	res, err := op.SerializeSCRs(scrs)
+	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
+	err := op.SerializeSCRs(scrs, buffSlice, "operations")
 	require.Nil(t, err)
-	require.Equal(t, `{"update":{"_id":"", "_type": "_doc"}}
+	require.Equal(t, `{"update":{"_index":"operations","_id":"", "_type": "_doc"}}
 {"script":{"source":"return"},"upsert":{"nonce":0,"gasLimit":0,"gasPrice":0,"value":"","sender":"","receiver":"","senderShard":0,"receiverShard":1,"prevTxHash":"","originalTxHash":"","callType":"","timestamp":0}}
-{ "index" : { "_id" : "", "_type" : "_doc" } }
+{ "index" : { "_index":"operations","_id" : "", "_type" : "_doc" } }
 {"nonce":0,"gasLimit":0,"gasPrice":0,"value":"","sender":"","receiver":"","senderShard":2,"receiverShard":0,"prevTxHash":"","originalTxHash":"","callType":"","timestamp":0}
-`, res[0].String())
+`, buffSlice.Buffers()[0].String())
 }

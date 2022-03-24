@@ -12,7 +12,7 @@ import (
 func TestNewValidatorsProcessor(t *testing.T) {
 	t.Parallel()
 
-	vp, err := NewValidatorsProcessor(nil)
+	vp, err := NewValidatorsProcessor(nil, 0)
 	require.Nil(t, vp)
 	require.Equal(t, indexer.ErrNilPubkeyConverter, err)
 }
@@ -20,7 +20,7 @@ func TestNewValidatorsProcessor(t *testing.T) {
 func TestValidatorsProcessor_PrepareValidatorsPublicKeys(t *testing.T) {
 	t.Parallel()
 
-	vp, _ := NewValidatorsProcessor(&mock.PubkeyConverterMock{})
+	vp, _ := NewValidatorsProcessor(&mock.PubkeyConverterMock{}, 0)
 
 	blsKeys := [][]byte{
 		[]byte("key1"), []byte("key2"),

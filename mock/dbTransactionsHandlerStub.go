@@ -1,8 +1,6 @@
 package mock
 
 import (
-	"bytes"
-
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
@@ -12,12 +10,12 @@ import (
 // DBTransactionProcessorStub -
 type DBTransactionProcessorStub struct {
 	PrepareTransactionsForDatabaseCalled func(body *block.Body, header coreData.HeaderHandler, pool *indexer.Pool) *data.PreparedResults
-	SerializeReceiptsCalled              func(recs []*data.Receipt) ([]*bytes.Buffer, error)
-	SerializeScResultsCalled             func(scrs []*data.ScResult) ([]*bytes.Buffer, error)
+	SerializeReceiptsCalled              func(recs []*data.Receipt, buffSlice *data.BufferSlice, index string) error
+	SerializeScResultsCalled             func(scrs []*data.ScResult, buffSlice *data.BufferSlice, index string) error
 }
 
-func (tps *DBTransactionProcessorStub) SerializeTransactionWithRefund(_ map[string]*data.Transaction, _ map[string]*data.RefundData) ([]*bytes.Buffer, error) {
-	return nil, nil
+func (tps *DBTransactionProcessorStub) SerializeTransactionWithRefund(_ map[string]*data.Transaction, _ map[string]*data.RefundData, _ *data.BufferSlice, _ string) error {
+	return nil
 }
 
 // PrepareTransactionsForDatabase -
@@ -35,34 +33,34 @@ func (tps *DBTransactionProcessorStub) GetRewardsTxsHashesHexEncoded(_ coreData.
 }
 
 // SerializeReceipts -
-func (tps *DBTransactionProcessorStub) SerializeReceipts(recs []*data.Receipt) ([]*bytes.Buffer, error) {
+func (tps *DBTransactionProcessorStub) SerializeReceipts(recs []*data.Receipt, buffSlice *data.BufferSlice, index string) error {
 	if tps.SerializeReceiptsCalled != nil {
-		return tps.SerializeReceiptsCalled(recs)
+		return tps.SerializeReceiptsCalled(recs, buffSlice, index)
 	}
 
-	return nil, nil
+	return nil
 }
 
 // SerializeTransactions -
-func (tps *DBTransactionProcessorStub) SerializeTransactions(_ []*data.Transaction, _ map[string]string, _ uint32) ([]*bytes.Buffer, error) {
-	return nil, nil
+func (tps *DBTransactionProcessorStub) SerializeTransactions(_ []*data.Transaction, _ map[string]string, _ uint32, _ *data.BufferSlice, _ string) error {
+	return nil
 }
 
 // SerializeScResults -
-func (tps *DBTransactionProcessorStub) SerializeScResults(scrs []*data.ScResult) ([]*bytes.Buffer, error) {
+func (tps *DBTransactionProcessorStub) SerializeScResults(scrs []*data.ScResult, buffSlice *data.BufferSlice, index string) error {
 	if tps.SerializeScResultsCalled != nil {
-		return tps.SerializeScResultsCalled(scrs)
+		return tps.SerializeScResultsCalled(scrs, buffSlice, index)
 	}
 
-	return nil, nil
+	return nil
 }
 
 // SerializeDeploysData -
-func (tps *DBTransactionProcessorStub) SerializeDeploysData(_ []*data.ScDeployInfo) ([]*bytes.Buffer, error) {
-	return nil, nil
+func (tps *DBTransactionProcessorStub) SerializeDeploysData(_ []*data.ScDeployInfo, _ *data.BufferSlice, _ string) error {
+	return nil
 }
 
 // SerializeTokens -
-func (tps *DBTransactionProcessorStub) SerializeTokens(_ []*data.TokenInfo) ([]*bytes.Buffer, error) {
-	return nil, nil
+func (tps *DBTransactionProcessorStub) SerializeTokens(_ []*data.TokenInfo, _ *data.BufferSlice, _ string) error {
+	return nil
 }
