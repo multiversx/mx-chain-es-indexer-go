@@ -31,7 +31,7 @@ func (logsAndEventsProcessor) SerializeLogs(logs []*data.Logs, buffSlice *data.B
 // SerializeSCDeploys will serialize the provided smart contract deploys in a way that Elastic Search expects a bulk request
 func (logsAndEventsProcessor) SerializeSCDeploys(deploys map[string]*data.ScDeployInfo, buffSlice *data.BufferSlice, index string) error {
 	for scAddr, deployInfo := range deploys {
-		meta := []byte(fmt.Sprintf(`{ "update" : { "_index":"%s", "_id" : "%s", "_type" : "_doc" } }%s`, index, scAddr, "\n"))
+		meta := []byte(fmt.Sprintf(`{ "update" : { "_index":"%s", "_id" : "%s" } }%s`, index, scAddr, "\n"))
 
 		serializedData, err := serializeDeploy(deployInfo)
 		if err != nil {
@@ -96,7 +96,7 @@ func serializeToken(tokenData *data.TokenInfo, index string) ([]byte, []byte, er
 		return serializeTokenTransferOwnership(tokenData, index)
 	}
 
-	meta := []byte(fmt.Sprintf(`{ "update" : { "_index":"%s", "_id" : "%s", "_type" : "_doc" } }%s`, index, tokenData.Token, "\n"))
+	meta := []byte(fmt.Sprintf(`{ "update" : { "_index":"%s", "_id" : "%s" } }%s`, index, tokenData.Token, "\n"))
 	serializedTokenData, err := json.Marshal(tokenData)
 	if err != nil {
 		return nil, nil, err
@@ -113,7 +113,7 @@ func serializeToken(tokenData *data.TokenInfo, index string) ([]byte, []byte, er
 }
 
 func serializeTokenTransferOwnership(tokenData *data.TokenInfo, index string) ([]byte, []byte, error) {
-	meta := []byte(fmt.Sprintf(`{ "update" : { "_index":"%s", "_id" : "%s", "_type" : "_doc" } }%s`, index, tokenData.Token, "\n"))
+	meta := []byte(fmt.Sprintf(`{ "update" : { "_index":"%s", "_id" : "%s" } }%s`, index, tokenData.Token, "\n"))
 	tokenDataSerialized, err := json.Marshal(tokenData)
 	if err != nil {
 		return nil, nil, err
@@ -212,7 +212,7 @@ func (lep *logsAndEventsProcessor) SerializeRolesData(rolesData data.RolesData, 
 }
 
 func serializeRoleData(buffSlice *data.BufferSlice, rd *data.RoleData, role string, index string) error {
-	meta := []byte(fmt.Sprintf(`{ "update" : {"_index": "%s", "_id" : "%s", "_type" : "_doc" } }%s`, index, rd.Token, "\n"))
+	meta := []byte(fmt.Sprintf(`{ "update" : {"_index": "%s", "_id" : "%s" } }%s`, index, rd.Token, "\n"))
 	var serializedDataStr string
 	if rd.Set {
 		serializedDataStr = fmt.Sprintf(`{"script": {`+

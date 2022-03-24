@@ -86,7 +86,7 @@ func prepareDeleteAccountInfo(acct *data.AccountInfo, isESDT bool, index string)
 		id += fmt.Sprintf("-%s-%s", acct.TokenName, hexEncodedNonce)
 	}
 
-	meta := []byte(fmt.Sprintf(`{ "update" : {"_index":"%s", "_id" : "%s", "_type" : "_doc" } }%s`, index, id, "\n"))
+	meta := []byte(fmt.Sprintf(`{ "update" : {"_index":"%s", "_id" : "%s" } }%s`, index, id, "\n"))
 
 	serializedDataStr := fmt.Sprintf(`{"scripted_upsert": true, "script": {`+
 		`"source": "if ( ctx.op == 'create' )  { ctx.op = 'noop' } else { if (ctx._source.timestamp < params.timestamp ) { ctx.op = 'delete'  } }",`+
@@ -115,7 +115,7 @@ func prepareSerializedAccountInfo(
 		return nil, nil, err
 	}
 
-	meta := []byte(fmt.Sprintf(`{ "update" : {"_index": "%s", "_id" : "%s", "_type" : "_doc" } }%s`, index, id, "\n"))
+	meta := []byte(fmt.Sprintf(`{ "update" : {"_index": "%s", "_id" : "%s" } }%s`, index, id, "\n"))
 	serializedDataStr := fmt.Sprintf(`{"scripted_upsert": true, "script": {`+
 		`"source": "if ( ctx.op == 'create' )  { ctx._source = params.account } else { if (ctx._source.timestamp < params.account.timestamp ) { ctx._source = params.account  } }",`+
 		`"lang": "painless",`+
@@ -181,7 +181,7 @@ func (ap *accountsProcessor) SerializeTypeForProvidedIDs(
 	index string,
 ) error {
 	for _, id := range ids {
-		meta := []byte(fmt.Sprintf(`{ "update" : {"_index":"%s", "_id" : "%s", "_type" : "_doc" } }%s`, index, id, "\n"))
+		meta := []byte(fmt.Sprintf(`{ "update" : {"_index":"%s", "_id" : "%s" } }%s`, index, id, "\n"))
 
 		serializedDataStr := fmt.Sprintf(`{"scripted_upsert": true, "script": {`+
 			`"source": "if ( ctx.op == 'create' )  { ctx.op = 'noop' } else  { ctx._source.type = params.type }",`+
