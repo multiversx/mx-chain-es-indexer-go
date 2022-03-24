@@ -83,7 +83,7 @@ func PrepareNFTUpdateData(buffSlice *data.BufferSlice, updateNFTData []*data.NFT
 			id = fmt.Sprintf("%s-%s", nftUpdate.Address, nftUpdate.Identifier)
 		}
 
-		metaData := []byte(fmt.Sprintf(`{"update":{ "_index":"%s","_id":"%s", "_type": "_doc"}}%s`, index, id, "\n"))
+		metaData := []byte(fmt.Sprintf(`{"update":{ "_index":"%s","_id":"%s"}}%s`, index, id, "\n"))
 		base64Attr := base64.StdEncoding.EncodeToString(nftUpdate.NewAttributes)
 		serializedData := []byte(fmt.Sprintf(`{"script": {"source": "if (ctx._source.containsKey('data')) {ctx._source.data.attributes = params.attributes}","lang": "painless","params": {"attributes": "%s"}}, "upsert": {}}`, base64Attr))
 		if len(nftUpdate.URIsToAdd) != 0 {

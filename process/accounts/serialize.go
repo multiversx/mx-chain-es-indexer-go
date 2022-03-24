@@ -72,23 +72,31 @@ func (ap *accountsProcessor) SerializeAccountsESDT(
 
 func prepareSerializedAccount(acc *data.AccountInfo, isESDT bool, index string) ([]byte, []byte, error) {
 	if (acc.Balance == "0" || acc.Balance == "") && isESDT {
-		meta := prepareDeleteAccountInfo(acc, isESDT, index)
-		return meta, nil, nil
+		meta, serializedData := prepareDeleteAccountInfo(acc, isESDT, index)
+		return meta, serializedData, nil
 	}
 
 	return prepareSerializedAccountInfo(acc, isESDT, index)
 }
 
-func prepareDeleteAccountInfo(acct *data.AccountInfo, isESDT bool, index string) []byte {
+func prepareDeleteAccountInfo(acct *data.AccountInfo, isESDT bool, index string) ([]byte, []byte) {
 	id := acct.Address
 	if isESDT {
 		hexEncodedNonce := converters.EncodeNonceToHex(acct.TokenNonce)
 		id += fmt.Sprintf("-%s-%s", acct.TokenName, hexEncodedNonce)
 	}
 
-	meta := []byte(fmt.Sprintf(`{ "delete" : {"_index":"%s", "_id" : "%s" } }%s`, index, id, "\n"))
+	meta := []byte(fmt.Sprintf(`{ "update" : {"_index":"%s", "_id" : "%s" } }%s`, index, id, "\n"))
 
-	return meta
+	serializedDataStr := fmt.Sprintf(`{"scripted_upsert": true, "script": {`+
+		`"source": "if ( ctx.op == 'create' )  { ctx.op = 'noop' } else { if (ctx._source.timestamp < params.timestamp ) { ctx.op = 'delete'  } }",`+
+		`"lang": "painless",`+
+		`"params": {"timestamp": %d}},`+
+		`"upsert": {}}`,
+		acct.Timestamp,
+	)
+
+	return meta, []byte(serializedDataStr)
 }
 
 func prepareSerializedAccountInfo(
@@ -102,13 +110,21 @@ func prepareSerializedAccountInfo(
 		id += fmt.Sprintf("-%s-%s", account.TokenName, hexEncodedNonce)
 	}
 
-	meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s", "_id" : "%s" } }%s`, index, id, "\n"))
-	serializedData, err := json.Marshal(account)
+	serializedAccount, err := json.Marshal(account)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return meta, serializedData, nil
+	meta := []byte(fmt.Sprintf(`{ "update" : {"_index": "%s", "_id" : "%s" } }%s`, index, id, "\n"))
+	serializedDataStr := fmt.Sprintf(`{"scripted_upsert": true, "script": {`+
+		`"source": "if ( ctx.op == 'create' )  { ctx._source = params.account } else { if (ctx._source.timestamp < params.account.timestamp ) { ctx._source = params.account  } }",`+
+		`"lang": "painless",`+
+		`"params": { "account": %s }},`+
+		`"upsert": {}}`,
+		serializedAccount,
+	)
+
+	return meta, []byte(serializedDataStr), nil
 }
 
 // SerializeAccountsHistory will serialize accounts history in a way that Elastic Search expects a bulk request
@@ -165,7 +181,7 @@ func (ap *accountsProcessor) SerializeTypeForProvidedIDs(
 	index string,
 ) error {
 	for _, id := range ids {
-		meta := []byte(fmt.Sprintf(`{ "update" : {"_index":"%s", "_id" : "%s", "_type" : "_doc" } }%s`, index, id, "\n"))
+		meta := []byte(fmt.Sprintf(`{ "update" : {"_index":"%s", "_id" : "%s" } }%s`, index, id, "\n"))
 
 		serializedDataStr := fmt.Sprintf(`{"scripted_upsert": true, "script": {`+
 			`"source": "if ( ctx.op == 'create' )  { ctx.op = 'noop' } else  { ctx._source.type = params.type }",`+

@@ -148,11 +148,11 @@ func (ap *accountsProcessor) PrepareRegularAccountsMap(timestamp uint64, account
 		acc := &data.AccountInfo{
 			Address:                  address,
 			Nonce:                    userAccount.UserAccount.GetNonce(),
-			Balance:                  balance.String(),
+			Balance:                  converters.BigIntToString(balance),
 			BalanceNum:               balanceAsFloat,
 			IsSender:                 userAccount.IsSender,
 			IsSmartContract:          core.IsSmartContractAddress(userAccount.UserAccount.AddressBytes()),
-			TotalBalanceWithStake:    balance.String(),
+			TotalBalanceWithStake:    converters.BigIntToString(balance),
 			TotalBalanceWithStakeNum: balanceAsFloat,
 			Timestamp:                time.Duration(timestamp),
 		}

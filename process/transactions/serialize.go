@@ -116,7 +116,7 @@ func (tdp *txsDatabaseProcessor) SerializeTransactions(
 
 func serializeTxHashStatus(buffSlice *data.BufferSlice, txHashStatus map[string]string, index string) error {
 	for txHash, status := range txHashStatus {
-		metaData := []byte(fmt.Sprintf(`{"update":{ "_index":"%s","_id":"%s", "_type": "_doc"}}%s`, index, txHash, "\n"))
+		metaData := []byte(fmt.Sprintf(`{"update":{ "_index":"%s","_id":"%s"}}%s`, index, txHash, "\n"))
 
 		newTx := &data.Transaction{
 			Status: status,
@@ -141,7 +141,7 @@ func prepareSerializedDataForATransaction(
 	selfShardID uint32,
 	index string,
 ) ([]byte, []byte, error) {
-	metaData := []byte(fmt.Sprintf(`{"update":{ "_index":"%s", "_id":"%s", "_type": "_doc"}}%s`, index, tx.Hash, "\n"))
+	metaData := []byte(fmt.Sprintf(`{"update":{ "_index":"%s", "_id":"%s"}}%s`, index, tx.Hash, "\n"))
 	marshaledTx, err := json.Marshal(tx)
 	if err != nil {
 		return nil, nil, err
@@ -167,7 +167,7 @@ func prepareSerializedDataForATransaction(
 	}
 
 	// transaction is intra-shard, invalid or cross-shard destination me
-	meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s", "_id" : "%s", "_type" : "%s" } }%s`, index, tx.Hash, "_doc", "\n"))
+	meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s", "_id" : "%s" } }%s`, index, tx.Hash, "\n"))
 	log.Trace("indexer tx is intra shard or invalid tx", "meta", string(meta), "marshaledTx", string(marshaledTx))
 
 	return meta, marshaledTx, nil

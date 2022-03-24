@@ -28,7 +28,7 @@ func (op *operationsProcessor) prepareSerializedDataForAScResult(
 	scr *data.ScResult,
 	index string,
 ) ([]byte, []byte, error) {
-	metaData := []byte(fmt.Sprintf(`{"update":{"_index":"%s","_id":"%s", "_type": "_doc"}}%s`, index, scr.Hash, "\n"))
+	metaData := []byte(fmt.Sprintf(`{"update":{"_index":"%s","_id":"%s"}}%s`, index, scr.Hash, "\n"))
 	marshaledSCR, err := json.Marshal(scr)
 	if err != nil {
 		return nil, nil, err
@@ -44,7 +44,7 @@ func (op *operationsProcessor) prepareSerializedDataForAScResult(
 		return metaData, serializedData, nil
 	}
 
-	meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s","_id" : "%s", "_type" : "%s" } }%s`, index, scr.Hash, "_doc", "\n"))
+	meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s","_id" : "%s" } }%s`, index, scr.Hash, "\n"))
 
 	return meta, marshaledSCR, nil
 }

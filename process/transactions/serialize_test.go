@@ -81,7 +81,7 @@ func TestSerializeTransactionsIntraShardTx(t *testing.T) {
 	}}, map[string]string{}, 0, buffSlice, "transactions")
 	require.Nil(t, err)
 
-	expectedBuff := `{ "index" : { "_index":"transactions", "_id" : "txHash", "_type" : "_doc" } }
+	expectedBuff := `{ "index" : { "_index":"transactions", "_id" : "txHash" } }
 {"miniBlockHash":"","nonce":0,"round":0,"value":"","receiver":"","sender":"","receiverShard":0,"senderShard":0,"gasPrice":0,"gasLimit":0,"gasUsed":0,"fee":"","data":null,"signature":"","timestamp":0,"status":"","searchOrder":0}
 `
 	require.Equal(t, expectedBuff, buffSlice.Buffers()[0].String())
@@ -100,7 +100,7 @@ func TestSerializeTransactionCrossShardTxSource(t *testing.T) {
 	}}, map[string]string{}, 0, buffSlice, "transactions")
 	require.Nil(t, err)
 
-	expectedBuff := `{"update":{ "_index":"transactions", "_id":"txHash", "_type": "_doc"}}
+	expectedBuff := `{"update":{ "_index":"transactions", "_id":"txHash"}}
 {"script":{"source":"return"},"upsert":{"miniBlockHash":"","nonce":0,"round":0,"value":"","receiver":"","sender":"","receiverShard":1,"senderShard":0,"gasPrice":0,"gasLimit":0,"gasUsed":0,"fee":"","data":null,"signature":"","timestamp":0,"status":"","searchOrder":0,"version":1}}
 `
 	require.Equal(t, expectedBuff, buffSlice.Buffers()[0].String())
@@ -119,7 +119,7 @@ func TestSerializeTransactionsCrossShardTxDestination(t *testing.T) {
 	}}, map[string]string{}, 0, buffSlice, "transactions")
 	require.Nil(t, err)
 
-	expectedBuff := `{ "index" : { "_index":"transactions", "_id" : "txHash", "_type" : "_doc" } }
+	expectedBuff := `{ "index" : { "_index":"transactions", "_id" : "txHash" } }
 {"miniBlockHash":"","nonce":0,"round":0,"value":"","receiver":"","sender":"","receiverShard":0,"senderShard":1,"gasPrice":0,"gasLimit":0,"gasUsed":0,"fee":"","data":null,"signature":"","timestamp":0,"status":"","searchOrder":0,"version":1}
 `
 	require.Equal(t, expectedBuff, buffSlice.Buffers()[0].String())
