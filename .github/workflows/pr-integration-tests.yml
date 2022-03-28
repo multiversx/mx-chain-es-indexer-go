@@ -8,7 +8,7 @@ on:
 
 jobs:
   test-1:
-    name: Elasticsearch v7.16.2
+    name: Elasticsearch `v7.16.2`
     runs-on: ubuntu-latest
     steps:
       - name: Set up Go 1.x
@@ -23,10 +23,10 @@ jobs:
       - name: Get dependencies
         run: |
           go get -v -t -d ./...
-      - name: Run integration tests with Elasticsearch v7.16.2
+      - name: Run integration tests with Elasticsearch `v7.16.2`
         run: make integration-tests ES_VERSION=7.16.2
   test-2:
-    name: Elasticsearch v8.1.1
+    name: Elasticsearch `v8.1.1`
     runs-on: ubuntu-latest
     steps:
       - name: Set up Go 1.x
@@ -41,11 +41,11 @@ jobs:
       - name: Get dependencies
         run: |
           go get -v -t -d ./...
-      - name: Run integration tests with Elasticsearch v8.1.1
+      - name: Run integration tests with Elasticsearch `v8.1.1`
         run: make integration-tests ES_VERSION=8.1.1
 
   test-3:
-    name: Elasticsearch latest version
+    name: Elasticsearch `latest`
     runs-on: ubuntu-latest
     steps:
       - name: Set up Go 1.x
@@ -60,5 +60,5 @@ jobs:
       - name: Get dependencies
         run: |
           go get -v -t -d ./...
-      - name: Run integration tests with Elasticsearch latest
+      - name: Run integration tests with Elasticsearch `latest`
         run: make integration-tests ES_VERSION=latest
