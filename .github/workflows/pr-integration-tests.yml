@@ -60,5 +60,5 @@ jobs:
       - name: Get dependencies
         run: |
           go get -v -t -d ./...
-      - name: Run integration tests with Elasticsearch latest version
+      - name: Run integration tests with Elasticsearch latest
         run: make integration-tests ES_VERSION=latest
