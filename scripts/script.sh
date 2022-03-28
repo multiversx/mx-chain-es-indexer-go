@@ -10,7 +10,9 @@ start() {
   docker pull docker.elastic.co/elasticsearch/elasticsearch:${ES_VERSION}
 
   docker rm ${IMAGE_NAME} 2> /dev/null
-  docker run -d --name "${IMAGE_NAME}" -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:${ES_VERSION}
+  docker run -d --name "${IMAGE_NAME}" -p 9200:9200  -p 9300:9300 \
+   -e "discovery.type=single-node" -e "xpack.security.enabled=false" -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" \
+    docker.elastic.co/elasticsearch/elasticsearch:${ES_VERSION}
 
   # Wait elastic cluster to start
   echo "Waiting Elasticsearch cluster to start..."
