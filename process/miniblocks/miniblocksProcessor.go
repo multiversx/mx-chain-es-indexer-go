@@ -89,38 +89,59 @@ func (mp *miniblocksProcessor) prepareMiniblockForDB(
 		Timestamp:       time.Duration(header.GetTimeStamp()),
 	}
 
-	processingType := mp.computeProcessingType(mbIndex, header)
-
 	encodedHeaderHash := hex.EncodeToString(headerHash)
-	if dbMiniblock.SenderShardID == header.GetShardID() {
-		dbMiniblock.SenderBlockHash = encodedHeaderHash
-		dbMiniblock.ProcessingTypeOnSource = processingType
-	} else {
-		dbMiniblock.ReceiverBlockHash = encodedHeaderHash
-		dbMiniblock.ProcessingTypeOnDestination = processingType
+	isIntraShard := dbMiniblock.SenderShardID == dbMiniblock.ReceiverShardID
+	isCrossOnSource := !isIntraShard && dbMiniblock.SenderShardID == header.GetShardID()
+	if isIntraShard || isCrossOnSource {
+		mp.setFieldsMBIntraShardAndCrossFromMe(mbIndex, header, encodedHeaderHash, dbMiniblock)
+
+		return dbMiniblock, nil
 	}
 
-	if dbMiniblock.SenderShardID == dbMiniblock.ReceiverShardID {
-		dbMiniblock.ReceiverBlockHash = encodedHeaderHash
-		dbMiniblock.ProcessingTypeOnDestination = processingType
-	}
+	processingType, _ := mp.computeProcessingTypeAndConstructionState(mbIndex, header)
+	dbMiniblock.ProcessingTypeOnDestination = processingType
+	dbMiniblock.ReceiverBlockHash = encodedHeaderHash
 
 	return dbMiniblock, nil
 }
 
-func (mp *miniblocksProcessor) computeProcessingType(mbIndex int, header coreData.HeaderHandler) string {
+func (mp *miniblocksProcessor) setFieldsMBIntraShardAndCrossFromMe(
+	mbIndex int,
+	header coreData.HeaderHandler,
+	headerHash string,
+	dbMiniblock *data.Miniblock,
+) {
+	processingType, constructionState := mp.computeProcessingTypeAndConstructionState(mbIndex, header)
+
+	dbMiniblock.ProcessingTypeOnSource = processingType
+	switch {
+	case constructionState == int32(block.Final) && processingType == block.Normal.String():
+		dbMiniblock.SenderBlockHash = headerHash
+		dbMiniblock.ReceiverBlockHash = headerHash
+	case constructionState == int32(block.Proposed) && processingType == block.Scheduled.String():
+		dbMiniblock.SenderBlockHash = headerHash
+	case constructionState == int32(block.Final) && processingType == block.Processed.String():
+		dbMiniblock.ReceiverBlockHash = headerHash
+	}
+}
+
+func (mp *miniblocksProcessor) computeProcessingTypeAndConstructionState(mbIndex int, header coreData.HeaderHandler) (string, int32) {
 	miniblockHeaders := header.GetMiniBlockHeaderHandlers()
 	if len(miniblockHeaders) < mbIndex+1 {
-		return ""
+		return "", 0
 	}
 
-	currentMbHeader := miniblockHeaders[mbIndex]
-	processingType := currentMbHeader.GetProcessingType()
-	if processingType == int32(block.Scheduled) {
-		return block.Scheduled.String()
-	}
+	processingType := miniblockHeaders[mbIndex].GetProcessingType()
+	constructionType := miniblockHeaders[mbIndex].GetConstructionState()
 
-	return block.Normal.String()
+	switch processingType {
+	case int32(block.Scheduled):
+		return block.Scheduled.String(), constructionType
+	case int32(block.Processed):
+		return block.Processed.String(), constructionType
+	default:
+		return block.Normal.String(), constructionType
+	}
 }
 
 // GetMiniblocksHashesHexEncoded will compute miniblocks hashes in a hexadecimal encoding
