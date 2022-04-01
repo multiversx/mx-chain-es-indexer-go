@@ -127,20 +127,20 @@ func (mp *miniblocksProcessor) setFieldsMBIntraShardAndCrossFromMe(
 
 func (mp *miniblocksProcessor) computeProcessingTypeAndConstructionState(mbIndex int, header coreData.HeaderHandler) (string, int32) {
 	miniblockHeaders := header.GetMiniBlockHeaderHandlers()
-	if len(miniblockHeaders) < mbIndex+1 {
+	if len(miniblockHeaders) <= mbIndex {
 		return "", 0
 	}
 
 	processingType := miniblockHeaders[mbIndex].GetProcessingType()
-	constructionType := miniblockHeaders[mbIndex].GetConstructionState()
+	constructionState := miniblockHeaders[mbIndex].GetConstructionState()
 
 	switch processingType {
 	case int32(block.Scheduled):
-		return block.Scheduled.String(), constructionType
+		return block.Scheduled.String(), constructionState
 	case int32(block.Processed):
-		return block.Processed.String(), constructionType
+		return block.Processed.String(), constructionState
 	default:
-		return block.Normal.String(), constructionType
+		return block.Normal.String(), constructionState
 	}
 }
 

@@ -88,7 +88,7 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 	for mbIndex, mb := range body.MiniBlocks {
 		switch mb.Type {
 		case block.TxBlock:
-			if shouldIgnoreMBScheduled(header, mbIndex) {
+			if shouldIgnoreProcessedMBScheduled(header, mbIndex) {
 				continue
 			}
 
@@ -182,9 +182,9 @@ func (tdp *txsDatabaseProcessor) GetRewardsTxsHashesHexEncoded(header coreData.H
 	return encodedTxsHashes
 }
 
-func shouldIgnoreMBScheduled(header coreData.HeaderHandler, mbIndex int) bool {
+func shouldIgnoreProcessedMBScheduled(header coreData.HeaderHandler, mbIndex int) bool {
 	miniblockHeaders := header.GetMiniBlockHeaderHandlers()
-	if len(miniblockHeaders) < mbIndex+1 {
+	if len(miniblockHeaders) <= mbIndex {
 		return false
 	}
 

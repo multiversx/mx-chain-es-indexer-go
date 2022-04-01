@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elrond-go-core/data/block"
 )
 
 // SerializeBulkMiniBlocks will serialize the provided miniblocks slice in a way that Elastic Search expects a bulk request
@@ -41,7 +42,7 @@ func (mp *miniblocksProcessor) prepareMiniblockData(miniblockDB *data.Miniblock,
 
 	// prepare data for update operation
 	meta := []byte(fmt.Sprintf(`{ "update" : { "_id" : "%s" } }%s`, miniblockDB.Hash, "\n"))
-	if mp.selfShardID == miniblockDB.SenderShardID {
+	if mp.selfShardID == miniblockDB.SenderShardID && miniblockDB.ProcessingTypeOnDestination != block.Processed.String() {
 		// prepare for update sender block hash
 		serializedData := []byte(fmt.Sprintf(`{ "doc" : { "senderBlockHash" : "%s", "procTypeS": "%s" } }`, miniblockDB.SenderBlockHash, miniblockDB.ProcessingTypeOnSource))
 
