@@ -60,14 +60,15 @@ func TestSerializeMiniblock_CrossShardNormal(t *testing.T) {
 		{Hash: "h1", SenderShardID: 0, ReceiverShardID: 1, ReceiverBlockHash: "receiverBlock"},
 	}
 
-	buff := mp.SerializeBulkMiniBlocks(miniblocks, map[string]bool{
+	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
+	mp.SerializeBulkMiniBlocks(miniblocks, map[string]bool{
 		"h1": true,
-	})
+	}, buffSlice, "miniblocks")
 
-	expectedBuff := `{ "update" : { "_id" : "h1" } }
+	expectedBuff := `{ "update" : {"_index":"miniblocks", "_id" : "h1" } }
 { "doc" : { "receiverBlockHash" : "receiverBlock", "procTypeD": "" } }
 `
-	require.Equal(t, expectedBuff, buff.String())
+	require.Equal(t, expectedBuff, buffSlice.Buffers()[0].String())
 }
 
 func TestSerializeMiniblock_IntraShardScheduled(t *testing.T) {
@@ -78,26 +79,28 @@ func TestSerializeMiniblock_IntraShardScheduled(t *testing.T) {
 			ProcessingTypeOnSource: block.Scheduled.String()},
 	}
 
-	buff := mp.SerializeBulkMiniBlocks(miniblocks, map[string]bool{
+	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
+	mp.SerializeBulkMiniBlocks(miniblocks, map[string]bool{
 		"h1": false,
-	})
+	}, buffSlice, "miniblocks")
 
-	expectedBuff := `{ "index" : { "_id" : "h1", "_type" : "_doc" } }
+	expectedBuff := `{ "index" : { "_index":"miniblocks", "_id" : "h1"} }
 {"senderShard":1,"receiverShard":1,"senderBlockHash":"senderBlock","receiverBlockHash":"","type":"","procTypeS":"Scheduled","timestamp":0}
 `
-	require.Equal(t, expectedBuff, buff.String())
+	require.Equal(t, expectedBuff, buffSlice.Buffers()[0].String())
 
 	miniblocks = []*data.Miniblock{
 		{Hash: "h1", SenderShardID: 1, ReceiverShardID: 1, ReceiverBlockHash: "receiverBlock",
 			ProcessingTypeOnDestination: block.Processed.String()},
 	}
 
-	buff = mp.SerializeBulkMiniBlocks(miniblocks, map[string]bool{
+	buffSlice = data.NewBufferSlice(data.DefaultMaxBulkSize)
+	mp.SerializeBulkMiniBlocks(miniblocks, map[string]bool{
 		"h1": true,
-	})
+	}, buffSlice, "miniblocks")
 
-	expectedBuff = `{ "update" : { "_id" : "h1" } }
+	expectedBuff = `{ "update" : {"_index":"miniblocks", "_id" : "h1" } }
 { "doc" : { "receiverBlockHash" : "receiverBlock", "procTypeD": "Processed" } }
 `
-	require.Equal(t, expectedBuff, buff.String())
+	require.Equal(t, expectedBuff, buffSlice.Buffers()[0].String())
 }
