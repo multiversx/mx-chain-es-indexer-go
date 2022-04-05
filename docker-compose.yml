@@ -5,6 +5,12 @@ services:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.10.0
     environment:
       - "discovery.type=single-node"
+      - "xpack.security.enabled=false"
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
     networks:
       - es-net
     ports:
