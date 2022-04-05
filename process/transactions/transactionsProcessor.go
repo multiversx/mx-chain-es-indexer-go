@@ -96,9 +96,13 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 	normalTxs := make(map[string]*data.Transaction)
 	rewardsTxs := make(map[string]*data.Transaction)
 
-	for _, mb := range body.MiniBlocks {
+	for mbIndex, mb := range body.MiniBlocks {
 		switch mb.Type {
 		case block.TxBlock:
+			if shouldIgnoreProcessedMBScheduled(header, mbIndex) {
+				continue
+			}
+
 			txs, errGroup := tdp.txsGrouper.groupNormalTxs(mb, header, pool.Txs, alteredAccounts)
 			if errGroup != nil {
 				log.Warn("txsDatabaseProcessor.groupNormalTxs", "error", errGroup)
@@ -172,7 +176,7 @@ func (tdp *txsDatabaseProcessor) GetRewardsTxsHashesHexEncoded(header coreData.H
 		}
 
 		if tdp.txsGrouper.isInImportMode {
-			// do not delete rewards transactions on import db
+			// do not delete rewards transactions on import DB
 			continue
 		}
 
@@ -187,6 +191,17 @@ func (tdp *txsDatabaseProcessor) GetRewardsTxsHashesHexEncoded(header coreData.H
 	}
 
 	return encodedTxsHashes
+}
+
+func shouldIgnoreProcessedMBScheduled(header coreData.HeaderHandler, mbIndex int) bool {
+	miniblockHeaders := header.GetMiniBlockHeaderHandlers()
+	if len(miniblockHeaders) <= mbIndex {
+		return false
+	}
+
+	processingType := miniblockHeaders[mbIndex].GetProcessingType()
+
+	return processingType == int32(block.Processed)
 }
 
 func getTxsHashesFromMiniblockHexEncoded(miniBlock *block.MiniBlock) []string {

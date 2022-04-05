@@ -1,6 +1,7 @@
 package miniblocks
 
 import (
+	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"testing"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
@@ -48,6 +49,58 @@ func TestMiniblocksProcessor_SerializeBulkMiniBlocksInDB(t *testing.T) {
 { "doc" : { "senderBlockHash" : "", "procTypeS": "" } }
 { "index" : { "_index":"miniblocks", "_id" : "h2"} }
 {"senderShard":0,"receiverShard":2,"senderBlockHash":"","receiverBlockHash":"","type":"","timestamp":0}
+`
+	require.Equal(t, expectedBuff, buffSlice.Buffers()[0].String())
+}
+
+func TestSerializeMiniblock_CrossShardNormal(t *testing.T) {
+	mp, _ := NewMiniblocksProcessor(1, mock.HasherMock{}, &mock.MarshalizerMock{}, false)
+
+	miniblocks := []*data.Miniblock{
+		{Hash: "h1", SenderShardID: 0, ReceiverShardID: 1, ReceiverBlockHash: "receiverBlock"},
+	}
+
+	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
+	mp.SerializeBulkMiniBlocks(miniblocks, map[string]bool{
+		"h1": true,
+	}, buffSlice, "miniblocks")
+
+	expectedBuff := `{ "update" : {"_index":"miniblocks", "_id" : "h1" } }
+{ "doc" : { "receiverBlockHash" : "receiverBlock", "procTypeD": "" } }
+`
+	require.Equal(t, expectedBuff, buffSlice.Buffers()[0].String())
+}
+
+func TestSerializeMiniblock_IntraShardScheduled(t *testing.T) {
+	mp, _ := NewMiniblocksProcessor(1, mock.HasherMock{}, &mock.MarshalizerMock{}, false)
+
+	miniblocks := []*data.Miniblock{
+		{Hash: "h1", SenderShardID: 1, ReceiverShardID: 1, SenderBlockHash: "senderBlock",
+			ProcessingTypeOnSource: block.Scheduled.String()},
+	}
+
+	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
+	mp.SerializeBulkMiniBlocks(miniblocks, map[string]bool{
+		"h1": false,
+	}, buffSlice, "miniblocks")
+
+	expectedBuff := `{ "index" : { "_index":"miniblocks", "_id" : "h1"} }
+{"senderShard":1,"receiverShard":1,"senderBlockHash":"senderBlock","receiverBlockHash":"","type":"","procTypeS":"Scheduled","timestamp":0}
+`
+	require.Equal(t, expectedBuff, buffSlice.Buffers()[0].String())
+
+	miniblocks = []*data.Miniblock{
+		{Hash: "h1", SenderShardID: 1, ReceiverShardID: 1, ReceiverBlockHash: "receiverBlock",
+			ProcessingTypeOnDestination: block.Processed.String()},
+	}
+
+	buffSlice = data.NewBufferSlice(data.DefaultMaxBulkSize)
+	mp.SerializeBulkMiniBlocks(miniblocks, map[string]bool{
+		"h1": true,
+	}, buffSlice, "miniblocks")
+
+	expectedBuff = `{ "update" : {"_index":"miniblocks", "_id" : "h1" } }
+{ "doc" : { "receiverBlockHash" : "receiverBlock", "procTypeD": "Processed" } }
 `
 	require.Equal(t, expectedBuff, buffSlice.Buffers()[0].String())
 }

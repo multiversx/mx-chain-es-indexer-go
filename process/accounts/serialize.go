@@ -89,7 +89,7 @@ func prepareDeleteAccountInfo(acct *data.AccountInfo, isESDT bool, index string)
 	meta := []byte(fmt.Sprintf(`{ "update" : {"_index":"%s", "_id" : "%s" } }%s`, index, id, "\n"))
 
 	serializedDataStr := fmt.Sprintf(`{"scripted_upsert": true, "script": {`+
-		`"source": "if ( ctx.op == 'create' )  { ctx.op = 'noop' } else { if (ctx._source.timestamp < params.timestamp ) { ctx.op = 'delete'  } }",`+
+		`"source": "if ( ctx.op == 'create' )  { ctx.op = 'noop' } else { if (ctx._source.containsKey('timestamp')) { if (ctx._source.timestamp < params.timestamp ) { ctx.op = 'delete'  } } else {  ctx.op = 'delete' } }",`+
 		`"lang": "painless",`+
 		`"params": {"timestamp": %d}},`+
 		`"upsert": {}}`,
@@ -117,7 +117,7 @@ func prepareSerializedAccountInfo(
 
 	meta := []byte(fmt.Sprintf(`{ "update" : {"_index": "%s", "_id" : "%s" } }%s`, index, id, "\n"))
 	serializedDataStr := fmt.Sprintf(`{"scripted_upsert": true, "script": {`+
-		`"source": "if ( ctx.op == 'create' )  { ctx._source = params.account } else { if (ctx._source.timestamp < params.account.timestamp ) { ctx._source = params.account  } }",`+
+		`"source": "if ( ctx.op == 'create' )  { ctx._source = params.account } else { if (ctx._source.containsKey('timestamp')) { if (ctx._source.timestamp < params.account.timestamp ) { ctx._source = params.account } } else { ctx._source = params.account } }",`+
 		`"lang": "painless",`+
 		`"params": { "account": %s }},`+
 		`"upsert": {}}`,
