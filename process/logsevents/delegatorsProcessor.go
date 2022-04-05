@@ -68,7 +68,7 @@ func (dp *delegatorsProc) processEvent(args *argsProcessEvent) argOutputProcessE
 	// topics[1] = active stake
 	// topics[2] = num contract users
 	// topics[3] = total contract active stake
-	// topics[4] = true - if delegator was deleted in case of withdrawal OR contract address in case of delegate from async
+	// topics[4] = true - if the delegator was deleted in case of withdrawal OR the contract address in case of delegate operations from staking v3.5 (makeNewContractFromValidatorData, mergeValidatorToDelegationSameOwner or mergeValidatorToDelegationWithWhitelist)
 	activeStake := big.NewInt(0).SetBytes(topics[1])
 
 	contractAddr := dp.pubkeyConverter.Encode(args.logAddress)
