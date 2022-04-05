@@ -68,12 +68,17 @@ func (dp *delegatorsProc) processEvent(args *argsProcessEvent) argOutputProcessE
 	// topics[1] = active stake
 	// topics[2] = num contract users
 	// topics[3] = total contract active stake
-	// topics[4] = true - if delegator was deleted in case of withdrawal
+	// topics[4] = true - if delegator was deleted in case of withdrawal OR contract address in case of delegate from async
 	activeStake := big.NewInt(0).SetBytes(topics[1])
+
+	contractAddr := dp.pubkeyConverter.Encode(args.logAddress)
+	if len(topics) >= minNumTopicsDelegators+1 && eventIdentifierStr == delegateFunc {
+		contractAddr = dp.pubkeyConverter.Encode(topics[4])
+	}
 
 	delegator := &data.Delegator{
 		Address:        dp.pubkeyConverter.Encode(args.event.GetAddress()),
-		Contract:       dp.pubkeyConverter.Encode(args.logAddress),
+		Contract:       contractAddr,
 		ActiveStake:    activeStake.String(),
 		ActiveStakeNum: dp.balanceConverter.ComputeBalanceAsFloat(activeStake),
 	}
