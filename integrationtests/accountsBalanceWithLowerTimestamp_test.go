@@ -1,5 +1,3 @@
-//go:build integrationtests
-
 package integrationtests
 
 import (
@@ -49,11 +47,7 @@ func TestIndexAccountsBalance(t *testing.T) {
 			{
 				Identifier: "TTTT-abcd",
 				Balance:    "1000",
-				Nonce:      1,
-				Properties: "ok",
-				MetaData: &esdt.MetaData{
-					Creator: []byte("creator"),
-				},
+				Nonce:      0,
 			},
 		},
 	}
@@ -131,9 +125,8 @@ func TestIndexAccountsBalance(t *testing.T) {
 		Round:     51,
 		TimeStamp: 6000,
 	}
-	//mockAccount.GetBalanceCalled = func() *big.Int {
-	//	return big.NewInt(2000)
-	//}
+
+	coreAlteredAccounts[encodedAddr].Balance = "2000"
 
 	pool = &indexer.Pool{
 		Txs: map[string]coreData.TransactionHandler{
@@ -166,7 +159,7 @@ func TestIndexAccountsBalance(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, map[string]*indexer.AlteredAccount{})
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts)
 	require.Nil(t, err)
 
 	ids = []string{"6161616162626262"}
@@ -185,23 +178,6 @@ func TestIndexAccountsBalance(t *testing.T) {
 
 	esdtToken.Value = big.NewInt(0)
 	encodedAddr = hex.EncodeToString([]byte(addr))
-	coreAlteredAccounts = map[string]*indexer.AlteredAccount{
-		encodedAddr: {
-			Address: encodedAddr,
-			Balance: "1000",
-			Tokens: []*indexer.AccountTokenData{
-				{
-					Identifier: "SEMI-abcd",
-					Balance:    "1000",
-					Nonce:      2,
-					Properties: "ok",
-					MetaData: &esdt.MetaData{
-						Creator: []byte("creator"),
-					},
-				},
-			},
-		},
-	}
 	esProc, err = CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
 	require.Nil(t, err)
 
@@ -209,9 +185,9 @@ func TestIndexAccountsBalance(t *testing.T) {
 		Round:     51,
 		TimeStamp: 6001,
 	}
-	//mockAccount.GetBalanceCalled = func() *big.Int {
-	//	return big.NewInt(2000)
-	//}
+
+	coreAlteredAccounts[encodedAddr].Balance = "2000"
+	coreAlteredAccounts[encodedAddr].Tokens[0].Balance = "0"
 
 	pool.Txs = make(map[string]coreData.TransactionHandler)
 	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts)
