@@ -112,7 +112,7 @@ func notZeroBalance(balance string) bool {
 }
 
 // PrepareRegularAccountsMap will prepare a map of regular accounts
-func (ap *accountsProcessor) PrepareRegularAccountsMap(accounts []*data.Account) map[string]*data.AccountInfo {
+func (ap *accountsProcessor) PrepareRegularAccountsMap(timestamp uint64, accounts []*data.Account) map[string]*data.AccountInfo {
 	accountsMap := make(map[string]*data.AccountInfo)
 	for _, userAccount := range accounts {
 		address := userAccount.UserAccount.Address
@@ -131,12 +131,13 @@ func (ap *accountsProcessor) PrepareRegularAccountsMap(accounts []*data.Account)
 		acc := &data.AccountInfo{
 			Address:                  address,
 			Nonce:                    userAccount.UserAccount.Nonce,
-			Balance:                  balance.String(),
+			Balance:                  converters.BigIntToString(balance),
 			BalanceNum:               balanceAsFloat,
 			IsSender:                 userAccount.IsSender,
 			IsSmartContract:          core.IsSmartContractAddress(addressBytes),
-			TotalBalanceWithStake:    balance.String(),
+			TotalBalanceWithStake:    converters.BigIntToString(balance),
 			TotalBalanceWithStakeNum: balanceAsFloat,
+			Timestamp:                time.Duration(timestamp),
 		}
 
 		accountsMap[address] = acc

@@ -76,14 +76,14 @@ func whiteListedStorage(uris [][]byte) bool {
 }
 
 // PrepareNFTUpdateData will prepare nfts update data
-func PrepareNFTUpdateData(buffSlice *data.BufferSlice, updateNFTData []*data.NFTDataUpdate, accountESDT bool) error {
+func PrepareNFTUpdateData(buffSlice *data.BufferSlice, updateNFTData []*data.NFTDataUpdate, accountESDT bool, index string) error {
 	for _, nftUpdate := range updateNFTData {
 		id := nftUpdate.Identifier
 		if accountESDT {
 			id = fmt.Sprintf("%s-%s", nftUpdate.Address, nftUpdate.Identifier)
 		}
 
-		metaData := []byte(fmt.Sprintf(`{"update":{"_id":"%s", "_type": "_doc"}}%s`, id, "\n"))
+		metaData := []byte(fmt.Sprintf(`{"update":{ "_index":"%s","_id":"%s"}}%s`, index, id, "\n"))
 		base64Attr := base64.StdEncoding.EncodeToString(nftUpdate.NewAttributes)
 		serializedData := []byte(fmt.Sprintf(`{"script": {"source": "if (ctx._source.containsKey('data')) {ctx._source.data.attributes = params.attributes}","lang": "painless","params": {"attributes": "%s"}}, "upsert": {}}`, base64Attr))
 		if len(nftUpdate.URIsToAdd) != 0 {

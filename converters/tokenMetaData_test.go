@@ -46,7 +46,7 @@ func TestPrepareTokenMetaData(t *testing.T) {
 func TestPrepareNFTUpdateData(t *testing.T) {
 	t.Parallel()
 
-	buffSlice := data.NewBufferSlice()
+	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
 
 	nftUpdateData := []*data.NFTDataUpdate{
 		{
@@ -58,11 +58,11 @@ func TestPrepareNFTUpdateData(t *testing.T) {
 			URIsToAdd:  [][]byte{[]byte("uri1"), []byte("uri2")},
 		},
 	}
-	err := PrepareNFTUpdateData(buffSlice, nftUpdateData, false)
+	err := PrepareNFTUpdateData(buffSlice, nftUpdateData, false, "tokens")
 	require.Nil(t, err)
-	require.Equal(t, `{"update":{"_id":"MYTKN-abcd-01", "_type": "_doc"}}
+	require.Equal(t, `{"update":{ "_index":"tokens","_id":"MYTKN-abcd-01"}}
 {"script": {"source": "if (ctx._source.containsKey('data')) {ctx._source.data.attributes = params.attributes}","lang": "painless","params": {"attributes": "YWFhYQ=="}}, "upsert": {}}
-{"update":{"_id":"TOKEN-1234-1a", "_type": "_doc"}}
+{"update":{ "_index":"tokens","_id":"TOKEN-1234-1a"}}
 {"script": {"source": "if (ctx._source.containsKey('data')) { if (!ctx._source.data.containsKey('uris')) { ctx._source.data.uris = params.uris; } else {  ctx._source.data.uris.addAll(params.uris); }}","lang": "painless","params": {"uris": ["dXJpMQ==","dXJpMg=="]}},"upsert": {}}
 `, buffSlice.Buffers()[0].String())
 }

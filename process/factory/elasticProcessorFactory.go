@@ -29,6 +29,7 @@ type ArgElasticProcessorFactory struct {
 	TransactionFeeCalculator indexer.FeesProcessorHandler
 	EnabledIndexes           []string
 	Denomination             int
+	BulkRequestMaxSize       int
 	IsInImportDBMode         bool
 	UseKibana                bool
 }
@@ -72,7 +73,7 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (indexer.Elast
 	if err != nil {
 		return nil, err
 	}
-	validatorsProc, err := validators.NewValidatorsProcessor(arguments.ValidatorPubkeyConverter)
+	validatorsProc, err := validators.NewValidatorsProcessor(arguments.ValidatorPubkeyConverter, arguments.BulkRequestMaxSize)
 	if err != nil {
 		return nil, err
 	}
@@ -111,20 +112,21 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (indexer.Elast
 	}
 
 	args := &processIndexer.ArgElasticProcessor{
-		TransactionsProc:  txsProc,
-		AccountsProc:      accountsProc,
-		BlockProc:         blockProcHandler,
-		MiniblocksProc:    miniblocksProc,
-		ValidatorsProc:    validatorsProc,
-		StatisticsProc:    generalInfoProc,
-		LogsAndEventsProc: logsAndEventsProc,
-		DBClient:          arguments.DBClient,
-		EnabledIndexes:    enabledIndexesMap,
-		UseKibana:         arguments.UseKibana,
-		IndexTemplates:    indexTemplates,
-		IndexPolicies:     indexPolicies,
-		SelfShardID:       arguments.ShardCoordinator.SelfId(),
-		OperationsProc:    operationsProc,
+		BulkRequestMaxSize: arguments.BulkRequestMaxSize,
+		TransactionsProc:   txsProc,
+		AccountsProc:       accountsProc,
+		BlockProc:          blockProcHandler,
+		MiniblocksProc:     miniblocksProc,
+		ValidatorsProc:     validatorsProc,
+		StatisticsProc:     generalInfoProc,
+		LogsAndEventsProc:  logsAndEventsProc,
+		DBClient:           arguments.DBClient,
+		EnabledIndexes:     enabledIndexesMap,
+		UseKibana:          arguments.UseKibana,
+		IndexTemplates:     indexTemplates,
+		IndexPolicies:      indexPolicies,
+		SelfShardID:        arguments.ShardCoordinator.SelfId(),
+		OperationsProc:     operationsProc,
 	}
 
 	return processIndexer.NewElasticProcessor(args)

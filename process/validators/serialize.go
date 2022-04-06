@@ -31,7 +31,7 @@ func (vp *validatorsProcessor) SerializeValidatorsRating(
 	index string,
 	validatorsRatingInfo []*data.ValidatorRatingInfo,
 ) ([]*bytes.Buffer, error) {
-	buffSlice := data.NewBufferSlice()
+	buffSlice := data.NewBufferSlice(vp.bulkSizeMaxSize)
 
 	// inside elrond-go, the index is "shardID_epoch" so in order to keep backwards compatibility some adjustments have to be made.
 	// shardID from index name has to be removed because it is sufficient to have document id = blsKey_epoch

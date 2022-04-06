@@ -1,7 +1,6 @@
 package transactions
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"math/big"
@@ -12,49 +11,48 @@ import (
 )
 
 // SerializeScResults will serialize the provided smart contract results in a way that Elastic Search expects a bulk request
-func (tdp *txsDatabaseProcessor) SerializeScResults(scResults []*data.ScResult) ([]*bytes.Buffer, error) {
-	buffSlice := data.NewBufferSlice()
+func (tdp *txsDatabaseProcessor) SerializeScResults(scResults []*data.ScResult, buffSlice *data.BufferSlice, index string) error {
 	for _, sc := range scResults {
-		meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, sc.Hash, "\n"))
+		meta := []byte(fmt.Sprintf(`{ "index" : { "_index": "%s", "_id" : "%s" } }%s`, index, sc.Hash, "\n"))
 		serializedData, errPrepareSc := json.Marshal(sc)
 		if errPrepareSc != nil {
-			return nil, errPrepareSc
+			return errPrepareSc
 		}
 
 		err := buffSlice.PutData(meta, serializedData)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	return buffSlice.Buffers(), nil
+	return nil
 }
 
 // SerializeReceipts will serialize the receipts in a way that Elastic Search expects a bulk request
-func (tdp *txsDatabaseProcessor) SerializeReceipts(receipts []*data.Receipt) ([]*bytes.Buffer, error) {
-	buffSlice := data.NewBufferSlice()
+func (tdp *txsDatabaseProcessor) SerializeReceipts(receipts []*data.Receipt, buffSlice *data.BufferSlice, index string) error {
 	for _, rec := range receipts {
-		meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, rec.Hash, "\n"))
+		meta := []byte(fmt.Sprintf(`{ "index" : { "_index": "%s", "_id" : "%s" } }%s`, index, rec.Hash, "\n"))
 		serializedData, errPrepareReceipt := json.Marshal(rec)
 		if errPrepareReceipt != nil {
-			return nil, errPrepareReceipt
+			return errPrepareReceipt
 		}
 
 		err := buffSlice.PutData(meta, serializedData)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	return buffSlice.Buffers(), nil
+	return nil
 }
 
 // SerializeTransactionWithRefund will serialize transaction based on refund
 func (tdp *txsDatabaseProcessor) SerializeTransactionWithRefund(
 	txs map[string]*data.Transaction,
 	txHashRefund map[string]*data.RefundData,
-) ([]*bytes.Buffer, error) {
-	buffSlice := data.NewBufferSlice()
+	buffSlice *data.BufferSlice,
+	index string,
+) error {
 	for txHash, tx := range txs {
 		refundForTx, ok := txHashRefund[txHash]
 		if !ok {
@@ -73,19 +71,19 @@ func (tdp *txsDatabaseProcessor) SerializeTransactionWithRefund(
 		tx.GasUsed = gasUsed
 		tx.Fee = fee.String()
 
-		meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, txHash, "\n"))
+		meta := []byte(fmt.Sprintf(`{ "index" : { "_index": "%s", "_id" : "%s" } }%s`, index, txHash, "\n"))
 		serializedData, errPrepare := json.Marshal(tx)
 		if errPrepare != nil {
-			return nil, errPrepare
+			return errPrepare
 		}
 
 		err := buffSlice.PutData(meta, serializedData)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	return buffSlice.Buffers(), nil
+	return nil
 }
 
 // SerializeTransactions will serialize the transactions in a way that Elastic Search expects a bulk request
@@ -93,31 +91,32 @@ func (tdp *txsDatabaseProcessor) SerializeTransactions(
 	transactions []*data.Transaction,
 	txHashStatus map[string]string,
 	selfShardID uint32,
-) ([]*bytes.Buffer, error) {
-	buffSlice := data.NewBufferSlice()
+	buffSlice *data.BufferSlice,
+	index string,
+) error {
 	for _, tx := range transactions {
-		meta, serializedData, err := prepareSerializedDataForATransaction(tx, selfShardID)
+		meta, serializedData, err := prepareSerializedDataForATransaction(tx, selfShardID, index)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		err = buffSlice.PutData(meta, serializedData)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	err := serializeTxHashStatus(buffSlice, txHashStatus)
+	err := serializeTxHashStatus(buffSlice, txHashStatus, index)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return buffSlice.Buffers(), nil
+	return nil
 }
 
-func serializeTxHashStatus(buffSlice *data.BufferSlice, txHashStatus map[string]string) error {
+func serializeTxHashStatus(buffSlice *data.BufferSlice, txHashStatus map[string]string, index string) error {
 	for txHash, status := range txHashStatus {
-		metaData := []byte(fmt.Sprintf(`{"update":{"_id":"%s", "_type": "_doc"}}%s`, txHash, "\n"))
+		metaData := []byte(fmt.Sprintf(`{"update":{ "_index":"%s","_id":"%s"}}%s`, index, txHash, "\n"))
 
 		newTx := &data.Transaction{
 			Status: status,
@@ -140,8 +139,9 @@ func serializeTxHashStatus(buffSlice *data.BufferSlice, txHashStatus map[string]
 func prepareSerializedDataForATransaction(
 	tx *data.Transaction,
 	selfShardID uint32,
+	index string,
 ) ([]byte, []byte, error) {
-	metaData := []byte(fmt.Sprintf(`{"update":{"_id":"%s", "_type": "_doc"}}%s`, tx.Hash, "\n"))
+	metaData := []byte(fmt.Sprintf(`{"update":{ "_index":"%s", "_id":"%s"}}%s`, index, tx.Hash, "\n"))
 	marshaledTx, err := json.Marshal(tx)
 	if err != nil {
 		return nil, nil, err
@@ -167,7 +167,7 @@ func prepareSerializedDataForATransaction(
 	}
 
 	// transaction is intra-shard, invalid or cross-shard destination me
-	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s", "_type" : "%s" } }%s`, tx.Hash, "_doc", "\n"))
+	meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s", "_id" : "%s" } }%s`, index, tx.Hash, "\n"))
 	log.Trace("indexer tx is intra shard or invalid tx", "meta", string(meta), "marshaledTx", string(marshaledTx))
 
 	return meta, marshaledTx, nil
