@@ -3,7 +3,7 @@
 package integrationtests
 
 import (
-	"encoding/json"
+	"encoding/hex"
 	"math/big"
 	"testing"
 
@@ -15,7 +15,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/data/esdt"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 	"github.com/stretchr/testify/require"
 )
 
@@ -25,7 +24,6 @@ func TestIndexAccountsBalance(t *testing.T) {
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	accounts := &mock.AccountsStub{}
 	feeComputer := &mock.EconomicsHandlerMock{}
 
 	// ################ UPDATE ACCOUNT-ESDT BALANCE ##########################
@@ -40,20 +38,32 @@ func TestIndexAccountsBalance(t *testing.T) {
 	}
 
 	addr := "aaaabbbb"
-	mockAccount := &mock.UserAccountStub{
-		RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
-			return json.Marshal(esdtToken)
-		},
-		AddressBytesCalled: func() []byte {
-			return []byte(addr)
+	addr2 := "eeeebbbb"
+	encodedAddr := hex.EncodeToString([]byte(addr))
+	encodedAddr2 := hex.EncodeToString([]byte(addr2))
+
+	alteredAccount := &indexer.AlteredAccount{
+		Address: encodedAddr,
+		Balance: "0",
+		Tokens: []*indexer.AccountTokenData{
+			{
+				Identifier: "TTTT-abcd",
+				Balance:    "1000",
+				Nonce:      1,
+				Properties: "ok",
+				MetaData: &esdt.MetaData{
+					Creator: []byte("creator"),
+				},
+			},
 		},
 	}
-	accounts = &mock.AccountsStub{
-		LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
-			return mockAccount, nil
-		},
+
+	coreAlteredAccounts := map[string]*indexer.AlteredAccount{
+		encodedAddr:  alteredAccount,
+		encodedAddr2: alteredAccount,
 	}
-	esProc, err := CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+
+	esProc, err := CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
 	require.Nil(t, err)
 
 	header := &dataBlock.Header{
@@ -79,7 +89,7 @@ func TestIndexAccountsBalance(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts)
 	require.Nil(t, err)
 
 	ids := []string{"6161616162626262"}
@@ -100,11 +110,8 @@ func TestIndexAccountsBalance(t *testing.T) {
 		Round:     51,
 		TimeStamp: 5000,
 	}
-	mockAccount.GetBalanceCalled = func() *big.Int {
-		return big.NewInt(1000)
-	}
 
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*indexer.AlteredAccount{})
 	require.Nil(t, err)
 
 	ids = []string{"6161616162626262"}
@@ -124,9 +131,9 @@ func TestIndexAccountsBalance(t *testing.T) {
 		Round:     51,
 		TimeStamp: 6000,
 	}
-	mockAccount.GetBalanceCalled = func() *big.Int {
-		return big.NewInt(2000)
-	}
+	//mockAccount.GetBalanceCalled = func() *big.Int {
+	//	return big.NewInt(2000)
+	//}
 
 	pool = &indexer.Pool{
 		Txs: map[string]coreData.TransactionHandler{
@@ -159,7 +166,7 @@ func TestIndexAccountsBalance(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*indexer.AlteredAccount{})
 	require.Nil(t, err)
 
 	ids = []string{"6161616162626262"}
@@ -177,32 +184,37 @@ func TestIndexAccountsBalance(t *testing.T) {
 	//////////////////////// DELETE ESDT BALANCE LOWER TIMESTAMP ////////////////
 
 	esdtToken.Value = big.NewInt(0)
-	mockAccount = &mock.UserAccountStub{
-		RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
-			return json.Marshal(esdtToken)
-		},
-		AddressBytesCalled: func() []byte {
-			return []byte(addr)
+	encodedAddr = hex.EncodeToString([]byte(addr))
+	coreAlteredAccounts = map[string]*indexer.AlteredAccount{
+		encodedAddr: {
+			Address: encodedAddr,
+			Balance: "1000",
+			Tokens: []*indexer.AccountTokenData{
+				{
+					Identifier: "SEMI-abcd",
+					Balance:    "1000",
+					Nonce:      2,
+					Properties: "ok",
+					MetaData: &esdt.MetaData{
+						Creator: []byte("creator"),
+					},
+				},
+			},
 		},
 	}
-	accounts = &mock.AccountsStub{
-		LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
-			return mockAccount, nil
-		},
-	}
-	esProc, err = CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	esProc, err = CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
 	require.Nil(t, err)
 
 	header = &dataBlock.Header{
 		Round:     51,
 		TimeStamp: 6001,
 	}
-	mockAccount.GetBalanceCalled = func() *big.Int {
-		return big.NewInt(2000)
-	}
+	//mockAccount.GetBalanceCalled = func() *big.Int {
+	//	return big.NewInt(2000)
+	//}
 
 	pool.Txs = make(map[string]coreData.TransactionHandler)
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts)
 	require.Nil(t, err)
 
 	ids = []string{"6161616162626262"}
