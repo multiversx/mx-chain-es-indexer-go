@@ -157,7 +157,7 @@ func (lep *logsAndEventsProcessor) processEvent(logHash string, logAddress []byt
 			lep.logsData.tokensInfo = append(lep.logsData.tokensInfo, res.tokenInfo)
 		}
 		if res.delegator != nil {
-			lep.logsData.delegators[res.delegator.Address] = res.delegator
+			lep.logsData.delegators[res.delegator.Address+res.delegator.Contract] = res.delegator
 		}
 		if res.updatePropNFT != nil {
 			lep.logsData.nftsDataUpdates = append(lep.logsData.nftsDataUpdates, res.updatePropNFT)
