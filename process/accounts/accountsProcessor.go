@@ -248,6 +248,10 @@ func (ap *accountsProcessor) getESDTInfo(accountESDT *data.AccountESDT) (*big.In
 	}
 
 	if esdtToken.Value == nil {
+		log.Warn("cannot find token data inside user's altered account",
+			"token ID", accountESDT.TokenIdentifier,
+			"token nonce", accountESDT.NFTNonce)
+
 		return big.NewInt(0), "", nil, nil
 	}
 
