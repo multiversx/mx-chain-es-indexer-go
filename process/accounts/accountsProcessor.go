@@ -229,9 +229,11 @@ func (ap *accountsProcessor) PrepareAccountsHistory(
 
 func (ap *accountsProcessor) getESDTInfo(accountESDT *data.AccountESDT) (*big.Int, string, *data.TokenMetaData, error) {
 	if accountESDT.TokenIdentifier == "" {
+		log.Warn("accountsProcessor.getESDTInfo - token id is empty", "address", accountESDT.Account.Address, "tokens count", len(accountESDT.Account.Tokens))
 		return big.NewInt(0), "", nil, nil
 	}
 	if accountESDT.IsNFTOperation && accountESDT.NFTNonce == 0 {
+		log.Warn("accountsProcessor.getESDTInfo - nft but nonce is 0", "address", accountESDT.Account.Address, "tokens count", len(accountESDT.Account.Tokens))
 		return big.NewInt(0), "", nil, nil
 	}
 
