@@ -97,6 +97,8 @@ func (esc *esClient) InitializeScroll(index string, body []byte, response interf
 }
 
 func (esc *esClient) DoScrollRequestV2(scrollID string, response interface{}) (string, bool, error) {
+	defer logExecutionTime(time.Now(), "esClient.DoScrollRequestV2")
+
 	res, err := esc.client.Scroll(
 		esc.client.Scroll.WithScrollID(scrollID),
 		esc.client.Scroll.WithScroll(2*time.Minute+time.Duration(esc.updateAndGetCountScroll())*time.Millisecond),
@@ -129,6 +131,10 @@ func (esc *esClient) DoScrollRequestV2(scrollID string, response interface{}) (s
 	}
 
 	return nextScrollID, isDone, nil
+}
+
+func logExecutionTime(start time.Time, message string) {
+	log.Debug(message, "duration in seconds", time.Since(start).Seconds())
 }
 
 // DoScrollRequestAllDocuments will perform a documents request using scroll api

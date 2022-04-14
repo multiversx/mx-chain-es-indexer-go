@@ -9,5 +9,5 @@
         password = ""
     [compare]
         #indices = ["rating", "transactions", "blocks", "validators", "miniblocks", "rounds", "accounts", "accountshistory", "receipts", "scresults", "accountsesdt", "accountsesdthistory", "epochinfo", "scdeploys", "tokens", "tags", "logs", "delegators"]
-        indices-with-timestamp = ["receipts"]
-        indices-no-timestamp = ["accounts"]
+        indices-with-timestamp = ["transactions", "blocks", "miniblocks", "rounds",  "accountshistory", "receipts","scresults", "accountsesdt", "accountsesdthistory", "scdeploys", "tokens"]
+        indices-no-timestamp = ["rating", "validators", "accounts", "epochinfo", "epochinfo", "tags", "logs", "delegators"]

@@ -137,6 +137,10 @@ func (cc *clusterChecker) compareResults(index string, respSource, respDestinati
 }
 
 func (cc *clusterChecker) checkMaps(index string, finish bool) {
+	log.Info("missing from source",
+		"num", len(cc.missingFromDestination),
+		"missing from destination num", len(cc.missingFromDestination),
+	)
 	for id, rawDataSource := range cc.missingFromSource {
 		rawDataDestination, found := cc.missingFromDestination[id]
 		if !found {
