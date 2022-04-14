@@ -3,13 +3,15 @@ package client
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
-	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"io/ioutil"
 	"math"
 	"net/http"
+	"sync"
 	"time"
 
+	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"github.com/tidwall/gjson"
@@ -26,6 +28,8 @@ type esClient struct {
 	// countScroll is used to be incremented after each scroll so the scroll duration is different each time,
 	// bypassing any possible caching based on the same request
 	countScroll int
+	countSearch int
+	mutex       sync.Mutex
 }
 
 // NewElasticClient will create a new instance of an esClient
@@ -49,7 +53,82 @@ func NewElasticClient(cfg elasticsearch.Config) (*esClient, error) {
 	return &esClient{
 		client:      elasticClient,
 		countScroll: 0,
+		mutex:       sync.Mutex{},
 	}, nil
+}
+
+func (esc *esClient) InitializeScroll(index string, body []byte, response interface{}) (string, bool, error) {
+	res, err := esc.client.Search(
+		esc.client.Search.WithSize(9000),
+		esc.client.Search.WithScroll(10*time.Minute+time.Duration(esc.updateAndGetCountScroll())*time.Millisecond),
+		esc.client.Search.WithIndex(index),
+		esc.client.Search.WithBody(bytes.NewBuffer(body)),
+	)
+	if err != nil {
+		return "", false, err
+	}
+	if res.IsError() || res.StatusCode >= 400 {
+		return "", false, fmt.Errorf("%s", res.String())
+	}
+
+	bodyBytes, err := getBytesFromResponse(res)
+	if err != nil {
+		return "", false, err
+	}
+	scrollID := gjson.Get(string(bodyBytes), "_scroll_id").String()
+	numberOfHits := gjson.Get(string(bodyBytes), "hits.hits.#")
+	isDone := numberOfHits.Int() == 0
+
+	if isDone {
+		defer func() {
+			errC := esc.clearScroll(scrollID)
+			if errC != nil {
+				log.Warn("cannot clear scroll", "error", errC)
+			}
+		}()
+	}
+
+	err = json.Unmarshal(bodyBytes, response)
+	if err != nil {
+		return "", false, err
+	}
+
+	return scrollID, isDone, nil
+}
+
+func (esc *esClient) DoScrollRequestV2(scrollID string, response interface{}) (string, bool, error) {
+	res, err := esc.client.Scroll(
+		esc.client.Scroll.WithScrollID(scrollID),
+		esc.client.Scroll.WithScroll(2*time.Minute+time.Duration(esc.updateAndGetCountScroll())*time.Millisecond),
+	)
+	if err != nil {
+		return "", false, err
+	}
+
+	bodyBytes, err := getBytesFromResponse(res)
+	if err != nil {
+		return "", false, err
+	}
+
+	nextScrollID := gjson.Get(string(bodyBytes), "_scroll_id").String()
+	numberOfHits := gjson.Get(string(bodyBytes), "hits.hits.#")
+	isDone := numberOfHits.Int() == 0
+
+	if isDone {
+		defer func() {
+			errC := esc.clearScroll(scrollID)
+			if errC != nil {
+				log.Warn("cannot clear scroll", "error", errC)
+			}
+		}()
+	}
+
+	err = json.Unmarshal(bodyBytes, response)
+	if err != nil {
+		return "", false, err
+	}
+
+	return nextScrollID, isDone, nil
 }
 
 // DoScrollRequestAllDocuments will perform a documents request using scroll api
@@ -58,10 +137,9 @@ func (esc *esClient) DoScrollRequestAllDocuments(
 	body []byte,
 	handlerFunc func(responseBytes []byte) error,
 ) error {
-	esc.countScroll++
 	res, err := esc.client.Search(
-		esc.client.Search.WithSize(9999),
-		esc.client.Search.WithScroll(10*time.Minute+time.Duration(esc.countScroll)*time.Millisecond),
+		esc.client.Search.WithSize(9000),
+		esc.client.Search.WithScroll(10*time.Minute+time.Duration(esc.updateAndGetCountScroll())*time.Millisecond),
 		esc.client.Search.WithContext(context.Background()),
 		esc.client.Search.WithIndex(index),
 		esc.client.Search.WithBody(bytes.NewBuffer(body)),
@@ -116,10 +194,9 @@ func (esc *esClient) iterateScroll(
 }
 
 func (esc *esClient) getScrollResponse(scrollID string) ([]byte, error) {
-	esc.countScroll++
 	res, err := esc.client.Scroll(
 		esc.client.Scroll.WithScrollID(scrollID),
-		esc.client.Scroll.WithScroll(2*time.Minute+time.Duration(esc.countScroll)*time.Millisecond),
+		esc.client.Scroll.WithScroll(2*time.Minute+time.Duration(esc.updateAndGetCountScroll())*time.Millisecond),
 	)
 	if err != nil {
 		return nil, err
@@ -162,4 +239,12 @@ func closeBody(res *esapi.Response) {
 	if res != nil && res.Body != nil {
 		_ = res.Body.Close()
 	}
+}
+
+func (esc *esClient) updateAndGetCountScroll() int {
+	esc.mutex.Lock()
+	defer esc.mutex.Unlock()
+
+	esc.countScroll++
+	return esc.countScroll
 }

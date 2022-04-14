@@ -1,6 +1,7 @@
 package checkers
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/ElrondNetwork/elastic-indexer-go/tools/clusters-checker/pkg/client"
 	"github.com/ElrondNetwork/elastic-indexer-go/tools/clusters-checker/pkg/config"
@@ -27,8 +28,12 @@ func CreateClusterChecker(cfg *config.Config) (*clusterChecker, error) {
 	}
 
 	return &clusterChecker{
-		clientSource:      clientSource,
-		clientDestination: clientDestination,
-		indices:           cfg.Compare.Indices,
+		clientSource:         clientSource,
+		clientDestination:    clientDestination,
+		indicesWithTimestamp: cfg.Compare.IndicesWithTimestamp,
+		indicesNoTimestamp:   cfg.Compare.IndicesNoTimestamp,
+
+		missingFromSource:      map[string]json.RawMessage{},
+		missingFromDestination: map[string]json.RawMessage{},
 	}, nil
 }

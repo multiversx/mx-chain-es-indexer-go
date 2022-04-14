@@ -12,6 +12,7 @@ type Config struct {
 		Password string `toml:"password"`
 	} `toml:"destination-cluster"`
 	Compare struct {
-		Indices []string `toml:"indices"`
+		IndicesWithTimestamp []string `toml:"indices-with-timestamp"`
+		IndicesNoTimestamp   []string `toml:"indices-no-timestamp"`
 	} `toml:"compare"`
 }

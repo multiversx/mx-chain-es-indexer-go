@@ -4,8 +4,10 @@
         user = ""
         password = ""
     [destination-cluster]
-        url = "https://index.elrond.com"
+        url = ""
         user = ""
         password = ""
     [compare]
-        indices = ["rating", "transactions", "blocks", "validators", "miniblocks", "rounds", "accounts", "accountshistory", "receipts", "scresults", "accountsesdt", "accountsesdthistory", "epochinfo", "scdeploys", "tokens", "tags", "logs", "delegators"]
+        #indices = ["rating", "transactions", "blocks", "validators", "miniblocks", "rounds", "accounts", "accountshistory", "receipts", "scresults", "accountsesdt", "accountsesdthistory", "epochinfo", "scdeploys", "tokens", "tags", "logs", "delegators"]
+        indices-with-timestamp = ["receipts"]
+        indices-no-timestamp = ["accounts"]

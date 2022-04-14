@@ -81,9 +81,14 @@ func checkClusters(ctx *cli.Context) {
 		log.Error("cannot create cluster checker", "error", err.Error())
 	}
 
-	err = clusterChecker.CompareCounts()
+	//err = clusterChecker.CompareCounts()
+	//if err != nil {
+	//	log.Error("cannot check counts", "error", err.Error())
+	//}
+
+	err = clusterChecker.CompareIndicesWithTimestamp()
 	if err != nil {
-		log.Error("cannot check counts", "error", err.Error())
+		log.Error("cannot check indices", "error", err.Error())
 	}
 
 }

@@ -3,7 +3,14 @@ package checkers
 import "math"
 
 func (cc *clusterChecker) CompareCounts() error {
-	for _, index := range cc.indices {
+	for _, index := range cc.indicesNoTimestamp {
+		err := cc.compareCount(index)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, index := range cc.indicesWithTimestamp {
 		err := cc.compareCount(index)
 		if err != nil {
 			return err
