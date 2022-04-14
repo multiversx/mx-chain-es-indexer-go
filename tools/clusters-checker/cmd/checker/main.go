@@ -1,11 +1,11 @@
 package main
 
 import (
-	"github.com/ElrondNetwork/elastic-indexer-go/tools/clusters-checker/pkg/checkers"
 	"io/ioutil"
 	"os"
 	"path"
 
+	"github.com/ElrondNetwork/elastic-indexer-go/tools/clusters-checker/pkg/checkers"
 	"github.com/ElrondNetwork/elastic-indexer-go/tools/clusters-checker/pkg/config"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/pelletier/go-toml"

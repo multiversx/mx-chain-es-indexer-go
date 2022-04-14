@@ -3,6 +3,7 @@ package checkers
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/ElrondNetwork/elastic-indexer-go/tools/clusters-checker/pkg/client"
 	"github.com/ElrondNetwork/elastic-indexer-go/tools/clusters-checker/pkg/config"
 	"github.com/elastic/go-elasticsearch/v7"
