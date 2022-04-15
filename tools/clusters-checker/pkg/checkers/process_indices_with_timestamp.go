@@ -6,6 +6,10 @@ import (
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 )
 
+const (
+	checkAccumulateInterval = 10
+)
+
 var (
 	log = logger.GetOrCreate("checkers")
 )
@@ -110,7 +114,7 @@ func (cc *clusterChecker) continueReading(index string, scrollIDSource, scrollID
 
 		cc.compareResults(index, rspFromSource, rspFromDestination)
 		log.Info(cc.logPrefix+": comparing results", "index", index, "count", count)
-		if count%10 == 0 {
+		if count%checkAccumulateInterval == 0 {
 			cc.checkMaps(index, false)
 		}
 
