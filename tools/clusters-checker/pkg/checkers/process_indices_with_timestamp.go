@@ -37,7 +37,7 @@ func (cc *clusterChecker) CompareIndicesWithTimestamp() error {
 
 func (cc *clusterChecker) compareIndexWithTimestamp(index string) error {
 	rspSource := &generalElasticResponse{}
-	nextScrollIDSource, _, err := cc.clientSource.InitializeScroll(
+	nextScrollIDSource, doneSource, err := cc.clientSource.InitializeScroll(
 		index,
 		getAllSortTimestampASC(true, cc.startTimestamp, cc.stopTimestamp),
 		rspSource,
@@ -47,7 +47,7 @@ func (cc *clusterChecker) compareIndexWithTimestamp(index string) error {
 	}
 
 	rspDestination := &generalElasticResponse{}
-	nextScrollIDDestination, _, err := cc.clientDestination.InitializeScroll(
+	nextScrollIDDestination, doneDestination, err := cc.clientDestination.InitializeScroll(
 		index,
 		getAllSortTimestampASC(true, cc.startTimestamp, cc.stopTimestamp),
 		rspDestination,
@@ -57,6 +57,9 @@ func (cc *clusterChecker) compareIndexWithTimestamp(index string) error {
 	}
 
 	cc.compareResults(index, rspSource, rspDestination)
+	if doneSource && doneDestination {
+		return nil
+	}
 
 	cc.continueReading(index, nextScrollIDSource, nextScrollIDDestination)
 
