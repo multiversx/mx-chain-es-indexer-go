@@ -2,6 +2,7 @@ package checkers
 
 import (
 	"encoding/json"
+
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 )
 

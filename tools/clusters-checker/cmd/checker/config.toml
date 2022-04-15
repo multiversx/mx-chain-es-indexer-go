@@ -18,4 +18,4 @@
         ]
         indices-with-timestamp = [ "receipts", "transactions", "blocks", "miniblocks", "rounds",  "accountshistory", "scresults", "accountsesdt", "accountsesdthistory", "scdeploys", "tokens"]
         #indices-with-timestamp = [ "blocks"]
-        indices-no-timestamp = ["rating", "validators", "epochinfo", "epochinfo", "tags", "logs", "delegators"]
+        indices-no-timestamp = ["rating", "validators", "epochinfo", "epochinfo", "tags", "logs", "delegators", "accounts"]

@@ -2,6 +2,7 @@ package client
 
 import (
 	"bytes"
+
 	"github.com/tidwall/gjson"
 )
 

@@ -3,10 +3,11 @@ package checkers
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
+
 	"github.com/ElrondNetwork/elastic-indexer-go/tools/clusters-checker/pkg/client"
 	"github.com/ElrondNetwork/elastic-indexer-go/tools/clusters-checker/pkg/config"
 	"github.com/elastic/go-elasticsearch/v7"
-	"strconv"
 )
 
 func CreateClusterChecker(cfg *config.Config, timestampIndex int, logPrefix string) (*clusterChecker, error) {
