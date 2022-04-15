@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math"
+	"math/rand"
 	"net/http"
 	"sync"
 	"time"
@@ -251,6 +252,6 @@ func (esc *esClient) updateAndGetCountScroll() int {
 	esc.mutex.Lock()
 	defer esc.mutex.Unlock()
 
-	esc.countScroll++
+	esc.countScroll += 1 + rand.Intn(10)
 	return esc.countScroll
 }

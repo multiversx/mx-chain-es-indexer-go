@@ -13,3 +13,8 @@ type ESClient interface {
 		handlerFunc func(responseBytes []byte) error,
 	) error
 }
+
+type Checker interface {
+	CompareIndicesNoTimestamp() error
+	CompareIndicesWithTimestamp() error
+}

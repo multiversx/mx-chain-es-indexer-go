@@ -34,19 +34,19 @@ func (cc *clusterChecker) compareCount(index string) error {
 	difference := int64(countSourceCluster) - int64(countDestinationCluster)
 
 	if difference == 0 {
-		log.Info("number of documents are the same", "index", index,
+		log.Info(cc.logPrefix+": number of documents are the same", "index", index,
 			"source cluster", countSourceCluster,
 			"destination cluster", countDestinationCluster,
 		)
 	} else if difference < 0 {
-		log.Info("number of documents", "index", index,
+		log.Info(cc.logPrefix+": number of documents", "index", index,
 			"source cluster", countSourceCluster,
 			"destination cluster", countDestinationCluster,
 			"in destination cluster are more elements, difference", math.Abs(float64(difference)),
 		)
 
 	} else {
-		log.Info("number of documents", "index", index,
+		log.Info(cc.logPrefix+": number of documents", "index", index,
 			"source cluster", countSourceCluster,
 			"destination cluster", countDestinationCluster,
 			"in source cluster are more elements, difference", math.Abs(float64(difference)),

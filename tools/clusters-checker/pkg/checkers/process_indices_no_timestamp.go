@@ -2,12 +2,6 @@ package checkers
 
 import (
 	"encoding/json"
-
-	logger "github.com/ElrondNetwork/elrond-go-logger"
-)
-
-var (
-	log = logger.GetOrCreate("pkg/checkers")
 )
 
 func (cc *clusterChecker) CompareIndicesNoTimestamp() error {
@@ -31,7 +25,7 @@ func (cc *clusterChecker) compareIndex(index string) error {
 			return err
 		}
 
-		log.Info("comparing", "bulk size", len(genericResponse.Hits.Hits), "count", count)
+		log.Info(cc.logPrefix+": comparing", "bulk size", len(genericResponse.Hits.Hits), "count", count)
 
 		return cc.processResponse(index, genericResponse)
 	}
@@ -50,27 +44,27 @@ func (cc *clusterChecker) processResponse(index string, genericResponse *general
 
 	mapResponseDestination, _ := convertResponseInMap(genericResponseDestination)
 
-	compareResults(index, mapResponseSource, mapResponseDestination)
+	cc.compareResultsNo(index, mapResponseSource, mapResponseDestination)
 
 	return nil
 }
 
-func compareResults(index string, sourceRes, destinationRes map[string]json.RawMessage) {
+func (cc *clusterChecker) compareResultsNo(index string, sourceRes, destinationRes map[string]json.RawMessage) {
 	for id, rawDataSource := range sourceRes {
 		rawDataDestination, found := destinationRes[id]
 		if !found {
-			log.Warn("cannot find document", "index", index, "id", id)
+			log.Warn(cc.logPrefix+": cannot find document", "index", index, "id", id)
 			continue
 		}
 
 		equal, err := areEqualJSON(rawDataSource, rawDataDestination)
 		if err != nil {
-			log.Error("cannot compare json", "error", err.Error(), "index", index, "id", id)
+			log.Error(cc.logPrefix+": cannot compare json", "error", err.Error(), "index", index, "id", id)
 			continue
 		}
 
 		if !equal {
-			log.Warn("different documents", "index", index, "id", id)
+			log.Warn(cc.logPrefix+": different documents", "index", index, "id", id)
 		}
 	}
 }

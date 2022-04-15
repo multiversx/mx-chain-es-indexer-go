@@ -31,10 +31,15 @@ func queryMultipleObj(ids []string, withSource bool) []byte {
 	return buff.Bytes()
 }
 
-func getAllSortTimestampASC(withSource bool) []byte {
+func getAllSortTimestampASC(withSource bool, start, stop int) []byte {
 	obj := object{
 		"query": object{
-			"match_all": object{},
+			"range": object{
+				"timestamp": object{
+					"gte": start,
+					"lte": stop,
+				},
+			},
 		},
 		"_source": withSource,
 		"sort": []interface{}{

@@ -1,6 +1,13 @@
 package checkers
 
-import "encoding/json"
+import (
+	"encoding/json"
+	logger "github.com/ElrondNetwork/elrond-go-logger"
+)
+
+var (
+	log = logger.GetOrCreate("checkers")
+)
 
 type clusterChecker struct {
 	missingFromSource      map[string]json.RawMessage
@@ -10,6 +17,10 @@ type clusterChecker struct {
 	clientDestination    ESClient
 	indicesNoTimestamp   []string
 	indicesWithTimestamp []string
+
+	startTimestamp, stopTimestamp int
+
+	logPrefix string
 }
 
 func (cc *clusterChecker) CompareIndicesWithTimestamp() error {
@@ -27,7 +38,7 @@ func (cc *clusterChecker) compareIndexWithTimestamp(index string) error {
 	rspSource := &generalElasticResponse{}
 	nextScrollIDSource, _, err := cc.clientSource.InitializeScroll(
 		index,
-		getAllSortTimestampASC(true),
+		getAllSortTimestampASC(true, cc.startTimestamp, cc.stopTimestamp),
 		rspSource,
 	)
 	if err != nil {
@@ -37,7 +48,7 @@ func (cc *clusterChecker) compareIndexWithTimestamp(index string) error {
 	rspDestination := &generalElasticResponse{}
 	nextScrollIDDestination, _, err := cc.clientDestination.InitializeScroll(
 		index,
-		getAllSortTimestampASC(true),
+		getAllSortTimestampASC(true, cc.startTimestamp, cc.stopTimestamp),
 		rspDestination,
 	)
 	if err != nil {
@@ -70,7 +81,7 @@ func (cc *clusterChecker) continueReading(index string, scrollIDSource, scrollID
 			if !doneSource {
 				nextScroll, doneSource, errSource = cc.clientSource.DoScrollRequestV2(sourceID, responseS)
 				if errSource != nil {
-					log.Error("cannot read from source", "index", index, "error", errSource.Error())
+					log.Error(cc.logPrefix+": cannot read from source", "index", index, "error", errSource.Error())
 				}
 			}
 			sourceID = nextScroll
@@ -83,7 +94,7 @@ func (cc *clusterChecker) continueReading(index string, scrollIDSource, scrollID
 			if !doneDestination {
 				nextScroll, doneDestination, errDestination = cc.clientDestination.DoScrollRequestV2(destinationID, responseD)
 				if errDestination != nil {
-					log.Error("cannot read from destination", "index", index, "error", errDestination.Error())
+					log.Error(cc.logPrefix+": cannot read from destination", "index", index, "error", errDestination.Error())
 				}
 			}
 			destinationID = nextScroll
@@ -94,7 +105,7 @@ func (cc *clusterChecker) continueReading(index string, scrollIDSource, scrollID
 		rspFromDestination := <-chanResponseDestination
 
 		cc.compareResults(index, rspFromSource, rspFromDestination)
-		log.Info("comparing results", "count", count)
+		log.Info(cc.logPrefix+": comparing results", "index", index, "count", count)
 		if count%10 == 0 {
 			cc.checkMaps(index, false)
 		}
@@ -121,12 +132,12 @@ func (cc *clusterChecker) compareResults(index string, respSource, respDestinati
 
 		equal, err := areEqualJSON(rawDataSource, rawDataDestination)
 		if err != nil {
-			log.Error("cannot compare json", "error", err.Error(), "index", index, "id", id)
+			log.Error(cc.logPrefix+": cannot compare json", "error", err.Error(), "index", index, "id", id)
 			continue
 		}
 
 		if !equal {
-			log.Warn("different documents", "index", index, "id", id)
+			log.Warn(cc.logPrefix+": different documents", "index", index, "id", id)
 			continue
 		}
 	}
@@ -137,7 +148,7 @@ func (cc *clusterChecker) compareResults(index string, respSource, respDestinati
 }
 
 func (cc *clusterChecker) checkMaps(index string, finish bool) {
-	log.Info("missing from source",
+	log.Info(cc.logPrefix+": missing from source",
 		"num", len(cc.missingFromDestination),
 		"missing from destination num", len(cc.missingFromDestination),
 	)
@@ -145,7 +156,7 @@ func (cc *clusterChecker) checkMaps(index string, finish bool) {
 		rawDataDestination, found := cc.missingFromDestination[id]
 		if !found {
 			if finish {
-				log.Warn("cannot find document source", "index", index, "id", id)
+				log.Warn(cc.logPrefix+": cannot find document source", "index", index, "id", id)
 			}
 			continue
 		}
@@ -155,18 +166,24 @@ func (cc *clusterChecker) checkMaps(index string, finish bool) {
 
 		equal, err := areEqualJSON(rawDataSource, rawDataDestination)
 		if err != nil {
-			log.Error("cannot compare json", "error", err.Error(), "index", index, "id", id)
+			log.Error(cc.logPrefix+": cannot compare json", "error", err.Error(), "index", index, "id", id)
 			continue
 		}
 
 		if !equal {
-			log.Warn("different documents", "index", index, "id", id)
+			log.Warn(cc.logPrefix+": different documents", "index", index, "id", id)
 			continue
 		}
 	}
 	if finish {
-		for id, _ := range cc.missingFromDestination {
-			log.Warn("cannot find document destination", "index", index, "id", id)
+		for id := range cc.missingFromDestination {
+			log.Warn(cc.logPrefix+": cannot find document destination", "index", index, "id", id)
 		}
+	}
+
+	if finish {
+		log.Info(cc.logPrefix + ": DONE")
+		cc.missingFromDestination = make(map[string]json.RawMessage, 0)
+		cc.missingFromSource = make(map[string]json.RawMessage, 0)
 	}
 }

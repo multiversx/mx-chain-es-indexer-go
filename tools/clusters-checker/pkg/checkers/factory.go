@@ -3,13 +3,13 @@ package checkers
 import (
 	"encoding/json"
 	"fmt"
-
 	"github.com/ElrondNetwork/elastic-indexer-go/tools/clusters-checker/pkg/client"
 	"github.com/ElrondNetwork/elastic-indexer-go/tools/clusters-checker/pkg/config"
 	"github.com/elastic/go-elasticsearch/v7"
+	"strconv"
 )
 
-func CreateClusterChecker(cfg *config.Config) (*clusterChecker, error) {
+func CreateClusterChecker(cfg *config.Config, timestampIndex int, logPrefix string) (*clusterChecker, error) {
 	clientSource, err := client.NewElasticClient(elasticsearch.Config{
 		Addresses: []string{cfg.SourceCluster.URL},
 		Username:  cfg.SourceCluster.User,
@@ -36,5 +36,25 @@ func CreateClusterChecker(cfg *config.Config) (*clusterChecker, error) {
 
 		missingFromSource:      map[string]json.RawMessage{},
 		missingFromDestination: map[string]json.RawMessage{},
+
+		startTimestamp: cfg.Compare.IntervalSettings[timestampIndex].Start,
+		stopTimestamp:  cfg.Compare.IntervalSettings[timestampIndex].Stop,
+		logPrefix:      logPrefix,
 	}, nil
+}
+
+func CreateMultipleCheckers(cfg *config.Config) ([]*clusterChecker, error) {
+	checkers := make([]*clusterChecker, 0, len(cfg.Compare.IntervalSettings))
+
+	for idx := 0; idx < len(cfg.Compare.IntervalSettings); idx++ {
+		logPrefix := "instance_" + strconv.FormatUint(uint64(idx), 10)
+		cc, err := CreateClusterChecker(cfg, idx, logPrefix)
+		if err != nil {
+			return nil, err
+		}
+
+		checkers = append(checkers, cc)
+	}
+
+	return checkers, nil
 }

@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"sync"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/tools/clusters-checker/pkg/checkers"
 	"github.com/ElrondNetwork/elastic-indexer-go/tools/clusters-checker/pkg/config"
@@ -22,6 +23,18 @@ var (
 		Name:  "config-path",
 		Usage: "The path to the config folder",
 		Value: "./",
+	}
+	checkCounts = cli.BoolFlag{
+		Name:  "check-counts",
+		Usage: "If set, the checker wil verify the counts between clusters",
+	}
+	checkWithTimestamp = cli.BoolFlag{
+		Name:  "check-with-timestamp",
+		Usage: "If set, the checker wil verify all the indices from list with timestamp",
+	}
+	checkNoTimestamp = cli.BoolFlag{
+		Name:  "check-no-timestamp",
+		Usage: "If set, the checker wil verify the indices from list with no timestamp",
 	}
 )
 
@@ -44,11 +57,11 @@ VERSION:
 func main() {
 	app := cli.NewApp()
 	cli.AppHelpTemplate = helpTemplate
-	app.Name = "Cluster checker"
+	app.Name = "Clusters checker"
 	app.Version = "v1.0.0"
-	app.Usage = "Cluster checker"
+	app.Usage = "Clusters checker"
 	app.Flags = []cli.Flag{
-		configPath,
+		configPath, checkCounts, checkNoTimestamp, checkWithTimestamp,
 	}
 	app.Authors = []cli.Author{
 		{
@@ -76,20 +89,64 @@ func checkClusters(ctx *cli.Context) {
 		log.Error("cannot load config file", "error", err.Error())
 	}
 
-	clusterChecker, err := checkers.CreateClusterChecker(cfg)
+	checkCountsFlag := ctx.Bool(checkCounts.Name)
+	if checkCountsFlag {
+		clusterChecker, errC := checkers.CreateClusterChecker(cfg, 0, "instance_0")
+		if errC != nil {
+			log.Error("cannot create cluster checker", "error", errC.Error())
+		}
+
+		errC = clusterChecker.CompareCounts()
+		if errC != nil {
+			log.Error("cannot check counts", "error", errC.Error())
+		}
+
+		return
+	}
+
+	checkIndicesNoTimestampFlag := ctx.Bool(checkNoTimestamp.Name)
+	if checkIndicesNoTimestampFlag {
+		clusterChecker, errC := checkers.CreateClusterChecker(cfg, 0, "instance_0")
+		if errC != nil {
+			log.Error("cannot create cluster checker", "error", errC.Error())
+		}
+
+		errC = clusterChecker.CompareIndicesNoTimestamp()
+		if errC != nil {
+			log.Error("cannot check indices", "error", errC.Error())
+		}
+
+		return
+	}
+
+	checkWithTimestampFlag := ctx.Bool(checkWithTimestamp.Name)
+	if checkWithTimestampFlag {
+		checkClustersIndexesWithInterval(cfg)
+		return
+	}
+
+	log.Error("no flag has been provided")
+}
+
+func checkClustersIndexesWithInterval(cfg *config.Config) {
+	wg := sync.WaitGroup{}
+	ccs, err := checkers.CreateMultipleCheckers(cfg)
 	if err != nil {
 		log.Error("cannot create cluster checker", "error", err.Error())
 	}
 
-	//err = clusterChecker.CompareCounts()
-	//if err != nil {
-	//	log.Error("cannot check counts", "error", err.Error())
-	//}
-
-	err = clusterChecker.CompareIndicesWithTimestamp()
-	if err != nil {
-		log.Error("cannot check indices", "error", err.Error())
+	wg.Add(len(ccs))
+	for _, c := range ccs {
+		go func(che checkers.Checker) {
+			errC := che.CompareIndicesWithTimestamp()
+			if errC != nil {
+				log.Error("cannot check indices", "error", errC.Error())
+			}
+			wg.Done()
+		}(c)
 	}
+
+	wg.Wait()
 
 }
 
