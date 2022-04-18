@@ -164,7 +164,7 @@ func (cc *clusterChecker) checkMaps(index string, finish bool) {
 		rawDataDestination, found := cc.missingFromDestination[id]
 		if !found {
 			if finish {
-				log.Warn(cc.logPrefix+": cannot find document source", "index", index, "id", id)
+				log.Warn(cc.logPrefix+": cannot find document destination", "index", index, "id", id)
 			}
 			continue
 		}
@@ -185,7 +185,7 @@ func (cc *clusterChecker) checkMaps(index string, finish bool) {
 	}
 	if finish {
 		for id := range cc.missingFromDestination {
-			log.Warn(cc.logPrefix+": cannot find document destination", "index", index, "id", id)
+			log.Warn(cc.logPrefix+": cannot find document source", "index", index, "id", id)
 		}
 	}
 
