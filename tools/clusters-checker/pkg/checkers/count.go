@@ -42,14 +42,14 @@ func (cc *clusterChecker) compareCount(index string) error {
 		log.Info(cc.logPrefix+": number of documents", "index", index,
 			"source cluster", countSourceCluster,
 			"destination cluster", countDestinationCluster,
-			"in destination cluster are more elements, difference", math.Abs(float64(difference)),
+			"in destination cluster are more elements, difference", uint64(math.Abs(float64(difference))),
 		)
 
 	} else {
 		log.Info(cc.logPrefix+": number of documents", "index", index,
 			"source cluster", countSourceCluster,
 			"destination cluster", countDestinationCluster,
-			"in source cluster are more elements, difference", math.Abs(float64(difference)),
+			"in source cluster are more elements, difference", uint64(math.Abs(float64(difference))),
 		)
 	}
 
