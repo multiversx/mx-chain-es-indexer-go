@@ -16,12 +16,26 @@ const (
 )
 
 type scrsDataToTransactions struct {
+	retCodes        []string
 	txFeeCalculator indexer.FeesProcessorHandler
 }
 
 func newScrsDataToTransactions(txFeeCalculator indexer.FeesProcessorHandler) *scrsDataToTransactions {
 	return &scrsDataToTransactions{
 		txFeeCalculator: txFeeCalculator,
+		retCodes: []string{
+			vmcommon.FunctionNotFound.String(),
+			vmcommon.FunctionWrongSignature.String(),
+			vmcommon.ContractNotFound.String(),
+			vmcommon.UserError.String(),
+			vmcommon.OutOfGas.String(),
+			vmcommon.AccountCollision.String(),
+			vmcommon.OutOfFunds.String(),
+			vmcommon.CallStackOverFlow.String(),
+			vmcommon.ContractInvalid.String(),
+			vmcommon.ExecutionFailed.String(),
+			vmcommon.UpgradeFailed.String(),
+		},
 	}
 }
 
@@ -103,7 +117,22 @@ func (st *scrsDataToTransactions) fillTxWithSCRsFields(tx *data.Transaction) {
 		return
 	}
 
-	tx.Status = transaction.TxStatusFail.String()
+	if st.hasSCRWithErrorCode(tx) {
+		tx.Status = transaction.TxStatusFail.String()
+	}
+}
+
+func (st *scrsDataToTransactions) hasSCRWithErrorCode(tx *data.Transaction) bool {
+	for _, scr := range tx.SmartContractResults {
+		for _, codeStr := range st.retCodes {
+			if strings.Contains(string(scr.Data), hex.EncodeToString([]byte(codeStr))) ||
+				scr.ReturnMessage == codeStr {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 func hasSuccessfulSCRs(tx *data.Transaction) bool {
