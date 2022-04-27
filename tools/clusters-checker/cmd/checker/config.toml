@@ -8,7 +8,6 @@
         user = ""
         password = ""
     [compare]
-        #indices = ["rating", "transactions", "blocks", "validators", "miniblocks", "rounds", "accounts", "accountshistory", "receipts", "scresults", "accountsesdt", "accountsesdthistory", "epochinfo", "scdeploys", "tokens", "tags", "logs", "delegators"]
         interval = [
             {start = 1596117600, stop = 1613397600}, # Day 0 --- Day 200
             {start = 1613397601, stop = 1630677600}, # Day 200 - Day 400
@@ -16,6 +15,6 @@
             {start = 1639317602, stop = 1647957602}, # Day 500 - Day 600
             {start = 1647957603, stop = 1667288039}, # Day 600 - Day XXX
         ]
-        indices-with-timestamp = [ "receipts", "transactions", "blocks", "miniblocks", "rounds",  "accountshistory", "scresults", "accountsesdt", "accountsesdthistory", "scdeploys", "tokens"]
+        #indices-with-timestamp = [ "receipts", "transactions", "blocks", "miniblocks", "rounds",  "accountshistory", "scresults", "accountsesdt", "accountsesdthistory", "scdeploys", "tokens", "accounts"]
         #indices-with-timestamp = [ "blocks"]
-        indices-no-timestamp = ["rating", "validators", "epochinfo", "epochinfo", "tags", "logs", "delegators", "accounts"]
+        indices-no-timestamp = ["rating", "validators", "epochinfo", "tags", "logs", "delegators"]
