@@ -11,6 +11,7 @@ type ESClient interface {
 		index string,
 		body []byte,
 		handlerFunc func(responseBytes []byte) error,
+		size int,
 	) error
 }
 

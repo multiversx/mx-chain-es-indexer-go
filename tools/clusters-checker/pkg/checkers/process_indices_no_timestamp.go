@@ -4,6 +4,11 @@ import (
 	"encoding/json"
 )
 
+const (
+	defaultSize = 9000
+	sizeRating  = 5000
+)
+
 func (cc *clusterChecker) CompareIndicesNoTimestamp() error {
 	for _, index := range cc.indicesNoTimestamp {
 		err := cc.compareIndex(index)
@@ -30,7 +35,12 @@ func (cc *clusterChecker) compareIndex(index string) error {
 		return cc.processResponse(index, genericResponse)
 	}
 
-	return cc.clientSource.DoScrollRequestAllDocuments(index, getAll(true), handlerFunc)
+	size := defaultSize
+	if index == "rating" {
+		size = sizeRating
+	}
+
+	return cc.clientSource.DoScrollRequestAllDocuments(index, getAll(true), handlerFunc, size)
 }
 
 func (cc *clusterChecker) processResponse(index string, genericResponse *generalElasticResponse) error {

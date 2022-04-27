@@ -143,9 +143,10 @@ func (esc *esClient) DoScrollRequestAllDocuments(
 	index string,
 	body []byte,
 	handlerFunc func(responseBytes []byte) error,
+	size int,
 ) error {
 	res, err := esc.client.Search(
-		esc.client.Search.WithSize(9000),
+		esc.client.Search.WithSize(size),
 		esc.client.Search.WithScroll(10*time.Minute+time.Duration(esc.updateAndGetCountScroll())*time.Millisecond),
 		esc.client.Search.WithContext(context.Background()),
 		esc.client.Search.WithIndex(index),
