@@ -63,7 +63,7 @@ func (ei *elasticProcessor) addTokenType(tokensData []*data.TokenInfo, index str
 			return ei.doBulkRequests(index, buffSlice.Buffers())
 		}
 
-		query := fmt.Sprintf(`{"query": {"bool": {"must": [{"match": {"token": "%s"}}],"must_not":[{"exists": {"field": "type"}}]}}}`, td.Token)
+		query := fmt.Sprintf(`{"query": {"bool": {"must": [{"match": {"token": {"query": "%s","operator": "AND"}}}],"must_not":[{"exists": {"field": "type"}}]}}}`, td.Token)
 		resultsCount, err := ei.elasticClient.DoCountRequest(index, []byte(query))
 		if err != nil || resultsCount == 0 {
 			return err
