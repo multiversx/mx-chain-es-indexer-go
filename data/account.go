@@ -23,6 +23,7 @@ type AccountInfo struct {
 	Data                     *TokenMetaData `json:"data,omitempty"`
 	Timestamp                time.Duration  `json:"timestamp,omitempty"`
 	Type                     string         `json:"type,omitempty"`
+	CurrentOwner             string         `json:"currentOwner,omitempty"`
 }
 
 // TokenMetaData holds data about a token metadata
