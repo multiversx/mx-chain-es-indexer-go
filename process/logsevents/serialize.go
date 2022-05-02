@@ -230,7 +230,7 @@ func serializeRoleData(buffSlice *data.BufferSlice, rd *data.RoleData, role stri
 				}
 				ctx._source.roles.get(params.role).add(params.address);
 			}
-		`
+`
 		serializedDataStr = fmt.Sprintf(`{"script": {`+
 			`"source": "%s",`+
 			`"lang": "painless",`+
@@ -239,12 +239,12 @@ func serializeRoleData(buffSlice *data.BufferSlice, rd *data.RoleData, role stri
 			converters.FormatJavaCodeStr(codeToExecute), role, rd.Address, role, rd.Address)
 	} else {
 		codeToExecute := `
-			if (ctx._source.containsKey('roles')) {
-				if (ctx._source.roles.containsKey(params.role)) {
-					ctx._source.roles.get(params.role).removeIf(p - > p.equals(params.address))
-				}
-			}
-		`
+	if (ctx._source.containsKey('roles')) {
+		if (ctx._source.roles.containsKey(params.role)) {
+			ctx._source.roles.get(params.role).removeIf(p - > p.equals(params.address))
+		}
+	}
+`
 		serializedDataStr = fmt.Sprintf(`{"script": {`+
 			`"source": "%s",`+
 			`"lang": "painless",`+
