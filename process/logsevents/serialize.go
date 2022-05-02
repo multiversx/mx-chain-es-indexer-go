@@ -236,7 +236,7 @@ func serializeRoleData(buffSlice *data.BufferSlice, rd *data.RoleData, role stri
 			`"lang": "painless",`+
 			`"params": { "role": "%s", "address": "%s"}},`+
 			`"upsert": { "roles": {"%s": ["%s"]}}}`,
-			converters.FormatJavaCodeStr(codeToExecute), role, rd.Address, role, rd.Address)
+			converters.FormatPainlessSource(codeToExecute), role, rd.Address, role, rd.Address)
 	} else {
 		codeToExecute := `
 	if (ctx._source.containsKey('roles')) {
@@ -250,7 +250,7 @@ func serializeRoleData(buffSlice *data.BufferSlice, rd *data.RoleData, role stri
 			`"lang": "painless",`+
 			`"params": { "role": "%s", "address": "%s" }},`+
 			`"upsert": {} }`,
-			converters.FormatJavaCodeStr(codeToExecute), role, rd.Address)
+			converters.FormatPainlessSource(codeToExecute), role, rd.Address)
 	}
 
 	err := buffSlice.PutData(meta, []byte(serializedDataStr))
