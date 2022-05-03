@@ -394,3 +394,84 @@ func TestAccountsProcessor_PrepareAccountsHistory(t *testing.T) {
 		Identifier: "token-112-0a",
 	}, accountBalanceHistory)
 }
+
+func TestAccountsProcessor_PutTokenMedataDataInTokens(t *testing.T) {
+	t.Parallel()
+
+	t.Run("no tokens with missing data or nonce higher than 0", func(t *testing.T) {
+		t.Parallel()
+
+		ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), balanceConverter)
+
+		oldCreator := "old creator"
+		tokensInfo := []*data.TokenInfo{
+			{Data: nil}, {Nonce: 5, Data: &data.TokenMetaData{Creator: oldCreator}},
+		}
+		emptyAlteredAccounts := map[string]*coreIndexerData.AlteredAccount{}
+		ap.PutTokenMedataDataInTokens(tokensInfo, emptyAlteredAccounts)
+		require.Empty(t, emptyAlteredAccounts)
+		require.Empty(t, tokensInfo[0].Data)
+		require.Equal(t, oldCreator, tokensInfo[1].Data.Creator)
+	})
+
+	t.Run("error loading token, should not update metadata", func(t *testing.T) {
+		t.Parallel()
+
+		ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), balanceConverter)
+
+		tokensInfo := []*data.TokenInfo{
+			{
+				Name:  "token0",
+				Data:  nil,
+				Nonce: 5,
+			},
+		}
+
+		alteredAccounts := map[string]*coreIndexerData.AlteredAccount{
+			"addr": {Tokens: []*coreIndexerData.AccountTokenData{}},
+		}
+		ap.PutTokenMedataDataInTokens(tokensInfo, alteredAccounts)
+		require.Empty(t, tokensInfo[0].Data)
+	})
+
+	t.Run("should work and update metadata", func(t *testing.T) {
+		t.Parallel()
+
+		ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), balanceConverter)
+
+		metadata0, metadata1 := &esdt.MetaData{Creator: []byte("creator 0")}, &esdt.MetaData{Creator: []byte("creator 1")}
+		tokensInfo := []*data.TokenInfo{
+			{
+				Nonce:      5,
+				Token:      "token0-5t6y7u",
+				Identifier: "token0-5t6y7u-05",
+			},
+			{
+				Nonce:      10,
+				Token:      "token1-999ddd",
+				Identifier: "token1-999ddd-0a",
+			},
+		}
+
+		alteredAccounts := map[string]*coreIndexerData.AlteredAccount{
+			"addr0": {
+				Tokens: []*coreIndexerData.AccountTokenData{
+					{
+						Identifier: "token0-5t6y7u",
+						Nonce:      5,
+						MetaData:   metadata0,
+					},
+					{
+						Identifier: "token1-999ddd",
+						Nonce:      10,
+						MetaData:   metadata1,
+					},
+				},
+			},
+		}
+
+		ap.PutTokenMedataDataInTokens(tokensInfo, alteredAccounts)
+		require.Equal(t, hex.EncodeToString(metadata0.Creator), tokensInfo[0].Data.Creator)
+		require.Equal(t, hex.EncodeToString(metadata1.Creator), tokensInfo[1].Data.Creator)
+	})
+}
