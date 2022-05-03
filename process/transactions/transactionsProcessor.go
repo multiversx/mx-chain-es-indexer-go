@@ -103,21 +103,21 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 				continue
 			}
 
-			txs, errGroup := tdp.txsGrouper.groupNormalTxs(mb, header, pool.Txs, alteredAccounts)
+			txs, errGroup := tdp.txsGrouper.groupNormalTxs(mbIndex, mb, header, pool.Txs, alteredAccounts)
 			if errGroup != nil {
 				log.Warn("txsDatabaseProcessor.groupNormalTxs", "error", errGroup)
 				continue
 			}
 			mergeTxsMaps(normalTxs, txs)
 		case block.RewardsBlock:
-			txs, errGroup := tdp.txsGrouper.groupRewardsTxs(mb, header, pool.Rewards, alteredAccounts)
+			txs, errGroup := tdp.txsGrouper.groupRewardsTxs(mbIndex, mb, header, pool.Rewards, alteredAccounts)
 			if errGroup != nil {
 				log.Warn("txsDatabaseProcessor.groupRewardsTxs", "error", errGroup)
 				continue
 			}
 			mergeTxsMaps(rewardsTxs, txs)
 		case block.InvalidBlock:
-			txs, errGroup := tdp.txsGrouper.groupInvalidTxs(mb, header, pool.Invalid, alteredAccounts)
+			txs, errGroup := tdp.txsGrouper.groupInvalidTxs(mbIndex, mb, header, pool.Invalid, alteredAccounts)
 			if errGroup != nil {
 				log.Warn("txsDatabaseProcessor.groupInvalidTxs", "error", errGroup)
 				continue
