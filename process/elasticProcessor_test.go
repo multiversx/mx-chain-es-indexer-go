@@ -48,7 +48,7 @@ func newElasticsearchProcessor(elasticsearchWriter DatabaseClientHandler, argume
 func createMockElasticProcessorArgs() *ArgElasticProcessor {
 	balanceConverter, _ := converters.NewBalanceConverter(10)
 
-	acp, _ := accounts.NewAccountsProcessor(&mock.MarshalizerMock{}, &mock.PubkeyConverterMock{}, balanceConverter)
+	acp, _ := accounts.NewAccountsProcessor(&mock.PubkeyConverterMock{}, balanceConverter)
 	bp, _ := block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 	mp, _ := miniblocks.NewMiniblocksProcessor(0, &mock.HasherMock{}, &mock.MarshalizerMock{}, false)
 	vp, _ := validators.NewValidatorsProcessor(mock.NewPubkeyConverterMock(32))

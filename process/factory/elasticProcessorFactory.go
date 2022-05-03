@@ -54,7 +54,6 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (indexer.Elast
 	}
 
 	accountsProc, err := accounts.NewAccountsProcessor(
-		arguments.Marshalizer,
 		arguments.AddressPubkeyConverter,
 		balanceConverter,
 	)

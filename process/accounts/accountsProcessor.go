@@ -13,7 +13,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	"github.com/ElrondNetwork/elrond-go-core/data/esdt"
 	coreIndexerData "github.com/ElrondNetwork/elrond-go-core/data/indexer"
-	"github.com/ElrondNetwork/elrond-go-core/marshal"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 )
 
@@ -21,20 +20,15 @@ var log = logger.GetOrCreate("indexer/process/accounts")
 
 // accountsProcessor a is structure responsible for processing accounts
 type accountsProcessor struct {
-	internalMarshalizer    marshal.Marshalizer
 	addressPubkeyConverter core.PubkeyConverter
 	balanceConverter       indexer.BalanceConverter
 }
 
 // NewAccountsProcessor will create a new instance of accounts processor
 func NewAccountsProcessor(
-	marshalizer marshal.Marshalizer,
 	addressPubkeyConverter core.PubkeyConverter,
 	balanceConverter indexer.BalanceConverter,
 ) (*accountsProcessor, error) {
-	if check.IfNil(marshalizer) {
-		return nil, indexer.ErrNilMarshalizer
-	}
 	if check.IfNil(addressPubkeyConverter) {
 		return nil, indexer.ErrNilPubkeyConverter
 	}
@@ -43,7 +37,6 @@ func NewAccountsProcessor(
 	}
 
 	return &accountsProcessor{
-		internalMarshalizer:    marshalizer,
 		addressPubkeyConverter: addressPubkeyConverter,
 		balanceConverter:       balanceConverter,
 	}, nil
@@ -119,12 +112,12 @@ func (ap *accountsProcessor) PrepareRegularAccountsMap(accounts []*data.Account)
 		address := userAccount.UserAccount.Address
 		addressBytes, err := ap.addressPubkeyConverter.Decode(address)
 		if err != nil {
-			log.Warn("PrepareRegularAccountsMap: cannot decode address", "address", address, "error", err)
+			log.Warn("accountsProcessor.PrepareRegularAccountsMap: cannot decode address", "address", address, "error", err)
 			continue
 		}
 		balance, ok := big.NewInt(0).SetString(userAccount.UserAccount.Balance, 10)
 		if !ok {
-			log.Warn("cannot cast account's balance to big int", "value", userAccount.UserAccount.Balance)
+			log.Warn("accountsProcessor.PrepareRegularAccountsMap: cannot cast account's balance to big int", "value", userAccount.UserAccount.Balance)
 			continue
 		}
 
@@ -155,12 +148,12 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(
 		address := accountESDT.Account.Address
 		addressBytes, err := ap.addressPubkeyConverter.Decode(address)
 		if err != nil {
-			log.Warn("PrepareAccountsMapESDT: cannot decode address", "address", address, "error", err)
+			log.Warn("accountsProcessor.PrepareAccountsMapESDT: cannot decode address", "address", address, "error", err)
 			continue
 		}
 		balance, properties, tokenMetaData, err := ap.getESDTInfo(accountESDT)
 		if err != nil {
-			log.Warn("cannot get esdt info from account",
+			log.Warn("accountsProcessor.PrepareAccountsMapESDT: cannot get esdt info from account",
 				"address", address,
 				"error", err.Error())
 			continue
@@ -248,7 +241,7 @@ func (ap *accountsProcessor) PutTokenMedataDataInTokens(tokensData []*data.Token
 
 		metadata, errLoad := ap.loadMetadataForToken(tokenData, coreAlteredAccounts)
 		if errLoad != nil {
-			log.Warn("cannot load token metadata",
+			log.Warn("accountsProcessor.PutTokenMedataDataInTokens: cannot load token metadata",
 				"token identifier ", tokenData.Identifier,
 				"error", errLoad.Error())
 
@@ -259,7 +252,10 @@ func (ap *accountsProcessor) PutTokenMedataDataInTokens(tokensData []*data.Token
 	}
 }
 
-func (ap *accountsProcessor) loadMetadataForToken(tokenData *data.TokenInfo, coreAlteredAccounts map[string]*coreIndexerData.AlteredAccount) (*esdt.MetaData, error) {
+func (ap *accountsProcessor) loadMetadataForToken(
+	tokenData *data.TokenInfo,
+	coreAlteredAccounts map[string]*coreIndexerData.AlteredAccount,
+) (*esdt.MetaData, error) {
 	for _, account := range coreAlteredAccounts {
 		for _, token := range account.Tokens {
 			if tokenData.Token == token.Identifier && tokenData.Nonce == token.Nonce {

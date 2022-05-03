@@ -14,7 +14,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/data/esdt"
 	coreIndexerData "github.com/ElrondNetwork/elrond-go-core/data/indexer"
-	"github.com/ElrondNetwork/elrond-go-core/marshal"
 	"github.com/stretchr/testify/require"
 )
 
@@ -25,34 +24,27 @@ func TestNewAccountsProcessor(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		argsFunc func() (marshal.Marshalizer, core.PubkeyConverter, indexer.BalanceConverter)
+		argsFunc func() (core.PubkeyConverter, indexer.BalanceConverter)
 		exError  error
 	}{
 		{
 			name: "NilBalanceConverter",
-			argsFunc: func() (marshal.Marshalizer, core.PubkeyConverter, indexer.BalanceConverter) {
-				return &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{}, nil
+			argsFunc: func() (core.PubkeyConverter, indexer.BalanceConverter) {
+				return &mock.PubkeyConverterMock{}, nil
 			},
 			exError: indexer.ErrNilBalanceConverter,
 		},
 		{
-			name: "NilMarshalizer",
-			argsFunc: func() (marshal.Marshalizer, core.PubkeyConverter, indexer.BalanceConverter) {
-				return nil, &mock.PubkeyConverterMock{}, balanceConverter
-			},
-			exError: indexer.ErrNilMarshalizer,
-		},
-		{
 			name: "NilPubKeyConverter",
-			argsFunc: func() (marshal.Marshalizer, core.PubkeyConverter, indexer.BalanceConverter) {
-				return &mock.MarshalizerMock{}, nil, balanceConverter
+			argsFunc: func() (core.PubkeyConverter, indexer.BalanceConverter) {
+				return nil, balanceConverter
 			},
 			exError: indexer.ErrNilPubkeyConverter,
 		},
 		{
 			name: "ShouldWork",
-			argsFunc: func() (marshal.Marshalizer, core.PubkeyConverter, indexer.BalanceConverter) {
-				return &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{}, balanceConverter
+			argsFunc: func() (core.PubkeyConverter, indexer.BalanceConverter) {
+				return &mock.PubkeyConverterMock{}, balanceConverter
 			},
 			exError: nil,
 		},
@@ -69,7 +61,7 @@ func TestNewAccountsProcessor(t *testing.T) {
 func TestAccountsProcessor_GetAccountsWithNil(t *testing.T) {
 	t.Parallel()
 
-	ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), balanceConverter)
+	ap, _ := NewAccountsProcessor(mock.NewPubkeyConverterMock(32), balanceConverter)
 
 	regularAccounts, esdtAccounts := ap.GetAccounts(nil, nil)
 	require.Len(t, regularAccounts, 0)
@@ -79,7 +71,7 @@ func TestAccountsProcessor_GetAccountsWithNil(t *testing.T) {
 func TestAccountsProcessor_PrepareRegularAccountsMapWithNil(t *testing.T) {
 	t.Parallel()
 
-	ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), balanceConverter)
+	ap, _ := NewAccountsProcessor(mock.NewPubkeyConverterMock(32), balanceConverter)
 
 	accountsInfo := ap.PrepareRegularAccountsMap(nil)
 	require.Len(t, accountsInfo, 0)
@@ -88,7 +80,7 @@ func TestAccountsProcessor_PrepareRegularAccountsMapWithNil(t *testing.T) {
 func TestGetESDTInfo(t *testing.T) {
 	t.Parallel()
 
-	ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), balanceConverter)
+	ap, _ := NewAccountsProcessor(mock.NewPubkeyConverterMock(32), balanceConverter)
 	require.NotNil(t, ap)
 
 	tokenIdentifier := "token-001"
@@ -116,7 +108,7 @@ func TestGetESDTInfo(t *testing.T) {
 func TestGetESDTInfoNFT(t *testing.T) {
 	t.Parallel()
 
-	ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), balanceConverter)
+	ap, _ := NewAccountsProcessor(mock.NewPubkeyConverterMock(32), balanceConverter)
 	require.NotNil(t, ap)
 
 	tokenIdentifier := "token-001"
@@ -148,7 +140,7 @@ func TestGetESDTInfoNFTWithMetaData(t *testing.T) {
 	t.Parallel()
 
 	pubKeyConverter := mock.NewPubkeyConverterMock(32)
-	ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, pubKeyConverter, balanceConverter)
+	ap, _ := NewAccountsProcessor(pubKeyConverter, balanceConverter)
 	require.NotNil(t, ap)
 
 	nftName := "Test-nft"
@@ -198,7 +190,7 @@ func TestAccountsProcessor_GetAccountsEGLDAccounts(t *testing.T) {
 	alteredAccountsMap := map[string]*coreIndexerData.AlteredAccount{
 		addr: acc,
 	}
-	ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), balanceConverter)
+	ap, _ := NewAccountsProcessor(mock.NewPubkeyConverterMock(32), balanceConverter)
 	require.NotNil(t, ap)
 
 	alteredAccounts := data.NewAlteredAccounts()
@@ -227,7 +219,7 @@ func TestAccountsProcessor_GetAccountsESDTAccount(t *testing.T) {
 	alteredAccountsMap := map[string]*coreIndexerData.AlteredAccount{
 		addr: acc,
 	}
-	ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), balanceConverter)
+	ap, _ := NewAccountsProcessor(mock.NewPubkeyConverterMock(32), balanceConverter)
 	require.NotNil(t, ap)
 
 	alteredAccounts := data.NewAlteredAccounts()
@@ -250,7 +242,7 @@ func TestAccountsProcessor_GetAccountsESDTAccountNewAccountShouldBeInRegularAcco
 	alteredAccountsMap := map[string]*coreIndexerData.AlteredAccount{
 		addr: acc,
 	}
-	ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), balanceConverter)
+	ap, _ := NewAccountsProcessor(mock.NewPubkeyConverterMock(32), balanceConverter)
 	require.NotNil(t, ap)
 
 	alteredAccounts := data.NewAlteredAccounts()
@@ -286,7 +278,7 @@ func TestAccountsProcessor_PrepareAccountsMapEGLD(t *testing.T) {
 		IsSender:    false,
 	}
 
-	ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), balanceConverter)
+	ap, _ := NewAccountsProcessor(mock.NewPubkeyConverterMock(32), balanceConverter)
 	require.NotNil(t, ap)
 
 	res := ap.PrepareRegularAccountsMap([]*data.Account{egldAccount})
@@ -330,7 +322,7 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 			},
 		},
 	}
-	ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), balanceConverter)
+	ap, _ := NewAccountsProcessor(mock.NewPubkeyConverterMock(32), balanceConverter)
 	require.NotNil(t, ap)
 
 	accountsESDT := []*data.AccountESDT{
@@ -380,7 +372,7 @@ func TestAccountsProcessor_PrepareAccountsHistory(t *testing.T) {
 		},
 	}
 
-	ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), balanceConverter)
+	ap, _ := NewAccountsProcessor(mock.NewPubkeyConverterMock(32), balanceConverter)
 
 	res := ap.PrepareAccountsHistory(100, accounts)
 	accountBalanceHistory := res["addr1-token-112-10"]
@@ -401,7 +393,7 @@ func TestAccountsProcessor_PutTokenMedataDataInTokens(t *testing.T) {
 	t.Run("no tokens with missing data or nonce higher than 0", func(t *testing.T) {
 		t.Parallel()
 
-		ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), balanceConverter)
+		ap, _ := NewAccountsProcessor(mock.NewPubkeyConverterMock(32), balanceConverter)
 
 		oldCreator := "old creator"
 		tokensInfo := []*data.TokenInfo{
@@ -417,7 +409,7 @@ func TestAccountsProcessor_PutTokenMedataDataInTokens(t *testing.T) {
 	t.Run("error loading token, should not update metadata", func(t *testing.T) {
 		t.Parallel()
 
-		ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), balanceConverter)
+		ap, _ := NewAccountsProcessor(mock.NewPubkeyConverterMock(32), balanceConverter)
 
 		tokensInfo := []*data.TokenInfo{
 			{
@@ -437,7 +429,7 @@ func TestAccountsProcessor_PutTokenMedataDataInTokens(t *testing.T) {
 	t.Run("should work and update metadata", func(t *testing.T) {
 		t.Parallel()
 
-		ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), balanceConverter)
+		ap, _ := NewAccountsProcessor(mock.NewPubkeyConverterMock(32), balanceConverter)
 
 		metadata0, metadata1 := &esdt.MetaData{Creator: []byte("creator 0")}, &esdt.MetaData{Creator: []byte("creator 1")}
 		tokensInfo := []*data.TokenInfo{
