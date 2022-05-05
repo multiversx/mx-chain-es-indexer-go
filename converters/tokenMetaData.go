@@ -129,6 +129,7 @@ func PrepareNFTUpdateData(buffSlice *data.BufferSlice, updateNFTData []*data.NFT
 					} else {
 						ctx._source.data.uris.addAll(params.uris);
 					}
+					ctx.nonEmptyURIs = true;
 				}
 `
 			serializedData = []byte(fmt.Sprintf(`{"script": {"source": "%s","lang": "painless","params": {"uris": %s}},"upsert": {}}`, FormatPainlessSource(codeToExecute), marshalizedURIS))
