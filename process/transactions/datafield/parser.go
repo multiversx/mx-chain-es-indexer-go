@@ -22,6 +22,8 @@ const (
 )
 
 type operationDataFieldParser struct {
+	builtInFunctionsList []string
+
 	argsParser         vmcommon.CallArgsParser
 	pubKeyConverter    core.PubkeyConverter
 	shardCoordinator   indexer.ShardCoordinator
@@ -47,10 +49,11 @@ func NewOperationDataFieldParser(args *ArgsOperationDataFieldParser) (*operation
 	}
 
 	return &operationDataFieldParser{
-		argsParser:         argsParser,
-		pubKeyConverter:    args.PubKeyConverter,
-		shardCoordinator:   args.ShardCoordinator,
-		esdtTransferParser: esdtTransferParser,
+		argsParser:           argsParser,
+		pubKeyConverter:      args.PubKeyConverter,
+		shardCoordinator:     args.ShardCoordinator,
+		esdtTransferParser:   esdtTransferParser,
+		builtInFunctionsList: getAllBuiltInFunctions(),
 	}, nil
 }
 
@@ -97,7 +100,12 @@ func (odp *operationDataFieldParser) parse(dataField []byte, sender, receiver []
 		return odp.parseRelayed(function, args, receiver)
 	}
 
-	if function != "" && core.IsSmartContractAddress(receiver) && isASCIIString(function) {
+	isBuiltInFunc := isBuiltInFunction(odp.builtInFunctionsList, function)
+	if isBuiltInFunc {
+		responseParse.Operation = function
+	}
+
+	if function != "" && core.IsSmartContractAddress(receiver) && isASCIIString(function) && !isBuiltInFunc {
 		responseParse.Function = function
 	}
 

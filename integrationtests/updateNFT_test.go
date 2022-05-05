@@ -1,6 +1,3 @@
-//go:build integrationtests
-// +build integrationtests
-
 package integrationtests
 
 import (
@@ -17,10 +14,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/stretchr/testify/require"
-)
-
-const (
-	expectedTokenAfterUpdate = `{"identifier":"NFT-abcd-0e","token":"NFT-abcd","nonce":14,"timestamp":5040,"data":{"uris":["dXJp","dXJp","dXJpMQ==","dXJpMg=="],"nonEmptyURIs":true,"whiteListedStorage":false}}`
 )
 
 func TestNFTUpdateMetadata(t *testing.T) {
@@ -70,7 +63,13 @@ func TestNFTUpdateMetadata(t *testing.T) {
 	err = esProc.SaveTransactions(body, header, pool)
 	require.Nil(t, err)
 
-	// Update NFT data
+	ids := []string{"NFT-abcd-0e"}
+	genericResponse := &GenericResponse{}
+	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse)
+	require.Nil(t, err)
+	require.JSONEq(t, readExpectedResult("./testdata/updateNFT/token.json"), string(genericResponse.Docs[0].Source))
+
+	// Add URIS
 	pool = &indexer.Pool{
 		Logs: []*coreData.LogData{
 			{
@@ -79,7 +78,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 						{
 							Address:    []byte("addr"),
 							Identifier: []byte(core.BuiltInFunctionESDTNFTAddURI),
-							Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("caller"), []byte("uri1"), []byte("uri2")},
+							Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("uri1"), []byte("uri2")},
 						},
 						nil,
 					},
@@ -91,9 +90,36 @@ func TestNFTUpdateMetadata(t *testing.T) {
 	err = esProc.SaveTransactions(body, header, pool)
 	require.Nil(t, err)
 
-	ids := []string{"NFT-abcd-0e"}
-	genericResponse := &GenericResponse{}
+	// Update attributes
+	ids = []string{"NFT-abcd-0e"}
+	genericResponse = &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse)
 	require.Nil(t, err)
-	require.Equal(t, expectedTokenAfterUpdate, string(genericResponse.Docs[0].Source))
+	require.JSONEq(t, readExpectedResult("./testdata/updateNFT/token-after-add-uris.json"), string(genericResponse.Docs[0].Source))
+
+	pool = &indexer.Pool{
+		Logs: []*coreData.LogData{
+			{
+				LogHandler: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    []byte("addr"),
+							Identifier: []byte(core.BuiltInFunctionESDTNFTUpdateAttributes),
+							Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("tags:test,free,fun;description:This is a test description for an awesome nft;metadata:metadata-test")},
+						},
+						nil,
+					},
+				},
+				TxHash: "h1",
+			},
+		},
+	}
+	err = esProc.SaveTransactions(body, header, pool)
+	require.Nil(t, err)
+
+	ids = []string{"NFT-abcd-0e"}
+	genericResponse = &GenericResponse{}
+	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse)
+	require.Nil(t, err)
+	require.JSONEq(t, readExpectedResult("./testdata/updateNFT/token-after-update-attributes.json"), string(genericResponse.Docs[0].Source))
 }
