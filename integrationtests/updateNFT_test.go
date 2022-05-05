@@ -92,7 +92,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 	err = esProc.SaveTransactions(body, header, pool)
 	require.Nil(t, err)
 
-	// Update attributes
+	// Update attributes 1
 	ids = []string{"NFT-abcd-0e"}
 	genericResponse = &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse)
@@ -124,4 +124,32 @@ func TestNFTUpdateMetadata(t *testing.T) {
 	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse)
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/updateNFT/token-after-update-attributes.json"), string(genericResponse.Docs[0].Source))
+
+	// Update attributes 2
+
+	pool = &indexer.Pool{
+		Logs: []*coreData.LogData{
+			{
+				LogHandler: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    []byte("addr"),
+							Identifier: []byte(core.BuiltInFunctionESDTNFTUpdateAttributes),
+							Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("something")},
+						},
+						nil,
+					},
+				},
+				TxHash: "h1",
+			},
+		},
+	}
+	err = esProc.SaveTransactions(body, header, pool)
+	require.Nil(t, err)
+
+	ids = []string{"NFT-abcd-0e"}
+	genericResponse = &GenericResponse{}
+	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse)
+	require.Nil(t, err)
+	require.JSONEq(t, readExpectedResult("./testdata/updateNFT/token-after-update-attributes-second.json"), string(genericResponse.Docs[0].Source))
 }
