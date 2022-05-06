@@ -71,7 +71,28 @@ func TestNFTUpdateMetadata(t *testing.T) {
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/updateNFT/token.json"), string(genericResponse.Docs[0].Source))
 
-	// Add URIS
+	// Add URIS 1
+	pool = &indexer.Pool{
+		Logs: []*coreData.LogData{
+			{
+				LogHandler: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    []byte("addr"),
+							Identifier: []byte(core.BuiltInFunctionESDTNFTAddURI),
+							Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("uri1"), []byte("uri2")},
+						},
+						nil,
+					},
+				},
+				TxHash: "h1",
+			},
+		},
+	}
+	err = esProc.SaveTransactions(body, header, pool)
+	require.Nil(t, err)
+
+	// Add URIS 2 --- results should be the same
 	pool = &indexer.Pool{
 		Logs: []*coreData.LogData{
 			{

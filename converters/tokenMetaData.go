@@ -127,7 +127,20 @@ func PrepareNFTUpdateData(buffSlice *data.BufferSlice, updateNFTData []*data.NFT
 					if (!ctx._source.data.containsKey('uris')) {
 						ctx._source.data.uris = params.uris;
 					} else {
-						ctx._source.data.uris.addAll(params.uris);
+						int i;
+						for ( i = 0; i < params.uris.length; i++) {
+							boolean notFound = true;
+							int j;
+							for ( j = 0; j < ctx._source.data.uris.length; j++) {
+								if ( params.uris.get(i) == ctx._source.data.uris.get(j) ) {
+									notFound = false;
+									break
+								}
+							}
+							if ( notFound ) {
+								ctx._source.data.uris.add(params.uris.get(i))
+							}
+						}
 					}
 					ctx.nonEmptyURIs = true;
 				}
