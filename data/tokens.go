@@ -35,9 +35,9 @@ type TokenInfo struct {
 	Type              string         `json:"type,omitempty"`
 	Nonce             uint64         `json:"nonce,omitempty"`
 	Timestamp         time.Duration  `json:"timestamp,omitempty"`
-	Data              *TokenMetaData `json:"data,omitempty"`
-	OwnersHistory     []*OwnerData   `json:"ownersHistory,omitempty"`
-	TransferOwnership bool           `json:"-"`
+	Data              *TokenMetaData `json:"data,omitempty" gorm:"-"`
+	OwnersHistory     []*OwnerData   `json:"ownersHistory,omitempty" gorm:"foreignKey:ID"`
+	TransferOwnership bool           `json:"-" gorm:"-"`
 }
 
 // OwnerData is a structure that is needed to store information about an owner

@@ -156,6 +156,10 @@ func (ps *postgresProcessor) createTables() error {
 		&data.Transaction{},
 		&data.ScResult{},
 		&data.Receipt{},
+
+		// Tokens
+		&data.TokenInfo{},
+		&data.OwnerData{},
 	)
 	if err != nil {
 		return err
@@ -282,7 +286,32 @@ func (psp *postgresProcessor) SaveTransactions(
 		return err
 	}
 
+	err = psp.indexScResults(preparedResults.ScResults)
+	if err != nil {
+		return err
+	}
+
+	err = psp.indexReceipts(preparedResults.Receipts)
+	if err != nil {
+		return err
+	}
+
 	err = psp.indexAlteredAccounts(headerTimestamp, preparedResults.AlteredAccts, logsData.PendingBalances)
+	if err != nil {
+		return err
+	}
+
+	err = psp.indexTokens(logsData.TokensInfo)
+	if err != nil {
+		return err
+	}
+
+	err = psp.indexDelegators(logsData.Delegators)
+	if err != nil {
+		return err
+	}
+
+	err = psp.indexScDeploys(logsData.ScDeploys)
 	if err != nil {
 		return err
 	}
@@ -291,8 +320,50 @@ func (psp *postgresProcessor) SaveTransactions(
 }
 
 func (psp *postgresProcessor) indexTransactions(txs []*data.Transaction) error {
-	for _, tx := range txs {
-		err := psp.postgresClient.Insert(tx)
+	if len(txs) == 0 {
+		return nil
+	}
+
+	return psp.postgresClient.Insert(txs)
+}
+
+func (psp *postgresProcessor) indexScResults(scrs []*data.ScResult) error {
+	if len(scrs) == 0 {
+		return nil
+	}
+
+	err := psp.postgresClient.Insert(scrs)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (psp *postgresProcessor) indexReceipts(receipts []*data.Receipt) error {
+	if len(receipts) == 0 {
+		return nil
+	}
+
+	return psp.postgresClient.Insert(receipts)
+}
+
+func (psp *postgresProcessor) indexTokens(tokensData []*data.TokenInfo) error {
+	if len(tokensData) == 0 {
+		return nil
+	}
+
+	return psp.postgresClient.Insert(tokensData)
+}
+
+func (psp *postgresProcessor) indexDelegators(delegators map[string]*data.Delegator) error {
+	if len(delegators) == 0 {
+		return nil
+	}
+
+	var err error
+	for _, delegator := range delegators {
+		err = psp.postgresClient.Insert(delegator)
 		if err != nil {
 			return err
 		}
@@ -321,9 +392,20 @@ func (psp *postgresProcessor) indexAlteredAccounts(
 		return err
 	}
 
-	err = psp.saveAccountsHistory(timestamp, accountsESDTMap)
-	if err != nil {
-		return err
+	return psp.saveAccountsHistory(timestamp, accountsESDTMap)
+}
+
+func (psp *postgresProcessor) indexScDeploys(deployData map[string]*data.ScDeployInfo) error {
+	if len(deployData) == 0 {
+		return nil
+	}
+
+	var err error
+	for _, scDeploy := range deployData {
+		err = psp.postgresClient.Insert(scDeploy)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

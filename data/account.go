@@ -23,7 +23,7 @@ type AccountInfo struct {
 	TotalBalanceWithStake    string         `json:"totalBalanceWithStake,omitempty"`
 	TotalBalanceWithStakeNum float64        `json:"totalBalanceWithStakeNum,omitempty"`
 	DataID                   int            `json:"-"`
-	Data                     *TokenMetaData `json:"data,omitempty" gorm:"foreignKey:ID"`
+	Data                     *TokenMetaData `json:"data,omitempty" gorm:"-"`
 }
 
 // TokenMetaData holds data about a token metadata
