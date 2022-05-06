@@ -16,6 +16,8 @@
     "ESDTRoleNFTCreate": [
       "6e65772d61646472657373"
     ],
-    "ESDTRoleNFTBurn": []
+    "ESDTRoleNFTBurn": [
+      "6d792d61646472657373"
+    ]
   }
 }

@@ -8,7 +8,7 @@ test:
 integration-tests:
 	@echo " > Running integration tests"
 	cd scripts && ./script.sh start ${ES_VERSION}
-	@-$(MAKE) long-tests
+	go test -v ./integrationtests -tags integrationtests
 	cd scripts && ./script.sh delete
 	cd scripts && ./script.sh stop
 
