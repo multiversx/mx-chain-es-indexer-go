@@ -3,12 +3,15 @@ package data
 import (
 	"math/big"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 // Transaction is a structure containing all the fields that need
 //  to be saved for a transaction. It has all the default fields
 //  plus some extra information for ease of search and filter
 type Transaction struct {
+	gorm.Model
 	MBHash               string        `json:"miniBlockHash"`
 	Nonce                uint64        `json:"nonce"`
 	Round                uint64        `json:"round"`
@@ -21,20 +24,20 @@ type Transaction struct {
 	GasLimit             uint64        `json:"gasLimit"`
 	GasUsed              uint64        `json:"gasUsed"`
 	Fee                  string        `json:"fee"`
-	Data                 []byte        `json:"data"`
+	Data                 []byte        `json:"data" gorm:"serializer:json"`
 	Signature            string        `json:"signature"`
 	Timestamp            time.Duration `json:"timestamp"`
 	Status               string        `json:"status"`
 	SearchOrder          uint32        `json:"searchOrder"`
-	SenderUserName       []byte        `json:"senderUserName,omitempty"`
-	ReceiverUserName     []byte        `json:"receiverUserName,omitempty"`
+	SenderUserName       []byte        `json:"senderUserName,omitempty" gorm:"serializer:json"`
+	ReceiverUserName     []byte        `json:"receiverUserName,omitempty" gorm:"serializer:json"`
 	HasSCR               bool          `json:"hasScResults,omitempty"`
 	IsScCall             bool          `json:"isScCall,omitempty"`
 	HasOperations        bool          `json:"hasOperations,omitempty"`
-	Tokens               []string      `json:"tokens,omitempty"`
-	ESDTValues           []string      `json:"esdtValues,omitempty"`
-	SmartContractResults []*ScResult   `json:"-"`
-	ReceiverAddressBytes []byte        `json:"-"`
+	Tokens               []string      `json:"tokens,omitempty" gorm:"serializer:json"`
+	ESDTValues           []string      `json:"esdtValues,omitempty" gorm:"serializer:json"`
+	SmartContractResults []*ScResult   `json:"-" gorm:"foreignKey:ID"`
+	ReceiverAddressBytes []byte        `json:"-" gorm:"serializer:json"`
 	Hash                 string        `json:"-"`
 	BlockHash            string        `json:"-"`
 }
@@ -71,6 +74,7 @@ func (t *Transaction) GetValue() *big.Int {
 
 // Receipt is a structure containing all the fields that need to be save for a Receipt
 type Receipt struct {
+	gorm.Model
 	Hash      string        `json:"-"`
 	Value     string        `json:"value"`
 	Sender    string        `json:"sender"`
@@ -81,6 +85,7 @@ type Receipt struct {
 
 // ScResult is a structure containing all the fields that need to be saved for a smart contract result
 type ScResult struct {
+	gorm.Model
 	Hash           string        `json:"-"`
 	MBHash         string        `json:"miniBlockHash,omitempty"`
 	Nonce          uint64        `json:"nonce"`
@@ -94,16 +99,16 @@ type ScResult struct {
 	RelayerAddr    string        `json:"relayerAddr,omitempty"`
 	RelayedValue   string        `json:"relayedValue,omitempty"`
 	Code           string        `json:"code,omitempty"`
-	Data           []byte        `json:"data,omitempty"`
+	Data           []byte        `json:"data,omitempty" gorm:"serializer:json"`
 	PrevTxHash     string        `json:"prevTxHash"`
 	OriginalTxHash string        `json:"originalTxHash"`
 	CallType       string        `json:"callType"`
-	CodeMetadata   []byte        `json:"codeMetaData,omitempty"`
+	CodeMetadata   []byte        `json:"codeMetaData,omitempty" gorm:"serializer:json"`
 	ReturnMessage  string        `json:"returnMessage,omitempty"`
 	Timestamp      time.Duration `json:"timestamp"`
 	HasOperations  bool          `json:"hasOperations,omitempty"`
-	Tokens         []string      `json:"tokens,omitempty"`
-	ESDTValues     []string      `json:"esdtValues,omitempty"`
+	Tokens         []string      `json:"tokens,omitempty" gorm:"serializer:json"`
+	ESDTValues     []string      `json:"esdtValues,omitempty" gorm:"serializer:json"`
 }
 
 // PreparedResults is the DTO that holds all the results after processing

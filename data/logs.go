@@ -1,12 +1,17 @@
 package data
 
-import "time"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 // Logs holds all the fields needed for a logs structure
 type Logs struct {
+	gorm.Model
 	ID        string        `json:"-"`
 	Address   string        `json:"address"`
-	Events    []*Event      `json:"events"`
+	Events    []*Event      `json:"events" gorm:"foreignKey:Address"`
 	Timestamp time.Duration `json:"timestamp,omitempty"`
 }
 
@@ -14,7 +19,7 @@ type Logs struct {
 type Event struct {
 	Address    string   `json:"address"`
 	Identifier string   `json:"identifier"`
-	Topics     [][]byte `json:"topics"`
+	Topics     [][]byte `json:"topics" gorm:"serializer:json"`
 	Data       []byte   `json:"data"`
 	Order      int      `json:"order"`
 }

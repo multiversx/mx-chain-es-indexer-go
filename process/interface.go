@@ -10,6 +10,14 @@ import (
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
 
+// PostgresClientHandler defines the actions that a component that handles requests should do
+type PostgresClientHandler interface {
+	CreateTable(entity interface{}) error
+	AutoMigrateTables(tables ...interface{}) error
+	Insert(entity interface{}) error
+	IsInterfaceNil() bool
+}
+
 // DatabaseClientHandler defines the actions that a component that handles requests should do
 type DatabaseClientHandler interface {
 	DoRequest(req *esapi.IndexRequest) error

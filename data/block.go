@@ -2,20 +2,23 @@ package data
 
 import (
 	"time"
+
+	"gorm.io/gorm"
 )
 
 // Block is a structure containing all the fields that need
 //  to be saved for a block. It has all the default fields
 //  plus some extra information for ease of search and filter
 type Block struct {
+	gorm.Model
 	Nonce                 uint64          `json:"nonce"`
 	Round                 uint64          `json:"round"`
 	Epoch                 uint32          `json:"epoch"`
 	Hash                  string          `json:"-"`
-	MiniBlocksHashes      []string        `json:"miniBlocksHashes"`
-	NotarizedBlocksHashes []string        `json:"notarizedBlocksHashes"`
+	MiniBlocksHashes      []string        `json:"miniBlocksHashes" gorm:"serializer:json"`
+	NotarizedBlocksHashes []string        `json:"notarizedBlocksHashes" gorm:"serializer:json"`
 	Proposer              uint64          `json:"proposer"`
-	Validators            []uint64        `json:"validators"`
+	Validators            []uint64        `json:"validators" gorm:"serializer:json"`
 	PubKeyBitmap          string          `json:"pubKeyBitmap"`
 	Size                  int64           `json:"size"`
 	SizeTxs               int64           `json:"sizeTxs"`
@@ -29,16 +32,17 @@ type Block struct {
 	DeveloperFees         string          `json:"developerFees"`
 	EpochStartBlock       bool            `json:"epochStartBlock"`
 	SearchOrder           uint64          `json:"searchOrder"`
-	EpochStartInfo        *EpochStartInfo `json:"epochStartInfo,omitempty"`
+	EpochStartInfo        *EpochStartInfo `json:"epochStartInfo,omitempty" gorm:"foreignKey:ID"`
 	GasProvided           uint64          `json:"gasProvided"`
 	GasRefunded           uint64          `json:"gasRefunded"`
 	GasPenalized          uint64          `json:"gasPenalized"`
 	MaxGasLimit           uint64          `json:"maxGasLimit"`
-	ScheduledData         *ScheduledData  `json:"scheduledData,omitempty"`
+	ScheduledData         *ScheduledData  `json:"scheduledData,omitempty" gorm:"foreignKey:ID"`
 }
 
 // ScheduledData is a structure that hold information about scheduled events
 type ScheduledData struct {
+	gorm.Model
 	ScheduledRootHash        string `json:"rootHash,omitempty"`
 	ScheduledAccumulatedFees string `json:"accumulatedFees,omitempty"`
 	ScheduledDeveloperFees   string `json:"developerFees,omitempty"`
@@ -49,6 +53,7 @@ type ScheduledData struct {
 
 // EpochStartInfo is a structure that hold information about epoch start meta block
 type EpochStartInfo struct {
+	gorm.Model
 	TotalSupply                      string `json:"totalSupply"`
 	TotalToDistribute                string `json:"totalToDistribute"`
 	TotalNewlyMinted                 string `json:"totalNewlyMinted"`
@@ -61,6 +66,7 @@ type EpochStartInfo struct {
 
 // Miniblock is a structure containing miniblock information
 type Miniblock struct {
+	gorm.Model
 	Hash                        string        `json:"-"`
 	SenderShardID               uint32        `json:"senderShard"`
 	ReceiverShardID             uint32        `json:"receiverShard"`

@@ -1,6 +1,10 @@
 package data
 
-import "time"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 // ResponseTokens is the structure for the tokens response
 type ResponseTokens struct {
@@ -21,6 +25,7 @@ type SourceToken struct {
 
 // TokenInfo is a structure that is needed to store information about a token
 type TokenInfo struct {
+	gorm.Model
 	Name              string         `json:"name,omitempty"`
 	Ticker            string         `json:"ticker,omitempty"`
 	Identifier        string         `json:"identifier,omitempty"`
@@ -37,6 +42,7 @@ type TokenInfo struct {
 
 // OwnerData is a structure that is needed to store information about an owner
 type OwnerData struct {
+	gorm.Model
 	Address   string        `json:"address"`
 	Timestamp time.Duration `json:"timestamp"`
 }

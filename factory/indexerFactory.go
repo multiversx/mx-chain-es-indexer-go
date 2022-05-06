@@ -6,6 +6,7 @@ import (
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/client"
 	"github.com/ElrondNetwork/elastic-indexer-go/client/logging"
+	postgres "github.com/ElrondNetwork/elastic-indexer-go/client/postgresql"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/factory"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
@@ -47,7 +48,8 @@ func NewIndexer(args *ArgsIndexerFactory) (indexer.Indexer, error) {
 		return indexer.NewNilIndexer(), nil
 	}
 
-	elasticProcessor, err := createElasticProcessor(args)
+	//elasticProcessor, err := createElasticProcessor(args)
+	elasticProcessor, err := createPostgresProcessor(args)
 	if err != nil {
 		return nil, err
 	}
@@ -96,6 +98,30 @@ func createElasticProcessor(args *ArgsIndexerFactory) (indexer.ElasticProcessor,
 	}
 
 	return factory.CreateElasticProcessor(argsElasticProcFac)
+}
+
+func createPostgresProcessor(args *ArgsIndexerFactory) (indexer.ElasticProcessor, error) {
+	databaseClient, err := postgres.NewPostgresClient()
+	if err != nil {
+		return nil, err
+	}
+
+	argsElasticProcFac := factory.ArgPostgresProcessorFactory{
+		Marshalizer:              args.Marshalizer,
+		Hasher:                   args.Hasher,
+		AddressPubkeyConverter:   args.AddressPubkeyConverter,
+		ValidatorPubkeyConverter: args.ValidatorPubkeyConverter,
+		UseKibana:                args.UseKibana,
+		DBClient:                 databaseClient,
+		AccountsDB:               args.AccountsDB,
+		Denomination:             args.Denomination,
+		TransactionFeeCalculator: args.TransactionFeeCalculator,
+		IsInImportDBMode:         args.IsInImportDBMode,
+		ShardCoordinator:         args.ShardCoordinator,
+		EnabledIndexes:           args.EnabledIndexes,
+	}
+
+	return factory.CreatePostgresProcessor(argsElasticProcFac)
 }
 
 func checkDataIndexerParams(arguments *ArgsIndexerFactory) error {
