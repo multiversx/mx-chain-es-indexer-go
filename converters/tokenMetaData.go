@@ -98,17 +98,17 @@ func PrepareNFTUpdateData(buffSlice *data.BufferSlice, updateNFTData []*data.NFT
 			if (ctx._source.containsKey('data')) {
 				ctx._source.data.attributes = params.attributes;
 				if (!params.metadata.isEmpty() ) {
-					ctx._source.metadata = params.metadata
+					ctx._source.data.metadata = params.metadata
 				} else {
-					if (ctx._source.containsKey('metadata')) {
-						ctx._source.remove('metadata')
+					if (ctx._source.data.containsKey('metadata')) {
+						ctx._source.data.remove('metadata')
 					}
 				}
 				if (params.tags != null) {
-					ctx._source.tags = params.tags
+					ctx._source.data.tags = params.tags
 				} else {
-					if (ctx._source.containsKey('tags')) {
-						ctx._source.remove('tags')
+					if (ctx._source.data.containsKey('tags')) {
+						ctx._source.data.remove('tags')
 					}
 				}
 			}
