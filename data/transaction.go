@@ -36,7 +36,7 @@ type Transaction struct {
 	HasOperations        bool          `json:"hasOperations,omitempty"`
 	Tokens               []string      `json:"tokens,omitempty" gorm:"serializer:json"`
 	ESDTValues           []string      `json:"esdtValues,omitempty" gorm:"serializer:json"`
-	SmartContractResults []*ScResult   `json:"-" gorm:"foreignKey:ID"`
+	SmartContractResults []*ScResult   `json:"-" gorm:"-"`
 	ReceiverAddressBytes []byte        `json:"-" gorm:"serializer:json"`
 	Hash                 string        `json:"-"`
 	BlockHash            string        `json:"-"`
@@ -86,7 +86,7 @@ type Receipt struct {
 // ScResult is a structure containing all the fields that need to be saved for a smart contract result
 type ScResult struct {
 	gorm.Model
-	Hash           string        `json:"-"`
+	Hash           string        `json:"-" gorm:"-"`
 	MBHash         string        `json:"miniBlockHash,omitempty"`
 	Nonce          uint64        `json:"nonce"`
 	GasLimit       uint64        `json:"gasLimit"`
