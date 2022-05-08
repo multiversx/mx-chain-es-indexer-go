@@ -186,7 +186,7 @@ func (psp *postgresProcessor) SaveHeader(
 		return err
 	}
 
-	err = psp.postgresClient.Insert(elasticBlock)
+	err = psp.postgresClient.InsertBlock(elasticBlock)
 	if err != nil {
 		return err
 	}

@@ -15,6 +15,7 @@ type PostgresClientHandler interface {
 	CreateTable(entity interface{}) error
 	AutoMigrateTables(tables ...interface{}) error
 	Insert(entity interface{}) error
+	InsertBlock(block *data.Block) error
 	IsInterfaceNil() bool
 }
 

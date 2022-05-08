@@ -1,9 +1,11 @@
 package postgres
 
 import (
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	gormLogger "gorm.io/gorm/logger"
 )
 
@@ -56,12 +58,23 @@ func (pc *postgresClient) AutoMigrateTables(tables ...interface{}) error {
 }
 
 func (pc *postgresClient) Insert(entity interface{}) error {
-	result := pc.ps.Create(entity)
+	result := pc.ps.Clauses(clause.OnConflict{DoNothing: true}).Create(entity)
 	if result.Error != nil {
 		return result.Error
 	}
 
 	log.Info("Insert", "rows affected", result.RowsAffected)
+
+	return nil
+}
+
+func (pc *postgresClient) InsertBlock(block *data.Block) error {
+	result := pc.ps.Model(&data.Block{}).Clauses(clause.OnConflict{DoNothing: true}).Create(block)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	log.Info("Insert Block", "rows affected", result.RowsAffected)
 
 	return nil
 }
