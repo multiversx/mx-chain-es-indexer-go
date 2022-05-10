@@ -2,13 +2,10 @@ package data
 
 import (
 	"time"
-
-	"gorm.io/gorm"
 )
 
 // Logs holds all the fields needed for a logs structure
 type Logs struct {
-	gorm.Model
 	ID        string        `json:"-"`
 	Address   string        `json:"address"`
 	Events    []*Event      `json:"events" gorm:"foreignKey:Address"`

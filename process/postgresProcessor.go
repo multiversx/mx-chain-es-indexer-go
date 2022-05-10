@@ -121,8 +121,8 @@ func (ps *postgresProcessor) init(useKibana bool, indexTemplates, _ map[string]*
 	return nil
 }
 
-func (ps *postgresProcessor) createTables() error {
-	err := ps.postgresClient.AutoMigrateTables(
+func (psp *postgresProcessor) createTables() error {
+	err := psp.postgresClient.AutoMigrateTables(
 		// Accounts
 		&data.AccountInfo{},
 		&data.TokenMetaData{},
@@ -132,13 +132,10 @@ func (ps *postgresProcessor) createTables() error {
 
 		// Block
 		&data.Block{},
-		&data.ScheduledData{},
-		&data.EpochStartInfo{},
 		&data.Miniblock{},
 
 		// Data
 		&data.ValidatorsPublicKeys{},
-		&data.ValidatorRatingInfo{},
 		&data.RoundInfo{},
 		&data.EpochInfo{},
 
@@ -165,6 +162,11 @@ func (ps *postgresProcessor) createTables() error {
 		return err
 	}
 
+	err = psp.postgresClient.CreateTables()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -186,7 +188,7 @@ func (psp *postgresProcessor) SaveHeader(
 		return err
 	}
 
-	err = psp.postgresClient.InsertBlock(elasticBlock)
+	err = psp.indexBlock(elasticBlock)
 	if err != nil {
 		return err
 	}
@@ -197,6 +199,23 @@ func (psp *postgresProcessor) SaveHeader(
 	}
 
 	return nil
+}
+
+func (psp *postgresProcessor) indexBlock(block *data.Block) error {
+	err := psp.postgresClient.InsertBlock(block)
+	if err != nil {
+		return err
+	}
+
+	return psp.indexEpochStartInfo(block)
+}
+
+func (psp *postgresProcessor) indexEpochStartInfo(block *data.Block) error {
+	if !block.EpochStartBlock {
+		return nil
+	}
+
+	return psp.postgresClient.InsertEpochStartInfo(block)
 }
 
 func (psp *postgresProcessor) indexEpochInfoData(header coreData.HeaderHandler) error {
@@ -213,12 +232,7 @@ func (psp *postgresProcessor) indexEpochInfoData(header coreData.HeaderHandler) 
 		return fmt.Errorf("%w in blockProcessor.SerializeEpochInfoData", elasticIndexer.ErrHeaderTypeAssertion)
 	}
 
-	epochInfo := &data.EpochInfo{
-		AccumulatedFees: metablock.AccumulatedFeesInEpoch.String(),
-		DeveloperFees:   metablock.DevFeesInEpoch.String(),
-	}
-
-	return psp.postgresClient.Insert(epochInfo)
+	return psp.postgresClient.InsertEpochInfo(metablock)
 }
 
 // RemoveHeader will remove a block from elasticsearch server
@@ -417,7 +431,7 @@ func (ei *postgresProcessor) SaveValidatorsRating(index string, validatorsRating
 	// 	return nil
 	// }
 
-	err := ei.postgresClient.Insert(validatorsRatingInfo)
+	err := ei.validatorsProc.ValidatorsRatingToPostgres(ei.postgresClient, index, validatorsRatingInfo)
 	if err != nil {
 		return err
 	}
@@ -433,7 +447,8 @@ func (ei *postgresProcessor) SaveShardValidatorsPubKeys(shardID, epoch uint32, s
 
 	validatorsPubKeys := ei.validatorsProc.PrepareValidatorsPublicKeys(shardValidatorsPubKeys)
 
-	err := ei.postgresClient.Insert(validatorsPubKeys)
+	id := fmt.Sprintf("%d_%d", shardID, epoch)
+	err := ei.postgresClient.InsertValidatorsPubKeys(id, validatorsPubKeys)
 	if err != nil {
 		return err
 	}

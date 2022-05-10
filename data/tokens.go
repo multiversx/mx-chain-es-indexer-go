@@ -2,8 +2,6 @@ package data
 
 import (
 	"time"
-
-	"gorm.io/gorm"
 )
 
 // ResponseTokens is the structure for the tokens response
@@ -25,7 +23,6 @@ type SourceToken struct {
 
 // TokenInfo is a structure that is needed to store information about a token
 type TokenInfo struct {
-	gorm.Model
 	Name              string         `json:"name,omitempty"`
 	Ticker            string         `json:"ticker,omitempty"`
 	Identifier        string         `json:"identifier,omitempty"`
@@ -36,13 +33,12 @@ type TokenInfo struct {
 	Nonce             uint64         `json:"nonce,omitempty"`
 	Timestamp         time.Duration  `json:"timestamp,omitempty"`
 	Data              *TokenMetaData `json:"data,omitempty" gorm:"-"`
-	OwnersHistory     []*OwnerData   `json:"ownersHistory,omitempty" gorm:"foreignKey:ID"`
+	OwnersHistory     []*OwnerData   `json:"ownersHistory,omitempty" gorm:"-"`
 	TransferOwnership bool           `json:"-" gorm:"-"`
 }
 
 // OwnerData is a structure that is needed to store information about an owner
 type OwnerData struct {
-	gorm.Model
 	Address   string        `json:"address"`
 	Timestamp time.Duration `json:"timestamp"`
 }

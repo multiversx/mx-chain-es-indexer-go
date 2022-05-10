@@ -12,10 +12,18 @@ import (
 
 // PostgresClientHandler defines the actions that a component that handles requests should do
 type PostgresClientHandler interface {
+	CreateTables() error
 	CreateTable(entity interface{}) error
+	CreateRawTable(sql string) error
 	AutoMigrateTables(tables ...interface{}) error
 	Insert(entity interface{}) error
 	InsertBlock(block *data.Block) error
+	Raw(sql string, values ...interface{}) error
+	Exec(sql string, values ...interface{}) error
+	InsertEpochStartInfo(block *data.Block) error
+	InsertValidatorsRating(id string, ratingInfo *data.ValidatorRatingInfo) error
+	InsertValidatorsPubKeys(id string, pubKeys *data.ValidatorsPublicKeys) error
+	InsertEpochInfo(block *block.MetaBlock) error
 	IsInterfaceNil() bool
 }
 
@@ -96,6 +104,11 @@ type DBValidatorsHandler interface {
 	PrepareValidatorsPublicKeys(shardValidatorsPubKeys [][]byte) *data.ValidatorsPublicKeys
 	SerializeValidatorsPubKeys(validatorsPubKeys *data.ValidatorsPublicKeys) (*bytes.Buffer, error)
 	SerializeValidatorsRating(index string, validatorsRatingInfo []*data.ValidatorRatingInfo) ([]*bytes.Buffer, error)
+	ValidatorsRatingToPostgres(
+		postgresClient PostgresClientHandler,
+		index string,
+		validatorsRatingInfo []*data.ValidatorRatingInfo,
+	) error
 }
 
 // DBLogsAndEventsHandler defines the actions that a logs and events handler should do

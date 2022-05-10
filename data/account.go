@@ -4,12 +4,10 @@ import (
 	"time"
 
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
-	"gorm.io/gorm"
 )
 
 // AccountInfo holds (serializable) data about an account
 type AccountInfo struct {
-	gorm.Model
 	Address                  string         `json:"address,omitempty"`
 	Nonce                    uint64         `json:"nonce,omitempty"`
 	Balance                  string         `json:"balance"`
@@ -28,7 +26,6 @@ type AccountInfo struct {
 
 // TokenMetaData holds data about a token metadata
 type TokenMetaData struct {
-	gorm.Model
 	Name               string   `json:"name,omitempty"`
 	Creator            string   `json:"creator,omitempty"`
 	Royalties          uint32   `json:"royalties,omitempty"`
@@ -43,7 +40,6 @@ type TokenMetaData struct {
 
 // AccountBalanceHistory represents an entry in the user accounts balances history
 type AccountBalanceHistory struct {
-	gorm.Model
 	Address         string        `json:"address"`
 	Timestamp       time.Duration `json:"timestamp"`
 	Balance         string        `json:"balance"`
@@ -56,14 +52,12 @@ type AccountBalanceHistory struct {
 
 // Account is a structure that is needed for regular accounts
 type Account struct {
-	gorm.Model
 	UserAccount coreData.UserAccountHandler
 	IsSender    bool
 }
 
 // AccountESDT is a structure that is needed for ESDT accounts
 type AccountESDT struct {
-	gorm.Model
 	Account         coreData.UserAccountHandler
 	TokenIdentifier string
 	NFTNonce        uint64

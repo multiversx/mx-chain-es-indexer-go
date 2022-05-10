@@ -2,19 +2,16 @@ package data
 
 import (
 	"time"
-
-	"gorm.io/gorm"
 )
 
 // Block is a structure containing all the fields that need
 //  to be saved for a block. It has all the default fields
 //  plus some extra information for ease of search and filter
 type Block struct {
-	gorm.Model
 	Nonce                 uint64          `json:"nonce"`
 	Round                 uint64          `json:"round"`
 	Epoch                 uint32          `json:"epoch"`
-	Hash                  string          `json:"-"`
+	Hash                  string          `json:"-" gorm:"primaryKey;unique"`
 	MiniBlocksHashes      []string        `json:"miniBlocksHashes" gorm:"serializer:json"`
 	NotarizedBlocksHashes []string        `json:"notarizedBlocksHashes" gorm:"serializer:json"`
 	Proposer              uint64          `json:"proposer"`
@@ -32,17 +29,16 @@ type Block struct {
 	DeveloperFees         string          `json:"developerFees"`
 	EpochStartBlock       bool            `json:"epochStartBlock"`
 	SearchOrder           uint64          `json:"searchOrder"`
-	EpochStartInfo        *EpochStartInfo `json:"epochStartInfo,omitempty" gorm:"foreignKey:ID"`
+	EpochStartInfo        *EpochStartInfo `json:"epochStartInfo,omitempty" gorm:"-"`
 	GasProvided           uint64          `json:"gasProvided"`
 	GasRefunded           uint64          `json:"gasRefunded"`
 	GasPenalized          uint64          `json:"gasPenalized"`
 	MaxGasLimit           uint64          `json:"maxGasLimit"`
-	ScheduledData         *ScheduledData  `json:"scheduledData,omitempty" gorm:"foreignKey:ID"`
+	ScheduledData         *ScheduledData  `json:"scheduledData,omitempty" gorm:"embedded"`
 }
 
 // ScheduledData is a structure that hold information about scheduled events
 type ScheduledData struct {
-	gorm.Model
 	ScheduledRootHash        string `json:"rootHash,omitempty"`
 	ScheduledAccumulatedFees string `json:"accumulatedFees,omitempty"`
 	ScheduledDeveloperFees   string `json:"developerFees,omitempty"`
@@ -53,7 +49,6 @@ type ScheduledData struct {
 
 // EpochStartInfo is a structure that hold information about epoch start meta block
 type EpochStartInfo struct {
-	gorm.Model
 	TotalSupply                      string `json:"totalSupply"`
 	TotalToDistribute                string `json:"totalToDistribute"`
 	TotalNewlyMinted                 string `json:"totalNewlyMinted"`
@@ -66,8 +61,7 @@ type EpochStartInfo struct {
 
 // Miniblock is a structure containing miniblock information
 type Miniblock struct {
-	gorm.Model
-	Hash                        string        `json:"-"`
+	Hash                        string        `json:"-" gorm:"primaryKey;unique"`
 	SenderShardID               uint32        `json:"senderShard"`
 	ReceiverShardID             uint32        `json:"receiverShard"`
 	SenderBlockHash             string        `json:"senderBlockHash"`

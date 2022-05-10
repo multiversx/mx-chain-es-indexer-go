@@ -3,15 +3,12 @@ package data
 import (
 	"math/big"
 	"time"
-
-	"gorm.io/gorm"
 )
 
 // Transaction is a structure containing all the fields that need
 //  to be saved for a transaction. It has all the default fields
 //  plus some extra information for ease of search and filter
 type Transaction struct {
-	gorm.Model
 	MBHash               string        `json:"miniBlockHash"`
 	Nonce                uint64        `json:"nonce"`
 	Round                uint64        `json:"round"`
@@ -74,7 +71,6 @@ func (t *Transaction) GetValue() *big.Int {
 
 // Receipt is a structure containing all the fields that need to be save for a Receipt
 type Receipt struct {
-	gorm.Model
 	Hash      string        `json:"-"`
 	Value     string        `json:"value"`
 	Sender    string        `json:"sender"`
@@ -85,7 +81,6 @@ type Receipt struct {
 
 // ScResult is a structure containing all the fields that need to be saved for a smart contract result
 type ScResult struct {
-	gorm.Model
 	Hash           string        `json:"-" gorm:"-"`
 	MBHash         string        `json:"miniBlockHash,omitempty"`
 	Nonce          uint64        `json:"nonce"`
