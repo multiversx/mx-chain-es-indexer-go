@@ -11,6 +11,7 @@ import (
 )
 
 const (
+	accountsIndex                 = "accounts"
 	accountEndpoint               = "/address/%s/balance"
 	maxNumberOfRequestsInParallel = 40
 )
@@ -34,7 +35,7 @@ func NewBalanceChecker(
 
 func (bc *balanceChecker) CheckEGLDBalances() error {
 	return bc.esClient.DoScrollRequestAllDocuments(
-		"accounts",
+		accountsIndex,
 		[]byte(`{ "query": { "match_all": { } } }`),
 		bc.handlerFuncScroll,
 	)
@@ -117,7 +118,7 @@ func logExecutionTime(start time.Time, message string) {
 func (bc *balanceChecker) getBalanceFromES(address string) (string, error) {
 	encoded, _ := encodeQuery(getDocumentsByIDsQuery([]string{address}, true))
 	accountsResponse := &ResponseAccounts{}
-	err := bc.esClient.DoGetRequest(&encoded, "accounts", accountsResponse, 1)
+	err := bc.esClient.DoGetRequest(&encoded, accountsIndex, accountsResponse, 1)
 	if err != nil {
 		return "", err
 	}

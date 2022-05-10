@@ -84,7 +84,10 @@ func startCheck(ctx *cli.Context) {
 		}
 	}
 
-	log.Error("no flag has been provided")
+	if !shouldCheckBalanceEGLD && !shouldCheckBalanceESDT {
+		log.Error("no flag has been provided")
+	}
+
 	return
 }
 
