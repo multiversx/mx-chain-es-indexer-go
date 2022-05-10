@@ -1,5 +1,7 @@
 package check
 
+import "bytes"
+
 // ESClientHandler -
 type ESClientHandler interface {
 	DoScrollRequestAllDocuments(
@@ -7,7 +9,7 @@ type ESClientHandler interface {
 		body []byte,
 		handlerFunc func(responseBytes []byte) error,
 	) error
-	//DoMultiGet(ids []string, index string) ([]byte, error)
+	DoGetRequest(buff *bytes.Buffer, index string, response interface{}, size int) error
 }
 
 // RestClientHandler -

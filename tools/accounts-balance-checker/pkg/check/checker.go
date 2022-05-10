@@ -79,11 +79,19 @@ func (bc *balanceChecker) checkBalance(acct indexerData.AccountInfo, done chan s
 	}
 
 	if gatewayBalance != acct.Balance {
-		log.Warn("balance mismatch",
-			"address", acct.Address,
-			"balance ES", acct.Balance,
-			"balance proxy", gatewayBalance,
-		)
+		newBalance, err := bc.getBalanceFromES(acct.Address)
+		if err != nil {
+			log.Error("something when wrong", "address", acct.Address, "error", err)
+			return
+		}
+		if newBalance != gatewayBalance {
+			log.Warn("balance mismatch",
+				"address", acct.Address,
+				"balance ES", newBalance,
+				"balance proxy", gatewayBalance,
+			)
+			return
+		}
 	}
 }
 
@@ -104,4 +112,19 @@ func (bc *balanceChecker) getAccountBalance(address string) (string, error) {
 
 func logExecutionTime(start time.Time, message string) {
 	log.Info(message, "duration in seconds", time.Since(start).Seconds())
+}
+
+func (bc *balanceChecker) getBalanceFromES(address string) (string, error) {
+	encoded, _ := encodeQuery(getDocumentsByIDsQuery([]string{address}, true))
+	accountsResponse := &ResponseAccounts{}
+	err := bc.esClient.DoGetRequest(&encoded, "accounts", accountsResponse, 1)
+	if err != nil {
+		return "", err
+	}
+
+	if len(accountsResponse.Hits.Hits) == 0 {
+		return "", fmt.Errorf("cannot find accounts with address: %s", address)
+	}
+
+	return accountsResponse.Hits.Hits[0].Source.Balance, nil
 }
