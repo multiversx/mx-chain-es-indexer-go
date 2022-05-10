@@ -1,0 +1,13 @@
+{
+  "identifier": "NON-abcd-02",
+  "token": "NON-abcd",
+  "type": "NonFungibleESDT",
+  "nonce": 2,
+  "timestamp": 5600,
+  "data": {
+    "creator": "63726561746f72",
+    "nonEmptyURIs": false,
+    "whiteListedStorage": false
+  },
+  "currentOwner":"61646472"
+}

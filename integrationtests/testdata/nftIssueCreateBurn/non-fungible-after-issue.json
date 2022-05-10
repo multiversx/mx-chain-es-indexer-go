@@ -1,0 +1,15 @@
+{
+  "name": "NON-token",
+  "ticker": "NON",
+  "token": "NON-abcd",
+  "issuer": "61646472",
+  "currentOwner": "61646472",
+  "type": "NonFungibleESDT",
+  "timestamp": 5040,
+  "ownersHistory": [
+    {
+      "address": "61646472",
+      "timestamp": 5040
+    }
+  ]
+}

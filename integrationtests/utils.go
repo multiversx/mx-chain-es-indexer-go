@@ -21,7 +21,7 @@ import (
 const esURL = "http://localhost:9200"
 
 func setLogLevelDebug() {
-	_ = logger.SetLogLevel("indexer:DEBUG")
+	_ = logger.SetLogLevel("process:DEBUG")
 }
 
 func createESClient(url string) (process.DatabaseClientHandler, error) {

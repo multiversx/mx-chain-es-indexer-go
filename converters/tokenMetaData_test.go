@@ -61,9 +61,9 @@ func TestPrepareNFTUpdateData(t *testing.T) {
 	err := PrepareNFTUpdateData(buffSlice, nftUpdateData, false, "tokens")
 	require.Nil(t, err)
 	require.Equal(t, `{"update":{ "_index":"tokens","_id":"MYTKN-abcd-01"}}
-{"script": {"source": "if (ctx._source.containsKey('data')) {ctx._source.data.attributes = params.attributes}","lang": "painless","params": {"attributes": "YWFhYQ=="}}, "upsert": {}}
+{"script": {"source": "if (ctx._source.containsKey('data')) {ctx._source.data.attributes = params.attributes;if (!params.metadata.isEmpty() ) {ctx._source.data.metadata = params.metadata} else {if (ctx._source.data.containsKey('metadata')) {ctx._source.data.remove('metadata')}}if (params.tags != null) {ctx._source.data.tags = params.tags} else {if (ctx._source.data.containsKey('tags')) {ctx._source.data.remove('tags')}}}","lang": "painless","params": {"attributes": "YWFhYQ==", "metadata": "", "tags": null}}, "upsert": {}}
 {"update":{ "_index":"tokens","_id":"TOKEN-1234-1a"}}
-{"script": {"source": "if (ctx._source.containsKey('data')) { if (!ctx._source.data.containsKey('uris')) { ctx._source.data.uris = params.uris; } else {  ctx._source.data.uris.addAll(params.uris); }}","lang": "painless","params": {"uris": ["dXJpMQ==","dXJpMg=="]}},"upsert": {}}
+{"script": {"source": "if (ctx._source.containsKey('data')) {if (!ctx._source.data.containsKey('uris')) {ctx._source.data.uris = params.uris;} else {int i;for ( i = 0; i < params.uris.length; i++) {boolean found = false;int j;for ( j = 0; j < ctx._source.data.uris.length; j++) {if ( params.uris.get(i) == ctx._source.data.uris.get(j) ) {found = true;break}}if ( !found ) {ctx._source.data.uris.add(params.uris.get(i))}}}ctx.nonEmptyURIs = true;}","lang": "painless","params": {"uris": ["dXJpMQ==","dXJpMg=="]}},"upsert": {}}
 `, buffSlice.Buffers()[0].String())
 }
 

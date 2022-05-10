@@ -588,7 +588,7 @@ func (ei *elasticProcessor) saveAccountsESDT(
 	buffSlice *data.BufferSlice,
 ) error {
 	accountsESDTMap, tokensData := ei.accountsProc.PrepareAccountsMapESDT(timestamp, wrappedAccounts)
-	err := ei.addTokenTypeInAccountsESDT(tokensData, accountsESDTMap)
+	err := ei.addTokenTypeAndCurrentOwnerInAccountsESDT(tokensData, accountsESDTMap)
 	if err != nil {
 		return err
 	}
@@ -601,7 +601,7 @@ func (ei *elasticProcessor) saveAccountsESDT(
 	return ei.saveAccountsESDTHistory(timestamp, accountsESDTMap, buffSlice)
 }
 
-func (ei *elasticProcessor) addTokenTypeInAccountsESDT(tokensData data.TokensHandler, accountsESDTMap map[string]*data.AccountInfo) error {
+func (ei *elasticProcessor) addTokenTypeAndCurrentOwnerInAccountsESDT(tokensData data.TokensHandler, accountsESDTMap map[string]*data.AccountInfo) error {
 	if check.IfNil(tokensData) || tokensData.Len() == 0 {
 		return nil
 	}
@@ -612,8 +612,8 @@ func (ei *elasticProcessor) addTokenTypeInAccountsESDT(tokensData data.TokensHan
 		return err
 	}
 
-	tokensData.AddTypeFromResponse(responseTokens)
-	tokensData.PutTypeInAccountsESDT(accountsESDTMap)
+	tokensData.AddTypeAndOwnerFromResponse(responseTokens)
+	tokensData.PutTypeAndOwnerInAccountsESDT(accountsESDTMap)
 
 	return nil
 }
@@ -651,9 +651,9 @@ func (ei *elasticProcessor) indexNFTCreateInfo(tokensData data.TokensHandler, bu
 		return err
 	}
 
-	tokensData.AddTypeFromResponse(responseTokens)
+	tokensData.AddTypeAndOwnerFromResponse(responseTokens)
 
-	tokens := tokensData.GetAll()
+	tokens := tokensData.GetAllWithoutMetaESDT()
 	ei.accountsProc.PutTokenMedataDataInTokens(tokens)
 
 	return ei.accountsProc.SerializeNFTCreateInfo(tokens, buffSlice, elasticIndexer.TokensIndex)
@@ -672,7 +672,7 @@ func (ei *elasticProcessor) indexNFTBurnInfo(tokensData data.TokensHandler, buff
 	}
 
 	// TODO implement to keep in tokens also the supply
-	tokensData.AddTypeFromResponse(responseTokens)
+	tokensData.AddTypeAndOwnerFromResponse(responseTokens)
 	return ei.logsAndEventsProc.SerializeSupplyData(tokensData, buffSlice, elasticIndexer.TokensIndex)
 }
 

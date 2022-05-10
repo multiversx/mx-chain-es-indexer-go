@@ -85,14 +85,67 @@ func PrepareNFTUpdateData(buffSlice *data.BufferSlice, updateNFTData []*data.NFT
 
 		metaData := []byte(fmt.Sprintf(`{"update":{ "_index":"%s","_id":"%s"}}%s`, index, id, "\n"))
 		base64Attr := base64.StdEncoding.EncodeToString(nftUpdate.NewAttributes)
-		serializedData := []byte(fmt.Sprintf(`{"script": {"source": "if (ctx._source.containsKey('data')) {ctx._source.data.attributes = params.attributes}","lang": "painless","params": {"attributes": "%s"}}, "upsert": {}}`, base64Attr))
+
+		newTags := ExtractTagsFromAttributes(nftUpdate.NewAttributes)
+		newMetadata := ExtractMetaDataFromAttributes(nftUpdate.NewAttributes)
+
+		marshalizedTags, errM := json.Marshal(newTags)
+		if errM != nil {
+			return errM
+		}
+
+		codeToExecute := `
+			if (ctx._source.containsKey('data')) {
+				ctx._source.data.attributes = params.attributes;
+				if (!params.metadata.isEmpty() ) {
+					ctx._source.data.metadata = params.metadata
+				} else {
+					if (ctx._source.data.containsKey('metadata')) {
+						ctx._source.data.remove('metadata')
+					}
+				}
+				if (params.tags != null) {
+					ctx._source.data.tags = params.tags
+				} else {
+					if (ctx._source.data.containsKey('tags')) {
+						ctx._source.data.remove('tags')
+					}
+				}
+			}
+`
+		serializedData := []byte(fmt.Sprintf(`{"script": {"source": "%s","lang": "painless","params": {"attributes": "%s", "metadata": "%s", "tags": %s}}, "upsert": {}}`,
+			FormatPainlessSource(codeToExecute), base64Attr, newMetadata, marshalizedTags),
+		)
 		if len(nftUpdate.URIsToAdd) != 0 {
 			marshalizedURIS, err := json.Marshal(nftUpdate.URIsToAdd)
 			if err != nil {
 				return err
 			}
 
-			serializedData = []byte(fmt.Sprintf(`{"script": {"source": "if (ctx._source.containsKey('data')) { if (!ctx._source.data.containsKey('uris')) { ctx._source.data.uris = params.uris; } else {  ctx._source.data.uris.addAll(params.uris); }}","lang": "painless","params": {"uris": %s}},"upsert": {}}`, marshalizedURIS))
+			codeToExecute = `
+				if (ctx._source.containsKey('data')) {
+					if (!ctx._source.data.containsKey('uris')) {
+						ctx._source.data.uris = params.uris;
+					} else {
+						int i;
+						for ( i = 0; i < params.uris.length; i++) {
+							boolean found = false;
+							int j;
+							for ( j = 0; j < ctx._source.data.uris.length; j++) {
+								if ( params.uris.get(i) == ctx._source.data.uris.get(j) ) {
+									found = true;
+									break
+								}
+							}
+							if ( !found ) {
+								ctx._source.data.uris.add(params.uris.get(i))
+							}
+						}
+					}
+					ctx.nonEmptyURIs = true;
+				}
+`
+			serializedData = []byte(fmt.Sprintf(`{"script": {"source": "%s","lang": "painless","params": {"uris": %s}},"upsert": {}}`, FormatPainlessSource(codeToExecute), marshalizedURIS))
 		}
 
 		err := buffSlice.PutData(metaData, serializedData)

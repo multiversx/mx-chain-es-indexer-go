@@ -12,6 +12,10 @@ integration-tests:
 	cd scripts && ./script.sh delete
 	cd scripts && ./script.sh stop
 
+long-tests:
+	@-$(MAKE) delete-cluster-data
+	go test -v ./integrationtests -tags integrationtests
+
 start-cluster-with-kibana:
 	@echo " > Starting Elasticsearch node and Kibana"
 	docker-compose up -d

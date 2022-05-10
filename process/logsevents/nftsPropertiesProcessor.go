@@ -8,7 +8,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/core"
 )
 
-const minTopicsUpdate = 5
+const minTopicsUpdate = 4
 
 type nftsPropertiesProc struct {
 	pubKeyConverter            core.PubkeyConverter
@@ -36,8 +36,7 @@ func (npp *nftsPropertiesProc) processEvent(args *argsProcessEvent) argOutputPro
 	// [0] --> token identifier
 	// [1] --> nonce of the NFT (bytes)
 	// [2] --> value
-	// [3] --> caller address
-	// [4:] --> modified data
+	// [3:] --> modified data
 	topics := args.event.GetTopics()
 	if len(topics) < minTopicsUpdate {
 		return argOutputProcessEvent{
@@ -45,7 +44,7 @@ func (npp *nftsPropertiesProc) processEvent(args *argsProcessEvent) argOutputPro
 		}
 	}
 
-	callerAddress := npp.pubKeyConverter.Encode(topics[3])
+	callerAddress := npp.pubKeyConverter.Encode(args.event.GetAddress())
 	if callerAddress == "" {
 		return argOutputProcessEvent{
 			processed: true,
@@ -68,9 +67,9 @@ func (npp *nftsPropertiesProc) processEvent(args *argsProcessEvent) argOutputPro
 
 	switch eventIdentifier {
 	case core.BuiltInFunctionESDTNFTUpdateAttributes:
-		updateNFT.NewAttributes = topics[4]
+		updateNFT.NewAttributes = topics[3]
 	case core.BuiltInFunctionESDTNFTAddURI:
-		updateNFT.URIsToAdd = topics[4:]
+		updateNFT.URIsToAdd = topics[3:]
 	}
 
 	return argOutputProcessEvent{
