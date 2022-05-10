@@ -7,12 +7,9 @@ import (
 	"net/http"
 	"time"
 
-	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/tidwall/gjson"
 )
-
-var log = logger.GetOrCreate("elasticClient")
 
 type esClient struct {
 	client      *elasticsearch.Client
@@ -74,10 +71,7 @@ func (ec *esClient) iterateScroll(
 		return nil
 	}
 	defer func() {
-		err := ec.clearScroll(scrollID)
-		if err != nil {
-			log.Warn("cannot clear scroll", "error", err)
-		}
+		_ = ec.clearScroll(scrollID)
 	}()
 
 	for {
