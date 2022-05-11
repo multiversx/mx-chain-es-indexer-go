@@ -8,16 +8,18 @@ import (
 )
 
 type validatorsProcessor struct {
+	bulkSizeMaxSize          int
 	validatorPubkeyConverter core.PubkeyConverter
 }
 
 // NewValidatorsProcessor will create a new instance of validatorsProcessor
-func NewValidatorsProcessor(validatorPubkeyConverter core.PubkeyConverter) (*validatorsProcessor, error) {
+func NewValidatorsProcessor(validatorPubkeyConverter core.PubkeyConverter, bulkSizeMaxSize int) (*validatorsProcessor, error) {
 	if check.IfNil(validatorPubkeyConverter) {
 		return nil, indexer.ErrNilPubkeyConverter
 	}
 
 	return &validatorsProcessor{
+		bulkSizeMaxSize:          bulkSizeMaxSize,
 		validatorPubkeyConverter: validatorPubkeyConverter,
 	}, nil
 }

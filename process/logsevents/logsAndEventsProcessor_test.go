@@ -236,11 +236,19 @@ func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 	args := createMockArgs()
 	proc, _ := NewLogsAndEventsProcessor(args)
 
+	_ = proc.ExtractDataFromLogs(nil, &data.PreparedResults{ScResults: []*data.ScResult{
+		{
+			Hash:           "747848617368",
+			OriginalTxHash: "orignalHash",
+		},
+	}}, 1234)
+
 	logsDB := proc.PrepareLogsForDB(logsAndEventsSlice, 1234)
 	require.Equal(t, &data.Logs{
-		ID:        "747848617368",
-		Address:   "61646472657373",
-		Timestamp: time.Duration(1234),
+		ID:             "747848617368",
+		Address:        "61646472657373",
+		OriginalTxHash: "orignalHash",
+		Timestamp:      time.Duration(1234),
 		Events: []*data.Event{
 			{
 				Address:    "61646472",
@@ -249,4 +257,53 @@ func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 			},
 		},
 	}, logsDB[0])
+}
+
+func TestLogsAndEventsProcessor_ExtractDataFromLogsNFTBurn(t *testing.T) {
+	t.Parallel()
+
+	logsAndEventsSlice := make([]*coreData.LogData, 1)
+	logsAndEventsSlice[0] = &coreData.LogData{
+		LogHandler: &transaction.Log{
+			Address: []byte("address"),
+			Events: []*transaction.Event{
+				{
+					Address:    []byte("addr"),
+					Identifier: []byte(core.BuiltInFunctionESDTNFTBurn),
+					Topics:     [][]byte{[]byte("MY-NFT"), big.NewInt(2).Bytes(), big.NewInt(1).Bytes()},
+				},
+			},
+		},
+		TxHash: "h1",
+	}
+
+	altered := data.NewAlteredAccounts()
+	res := &data.PreparedResults{
+		Transactions: []*data.Transaction{
+			{
+				Hash: "6831",
+			},
+		},
+		ScResults: []*data.ScResult{
+			{
+				Hash: "6832",
+			},
+		},
+		AlteredAccts: altered,
+	}
+
+	args := createMockArgs()
+	balanceConverter, _ := converters.NewBalanceConverter(10)
+	args.BalanceConverter = balanceConverter
+	args.ShardCoordinator = &mock.ShardCoordinatorMock{
+		SelfID: 0,
+	}
+	proc, _ := NewLogsAndEventsProcessor(args)
+
+	resLogs := proc.ExtractDataFromLogs(logsAndEventsSlice, res, 1000)
+	require.Equal(t, 1, resLogs.TokensSupply.Len())
+
+	tokensSupply := resLogs.TokensSupply.GetAll()
+	require.Equal(t, "MY-NFT", tokensSupply[0].Token)
+	require.Equal(t, "MY-NFT-02", tokensSupply[0].Identifier)
 }

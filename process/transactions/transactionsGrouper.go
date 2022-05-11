@@ -12,6 +12,10 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
 )
 
+const (
+	rewardsOperation = "reward"
+)
+
 type txsGrouper struct {
 	isInImportMode bool
 	selfShardID    uint32

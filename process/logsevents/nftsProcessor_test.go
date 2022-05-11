@@ -39,12 +39,11 @@ func TestNftsProcessor_processLogAndEventsNFTs(t *testing.T) {
 	tagsCount := tags.NewTagsCount()
 	tokensCreateInfo := data.NewTokensInfo()
 	res := nftsProc.processEvent(&argsProcessEvent{
-		event:           event,
-		accounts:        altered,
-		tokens:          tokensCreateInfo,
-		timestamp:       1000,
-		tagsCount:       tagsCount,
-		pendingBalances: newPendingBalancesProcessor(),
+		event:     event,
+		accounts:  altered,
+		tokens:    tokensCreateInfo,
+		timestamp: 1000,
+		tagsCount: tagsCount,
 	})
 	require.Equal(t, "my-token-13", res.identifier)
 	require.Equal(t, "1", res.value)
@@ -85,14 +84,12 @@ func TestNftsProcessor_processLogAndEventsNFTs_TransferNFT(t *testing.T) {
 
 	altered := data.NewAlteredAccounts()
 
-	pp := newPendingBalancesProcessor()
 	tagsCount := tags.NewTagsCount()
 	res := nftsProc.processEvent(&argsProcessEvent{
-		event:           events,
-		accounts:        altered,
-		timestamp:       10000,
-		tagsCount:       tagsCount,
-		pendingBalances: pp,
+		event:     events,
+		accounts:  altered,
+		timestamp: 10000,
+		tagsCount: tagsCount,
 	})
 	require.Equal(t, "my-token-13", res.identifier)
 	require.Equal(t, "1", res.value)
@@ -113,6 +110,4 @@ func TestNftsProcessor_processLogAndEventsNFTs_TransferNFT(t *testing.T) {
 		TokenIdentifier: "my-token",
 		NFTNonce:        19,
 	}, alteredAddrReceiver[0])
-
-	require.Len(t, pp.getAll(), 0)
 }

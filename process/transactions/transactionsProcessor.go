@@ -3,8 +3,9 @@ package transactions
 import (
 	"encoding/hex"
 
-	"github.com/ElrondNetwork/elastic-indexer-go"
+	indexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/transactions/datafield"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
@@ -43,10 +44,20 @@ func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txsDatabaseProce
 		return nil, err
 	}
 
+	argsParser := &datafield.ArgsOperationDataFieldParser{
+		PubKeyConverter:  args.AddressPubkeyConverter,
+		Marshalizer:      args.Marshalizer,
+		ShardCoordinator: args.ShardCoordinator,
+	}
+	operationsDataParser, err := datafield.NewOperationDataFieldParser(argsParser)
+	if err != nil {
+		return nil, err
+	}
+
 	selfShardID := args.ShardCoordinator.SelfId()
-	txBuilder := newTransactionDBBuilder(args.AddressPubkeyConverter, args.ShardCoordinator, args.TxFeeCalculator)
+	txBuilder := newTransactionDBBuilder(args.AddressPubkeyConverter, args.ShardCoordinator, args.TxFeeCalculator, operationsDataParser)
 	txsDBGrouper := newTxsGrouper(txBuilder, args.IsInImportMode, selfShardID, args.Hasher, args.Marshalizer)
-	scrProc := newSmartContractResultsProcessor(args.AddressPubkeyConverter, args.ShardCoordinator, args.Marshalizer, args.Hasher)
+	scrProc := newSmartContractResultsProcessor(args.AddressPubkeyConverter, args.ShardCoordinator, args.Marshalizer, args.Hasher, operationsDataParser)
 	scrsDataToTxs := newScrsDataToTransactions(args.TxFeeCalculator)
 
 	if args.IsInImportMode {

@@ -18,10 +18,10 @@ import (
 var log = logger.GetOrCreate("indexer/process/miniblocks")
 
 type miniblocksProcessor struct {
-	importDBMode bool
 	hasher       hashing.Hasher
 	marshalier   marshal.Marshalizer
 	selfShardID  uint32
+	importDBMode bool
 }
 
 // NewMiniblocksProcessor will create a new instance of miniblocksProcessor
@@ -87,6 +87,7 @@ func (mp *miniblocksProcessor) prepareMiniblockForDB(
 		ReceiverShardID: miniblock.ReceiverShardID,
 		Type:            miniblock.Type.String(),
 		Timestamp:       time.Duration(header.GetTimeStamp()),
+		Reserved:        miniblock.Reserved,
 	}
 
 	encodedHeaderHash := hex.EncodeToString(headerHash)

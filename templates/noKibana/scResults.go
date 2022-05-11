@@ -3,7 +3,7 @@ package noKibana
 // SCResults will hold the configuration for the scresults index
 var SCResults = Object{
 	"index_patterns": Array{
-		"receipts-*",
+		"scresults-*",
 	},
 	"settings": Object{
 		"number_of_shards":   3,

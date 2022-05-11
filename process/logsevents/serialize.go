@@ -1,51 +1,50 @@
 package logsevents
 
 import (
-	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 
+	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elrond-go-core/core"
 )
 
 // SerializeLogs will serialize the provided logs in a way that Elastic Search expects a bulk request
-func (logsAndEventsProcessor) SerializeLogs(logs []*data.Logs) ([]*bytes.Buffer, error) {
-	buffSlice := data.NewBufferSlice()
-	for _, log := range logs {
-		meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, log.ID, "\n"))
-		serializedData, errMarshal := json.Marshal(log)
+func (logsAndEventsProcessor) SerializeLogs(logs []*data.Logs, buffSlice *data.BufferSlice, index string) error {
+	for _, lg := range logs {
+		meta := []byte(fmt.Sprintf(`{ "index" : {"_index":"%s", "_id" : "%s" } }%s`, index, lg.ID, "\n"))
+		serializedData, errMarshal := json.Marshal(lg)
 		if errMarshal != nil {
-			return nil, errMarshal
+			return errMarshal
 		}
 
 		err := buffSlice.PutData(meta, serializedData)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	return buffSlice.Buffers(), nil
+	return nil
 }
 
 // SerializeSCDeploys will serialize the provided smart contract deploys in a way that Elastic Search expects a bulk request
-func (logsAndEventsProcessor) SerializeSCDeploys(deploys map[string]*data.ScDeployInfo) ([]*bytes.Buffer, error) {
-	buffSlice := data.NewBufferSlice()
+func (logsAndEventsProcessor) SerializeSCDeploys(deploys map[string]*data.ScDeployInfo, buffSlice *data.BufferSlice, index string) error {
 	for scAddr, deployInfo := range deploys {
-		meta := []byte(fmt.Sprintf(`{ "update" : { "_id" : "%s", "_type" : "_doc" } }%s`, scAddr, "\n"))
+		meta := []byte(fmt.Sprintf(`{ "update" : { "_index":"%s", "_id" : "%s" } }%s`, index, scAddr, "\n"))
 
 		serializedData, err := serializeDeploy(deployInfo)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		err = buffSlice.PutData(meta, serializedData)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	return buffSlice.Buffers(), nil
+	return nil
 }
 
 func serializeDeploy(deployInfo *data.ScDeployInfo) ([]byte, error) {
@@ -76,39 +75,45 @@ func serializeDeploy(deployInfo *data.ScDeployInfo) ([]byte, error) {
 }
 
 // SerializeTokens will serialize the provided tokens data in a way that Elastic Search expects a bulk request
-func (logsAndEventsProcessor) SerializeTokens(tokens []*data.TokenInfo) ([]*bytes.Buffer, error) {
-	buffSlice := data.NewBufferSlice()
+func (logsAndEventsProcessor) SerializeTokens(tokens []*data.TokenInfo, updateNFTData []*data.NFTDataUpdate, buffSlice *data.BufferSlice, index string) error {
 	for _, tokenData := range tokens {
-		meta, serializedData, err := serializeToken(tokenData)
+		meta, serializedData, err := serializeToken(tokenData, index)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		err = buffSlice.PutData(meta, serializedData)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	return buffSlice.Buffers(), nil
+	return converters.PrepareNFTUpdateData(buffSlice, updateNFTData, false, index)
 }
 
-func serializeToken(tokenData *data.TokenInfo) ([]byte, []byte, error) {
+func serializeToken(tokenData *data.TokenInfo, index string) ([]byte, []byte, error) {
 	if tokenData.TransferOwnership {
-		return serializeTokenTransferOwnership(tokenData)
+		return serializeTokenTransferOwnership(tokenData, index)
 	}
 
-	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, tokenData.Token, "\n"))
-	serializedData, err := json.Marshal(tokenData)
+	meta := []byte(fmt.Sprintf(`{ "update" : { "_index":"%s", "_id" : "%s" } }%s`, index, tokenData.Token, "\n"))
+	serializedTokenData, err := json.Marshal(tokenData)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return meta, serializedData, nil
+	serializedDataStr := fmt.Sprintf(`{"script": {`+
+		`"source": "if (ctx._source.containsKey('roles')) {HashMap roles = ctx._source.roles; ctx._source = params.token; ctx._source.roles = roles}",`+
+		`"lang": "painless",`+
+		`"params": {"token": %s}},`+
+		`"upsert": %s}`,
+		string(serializedTokenData), string(serializedTokenData))
+
+	return meta, []byte(serializedDataStr), nil
 }
 
-func serializeTokenTransferOwnership(tokenData *data.TokenInfo) ([]byte, []byte, error) {
-	meta := []byte(fmt.Sprintf(`{ "update" : { "_id" : "%s", "_type" : "_doc" } }%s`, tokenData.Token, "\n"))
+func serializeTokenTransferOwnership(tokenData *data.TokenInfo, index string) ([]byte, []byte, error) {
+	meta := []byte(fmt.Sprintf(`{ "update" : { "_index":"%s", "_id" : "%s" } }%s`, index, tokenData.Token, "\n"))
 	tokenDataSerialized, err := json.Marshal(tokenData)
 	if err != nil {
 		return nil, nil, err
@@ -135,31 +140,30 @@ func serializeTokenTransferOwnership(tokenData *data.TokenInfo) ([]byte, []byte,
 }
 
 // SerializeDelegators will serialize the provided delegators in a way that Elastic Search expects a bulk request
-func (lep *logsAndEventsProcessor) SerializeDelegators(delegators map[string]*data.Delegator) ([]*bytes.Buffer, error) {
-	buffSlice := data.NewBufferSlice()
+func (lep *logsAndEventsProcessor) SerializeDelegators(delegators map[string]*data.Delegator, buffSlice *data.BufferSlice, index string) error {
 	for _, delegator := range delegators {
-		meta, serializedData, err := lep.prepareSerializedDelegator(delegator)
+		meta, serializedData, err := lep.prepareSerializedDelegator(delegator, index)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		err = buffSlice.PutData(meta, serializedData)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	return buffSlice.Buffers(), nil
+	return nil
 }
 
-func (lep *logsAndEventsProcessor) prepareSerializedDelegator(delegator *data.Delegator) ([]byte, []byte, error) {
+func (lep *logsAndEventsProcessor) prepareSerializedDelegator(delegator *data.Delegator, index string) ([]byte, []byte, error) {
 	id := lep.computeDelegatorID(delegator)
 	if delegator.ShouldDelete {
-		meta := []byte(fmt.Sprintf(`{ "delete" : { "_id" : "%s" } }%s`, id, "\n"))
+		meta := []byte(fmt.Sprintf(`{ "delete" : { "_index": "%s", "_id" : "%s" } }%s`, index, id, "\n"))
 		return meta, nil, nil
 	}
 
-	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%s" } }%s`, id, "\n"))
+	meta := []byte(fmt.Sprintf(`{ "index" : { "_index": "%s", "_id" : "%s" } }%s`, index, id, "\n"))
 	serializedData, errMarshal := json.Marshal(delegator)
 	if errMarshal != nil {
 		return nil, nil, errMarshal
@@ -174,4 +178,85 @@ func (lep *logsAndEventsProcessor) computeDelegatorID(delegator *data.Delegator)
 	hashBytes := lep.hasher.Compute(delegatorContract)
 
 	return base64.StdEncoding.EncodeToString(hashBytes)
+}
+
+// SerializeSupplyData will serialize the provided supply data
+func (lep *logsAndEventsProcessor) SerializeSupplyData(tokensSupply data.TokensHandler, buffSlice *data.BufferSlice, index string) error {
+	for _, supplyData := range tokensSupply.GetAll() {
+		if supplyData.Type != core.NonFungibleESDT {
+			continue
+		}
+
+		meta := []byte(fmt.Sprintf(`{ "delete" : { "_index": "%s", "_id" : "%s" } }%s`, index, supplyData.Identifier, "\n"))
+		err := buffSlice.PutData(meta, nil)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// SerializeRolesData will serialize the provided roles data
+func (lep *logsAndEventsProcessor) SerializeRolesData(rolesData data.RolesData, buffSlice *data.BufferSlice, index string) error {
+	for role, roleData := range rolesData {
+		for _, rd := range roleData {
+			err := serializeRoleData(buffSlice, rd, role, index)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func serializeRoleData(buffSlice *data.BufferSlice, rd *data.RoleData, role string, index string) error {
+	meta := []byte(fmt.Sprintf(`{ "update" : {"_index": "%s", "_id" : "%s" } }%s`, index, rd.Token, "\n"))
+	var serializedDataStr string
+	if rd.Set {
+		codeToExecute := `	
+			if (!ctx._source.containsKey('roles')) {
+				ctx._source.roles = new HashMap();
+			}
+			if (!ctx._source.roles.containsKey(params.role)) {
+				ctx._source.roles.put(params.role, [params.address]);
+			} else {
+				int i;
+				for (i = 0; i < ctx._source.roles.get(params.role).length; i++) {
+					if (ctx._source.roles.get(params.role).get(i) == params.address) {
+						return;
+					}
+				}
+				ctx._source.roles.get(params.role).add(params.address);
+			}
+`
+		serializedDataStr = fmt.Sprintf(`{"script": {`+
+			`"source": "%s",`+
+			`"lang": "painless",`+
+			`"params": { "role": "%s", "address": "%s"}},`+
+			`"upsert": { "roles": {"%s": ["%s"]}}}`,
+			converters.FormatPainlessSource(codeToExecute), role, rd.Address, role, rd.Address)
+	} else {
+		codeToExecute := `
+	if (ctx._source.containsKey('roles')) {
+		if (ctx._source.roles.containsKey(params.role)) {
+			ctx._source.roles.get(params.role).removeIf(p -> p.equals(params.address))
+		}
+	}
+`
+		serializedDataStr = fmt.Sprintf(`{"script": {`+
+			`"source": "%s",`+
+			`"lang": "painless",`+
+			`"params": { "role": "%s", "address": "%s" }},`+
+			`"upsert": {} }`,
+			converters.FormatPainlessSource(codeToExecute), role, rd.Address)
+	}
+
+	err := buffSlice.PutData(meta, []byte(serializedDataStr))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

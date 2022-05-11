@@ -41,8 +41,7 @@ func (sp *statisticsProcessor) SerializeRoundsInfo(roundsInfo []*data.RoundInfo)
 }
 
 func serializeRoundInfo(info *data.RoundInfo) ([]byte, []byte) {
-	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%d_%d", "_type" : "%s" } }%s`,
-		info.ShardId, info.Index, "_doc", "\n"))
+	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%d_%d" } }%s`, info.ShardId, info.Index, "\n"))
 
 	serializedInfo, err := json.Marshal(info)
 	if err != nil {

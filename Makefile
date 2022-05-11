@@ -7,7 +7,21 @@ test:
 
 integration-tests:
 	@echo " > Running integration tests"
-	cd scripts && ./script.sh start
-	go test -v ./integrationtests
+	cd scripts && ./script.sh start ${ES_VERSION}
+	go test -v ./integrationtests -tags integrationtests
 	cd scripts && ./script.sh delete
 	cd scripts && ./script.sh stop
+
+long-tests:
+	@-$(MAKE) delete-cluster-data
+	go test -v ./integrationtests -tags integrationtests
+
+start-cluster-with-kibana:
+	@echo " > Starting Elasticsearch node and Kibana"
+	docker-compose up -d
+
+stop-cluster:
+	docker-compose down
+
+delete-cluster-data:
+	cd scripts && ./script.sh delete
