@@ -6,7 +6,7 @@ import (
 
 // Logs holds all the fields needed for a logs structure
 type Logs struct {
-	ID        string        `json:"-"`
+	ID        string        `json:"-" gorm:"primaryKey;unique"`
 	Address   string        `json:"address"`
 	Events    []*Event      `json:"events" gorm:"foreignKey:Address"`
 	Timestamp time.Duration `json:"timestamp,omitempty"`
@@ -14,7 +14,7 @@ type Logs struct {
 
 // Event holds all the fields needed for an event structure
 type Event struct {
-	Address    string   `json:"address"`
+	Address    string   `json:"address" gorm:"primaryKey;unique"`
 	Identifier string   `json:"identifier"`
 	Topics     [][]byte `json:"topics" gorm:"serializer:json"`
 	Data       []byte   `json:"data"`

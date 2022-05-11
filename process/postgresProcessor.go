@@ -211,6 +211,10 @@ func (psp *postgresProcessor) indexBlock(block *data.Block) error {
 }
 
 func (psp *postgresProcessor) indexEpochStartInfo(block *data.Block) error {
+	if psp.selfShardID != core.MetachainShardId {
+		return nil
+	}
+
 	if !block.EpochStartBlock {
 		return nil
 	}
@@ -229,7 +233,7 @@ func (psp *postgresProcessor) indexEpochInfoData(header coreData.HeaderHandler) 
 
 	metablock, ok := header.(*block.MetaBlock)
 	if !ok {
-		return fmt.Errorf("%w in blockProcessor.SerializeEpochInfoData", elasticIndexer.ErrHeaderTypeAssertion)
+		return fmt.Errorf("%w in indexEpochInfoData", elasticIndexer.ErrHeaderTypeAssertion)
 	}
 
 	return psp.postgresClient.InsertEpochInfo(metablock)

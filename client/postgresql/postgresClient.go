@@ -96,7 +96,7 @@ func (pc *postgresClient) createValidatorPubKeysTable() error {
 
 func (pc *postgresClient) createEpochInfoTable() error {
 	sql := `CREATE TABLE IF NOT EXISTS epoch_info (
-		epoch int NOT NULL UNIQUE,
+		epoch bigint NOT NULL UNIQUE,
 		accumulated_fees text,
 		developer_fees text,
 		PRIMARY KEY (epoch)

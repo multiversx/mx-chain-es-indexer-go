@@ -8,7 +8,7 @@ import (
 
 // AccountInfo holds (serializable) data about an account
 type AccountInfo struct {
-	Address                  string         `json:"address,omitempty"`
+	Address                  string         `json:"address,omitempty" gorm:"primaryKey;unique"`
 	Nonce                    uint64         `json:"nonce,omitempty"`
 	Balance                  string         `json:"balance"`
 	BalanceNum               float64        `json:"balanceNum"`
