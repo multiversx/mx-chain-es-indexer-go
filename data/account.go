@@ -16,8 +16,8 @@ type AccountInfo struct {
 	TokenIdentifier          string         `json:"identifier,omitempty"`
 	TokenNonce               uint64         `json:"tokenNonce,omitempty"`
 	Properties               string         `json:"properties,omitempty"`
-	IsSender                 bool           `json:"-"`
-	IsSmartContract          bool           `json:"-"`
+	IsSender                 bool           `json:"-" gorm:"-"`
+	IsSmartContract          bool           `json:"-" gorm:"-"`
 	TotalBalanceWithStake    string         `json:"totalBalanceWithStake,omitempty"`
 	TotalBalanceWithStakeNum float64        `json:"totalBalanceWithStakeNum,omitempty"`
 	DataID                   int            `json:"-"`

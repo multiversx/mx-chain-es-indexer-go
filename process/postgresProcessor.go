@@ -124,9 +124,8 @@ func (ps *postgresProcessor) init(useKibana bool, indexTemplates, _ map[string]*
 func (psp *postgresProcessor) createTables() error {
 	err := psp.postgresClient.AutoMigrateTables(
 		// Accounts
-		&data.AccountInfo{},
-		&data.TokenMetaData{},
-		&data.AccountBalanceHistory{},
+		// &data.AccountInfo{},
+		// &data.AccountBalanceHistory{},
 		//&data.AccountESDT{},
 		//&data.Account{},
 
@@ -405,12 +404,55 @@ func (psp *postgresProcessor) indexAlteredAccounts(
 	accountsESDTMap := psp.accountsProc.PrepareAccountsMapESDT(accountsToIndexESDT)
 	resAccountsMap := converters.MergeAccountsInfoMaps(accountsESDTMap, pendingBalances)
 
-	err = psp.indexAccounts(resAccountsMap)
+	err = psp.indexAccountsESDT(resAccountsMap)
 	if err != nil {
 		return err
 	}
 
-	return psp.saveAccountsHistory(timestamp, accountsESDTMap)
+	return psp.saveAccountsESDTHistory(timestamp, accountsESDTMap)
+}
+
+func (psp *postgresProcessor) indexAccountsESDT(accountsESDTMap map[string]*data.AccountInfo) error {
+	for _, acc := range accountsESDTMap {
+
+		// handle delete account
+
+		id := acc.Address
+		hexEncodedNonce := converters.EncodeNonceToHex(acc.TokenNonce)
+		id += fmt.Sprintf("-%s-%s", acc.TokenName, hexEncodedNonce)
+
+		err := psp.postgresClient.InsertAccountESDT(id, acc)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (psp *postgresProcessor) saveAccountsESDTHistory(timestamp uint64, accountsInfoMap map[string]*data.AccountInfo) error {
+	accountsESDTMap := psp.accountsProc.PrepareAccountsHistory(timestamp, accountsInfoMap)
+
+	for _, acc := range accountsESDTMap {
+		// handle delete account
+
+		id := acc.Address
+
+		isESDT := acc.Token != ""
+		if isESDT {
+			hexEncodedNonce := converters.EncodeNonceToHex(acc.TokenNonce)
+			id += fmt.Sprintf("-%s-%s", acc.Token, hexEncodedNonce)
+		}
+
+		id += fmt.Sprintf("-%d", acc.Timestamp)
+
+		err := psp.postgresClient.InsertAccountESDTHistory(acc)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (psp *postgresProcessor) indexScDeploys(deployData map[string]*data.ScDeployInfo) error {
@@ -494,7 +536,7 @@ func (psp *postgresProcessor) SaveAccounts(timestamp uint64, accts []*data.Accou
 func (psp *postgresProcessor) indexAccounts(accountsMap map[string]*data.AccountInfo) error {
 	var err error
 	for _, acc := range accountsMap {
-		err = psp.postgresClient.Insert(acc)
+		err = psp.postgresClient.InsertAccount(acc)
 		if err != nil {
 			return err
 		}
@@ -508,7 +550,7 @@ func (psp *postgresProcessor) saveAccountsHistory(timestamp uint64, accountsInfo
 
 	var err error
 	for _, acc := range accountsMap {
-		err = psp.postgresClient.Insert(acc)
+		err = psp.postgresClient.InsertAccountHistory(acc)
 		if err != nil {
 			return err
 		}

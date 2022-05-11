@@ -24,6 +24,11 @@ type PostgresClientHandler interface {
 	InsertValidatorsRating(id string, ratingInfo *data.ValidatorRatingInfo) error
 	InsertValidatorsPubKeys(id string, pubKeys *data.ValidatorsPublicKeys) error
 	InsertEpochInfo(block *block.MetaBlock) error
+	InsertAccount(account *data.AccountInfo) error
+	InsertAccountESDT(id string, account *data.AccountInfo) error
+
+	InsertAccountHistory(account *data.AccountBalanceHistory) error
+	InsertAccountESDTHistory(account *data.AccountBalanceHistory) error
 	IsInterfaceNil() bool
 }
 

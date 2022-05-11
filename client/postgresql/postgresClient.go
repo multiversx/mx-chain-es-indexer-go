@@ -54,6 +54,31 @@ func (pc *postgresClient) CreateTables() error {
 		return err
 	}
 
+	err = pc.createAccountsTable()
+	if err != nil {
+		return err
+	}
+
+	err = pc.createESDTAccountsTable()
+	if err != nil {
+		return err
+	}
+
+	err = pc.createTokenMetaDataTable()
+	if err != nil {
+		return err
+	}
+
+	err = pc.createAccountsHistoryTable()
+	if err != nil {
+		return err
+	}
+
+	err = pc.createAccountsESDTHistoryTable()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -100,6 +125,99 @@ func (pc *postgresClient) createEpochInfoTable() error {
 		accumulated_fees text,
 		developer_fees text,
 		PRIMARY KEY (epoch)
+	)`
+
+	return pc.CreateRawTable(sql)
+}
+
+func (pc *postgresClient) createAccountsTable() error {
+	sql := `CREATE TABLE IF NOT EXISTS accounts (
+		address text NOT NULL UNIQUE,
+		nonce bigint,
+		balance text,
+		balance_num decimal,
+		token_name text,
+		token_identifier text,
+		token_nonce bigint,
+		properties text,
+		total_balance_with_stake text,
+		total_balance_with_stake_num decimal,
+		data_id bigint,
+		PRIMARY KEY (address)
+	)`
+
+	return pc.CreateRawTable(sql)
+}
+
+func (pc *postgresClient) createESDTAccountsTable() error {
+	sql := `CREATE TABLE IF NOT EXISTS accounts_esdt (
+		address text NOT NULL,
+		nonce bigint,
+		balance text,
+		balance_num decimal,
+		token_name text NOT NULL,
+		token_identifier text,
+		token_nonce bigint NOT NULL,
+		properties text,
+		total_balance_with_stake text,
+		total_balance_with_stake_num decimal,
+		data_id bigint,
+		PRIMARY KEY (address, token_name, token_nonce)
+	)`
+
+	return pc.CreateRawTable(sql)
+}
+
+func (pc *postgresClient) createTokenMetaDataTable() error {
+	sql := `CREATE TABLE IF NOT EXISTS token_meta_data (
+		name text NOT NULL UNIQUE,
+		creator text,
+		royalties bigint,
+		hash text,
+		uris text,
+		tags text,
+		attributes text,
+		meta_data text,
+		non_empty_uris boolean,
+		white_listed_storage boolean,
+		address text NOT NULL,
+		token_name text NOT NULL,
+		token_nonce bigint NOT NULL,
+		PRIMARY KEY (name),
+		FOREIGN KEY (address, token_name, token_nonce) REFERENCES accounts_esdt(address, token_name, token_nonce)
+	)`
+
+	return pc.CreateRawTable(sql)
+}
+
+func (pc *postgresClient) createAccountsHistoryTable() error {
+	sql := `CREATE TABLE IF NOT EXISTS accounts_history (
+		address text,
+		timestamp int8,
+		balance text,
+		token text,
+		identifier text,
+		token_nonce int8,
+		is_sender bool,
+		is_smart_contract bool,
+		PRIMARY KEY (address, timestamp)
+	)`
+
+	return pc.CreateRawTable(sql)
+}
+
+func (pc *postgresClient) createAccountsESDTHistoryTable() error {
+	sql := `CREATE TABLE IF NOT EXISTS accounts_esdt_history (
+		address text,
+		timestamp int8,
+		balance text,
+		token text,
+		identifier text,
+		token_nonce int8,
+		is_sender bool,
+		is_smart_contract bool,
+		account_id text,
+		PRIMARY KEY (address, token, token_nonce, timestamp)
 	)`
 
 	return pc.CreateRawTable(sql)
@@ -246,6 +364,132 @@ func (pc *postgresClient) InsertEpochInfo(block *block.MetaBlock) error {
 	) ON CONFLICT DO NOTHING`
 
 	result := pc.ps.Exec(sql, block.GetEpoch(), block.AccumulatedFeesInEpoch.String(), block.DevFeesInEpoch.String())
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
+}
+
+func (pc *postgresClient) InsertAccount(account *data.AccountInfo) error {
+	sql := `INSERT INTO accounts_esdt (
+		address, nonce, balance, balance_num, token_name, token_identifier, token_nonce, properties, total_balance_with_stake, total_balance_with_stake_num, data_id
+	) VALUES(
+		?,?,?,?,?,?,?,?,?,?,?
+	) ON CONFLICT DO NOTHING`
+
+	result := pc.ps.Exec(sql,
+		account.Address,
+		account.Nonce,
+		account.Balance,
+		account.BalanceNum,
+		account.TokenName,
+		account.TokenIdentifier,
+		account.TokenNonce,
+		account.Properties,
+		account.TotalBalanceWithStake,
+		account.TotalBalanceWithStakeNum,
+		account.DataID,
+	)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
+}
+
+func (pc *postgresClient) InsertAccountESDT(id string, account *data.AccountInfo) error {
+	sql := `INSERT INTO accounts_esdt (
+		address,
+		nonce,
+		balance,
+		balance_num,
+		token_name,
+		token_identifier,
+		token_nonce,
+		properties,
+		total_balance_with_stake,
+		total_balance_with_stake_num,
+		data_id,
+	) VALUES(
+		?,?,?,?,?,?,?,?,?,?,?,?
+	) ON CONFLICT DO NOTHING`
+
+	result := pc.ps.Exec(sql,
+		account.Address,
+		account.Nonce,
+		account.Balance,
+		account.BalanceNum,
+		account.TokenName,
+		account.TokenIdentifier,
+		account.TokenNonce,
+		account.Properties,
+		account.TotalBalanceWithStake,
+		account.TotalBalanceWithStakeNum,
+		account.DataID,
+	)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
+}
+
+func (pc *postgresClient) InsertAccountHistory(account *data.AccountBalanceHistory) error {
+	sql := `INSERT INTO accounts_history (
+		address,
+		timestamp,
+		balance,
+		token,
+		identifier,
+		token_nonce,
+		is_sender,
+		is_smart_contract
+	) VALUES(
+		?,?,?,?,?,?,?,?
+	) ON CONFLICT DO NOTHING`
+
+	result := pc.ps.Exec(sql,
+		account.Address,
+		account.Timestamp,
+		account.Balance,
+		account.Token,
+		account.Identifier,
+		account.TokenNonce,
+		account.IsSender,
+		account.IsSmartContract,
+	)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
+}
+
+func (pc *postgresClient) InsertAccountESDTHistory(account *data.AccountBalanceHistory) error {
+	sql := `INSERT INTO accounts_esdt_history (
+		address,
+		timestamp,
+		balance,
+		token,
+		identifier,
+		token_nonce,
+		is_sender,
+		is_smart_contract
+	) VALUES (
+		?,?,?,?,?,?,?,?
+	) ON CONFLICT DO NOTHING`
+
+	result := pc.ps.Exec(sql,
+		account.Address,
+		account.Timestamp,
+		account.Balance,
+		account.Token,
+		account.Identifier,
+		account.TokenNonce,
+		account.IsSender,
+		account.IsSmartContract,
+	)
 	if result.Error != nil {
 		return result.Error
 	}
