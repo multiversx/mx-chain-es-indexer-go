@@ -410,9 +410,9 @@ func (pc *postgresClient) InsertAccountESDT(id string, account *data.AccountInfo
 		properties,
 		total_balance_with_stake,
 		total_balance_with_stake_num,
-		data_id,
+		data_id
 	) VALUES(
-		?,?,?,?,?,?,?,?,?,?,?,?
+		?,?,?,?,?,?,?,?,?,?,?
 	) ON CONFLICT DO NOTHING`
 
 	result := pc.ps.Exec(sql,
