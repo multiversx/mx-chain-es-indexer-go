@@ -8,4 +8,5 @@ type CountTags interface {
 	ParseTags(attributes []string)
 	GetTags() []string
 	Len() int
+	TagsCountToPostgres() (map[string]int, error)
 }

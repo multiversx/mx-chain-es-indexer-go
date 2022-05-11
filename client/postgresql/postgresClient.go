@@ -79,6 +79,11 @@ func (pc *postgresClient) CreateTables() error {
 		return err
 	}
 
+	err = pc.createTagsTable()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -216,8 +221,17 @@ func (pc *postgresClient) createAccountsESDTHistoryTable() error {
 		token_nonce int8,
 		is_sender bool,
 		is_smart_contract bool,
-		account_id text,
 		PRIMARY KEY (address, token, token_nonce, timestamp)
+	)`
+
+	return pc.CreateRawTable(sql)
+}
+
+func (pc *postgresClient) createTagsTable() error {
+	sql := `CREATE TABLE IF NOT EXISTS tags (
+		tag text NOT NULL UNIQUE,
+		count integer,
+		PRIMARY KEY (tag)
 	)`
 
 	return pc.CreateRawTable(sql)
@@ -490,6 +504,30 @@ func (pc *postgresClient) InsertAccountESDTHistory(account *data.AccountBalanceH
 		account.IsSender,
 		account.IsSmartContract,
 	)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
+}
+
+func (pc *postgresClient) InsertTags(tags map[string]int) error {
+	sql := `INSERT INTO tags (
+		tag, count
+	) VALUES`
+
+	vals := []interface{}{}
+	for tag, count := range tags {
+		sql += "(?, ?),"
+		vals = append(vals, tag, count)
+	}
+
+	// trim the last ,
+	sql = sql[0 : len(sql)-1]
+
+	sql += " ON CONFLICT DO (tag) SET count = tags.count + 1"
+
+	result := pc.ps.Exec(sql, vals...)
 	if result.Error != nil {
 		return result.Error
 	}

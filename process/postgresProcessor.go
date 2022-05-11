@@ -303,6 +303,26 @@ func (psp *postgresProcessor) SaveTransactions(
 		return err
 	}
 
+	// err = ei.indexTransactionsWithRefund(preparedResults.TxHashRefund)
+	// if err != nil {
+	// 	return err
+	// }
+
+	err = psp.prepareAndIndexTagsCount(logsData.TagsCount)
+	if err != nil {
+		return err
+	}
+
+	// err = psp.indexNFTCreateInfo(logsData.Tokens)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// err = psp.prepareAndIndexLogs(pool.Logs, headerTimestamp)
+	// if err != nil {
+	// 	return err
+	// }
+
 	err = psp.indexScResults(preparedResults.ScResults)
 	if err != nil {
 		return err
@@ -342,6 +362,24 @@ func (psp *postgresProcessor) indexTransactions(txs []*data.Transaction) error {
 	}
 
 	return psp.postgresClient.Insert(txs)
+}
+
+func (psp *postgresProcessor) prepareAndIndexTagsCount(tagsCount data.CountTags) error {
+	if tagsCount.Len() == 0 {
+		return nil
+	}
+
+	tagsMap, err := tagsCount.TagsCountToPostgres()
+	if err != nil {
+		return err
+	}
+
+	err = psp.postgresClient.InsertTags(tagsMap)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (psp *postgresProcessor) indexScResults(scrs []*data.ScResult) error {
