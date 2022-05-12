@@ -71,7 +71,7 @@ func (t *Transaction) GetValue() *big.Int {
 
 // Receipt is a structure containing all the fields that need to be save for a Receipt
 type Receipt struct {
-	Hash      string        `json:"-"`
+	Hash      string        `json:"-" gorm:"primaryKey;unique"`
 	Value     string        `json:"value"`
 	Sender    string        `json:"sender"`
 	Data      string        `json:"data,omitempty"`
@@ -81,7 +81,7 @@ type Receipt struct {
 
 // ScResult is a structure containing all the fields that need to be saved for a smart contract result
 type ScResult struct {
-	Hash           string        `json:"-" gorm:"-"`
+	Hash           string        `json:"-" gorm:"primaryKey;unique"`
 	MBHash         string        `json:"miniBlockHash,omitempty"`
 	Nonce          uint64        `json:"nonce"`
 	GasLimit       uint64        `json:"gasLimit"`

@@ -30,6 +30,7 @@ type PostgresClientHandler interface {
 	InsertAccountHistory(account *data.AccountBalanceHistory) error
 	InsertAccountESDTHistory(account *data.AccountBalanceHistory) error
 	InsertTags(tags map[string]int) error
+	InsertESDTMetaData(account *data.AccountInfo) error
 	IsInterfaceNil() bool
 }
 

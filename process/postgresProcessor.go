@@ -147,6 +147,7 @@ func (psp *postgresProcessor) createTables() error {
 
 		// ScDeploy
 		&data.ScDeployInfo{},
+		&data.Upgrade{},
 
 		// Transactions
 		&data.Transaction{},
@@ -313,15 +314,15 @@ func (psp *postgresProcessor) SaveTransactions(
 		return err
 	}
 
-	// err = psp.indexNFTCreateInfo(logsData.Tokens)
-	// if err != nil {
-	// 	return err
-	// }
+	err = psp.indexNFTCreateInfo(logsData.Tokens)
+	if err != nil {
+		return err
+	}
 
-	// err = psp.prepareAndIndexLogs(pool.Logs, headerTimestamp)
-	// if err != nil {
-	// 	return err
-	// }
+	err = psp.prepareAndIndexLogs(pool.Logs, headerTimestamp)
+	if err != nil {
+		return err
+	}
 
 	err = psp.indexScResults(preparedResults.ScResults)
 	if err != nil {
@@ -375,6 +376,36 @@ func (psp *postgresProcessor) prepareAndIndexTagsCount(tagsCount data.CountTags)
 	}
 
 	err = psp.postgresClient.InsertTags(tagsMap)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (psp *postgresProcessor) indexNFTCreateInfo(tokensData data.TokensHandler) error {
+	if tokensData.Len() == 0 {
+		return nil
+	}
+
+	// TODO: handle get type from response
+
+	tokens := tokensData.GetAll()
+	psp.accountsProc.PutTokenMedataDataInTokens(tokens)
+
+	err := psp.postgresClient.Insert(tokens)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (psp *postgresProcessor) prepareAndIndexLogs(logsAndEvents []*coreData.LogData, timestamp uint64) error {
+
+	logsDB := psp.logsAndEventsProc.PrepareLogsForDB(logsAndEvents, timestamp)
+
+	err := psp.postgresClient.Insert(logsDB)
 	if err != nil {
 		return err
 	}
@@ -460,6 +491,11 @@ func (psp *postgresProcessor) indexAccountsESDT(accountsESDTMap map[string]*data
 		id += fmt.Sprintf("-%s-%s", acc.TokenName, hexEncodedNonce)
 
 		err := psp.postgresClient.InsertAccountESDT(id, acc)
+		if err != nil {
+			return err
+		}
+
+		err = psp.postgresClient.InsertESDTMetaData(acc)
 		if err != nil {
 			return err
 		}

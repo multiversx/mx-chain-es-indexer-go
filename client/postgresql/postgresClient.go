@@ -449,6 +449,45 @@ func (pc *postgresClient) InsertAccountESDT(id string, account *data.AccountInfo
 	return nil
 }
 
+func (pc *postgresClient) InsertESDTMetaData(account *data.AccountInfo) error {
+	sql := `INSERT INTO token_meta_data (
+		name,
+		creator,
+		royalties,
+		hash,
+		uris,
+		tags,
+		attributes,
+		meta_data,
+		non_empty_uris,
+		white_listed_storage,
+		address,
+		token_name,
+		token_nonce,
+	) VALUES(
+		?,?,?,?,?,?,?,?,?,?,?,?,?
+	) ON CONFLICT DO NOTHING`
+
+	result := pc.ps.Exec(sql,
+		account.Data.Name,
+		account.Data.Creator,
+		account.Data.Royalties,
+		account.Data.Hash,
+		account.Data.URIs,
+		account.Data.Tags,
+		account.Data.Attributes,
+		account.Data.MetaData,
+		account.Address,
+		account.TokenName,
+		account.TokenNonce,
+	)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
+}
+
 func (pc *postgresClient) InsertAccountHistory(account *data.AccountBalanceHistory) error {
 	sql := `INSERT INTO accounts_history (
 		address,

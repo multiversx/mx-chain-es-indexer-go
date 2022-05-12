@@ -26,14 +26,14 @@ type TokenInfo struct {
 	Name              string         `json:"name,omitempty"`
 	Ticker            string         `json:"ticker,omitempty"`
 	Identifier        string         `json:"identifier,omitempty"`
-	Token             string         `json:"token,omitempty"`
+	Token             string         `json:"token,omitempty" gorm:"primaryKey;unique"`
 	Issuer            string         `json:"issuer,omitempty"`
 	CurrentOwner      string         `json:"currentOwner,omitempty"`
 	Type              string         `json:"type,omitempty"`
 	Nonce             uint64         `json:"nonce,omitempty"`
 	Timestamp         time.Duration  `json:"timestamp,omitempty"`
-	Data              *TokenMetaData `json:"data,omitempty" gorm:"-"`
-	OwnersHistory     []*OwnerData   `json:"ownersHistory,omitempty" gorm:"-"`
+	Data              *TokenMetaData `json:"data,omitempty" gorm:"foreignKey:Name"`
+	OwnersHistory     []*OwnerData   `json:"ownersHistory,omitempty" gorm:"foreignKey:Address"`
 	TransferOwnership bool           `json:"-" gorm:"-"`
 }
 
