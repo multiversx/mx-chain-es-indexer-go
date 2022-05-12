@@ -13,7 +13,7 @@ func TestPrepareTagsShouldWork(t *testing.T) {
 	prepared := ExtractTagsFromAttributes(attributes)
 	require.Equal(t, []string{"test", "free", "fun"}, prepared)
 
-	attributes = []byte("tags:test,free,fun;description: ")
+	attributes = []byte("tags:TEST,free,fun;description: ")
 	prepared = ExtractTagsFromAttributes(attributes)
 	require.Equal(t, []string{"test", "free", "fun"}, prepared)
 
@@ -52,4 +52,20 @@ func TestPrepareTagsShouldWork(t *testing.T) {
 	attributes = []byte("tags")
 	prepared = ExtractTagsFromAttributes(attributes)
 	require.Nil(t, prepared)
+}
+
+func TestExtractMetadataFromAttributesShouldWork(t *testing.T) {
+	t.Parallel()
+
+	attributes := []byte("tags:,,,,,,;metadata:something")
+	prepared := ExtractMetaDataFromAttributes(attributes)
+	require.Equal(t, "something", prepared)
+
+	attributes = []byte("tags:,,,,,,;metadata:SOMETHING")
+	prepared = ExtractMetaDataFromAttributes(attributes)
+	require.Equal(t, "SOMETHING", prepared)
+
+	attributes = []byte("tags:,,,,,,;metadate:SOMETHING")
+	prepared = ExtractMetaDataFromAttributes(attributes)
+	require.Equal(t, "", prepared)
 }

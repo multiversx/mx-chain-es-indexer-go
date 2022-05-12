@@ -38,6 +38,7 @@ func (tr *templatesAndPolicyReaderNoKibana) GetElasticTemplatesAndPolicies() (ma
 	indexTemplates[indexer.TagsIndex] = noKibana.Tags.ToBuffer()
 	indexTemplates[indexer.LogsIndex] = noKibana.Logs.ToBuffer()
 	indexTemplates[indexer.DelegatorsIndex] = noKibana.Delegators.ToBuffer()
+	indexTemplates[indexer.OperationsIndex] = noKibana.Operations.ToBuffer()
 
 	return indexTemplates, indexPolicies, nil
 }

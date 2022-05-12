@@ -2,10 +2,13 @@ package integrationtests
 
 import (
 	"encoding/json"
+	"io/ioutil"
+	"os"
 	"testing"
 
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/client"
+	"github.com/ElrondNetwork/elastic-indexer-go/client/logging"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elastic-indexer-go/process"
@@ -15,13 +18,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const esURL = "http://localhost:9200"
+
 func setLogLevelDebug() {
-	_ = logger.SetLogLevel("indexer:DEBUG")
+	_ = logger.SetLogLevel("process:DEBUG")
 }
 
 func createESClient(url string) (process.DatabaseClientHandler, error) {
 	return client.NewElasticClient(elasticsearch.Config{
 		Addresses: []string{url},
+		Logger:    &logging.CustomLogger{},
 	})
 }
 
@@ -59,4 +65,11 @@ func compareTxs(t *testing.T, expected []byte, actual []byte) {
 	require.Nil(t, err)
 
 	require.Equal(t, expectedTx, actualTx)
+}
+
+func readExpectedResult(path string) string {
+	jsonFile, _ := os.Open(path)
+	byteValue, _ := ioutil.ReadAll(jsonFile)
+
+	return string(byteValue)
 }

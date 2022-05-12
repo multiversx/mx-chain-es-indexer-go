@@ -40,6 +40,8 @@ type DatabaseClientHandler interface {
 	DoBulkRequest(buff *bytes.Buffer, index string) error
 	DoBulkRemove(index string, hashes []string) error
 	DoMultiGet(ids []string, index string, withSource bool, res interface{}) error
+	DoScrollRequest(index string, body []byte, withSource bool, handlerFunc func(responseBytes []byte) error) error
+	DoCountRequest(index string, body []byte) (uint64, error)
 
 	CheckAndCreateIndex(index string) error
 	CheckAndCreateAlias(alias string, index string) error
@@ -52,14 +54,16 @@ type DatabaseClientHandler interface {
 // DBAccountHandler defines the actions that an accounts handler should do
 type DBAccountHandler interface {
 	GetAccounts(alteredAccounts data.AlteredAccountsHandler) ([]*data.Account, []*data.AccountESDT)
-	PrepareRegularAccountsMap(accounts []*data.Account) map[string]*data.AccountInfo
-	PrepareAccountsMapESDT(accounts []*data.AccountESDT) map[string]*data.AccountInfo
+	PrepareRegularAccountsMap(timestamp uint64, accounts []*data.Account) map[string]*data.AccountInfo
+	PrepareAccountsMapESDT(timestamp uint64, accounts []*data.AccountESDT) (map[string]*data.AccountInfo, data.TokensHandler)
 	PrepareAccountsHistory(timestamp uint64, accounts map[string]*data.AccountInfo) map[string]*data.AccountBalanceHistory
 	PutTokenMedataDataInTokens(tokensData []*data.TokenInfo)
 
-	SerializeAccountsHistory(accounts map[string]*data.AccountBalanceHistory) ([]*bytes.Buffer, error)
-	SerializeAccounts(accounts map[string]*data.AccountInfo, areESDTAccounts bool) ([]*bytes.Buffer, error)
-	SerializeNFTCreateInfo(tokensInfo []*data.TokenInfo) ([]*bytes.Buffer, error)
+	SerializeAccountsHistory(accounts map[string]*data.AccountBalanceHistory, buffSlice *data.BufferSlice, index string) error
+	SerializeAccounts(accounts map[string]*data.AccountInfo, buffSlice *data.BufferSlice, index string) error
+	SerializeAccountsESDT(accounts map[string]*data.AccountInfo, updateNFTData []*data.NFTDataUpdate, buffSlice *data.BufferSlice, index string) error
+	SerializeNFTCreateInfo(tokensInfo []*data.TokenInfo, buffSlice *data.BufferSlice, index string) error
+	SerializeTypeForProvidedIDs(ids []string, tokenType string, buffSlice *data.BufferSlice, index string) error
 }
 
 // DBBlockHandler defines the actions that a block handler should do
@@ -74,8 +78,8 @@ type DBBlockHandler interface {
 	) (*data.Block, error)
 	ComputeHeaderHash(header coreData.HeaderHandler) ([]byte, error)
 
-	SerializeEpochInfoData(header coreData.HeaderHandler) (*bytes.Buffer, error)
-	SerializeBlock(elasticBlock *data.Block) (*bytes.Buffer, error)
+	SerializeEpochInfoData(header coreData.HeaderHandler, buffSlice *data.BufferSlice, index string) error
+	SerializeBlock(elasticBlock *data.Block, buffSlice *data.BufferSlice, index string) error
 }
 
 // DBTransactionsHandler defines the actions that a transactions handler should do
@@ -87,10 +91,10 @@ type DBTransactionsHandler interface {
 	) *data.PreparedResults
 	GetRewardsTxsHashesHexEncoded(header coreData.HeaderHandler, body *block.Body) []string
 
-	SerializeReceipts(receipts []*data.Receipt) ([]*bytes.Buffer, error)
-	SerializeTransactions(transactions []*data.Transaction, txHashStatus map[string]string, selfShardID uint32) ([]*bytes.Buffer, error)
-	SerializeTransactionWithRefund(txs map[string]*data.Transaction, txHashRefund map[string]*data.RefundData) ([]*bytes.Buffer, error)
-	SerializeScResults(scResults []*data.ScResult) ([]*bytes.Buffer, error)
+	SerializeReceipts(receipts []*data.Receipt, buffSlice *data.BufferSlice, index string) error
+	SerializeTransactions(transactions []*data.Transaction, txHashStatus map[string]string, selfShardID uint32, buffSlice *data.BufferSlice, index string) error
+	SerializeTransactionWithRefund(txs map[string]*data.Transaction, txHashRefund map[string]*data.RefundData, buffSlice *data.BufferSlice, index string) error
+	SerializeScResults(scResults []*data.ScResult, buffSlice *data.BufferSlice, index string) error
 }
 
 // DBMiniblocksHandler defines the actions that a miniblocks handler should do
@@ -98,7 +102,7 @@ type DBMiniblocksHandler interface {
 	PrepareDBMiniblocks(header coreData.HeaderHandler, body *block.Body) []*data.Miniblock
 	GetMiniblocksHashesHexEncoded(header coreData.HeaderHandler, body *block.Body) []string
 
-	SerializeBulkMiniBlocks(bulkMbs []*data.Miniblock, mbsInDB map[string]bool) *bytes.Buffer
+	SerializeBulkMiniBlocks(bulkMbs []*data.Miniblock, mbsInDB map[string]bool, buffSlice *data.BufferSlice, index string)
 }
 
 // DBStatisticsHandler defines the actions that a database statistics handler should do
@@ -127,8 +131,16 @@ type DBLogsAndEventsHandler interface {
 		timestamp uint64,
 	) *data.PreparedLogsResults
 
-	SerializeLogs(logs []*data.Logs) ([]*bytes.Buffer, error)
-	SerializeSCDeploys(map[string]*data.ScDeployInfo) ([]*bytes.Buffer, error)
-	SerializeTokens(tokens []*data.TokenInfo) ([]*bytes.Buffer, error)
-	SerializeDelegators(delegators map[string]*data.Delegator) ([]*bytes.Buffer, error)
+	SerializeLogs(logs []*data.Logs, buffSlice *data.BufferSlice, index string) error
+	SerializeSCDeploys(deploysInfo map[string]*data.ScDeployInfo, buffSlice *data.BufferSlice, index string) error
+	SerializeTokens(tokens []*data.TokenInfo, updateNFTData []*data.NFTDataUpdate, buffSlice *data.BufferSlice, index string) error
+	SerializeDelegators(delegators map[string]*data.Delegator, buffSlice *data.BufferSlice, index string) error
+	SerializeSupplyData(tokensSupply data.TokensHandler, buffSlice *data.BufferSlice, index string) error
+	SerializeRolesData(rolesData data.RolesData, buffSlice *data.BufferSlice, index string) error
+}
+
+// OperationsHandler defines the actions that an operations' handler should do
+type OperationsHandler interface {
+	ProcessTransactionsAndSCRs(txs []*data.Transaction, scrs []*data.ScResult) ([]*data.Transaction, []*data.ScResult)
+	SerializeSCRs(scrs []*data.ScResult, buffSlice *data.BufferSlice, index string) error
 }

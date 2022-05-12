@@ -20,8 +20,10 @@ type AccountInfo struct {
 	IsSmartContract          bool           `json:"-" gorm:"-"`
 	TotalBalanceWithStake    string         `json:"totalBalanceWithStake,omitempty"`
 	TotalBalanceWithStakeNum float64        `json:"totalBalanceWithStakeNum,omitempty"`
-	DataID                   int            `json:"-"`
 	Data                     *TokenMetaData `json:"data,omitempty" gorm:"-"`
+	Timestamp                time.Duration  `json:"timestamp,omitempty"`
+	Type                     string         `json:"type,omitempty"`
+	CurrentOwner             string         `json:"currentOwner,omitempty"`
 }
 
 // TokenMetaData holds data about a token metadata
@@ -63,5 +65,4 @@ type AccountESDT struct {
 	NFTNonce        uint64
 	IsSender        bool
 	IsNFTOperation  bool
-	Type            string
 }

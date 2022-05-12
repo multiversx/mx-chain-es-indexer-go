@@ -23,6 +23,7 @@ type ArgsIndexerFactory struct {
 	IsInImportDBMode         bool
 	IndexerCacheSize         int
 	Denomination             int
+	BulkRequestMaxSize       int
 	Url                      string
 	UserName                 string
 	Password                 string
@@ -95,6 +96,7 @@ func createElasticProcessor(args *ArgsIndexerFactory) (indexer.ElasticProcessor,
 		IsInImportDBMode:         args.IsInImportDBMode,
 		ShardCoordinator:         args.ShardCoordinator,
 		EnabledIndexes:           args.EnabledIndexes,
+		BulkRequestMaxSize:       args.BulkRequestMaxSize,
 	}
 
 	return factory.CreateElasticProcessor(argsElasticProcFac)

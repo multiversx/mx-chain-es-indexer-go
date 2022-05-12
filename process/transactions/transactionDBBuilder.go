@@ -21,17 +21,20 @@ type dbTransactionBuilder struct {
 	addressPubkeyConverter core.PubkeyConverter
 	shardCoordinator       indexer.ShardCoordinator
 	txFeeCalculator        indexer.FeesProcessorHandler
+	dataFieldParser        DataFieldParser
 }
 
 func newTransactionDBBuilder(
 	addressPubkeyConverter core.PubkeyConverter,
 	shardCoordinator indexer.ShardCoordinator,
 	txFeeCalculator indexer.FeesProcessorHandler,
+	dataFieldParser DataFieldParser,
 ) *dbTransactionBuilder {
 	return &dbTransactionBuilder{
 		addressPubkeyConverter: addressPubkeyConverter,
 		shardCoordinator:       shardCoordinator,
 		txFeeCalculator:        txFeeCalculator,
+		dataFieldParser:        dataFieldParser,
 	}
 }
 
@@ -47,6 +50,7 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 	fee := dtb.txFeeCalculator.ComputeTxFeeBasedOnGasUsed(tx, gasUsed)
 
 	isScCall := core.IsSmartContractAddress(tx.RcvAddr)
+	res := dtb.dataFieldParser.Parse(tx.Data, tx.SndAddr, tx.RcvAddr)
 
 	return &data.Transaction{
 		Hash:                 hex.EncodeToString(txHash),
@@ -70,6 +74,14 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		SenderUserName:       tx.SndUserName,
 		ReceiverAddressBytes: tx.RcvAddr,
 		IsScCall:             isScCall,
+		Operation:            res.Operation,
+		Function:             res.Function,
+		ESDTValues:           res.ESDTValues,
+		Tokens:               res.Tokens,
+		Receivers:            res.Receivers,
+		ReceiversShardIDs:    res.ReceiversShardID,
+		IsRelayed:            res.IsRelayed,
+		Version:              tx.Version,
 	}
 }
 
@@ -97,6 +109,7 @@ func (dtb *dbTransactionBuilder) prepareRewardTransaction(
 		Signature:     "",
 		Timestamp:     time.Duration(header.GetTimeStamp()),
 		Status:        txStatus,
+		Operation:     rewardsOperation,
 	}
 }
 
