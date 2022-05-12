@@ -13,7 +13,7 @@ import (
 
 var log = logger.GetOrCreate("indexer/postgres")
 
-const dsn = "host=localhost user=postgres password=mysecretpassword dbname=elrondv2 port=5432 sslmode=disable"
+const dsn = "host=localhost user=postgres password=mysecretpassword dbname=elrondv3 port=5432 sslmode=disable"
 
 type postgresClient struct {
 	dsn string
