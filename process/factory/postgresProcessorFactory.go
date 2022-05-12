@@ -29,6 +29,7 @@ type ArgPostgresProcessorFactory struct {
 	TransactionFeeCalculator indexer.FeesProcessorHandler
 	EnabledIndexes           []string
 	Denomination             int
+	BulkRequestMaxSize       int
 	IsInImportDBMode         bool
 	UseKibana                bool
 }
@@ -72,7 +73,7 @@ func CreatePostgresProcessor(arguments ArgPostgresProcessorFactory) (indexer.Ela
 	if err != nil {
 		return nil, err
 	}
-	validatorsProc, err := validators.NewValidatorsProcessor(arguments.ValidatorPubkeyConverter)
+	validatorsProc, err := validators.NewValidatorsProcessor(arguments.ValidatorPubkeyConverter, arguments.BulkRequestMaxSize)
 	if err != nil {
 		return nil, err
 	}

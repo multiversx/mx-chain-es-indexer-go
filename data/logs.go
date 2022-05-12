@@ -9,7 +9,7 @@ type Logs struct {
 	ID             string        `json:"-" gorm:"primaryKey;unique"`
 	OriginalTxHash string        `json:"originalTxHash,omitempty"`
 	Address        string        `json:"address"`
-	Events         []*Event      `json:"events"`
+	Events         []*Event      `json:"events" gorm:"foreignKey:Address"`
 	Timestamp      time.Duration `json:"timestamp,omitempty"`
 }
 

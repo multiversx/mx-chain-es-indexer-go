@@ -150,7 +150,6 @@ func (pc *postgresClient) createAccountsTable() error {
 		properties text,
 		total_balance_with_stake text,
 		total_balance_with_stake_num decimal,
-		data_id bigint,
 		PRIMARY KEY (address)
 	)`
 
@@ -169,7 +168,6 @@ func (pc *postgresClient) createESDTAccountsTable() error {
 		properties text,
 		total_balance_with_stake text,
 		total_balance_with_stake_num decimal,
-		data_id bigint,
 		PRIMARY KEY (address, token_name, token_nonce)
 	)`
 
@@ -390,9 +388,9 @@ func (pc *postgresClient) InsertEpochInfo(block *block.MetaBlock) error {
 
 func (pc *postgresClient) InsertAccount(account *data.AccountInfo) error {
 	sql := `INSERT INTO accounts_esdt (
-		address, nonce, balance, balance_num, token_name, token_identifier, token_nonce, properties, total_balance_with_stake, total_balance_with_stake_num, data_id
+		address, nonce, balance, balance_num, token_name, token_identifier, token_nonce, properties, total_balance_with_stake, total_balance_with_stake_num
 	) VALUES(
-		?,?,?,?,?,?,?,?,?,?,?
+		?,?,?,?,?,?,?,?,?,?
 	) ON CONFLICT DO NOTHING`
 
 	result := pc.ps.Exec(sql,
@@ -406,7 +404,6 @@ func (pc *postgresClient) InsertAccount(account *data.AccountInfo) error {
 		account.Properties,
 		account.TotalBalanceWithStake,
 		account.TotalBalanceWithStakeNum,
-		account.DataID,
 	)
 	if result.Error != nil {
 		return result.Error
@@ -426,10 +423,9 @@ func (pc *postgresClient) InsertAccountESDT(id string, account *data.AccountInfo
 		token_nonce,
 		properties,
 		total_balance_with_stake,
-		total_balance_with_stake_num,
-		data_id
+		total_balance_with_stake_num
 	) VALUES(
-		?,?,?,?,?,?,?,?,?,?,?
+		?,?,?,?,?,?,?,?,?,?
 	) ON CONFLICT DO NOTHING`
 
 	result := pc.ps.Exec(sql,
@@ -443,7 +439,6 @@ func (pc *postgresClient) InsertAccountESDT(id string, account *data.AccountInfo
 		account.Properties,
 		account.TotalBalanceWithStake,
 		account.TotalBalanceWithStakeNum,
-		account.DataID,
 	)
 	if result.Error != nil {
 		return result.Error
@@ -483,7 +478,7 @@ func (pc *postgresClient) InsertESDTMetaData(account *data.AccountInfo) error {
 		base64.StdEncoding.EncodeToString(account.Data.Hash),
 		uris,
 		account.Data.Tags,
-		account.Data.Attributes,
+		base64.StdEncoding.EncodeToString(account.Data.Attributes),
 		account.Data.MetaData,
 		account.Data.NonEmptyURIs,
 		account.Data.WhiteListedStorage,

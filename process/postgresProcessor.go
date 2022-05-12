@@ -334,7 +334,7 @@ func (psp *postgresProcessor) SaveTransactions(
 		return err
 	}
 
-	err = psp.indexAlteredAccounts(headerTimestamp, preparedResults.AlteredAccts, logsData.PendingBalances)
+	err = psp.indexAlteredAccounts(headerTimestamp, preparedResults.AlteredAccts, logsData.NFTsDataUpdates)
 	if err != nil {
 		return err
 	}
@@ -464,7 +464,7 @@ func (psp *postgresProcessor) indexDelegators(delegators map[string]*data.Delega
 func (psp *postgresProcessor) indexAlteredAccounts(
 	timestamp uint64,
 	alteredAccounts data.AlteredAccountsHandler,
-	pendingBalances map[string]*data.AccountInfo,
+	updatesNFTsData []*data.NFTDataUpdate,
 ) error {
 	regularAccountsToIndex, accountsToIndexESDT := psp.accountsProc.GetAccounts(alteredAccounts)
 
@@ -473,10 +473,12 @@ func (psp *postgresProcessor) indexAlteredAccounts(
 		return err
 	}
 
-	accountsESDTMap := psp.accountsProc.PrepareAccountsMapESDT(accountsToIndexESDT)
-	resAccountsMap := converters.MergeAccountsInfoMaps(accountsESDTMap, pendingBalances)
+	accountsESDTMap, tokensData := psp.accountsProc.PrepareAccountsMapESDT(timestamp, accountsToIndexESDT)
 
-	err = psp.indexAccountsESDT(resAccountsMap)
+	// TODO: get and update data from response
+	tokensData.PutTypeAndOwnerInAccountsESDT(accountsESDTMap)
+
+	err = psp.indexAccountsESDT(accountsESDTMap)
 	if err != nil {
 		return err
 	}
@@ -597,7 +599,7 @@ func (ei *postgresProcessor) SaveRoundsInfo(info []*data.RoundInfo) error {
 
 // SaveAccounts will prepare and save information about provided accounts in elasticsearch server
 func (psp *postgresProcessor) SaveAccounts(timestamp uint64, accts []*data.Account) error {
-	accountsMap := psp.accountsProc.PrepareRegularAccountsMap(accts)
+	accountsMap := psp.accountsProc.PrepareRegularAccountsMap(timestamp, accts)
 
 	err := psp.indexAccounts(accountsMap)
 	if err != nil {
