@@ -1,6 +1,9 @@
 package postgres
 
 import (
+	"encoding/base64"
+	"encoding/json"
+
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
@@ -180,7 +183,7 @@ func (pc *postgresClient) createTokenMetaDataTable() error {
 		royalties bigint,
 		hash text,
 		uris text,
-		tags text,
+		tags text[],
 		attributes text,
 		meta_data text,
 		non_empty_uris boolean,
@@ -468,12 +471,17 @@ func (pc *postgresClient) InsertESDTMetaData(account *data.AccountInfo) error {
 		?,?,?,?,?,?,?,?,?,?,?,?,?
 	) ON CONFLICT DO NOTHING`
 
+	uris, err := json.Marshal(account.Data.URIs)
+	if err != nil {
+		return err
+	}
+
 	result := pc.ps.Exec(sql,
 		account.Data.Name,
 		account.Data.Creator,
 		account.Data.Royalties,
-		account.Data.Hash,
-		account.Data.URIs,
+		base64.StdEncoding.EncodeToString(account.Data.Hash),
+		uris,
 		account.Data.Tags,
 		account.Data.Attributes,
 		account.Data.MetaData,
