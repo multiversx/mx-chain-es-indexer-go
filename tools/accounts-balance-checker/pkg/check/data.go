@@ -35,9 +35,11 @@ type AccountResponse struct {
 }
 
 type BalancesESDTResponse struct {
-	Data  map[string]*esdtNFTTokenData `json:"data"`
-	Error string                       `json:"error"`
-	Code  string                       `json:"code"`
+	Data struct {
+		ESDTS map[string]*esdtNFTTokenData `json:"esdts"`
+	} `json:"data"`
+	Error string `json:"error"`
+	Code  string `json:"code"`
 }
 
 type esdtNFTTokenData struct {

@@ -1,6 +1,7 @@
 package check
 
 import (
+	"github.com/ElrondNetwork/elastic-indexer-go/client/logging"
 	"github.com/ElrondNetwork/elastic-indexer-go/tools/accounts-balance-checker/pkg/config"
 	"github.com/ElrondNetwork/elastic-indexer-go/tools/accounts-balance-checker/pkg/esclient"
 	"github.com/ElrondNetwork/elastic-indexer-go/tools/accounts-balance-checker/pkg/rest"
@@ -13,6 +14,7 @@ func CreateBalanceChecker(cfg *config.Config) (*balanceChecker, error) {
 		Addresses: []string{cfg.Elasticsearch.URL},
 		Username:  cfg.Elasticsearch.Username,
 		Password:  cfg.Elasticsearch.Password,
+		Logger:    &logging.CustomLogger{},
 	})
 	if err != nil {
 		return nil, err

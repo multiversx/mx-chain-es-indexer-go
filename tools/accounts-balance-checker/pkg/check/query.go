@@ -34,3 +34,13 @@ func getDocumentsByIDsQuery(hashes []string, withSource bool) object {
 		"_source": withSource,
 	}
 }
+
+func getBalancesByAddress(addr string) object {
+	return object{
+		"query": object{
+			"match": object{
+				"address": addr,
+			},
+		},
+	}
+}

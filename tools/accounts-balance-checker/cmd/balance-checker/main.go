@@ -54,6 +54,8 @@ func main() {
 }
 
 func startCheck(ctx *cli.Context) {
+	setLogLevelDebug()
+
 	cfg, err := readConfig(ctx)
 	if err != nil {
 		log.Error("cannot read config file", "error", err)
@@ -103,4 +105,8 @@ func readConfig(ctx *cli.Context) (*config.Config, error) {
 	}
 
 	return cfg, nil
+}
+
+func setLogLevelDebug() {
+	_ = logger.SetLogLevel("*:DEBUG")
 }

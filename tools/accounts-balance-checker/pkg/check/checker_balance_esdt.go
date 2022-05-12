@@ -4,18 +4,25 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/ElrondNetwork/elrond-go-core/core"
+	"io/ioutil"
+	"os"
 	"time"
+
+	"github.com/ElrondNetwork/elrond-go-core/core"
 )
 
 const (
+	accountsesdtIndex = "accountsesdt"
+
 	allTokensEndpoint    = "/address/%s/esdt"
 	specificESDTEndpoint = allTokensEndpoint + "/%s"
 	specificNFTEndpoint  = "/address/%s/nft/%s/nonce/%d"
 )
 
+var countTotalCompared = 0
+
 func (bc *balanceChecker) CheckESDTBalances() error {
-	balancesFromEs, err := bc.getAllESDTAccounts()
+	balancesFromEs, err := bc.getAllESDTAccountsFromFile()
 	if err != nil {
 		return err
 	}
@@ -23,9 +30,11 @@ func (bc *balanceChecker) CheckESDTBalances() error {
 	log.Info("total accounts with ESDT tokens ", "count", len(balancesFromEs))
 
 	for addr, tokenBalanceMap := range balancesFromEs {
+		countTotalCompared++
+
 		decoded, errD := bc.pubKeyConverter.Decode(addr)
 		if errD != nil {
-			log.Warn("cannot decode address", "address", addr, "error", err)
+			log.Warn("cannot decode address", "address", addr, "error", errD)
 			continue
 		}
 
@@ -36,24 +45,62 @@ func (bc *balanceChecker) CheckESDTBalances() error {
 
 		balancesFromProxy, errP := bc.getBalancesFromProxy(addr)
 		if errP != nil {
-			log.Warn("cannot get balances from proxy", "address", addr, "error", err)
+			log.Warn("cannot get balances from proxy", "address", addr, "error", errP)
 		}
 
-		bc.compareBalances(tokenBalanceMap, balancesFromProxy, addr)
+		tryAgain := bc.compareBalances(tokenBalanceMap, balancesFromProxy, addr, true)
+		if tryAgain {
+			err = bc.getFromESAndCompose(addr, balancesFromProxy)
+			if err != nil {
+				log.Warn("cannot compare second time", "address", addr, "error", err)
+			}
+			continue
+		}
 	}
 
 	return nil
 }
 
-func (bc *balanceChecker) compareBalances(balancesFromES, balancesFromProxy map[string]string, address string) {
+func (bc *balanceChecker) getFromESAndCompose(address string, balancesFromProxy map[string]string) error {
+	log.Info("second compare", "address", address, "total compared till now", countTotalCompared)
+
+	encoded, _ := encodeQuery(getBalancesByAddress(address))
+	accountsResponse := &ResponseAccounts{}
+	err := bc.esClient.DoGetRequest(&encoded, accountsesdtIndex, accountsResponse, 9999)
+	if err != nil {
+		return err
+	}
+
+	balancesES := newBalancesESDT()
+	balancesES.extractBalancesFromResponse(accountsResponse)
+
+	_ = bc.compareBalances(balancesES.getBalancesForAddress(address), balancesFromProxy, address, false)
+
+	return nil
+}
+
+func (bc *balanceChecker) compareBalances(balancesFromES, balancesFromProxy map[string]string, address string, firstCompare bool) (tryAgain bool) {
+	copyBalancesProxy := make(map[string]string)
+	for k, v := range balancesFromProxy {
+		copyBalancesProxy[k] = v
+	}
+
 	for tokenIdentifier, balanceES := range balancesFromES {
-		balanceProxy, ok := balancesFromProxy[tokenIdentifier]
+		balanceProxy, ok := copyBalancesProxy[tokenIdentifier]
+		if !ok && firstCompare {
+			return true
+		}
+
 		if !ok {
 			log.Warn("extra balance in ES", "address", address, "token identifier", tokenIdentifier)
 			continue
 		}
 
-		delete(balancesFromProxy, tokenIdentifier)
+		delete(copyBalancesProxy, tokenIdentifier)
+
+		if balanceES != balanceProxy && firstCompare {
+			return true
+		}
 
 		if balanceES != balanceProxy {
 			log.Warn("different balance", "address", address, "token identifier", tokenIdentifier,
@@ -63,11 +110,17 @@ func (bc *balanceChecker) compareBalances(balancesFromES, balancesFromProxy map[
 		}
 	}
 
-	for tokenIdentifier, balance := range balancesFromProxy {
+	if len(copyBalancesProxy) > 0 && firstCompare {
+		return true
+	}
+
+	for tokenIdentifier, balance := range copyBalancesProxy {
 		log.Warn("missing balance from ES", "address", address,
 			"token identifier", tokenIdentifier, "balance", balance,
 		)
 	}
+
+	return false
 }
 
 func (bc *balanceChecker) getBalancesFromProxy(address string) (map[string]string, error) {
@@ -81,7 +134,7 @@ func (bc *balanceChecker) getBalancesFromProxy(address string) (map[string]strin
 	}
 
 	balances := make(map[string]string)
-	for tokenIdentifier, tokenData := range responseBalancesProxy.Data {
+	for tokenIdentifier, tokenData := range responseBalancesProxy.Data.ESDTS {
 		balances[tokenIdentifier] = tokenData.Balance
 	}
 
@@ -89,7 +142,7 @@ func (bc *balanceChecker) getBalancesFromProxy(address string) (map[string]strin
 }
 
 func (bc *balanceChecker) getAllESDTAccounts() (balancesESDT, error) {
-	defer logExecutionTime(time.Now(), "balanceChecker.getAllESDTAccounts")
+	defer logExecutionTime(time.Now(), "get all accounts with ESDT tokens from ES")
 
 	balances := newBalancesESDT()
 
@@ -110,13 +163,23 @@ func (bc *balanceChecker) getAllESDTAccounts() (balancesESDT, error) {
 	}
 
 	err := bc.esClient.DoScrollRequestAllDocuments(
-		accountsIndex,
+		accountsesdtIndex,
 		[]byte(matchAllQuery),
 		handlerFunc,
 	)
 	if err != nil {
 		return nil, err
 	}
+
+	return balances, nil
+}
+
+// TODO delete this after testing is done
+func (bc *balanceChecker) getAllESDTAccountsFromFile() (balancesESDT, error) {
+	balances := newBalancesESDT()
+	jsonFile, _ := os.Open("./accounts-esdt.json")
+	byteValue, _ := ioutil.ReadAll(jsonFile)
+	_ = json.Unmarshal(byteValue, &balances)
 
 	return balances, nil
 }
