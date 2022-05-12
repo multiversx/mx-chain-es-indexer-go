@@ -50,7 +50,7 @@ type TokenInfo struct {
 
 // OwnerData is a structure that is needed to store information about an owner
 type OwnerData struct {
-	Address   string        `json:"address"`
+	Address   string        `json:"address" gorm:"primaryKey:unique"`
 	Timestamp time.Duration `json:"timestamp"`
 }
 
