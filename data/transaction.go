@@ -35,7 +35,7 @@ type Transaction struct {
 	ESDTValues           []string      `json:"esdtValues,omitempty" gorm:"serializer:json"`
 	SmartContractResults []*ScResult   `json:"-" gorm:"-"`
 	ReceiverAddressBytes []byte        `json:"-" gorm:"serializer:json"`
-	Hash                 string        `json:"-"`
+	Hash                 string        `json:"-" gorm:"primaryKey;unique"`
 	BlockHash            string        `json:"-"`
 }
 

@@ -498,9 +498,11 @@ func (psp *postgresProcessor) indexAccountsESDT(accountsESDTMap map[string]*data
 			return err
 		}
 
-		err = psp.postgresClient.InsertESDTMetaData(acc)
-		if err != nil {
-			return err
+		if acc.Data != nil {
+			err = psp.postgresClient.InsertESDTMetaData(acc)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
