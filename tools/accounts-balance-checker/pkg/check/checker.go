@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/ElrondNetwork/elrond-go-core/core"
 	"time"
 
 	indexerData "github.com/ElrondNetwork/elastic-indexer-go/data"
@@ -19,31 +20,34 @@ const (
 var log = logger.GetOrCreate("checker")
 
 type balanceChecker struct {
-	esClient   ESClientHandler
-	restClient RestClientHandler
+	pubKeyConverter core.PubkeyConverter
+	esClient        ESClientHandler
+	restClient      RestClientHandler
 }
 
 func NewBalanceChecker(
 	esClient ESClientHandler,
 	restClient RestClientHandler,
+	pubKeyConverter core.PubkeyConverter,
 ) (*balanceChecker, error) {
 	return &balanceChecker{
-		esClient:   esClient,
-		restClient: restClient,
+		esClient:        esClient,
+		restClient:      restClient,
+		pubKeyConverter: pubKeyConverter,
 	}, nil
 }
 
 func (bc *balanceChecker) CheckEGLDBalances() error {
 	return bc.esClient.DoScrollRequestAllDocuments(
 		accountsIndex,
-		[]byte(`{ "query": { "match_all": { } } }`),
-		bc.handlerFuncScroll,
+		[]byte(matchAllQuery),
+		bc.handlerFuncScrollAccountEGLD,
 	)
 }
 
 var countCheck = 0
 
-func (bc *balanceChecker) handlerFuncScroll(responseBytes []byte) error {
+func (bc *balanceChecker) handlerFuncScrollAccountEGLD(responseBytes []byte) error {
 	accountsRes := &ResponseAccounts{}
 	err := json.Unmarshal(responseBytes, accountsRes)
 	if err != nil {

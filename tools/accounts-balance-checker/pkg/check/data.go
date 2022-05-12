@@ -33,3 +33,22 @@ type AccountResponse struct {
 	Error string `json:"error"`
 	Code  string `json:"code"`
 }
+
+type BalancesESDTResponse struct {
+	Data  map[string]*esdtNFTTokenData `json:"data"`
+	Error string                       `json:"error"`
+	Code  string                       `json:"code"`
+}
+
+type esdtNFTTokenData struct {
+	TokenIdentifier string   `json:"tokenIdentifier"`
+	Balance         string   `json:"balance"`
+	Properties      string   `json:"properties,omitempty"`
+	Name            string   `json:"name,omitempty"`
+	Nonce           uint64   `json:"nonce,omitempty"`
+	Creator         string   `json:"creator,omitempty"`
+	Royalties       string   `json:"royalties,omitempty"`
+	Hash            []byte   `json:"hash,omitempty"`
+	URIs            [][]byte `json:"uris,omitempty"`
+	Attributes      []byte   `json:"attributes,omitempty"`
+}

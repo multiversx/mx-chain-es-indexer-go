@@ -4,6 +4,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/tools/accounts-balance-checker/pkg/config"
 	"github.com/ElrondNetwork/elastic-indexer-go/tools/accounts-balance-checker/pkg/esclient"
 	"github.com/ElrondNetwork/elastic-indexer-go/tools/accounts-balance-checker/pkg/rest"
+	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
 	"github.com/elastic/go-elasticsearch/v7"
 )
 
@@ -22,5 +23,10 @@ func CreateBalanceChecker(cfg *config.Config) (*balanceChecker, error) {
 		return nil, err
 	}
 
-	return NewBalanceChecker(esClient, restClient)
+	pubKeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(32, log)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewBalanceChecker(esClient, restClient, pubKeyConverter)
 }

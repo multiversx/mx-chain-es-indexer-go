@@ -8,6 +8,8 @@ import (
 
 type object = map[string]interface{}
 
+const matchAllQuery = `{ "query": { "match_all": { } } }`
+
 func encodeQuery(query object) (bytes.Buffer, error) {
 	var buff bytes.Buffer
 	if err := json.NewEncoder(&buff).Encode(query); err != nil {
