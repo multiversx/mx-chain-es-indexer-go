@@ -402,6 +402,9 @@ func (psp *postgresProcessor) indexNFTCreateInfo(tokensData data.TokensHandler) 
 }
 
 func (psp *postgresProcessor) prepareAndIndexLogs(logsAndEvents []*coreData.LogData, timestamp uint64) error {
+	if len(logsAndEvents) == 0 {
+		return nil
+	}
 
 	logsDB := psp.logsAndEventsProc.PrepareLogsForDB(logsAndEvents, timestamp)
 
