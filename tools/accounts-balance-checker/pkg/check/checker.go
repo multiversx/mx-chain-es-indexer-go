@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/ElrondNetwork/elastic-indexer-go/tools/accounts-balance-checker/pkg/utils"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"time"
 
@@ -55,7 +56,7 @@ func (bc *balanceChecker) handlerFuncScrollAccountEGLD(responseBytes []byte) err
 	}
 	countCheck++
 
-	defer logExecutionTime(time.Now(), fmt.Sprintf("checked bulk of accounts %d", countCheck))
+	defer utils.LogExecutionTime(log, time.Now(), fmt.Sprintf("checked bulk of accounts %d", countCheck))
 
 	maxGoroutines := maxNumberOfRequestsInParallel
 	done := make(chan struct{}, maxGoroutines)
@@ -113,10 +114,6 @@ func (bc *balanceChecker) getAccountBalance(address string) (string, error) {
 	}
 
 	return accountResponse.Data.Balance, nil
-}
-
-func logExecutionTime(start time.Time, message string) {
-	log.Info(message, "duration in seconds", time.Since(start).Seconds())
 }
 
 func (bc *balanceChecker) getBalanceFromES(address string) (string, error) {

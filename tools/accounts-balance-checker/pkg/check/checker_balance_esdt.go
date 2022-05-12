@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/ElrondNetwork/elastic-indexer-go/tools/accounts-balance-checker/pkg/utils"
 	"io/ioutil"
 	"os"
 	"time"
@@ -142,7 +143,7 @@ func (bc *balanceChecker) getBalancesFromProxy(address string) (map[string]strin
 }
 
 func (bc *balanceChecker) getAllESDTAccounts() (balancesESDT, error) {
-	defer logExecutionTime(time.Now(), "get all accounts with ESDT tokens from ES")
+	defer utils.LogExecutionTime(log, time.Now(), "get all accounts with ESDT tokens from ES")
 
 	balances := newBalancesESDT()
 
