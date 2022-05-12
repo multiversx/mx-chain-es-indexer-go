@@ -3,6 +3,7 @@ package postgres
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
@@ -18,12 +19,26 @@ var log = logger.GetOrCreate("indexer/postgres")
 
 const dsn = "host=localhost user=postgres password=mysecretpassword dbname=elrondv3 port=5432 sslmode=disable"
 
+type ArgsPostgresClient struct {
+	Hostname string
+	Port     int
+	Username string
+	Password string
+	DBName   string
+}
+
 type postgresClient struct {
 	dsn string
 	ps  *gorm.DB
 }
 
-func NewPostgresClient() (*postgresClient, error) {
+func NewPostgresClient(args *ArgsPostgresClient) (*postgresClient, error) {
+	// TODO: check args
+	dsn := fmt.Sprintf("port=%d host=%s user=%s "+
+		"password=%s dbname=%s sslmode=disable",
+		args.Port, args.Hostname, args.Username, args.Password, args.DBName,
+	)
+
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 		Logger: gormLogger.Default.LogMode(gormLogger.Info),
 	})

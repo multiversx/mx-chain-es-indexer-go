@@ -2,6 +2,9 @@ package factory
 
 import (
 	"fmt"
+	"net"
+	"net/url"
+	"strconv"
 
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/client"
@@ -36,6 +39,9 @@ type ArgsIndexerFactory struct {
 	ValidatorPubkeyConverter core.PubkeyConverter
 	AccountsDB               indexer.AccountsAdapter
 	TransactionFeeCalculator indexer.FeesProcessorHandler
+	PostgresURL              string
+	PostgresDBName           string
+	UsePostgres              bool
 }
 
 // NewIndexer will create a new instance of Indexer
@@ -49,10 +55,17 @@ func NewIndexer(args *ArgsIndexerFactory) (indexer.Indexer, error) {
 		return indexer.NewNilIndexer(), nil
 	}
 
-	//elasticProcessor, err := createElasticProcessor(args)
-	elasticProcessor, err := createPostgresProcessor(args)
-	if err != nil {
-		return nil, err
+	var processor indexer.ElasticProcessor
+	if args.UsePostgres {
+		processor, err = createPostgresProcessor(args)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		processor, err = createElasticProcessor(args)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	dispatcher, err := indexer.NewDataDispatcher(args.IndexerCacheSize)
@@ -65,7 +78,7 @@ func NewIndexer(args *ArgsIndexerFactory) (indexer.Indexer, error) {
 	arguments := indexer.ArgDataIndexer{
 		Marshalizer:      args.Marshalizer,
 		ShardCoordinator: args.ShardCoordinator,
-		ElasticProcessor: elasticProcessor,
+		ElasticProcessor: processor,
 		DataDispatcher:   dispatcher,
 	}
 
@@ -103,7 +116,19 @@ func createElasticProcessor(args *ArgsIndexerFactory) (indexer.ElasticProcessor,
 }
 
 func createPostgresProcessor(args *ArgsIndexerFactory) (indexer.ElasticProcessor, error) {
-	databaseClient, err := postgres.NewPostgresClient()
+	host, port, err := getHostAndPortFromURL(args.PostgresURL)
+	if err != nil {
+		return nil, err
+	}
+
+	postgresArgs := &postgres.ArgsPostgresClient{
+		Hostname: host,
+		Port:     port,
+		Username: args.UserName,
+		Password: args.Password,
+		DBName:   args.PostgresDBName,
+	}
+	databaseClient, err := postgres.NewPostgresClient(postgresArgs)
 	if err != nil {
 		return nil, err
 	}
@@ -124,6 +149,21 @@ func createPostgresProcessor(args *ArgsIndexerFactory) (indexer.ElasticProcessor
 	}
 
 	return factory.CreatePostgresProcessor(argsElasticProcFac)
+}
+
+func getHostAndPortFromURL(urlStr string) (string, int, error) {
+	u, err := url.Parse(urlStr)
+	host, portStr, err := net.SplitHostPort(u.Host)
+	if err != nil {
+		return "", 0, err
+	}
+
+	port, err := strconv.Atoi(portStr)
+	if err != nil {
+		return "", 0, err
+	}
+
+	return host, port, nil
 }
 
 func checkDataIndexerParams(arguments *ArgsIndexerFactory) error {
