@@ -463,7 +463,7 @@ func (pc *postgresClient) InsertESDTMetaData(account *data.AccountInfo) error {
 		white_listed_storage,
 		address,
 		token_name,
-		token_nonce,
+		token_nonce
 	) VALUES(
 		?,?,?,?,?,?,?,?,?,?,?,?,?
 	) ON CONFLICT DO NOTHING`
@@ -477,6 +477,8 @@ func (pc *postgresClient) InsertESDTMetaData(account *data.AccountInfo) error {
 		account.Data.Tags,
 		account.Data.Attributes,
 		account.Data.MetaData,
+		account.Data.NonEmptyURIs,
+		account.Data.WhiteListedStorage,
 		account.Address,
 		account.TokenName,
 		account.TokenNonce,
