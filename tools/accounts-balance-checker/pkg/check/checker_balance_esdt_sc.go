@@ -27,7 +27,7 @@ func (bc *balanceChecker) checkBalancesSC(addr string, balancesFromES map[string
 
 	tryAgain := bc.compareBalances(balancesFromES, tokenBalanceProxy, addr, true)
 	if tryAgain {
-		err := bc.getFromESAndCompose(addr, tokenBalanceProxy)
+		err := bc.getFromESAndCompose(addr, tokenBalanceProxy, len(balancesFromES))
 		if err != nil {
 			log.Warn("cannot compare second time", "address", addr, "error", err)
 		}
