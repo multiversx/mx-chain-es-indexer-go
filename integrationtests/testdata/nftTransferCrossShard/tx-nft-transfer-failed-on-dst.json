@@ -1,0 +1,33 @@
+{
+  "miniBlockHash": "83c60064098aa89220b5adc9d71f22b489bfc78cb3dcb516381102d7fec959e8",
+  "nonce": 79,
+  "round": 50,
+  "value": "0",
+  "receiver": "65726431757265376561323437636c6a3679716a673830756e7a36787a6a686c6a327a776d3467746736737564636d747364326377337873373468617376",
+  "sender": "65726431757265376561323437636c6a3679716a673830756e7a36787a6a686c6a327a776d3467746736737564636d747364326377337873373468617376",
+  "receiverShard": 0,
+  "senderShard": 0,
+  "gasPrice": 1000000000,
+  "gasLimit": 5000000,
+  "gasUsed": 963500,
+  "fee": "235850000000000",
+  "data": "RVNEVE5GVFRyYW5zZmVyQDUzNmY2ZDY1NzQ2ODY5NmU2NzJkNjE2MjYzNjQ2NTY2QDAxQDAxQDAwMDAwMDAwMDAwMDAwMDAwNTAwYTdhMDI3NzFhYTA3MDkwZTYwN2YwMmIyNWY0ZDZkMjQxYmZmMzJiOTkwYTI=",
+  "signature": "",
+  "timestamp": 5040,
+  "status": "fail",
+  "searchOrder": 0,
+  "hasScResults": true,
+  "tokens": [
+    "Something-abcdef-01"
+  ],
+  "esdtValues": [
+    "1"
+  ],
+  "receivers": [
+    "00000000000000000500a7a02771aa07090e607f02b25f4d6d241bff32b990a2"
+  ],
+  "receiversShardIDs": [
+    0
+  ],
+  "operation": "ESDTNFTTransfer"
+}

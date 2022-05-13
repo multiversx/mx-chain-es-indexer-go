@@ -1,0 +1,33 @@
+{
+  "receiversShardIDs": [
+    0
+  ],
+  "receiver": "65726431757265376561323437636c6a3679716a673830756e7a36787a6a686c6a327a776d3467746736737564636d747364326377337873373468617376",
+  "data": "RVNEVE5GVFRyYW5zZmVyQDQzNGY0YzQ1NDM1NDQ5NDUyZDMyMzY2MzMxMzgzOEAwMUAwMUAwMDAwMDAwMDAwMDAwMDAwMDUwMGE3YTAyNzcxYWEwNzA5MGU2MDdmMDJiMjVmNGQ2ZDI0MWJmZjMyYjk5MGEy",
+  "signature": "",
+  "fee": "232880000000000",
+  "esdtValues": [
+    "1"
+  ],
+  "nonce": 79,
+  "gasLimit": 5000000,
+  "gasUsed": 963500,
+  "miniBlockHash": "db7161a83f08489cba131e55f042536ee49116b622e33e70335a13e51a6c268c",
+  "round": 50,
+  "hasScResults": true,
+  "sender": "65726431757265376561323437636c6a3679716a673830756e7a36787a6a686c6a327a776d3467746736737564636d747364326377337873373468617376",
+  "receivers": [
+    "00000000000000000500a7a02771aa07090e607f02b25f4d6d241bff32b990a2"
+  ],
+  "receiverShard": 0,
+  "senderShard": 0,
+  "tokens": [
+    "COLECTIE-26c188-01"
+  ],
+  "value": "0",
+  "operation": "ESDTNFTTransfer",
+  "gasPrice": 1000000000,
+  "timestamp": 5040,
+  "status": "fail",
+  "searchOrder": 0
+}

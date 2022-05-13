@@ -1,0 +1,34 @@
+{
+  "miniBlockHash": "b30aaa656bf101a7fb87f6c02a9da9e70cd053a79de24f5d14276232757d9766",
+  "nonce": 79,
+  "round": 50,
+  "value": "0",
+  "receiver": "657264316566397878336b336d3839617a6634633478633938777063646e78356830636e787936656d34377236646334616c756430757771783234663530",
+  "sender": "657264316566397878336b336d3839617a6634633478633938777063646e78356830636e787936656d34377236646334616c756430757771783234663530",
+  "receiverShard": 0,
+  "senderShard": 0,
+  "gasPrice": 1000000000,
+  "gasLimit": 150000000,
+  "gasUsed": 139832352,
+  "fee": "1802738520000000",
+  "data": "RVNEVE5GVFRyYW5zZmVyQDRjNGI0NjQxNTI0ZDJkMzM2NjM0NjYzOTYyQDAxNjUzNEA2ZjFlNmYwMWJjNzYyN2Y1YWVAMDAwMDAwMDAwMDAwMDAwMDA1MDBmMWM4ZjJmZGM1OGE2M2M2YjIwMWZjMmVkNjI5OTYyZDNkZmEzM2ZlN2NlYkA2MzZmNmQ3MDZmNzU2ZTY0NTI2NTc3NjE3MjY0NzM1MDcyNmY3ODc5QDAwMDAwMDAwMDAwMDAwMDAwNTAwNGY3OWVjNDRiYjEzMzcyYjVhYzlkOTk2ZDc0OTEyMGY0NzY0Mjc2MjdjZWI=",
+  "signature": "",
+  "timestamp": 5040,
+  "status": "success",
+  "searchOrder": 0,
+  "hasScResults": true,
+  "tokens": [
+    "LKFARM-3f4f9b-016534"
+  ],
+  "esdtValues": [
+    "2049781565634260759982"
+  ],
+  "receivers": [
+    "00000000000000000500f1c8f2fdc58a63c6b201fc2ed629962d3dfa33fe7ceb"
+  ],
+  "receiversShardIDs": [
+    0
+  ],
+  "operation": "ESDTNFTTransfer",
+  "function": "compoundRewardsProxy"
+}
