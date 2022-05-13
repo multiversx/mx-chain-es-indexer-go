@@ -1,10 +1,10 @@
 {
   "elasticsearch": {
-    "url": "https://index.elrond.com/",
+    "url": "http://localhost:9200",
     "username": "",
     "password": ""
   },
   "proxy": {
-    "url": "https://gateway.elrond.com"
+    "url": "http://localhost:7950"
   }
 }
