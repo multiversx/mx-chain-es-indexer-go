@@ -54,7 +54,7 @@ func (bc *balanceChecker) compareBalancesFromES(addr string, tokenBalanceMap map
 	}
 
 	if core.IsSmartContractAddress(decoded) {
-		// TODO treat sc
+		bc.checkBalancesSC(addr, tokenBalanceMap)
 		return
 	}
 

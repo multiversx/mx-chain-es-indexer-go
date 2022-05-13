@@ -36,7 +36,8 @@ type AccountResponse struct {
 
 type BalancesESDTResponse struct {
 	Data struct {
-		ESDTS map[string]*esdtNFTTokenData `json:"esdts"`
+		ESDTS     map[string]*esdtNFTTokenData `json:"esdts"`
+		TokenData *esdtNFTTokenData            `json:"tokenData"`
 	} `json:"data"`
 	Error string `json:"error"`
 	Code  string `json:"code"`
