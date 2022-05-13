@@ -69,7 +69,7 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 						{
 							Address:    []byte("test-address-balance-1"),
 							Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
-							Topics:     [][]byte{[]byte("NFT-abcdef"), big.NewInt(1).Bytes(), big.NewInt(1).Bytes()},
+							Topics:     [][]byte{[]byte("NFT-abcdef"), big.NewInt(7440483).Bytes(), big.NewInt(1).Bytes()},
 						},
 						nil,
 					},
@@ -81,7 +81,7 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 	err = esProc.SaveTransactions(body, header, pool)
 	require.Nil(t, err)
 
-	ids := []string{"746573742d616464726573732d62616c616e63652d31-NFT-abcdef-01"}
+	ids := []string{"746573742d616464726573732d62616c616e63652d31-NFT-abcdef-718863"}
 	genericResponse := &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse)
 	require.Nil(t, err)
@@ -103,7 +103,7 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 						{
 							Address:    []byte("test-address-balance-1"),
 							Identifier: []byte(core.BuiltInFunctionESDTNFTTransfer),
-							Topics:     [][]byte{[]byte("NFT-abcdef"), big.NewInt(1).Bytes(), big.NewInt(1).Bytes(), []byte("new-address")},
+							Topics:     [][]byte{[]byte("NFT-abcdef"), big.NewInt(7440483).Bytes(), big.NewInt(1).Bytes(), []byte("new-address")},
 						},
 						nil,
 					},
@@ -146,13 +146,13 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 	err = esProc.SaveTransactions(body, header, pool)
 	require.Nil(t, err)
 
-	ids = []string{"746573742d616464726573732d62616c616e63652d31-NFT-abcdef-01"}
+	ids = []string{"746573742d616464726573732d62616c616e63652d31-NFT-abcdef-718863"}
 	genericResponse = &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse)
 	require.Nil(t, err)
 	require.False(t, genericResponse.Docs[0].Found)
 
-	ids = []string{"6e65772d61646472657373-NFT-abcdef-01"}
+	ids = []string{"6e65772d61646472657373-NFT-abcdef-718863"}
 	genericResponse = &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse)
 	require.Nil(t, err)

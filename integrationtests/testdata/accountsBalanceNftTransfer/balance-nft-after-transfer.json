@@ -1,9 +1,9 @@
 {
-  "identifier": "NFT-abcdef-01",
+  "identifier": "NFT-abcdef-718863",
   "address": "6e65772d61646472657373",
   "balance": "1000",
   "balanceNum": 1e-15,
-  "tokenNonce": 1,
+  "tokenNonce": 7440483,
   "token": "NFT-abcdef",
   "timestamp": 5600
 }
