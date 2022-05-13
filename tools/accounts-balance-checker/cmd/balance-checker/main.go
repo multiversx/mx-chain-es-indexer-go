@@ -26,6 +26,10 @@ var (
 		Name:  "check-balance-esdt",
 		Usage: "If set, the checker wil verify all the balance value of the accounts with ESDT",
 	}
+	logLevel = cli.StringFlag{
+		Name:  "log-level",
+		Value: "*:INFO",
+	}
 )
 
 func main() {
@@ -37,6 +41,7 @@ func main() {
 		configFile,
 		checkBalanceEGLD,
 		checkBalanceESDT,
+		logLevel,
 	}
 	app.Authors = []cli.Author{
 		{
@@ -54,7 +59,7 @@ func main() {
 }
 
 func startCheck(ctx *cli.Context) {
-	setLogLevelDebug()
+	setLogLevelDebug(ctx)
 
 	cfg, err := readConfig(ctx)
 	if err != nil {
@@ -107,6 +112,6 @@ func readConfig(ctx *cli.Context) (*config.Config, error) {
 	return cfg, nil
 }
 
-func setLogLevelDebug() {
-	_ = logger.SetLogLevel("*:DEBUG")
+func setLogLevelDebug(ctx *cli.Context) {
+	_ = logger.SetLogLevel(ctx.String(configFile.Name))
 }
