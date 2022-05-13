@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/ElrondNetwork/elastic-indexer-go/tools/accounts-balance-checker/pkg/utils"
 	"io/ioutil"
 	"os"
+	"sync/atomic"
 	"time"
 
+	"github.com/ElrondNetwork/elastic-indexer-go/tools/accounts-balance-checker/pkg/utils"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 )
 
@@ -20,7 +21,7 @@ const (
 	specificNFTEndpoint  = "/address/%s/nft/%s/nonce/%d"
 )
 
-var countTotalCompared = 0
+var countTotalCompared uint64 = 0
 
 func (bc *balanceChecker) CheckESDTBalances() error {
 	balancesFromEs, err := bc.getAllESDTAccountsFromFile()
@@ -30,40 +31,50 @@ func (bc *balanceChecker) CheckESDTBalances() error {
 
 	log.Info("total accounts with ESDT tokens ", "count", len(balancesFromEs))
 
+	maxGoroutines := maxNumberOfRequestsInParallel
+	done := make(chan struct{}, maxGoroutines)
 	for addr, tokenBalanceMap := range balancesFromEs {
-		countTotalCompared++
-
-		decoded, errD := bc.pubKeyConverter.Decode(addr)
-		if errD != nil {
-			log.Warn("cannot decode address", "address", addr, "error", errD)
-			continue
-		}
-
-		if core.IsSmartContractAddress(decoded) {
-			// TODO treat sc
-			continue
-		}
-
-		balancesFromProxy, errP := bc.getBalancesFromProxy(addr)
-		if errP != nil {
-			log.Warn("cannot get balances from proxy", "address", addr, "error", errP)
-		}
-
-		tryAgain := bc.compareBalances(tokenBalanceMap, balancesFromProxy, addr, true)
-		if tryAgain {
-			err = bc.getFromESAndCompose(addr, balancesFromProxy)
-			if err != nil {
-				log.Warn("cannot compare second time", "address", addr, "error", err)
-			}
-			continue
-		}
+		done <- struct{}{}
+		atomic.AddUint64(&countTotalCompared, 1)
+		go bc.compareBalancesFromES(addr, tokenBalanceMap, done)
 	}
 
 	return nil
 }
 
+func (bc *balanceChecker) compareBalancesFromES(addr string, tokenBalanceMap map[string]string, done chan struct{}) {
+	defer func() {
+		<-done
+	}()
+
+	decoded, errD := bc.pubKeyConverter.Decode(addr)
+	if errD != nil {
+		log.Warn("cannot decode address", "address", addr, "error", errD)
+		return
+	}
+
+	if core.IsSmartContractAddress(decoded) {
+		// TODO treat sc
+		return
+	}
+
+	balancesFromProxy, errP := bc.getBalancesFromProxy(addr)
+	if errP != nil {
+		log.Warn("cannot get balances from proxy", "address", addr, "error", errP)
+	}
+
+	tryAgain := bc.compareBalances(tokenBalanceMap, balancesFromProxy, addr, true)
+	if tryAgain {
+		err := bc.getFromESAndCompose(addr, balancesFromProxy)
+		if err != nil {
+			log.Warn("cannot compare second time", "address", addr, "error", err)
+		}
+		return
+	}
+}
+
 func (bc *balanceChecker) getFromESAndCompose(address string, balancesFromProxy map[string]string) error {
-	log.Info("second compare", "address", address, "total compared till now", countTotalCompared)
+	log.Info("second compare", "address", address, "total compared till now", atomic.LoadUint64(&countTotalCompared))
 
 	encoded, _ := encodeQuery(getBalancesByAddress(address))
 	accountsResponse := &ResponseAccounts{}
