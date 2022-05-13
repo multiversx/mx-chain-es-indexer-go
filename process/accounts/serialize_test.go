@@ -174,7 +174,7 @@ func TestSerializeAccountsESDTDelete(t *testing.T) {
 	require.Equal(t, 1, len(buffSlice.Buffers()))
 
 	expectedRes := `{ "update" : {"_index":"accountsesdt", "_id" : "addr1-token-0001-00" } }
-{"scripted_upsert": true, "script": {"source": "if ( ctx.op == 'create' )  { ctx.op = 'noop' } else { if (ctx._source.containsKey('timestamp')) { if (ctx._source.timestamp < params.timestamp ) { ctx.op = 'delete'  } } else {  ctx.op = 'delete' } }","lang": "painless","params": {"timestamp": 0}},"upsert": {}}
+{"scripted_upsert": true, "script": {"source": "if ( ctx.op == 'create' )  { ctx.op = 'noop' } else { if (ctx._source.containsKey('timestamp')) { if (ctx._source.timestamp <= params.timestamp ) { ctx.op = 'delete'  } } else {  ctx.op = 'delete' } }","lang": "painless","params": {"timestamp": 0}},"upsert": {}}
 `
 	require.Equal(t, expectedRes, buffSlice.Buffers()[0].String())
 }
