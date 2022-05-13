@@ -14,7 +14,8 @@ import (
 )
 
 const (
-	accountsesdtIndex = "accountsesdt"
+	maxDocumentsFromES = 9999
+	accountsesdtIndex  = "accountsesdt"
 
 	allTokensEndpoint    = "/address/%s/esdt"
 	specificESDTEndpoint = allTokensEndpoint + "/%s"
@@ -24,6 +25,7 @@ const (
 var countTotalCompared uint64 = 0
 
 func (bc *balanceChecker) CheckESDTBalances() error {
+	//balancesFromEs, err := bc.getAccountsByQuery(matchAllQuery)
 	balancesFromEs, err := bc.getAllESDTAccountsFromFile()
 	if err != nil {
 		return err
@@ -65,7 +67,7 @@ func (bc *balanceChecker) compareBalancesFromES(addr string, tokenBalanceMap map
 
 	tryAgain := bc.compareBalances(tokenBalanceMap, balancesFromProxy, addr, true)
 	if tryAgain {
-		err := bc.getFromESAndCompose(addr, balancesFromProxy)
+		err := bc.getFromESAndCompose(addr, balancesFromProxy, len(tokenBalanceMap))
 		if err != nil {
 			log.Warn("cannot compare second time", "address", addr, "error", err)
 		}
@@ -73,22 +75,37 @@ func (bc *balanceChecker) compareBalancesFromES(addr string, tokenBalanceMap map
 	}
 }
 
-func (bc *balanceChecker) getFromESAndCompose(address string, balancesFromProxy map[string]string) error {
+func (bc *balanceChecker) getFromESAndCompose(address string, balancesFromProxy map[string]string, numBalancesFromEs int) error {
 	log.Info("second compare", "address", address, "total compared till now", atomic.LoadUint64(&countTotalCompared))
 
-	encoded, _ := encodeQuery(getBalancesByAddress(address))
-	accountsResponse := &ResponseAccounts{}
-	err := bc.esClient.DoGetRequest(&encoded, accountsesdtIndex, accountsResponse, 9999)
+	balancesES, err := bc.getESDBalancesFromES(address, numBalancesFromEs)
 	if err != nil {
 		return err
+	}
+
+	_ = bc.compareBalances(balancesES.getBalancesForAddress(address), balancesFromProxy, address, false)
+
+	return nil
+}
+
+func (bc *balanceChecker) getESDBalancesFromES(address string, numOfBalances int) (balancesESDT, error) {
+	encoded, _ := encodeQuery(getBalancesByAddress(address))
+
+	if numOfBalances > maxDocumentsFromES {
+		log.Info("bc.getESDBalancesFromES", "number of balances", numOfBalances)
+		return bc.getAccountsByQuery(encoded.String())
+	}
+
+	accountsResponse := &ResponseAccounts{}
+	err := bc.esClient.DoGetRequest(&encoded, accountsesdtIndex, accountsResponse, maxDocumentsFromES)
+	if err != nil {
+		return nil, err
 	}
 
 	balancesES := newBalancesESDT()
 	balancesES.extractBalancesFromResponse(accountsResponse)
 
-	_ = bc.compareBalances(balancesES.getBalancesForAddress(address), balancesFromProxy, address, false)
-
-	return nil
+	return balancesES, nil
 }
 
 func (bc *balanceChecker) compareBalances(balancesFromES, balancesFromProxy map[string]string, address string, firstCompare bool) (tryAgain bool) {
@@ -153,7 +170,7 @@ func (bc *balanceChecker) getBalancesFromProxy(address string) (map[string]strin
 	return balances, nil
 }
 
-func (bc *balanceChecker) getAllESDTAccounts() (balancesESDT, error) {
+func (bc *balanceChecker) getAccountsByQuery(query string) (balancesESDT, error) {
 	defer utils.LogExecutionTime(log, time.Now(), "get all accounts with ESDT tokens from ES")
 
 	balances := newBalancesESDT()
@@ -176,7 +193,7 @@ func (bc *balanceChecker) getAllESDTAccounts() (balancesESDT, error) {
 
 	err := bc.esClient.DoScrollRequestAllDocuments(
 		accountsesdtIndex,
-		[]byte(matchAllQuery),
+		[]byte(query),
 		handlerFunc,
 	)
 	if err != nil {
