@@ -126,7 +126,7 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 	}
 	mockAccountSender := &mock.UserAccountStub{
 		RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
-			return []byte{}, nil
+			return []byte("{}"), nil
 		},
 		AddressBytesCalled: func() []byte {
 			return []byte(addr)
