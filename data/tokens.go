@@ -43,7 +43,7 @@ type TokenInfo struct {
 	Type              string         `json:"type,omitempty"`
 	Nonce             uint64         `json:"nonce,omitempty"`
 	Timestamp         time.Duration  `json:"timestamp,omitempty"`
-	Data              *TokenMetaData `json:"data,omitempty" gorm:"foreignKey:Name"`
+	Data              *TokenMetaData `json:"data,omitempty" gorm:"embedded"`
 	OwnersHistory     []*OwnerData   `json:"ownersHistory,omitempty" gorm:"foreignKey:Address"`
 	TransferOwnership bool           `json:"-" gorm:"-"`
 }

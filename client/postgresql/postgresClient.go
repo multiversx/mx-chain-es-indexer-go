@@ -201,9 +201,9 @@ func (pc *postgresClient) createTokenMetaDataTable() error {
 		meta_data text,
 		non_empty_uris boolean,
 		white_listed_storage boolean,
-		address text NOT NULL,
-		token_name text NOT NULL,
-		token_nonce bigint NOT NULL,
+		address text,
+		token_name text,
+		token_nonce bigint,
 		PRIMARY KEY (name),
 		FOREIGN KEY (address, token_name, token_nonce) REFERENCES accounts_esdt(address, token_name, token_nonce)
 	)`
