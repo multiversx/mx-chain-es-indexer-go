@@ -70,5 +70,5 @@ type Miniblock struct {
 	ProcessingTypeOnSource      string        `json:"procTypeS,omitempty"`
 	ProcessingTypeOnDestination string        `json:"procTypeD,omitempty"`
 	Timestamp                   time.Duration `json:"timestamp"`
-	Reserved                    []byte        `json:"reserved,omitempty"`
+	Reserved                    []byte        `json:"reserved,omitempty" gorm:"serializer:base64"`
 }

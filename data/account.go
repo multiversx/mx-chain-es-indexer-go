@@ -31,10 +31,10 @@ type TokenMetaData struct {
 	Name               string   `json:"name,omitempty"`
 	Creator            string   `json:"creator,omitempty"`
 	Royalties          uint32   `json:"royalties,omitempty"`
-	Hash               []byte   `json:"hash,omitempty" gorm:"serializer:json"`
+	Hash               []byte   `json:"hash,omitempty" gorm:"serializer:base64"`
 	URIs               [][]byte `json:"uris,omitempty" gorm:"serializer:json"`
 	Tags               []string `json:"tags,omitempty" gorm:"serializer:json"`
-	Attributes         []byte   `json:"attributes,omitempty" gorm:"serializer:json"`
+	Attributes         []byte   `json:"attributes,omitempty" gorm:"serializer:base64"`
 	MetaData           string   `json:"metadata,omitempty"`
 	NonEmptyURIs       bool     `json:"nonEmptyURIs"`
 	WhiteListedStorage bool     `json:"whiteListedStorage"`

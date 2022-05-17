@@ -21,13 +21,13 @@ type Transaction struct {
 	GasLimit             uint64        `json:"gasLimit"`
 	GasUsed              uint64        `json:"gasUsed"`
 	Fee                  string        `json:"fee"`
-	Data                 []byte        `json:"data" gorm:"serializer:json"`
+	Data                 []byte        `json:"data" gorm:"serializer:base64"`
 	Signature            string        `json:"signature"`
 	Timestamp            time.Duration `json:"timestamp"`
 	Status               string        `json:"status"`
 	SearchOrder          uint32        `json:"searchOrder"`
-	SenderUserName       []byte        `json:"senderUserName,omitempty" gorm:"serializer:json"`
-	ReceiverUserName     []byte        `json:"receiverUserName,omitempty" gorm:"serializer:json"`
+	SenderUserName       []byte        `json:"senderUserName,omitempty" gorm:"serializer:base64"`
+	ReceiverUserName     []byte        `json:"receiverUserName,omitempty" gorm:"serializer:base64"`
 	HasSCR               bool          `json:"hasScResults,omitempty"`
 	IsScCall             bool          `json:"isScCall,omitempty"`
 	HasOperations        bool          `json:"hasOperations,omitempty"`
@@ -41,7 +41,7 @@ type Transaction struct {
 	IsRelayed            bool          `json:"isRelayed,omitempty"`
 	Version              uint32        `json:"version,omitempty"`
 	SmartContractResults []*ScResult   `json:"-" gorm:"-"`
-	ReceiverAddressBytes []byte        `json:"-" gorm:"serializer:json"`
+	ReceiverAddressBytes []byte        `json:"-" gorm:"serializer:base64"`
 	Hash                 string        `json:"-" gorm:"primaryKey;unique"`
 	BlockHash            string        `json:"-"`
 }
