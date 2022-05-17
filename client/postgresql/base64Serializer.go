@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"fmt"
@@ -42,17 +43,19 @@ func (Base64Serializer) Scan(ctx context.Context, field *schema.Field, dst refle
 
 // Value implements serializer interface
 func (Base64Serializer) Value(ctx context.Context, field *schema.Field, dst reflect.Value, fieldValue interface{}) (interface{}, error) {
-	var bytes []byte
+	var data []byte
 	if fieldValue != nil {
 		switch v := fieldValue.(type) {
 		case []byte:
-			bytes = v
+			data = v
 		case string:
-			bytes = []byte(v)
+			data = []byte(v)
 		default:
 			return "", fmt.Errorf("failed to unmarshal base64 value: %#v", fieldValue)
 		}
 	}
 
-	return base64.StdEncoding.EncodeToString(bytes), nil
+	data = bytes.Trim(data, "\x00")
+
+	return base64.StdEncoding.EncodeToString(data), nil
 }
