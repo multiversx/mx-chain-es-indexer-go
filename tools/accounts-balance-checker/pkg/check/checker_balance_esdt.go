@@ -16,6 +16,7 @@ import (
 const (
 	maxDocumentsFromES = 9999
 	accountsesdtIndex  = "accountsesdt"
+	operationsIndex    = "operations"
 
 	allTokensEndpoint    = "/address/%s/esdt"
 	specificESDTEndpoint = allTokensEndpoint + "/%s"
@@ -25,8 +26,8 @@ const (
 var countTotalCompared uint64 = 0
 
 func (bc *balanceChecker) CheckESDTBalances() error {
-	//balancesFromEs, err := bc.getAccountsByQuery(matchAllQuery)
-	balancesFromEs, err := bc.getAllESDTAccountsFromFile()
+	balancesFromEs, err := bc.getAccountsByQuery(matchAllQuery)
+	//balancesFromEs, err := bc.getAllESDTAccountsFromFile()
 	if err != nil {
 		return err
 	}
@@ -121,7 +122,13 @@ func (bc *balanceChecker) compareBalances(balancesFromES, balancesFromProxy map[
 		}
 
 		if !ok {
-			log.Warn("extra balance in ES", "address", address, "token identifier", tokenIdentifier)
+			timestampLast, id := bc.getLastTimeWhenTokenWasUsedForAddr(tokenIdentifier, address)
+			timestampString := formatTimestamp(int64(timestampLast))
+
+			log.Warn("extra balance in ES", "address", address,
+				"token identifier", tokenIdentifier,
+				"data", timestampString,
+				"id", id)
 			continue
 		}
 
@@ -150,6 +157,21 @@ func (bc *balanceChecker) compareBalances(balancesFromES, balancesFromProxy map[
 	}
 
 	return false
+}
+
+func (bc *balanceChecker) getLastTimeWhenTokenWasUsedForAddr(identifier, address string) (time.Duration, string) {
+	txResponse := &ResponseTransactions{}
+	err := bc.esClient.DoGetRequest(queryGetLastTxForToken(identifier, address), operationsIndex, txResponse, 1)
+	if err != nil {
+		log.Warn("bc.getLastTimeWhenTokenWasUsedForAddr", "identifier", identifier, "addr", address, "error", err)
+		return 0, ""
+	}
+
+	if len(txResponse.Hits.Hits) == 0 {
+		return 0, ""
+	}
+
+	return txResponse.Hits.Hits[0].Source.Timestamp, txResponse.Hits.Hits[0].ID
 }
 
 func (bc *balanceChecker) getBalancesFromProxy(address string) (map[string]string, error) {
@@ -221,4 +243,14 @@ func (bc *balanceChecker) handlerFuncScrollAccountESDT(responseBytes []byte) err
 	}
 
 	return nil
+}
+
+func formatTimestamp(timestamp int64) string {
+	if timestamp == 0 {
+		return "0"
+	}
+
+	tm := time.Unix(timestamp, 0)
+
+	return tm.Format("2006-01-02-15:04:05")
 }

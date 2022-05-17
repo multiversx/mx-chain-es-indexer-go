@@ -2,6 +2,15 @@ package check
 
 import "github.com/ElrondNetwork/elastic-indexer-go/data"
 
+type ResponseTransactions struct {
+	Hits struct {
+		Hits []struct {
+			ID     string           `json:"_id"`
+			Source data.Transaction `json:"_source"`
+		} `json:"hits"`
+	} `json:"hits"`
+}
+
 // BulkRequestResponse defines the structure of a bulk request response
 type BulkRequestResponse struct {
 	Errors bool `json:"errors"`

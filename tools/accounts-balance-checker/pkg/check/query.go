@@ -44,3 +44,39 @@ func getBalancesByAddress(addr string) object {
 		},
 	}
 }
+
+func queryGetLastTxForToken(identifier, addr string) *bytes.Buffer {
+	queryBytes := fmt.Sprintf(`{
+	"query": {
+		"bool": {
+			"must": [
+				{
+					"match": {
+						"tokens": {
+							"query":"%s",
+							"operator":"AND"
+						}
+					}
+				},
+				{
+					"match": {
+						"sender": {
+							"query":"%s",
+							"operator":"AND"
+						}
+					}
+				}
+			]
+		}
+	},
+	"sort": [
+		{
+			"timestamp": {
+				"order":"desc"
+			}
+		}
+	]
+}`, identifier, addr)
+
+	return bytes.NewBuffer([]byte(queryBytes))
+}
