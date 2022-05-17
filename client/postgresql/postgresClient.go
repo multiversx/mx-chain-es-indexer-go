@@ -13,6 +13,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	gormLogger "gorm.io/gorm/logger"
+	"gorm.io/gorm/schema"
 )
 
 var log = logger.GetOrCreate("indexer/postgres")
@@ -45,6 +46,8 @@ func NewPostgresClient(args *ArgsPostgresClient) (*postgresClient, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	schema.RegisterSerializer("base64", Base64Serializer{})
 
 	return &postgresClient{
 		ps: db,
