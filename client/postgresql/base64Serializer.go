@@ -26,7 +26,7 @@ func (Base64Serializer) Scan(ctx context.Context, field *schema.Field, dst refle
 		case string:
 			str = v
 		default:
-			return fmt.Errorf("failed to unmarshal JSONB value: %#v", dbValue)
+			return fmt.Errorf("failed to unmarshal base64 value: %#v", dbValue)
 		}
 
 		data, err := base64.StdEncoding.DecodeString(str)
@@ -51,7 +51,7 @@ func (Base64Serializer) Value(ctx context.Context, field *schema.Field, dst refl
 		case string:
 			data = []byte(v)
 		default:
-			return "", fmt.Errorf("failed to unmarshal base64 value: %#v", fieldValue)
+			return "", fmt.Errorf("failed to marshal base64 value: %#v", fieldValue)
 		}
 	}
 

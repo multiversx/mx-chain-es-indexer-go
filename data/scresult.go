@@ -16,7 +16,7 @@ type ScResult struct {
 	ReceiverShard      uint32        `json:"receiverShard"`
 	RelayerAddr        string        `json:"relayerAddr,omitempty"`
 	RelayedValue       string        `json:"relayedValue,omitempty"`
-	Code               string        `json:"code,omitempty"`
+	Code               string        `json:"code,omitempty" gorm:"serializer:base64"`
 	Data               []byte        `json:"data,omitempty" gorm:"serializer:base64"`
 	PrevTxHash         string        `json:"prevTxHash"`
 	OriginalTxHash     string        `json:"originalTxHash"`
@@ -36,5 +36,5 @@ type ScResult struct {
 	IsRelayed          bool          `json:"isRelayed,omitempty"`
 	CanBeIgnored       bool          `json:"canBeIgnored,omitempty"`
 	OriginalSender     string        `json:"originalSender,omitempty"`
-	SenderAddressBytes []byte        `json:"-"`
+	SenderAddressBytes []byte        `json:"-" gorm:"serializer:base64"`
 }
