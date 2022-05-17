@@ -17,7 +17,7 @@ type ScResult struct {
 	RelayerAddr        string        `json:"relayerAddr,omitempty"`
 	RelayedValue       string        `json:"relayedValue,omitempty"`
 	Code               string        `json:"code,omitempty"`
-	Data               []byte        `json:"data,omitempty" gorm:"serializer:base64"`
+	Data               []byte        `json:"data,omitempty" gorm:"type:bytea;serializer:base64"`
 	PrevTxHash         string        `json:"prevTxHash"`
 	OriginalTxHash     string        `json:"originalTxHash"`
 	CallType           string        `json:"callType"`
