@@ -21,6 +21,10 @@ func (bc *balanceChecker) checkBalancesSC(addr string, balancesFromES map[string
 			log.Warn("error in response from gateway", "error", responseBalancesProxy.Error)
 		}
 
+		if responseBalancesProxy.Data.TokenData.Balance == "0" {
+			continue
+		}
+
 		balanceProxy := responseBalancesProxy.Data.TokenData.Balance
 		tokenBalanceProxy[tokenIdentifier] = balanceProxy
 	}
