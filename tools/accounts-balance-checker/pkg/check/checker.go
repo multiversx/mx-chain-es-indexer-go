@@ -102,7 +102,7 @@ func (bc *balanceChecker) checkBalance(acct indexerData.AccountInfo, done chan s
 			timestampLast, _ := bc.getLasTimeWhenBalanceWasChanged("", acct.Address)
 			timestampString := formatTimestamp(int64(timestampLast))
 
-			err = bc.fixWrongBalance(acct.Address, "", uint64(timestampLast), gatewayBalance, accountsesdtIndex)
+			err = bc.fixWrongBalance(acct.Address, "", uint64(timestampLast), gatewayBalance, accountsIndex)
 			if err != nil {
 				log.Warn("cannot update balance from es", "addr", acct.Address, "data", timestampString)
 			}
@@ -111,6 +111,7 @@ func (bc *balanceChecker) checkBalance(acct indexerData.AccountInfo, done chan s
 				"address", acct.Address,
 				"balance ES", newBalance,
 				"balance proxy", gatewayBalance,
+				"data", timestampString,
 			)
 			return
 		}
