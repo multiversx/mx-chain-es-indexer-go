@@ -7,16 +7,12 @@ import (
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
-	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/lib/pq"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-	gormLogger "gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
 )
-
-var log = logger.GetOrCreate("indexer/postgres")
 
 const dsn = "host=localhost user=postgres password=mysecretpassword dbname=elrondv3 port=5432 sslmode=disable"
 
@@ -40,8 +36,10 @@ func NewPostgresClient(args *ArgsPostgresClient) (*postgresClient, error) {
 		args.Port, args.Hostname, args.Username, args.Password, args.DBName,
 	)
 
+	postgresLogger, _ := newPostgresLogger()
+
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
-		Logger: gormLogger.Default.LogMode(gormLogger.Info),
+		Logger: postgresLogger,
 	})
 	if err != nil {
 		return nil, err
