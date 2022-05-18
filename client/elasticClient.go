@@ -31,6 +31,10 @@ type (
 type elasticClient struct {
 	elasticBaseUrl string
 	es             *elasticsearch.Client
+
+	// countScroll is used to be incremented after each scroll so the scroll duration is different each time,
+	// bypassing any possible caching based on the same request
+	countScroll int
 }
 
 // NewElasticClient will create a new instance of elasticClient
@@ -102,7 +106,15 @@ func (ec *elasticClient) DoRequest(req *esapi.IndexRequest) error {
 func (ec *elasticClient) DoBulkRequest(buff *bytes.Buffer, index string) error {
 	reader := bytes.NewReader(buff.Bytes())
 
-	res, err := ec.es.Bulk(reader, ec.es.Bulk.WithIndex(index))
+	options := make([]func(*esapi.BulkRequest), 0)
+	if index != "" {
+		options = append(options, ec.es.Bulk.WithIndex(index))
+	}
+
+	res, err := ec.es.Bulk(
+		reader,
+		options...,
+	)
 	if err != nil {
 		log.Warn("elasticClient.DoBulkRequest",
 			"indexer do bulk request no response", err.Error())

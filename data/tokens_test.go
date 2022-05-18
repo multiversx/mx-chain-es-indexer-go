@@ -95,7 +95,7 @@ func TestTokensInfo_AddTypeFromResponse(t *testing.T) {
 		},
 	}
 
-	tokensData.AddTypeFromResponse(res)
+	tokensData.AddTypeAndOwnerFromResponse(res)
 
 	tokenData := tokensData.tokensInfo["my-token-1"]
 	require.Equal(t, core.SemiFungibleESDT, tokenData.Type)

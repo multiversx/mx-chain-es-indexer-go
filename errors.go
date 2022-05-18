@@ -94,3 +94,6 @@ var ErrNilLogsAndEventsHandler = errors.New("nil logs and events handler")
 
 // ErrNilBalanceConverter signals that a nil balance converter has been provided
 var ErrNilBalanceConverter = errors.New("nil balance converter")
+
+// ErrNilOperationsHandler signals that a nil operations handler has been provided
+var ErrNilOperationsHandler = errors.New("nil operations handler")

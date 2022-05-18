@@ -9,14 +9,16 @@ import (
 type logsData struct {
 	timestamp       uint64
 	tokens          data.TokensHandler
+	tokensSupply    data.TokensHandler
 	tagsCount       data.CountTags
 	accounts        data.AlteredAccountsHandler
 	txsMap          map[string]*data.Transaction
 	scrsMap         map[string]*data.ScResult
 	scDeploys       map[string]*data.ScDeployInfo
 	delegators      map[string]*data.Delegator
-	pendingBalances *pendingBalancesProc
 	tokensInfo      []*data.TokenInfo
+	nftsDataUpdates []*data.NFTDataUpdate
+	rolesData       data.RolesData
 }
 
 func newLogsData(
@@ -31,12 +33,14 @@ func newLogsData(
 	ld.scrsMap = converters.ConvertScrsSliceIntoMap(scrs)
 	ld.tagsCount = tags.NewTagsCount()
 	ld.tokens = data.NewTokensInfo()
+	ld.tokensSupply = data.NewTokensInfo()
 	ld.accounts = accounts
 	ld.timestamp = timestamp
 	ld.scDeploys = make(map[string]*data.ScDeployInfo)
-	ld.pendingBalances = newPendingBalancesProcessor()
 	ld.tokensInfo = make([]*data.TokenInfo, 0)
 	ld.delegators = make(map[string]*data.Delegator)
+	ld.nftsDataUpdates = make([]*data.NFTDataUpdate, 0)
+	ld.rolesData = data.RolesData{}
 
 	return ld
 }

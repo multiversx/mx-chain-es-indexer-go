@@ -6,6 +6,7 @@ import (
 	"errors"
 	"math/big"
 	"testing"
+	"time"
 
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/converters"
@@ -73,7 +74,7 @@ func TestAccountsProcessor_PrepareRegularAccountsMapWithNil(t *testing.T) {
 
 	ap, _ := NewAccountsProcessor(mock.NewPubkeyConverterMock(32), balanceConverter)
 
-	accountsInfo := ap.PrepareRegularAccountsMap(nil)
+	accountsInfo := ap.PrepareRegularAccountsMap(0, nil)
 	require.Len(t, accountsInfo, 0)
 }
 
@@ -281,7 +282,7 @@ func TestAccountsProcessor_PrepareAccountsMapEGLD(t *testing.T) {
 	ap, _ := NewAccountsProcessor(mock.NewPubkeyConverterMock(32), balanceConverter)
 	require.NotNil(t, ap)
 
-	res := ap.PrepareRegularAccountsMap([]*data.Account{egldAccount})
+	res := ap.PrepareRegularAccountsMap(123, []*data.Account{egldAccount})
 	require.Equal(t, &data.AccountInfo{
 		Address:                  addr,
 		Nonce:                    1,
@@ -290,6 +291,7 @@ func TestAccountsProcessor_PrepareAccountsMapEGLD(t *testing.T) {
 		TotalBalanceWithStake:    "1000",
 		TotalBalanceWithStakeNum: balanceConverter.ComputeBalanceAsFloat(big.NewInt(1000)),
 		IsSmartContract:          true,
+			Timestamp:                time.Duration(123),
 	},
 		res[addr])
 }
@@ -329,7 +331,7 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 		{Account: account, TokenIdentifier: "token", IsNFTOperation: true, NFTNonce: 15},
 		{Account: account, TokenIdentifier: "token", IsNFTOperation: true, NFTNonce: 16},
 	}
-	res := ap.PrepareAccountsMapESDT(accountsESDT)
+	res, _ := ap.PrepareAccountsMapESDT(123, accountsESDT)
 	require.Len(t, res, 2)
 
 	require.Equal(t, &data.AccountInfo{
@@ -343,6 +345,7 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 		Data: &data.TokenMetaData{
 			Creator: "63726561746f72",
 		},
+		Timestamp: time.Duration(123),
 	}, res[hex.EncodeToString([]byte(addr))+"-token-15"])
 
 	require.Equal(t, &data.AccountInfo{
@@ -356,6 +359,7 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 		Data: &data.TokenMetaData{
 			Creator: "63726561746f72",
 		},
+		Timestamp: time.Duration(123),
 	}, res[hex.EncodeToString([]byte(addr))+"-token-16"])
 }
 
