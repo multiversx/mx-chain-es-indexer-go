@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	indexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/tools/accounts-balance-checker/pkg/utils"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"time"
@@ -21,20 +22,27 @@ const (
 var log = logger.GetOrCreate("checker")
 
 type balanceChecker struct {
+	balanceToFloat  indexer.BalanceConverter
 	pubKeyConverter core.PubkeyConverter
 	esClient        ESClientHandler
 	restClient      RestClientHandler
+
+	doRepair bool
 }
 
 func NewBalanceChecker(
 	esClient ESClientHandler,
 	restClient RestClientHandler,
 	pubKeyConverter core.PubkeyConverter,
+	balanceToFloat indexer.BalanceConverter,
+	repair bool,
 ) (*balanceChecker, error) {
 	return &balanceChecker{
 		esClient:        esClient,
 		restClient:      restClient,
 		pubKeyConverter: pubKeyConverter,
+		balanceToFloat:  balanceToFloat,
+		doRepair:        repair,
 	}, nil
 }
 

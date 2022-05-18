@@ -129,6 +129,12 @@ func (bc *balanceChecker) compareBalances(balancesFromES, balancesFromProxy map[
 				"token identifier", tokenIdentifier,
 				"data", timestampString,
 				"id", id)
+
+			err := bc.deleteExtraBalance(address, tokenIdentifier, uint64(timestampLast), accountsesdtIndex)
+			if err != nil {
+				log.Warn("cannot remove balance from es", "addr", address, "identifier", tokenIdentifier)
+			}
+
 			continue
 		}
 
@@ -139,8 +145,20 @@ func (bc *balanceChecker) compareBalances(balancesFromES, balancesFromProxy map[
 		}
 
 		if balanceES != balanceProxy {
-			log.Warn("different balance", "address", address, "token identifier", tokenIdentifier,
-				"balance from ES", balanceES, "balance from proxy", balanceProxy,
+			timestampLast, id := bc.getLastTimeWhenTokenWasUsedForAddr(tokenIdentifier, address)
+			timestampString := formatTimestamp(int64(timestampLast))
+
+			err := bc.fixWrongBalance(address, tokenIdentifier, uint64(timestampLast), balanceProxy, accountsesdtIndex)
+			if err != nil {
+				log.Warn("cannot update balance from es", "addr", address, "identifier", tokenIdentifier)
+			}
+
+			log.Warn("different balance", "address", address,
+				"token identifier", tokenIdentifier,
+				"balance from ES", balanceES,
+				"balance from proxy", balanceProxy,
+				"data", timestampString,
+				"id", id,
 			)
 			continue
 		}

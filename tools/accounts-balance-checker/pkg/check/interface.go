@@ -10,6 +10,7 @@ type ESClientHandler interface {
 		handlerFunc func(responseBytes []byte) error,
 	) error
 	DoGetRequest(buff *bytes.Buffer, index string, response interface{}, size int) error
+	DoBulkRequest(buff *bytes.Buffer, index string) error
 }
 
 // RestClientHandler -

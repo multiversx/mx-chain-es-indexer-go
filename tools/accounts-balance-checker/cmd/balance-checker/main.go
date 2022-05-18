@@ -26,6 +26,11 @@ var (
 		Name:  "check-balance-esdt",
 		Usage: "If set, the checker wil verify all the balance value of the accounts with ESDT",
 	}
+	repairFlag = cli.BoolFlag{
+		Name:  "repair",
+		Usage: "If set, the checker will also repair the wrong balances",
+	}
+
 	logLevel = cli.StringFlag{
 		Name:  "log-level",
 		Value: "*:INFO",
@@ -67,7 +72,9 @@ func startCheck(ctx *cli.Context) {
 		return
 	}
 
-	balanceChecker, err := check.CreateBalanceChecker(cfg)
+	repair := ctx.Bool(repairFlag.Name)
+
+	balanceChecker, err := check.CreateBalanceChecker(cfg, repair)
 	if err != nil {
 		log.Error("cannot create balance checker", "error", err)
 		return
