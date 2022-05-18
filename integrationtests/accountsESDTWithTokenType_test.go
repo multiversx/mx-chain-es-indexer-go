@@ -3,6 +3,7 @@
 package integrationtests
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"math/big"
 	"testing"
@@ -16,8 +17,17 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/data/esdt"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 	"github.com/stretchr/testify/require"
+)
+
+const (
+	expectedTokenAfterIssue = `{"name":"SEMI-token","ticker":"SEM","token":"SEMI-abcd","issuer":"61646472","currentOwner":"61646472","type":"SemiFungibleESDT","timestamp":5040,"ownersHistory":[{"address":"61646472","timestamp":5040}]}`
+	expectedAccountESDT     = `{"address":"6161616162626262","balance":"1000","balanceNum":1e-15,"token":"SEMI-abcd","identifier":"SEMI-abcd-02","tokenNonce":2,"properties":"6f6b","data":{"creator":"63726561746f72","nonEmptyURIs":false,"whiteListedStorage":false},"timestamp":5600,"type":"SemiFungibleESDT"}`
+
+	expectedAccountsESDTWithoutType      = `{"address":"6161616162626262","balance":"1000","balanceNum":1e-15,"token":"TTTT-abcd","identifier":"TTTT-abcd-02","tokenNonce":2,"properties":"6f6b","data":{"creator":"63726561746f72","nonEmptyURIs":false,"whiteListedStorage":false},"timestamp":5600}`
+	expectedSemiFungibleToken            = `{"name":"TTTT-token","ticker":"SEM","token":"TTTT-abcd","issuer":"61646472","currentOwner":"61646472","type":"SemiFungibleESDT","timestamp":5040,"ownersHistory":[{"address":"61646472","timestamp":5040}]}`
+	expectedAccountsESDTWithType         = `{"address":"6161616162626262","balance":"1000","balanceNum":1.0E-15,"token":"TTTT-abcd","identifier":"TTTT-abcd-02","tokenNonce":2,"properties":"6f6b","data":{"creator":"63726561746f72","nonEmptyURIs":false,"whiteListedStorage":false},"timestamp":5600,"type":"SemiFungibleESDT"}`
+	expectedSemiFungibleTokenAfterCreate = `{"identifier":"TTTT-abcd-02","token":"TTTT-abcd","nonce":2,"timestamp":5600,"data":{"creator":"63726561746f72","nonEmptyURIs":false,"whiteListedStorage":false},"type":"SemiFungibleESDT"}`
 )
 
 func TestIndexAccountESDTWithTokenType(t *testing.T) {
@@ -26,7 +36,6 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	accounts := &mock.AccountsStub{}
 	feeComputer := &mock.EconomicsHandlerMock{}
 
 	// ################ ISSUE NON FUNGIBLE TOKEN ##########################
@@ -34,7 +43,7 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 		SelfID: core.MetachainShardId,
 	}
 
-	esProc, err := CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
 	require.Nil(t, err)
 
 	body := &dataBlock.Body{}
@@ -61,43 +70,40 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*indexer.AlteredAccount{})
 	require.Nil(t, err)
 
 	ids := []string{"SEMI-abcd"}
 	genericResponse := &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse)
 	require.Nil(t, err)
-	require.JSONEq(t, readExpectedResult("./testdata/accountsESDTWithTokenType/token-after-issue.json"), string(genericResponse.Docs[0].Source))
+	require.JSONEq(t, expectedTokenAfterIssue, string(genericResponse.Docs[0].Source))
 
 	// ################ CREATE SEMI FUNGIBLE TOKEN ##########################
 	shardCoordinator = &mock.ShardCoordinatorMock{
 		SelfID: 0,
 	}
 
-	esdtToken := &esdt.ESDigitalToken{
-		Value:      big.NewInt(1000),
-		Properties: []byte("ok"),
-		TokenMetaData: &esdt.MetaData{
-			Creator: []byte("creator"),
-		},
-	}
-
 	addr := "aaaabbbb"
-	mockAccount := &mock.UserAccountStub{
-		RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
-			return json.Marshal(esdtToken)
-		},
-		AddressBytesCalled: func() []byte {
-			return []byte(addr)
+	encodedAddr := hex.EncodeToString([]byte(addr))
+	coreAlteredAccounts := map[string]*indexer.AlteredAccount{
+		encodedAddr: {
+			Address: encodedAddr,
+			Balance: "1000",
+			Tokens: []*indexer.AccountTokenData{
+				{
+					Identifier: "SEMI-abcd",
+					Balance:    "1000",
+					Nonce:      2,
+					Properties: "ok",
+					MetaData: &esdt.MetaData{
+						Creator: []byte("creator"),
+					},
+				},
+			},
 		},
 	}
-	accounts = &mock.AccountsStub{
-		LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
-			return mockAccount, nil
-		},
-	}
-	esProc, err = CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	esProc, err = CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
 	require.Nil(t, err)
 
 	header = &dataBlock.Header{
@@ -130,14 +136,14 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts)
 	require.Nil(t, err)
 
 	ids = []string{"6161616162626262-SEMI-abcd-02"}
 	genericResponse = &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse)
 	require.Nil(t, err)
-	require.JSONEq(t, readExpectedResult("./testdata/accountsESDTWithTokenType/account-esdt.json"), string(genericResponse.Docs[0].Source))
+	require.JSONEq(t, expectedAccountESDT, string(genericResponse.Docs[0].Source))
 
 }
 
@@ -147,7 +153,6 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	accounts := &mock.AccountsStub{}
 	feeComputer := &mock.EconomicsHandlerMock{}
 
 	// ################ CREATE SEMI FUNGIBLE TOKEN ##########################
@@ -157,29 +162,26 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 
 	body := &dataBlock.Body{}
 
-	esdtToken := &esdt.ESDigitalToken{
-		Value:      big.NewInt(1000),
-		Properties: []byte("ok"),
-		TokenMetaData: &esdt.MetaData{
-			Creator: []byte("creator"),
-		},
-	}
-
 	addr := "aaaabbbb"
-	mockAccount := &mock.UserAccountStub{
-		RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
-			return json.Marshal(esdtToken)
-		},
-		AddressBytesCalled: func() []byte {
-			return []byte(addr)
+	encodedAddr := hex.EncodeToString([]byte(addr))
+	coreAlteredAccounts := map[string]*indexer.AlteredAccount{
+		encodedAddr: {
+			Address: encodedAddr,
+			Balance: "1000",
+			Tokens: []*indexer.AccountTokenData{
+				{
+					Identifier: "TTTT-abcd",
+					Nonce:      2,
+					Balance:    "1000",
+					Properties: "ok",
+					MetaData: &esdt.MetaData{
+						Creator: []byte("creator"),
+					},
+				},
+			},
 		},
 	}
-	accounts = &mock.AccountsStub{
-		LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
-			return mockAccount, nil
-		},
-	}
-	esProc, err := CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
 	require.Nil(t, err)
 
 	header := &dataBlock.Header{
@@ -212,14 +214,14 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts)
 	require.Nil(t, err)
 
 	ids := []string{"6161616162626262-TTTT-abcd-02"}
 	genericResponse := &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse)
 	require.Nil(t, err)
-	require.JSONEq(t, readExpectedResult("./testdata/accountsESDTWithTokenType/account-esdt-without-type.json"), string(genericResponse.Docs[0].Source))
+	require.JSONEq(t, expectedAccountsESDTWithoutType, string(genericResponse.Docs[0].Source))
 
 	time.Sleep(time.Second)
 
@@ -232,7 +234,7 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 		TimeStamp: 5040,
 	}
 
-	esProc, err = CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	esProc, err = CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
 	require.Nil(t, err)
 
 	pool = &indexer.Pool{
@@ -253,24 +255,24 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*indexer.AlteredAccount{})
 	require.Nil(t, err)
 
 	ids = []string{"TTTT-abcd"}
 	genericResponse = &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse)
 	require.Nil(t, err)
-	require.JSONEq(t, readExpectedResult("./testdata/accountsESDTWithTokenType/semi-fungible-token.json"), string(genericResponse.Docs[0].Source))
+	require.JSONEq(t, expectedSemiFungibleToken, string(genericResponse.Docs[0].Source))
 
 	ids = []string{"6161616162626262-TTTT-abcd-02"}
 	genericResponse = &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse)
 	require.Nil(t, err)
-	require.JSONEq(t, readExpectedResult("./testdata/accountsESDTWithTokenType/account-esdt-with-type.json"), string(genericResponse.Docs[0].Source))
+	require.JSONEq(t, expectedAccountsESDTWithType, string(genericResponse.Docs[0].Source))
 
 	ids = []string{"TTTT-abcd-02"}
 	genericResponse = &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse)
 	require.Nil(t, err)
-	require.JSONEq(t, readExpectedResult("./testdata/accountsESDTWithTokenType/semi-fungible-token-after-create.json"), string(genericResponse.Docs[0].Source))
+	require.JSONEq(t, expectedSemiFungibleTokenAfterCreate, string(genericResponse.Docs[0].Source))
 }
