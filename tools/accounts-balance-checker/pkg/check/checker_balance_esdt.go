@@ -122,7 +122,7 @@ func (bc *balanceChecker) compareBalances(balancesFromES, balancesFromProxy map[
 		}
 
 		if !ok {
-			timestampLast, id := bc.getLastTimeWhenTokenWasUsedForAddr(tokenIdentifier, address)
+			timestampLast, id := bc.getLasTimeWhenBalanceWasChanged(tokenIdentifier, address)
 			timestampString := formatTimestamp(int64(timestampLast))
 
 			log.Warn("extra balance in ES", "address", address,
@@ -145,7 +145,7 @@ func (bc *balanceChecker) compareBalances(balancesFromES, balancesFromProxy map[
 		}
 
 		if balanceES != balanceProxy {
-			timestampLast, id := bc.getLastTimeWhenTokenWasUsedForAddr(tokenIdentifier, address)
+			timestampLast, id := bc.getLasTimeWhenBalanceWasChanged(tokenIdentifier, address)
 			timestampString := formatTimestamp(int64(timestampLast))
 
 			err := bc.fixWrongBalance(address, tokenIdentifier, uint64(timestampLast), balanceProxy, accountsesdtIndex)
@@ -177,11 +177,16 @@ func (bc *balanceChecker) compareBalances(balancesFromES, balancesFromProxy map[
 	return false
 }
 
-func (bc *balanceChecker) getLastTimeWhenTokenWasUsedForAddr(identifier, address string) (time.Duration, string) {
+func (bc *balanceChecker) getLasTimeWhenBalanceWasChanged(identifier, address string) (time.Duration, string) {
+	query := queryGetLastTxForToken(identifier, address)
+	if identifier == "" {
+		query = queryGetLastOperationForAddress(address)
+	}
+
 	txResponse := &ResponseTransactions{}
-	err := bc.esClient.DoGetRequest(queryGetLastTxForToken(identifier, address), operationsIndex, txResponse, 1)
+	err := bc.esClient.DoGetRequest(query, operationsIndex, txResponse, 1)
 	if err != nil {
-		log.Warn("bc.getLastTimeWhenTokenWasUsedForAddr", "identifier", identifier, "addr", address, "error", err)
+		log.Warn("bc.getLasTimeWhenBalanceWasChanged", "identifier", identifier, "addr", address, "error", err)
 		return 0, ""
 	}
 

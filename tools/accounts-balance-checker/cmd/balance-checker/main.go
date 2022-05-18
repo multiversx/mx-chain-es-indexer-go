@@ -47,6 +47,7 @@ func main() {
 		checkBalanceEGLD,
 		checkBalanceESDT,
 		logLevel,
+		repairFlag,
 	}
 	app.Authors = []cli.Author{
 		{
@@ -120,5 +121,5 @@ func readConfig(ctx *cli.Context) (*config.Config, error) {
 }
 
 func setLogLevelDebug(ctx *cli.Context) {
-	_ = logger.SetLogLevel(ctx.String(configFile.Name))
+	_ = logger.SetLogLevel(ctx.String(logLevel.Name))
 }

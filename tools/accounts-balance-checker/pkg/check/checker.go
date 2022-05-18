@@ -99,6 +99,14 @@ func (bc *balanceChecker) checkBalance(acct indexerData.AccountInfo, done chan s
 			return
 		}
 		if newBalance != gatewayBalance {
+			timestampLast, _ := bc.getLasTimeWhenBalanceWasChanged("", acct.Address)
+			timestampString := formatTimestamp(int64(timestampLast))
+
+			err = bc.fixWrongBalance(acct.Address, "", uint64(timestampLast), gatewayBalance, accountsesdtIndex)
+			if err != nil {
+				log.Warn("cannot update balance from es", "addr", acct.Address, "data", timestampString)
+			}
+
 			log.Warn("balance mismatch",
 				"address", acct.Address,
 				"balance ES", newBalance,

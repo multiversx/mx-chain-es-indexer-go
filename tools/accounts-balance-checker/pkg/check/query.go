@@ -80,3 +80,39 @@ func queryGetLastTxForToken(identifier, addr string) *bytes.Buffer {
 
 	return bytes.NewBuffer([]byte(queryBytes))
 }
+
+func queryGetLastOperationForAddress(addr string) *bytes.Buffer {
+	queryBytes := fmt.Sprintf(`{
+	"query": {
+		"bool": {
+			"should": [
+				{
+					"match": {
+						"sender": {
+							"query":"%s",
+							"operator":"AND"
+						}
+					}
+				},
+				{
+					"match": {
+						"receiver": {
+							"query":"%s",
+							"operator":"AND"
+						}
+					}
+				}
+			]
+		}
+	},
+	"sort": [
+		{
+			"timestamp": {
+				"order":"desc"
+			}
+		}
+	]
+}`, addr, addr)
+
+	return bytes.NewBuffer([]byte(queryBytes))
+}
