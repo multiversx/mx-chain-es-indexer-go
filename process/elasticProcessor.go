@@ -391,7 +391,7 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
-	err = ei.indexAlteredAccounts(headerTimestamp, preparedResults.AlteredAccts, logsData.PendingBalances, coreAlteredAccounts, buffers)
+	err = ei.indexAlteredAccounts(headerTimestamp, preparedResults.AlteredAccts, logsData.NFTsDataUpdates, coreAlteredAccounts, buffers)
 	if err != nil {
 		return err
 	}
@@ -570,8 +570,8 @@ func (ei *elasticProcessor) indexAlteredAccounts(
 	timestamp uint64,
 	alteredAccounts data.AlteredAccountsHandler,
 	updatesNFTsData []*data.NFTDataUpdate,
-	buffSlice *data.BufferSlice,
 	coreAlteredAccounts map[string]*indexer.AlteredAccount,
+	buffSlice *data.BufferSlice,
 ) error {
 	regularAccountsToIndex, accountsToIndexESDT := ei.accountsProc.GetAccounts(alteredAccounts, coreAlteredAccounts)
 
