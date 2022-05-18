@@ -22,13 +22,12 @@ func TestIssueTokenAndSetRole(t *testing.T) {
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	accounts := &mock.AccountsStub{}
 	feeComputer := &mock.EconomicsHandlerMock{}
 	shardCoordinator := &mock.ShardCoordinatorMock{
 		SelfID: core.MetachainShardId,
 	}
 
-	esProc, err := CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
 	require.Nil(t, err)
 
 	body := &dataBlock.Body{}
@@ -55,7 +54,7 @@ func TestIssueTokenAndSetRole(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*indexer.AlteredAccount{})
 	require.Nil(t, err)
 
 	ids := []string{"TOK-abcd"}
@@ -84,40 +83,7 @@ func TestIssueTokenAndSetRole(t *testing.T) {
 	}
 
 	header.TimeStamp = 10000
-	err = esProc.SaveTransactions(body, header, pool)
-	require.Nil(t, err)
-
-	ids = []string{"TOK-abcd"}
-	genericResponse = &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse)
-	require.Nil(t, err)
-	require.JSONEq(t, readExpectedResult("./testdata/issueTokenAndSetRoles/token-after-set-role.json"), string(genericResponse.Docs[0].Source))
-
-	// TRANSFER ROLE
-	pool = &indexer.Pool{
-		Logs: []*coreData.LogData{
-			{
-				TxHash: "h1",
-				LogHandler: &transaction.Log{
-					Events: []*transaction.Event{
-						{
-							Address:    []byte("my-address"),
-							Identifier: []byte(core.BuiltInFunctionESDTNFTCreateRoleTransfer),
-							Topics:     [][]byte{[]byte("TOK-abcd"), big.NewInt(0).Bytes(), big.NewInt(0).Bytes(), []byte("false")},
-						},
-						{
-							Address:    []byte("new-address"),
-							Identifier: []byte(core.BuiltInFunctionESDTNFTCreateRoleTransfer),
-							Topics:     [][]byte{[]byte("TOK-abcd"), big.NewInt(0).Bytes(), big.NewInt(0).Bytes(), []byte("true")},
-						},
-					},
-				},
-			},
-		},
-	}
-
-	header.TimeStamp = 10000
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*indexer.AlteredAccount{})
 	require.Nil(t, err)
 
 	ids = []string{"TOK-abcd"}
@@ -127,6 +93,7 @@ func TestIssueTokenAndSetRole(t *testing.T) {
 	require.JSONEq(t, readExpectedResult("./testdata/issueTokenAndSetRoles/token-after-transfer-role.json"), string(genericResponse.Docs[0].Source))
 
 	// UNSET ROLES
+
 	pool = &indexer.Pool{
 		Logs: []*coreData.LogData{
 			{
@@ -146,7 +113,7 @@ func TestIssueTokenAndSetRole(t *testing.T) {
 	}
 
 	header.TimeStamp = 10000
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*indexer.AlteredAccount{})
 	require.Nil(t, err)
 
 	ids = []string{"TOK-abcd"}
@@ -162,14 +129,13 @@ func TestIssueSetRolesEventAndAfterTokenIssue(t *testing.T) {
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	accounts := &mock.AccountsStub{}
 	feeComputer := &mock.EconomicsHandlerMock{}
 
 	shardCoordinator := &mock.ShardCoordinatorMock{
 		SelfID: core.MetachainShardId,
 	}
 
-	esProc, err := CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
 	require.Nil(t, err)
 
 	body := &dataBlock.Body{}
@@ -198,7 +164,7 @@ func TestIssueSetRolesEventAndAfterTokenIssue(t *testing.T) {
 	}
 
 	header.TimeStamp = 10000
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*indexer.AlteredAccount{})
 	require.Nil(t, err)
 
 	ids := []string{"TTT-abcd"}
@@ -226,7 +192,7 @@ func TestIssueSetRolesEventAndAfterTokenIssue(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*indexer.AlteredAccount{})
 	require.Nil(t, err)
 
 	ids = []string{"TTT-abcd"}
