@@ -1,10 +1,10 @@
 {
   "elasticsearch": {
-    "url": "https://testnet-index.elrond.com",
+    "url": "",
     "username": "",
     "password": ""
   },
   "proxy": {
-    "url": "https://testnet-gateway.elrond.com"
+    "url": ""
   }
 }

@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"io/ioutil"
 	"net/http"
 
+	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
 
