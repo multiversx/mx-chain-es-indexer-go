@@ -585,12 +585,14 @@ func (pc *postgresClient) InsertTags(tags map[string]int) error {
 	// trim the last ,
 	sql = sql[0 : len(sql)-1]
 
-	sql += " ON CONFLICT DO (tag) SET count = tags.count + 1"
+	sql += " ON CONFLICT (tag) DO UPDATE SET count = tags.count + 1"
 
 	result := pc.ps.Exec(sql, vals...)
 	if result.Error != nil {
 		return result.Error
 	}
+
+	log.Info("Insert tags", "rows affected", result.RowsAffected)
 
 	return nil
 }
