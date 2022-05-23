@@ -16,6 +16,8 @@ import (
 
 const dsn = "host=localhost user=postgres password=mysecretpassword dbname=elrondv3 port=5432 sslmode=disable"
 
+const batchSize = 1000
+
 type ArgsPostgresClient struct {
 	Hostname string
 	Port     int
@@ -290,7 +292,7 @@ func (pc *postgresClient) AutoMigrateTables(tables ...interface{}) error {
 }
 
 func (pc *postgresClient) Insert(entity interface{}) error {
-	result := pc.ps.Clauses(clause.OnConflict{DoNothing: true}).Create(entity)
+	result := pc.ps.Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(entity, batchSize)
 	if result.Error != nil {
 		return result.Error
 	}
@@ -301,7 +303,7 @@ func (pc *postgresClient) Insert(entity interface{}) error {
 }
 
 func (pc *postgresClient) InsertBlock(block *data.Block) error {
-	result := pc.ps.Model(&data.Block{}).Clauses(clause.OnConflict{DoNothing: true}).Create(block)
+	result := pc.ps.Model(&data.Block{}).Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(block, batchSize)
 	if result.Error != nil {
 		return result.Error
 	}
