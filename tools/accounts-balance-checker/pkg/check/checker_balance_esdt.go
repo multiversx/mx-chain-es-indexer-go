@@ -169,6 +169,11 @@ func (bc *balanceChecker) compareBalances(balancesFromES, balancesFromProxy map[
 	}
 
 	for tokenIdentifier, balance := range copyBalancesProxy {
+		if balance == "0" {
+			// this if for in case of token was frozen and after that wipe
+			continue
+		}
+
 		log.Warn("missing balance from ES", "address", address,
 			"token identifier", tokenIdentifier, "balance", balance,
 		)
