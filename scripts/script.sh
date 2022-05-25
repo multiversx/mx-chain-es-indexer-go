@@ -39,10 +39,9 @@ start_open_search() {
     OPEN_VERSION=${DEFAULT_OPEN_SEARCH_VERSION}
   fi
 
-  echo ${OPEN_VERSION}
-
   docker pull opensearchproject/opensearch:${OPEN_VERSION}
 
+  docker rm ${IMAGE_OPEN_SEARCH} 2> /dev/null
   docker run -d --name "${IMAGE_OPEN_SEARCH}" -p 9200:9200 -p 9600:9600 \
    -e "discovery.type=single-node" -e "plugins.security.disabled=true" -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" \
    opensearchproject/opensearch:${OPEN_VERSION}
