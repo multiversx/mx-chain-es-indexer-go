@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -35,19 +36,24 @@ func (bc *balanceChecker) CheckESDTBalances() error {
 	log.Info("total accounts with ESDT tokens ", "count", len(balancesFromEs))
 
 	maxGoroutines := maxNumberOfRequestsInParallel
-	done := make(chan struct{}, maxGoroutines)
+	done, wg := make(chan struct{}, maxGoroutines), &sync.WaitGroup{}
 	for addr, tokenBalanceMap := range balancesFromEs {
 		done <- struct{}{}
+		wg.Add(1)
+
 		atomic.AddUint64(&countTotalCompared, 1)
-		go bc.compareBalancesFromES(addr, tokenBalanceMap, done)
+		go bc.compareBalancesFromES(addr, tokenBalanceMap, done, wg)
 	}
+
+	wg.Wait()
 
 	return nil
 }
 
-func (bc *balanceChecker) compareBalancesFromES(addr string, tokenBalanceMap map[string]string, done chan struct{}) {
+func (bc *balanceChecker) compareBalancesFromES(addr string, tokenBalanceMap map[string]string, done chan struct{}, wg *sync.WaitGroup) {
 	defer func() {
 		<-done
+		wg.Done()
 	}()
 
 	decoded, errD := bc.pubKeyConverter.Decode(addr)

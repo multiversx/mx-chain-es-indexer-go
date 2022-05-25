@@ -21,6 +21,13 @@ func (bc *balanceChecker) deleteExtraBalance(addr, identifier string, timestamp 
 		`"upsert": {}}`,
 		timestamp,
 	)
+	if timestamp == 0 {
+		serializedDataStr = fmt.Sprintf(`{"scripted_upsert": true, "script": {` +
+			`"source": "if ( ctx.op == 'create' )  { ctx.op = 'noop' } else { ctx.op = 'delete' }",` +
+			`"lang": "painless",` +
+			`"upsert": {}}`,
+		)
+	}
 
 	buffSlice := data.NewBufferSlice(0)
 	_ = buffSlice.PutData(meta, []byte(serializedDataStr))
