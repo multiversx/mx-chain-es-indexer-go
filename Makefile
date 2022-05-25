@@ -25,3 +25,10 @@ stop-cluster:
 
 delete-cluster-data:
 	cd scripts && ./script.sh delete
+
+integration-tests-open-search:
+	@echo " > Running integration tests open search"
+	cd scripts && ./script.sh start_open_search ${OPEN_VERSION}
+	go test -v ./integrationtests -tags integrationtests
+	cd scripts && ./script.sh delete
+	cd scripts && ./script.sh stop_open_search

@@ -12,6 +12,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/data/esdt"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
@@ -376,7 +377,9 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 		{Account: mockAccount, TokenIdentifier: "token", IsNFTOperation: true, NFTNonce: 15},
 		{Account: mockAccount, TokenIdentifier: "token", IsNFTOperation: true, NFTNonce: 16},
 	}
-	res, _ := ap.PrepareAccountsMapESDT(123, accountsESDT)
+
+	tagsCount := tags.NewTagsCount()
+	res, _ := ap.PrepareAccountsMapESDT(123, accountsESDT, tagsCount)
 	require.Len(t, res, 2)
 
 	require.Equal(t, &data.AccountInfo{

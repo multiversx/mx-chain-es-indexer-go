@@ -21,7 +21,7 @@ func (dba *DBAccountsHandlerStub) PrepareRegularAccountsMap(_ uint64, _ []*data.
 }
 
 // PrepareAccountsMapESDT -
-func (dba *DBAccountsHandlerStub) PrepareAccountsMapESDT(_ uint64, _ []*data.AccountESDT) (map[string]*data.AccountInfo, data.TokensHandler) {
+func (dba *DBAccountsHandlerStub) PrepareAccountsMapESDT(_ uint64, _ []*data.AccountESDT, _ data.CountTags) (map[string]*data.AccountInfo, data.TokensHandler) {
 	return nil, nil
 }
 
