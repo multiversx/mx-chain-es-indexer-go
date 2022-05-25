@@ -23,6 +23,7 @@ type Item struct {
 	Index  string `json:"_index"`
 	ID     string `json:"_id"`
 	Status int    `json:"status"`
+	Result string `json:"result"`
 	Error  struct {
 		Type   string `json:"type"`
 		Reason string `json:"reason"`

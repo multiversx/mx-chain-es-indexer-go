@@ -110,9 +110,6 @@ func extractErrorFromBulkBodyResponseBytes(bodyBytes []byte) error {
 	if err != nil {
 		return err
 	}
-	if !response.Errors {
-		return nil
-	}
 
 	count := 0
 	errorsString := ""
@@ -126,6 +123,12 @@ func extractErrorFromBulkBodyResponseBytes(bodyBytes []byte) error {
 			selectedItem = *item.ItemUpdate
 		}
 
+		log.Trace("worked on", "index", selectedItem.Index,
+			"_id", selectedItem.ID,
+			"result", selectedItem.Result,
+			"status", selectedItem.Status,
+		)
+
 		if selectedItem.Status < http.StatusBadRequest {
 			continue
 		}
@@ -137,6 +140,9 @@ func extractErrorFromBulkBodyResponseBytes(bodyBytes []byte) error {
 		if count == numOfErrorsToExtractBulkResponse {
 			break
 		}
+	}
+	if errorsString == "" {
+		return nil
 	}
 
 	return fmt.Errorf("%s", errorsString)
