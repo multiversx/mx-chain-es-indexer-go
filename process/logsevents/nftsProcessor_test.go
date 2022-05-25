@@ -55,6 +55,7 @@ func TestNftsProcessor_processLogAndEventsNFTs(t *testing.T) {
 		IsNFTOperation:  true,
 		TokenIdentifier: "my-token",
 		NFTNonce:        19,
+		IsNFTCreate:     true,
 	}, alteredAddr[0])
 
 	require.Equal(t, &data.TokenInfo{

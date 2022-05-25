@@ -365,11 +365,6 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
-	err = ei.prepareAndIndexTagsCount(logsData.TagsCount, buffers)
-	if err != nil {
-		return err
-	}
-
 	err = ei.indexNFTCreateInfo(logsData.Tokens, buffers)
 	if err != nil {
 		return err
@@ -390,7 +385,12 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
-	err = ei.indexAlteredAccounts(headerTimestamp, preparedResults.AlteredAccts, logsData.NFTsDataUpdates, buffers)
+	err = ei.indexAlteredAccounts(headerTimestamp, preparedResults.AlteredAccts, logsData.NFTsDataUpdates, buffers, logsData.TagsCount)
+	if err != nil {
+		return err
+	}
+
+	err = ei.prepareAndIndexTagsCount(logsData.TagsCount, buffers)
 	if err != nil {
 		return err
 	}
@@ -570,6 +570,7 @@ func (ei *elasticProcessor) indexAlteredAccounts(
 	alteredAccounts data.AlteredAccountsHandler,
 	updatesNFTsData []*data.NFTDataUpdate,
 	buffSlice *data.BufferSlice,
+	tagsCount data.CountTags,
 ) error {
 	regularAccountsToIndex, accountsToIndexESDT := ei.accountsProc.GetAccounts(alteredAccounts)
 
@@ -578,7 +579,7 @@ func (ei *elasticProcessor) indexAlteredAccounts(
 		return err
 	}
 
-	return ei.saveAccountsESDT(timestamp, accountsToIndexESDT, updatesNFTsData, buffSlice)
+	return ei.saveAccountsESDT(timestamp, accountsToIndexESDT, updatesNFTsData, buffSlice, tagsCount)
 }
 
 func (ei *elasticProcessor) saveAccountsESDT(
@@ -586,8 +587,9 @@ func (ei *elasticProcessor) saveAccountsESDT(
 	wrappedAccounts []*data.AccountESDT,
 	updatesNFTsData []*data.NFTDataUpdate,
 	buffSlice *data.BufferSlice,
+	tagsCount data.CountTags,
 ) error {
-	accountsESDTMap, tokensData := ei.accountsProc.PrepareAccountsMapESDT(timestamp, wrappedAccounts)
+	accountsESDTMap, tokensData := ei.accountsProc.PrepareAccountsMapESDT(timestamp, wrappedAccounts, tagsCount)
 	err := ei.addTokenTypeAndCurrentOwnerInAccountsESDT(tokensData, accountsESDTMap)
 	if err != nil {
 		return err

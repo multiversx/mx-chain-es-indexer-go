@@ -93,6 +93,7 @@ func splitAlteredAccounts(userAccount coreData.UserAccountHandler, altered []*da
 				IsSender:        info.IsSender,
 				IsNFTOperation:  info.IsNFTOperation,
 				NFTNonce:        info.NFTNonce,
+				IsNFTCreate:     info.IsNFTCreate,
 			})
 		}
 
@@ -167,6 +168,7 @@ func (ap *accountsProcessor) PrepareRegularAccountsMap(timestamp uint64, account
 func (ap *accountsProcessor) PrepareAccountsMapESDT(
 	timestamp uint64,
 	accounts []*data.AccountESDT,
+	tagsCount data.CountTags,
 ) (map[string]*data.AccountInfo, data.TokensHandler) {
 	tokensData := data.NewTokensInfo()
 	accountsESDTMap := make(map[string]*data.AccountInfo)
@@ -178,6 +180,10 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(
 				"address", address,
 				"error", err.Error())
 			continue
+		}
+
+		if tokenMetaData != nil && accountESDT.IsNFTCreate {
+			tagsCount.ParseTags(tokenMetaData.Tags)
 		}
 
 		tokenIdentifier := converters.ComputeTokenIdentifier(accountESDT.TokenIdentifier, accountESDT.NFTNonce)
