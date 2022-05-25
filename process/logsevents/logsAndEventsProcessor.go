@@ -118,7 +118,6 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 	return &data.PreparedLogsResults{
 		Tokens:          lep.logsData.tokens,
 		ScDeploys:       lep.logsData.scDeploys,
-		TagsCount:       lep.logsData.tagsCount,
 		TokensInfo:      lep.logsData.tokensInfo,
 		TokensSupply:    lep.logsData.tokensSupply,
 		Delegators:      lep.logsData.delegators,
@@ -147,7 +146,6 @@ func (lep *logsAndEventsProcessor) processEvent(logHash string, logAddress []byt
 			accounts:         lep.logsData.accounts,
 			tokens:           lep.logsData.tokens,
 			tokensSupply:     lep.logsData.tokensSupply,
-			tagsCount:        lep.logsData.tagsCount,
 			timestamp:        lep.logsData.timestamp,
 			scDeploys:        lep.logsData.scDeploys,
 			txs:              lep.logsData.txsMap,

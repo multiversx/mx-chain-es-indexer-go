@@ -24,7 +24,6 @@ type Event struct {
 type PreparedLogsResults struct {
 	Tokens          TokensHandler
 	TokensSupply    TokensHandler
-	TagsCount       CountTags
 	ScDeploys       map[string]*ScDeployInfo
 	Delegators      map[string]*Delegator
 	TokensInfo      []*TokenInfo
