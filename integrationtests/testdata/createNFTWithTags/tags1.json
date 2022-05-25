@@ -1,0 +1,56 @@
+[
+  {
+    "_index": "tags-000001",
+    "_type": "_doc",
+    "_id": "Y2V2YQ==",
+    "_score": 1,
+    "_source": {
+      "count": 1
+    }
+  },
+  {
+    "_index": "tags-000001",
+    "_type": "_doc",
+    "_id": "YW4=",
+    "_score": 1,
+    "_source": {
+      "count": 1
+    }
+  },
+  {
+    "_index": "tags-000001",
+    "_type": "_doc",
+    "_id": "c2FsdXQ=",
+    "_score": 1,
+    "_source": {
+      "count": 1
+    }
+  },
+  {
+    "_index": "tags-000001",
+    "_type": "_doc",
+    "_id": "c28=",
+    "_score": 1,
+    "_source": {
+      "count": 1
+    }
+  },
+  {
+    "_index": "tags-000001",
+    "_type": "_doc",
+    "_id": "b24=",
+    "_score": 1,
+    "_source": {
+      "count": 1
+    }
+  },
+  {
+    "_index": "tags-000001",
+    "_type": "_doc",
+    "_id": "c29tZXRoaW5n",
+    "_score": 1,
+    "_source": {
+      "count": 1
+    }
+  }
+]
