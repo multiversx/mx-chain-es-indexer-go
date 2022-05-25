@@ -4,6 +4,9 @@ package integrationtests
 
 import (
 	"encoding/json"
+	"math/big"
+	"testing"
+
 	indexerdata "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elrond-go-core/core"
@@ -14,8 +17,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 	"github.com/stretchr/testify/require"
-	"math/big"
-	"testing"
 )
 
 func TestCreateNFTWithTags(t *testing.T) {
