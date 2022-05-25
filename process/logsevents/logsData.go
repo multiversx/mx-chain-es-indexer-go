@@ -3,14 +3,12 @@ package logsevents
 import (
 	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
 )
 
 type logsData struct {
 	timestamp       uint64
 	tokens          data.TokensHandler
 	tokensSupply    data.TokensHandler
-	tagsCount       data.CountTags
 	accounts        data.AlteredAccountsHandler
 	txsMap          map[string]*data.Transaction
 	scrsMap         map[string]*data.ScResult
@@ -31,7 +29,6 @@ func newLogsData(
 
 	ld.txsMap = converters.ConvertTxsSliceIntoMap(txs)
 	ld.scrsMap = converters.ConvertScrsSliceIntoMap(scrs)
-	ld.tagsCount = tags.NewTagsCount()
 	ld.tokens = data.NewTokensInfo()
 	ld.tokensSupply = data.NewTokensInfo()
 	ld.accounts = accounts

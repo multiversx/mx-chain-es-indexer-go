@@ -8,7 +8,6 @@ import (
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/data/esdt"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
@@ -36,14 +35,12 @@ func TestNftsProcessor_processLogAndEventsNFTs(t *testing.T) {
 
 	altered := data.NewAlteredAccounts()
 
-	tagsCount := tags.NewTagsCount()
 	tokensCreateInfo := data.NewTokensInfo()
 	res := nftsProc.processEvent(&argsProcessEvent{
 		event:     event,
 		accounts:  altered,
 		tokens:    tokensCreateInfo,
 		timestamp: 1000,
-		tagsCount: tagsCount,
 	})
 	require.Equal(t, "my-token-13", res.identifier)
 	require.Equal(t, "1", res.value)
@@ -85,12 +82,10 @@ func TestNftsProcessor_processLogAndEventsNFTs_TransferNFT(t *testing.T) {
 
 	altered := data.NewAlteredAccounts()
 
-	tagsCount := tags.NewTagsCount()
 	res := nftsProc.processEvent(&argsProcessEvent{
 		event:     events,
 		accounts:  altered,
 		timestamp: 10000,
-		tagsCount: tagsCount,
 	})
 	require.Equal(t, "my-token-13", res.identifier)
 	require.Equal(t, "1", res.value)

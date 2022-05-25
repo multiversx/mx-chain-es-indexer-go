@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
 
 	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
@@ -385,12 +386,13 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
-	err = ei.indexAlteredAccounts(headerTimestamp, preparedResults.AlteredAccts, logsData.NFTsDataUpdates, buffers, logsData.TagsCount)
+	tagsCount := tags.NewTagsCount()
+	err = ei.indexAlteredAccounts(headerTimestamp, preparedResults.AlteredAccts, logsData.NFTsDataUpdates, buffers, tagsCount)
 	if err != nil {
 		return err
 	}
 
-	err = ei.prepareAndIndexTagsCount(logsData.TagsCount, buffers)
+	err = ei.prepareAndIndexTagsCount(tagsCount, buffers)
 	if err != nil {
 		return err
 	}
