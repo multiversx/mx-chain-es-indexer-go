@@ -105,7 +105,12 @@ func (pc *postgresClient) CreateTables() error {
 		return err
 	}
 
-	err = pc.createScResultsOperationsTable()
+	err = pc.createScrsOperationsTable()
+	if err != nil {
+		return err
+	}
+
+	err = pc.createTxsOperationsTable()
 	if err != nil {
 		return err
 	}
@@ -251,49 +256,6 @@ func (pc *postgresClient) createAccountsESDTHistoryTable() error {
 	return pc.CreateRawTable(sql)
 }
 
-func (pc *postgresClient) createScResultsOperationsTable() error {
-	sql := `CREATE TABLE IF NOT EXISTS operations (
-		hash text NOT NULL UNIQUE,
-		mb_hash text NULL,
-		nonce int8 NULL,
-		gas_limit int8 NULL,
-		gas_price int8 NULL,
-		value text NULL,
-		sender text NULL,
-		receiver text NULL,
-		sender_shard int8 NULL,
-		receiver_shard int8 NULL,
-		relayer_addr text NULL,
-		relayed_value text NULL,
-		code text NULL,
-		"data" text NULL,
-		prev_tx_hash text NULL,
-		original_tx_hash text NULL,
-		call_type text NULL,
-		code_metadata text NULL,
-		return_message text NULL,
-		"timestamp" int8 NULL,
-		has_operations bool NULL,
-		"type" text NULL,
-		status text NULL,
-		tokens text NULL,
-		esdt_values text NULL,
-		receivers text NULL,
-		receivers_shard_ids text NULL,
-		operation text NULL,
-		"function" text NULL,
-		is_relayed bool NULL,
-		can_be_ignored bool NULL,
-		original_sender text NULL,
-		sender_address_bytes text NULL,
-		tx_hash text NULL,
-		PRIMARY KEY (hash),
-		FOREIGN KEY (tx_hash) REFERENCES transactions(hash)
-	)`
-
-	return pc.CreateRawTable(sql)
-}
-
 func (pc *postgresClient) createTagsTable() error {
 	sql := `CREATE TABLE IF NOT EXISTS tags (
 		tag text NOT NULL UNIQUE,
@@ -314,7 +276,7 @@ func (pc *postgresClient) createTxsOperationsTable() error {
 }
 
 func (pc *postgresClient) createScrsOperationsTable() error {
-	err := pc.ps.Table("scrs_operations").AutoMigrate(&data.Transaction{})
+	err := pc.ps.Table("scrs_operations").AutoMigrate(&data.ScResult{})
 	if err != nil {
 		return err
 	}
@@ -665,108 +627,24 @@ func (pc *postgresClient) InsertTags(tags map[string]int) error {
 	return nil
 }
 
-func (pc *postgresClient) InsertOperation(scResult *data.ScResult, txHash string) error {
-	sql := `INSERT INTO operations (
-		hash,
-		mb_hash,
-		nonce,
-		gas_limit,
-		gas_price,
-		value,
-		sender,
-		receiver,
-		sender_shard,
-		receiver_shard,
-		relayer_addr,
-		relayed_value,
-		code,
-		"data",
-		prev_tx_hash,
-		original_tx_hash,
-		call_type,
-		code_metadata,
-		return_message,
-		"timestamp",
-		has_operations,
-		"type",
-		status,
-		tokens,
-		esdt_values,
-		receivers,
-		receivers_shard_ids,
-		operation,
-		"function",
-		is_relayed,
-		can_be_ignored,
-		original_sender,
-		sender_address_bytes,
-		tx_hash
-	) VALUES (
-		?,?,?,?,?,?,?,?,?,?,
-		?,?,?,?,?,?,?,?,?,?,
-		?,?,?,?,?,?,?,?,?,?,
-		?,?,?,?
-	) ON CONFLICT DO NOTHING`
-
-	tokens, err := json.Marshal(scResult.Tokens)
-	if err != nil {
-		return err
-	}
-
-	esdtValues, err := json.Marshal(scResult.ESDTValues)
-	if err != nil {
-		return err
-	}
-
-	receivers, err := json.Marshal(scResult.Receivers)
-	if err != nil {
-		return err
-	}
-
-	receiversShardIDs, err := json.Marshal(scResult.ReceiversShardIDs)
-	if err != nil {
-		return err
-	}
-
-	result := pc.ps.Exec(sql,
-		scResult.Hash,
-		scResult.MBHash,
-		scResult.Nonce,
-		scResult.GasLimit,
-		scResult.GasPrice,
-		scResult.Value,
-		scResult.Sender,
-		scResult.Receiver,
-		scResult.SenderShard,
-		scResult.ReceiverShard,
-		scResult.RelayerAddr,
-		scResult.RelayedValue,
-		scResult.Code,
-		base64.StdEncoding.EncodeToString(scResult.Data),
-		scResult.PrevTxHash,
-		scResult.OriginalTxHash,
-		scResult.CallType,
-		base64.StdEncoding.EncodeToString(scResult.CodeMetadata),
-		scResult.ReturnMessage,
-		scResult.Timestamp,
-		scResult.HasOperations,
-		scResult.Type,
-		scResult.Status,
-		tokens,
-		esdtValues,
-		receivers,
-		receiversShardIDs,
-		scResult.Operation,
-		scResult.Function,
-		scResult.IsRelayed,
-		scResult.CanBeIgnored,
-		scResult.OriginalSender,
-		base64.StdEncoding.EncodeToString(scResult.SenderAddressBytes),
-		txHash,
-	)
+func (pc *postgresClient) InsertScrsOperation(scResults []*data.ScResult) error {
+	result := pc.ps.Table("scrs_operations").Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(scResults, batchSize)
 	if result.Error != nil {
 		return result.Error
 	}
+
+	log.Info("Insert", "rows affected", result.RowsAffected)
+
+	return nil
+}
+
+func (pc *postgresClient) InsertTxsOperation(txs []*data.Transaction) error {
+	result := pc.ps.Table("txs_operations").Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(txs, batchSize)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	log.Info("Insert", "rows affected", result.RowsAffected)
 
 	return nil
 }

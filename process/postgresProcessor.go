@@ -472,22 +472,26 @@ func (psp *postgresProcessor) indexDelegators(delegators map[string]*data.Delega
 	return nil
 }
 
-// func (psp *postgresProcessor) prepareAndIndexOperations(
-// 	txs []*data.Transaction,
-// 	txHashStatus map[string]string,
-// 	header coreData.HeaderHandler,
-// 	scrs []*data.ScResult,
-// ) error {
-// 	processedTxs, processedSCRs := psp.operationsProc.ProcessTransactionsAndSCRs(txs, scrs)
+func (psp *postgresProcessor) prepareAndIndexOperations(
+	txs []*data.Transaction,
+	txHashStatus map[string]string,
+	header coreData.HeaderHandler,
+	scrs []*data.ScResult,
+) error {
+	processedTxs, processedSCRs := psp.operationsProc.ProcessTransactionsAndSCRs(txs, scrs)
 
-// 	// err := psp.transactionsProc.SerializeTransactions(processedTxs, txHashStatus, header.GetShardID(), buffSlice, elasticIndexer.OperationsIndex)
-// 	// if err != nil {
-// 	// 	return err
-// 	// }
+	err := psp.postgresClient.InsertTxsOperation(processedTxs)
+	if err != nil {
+		return err
+	}
 
-// 	// return psp.operationsProc.SerializeSCRs(processedSCRs, buffSlice, elasticIndexer.OperationsIndex)
-// 	return nil
-// }
+	err = psp.postgresClient.InsertScrsOperation(processedSCRs)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
 
 func (psp *postgresProcessor) indexAlteredAccounts(
 	timestamp uint64,
