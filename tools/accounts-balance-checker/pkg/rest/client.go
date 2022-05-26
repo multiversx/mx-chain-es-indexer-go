@@ -5,16 +5,11 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/ElrondNetwork/elastic-indexer-go/tools/accounts-balance-checker/pkg/utils"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 )
 
 var log = logger.GetOrCreate("restClient")
-
-type genericAPIResponse struct {
-	Data  json.RawMessage `json:"data"`
-	Error string          `json:"error"`
-	Code  string          `json:"code"`
-}
 
 type restClient struct {
 	httpClient *http.Client
@@ -33,10 +28,12 @@ func NewRestClient(url string) (*restClient, error) {
 
 // CallGetRestEndPoint calls an external end point (sends a get request)
 func (rc *restClient) CallGetRestEndPoint(
-	path string,
+	pathEndpoint string,
 	value interface{},
 ) error {
-	req, err := http.NewRequest("GET", rc.url+path, nil)
+	defer utils.LogExecutionTime(log, time.Now(), "rc.CallGetRestEndPoint "+pathEndpoint)
+
+	req, err := http.NewRequest(http.MethodGet, rc.url+pathEndpoint, nil)
 	if err != nil {
 		return err
 	}
