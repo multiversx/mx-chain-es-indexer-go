@@ -8,6 +8,7 @@ import (
 	blockProc "github.com/ElrondNetwork/elastic-indexer-go/process/block"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/logsevents"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/miniblocks"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/operations"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/statistics"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/templatesAndPolicies"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/transactions"
@@ -106,6 +107,11 @@ func CreatePostgresProcessor(arguments ArgPostgresProcessorFactory) (indexer.Ela
 		return nil, err
 	}
 
+	operationsProc, err := operations.NewOperationsProcessor(arguments.IsInImportDBMode, arguments.ShardCoordinator)
+	if err != nil {
+		return nil, err
+	}
+
 	args := &processIndexer.ArgPostgresProcessor{
 		TransactionsProc:  txsProc,
 		AccountsProc:      accountsProc,
@@ -120,6 +126,7 @@ func CreatePostgresProcessor(arguments ArgPostgresProcessorFactory) (indexer.Ela
 		IndexTemplates:    indexTemplates,
 		IndexPolicies:     indexPolicies,
 		SelfShardID:       arguments.ShardCoordinator.SelfId(),
+		OperationsProc:    operationsProc,
 	}
 
 	return processIndexer.NewPostgresProcessor(args)

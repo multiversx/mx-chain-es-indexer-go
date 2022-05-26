@@ -16,32 +16,36 @@ import (
 
 // ArgPostgresProcessor
 type ArgPostgresProcessor struct {
-	UseKibana         bool
-	SelfShardID       uint32
-	IndexTemplates    map[string]*bytes.Buffer
-	IndexPolicies     map[string]*bytes.Buffer
-	EnabledIndexes    map[string]struct{}
-	TransactionsProc  DBTransactionsHandler
-	AccountsProc      DBAccountHandler
-	BlockProc         DBBlockHandler
-	MiniblocksProc    DBMiniblocksHandler
-	StatisticsProc    DBStatisticsHandler
-	ValidatorsProc    DBValidatorsHandler
-	DBClient          PostgresClientHandler
-	LogsAndEventsProc DBLogsAndEventsHandler
+	BulkRequestMaxSize int
+	UseKibana          bool
+	SelfShardID        uint32
+	IndexTemplates     map[string]*bytes.Buffer
+	IndexPolicies      map[string]*bytes.Buffer
+	EnabledIndexes     map[string]struct{}
+	TransactionsProc   DBTransactionsHandler
+	AccountsProc       DBAccountHandler
+	BlockProc          DBBlockHandler
+	MiniblocksProc     DBMiniblocksHandler
+	StatisticsProc     DBStatisticsHandler
+	ValidatorsProc     DBValidatorsHandler
+	DBClient           PostgresClientHandler
+	LogsAndEventsProc  DBLogsAndEventsHandler
+	OperationsProc     OperationsHandler
 }
 
 type postgresProcessor struct {
-	selfShardID       uint32
-	enabledIndexes    map[string]struct{}
-	postgresClient    PostgresClientHandler
-	accountsProc      DBAccountHandler
-	blockProc         DBBlockHandler
-	transactionsProc  DBTransactionsHandler
-	miniblocksProc    DBMiniblocksHandler
-	statisticsProc    DBStatisticsHandler
-	validatorsProc    DBValidatorsHandler
-	logsAndEventsProc DBLogsAndEventsHandler
+	bulkRequestMaxSize int
+	selfShardID        uint32
+	enabledIndexes     map[string]struct{}
+	postgresClient     PostgresClientHandler
+	accountsProc       DBAccountHandler
+	blockProc          DBBlockHandler
+	transactionsProc   DBTransactionsHandler
+	miniblocksProc     DBMiniblocksHandler
+	statisticsProc     DBStatisticsHandler
+	validatorsProc     DBValidatorsHandler
+	logsAndEventsProc  DBLogsAndEventsHandler
+	operationsProc     OperationsHandler
 }
 
 // NewPostgresProcessor
@@ -52,16 +56,18 @@ func NewPostgresProcessor(arguments *ArgPostgresProcessor) (*postgresProcessor, 
 	}
 
 	ei := &postgresProcessor{
-		postgresClient:    arguments.DBClient,
-		enabledIndexes:    arguments.EnabledIndexes,
-		accountsProc:      arguments.AccountsProc,
-		blockProc:         arguments.BlockProc,
-		miniblocksProc:    arguments.MiniblocksProc,
-		transactionsProc:  arguments.TransactionsProc,
-		selfShardID:       arguments.SelfShardID,
-		statisticsProc:    arguments.StatisticsProc,
-		validatorsProc:    arguments.ValidatorsProc,
-		logsAndEventsProc: arguments.LogsAndEventsProc,
+		postgresClient:     arguments.DBClient,
+		enabledIndexes:     arguments.EnabledIndexes,
+		accountsProc:       arguments.AccountsProc,
+		blockProc:          arguments.BlockProc,
+		miniblocksProc:     arguments.MiniblocksProc,
+		transactionsProc:   arguments.TransactionsProc,
+		selfShardID:        arguments.SelfShardID,
+		statisticsProc:     arguments.StatisticsProc,
+		validatorsProc:     arguments.ValidatorsProc,
+		logsAndEventsProc:  arguments.LogsAndEventsProc,
+		operationsProc:     arguments.OperationsProc,
+		bulkRequestMaxSize: arguments.BulkRequestMaxSize,
 	}
 
 	err = ei.init(arguments.UseKibana, arguments.IndexTemplates, arguments.IndexPolicies)
@@ -349,6 +355,11 @@ func (psp *postgresProcessor) SaveTransactions(
 		return err
 	}
 
+	// err = ei.prepareAndIndexOperations(preparedResults.Transactions, preparedResults.TxHashStatus, header, preparedResults.ScResults)
+	// if err != nil {
+	// 	return err
+	// }
+
 	err = psp.indexScDeploys(logsData.ScDeploys)
 	if err != nil {
 		return err
@@ -460,6 +471,23 @@ func (psp *postgresProcessor) indexDelegators(delegators map[string]*data.Delega
 
 	return nil
 }
+
+// func (psp *postgresProcessor) prepareAndIndexOperations(
+// 	txs []*data.Transaction,
+// 	txHashStatus map[string]string,
+// 	header coreData.HeaderHandler,
+// 	scrs []*data.ScResult,
+// ) error {
+// 	processedTxs, processedSCRs := psp.operationsProc.ProcessTransactionsAndSCRs(txs, scrs)
+
+// 	// err := psp.transactionsProc.SerializeTransactions(processedTxs, txHashStatus, header.GetShardID(), buffSlice, elasticIndexer.OperationsIndex)
+// 	// if err != nil {
+// 	// 	return err
+// 	// }
+
+// 	// return psp.operationsProc.SerializeSCRs(processedSCRs, buffSlice, elasticIndexer.OperationsIndex)
+// 	return nil
+// }
 
 func (psp *postgresProcessor) indexAlteredAccounts(
 	timestamp uint64,

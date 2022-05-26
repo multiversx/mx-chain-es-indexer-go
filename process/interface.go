@@ -31,6 +31,7 @@ type PostgresClientHandler interface {
 	InsertAccountESDTHistory(account *data.AccountBalanceHistory) error
 	InsertTags(tags map[string]int) error
 	InsertESDTMetaData(account *data.AccountInfo) error
+	InsertOperation(scResult *data.ScResult, txHash string) error
 	IsInterfaceNil() bool
 }
 
