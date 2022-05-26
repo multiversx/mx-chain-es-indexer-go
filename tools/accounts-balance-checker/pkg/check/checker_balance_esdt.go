@@ -99,7 +99,7 @@ func (bc *balanceChecker) getESDBalancesFromES(address string, numOfBalances int
 	encoded, _ := encodeQuery(getBalancesByAddress(address))
 
 	if numOfBalances > maxDocumentsFromES {
-		log.Info("bc.getESDBalancesFromES", "number of balances", numOfBalances)
+		log.Info("bc.getESDBalancesFromES", "number of balances", numOfBalances, "address", address)
 		return bc.getAccountsByQuery(encoded.String())
 	}
 

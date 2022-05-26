@@ -2,6 +2,7 @@ package rest
 
 import (
 	"encoding/json"
+	"math"
 	"net/http"
 	"time"
 
@@ -42,14 +43,18 @@ func (rc *restClient) CallGetRestEndPoint(
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("User-Agent", userAgent)
 
+	var count = 0
 TryAgain:
 	resp, err := rc.httpClient.Do(req)
 	if err != nil {
 		return err
 	}
-	if resp.StatusCode == 429 {
+	if resp.StatusCode == http.StatusTooManyRequests || resp.StatusCode == http.StatusRequestTimeout {
 		_ = resp.Body.Close()
-		time.Sleep(100 * time.Millisecond)
+		count++
+		// a simple exponential delay
+		delay := time.Duration(math.Exp2(float64(count))) * time.Second
+		time.Sleep(delay)
 		goto TryAgain
 	}
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 
@@ -121,5 +122,18 @@ func readConfig(ctx *cli.Context) (*config.Config, error) {
 }
 
 func setLogLevelDebug(ctx *cli.Context) {
-	_ = logger.SetLogLevel(ctx.String(logLevel.Name))
+	err := logger.SetLogLevel(ctx.String(logLevel.Name))
+	if err != nil {
+		fmt.Println("main logger.SetLogLevel error: ", err.Error())
+	}
+
+	err = logger.RemoveLogObserver(os.Stdout)
+	if err != nil {
+		fmt.Println("main logger.RemoveLogObserver error: ", err.Error())
+	}
+
+	err = logger.AddLogObserver(os.Stdout, &logger.PlainFormatter{})
+	if err != nil {
+		fmt.Println("main logger.AddLogObserver error: ", err.Error())
+	}
 }
