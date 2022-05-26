@@ -310,7 +310,7 @@ func (psp *postgresProcessor) SaveTransactions(
 		return err
 	}
 
-	// err = ei.indexTransactionsWithRefund(preparedResults.TxHashRefund)
+	// err = psp.indexTransactionsWithRefund(preparedResults.TxHashRefund)
 	// if err != nil {
 	// 	return err
 	// }
@@ -355,7 +355,17 @@ func (psp *postgresProcessor) SaveTransactions(
 		return err
 	}
 
-	// err = ei.prepareAndIndexOperations(preparedResults.Transactions, preparedResults.TxHashStatus, header, preparedResults.ScResults)
+	err = psp.prepareAndIndexOperations(preparedResults.Transactions, preparedResults.TxHashStatus, header, preparedResults.ScResults)
+	if err != nil {
+		return err
+	}
+
+	err = psp.indexNFTBurnInfo(logsData.TokensSupply)
+	if err != nil {
+		return err
+	}
+
+	// err = ei.prepareAndIndexRolesData(logsData.RolesData, buffers)
 	// if err != nil {
 	// 	return err
 	// }
@@ -405,6 +415,30 @@ func (psp *postgresProcessor) indexNFTCreateInfo(tokensData data.TokensHandler) 
 	psp.accountsProc.PutTokenMedataDataInTokens(tokens)
 
 	err := psp.postgresClient.Insert(tokens)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (psp *postgresProcessor) indexNFTBurnInfo(tokensData data.TokensHandler) error {
+	if tokensData.Len() == 0 {
+		return nil
+	}
+
+	// TODO: handle get type from response
+
+	tokensInfo := make([]*data.TokenInfo, 0)
+	for _, supplyData := range tokensData.GetAll() {
+		if supplyData.Type != core.NonFungibleESDT {
+			continue
+		}
+
+		tokensInfo = append(tokensInfo, supplyData)
+	}
+
+	err := psp.postgresClient.Insert(tokensInfo)
 	if err != nil {
 		return err
 	}
