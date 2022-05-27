@@ -2,6 +2,7 @@ package logsevents
 
 import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/tokeninfo"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 )
 
@@ -13,7 +14,7 @@ type argsProcessEvent struct {
 	accounts                data.AlteredAccountsHandler
 	tokens                  data.TokensHandler
 	tokensSupply            data.TokensHandler
-	tokenRolesAndProperties data.TokenRolesAndPropertiesHandler
+	tokenRolesAndProperties *tokeninfo.TokenRolesAndProperties
 	timestamp               uint64
 	logAddress              []byte
 }

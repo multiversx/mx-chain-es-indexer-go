@@ -1,6 +1,10 @@
 package data
 
-import "time"
+import (
+	"time"
+
+	"github.com/ElrondNetwork/elastic-indexer-go/process/tokeninfo"
+)
 
 // Logs holds all the fields needed for a logs structure
 type Logs struct {
@@ -28,5 +32,5 @@ type PreparedLogsResults struct {
 	Delegators              map[string]*Delegator
 	TokensInfo              []*TokenInfo
 	NFTsDataUpdates         []*NFTDataUpdate
-	TokenRolesAndProperties TokenRolesAndPropertiesHandler
+	TokenRolesAndProperties *tokeninfo.TokenRolesAndProperties
 }

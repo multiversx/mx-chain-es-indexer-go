@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/tokeninfo"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/stretchr/testify/require"
@@ -23,13 +23,13 @@ func TestEsdtPropertiesProcCreateRoleShouldWork(t *testing.T) {
 		Topics:     [][]byte{[]byte("MYTOKEN-abcd"), big.NewInt(0).Bytes(), big.NewInt(0).Bytes(), []byte(core.ESDTRoleNFTCreate)},
 	}
 
-	tokenRolesAndProperties := data.NewTokenRolesAndProperties()
+	tokenRolesAndProperties := tokeninfo.NewTokenRolesAndProperties()
 	esdtPropProc.processEvent(&argsProcessEvent{
 		event:                   event,
 		tokenRolesAndProperties: tokenRolesAndProperties,
 	})
 
-	expected := map[string][]*data.RoleData{
+	expected := map[string][]*tokeninfo.RoleData{
 		core.ESDTRoleNFTCreate: {
 			{
 				Token:   "MYTOKEN-abcd",
@@ -52,13 +52,13 @@ func TestEsdtPropertiesProcTransferCreateRole(t *testing.T) {
 		Topics:     [][]byte{[]byte("MYTOKEN-abcd"), big.NewInt(0).Bytes(), big.NewInt(0).Bytes(), []byte(strconv.FormatBool(true))},
 	}
 
-	tokenRolesAndProperties := data.NewTokenRolesAndProperties()
+	tokenRolesAndProperties := tokeninfo.NewTokenRolesAndProperties()
 	esdtPropProc.processEvent(&argsProcessEvent{
 		event:                   event,
 		tokenRolesAndProperties: tokenRolesAndProperties,
 	})
 
-	expected := map[string][]*data.RoleData{
+	expected := map[string][]*tokeninfo.RoleData{
 		core.ESDTRoleNFTCreate: {
 			{
 				Token:   "MYTOKEN-abcd",
@@ -81,13 +81,13 @@ func TestEsdtPropertiesProcUpgradeProperties(t *testing.T) {
 		Topics:     [][]byte{[]byte("MYTOKEN-abcd"), big.NewInt(0).Bytes(), []byte("canMint"), []byte("true"), []byte("canBurn"), []byte("false")},
 	}
 
-	tokenRolesAndProperties := data.NewTokenRolesAndProperties()
+	tokenRolesAndProperties := tokeninfo.NewTokenRolesAndProperties()
 	esdtPropProc.processEvent(&argsProcessEvent{
 		event:                   event,
 		tokenRolesAndProperties: tokenRolesAndProperties,
 	})
 
-	expected := []*data.PropertiesData{
+	expected := []*tokeninfo.PropertiesData{
 		{
 			Token: "MYTOKEN-abcd",
 			Properties: map[string]bool{

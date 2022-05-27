@@ -3,6 +3,7 @@ package logsevents
 import (
 	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/tokeninfo"
 )
 
 type logsData struct {
@@ -16,7 +17,7 @@ type logsData struct {
 	delegators              map[string]*data.Delegator
 	tokensInfo              []*data.TokenInfo
 	nftsDataUpdates         []*data.NFTDataUpdate
-	tokenRolesAndProperties data.TokenRolesAndPropertiesHandler
+	tokenRolesAndProperties *tokeninfo.TokenRolesAndProperties
 }
 
 func newLogsData(
@@ -37,7 +38,7 @@ func newLogsData(
 	ld.tokensInfo = make([]*data.TokenInfo, 0)
 	ld.delegators = make(map[string]*data.Delegator)
 	ld.nftsDataUpdates = make([]*data.NFTDataUpdate, 0)
-	ld.tokenRolesAndProperties = data.NewTokenRolesAndProperties()
+	ld.tokenRolesAndProperties = tokeninfo.NewTokenRolesAndProperties()
 
 	return ld
 }

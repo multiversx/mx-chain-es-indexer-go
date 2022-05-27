@@ -1,17 +1,4 @@
-package data
-
-// TokenRolesAndPropertiesHandler defines what a tokens and properties handler should do
-type TokenRolesAndPropertiesHandler interface {
-	AddRole(token string, address string, role string, set bool)
-	AddProperties(token string, properties map[string]bool)
-	GetRoles() map[string][]*RoleData
-	GetAllTokensWithProperties() []*PropertiesData
-}
-
-type tokenRolesAndProperties struct {
-	rolesData       map[string][]*RoleData
-	tokenProperties []*PropertiesData
-}
+package tokeninfo
 
 // RoleData is the structure that will keep information about a role
 type RoleData struct {
@@ -26,17 +13,23 @@ type PropertiesData struct {
 	Properties map[string]bool
 }
 
+// TokenRolesAndProperties is the structure that will keep information about tokens properties and roles
+type TokenRolesAndProperties struct {
+	rolesData       map[string][]*RoleData
+	tokenProperties []*PropertiesData
+}
+
 // NewTokenRolesAndProperties will create a new instance of tokenRolesAndProperties
 // this is a NOT concurrent save structure
-func NewTokenRolesAndProperties() *tokenRolesAndProperties {
-	return &tokenRolesAndProperties{
+func NewTokenRolesAndProperties() *TokenRolesAndProperties {
+	return &TokenRolesAndProperties{
 		rolesData:       make(map[string][]*RoleData),
 		tokenProperties: make([]*PropertiesData, 0),
 	}
 }
 
 // AddRole will add role for the provided address
-func (tap *tokenRolesAndProperties) AddRole(token string, address string, role string, set bool) {
+func (tap *TokenRolesAndProperties) AddRole(token string, address string, role string, set bool) {
 	rData := &RoleData{
 		Set:     set,
 		Address: address,
@@ -53,12 +46,12 @@ func (tap *tokenRolesAndProperties) AddRole(token string, address string, role s
 }
 
 // GetRoles will return all the information about the roles
-func (tap *tokenRolesAndProperties) GetRoles() map[string][]*RoleData {
+func (tap *TokenRolesAndProperties) GetRoles() map[string][]*RoleData {
 	return tap.rolesData
 }
 
 // AddProperties will add token and the provided properties
-func (tap *tokenRolesAndProperties) AddProperties(token string, properties map[string]bool) {
+func (tap *TokenRolesAndProperties) AddProperties(token string, properties map[string]bool) {
 	tap.tokenProperties = append(tap.tokenProperties, &PropertiesData{
 		Token:      token,
 		Properties: properties,
@@ -66,6 +59,6 @@ func (tap *tokenRolesAndProperties) AddProperties(token string, properties map[s
 }
 
 // GetAllTokensWithProperties will return all the tokens with properties
-func (tap *tokenRolesAndProperties) GetAllTokensWithProperties() []*PropertiesData {
+func (tap *TokenRolesAndProperties) GetAllTokensWithProperties() []*PropertiesData {
 	return tap.tokenProperties
 }

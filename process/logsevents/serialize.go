@@ -7,6 +7,7 @@ import (
 
 	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/tokeninfo"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 )
 
@@ -199,7 +200,7 @@ func (lep *logsAndEventsProcessor) SerializeSupplyData(tokensSupply data.TokensH
 
 // SerializeRolesData will serialize the provided roles data
 func (lep *logsAndEventsProcessor) SerializeRolesData(
-	tokenRolesAndProperties data.TokenRolesAndPropertiesHandler,
+	tokenRolesAndProperties *tokeninfo.TokenRolesAndProperties,
 	buffSlice *data.BufferSlice,
 	index string,
 ) error {
@@ -222,7 +223,7 @@ func (lep *logsAndEventsProcessor) SerializeRolesData(
 	return nil
 }
 
-func serializeRoleData(buffSlice *data.BufferSlice, rd *data.RoleData, role string, index string) error {
+func serializeRoleData(buffSlice *data.BufferSlice, rd *tokeninfo.RoleData, role string, index string) error {
 	meta := []byte(fmt.Sprintf(`{ "update" : {"_index": "%s", "_id" : "%s" } }%s`, index, rd.Token, "\n"))
 	var serializedDataStr string
 	if rd.Set {
@@ -267,7 +268,7 @@ func serializeRoleData(buffSlice *data.BufferSlice, rd *data.RoleData, role stri
 	return buffSlice.PutData(meta, []byte(serializedDataStr))
 }
 
-func serializePropertiesData(buffSlice *data.BufferSlice, index string, tokenProp *data.PropertiesData) error {
+func serializePropertiesData(buffSlice *data.BufferSlice, index string, tokenProp *tokeninfo.PropertiesData) error {
 	meta := []byte(fmt.Sprintf(`{ "update" : {"_index": "%s", "_id" : "%s" } }%s`, index, tokenProp.Token, "\n"))
 
 	propertiesBytes, err := json.Marshal(tokenProp.Properties)

@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/tokeninfo"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
@@ -108,7 +109,7 @@ type DBLogsAndEventsHandler interface {
 	SerializeDelegators(delegators map[string]*data.Delegator, buffSlice *data.BufferSlice, index string) error
 	SerializeSupplyData(tokensSupply data.TokensHandler, buffSlice *data.BufferSlice, index string) error
 	SerializeRolesData(
-		tokenRolesAndProperties data.TokenRolesAndPropertiesHandler,
+		tokenRolesAndProperties *tokeninfo.TokenRolesAndProperties,
 		buffSlice *data.BufferSlice,
 		index string,
 	) error

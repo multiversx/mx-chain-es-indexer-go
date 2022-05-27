@@ -8,6 +8,7 @@ import (
 	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/tokeninfo"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
@@ -430,7 +431,7 @@ func (ei *elasticProcessor) SaveTransactions(
 	return ei.doBulkRequests("", buffers.Buffers())
 }
 
-func (ei *elasticProcessor) prepareAndIndexRolesData(tokenRolesAndProperties data.TokenRolesAndPropertiesHandler, buffSlice *data.BufferSlice) error {
+func (ei *elasticProcessor) prepareAndIndexRolesData(tokenRolesAndProperties *tokeninfo.TokenRolesAndProperties, buffSlice *data.BufferSlice) error {
 	if !ei.isIndexEnabled(elasticIndexer.TokensIndex) {
 		return nil
 	}
