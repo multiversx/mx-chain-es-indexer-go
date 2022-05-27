@@ -6,16 +6,16 @@ import (
 )
 
 type argsProcessEvent struct {
-	txHashHexEncoded string
-	scDeploys        map[string]*data.ScDeployInfo
-	txs              map[string]*data.Transaction
-	event            coreData.EventHandler
-	accounts         data.AlteredAccountsHandler
-	tokens           data.TokensHandler
-	tokensSupply     data.TokensHandler
-	rolesData        data.RolesData
-	timestamp        uint64
-	logAddress       []byte
+	txHashHexEncoded        string
+	scDeploys               map[string]*data.ScDeployInfo
+	txs                     map[string]*data.Transaction
+	event                   coreData.EventHandler
+	accounts                data.AlteredAccountsHandler
+	tokens                  data.TokensHandler
+	tokensSupply            data.TokensHandler
+	tokenRolesAndProperties data.TokenRolesAndPropertiesHandler
+	timestamp               uint64
+	logAddress              []byte
 }
 
 type argOutputProcessEvent struct {

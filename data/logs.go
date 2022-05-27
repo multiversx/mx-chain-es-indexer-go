@@ -22,11 +22,11 @@ type Event struct {
 
 // PreparedLogsResults is the DTO that holds all the results after processing
 type PreparedLogsResults struct {
-	Tokens          TokensHandler
-	TokensSupply    TokensHandler
-	ScDeploys       map[string]*ScDeployInfo
-	Delegators      map[string]*Delegator
-	TokensInfo      []*TokenInfo
-	NFTsDataUpdates []*NFTDataUpdate
-	RolesData       RolesData
+	Tokens                  TokensHandler
+	TokensSupply            TokensHandler
+	ScDeploys               map[string]*ScDeployInfo
+	Delegators              map[string]*Delegator
+	TokensInfo              []*TokenInfo
+	NFTsDataUpdates         []*NFTDataUpdate
+	TokenRolesAndProperties TokenRolesAndPropertiesHandler
 }

@@ -19,5 +19,18 @@
     "ESDTRoleNFTBurn": [
       "6d792d61646472657373"
     ]
+  },
+  "numDecimals": 0,
+  "properties": {
+    "canMint": false,
+    "canBurn": false,
+    "canUpgrade": true,
+    "canTransferNFTCreateRole": false,
+    "canAddSpecialRoles": false,
+    "canPause": false,
+    "canFreeze": false,
+    "canWipe": false,
+    "canChangeOwner": false,
+    "canCreateMultiShard": false
   }
 }

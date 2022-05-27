@@ -23,14 +23,14 @@ func TestRolesProcessorCreateRoleShouldWork(t *testing.T) {
 		Topics:     [][]byte{[]byte("MYTOKEN-abcd"), big.NewInt(0).Bytes(), big.NewInt(0).Bytes(), []byte(core.ESDTRoleNFTCreate)},
 	}
 
-	rolesData := data.RolesData{}
+	tokenRolesAndProperties := data.NewTokenRolesAndProperties()
 	rolesProc.processEvent(&argsProcessEvent{
-		event:     event,
-		rolesData: rolesData,
+		event:                   event,
+		tokenRolesAndProperties: tokenRolesAndProperties,
 	})
 
-	expected := data.RolesData{
-		core.ESDTRoleNFTCreate: []*data.RoleData{
+	expected := map[string][]*data.RoleData{
+		core.ESDTRoleNFTCreate: {
 			{
 				Token:   "MYTOKEN-abcd",
 				Set:     true,
@@ -38,7 +38,7 @@ func TestRolesProcessorCreateRoleShouldWork(t *testing.T) {
 			},
 		},
 	}
-	require.Equal(t, expected, rolesData)
+	require.Equal(t, expected, tokenRolesAndProperties.GetRoles())
 }
 
 func TestRolesProcessorTransferCreateRole(t *testing.T) {
@@ -52,14 +52,14 @@ func TestRolesProcessorTransferCreateRole(t *testing.T) {
 		Topics:     [][]byte{[]byte("MYTOKEN-abcd"), big.NewInt(0).Bytes(), big.NewInt(0).Bytes(), []byte(strconv.FormatBool(true))},
 	}
 
-	rolesData := data.RolesData{}
+	tokenRolesAndProperties := data.NewTokenRolesAndProperties()
 	rolesProc.processEvent(&argsProcessEvent{
-		event:     event,
-		rolesData: rolesData,
+		event:                   event,
+		tokenRolesAndProperties: tokenRolesAndProperties,
 	})
 
-	expected := data.RolesData{
-		core.ESDTRoleNFTCreate: []*data.RoleData{
+	expected := map[string][]*data.RoleData{
+		core.ESDTRoleNFTCreate: {
 			{
 				Token:   "MYTOKEN-abcd",
 				Set:     true,
@@ -67,5 +67,5 @@ func TestRolesProcessorTransferCreateRole(t *testing.T) {
 			},
 		},
 	}
-	require.Equal(t, expected, rolesData)
+	require.Equal(t, expected, tokenRolesAndProperties.GetRoles())
 }

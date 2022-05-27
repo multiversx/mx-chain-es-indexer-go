@@ -27,7 +27,7 @@ type DatabaseClientHandler interface {
 	IsInterfaceNil() bool
 }
 
-// DBAccountHandler defines the actions that an accounts handler should do
+// DBAccountHandler defines the actions that an accounts' handler should do
 type DBAccountHandler interface {
 	GetAccounts(alteredAccounts data.AlteredAccountsHandler) ([]*data.Account, []*data.AccountESDT)
 	PrepareRegularAccountsMap(timestamp uint64, accounts []*data.Account) map[string]*data.AccountInfo
@@ -107,7 +107,11 @@ type DBLogsAndEventsHandler interface {
 	SerializeTokens(tokens []*data.TokenInfo, updateNFTData []*data.NFTDataUpdate, buffSlice *data.BufferSlice, index string) error
 	SerializeDelegators(delegators map[string]*data.Delegator, buffSlice *data.BufferSlice, index string) error
 	SerializeSupplyData(tokensSupply data.TokensHandler, buffSlice *data.BufferSlice, index string) error
-	SerializeRolesData(rolesData data.RolesData, buffSlice *data.BufferSlice, index string) error
+	SerializeRolesData(
+		tokenRolesAndProperties data.TokenRolesAndPropertiesHandler,
+		buffSlice *data.BufferSlice,
+		index string,
+	) error
 }
 
 // OperationsHandler defines the actions that an operations' handler should do

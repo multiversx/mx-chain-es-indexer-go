@@ -116,13 +116,13 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 	}
 
 	return &data.PreparedLogsResults{
-		Tokens:          lep.logsData.tokens,
-		ScDeploys:       lep.logsData.scDeploys,
-		TokensInfo:      lep.logsData.tokensInfo,
-		TokensSupply:    lep.logsData.tokensSupply,
-		Delegators:      lep.logsData.delegators,
-		NFTsDataUpdates: lep.logsData.nftsDataUpdates,
-		RolesData:       lep.logsData.rolesData,
+		Tokens:                  lep.logsData.tokens,
+		ScDeploys:               lep.logsData.scDeploys,
+		TokensInfo:              lep.logsData.tokensInfo,
+		TokensSupply:            lep.logsData.tokensSupply,
+		Delegators:              lep.logsData.delegators,
+		NFTsDataUpdates:         lep.logsData.nftsDataUpdates,
+		TokenRolesAndProperties: lep.logsData.tokenRolesAndProperties,
 	}
 }
 
@@ -140,16 +140,16 @@ func (lep *logsAndEventsProcessor) processEvent(logHash string, logAddress []byt
 	logHashHexEncoded := hex.EncodeToString([]byte(logHash))
 	for _, proc := range lep.eventsProcessors {
 		res := proc.processEvent(&argsProcessEvent{
-			event:            event,
-			txHashHexEncoded: logHashHexEncoded,
-			logAddress:       logAddress,
-			accounts:         lep.logsData.accounts,
-			tokens:           lep.logsData.tokens,
-			tokensSupply:     lep.logsData.tokensSupply,
-			timestamp:        lep.logsData.timestamp,
-			scDeploys:        lep.logsData.scDeploys,
-			txs:              lep.logsData.txsMap,
-			rolesData:        lep.logsData.rolesData,
+			event:                   event,
+			txHashHexEncoded:        logHashHexEncoded,
+			logAddress:              logAddress,
+			accounts:                lep.logsData.accounts,
+			tokens:                  lep.logsData.tokens,
+			tokensSupply:            lep.logsData.tokensSupply,
+			timestamp:               lep.logsData.timestamp,
+			scDeploys:               lep.logsData.scDeploys,
+			txs:                     lep.logsData.txsMap,
+			tokenRolesAndProperties: lep.logsData.tokenRolesAndProperties,
 		})
 		if res.tokenInfo != nil {
 			lep.logsData.tokensInfo = append(lep.logsData.tokensInfo, res.tokenInfo)
