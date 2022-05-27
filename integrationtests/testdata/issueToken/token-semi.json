@@ -1,23 +1,15 @@
 {
-  "ticker": "SEMI",
-  "currentOwner": "61646472",
-  "roles": {
-    "ESDTRoleNFTCreate": [
-      "6d792d61646472657373"
-    ],
-    "ESDTRoleNFTBurn": [
-      "6d792d61646472657373"
-    ]
-  },
   "name": "semi-token",
-  "type": "SemiFungibleESDT",
+  "ticker": "SSSS",
+  "token": "SSSS-abcd",
   "issuer": "61646472",
-  "token": "TTT-abcd",
-  "timestamp": 10000,
+  "currentOwner": "61646472",
+  "type": "SemiFungibleESDT",
+  "timestamp": 5040,
   "ownersHistory": [
     {
       "address": "61646472",
-      "timestamp": 10000
+      "timestamp": 5040
     }
   ],
   "properties": {

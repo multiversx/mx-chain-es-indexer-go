@@ -18,7 +18,6 @@
     ],
     "ESDTRoleNFTBurn": []
   },
-  "numDecimals": 0,
   "properties": {
     "canMint": false,
     "canBurn": false,
