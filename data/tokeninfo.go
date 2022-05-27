@@ -26,6 +26,8 @@ type PropertiesData struct {
 	Properties map[string]bool
 }
 
+// NewTokenRolesAndProperties will create a new instance of tokenRolesAndProperties
+// this is a NOT concurrent save structure
 func NewTokenRolesAndProperties() *tokenRolesAndProperties {
 	return &tokenRolesAndProperties{
 		rolesData:       make(map[string][]*RoleData),

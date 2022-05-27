@@ -5,6 +5,9 @@ import (
 )
 
 const (
+	tokenTopicsIndex            = 0
+	propertyPairStep            = 2
+	esdtPropertiesStartIndex    = 2
 	minTopicsPropertiesAndRoles = 4
 	upgradePropertiesEvent      = "upgradeProperties"
 )
@@ -14,7 +17,7 @@ type esdtPropertiesProc struct {
 	rolesOperationsIdentifiers map[string]struct{}
 }
 
-func newRolesProcessor(pubKeyConverter core.PubkeyConverter) *esdtPropertiesProc {
+func newEsdtPropertiesProcessor(pubKeyConverter core.PubkeyConverter) *esdtPropertiesProc {
 	return &esdtPropertiesProc{
 		pubKeyConverter: pubKeyConverter,
 		rolesOperationsIdentifiers: map[string]struct{}{
@@ -58,7 +61,7 @@ func (epp *esdtPropertiesProc) processEvent(args *argsProcessEvent) argOutputPro
 	shouldAddRole := identifier == core.BuiltInFunctionSetESDTRole
 	addrBech := epp.pubKeyConverter.Encode(args.event.GetAddress())
 	for _, roleBytes := range rolesBytes {
-		args.tokenRolesAndProperties.AddRole(string(topics[0]), addrBech, string(roleBytes), shouldAddRole)
+		args.tokenRolesAndProperties.AddRole(string(topics[tokenTopicsIndex]), addrBech, string(roleBytes), shouldAddRole)
 	}
 
 	return argOutputProcessEvent{
@@ -71,7 +74,7 @@ func (epp *esdtPropertiesProc) extractDataNFTCreateRoleTransfer(args *argsProces
 
 	addrBech := epp.pubKeyConverter.Encode(args.event.GetAddress())
 	shouldAddCreateRole := bytesToBool(topics[3])
-	args.tokenRolesAndProperties.AddRole(string(topics[0]), addrBech, core.ESDTRoleNFTCreate, shouldAddCreateRole)
+	args.tokenRolesAndProperties.AddRole(string(topics[tokenTopicsIndex]), addrBech, core.ESDTRoleNFTCreate, shouldAddCreateRole)
 
 	return argOutputProcessEvent{
 		processed: true,
@@ -80,15 +83,15 @@ func (epp *esdtPropertiesProc) extractDataNFTCreateRoleTransfer(args *argsProces
 
 func (epp *esdtPropertiesProc) extractTokenProperties(args *argsProcessEvent) argOutputProcessEvent {
 	topics := args.event.GetTopics()
-	properties := topics[2:]
+	properties := topics[esdtPropertiesStartIndex:]
 	propertiesMap := make(map[string]bool)
-	for i := 0; i < len(properties); i += 2 {
+	for i := 0; i < len(properties); i += propertyPairStep {
 		property := string(properties[i])
 		val := bytesToBool(properties[i+1])
 		propertiesMap[property] = val
 	}
 
-	args.tokenRolesAndProperties.AddProperties(string(topics[0]), propertiesMap)
+	args.tokenRolesAndProperties.AddProperties(string(topics[tokenTopicsIndex]), propertiesMap)
 
 	return argOutputProcessEvent{
 		processed: true,
