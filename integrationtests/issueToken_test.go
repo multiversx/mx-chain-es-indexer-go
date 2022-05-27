@@ -3,6 +3,7 @@
 package integrationtests
 
 import (
+	"math/big"
 	"testing"
 
 	indexerdata "github.com/ElrondNetwork/elastic-indexer-go"
@@ -45,7 +46,7 @@ func TestIssueTokenAndTransferOwnership(t *testing.T) {
 						{
 							Address:    []byte("addr"),
 							Identifier: []byte("issueSemiFungible"),
-							Topics:     [][]byte{[]byte("SSSS-abcd"), []byte("semi-token"), []byte("SSSS"), []byte(core.SemiFungibleESDT)},
+							Topics:     [][]byte{[]byte("SSSS-abcd"), []byte("semi-token"), []byte("SSSS"), []byte(core.SemiFungibleESDT), big.NewInt(18).Bytes()},
 						},
 						nil,
 					},

@@ -27,5 +27,6 @@
     "canWipe": false,
     "canChangeOwner": false,
     "canCreateMultiShard": false
-  }
+  },
+  "numDecimals": 18
 }

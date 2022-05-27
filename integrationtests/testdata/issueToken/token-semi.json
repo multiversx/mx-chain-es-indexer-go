@@ -12,6 +12,7 @@
       "timestamp": 5040
     }
   ],
+  "numDecimals": 18,
   "properties": {
     "canMint": false,
     "canBurn": false,

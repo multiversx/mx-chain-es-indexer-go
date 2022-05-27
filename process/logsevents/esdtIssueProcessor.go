@@ -78,7 +78,7 @@ func (iep *esdtIssueProcessor) processEvent(args *argsProcessEvent) argOutputPro
 		Name:         string(topics[1]),
 		Ticker:       string(topics[2]),
 		Type:         string(topics[3]),
-		Nonce:        numDecimals,
+		NumDecimals:  numDecimals,
 		Issuer:       encodedAddr,
 		CurrentOwner: encodedAddr,
 		Timestamp:    time.Duration(args.timestamp),
