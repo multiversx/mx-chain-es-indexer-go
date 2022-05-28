@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"reflect"
 
@@ -23,6 +24,20 @@ func (Base64Serializer) Scan(ctx context.Context, field *schema.Field, dst refle
 		switch v := dbValue.(type) {
 		case []byte:
 			str = string(v)
+		case [][]byte:
+			base64Data, err := base64.StdEncoding.DecodeString(str)
+			if err != nil {
+				return err
+			}
+
+			var data [][]byte
+			err = json.Unmarshal(base64Data, &data)
+			if err != nil {
+				return err
+			}
+
+			fieldValue.Set(reflect.ValueOf(data))
+			return nil
 		case string:
 			str = v
 		default:
@@ -38,16 +53,23 @@ func (Base64Serializer) Scan(ctx context.Context, field *schema.Field, dst refle
 	}
 
 	field.ReflectValueOf(ctx, dst).Set(fieldValue.Elem())
-	return
+
+	return nil
 }
 
 // Value implements serializer interface
 func (Base64Serializer) Value(ctx context.Context, field *schema.Field, dst reflect.Value, fieldValue interface{}) (interface{}, error) {
 	var data []byte
+	var err error
 	if fieldValue != nil {
 		switch v := fieldValue.(type) {
 		case []byte:
 			data = v
+		case [][]byte:
+			data, err = json.Marshal(v)
+			if err != nil {
+				return "", err
+			}
 		case string:
 			data = []byte(v)
 		default:

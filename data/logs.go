@@ -17,7 +17,7 @@ type Logs struct {
 type Event struct {
 	Address    string   `json:"address" gorm:"primaryKey;unique"`
 	Identifier string   `json:"identifier"`
-	Topics     [][]byte `json:"topics" gorm:"serializer:json"`
+	Topics     [][]byte `json:"topics" gorm:"serializer:base64"`
 	Data       []byte   `json:"data" gorm:"serializer:base64"`
 	Order      int      `json:"order"`
 }
