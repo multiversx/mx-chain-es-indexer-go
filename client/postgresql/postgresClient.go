@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"reflect"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
@@ -320,6 +321,7 @@ func (pc *postgresClient) AutoMigrateTables(tables ...interface{}) error {
 }
 
 func (pc *postgresClient) Insert(entity interface{}) error {
+	log.Info("Insert", "type", reflect.TypeOf(entity))
 	result := pc.ps.Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(entity, batchSize)
 	if result.Error != nil {
 		return result.Error
