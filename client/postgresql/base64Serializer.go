@@ -38,6 +38,20 @@ func (Base64Serializer) Scan(ctx context.Context, field *schema.Field, dst refle
 
 			fieldValue.Set(reflect.ValueOf(data))
 			return nil
+		case []string:
+			base64Data, err := base64.StdEncoding.DecodeString(str)
+			if err != nil {
+				return err
+			}
+
+			var data []string
+			err = json.Unmarshal(base64Data, &data)
+			if err != nil {
+				return err
+			}
+
+			fieldValue.Set(reflect.ValueOf(data))
+			return nil
 		case string:
 			str = v
 		default:
@@ -66,6 +80,11 @@ func (Base64Serializer) Value(ctx context.Context, field *schema.Field, dst refl
 		case []byte:
 			data = v
 		case [][]byte:
+			data, err = json.Marshal(v)
+			if err != nil {
+				return "", err
+			}
+		case []string:
 			data, err = json.Marshal(v)
 			if err != nil {
 				return "", err

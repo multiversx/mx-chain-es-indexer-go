@@ -33,7 +33,7 @@ type TokenMetaData struct {
 	Royalties          uint32   `json:"royalties,omitempty"`
 	Hash               []byte   `json:"hash,omitempty" gorm:"serializer:base64"`
 	URIs               [][]byte `json:"uris,omitempty" gorm:"serializer:base64"`
-	Tags               []string `json:"tags,omitempty" gorm:"serializer:json"`
+	Tags               []string `json:"tags,omitempty" gorm:"serializer:base64"`
 	Attributes         []byte   `json:"attributes,omitempty" gorm:"serializer:base64"`
 	MetaData           string   `json:"metadata,omitempty"`
 	NonEmptyURIs       bool     `json:"nonEmptyURIs"`
