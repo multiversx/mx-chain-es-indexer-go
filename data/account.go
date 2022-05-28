@@ -29,7 +29,7 @@ type AccountInfo struct {
 // TokenMetaData holds data about a token metadata
 type TokenMetaData struct {
 	Name               string   `json:"name,omitempty" gorm:"serializer:base64"`
-	Creator            string   `json:"creator,omitempty" gorm:"serializer:base64"`
+	Creator            string   `json:"creator,omitempty"`
 	Royalties          uint32   `json:"royalties,omitempty"`
 	Hash               []byte   `json:"hash,omitempty" gorm:"serializer:base64"`
 	URIs               [][]byte `json:"uris,omitempty" gorm:"serializer:base64"`
