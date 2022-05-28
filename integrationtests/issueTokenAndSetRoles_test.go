@@ -48,6 +48,11 @@ func TestIssueTokenAndSetRole(t *testing.T) {
 							Identifier: []byte("issueSemiFungible"),
 							Topics:     [][]byte{[]byte("TOK-abcd"), []byte("semi-token"), []byte("SEMI"), []byte(core.SemiFungibleESDT)},
 						},
+						{
+							Address:    []byte("addr"),
+							Identifier: []byte("upgradeProperties"),
+							Topics:     [][]byte{[]byte("TOK-abcd"), big.NewInt(0).Bytes(), []byte("canUpgrade"), []byte("true")},
+						},
 						nil,
 					},
 				},
