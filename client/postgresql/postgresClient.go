@@ -519,15 +519,20 @@ func (pc *postgresClient) InsertESDTMetaData(account *data.AccountInfo) error {
 		return err
 	}
 
+	tags := make([]string, 0)
+	for _, tag := range account.Data.Tags {
+		tags = append(tags, base64.StdEncoding.EncodeToString([]byte(tag)))
+	}
+
 	result := pc.ps.Exec(sql,
 		account.Data.Name,
 		account.Data.Creator,
 		account.Data.Royalties,
 		base64.StdEncoding.EncodeToString(account.Data.Hash),
 		uris,
-		pq.StringArray(account.Data.Tags),
+		pq.StringArray(tags),
 		base64.StdEncoding.EncodeToString(account.Data.Attributes),
-		account.Data.MetaData,
+		base64.StdEncoding.EncodeToString([]byte(account.Data.MetaData)),
 		account.Data.NonEmptyURIs,
 		account.Data.WhiteListedStorage,
 		account.Address,
