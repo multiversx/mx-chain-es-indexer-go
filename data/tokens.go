@@ -34,13 +34,13 @@ type SourceToken struct {
 
 // TokenInfo is a structure that is needed to store information about a token
 type TokenInfo struct {
-	Name              string         `json:"name,omitempty"`
-	Ticker            string         `json:"ticker,omitempty"`
-	Identifier        string         `json:"identifier,omitempty"`
-	Token             string         `json:"token,omitempty" gorm:"primaryKey;unique"`
-	Issuer            string         `json:"issuer,omitempty"`
-	CurrentOwner      string         `json:"currentOwner,omitempty"`
-	Type              string         `json:"type,omitempty"`
+	Name              string         `json:"name,omitempty" gorm:"serializer:base64"`
+	Ticker            string         `json:"ticker,omitempty" gorm:"serializer:base64"`
+	Identifier        string         `json:"identifier,omitempty" gorm:"serializer:base64"`
+	Token             string         `json:"token,omitempty" gorm:"primaryKey;unique;serializer:base64"`
+	Issuer            string         `json:"issuer,omitempty" gorm:"serializer:base64"`
+	CurrentOwner      string         `json:"currentOwner,omitempty" gorm:"serializer:base64"`
+	Type              string         `json:"type,omitempty" gorm:"serializer:base64"`
 	Nonce             uint64         `json:"nonce,omitempty"`
 	Timestamp         time.Duration  `json:"timestamp,omitempty"`
 	Data              *TokenMetaData `json:"data,omitempty" gorm:"embedded"`
@@ -50,7 +50,7 @@ type TokenInfo struct {
 
 // OwnerData is a structure that is needed to store information about an owner
 type OwnerData struct {
-	Address   string        `json:"address" gorm:"primaryKey:unique"`
+	Address   string        `json:"address" gorm:"primaryKey:unique;serializer:base64"`
 	Timestamp time.Duration `json:"timestamp"`
 }
 
