@@ -29,13 +29,13 @@ type AccountInfo struct {
 // TokenMetaData holds data about a token metadata
 type TokenMetaData struct {
 	Name               string   `json:"name,omitempty"`
-	Creator            string   `json:"creator,omitempty"`
+	Creator            string   `json:"creator,omitempty" gorm:"serializer:base64"`
 	Royalties          uint32   `json:"royalties,omitempty"`
 	Hash               []byte   `json:"hash,omitempty" gorm:"serializer:base64"`
 	URIs               [][]byte `json:"uris,omitempty" gorm:"serializer:base64"`
 	Tags               []string `json:"tags,omitempty" gorm:"serializer:base64"`
 	Attributes         []byte   `json:"attributes,omitempty" gorm:"serializer:base64"`
-	MetaData           string   `json:"metadata,omitempty"`
+	MetaData           string   `json:"metadata,omitempty" gorm:"serializer:base64"`
 	NonEmptyURIs       bool     `json:"nonEmptyURIs"`
 	WhiteListedStorage bool     `json:"whiteListedStorage"`
 }
