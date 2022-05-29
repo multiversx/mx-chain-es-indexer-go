@@ -22,7 +22,7 @@ type Transaction struct {
 	GasUsed              uint64        `json:"gasUsed"`
 	Fee                  string        `json:"fee"`
 	Data                 []byte        `json:"data" gorm:"serializer:base64"`
-	Signature            string        `json:"signature"`
+	Signature            string        `json:"signature" gorm:"serializer:base64"`
 	Timestamp            time.Duration `json:"timestamp"`
 	Status               string        `json:"status"`
 	SearchOrder          uint32        `json:"searchOrder"`
