@@ -20,11 +20,11 @@ type Transaction struct {
 	GasPrice             uint64        `json:"gasPrice"`
 	GasLimit             uint64        `json:"gasLimit"`
 	GasUsed              uint64        `json:"gasUsed"`
-	Fee                  string        `json:"fee"`
+	Fee                  string        `json:"fee" gorm:"serializer:base64"`
 	Data                 []byte        `json:"data" gorm:"serializer:base64"`
 	Signature            string        `json:"signature" gorm:"serializer:base64"`
 	Timestamp            time.Duration `json:"timestamp"`
-	Status               string        `json:"status"`
+	Status               string        `json:"status" gorm:"serializer:base64"`
 	SearchOrder          uint32        `json:"searchOrder"`
 	SenderUserName       []byte        `json:"senderUserName,omitempty" gorm:"serializer:base64"`
 	ReceiverUserName     []byte        `json:"receiverUserName,omitempty" gorm:"serializer:base64"`
@@ -35,15 +35,15 @@ type Transaction struct {
 	ESDTValues           []string      `json:"esdtValues,omitempty" gorm:"serializer:base64"`
 	Receivers            []string      `json:"receivers,omitempty" gorm:"serializer:base64"`
 	ReceiversShardIDs    []uint32      `json:"receiversShardIDs,omitempty" gorm:"serializer:json"`
-	Type                 string        `json:"type,omitempty"`
-	Operation            string        `json:"operation,omitempty"`
-	Function             string        `json:"function,omitempty"`
+	Type                 string        `json:"type,omitempty" gorm:"serializer:base64"`
+	Operation            string        `json:"operation,omitempty" gorm:"serializer:base64"`
+	Function             string        `json:"function,omitempty" gorm:"serializer:base64"`
 	IsRelayed            bool          `json:"isRelayed,omitempty"`
 	Version              uint32        `json:"version,omitempty"`
 	SmartContractResults []*ScResult   `json:"-" gorm:"-"`
 	ReceiverAddressBytes []byte        `json:"-" gorm:"serializer:base64"`
 	Hash                 string        `json:"-" gorm:"primaryKey;unique"`
-	BlockHash            string        `json:"-"`
+	BlockHash            string        `json:"-" gorm:"serializer:base64"`
 }
 
 // GetGasLimit will return transaction gas limit
