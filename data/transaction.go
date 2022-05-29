@@ -33,7 +33,7 @@ type Transaction struct {
 	HasOperations        bool          `json:"hasOperations,omitempty"`
 	Tokens               []string      `json:"tokens,omitempty" gorm:"serializer:base64"`
 	ESDTValues           []string      `json:"esdtValues,omitempty" gorm:"serializer:base64"`
-	Receivers            []string      `json:"receivers,omitempty" gorm:"serializer:json"`
+	Receivers            []string      `json:"receivers,omitempty" gorm:"serializer:base64"`
 	ReceiversShardIDs    []uint32      `json:"receiversShardIDs,omitempty" gorm:"serializer:json"`
 	Type                 string        `json:"type,omitempty"`
 	Operation            string        `json:"operation,omitempty"`
