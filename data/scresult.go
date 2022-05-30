@@ -27,8 +27,8 @@ type ScResult struct {
 	HasOperations      bool          `json:"hasOperations,omitempty"`
 	Type               string        `json:"type,omitempty"`
 	Status             string        `json:"status,omitempty"`
-	Tokens             []string      `json:"tokens,omitempty" gorm:"serializer:json"`
-	ESDTValues         []string      `json:"esdtValues,omitempty" gorm:"serializer:json"`
+	Tokens             []string      `json:"tokens,omitempty" gorm:"serializer:base64"`
+	ESDTValues         []string      `json:"esdtValues,omitempty" gorm:"serializer:base64"`
 	Receivers          []string      `json:"receivers,omitempty" gorm:"serializer:json"`
 	ReceiversShardIDs  []uint32      `json:"receiversShardIDs,omitempty" gorm:"serializer:json"`
 	Operation          string        `json:"operation,omitempty"`
