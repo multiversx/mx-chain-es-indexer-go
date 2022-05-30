@@ -54,12 +54,9 @@ func (tg *txsGrouper) groupNormalTxs(
 		return nil, err
 	}
 
+	executedTxHashes := extractExecutedTxHashes(mbIndex, mb.TxHashes, header)
 	mbStatus := computeStatus(tg.selfShardID, mb.ReceiverShardID)
-	for index, txHash := range mb.TxHashes {
-		if shouldIgnoreNotExecutedTx(mbIndex, index, header) {
-			continue
-		}
-
+	for _, txHash := range executedTxHashes {
 		dbTx, ok := tg.prepareNormalTxForDB(mbHash, mb, mbStatus, txHash, txs, header)
 		if !ok {
 			continue
@@ -74,19 +71,25 @@ func (tg *txsGrouper) groupNormalTxs(
 	return transactions, nil
 }
 
-func shouldIgnoreNotExecutedTx(mbIndex, txIndex int, header coreData.HeaderHandler) bool {
+func extractExecutedTxHashes(mbIndex int, mbTxHashes [][]byte, header coreData.HeaderHandler) [][]byte {
 	miniblockHeaders := header.GetMiniBlockHeaderHandlers()
 	if len(miniblockHeaders) <= mbIndex {
-		return false
+		return mbTxHashes
 	}
 
 	firstProcessed := miniblockHeaders[mbIndex].GetIndexOfFirstTxProcessed()
 	lastProcessed := miniblockHeaders[mbIndex].GetIndexOfLastTxProcessed()
-	if int32(txIndex) < firstProcessed || int32(txIndex) > lastProcessed {
-		return true
+
+	executedTxHashes := make([][]byte, 0)
+	for txIndex, txHash := range mbTxHashes {
+		if int32(txIndex) < firstProcessed || int32(txIndex) > lastProcessed {
+			continue
+		}
+
+		executedTxHashes = append(executedTxHashes, txHash)
 	}
 
-	return false
+	return executedTxHashes
 }
 
 func (tg *txsGrouper) prepareNormalTxForDB(
@@ -126,11 +129,8 @@ func (tg *txsGrouper) groupRewardsTxs(
 	}
 
 	mbStatus := computeStatus(tg.selfShardID, mb.ReceiverShardID)
-	for index, txHash := range mb.TxHashes {
-		if shouldIgnoreNotExecutedTx(mbIndex, index, header) {
-			continue
-		}
-
+	executedTxHashes := extractExecutedTxHashes(mbIndex, mb.TxHashes, header)
+	for _, txHash := range executedTxHashes {
 		rewardDBTx, ok := tg.prepareRewardTxForDB(mbHash, mb, mbStatus, txHash, txs, header)
 		if !ok {
 			continue
@@ -181,11 +181,8 @@ func (tg *txsGrouper) groupInvalidTxs(
 		return nil, err
 	}
 
-	for index, txHash := range mb.TxHashes {
-		if shouldIgnoreNotExecutedTx(mbIndex, index, header) {
-			continue
-		}
-
+	executedTxHashes := extractExecutedTxHashes(mbIndex, mb.TxHashes, header)
+	for _, txHash := range executedTxHashes {
 		invalidDBTx, ok := tg.prepareInvalidTxForDB(mbHash, mb, txHash, txs, header)
 		if !ok {
 			continue
