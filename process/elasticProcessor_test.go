@@ -21,6 +21,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/process/miniblocks"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/operations"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/statistics"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/transactions"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/validators"
 	"github.com/ElrondNetwork/elrond-go-core/core"
@@ -684,7 +685,8 @@ func TestElasticProcessor_IndexAlteredAccounts(t *testing.T) {
 
 	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
 	alteredAccounts := data.NewAlteredAccounts()
-	err := elasticSearchProc.indexAlteredAccounts(100, alteredAccounts, nil, nil, buffSlice)
+	tagsCount := tags.NewTagsCount()
+	err := elasticSearchProc.indexAlteredAccounts(100, alteredAccounts, nil, nil, buffSlice, tagsCount)
 	require.Nil(t, err)
 	require.True(t, called)
 }

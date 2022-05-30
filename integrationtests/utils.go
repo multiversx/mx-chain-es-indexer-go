@@ -45,7 +45,7 @@ func CreateElasticProcessor(
 		DBClient:                 esClient,
 		ShardCoordinator:         shardCoordinator,
 		TransactionFeeCalculator: feeProcessor,
-		EnabledIndexes:           []string{indexer.TransactionsIndex, indexer.LogsIndex, indexer.AccountsESDTIndex, indexer.ScResultsIndex, indexer.ReceiptsIndex, indexer.BlockIndex, indexer.AccountsIndex, indexer.TokensIndex},
+		EnabledIndexes:           []string{indexer.TransactionsIndex, indexer.LogsIndex, indexer.AccountsESDTIndex, indexer.ScResultsIndex, indexer.ReceiptsIndex, indexer.BlockIndex, indexer.AccountsIndex, indexer.TokensIndex, indexer.TagsIndex},
 		Denomination:             18,
 		IsInImportDBMode:         false,
 	}
@@ -70,4 +70,13 @@ func readExpectedResult(path string) string {
 	byteValue, _ := ioutil.ReadAll(jsonFile)
 
 	return string(byteValue)
+}
+
+func getElementFromSlice(path string, index int) string {
+	fileBytes := readExpectedResult(path)
+	slice := make([]map[string]interface{}, 0)
+	_ = json.Unmarshal([]byte(fileBytes), &slice)
+	res, _ := json.Marshal(slice[index]["_source"])
+
+	return string(res)
 }

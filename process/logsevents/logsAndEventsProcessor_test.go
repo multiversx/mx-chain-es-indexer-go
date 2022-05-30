@@ -167,7 +167,6 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 
 	resLogs := proc.ExtractDataFromLogs(logsAndEventsSlice, res, 1000)
 	require.NotNil(t, resLogs.Tokens)
-	require.NotNil(t, resLogs.TagsCount)
 	require.True(t, res.Transactions[0].HasOperations)
 	require.True(t, res.ScResults[0].HasOperations)
 
@@ -191,6 +190,7 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 				Timestamp: 1000,
 			},
 		},
+		Properties: &data.TokenProperties{},
 	}, resLogs.TokensInfo[0])
 
 	require.Equal(t, &data.Delegator{

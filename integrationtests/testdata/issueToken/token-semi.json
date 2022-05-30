@@ -1,7 +1,7 @@
 {
-  "name": "SEMI-token",
-  "ticker": "SEM",
-  "token": "SEMI-abcd",
+  "name": "semi-token",
+  "ticker": "SSSS",
+  "token": "SSSS-abcd",
   "issuer": "61646472",
   "currentOwner": "61646472",
   "type": "SemiFungibleESDT",
@@ -12,6 +12,7 @@
       "timestamp": 5040
     }
   ],
+  "numDecimals": 18,
   "properties": {
     "canMint": false,
     "canBurn": false,

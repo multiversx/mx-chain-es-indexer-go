@@ -18,6 +18,7 @@ type AccountInfo struct {
 	Properties               string         `json:"properties,omitempty"`
 	IsSender                 bool           `json:"-"`
 	IsSmartContract          bool           `json:"-"`
+	IsNFTCreate              bool           `json:"-"`
 	TotalBalanceWithStake    string         `json:"totalBalanceWithStake,omitempty"`
 	TotalBalanceWithStakeNum float64        `json:"totalBalanceWithStakeNum,omitempty"`
 	Data                     *TokenMetaData `json:"data,omitempty"`
@@ -65,4 +66,5 @@ type AccountESDT struct {
 	NFTNonce        uint64
 	IsSender        bool
 	IsNFTOperation  bool
+	IsNFTCreate     bool
 }

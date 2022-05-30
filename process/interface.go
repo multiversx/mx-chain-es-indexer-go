@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/tokeninfo"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
@@ -27,11 +28,11 @@ type DatabaseClientHandler interface {
 	IsInterfaceNil() bool
 }
 
-// DBAccountHandler defines the actions that an accounts handler should do
+// DBAccountHandler defines the actions that an accounts' handler should do
 type DBAccountHandler interface {
 	GetAccounts(alteredAccounts data.AlteredAccountsHandler, coreAlteredAccounts map[string]*indexer.AlteredAccount) ([]*data.Account, []*data.AccountESDT)
 	PrepareRegularAccountsMap(timestamp uint64, accounts []*data.Account) map[string]*data.AccountInfo
-	PrepareAccountsMapESDT(timestamp uint64, accounts []*data.AccountESDT) (map[string]*data.AccountInfo, data.TokensHandler)
+	PrepareAccountsMapESDT(timestamp uint64, accounts []*data.AccountESDT, tagsCount data.CountTags) (map[string]*data.AccountInfo, data.TokensHandler)
 	PrepareAccountsHistory(timestamp uint64, accounts map[string]*data.AccountInfo) map[string]*data.AccountBalanceHistory
 	PutTokenMedataDataInTokens(tokensData []*data.TokenInfo, coreAlteredAccounts map[string]*indexer.AlteredAccount)
 
@@ -107,7 +108,11 @@ type DBLogsAndEventsHandler interface {
 	SerializeTokens(tokens []*data.TokenInfo, updateNFTData []*data.NFTDataUpdate, buffSlice *data.BufferSlice, index string) error
 	SerializeDelegators(delegators map[string]*data.Delegator, buffSlice *data.BufferSlice, index string) error
 	SerializeSupplyData(tokensSupply data.TokensHandler, buffSlice *data.BufferSlice, index string) error
-	SerializeRolesData(rolesData data.RolesData, buffSlice *data.BufferSlice, index string) error
+	SerializeRolesData(
+		tokenRolesAndProperties *tokeninfo.TokenRolesAndProperties,
+		buffSlice *data.BufferSlice,
+		index string,
+	) error
 }
 
 // OperationsHandler defines the actions that an operations' handler should do

@@ -7,6 +7,8 @@ import (
 
 	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/tokeninfo"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
@@ -366,11 +368,6 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
-	err = ei.prepareAndIndexTagsCount(logsData.TagsCount, buffers)
-	if err != nil {
-		return err
-	}
-
 	err = ei.indexNFTCreateInfo(logsData.Tokens, coreAlteredAccounts, buffers)
 	if err != nil {
 		return err
@@ -391,7 +388,13 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
-	err = ei.indexAlteredAccounts(headerTimestamp, preparedResults.AlteredAccts, logsData.NFTsDataUpdates, coreAlteredAccounts, buffers)
+	tagsCount := tags.NewTagsCount()
+	err = ei.indexAlteredAccounts(headerTimestamp, preparedResults.AlteredAccts, logsData.NFTsDataUpdates, coreAlteredAccounts, buffers, tagsCount)
+	if err != nil {
+		return err
+	}
+
+	err = ei.prepareAndIndexTagsCount(tagsCount, buffers)
 	if err != nil {
 		return err
 	}
@@ -416,7 +419,7 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
-	err = ei.prepareAndIndexRolesData(logsData.RolesData, buffers)
+	err = ei.prepareAndIndexRolesData(logsData.TokenRolesAndProperties, buffers)
 	if err != nil {
 		return err
 	}
@@ -429,12 +432,12 @@ func (ei *elasticProcessor) SaveTransactions(
 	return ei.doBulkRequests("", buffers.Buffers())
 }
 
-func (ei *elasticProcessor) prepareAndIndexRolesData(rolesData data.RolesData, buffSlice *data.BufferSlice) error {
+func (ei *elasticProcessor) prepareAndIndexRolesData(tokenRolesAndProperties *tokeninfo.TokenRolesAndProperties, buffSlice *data.BufferSlice) error {
 	if !ei.isIndexEnabled(elasticIndexer.TokensIndex) {
 		return nil
 	}
 
-	return ei.logsAndEventsProc.SerializeRolesData(rolesData, buffSlice, elasticIndexer.TokensIndex)
+	return ei.logsAndEventsProc.SerializeRolesData(tokenRolesAndProperties, buffSlice, elasticIndexer.TokensIndex)
 }
 
 func (ei *elasticProcessor) prepareAndIndexDelegators(delegators map[string]*data.Delegator, buffSlice *data.BufferSlice) error {
@@ -572,6 +575,7 @@ func (ei *elasticProcessor) indexAlteredAccounts(
 	updatesNFTsData []*data.NFTDataUpdate,
 	coreAlteredAccounts map[string]*indexer.AlteredAccount,
 	buffSlice *data.BufferSlice,
+	tagsCount data.CountTags,
 ) error {
 	regularAccountsToIndex, accountsToIndexESDT := ei.accountsProc.GetAccounts(alteredAccounts, coreAlteredAccounts)
 
@@ -580,7 +584,7 @@ func (ei *elasticProcessor) indexAlteredAccounts(
 		return err
 	}
 
-	return ei.saveAccountsESDT(timestamp, accountsToIndexESDT, updatesNFTsData, buffSlice)
+	return ei.saveAccountsESDT(timestamp, accountsToIndexESDT, updatesNFTsData, buffSlice, tagsCount)
 }
 
 func (ei *elasticProcessor) saveAccountsESDT(
@@ -588,8 +592,9 @@ func (ei *elasticProcessor) saveAccountsESDT(
 	wrappedAccounts []*data.AccountESDT,
 	updatesNFTsData []*data.NFTDataUpdate,
 	buffSlice *data.BufferSlice,
+	tagsCount data.CountTags,
 ) error {
-	accountsESDTMap, tokensData := ei.accountsProc.PrepareAccountsMapESDT(timestamp, wrappedAccounts)
+	accountsESDTMap, tokensData := ei.accountsProc.PrepareAccountsMapESDT(timestamp, wrappedAccounts, tagsCount)
 	err := ei.addTokenTypeAndCurrentOwnerInAccountsESDT(tokensData, accountsESDTMap)
 	if err != nil {
 		return err
