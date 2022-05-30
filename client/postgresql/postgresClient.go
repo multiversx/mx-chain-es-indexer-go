@@ -526,7 +526,7 @@ func (pc *postgresClient) InsertESDTMetaData(account *data.AccountInfo) error {
 
 	result := pc.ps.Exec(sql,
 		base64.StdEncoding.EncodeToString([]byte(account.Data.Name)),
-		account.Data.Creator,
+		base64.StdEncoding.EncodeToString([]byte(account.Data.Creator)),
 		account.Data.Royalties,
 		base64.StdEncoding.EncodeToString(account.Data.Hash),
 		base64.StdEncoding.EncodeToString(uris),
