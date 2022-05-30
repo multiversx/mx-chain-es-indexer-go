@@ -3,6 +3,7 @@
 package integrationtests
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"math/big"
 	"testing"
@@ -15,7 +16,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/data/esdt"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 	"github.com/stretchr/testify/require"
 )
 
@@ -45,20 +45,9 @@ func TestCreateNFTWithTags(t *testing.T) {
 	}
 
 	addr := "aaaabbbb"
-	mockAccount := &mock.UserAccountStub{
-		RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
-			return json.Marshal(esdtToken)
-		},
-		AddressBytesCalled: func() []byte {
-			return []byte(addr)
-		},
-	}
-	accounts := &mock.AccountsStub{
-		LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
-			return mockAccount, nil
-		},
-	}
-	esProc, err := CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	addrHex := hex.EncodeToString([]byte(addr))
+
+	esProc, err := CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
 	require.Nil(t, err)
 
 	esdtDataBytes, _ := json.Marshal(esdtToken)
@@ -82,8 +71,26 @@ func TestCreateNFTWithTags(t *testing.T) {
 		},
 	}
 
+	coreAlteredAccounts := map[string]*indexer.AlteredAccount{
+		addrHex: {
+			Address: addrHex,
+			Tokens: []*indexer.AccountTokenData{
+				{
+					Identifier: "DESK-abcd",
+					Nonce:      1,
+					Balance:    "1000",
+					Properties: "ok",
+					MetaData: &esdt.MetaData{
+						Creator:    []byte("creator"),
+						Attributes: []byte("tags:hello,something,ceva,an,so,on;metadata:QmZ2QqaGq4bqsEzs5JLTjRmmvR2GAR4qXJZBN8ibfDdaud"),
+					},
+				},
+			},
+		},
+	}
+
 	body := &dataBlock.Body{}
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts)
 	require.Nil(t, err)
 
 	ids := []string{"6161616162626262-DESK-abcd-01"}
@@ -125,8 +132,9 @@ func TestCreateNFTWithTags(t *testing.T) {
 		},
 	}
 
+	coreAlteredAccounts[addrHex].Tokens[0].Nonce = 2
 	body = &dataBlock.Body{}
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts)
 	require.Nil(t, err)
 
 	ids = []string{"aGVsbG8=", "Y2V2YQ==", "YW4=", "b24=", "c28=", "c28="}
