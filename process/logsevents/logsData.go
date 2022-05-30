@@ -3,22 +3,21 @@ package logsevents
 import (
 	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/tokeninfo"
 )
 
 type logsData struct {
-	timestamp       uint64
-	tokens          data.TokensHandler
-	tokensSupply    data.TokensHandler
-	tagsCount       data.CountTags
-	accounts        data.AlteredAccountsHandler
-	txsMap          map[string]*data.Transaction
-	scrsMap         map[string]*data.ScResult
-	scDeploys       map[string]*data.ScDeployInfo
-	delegators      map[string]*data.Delegator
-	tokensInfo      []*data.TokenInfo
-	nftsDataUpdates []*data.NFTDataUpdate
-	rolesData       data.RolesData
+	timestamp               uint64
+	tokens                  data.TokensHandler
+	tokensSupply            data.TokensHandler
+	accounts                data.AlteredAccountsHandler
+	txsMap                  map[string]*data.Transaction
+	scrsMap                 map[string]*data.ScResult
+	scDeploys               map[string]*data.ScDeployInfo
+	delegators              map[string]*data.Delegator
+	tokensInfo              []*data.TokenInfo
+	nftsDataUpdates         []*data.NFTDataUpdate
+	tokenRolesAndProperties *tokeninfo.TokenRolesAndProperties
 }
 
 func newLogsData(
@@ -31,7 +30,6 @@ func newLogsData(
 
 	ld.txsMap = converters.ConvertTxsSliceIntoMap(txs)
 	ld.scrsMap = converters.ConvertScrsSliceIntoMap(scrs)
-	ld.tagsCount = tags.NewTagsCount()
 	ld.tokens = data.NewTokensInfo()
 	ld.tokensSupply = data.NewTokensInfo()
 	ld.accounts = accounts
@@ -40,7 +38,7 @@ func newLogsData(
 	ld.tokensInfo = make([]*data.TokenInfo, 0)
 	ld.delegators = make(map[string]*data.Delegator)
 	ld.nftsDataUpdates = make([]*data.NFTDataUpdate, 0)
-	ld.rolesData = data.RolesData{}
+	ld.tokenRolesAndProperties = tokeninfo.NewTokenRolesAndProperties()
 
 	return ld
 }

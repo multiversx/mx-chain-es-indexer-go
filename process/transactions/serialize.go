@@ -152,7 +152,6 @@ func prepareSerializedDataForATransaction(
 		serializedData :=
 			[]byte(fmt.Sprintf(`{"script":{"source":"return"},"upsert":%s}`,
 				string(marshaledTx)))
-		log.Trace("indexer tx is on sender shard", "metaData", string(metaData), "serializedData", string(serializedData))
 
 		return metaData, serializedData, nil
 	}
@@ -168,7 +167,6 @@ func prepareSerializedDataForATransaction(
 
 	// transaction is intra-shard, invalid or cross-shard destination me
 	meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s", "_id" : "%s" } }%s`, index, tx.Hash, "\n"))
-	log.Trace("indexer tx is intra shard or invalid tx", "meta", string(meta), "marshaledTx", string(marshaledTx))
 
 	return meta, marshaledTx, nil
 }
