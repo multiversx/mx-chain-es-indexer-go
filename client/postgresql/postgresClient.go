@@ -529,7 +529,7 @@ func (pc *postgresClient) InsertESDTMetaData(account *data.AccountInfo) error {
 		account.Data.Creator,
 		account.Data.Royalties,
 		base64.StdEncoding.EncodeToString(account.Data.Hash),
-		uris,
+		base64.StdEncoding.EncodeToString(uris),
 		pq.StringArray(tags),
 		base64.StdEncoding.EncodeToString(account.Data.Attributes),
 		base64.StdEncoding.EncodeToString([]byte(account.Data.MetaData)),
