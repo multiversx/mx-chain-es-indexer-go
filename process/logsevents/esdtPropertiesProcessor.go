@@ -1,6 +1,8 @@
 package logsevents
 
 import (
+	"unicode"
+
 	"github.com/ElrondNetwork/elrond-go-core/core"
 )
 
@@ -58,6 +60,13 @@ func (epp *esdtPropertiesProc) processEvent(args *argsProcessEvent) argOutputPro
 	// [3:] --> roles to set or unset
 
 	rolesBytes := topics[3:]
+	ok = checkRolesBytes(rolesBytes)
+	if !ok {
+		return argOutputProcessEvent{
+			processed: true,
+		}
+	}
+
 	shouldAddRole := identifier == core.BuiltInFunctionSetESDTRole
 	addrBech := epp.pubKeyConverter.Encode(args.event.GetAddress())
 	for _, roleBytes := range rolesBytes {
@@ -96,4 +105,24 @@ func (epp *esdtPropertiesProc) extractTokenProperties(args *argsProcessEvent) ar
 	return argOutputProcessEvent{
 		processed: true,
 	}
+}
+
+func checkRolesBytes(rolesBytes [][]byte) bool {
+	for _, role := range rolesBytes {
+		if !containsNonLetterChars(string(role)) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func containsNonLetterChars(data string) bool {
+	for _, c := range data {
+		if !unicode.IsLetter(c) {
+			return false
+		}
+	}
+
+	return true
 }
