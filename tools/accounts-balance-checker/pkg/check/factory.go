@@ -1,6 +1,9 @@
 package check
 
 import (
+	"math"
+	"time"
+
 	"github.com/ElrondNetwork/elastic-indexer-go/client/logging"
 	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/tools/accounts-balance-checker/pkg/config"
@@ -16,6 +19,14 @@ func CreateBalanceChecker(cfg *config.Config, repair bool) (*balanceChecker, err
 		Username:  cfg.Elasticsearch.Username,
 		Password:  cfg.Elasticsearch.Password,
 		Logger:    &logging.CustomLogger{},
+		RetryBackoff: func(i int) time.Duration {
+			// A simple exponential delay
+			d := time.Duration(math.Exp2(float64(i))) * time.Second
+			log.Info("elastic: retry backoff", "attempt", i, "sleep duration", d)
+			return d
+		},
+		MaxRetries:    5,
+		RetryOnStatus: []int{429, 502, 503, 504},
 	})
 	if err != nil {
 		return nil, err
