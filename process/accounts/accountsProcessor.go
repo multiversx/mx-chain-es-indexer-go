@@ -42,6 +42,7 @@ func NewAccountsProcessor(
 	}, nil
 }
 
+// TODO: refactor this as the altered accounts are already computed on the node. EN-12389
 // GetAccounts will get accounts for regular operations and esdt operations
 func (ap *accountsProcessor) GetAccounts(alteredAccounts data.AlteredAccountsHandler, coreAlteredAccounts map[string]*coreIndexerData.AlteredAccount) ([]*data.Account, []*data.AccountESDT) {
 	regularAccountsToIndex := make([]*data.Account, 0)
