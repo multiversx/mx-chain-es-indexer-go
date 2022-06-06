@@ -1,6 +1,7 @@
 package logsevents
 
 import (
+	"encoding/hex"
 	"math/big"
 	"strconv"
 	"testing"
@@ -97,4 +98,17 @@ func TestEsdtPropertiesProcUpgradeProperties(t *testing.T) {
 		},
 	}
 	require.Equal(t, expected, tokenRolesAndProperties.GetAllTokensWithProperties())
+}
+
+func TestCheckRolesBytes(t *testing.T) {
+	t.Parallel()
+
+	role1, _ := hex.DecodeString("01")
+	role2, _ := hex.DecodeString("02")
+	rolesBytes := [][]byte{role1, role2}
+	require.False(t, checkRolesBytes(rolesBytes))
+
+	role1 = []byte("ESDTRoleNFTCreate")
+	rolesBytes = [][]byte{role1}
+	require.True(t, checkRolesBytes(rolesBytes))
 }
