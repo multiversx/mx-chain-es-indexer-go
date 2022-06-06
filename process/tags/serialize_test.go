@@ -20,7 +20,7 @@ func TestTagsCount_Serialize(t *testing.T) {
 	require.Nil(t, err)
 
 	expected := `{ "update" : {"_index":"tags", "_id" : "QXJ0" } }
-{"script": {"source": "ctx._source.count += params.count","lang": "painless","params": {"count": 2}},"upsert": {"count": 2}}
+{"script": {"source": "ctx._source.count += params.count; ctx._source.tag = params.tag","lang": "painless","params": {"count": 2, "tag": "Art"}},"upsert": {"count": 2, "tag":"Art"}}
 `
 	require.Equal(t, expected, buffSlice.Buffers()[0].String())
 }

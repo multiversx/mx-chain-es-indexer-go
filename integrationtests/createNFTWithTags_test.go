@@ -30,7 +30,7 @@ func TestCreateNFTWithTags(t *testing.T) {
 		Properties: []byte("ok"),
 		TokenMetaData: &esdt.MetaData{
 			Creator:    []byte("creator"),
-			Attributes: []byte("tags:hello,something,ceva,an,so,on;metadata:QmZ2QqaGq4bqsEzs5JLTjRmmvR2GAR4qXJZBN8ibfDdaud"),
+			Attributes: []byte("tags:hello,something,do,music,art,gallery;metadata:QmZ2QqaGq4bqsEzs5JLTjRmmvR2GAR4qXJZBN8ibfDdaud"),
 		},
 	}
 
@@ -92,7 +92,7 @@ func TestCreateNFTWithTags(t *testing.T) {
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/createNFTWithTags/accounts-esdt-address-balance.json"), string(genericResponse.Docs[0].Source))
 
-	ids = []string{"aGVsbG8=", "Y2V2YQ==", "YW4=", "b24=", "c28=", "c28="}
+	ids = []string{"bXVzaWM=", "aGVsbG8=", "Z2FsbGVyeQ==", "ZG8=", "YXJ0", "c29tZXRoaW5n"}
 	genericResponse = &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.TagsIndex, true, genericResponse)
 	require.Nil(t, err)
@@ -129,7 +129,6 @@ func TestCreateNFTWithTags(t *testing.T) {
 	err = esProc.SaveTransactions(body, header, pool)
 	require.Nil(t, err)
 
-	ids = []string{"aGVsbG8=", "Y2V2YQ==", "YW4=", "b24=", "c28=", "c28="}
 	genericResponse = &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.TagsIndex, true, genericResponse)
 	require.Nil(t, err)
