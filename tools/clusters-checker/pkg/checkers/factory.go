@@ -10,6 +10,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v7"
 )
 
+// CreateClusterChecker will create a new instance of clusterChecker structure
 func CreateClusterChecker(cfg *config.Config, timestampIndex int, logPrefix string) (*clusterChecker, error) {
 	clientSource, err := client.NewElasticClient(elasticsearch.Config{
 		Addresses: []string{cfg.SourceCluster.URL},
