@@ -190,6 +190,7 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 				Timestamp: 1000,
 			},
 		},
+		Properties: &data.TokenProperties{},
 	}, resLogs.TokensInfo[0])
 
 	require.Equal(t, &data.Delegator{
