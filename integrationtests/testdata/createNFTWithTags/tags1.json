@@ -2,46 +2,51 @@
   {
     "_index": "tags-000001",
     "_type": "_doc",
-    "_id": "Y2V2YQ==",
+    "_id": "bXVzaWM=",
     "_score": 1,
     "_source": {
-      "count": 1
+      "count": 1,
+      "tag": "music"
     }
   },
   {
     "_index": "tags-000001",
     "_type": "_doc",
-    "_id": "YW4=",
+    "_id": "aGVsbG8=",
     "_score": 1,
     "_source": {
-      "count": 1
+      "count": 1,
+      "tag": "hello"
     }
   },
   {
     "_index": "tags-000001",
     "_type": "_doc",
-    "_id": "c2FsdXQ=",
+    "_id": "Z2FsbGVyeQ==",
     "_score": 1,
     "_source": {
-      "count": 1
+      "count": 1,
+      "tag": "gallery"
     }
   },
   {
     "_index": "tags-000001",
     "_type": "_doc",
-    "_id": "c28=",
+    "_id": "ZG8=",
     "_score": 1,
     "_source": {
-      "count": 1
+      "count": 1,
+      "tag": "do"
     }
   },
   {
     "_index": "tags-000001",
     "_type": "_doc",
-    "_id": "b24=",
+    "_id": "YXJ0",
     "_score": 1,
     "_source": {
-      "count": 1
+      "count": 1,
+      "tag": "art"
     }
   },
   {
@@ -50,7 +55,8 @@
     "_id": "c29tZXRoaW5n",
     "_score": 1,
     "_source": {
-      "count": 1
+      "count": 1,
+      "tag": "something"
     }
   }
 ]
