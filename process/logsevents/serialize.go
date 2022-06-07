@@ -65,12 +65,19 @@ func serializeDeploy(deployInfo *data.ScDeployInfo) ([]byte, error) {
 		return nil, errPrepareU
 	}
 
+	codeToExecute := `
+		if (!ctx._source.containsKey('upgrades')) {
+			ctx._source.upgrades = [params.elem];
+		} else {
+			ctx._source.upgrades.add(params.elem);
+		}
+`
 	serializedDataStr := fmt.Sprintf(`{"script": {`+
-		`"source": "if (!ctx._source.containsKey('upgrades')) { ctx._source.upgrades = [ params.elem ]; } else {  ctx._source.upgrades.add(params.elem); }",`+
+		`"source": "%s",`+
 		`"lang": "painless",`+
 		`"params": {"elem": %s}},`+
 		`"upsert": %s}`,
-		string(upgradeSerialized), string(serializedData))
+		converters.FormatPainlessSource(codeToExecute), string(upgradeSerialized), string(serializedData))
 
 	return []byte(serializedDataStr), nil
 }
@@ -103,12 +110,19 @@ func serializeToken(tokenData *data.TokenInfo, index string) ([]byte, []byte, er
 		return nil, nil, err
 	}
 
+	codeToExecute := `
+		if (ctx._source.containsKey('roles')) {
+			HashMap roles = ctx._source.roles;
+			ctx._source = params.token;
+			ctx._source.roles = roles
+		}
+`
 	serializedDataStr := fmt.Sprintf(`{"script": {`+
-		`"source": "if (ctx._source.containsKey('roles')) {HashMap roles = ctx._source.roles; ctx._source = params.token; ctx._source.roles = roles}",`+
+		`"source": "%s",`+
 		`"lang": "painless",`+
 		`"params": {"token": %s}},`+
 		`"upsert": %s}`,
-		string(serializedTokenData), string(serializedTokenData))
+		converters.FormatPainlessSource(codeToExecute), string(serializedTokenData), string(serializedTokenData))
 
 	return meta, []byte(serializedDataStr), nil
 }
@@ -130,12 +144,20 @@ func serializeTokenTransferOwnership(tokenData *data.TokenInfo, index string) ([
 		return nil, nil, err
 	}
 
+	codeToExecute := `
+		if (!ctx._source.containsKey('ownersHistory')) {
+			ctx._source.ownersHistory = [params.elem]
+		} else {
+			ctx._source.ownersHistory.add(params.elem)
+		}
+		ctx._source.currentOwner = params.owner
+`
 	serializedDataStr := fmt.Sprintf(`{"script": {`+
-		`"source": "if (!ctx._source.containsKey('ownersHistory')) { ctx._source.ownersHistory = [ params.elem ] } else { ctx._source.ownersHistory.add(params.elem) } ctx._source.currentOwner = params.owner ",`+
+		`"source": "%s",`+
 		`"lang": "painless",`+
 		`"params": {"elem": %s, "owner": "%s"}},`+
 		`"upsert": %s}`,
-		string(ownerDataSerialized), tokenData.CurrentOwner, string(tokenDataSerialized))
+		converters.FormatPainlessSource(codeToExecute), string(ownerDataSerialized), tokenData.CurrentOwner, string(tokenDataSerialized))
 
 	return meta, []byte(serializedDataStr), nil
 }
