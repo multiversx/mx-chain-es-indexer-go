@@ -15,6 +15,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/data/esdt"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
+	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
 
 var log = logger.GetOrCreate("indexer/process/accounts")
@@ -92,7 +93,7 @@ func splitAlteredAccounts(userAccount coreData.UserAccountHandler, altered []*da
 				IsSender:        info.IsSender,
 				IsNFTOperation:  info.IsNFTOperation,
 				NFTNonce:        info.NFTNonce,
-				Type:            info.Type,
+				IsNFTCreate:     info.IsNFTCreate,
 			})
 		}
 
@@ -139,7 +140,7 @@ func (ap *accountsProcessor) getUserAccount(address string) (coreData.UserAccoun
 }
 
 // PrepareRegularAccountsMap will prepare a map of regular accounts
-func (ap *accountsProcessor) PrepareRegularAccountsMap(accounts []*data.Account) map[string]*data.AccountInfo {
+func (ap *accountsProcessor) PrepareRegularAccountsMap(timestamp uint64, accounts []*data.Account) map[string]*data.AccountInfo {
 	accountsMap := make(map[string]*data.AccountInfo)
 	for _, userAccount := range accounts {
 		address := ap.addressPubkeyConverter.Encode(userAccount.UserAccount.AddressBytes())
@@ -148,12 +149,13 @@ func (ap *accountsProcessor) PrepareRegularAccountsMap(accounts []*data.Account)
 		acc := &data.AccountInfo{
 			Address:                  address,
 			Nonce:                    userAccount.UserAccount.GetNonce(),
-			Balance:                  balance.String(),
+			Balance:                  converters.BigIntToString(balance),
 			BalanceNum:               balanceAsFloat,
 			IsSender:                 userAccount.IsSender,
 			IsSmartContract:          core.IsSmartContractAddress(userAccount.UserAccount.AddressBytes()),
-			TotalBalanceWithStake:    balance.String(),
+			TotalBalanceWithStake:    converters.BigIntToString(balance),
 			TotalBalanceWithStakeNum: balanceAsFloat,
+			Timestamp:                time.Duration(timestamp),
 		}
 
 		accountsMap[address] = acc
@@ -164,8 +166,11 @@ func (ap *accountsProcessor) PrepareRegularAccountsMap(accounts []*data.Account)
 
 // PrepareAccountsMapESDT will prepare a map of accounts with ESDT tokens
 func (ap *accountsProcessor) PrepareAccountsMapESDT(
+	timestamp uint64,
 	accounts []*data.AccountESDT,
-) map[string]*data.AccountInfo {
+	tagsCount data.CountTags,
+) (map[string]*data.AccountInfo, data.TokensHandler) {
+	tokensData := data.NewTokensInfo()
 	accountsESDTMap := make(map[string]*data.AccountInfo)
 	for _, accountESDT := range accounts {
 		address := ap.addressPubkeyConverter.Encode(accountESDT.Account.AddressBytes())
@@ -177,10 +182,15 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(
 			continue
 		}
 
+		if tokenMetaData != nil && accountESDT.IsNFTCreate {
+			tagsCount.ParseTags(tokenMetaData.Tags)
+		}
+
+		tokenIdentifier := converters.ComputeTokenIdentifier(accountESDT.TokenIdentifier, accountESDT.NFTNonce)
 		acc := &data.AccountInfo{
 			Address:         address,
 			TokenName:       accountESDT.TokenIdentifier,
-			TokenIdentifier: converters.ComputeTokenIdentifier(accountESDT.TokenIdentifier, accountESDT.NFTNonce),
+			TokenIdentifier: tokenIdentifier,
 			TokenNonce:      accountESDT.NFTNonce,
 			Balance:         balance.String(),
 			BalanceNum:      ap.balanceConverter.ComputeESDTBalanceAsFloat(balance),
@@ -188,13 +198,27 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(
 			IsSender:        accountESDT.IsSender,
 			IsSmartContract: core.IsSmartContractAddress(accountESDT.Account.AddressBytes()),
 			Data:            tokenMetaData,
+			Timestamp:       time.Duration(timestamp),
+		}
+
+		if acc.TokenNonce == 0 {
+			acc.Type = core.FungibleESDT
 		}
 
 		keyInMap := fmt.Sprintf("%s-%s-%d", acc.Address, acc.TokenName, accountESDT.NFTNonce)
 		accountsESDTMap[keyInMap] = acc
+
+		if acc.Balance == "0" || acc.Balance == "" {
+			continue
+		}
+
+		tokensData.Add(&data.TokenInfo{
+			Token:      accountESDT.TokenIdentifier,
+			Identifier: tokenIdentifier,
+		})
 	}
 
-	return accountsESDTMap
+	return accountsESDTMap, tokensData
 }
 
 // PrepareAccountsHistory will prepare a map of accounts history balance from a map of accounts
@@ -229,12 +253,7 @@ func (ap *accountsProcessor) getESDTInfo(accountESDT *data.AccountESDT) (*big.In
 		return big.NewInt(0), "", nil, nil
 	}
 
-	tokenKey := []byte(core.ElrondProtectedKeyPrefix + core.ESDTKeyIdentifier + accountESDT.TokenIdentifier)
-	if accountESDT.IsNFTOperation {
-		nonceBig := big.NewInt(0).SetUint64(accountESDT.NFTNonce)
-		tokenKey = append(tokenKey, nonceBig.Bytes()...)
-	}
-
+	tokenKey := computeTokenKey(accountESDT.TokenIdentifier, accountESDT.NFTNonce)
 	valueBytes, err := accountESDT.Account.RetrieveValueFromDataTrieTracker(tokenKey)
 	if err != nil {
 		return nil, "", nil, err
@@ -250,7 +269,72 @@ func (ap *accountsProcessor) getESDTInfo(accountESDT *data.AccountESDT) (*big.In
 		return big.NewInt(0), "", nil, nil
 	}
 
+	if esdtToken.TokenMetaData == nil && accountESDT.NFTNonce > 0 {
+		metadata, errLoad := ap.loadMetadataFromSystemAccount(tokenKey)
+		if errLoad != nil {
+			return nil, "", nil, errLoad
+		}
+
+		esdtToken.TokenMetaData = metadata
+	}
+
 	tokenMetaData := converters.PrepareTokenMetaData(ap.addressPubkeyConverter, esdtToken)
 
 	return esdtToken.Value, hex.EncodeToString(esdtToken.Properties), tokenMetaData, nil
+}
+
+// PutTokenMedataDataInTokens will put the TokenMedata in provided tokens data
+func (ap *accountsProcessor) PutTokenMedataDataInTokens(tokensData []*data.TokenInfo) {
+	for _, tokenData := range tokensData {
+		if tokenData.Data != nil || tokenData.Nonce == 0 {
+			continue
+		}
+
+		tokenKey := computeTokenKey(tokenData.Token, tokenData.Nonce)
+		metadata, errLoad := ap.loadMetadataFromSystemAccount(tokenKey)
+		if errLoad != nil {
+			log.Warn("cannot load token metadata",
+				"token identifier ", tokenData.Identifier,
+				"error", errLoad.Error())
+
+			continue
+		}
+
+		tokenData.Data = converters.PrepareTokenMetaData(ap.addressPubkeyConverter, &esdt.ESDigitalToken{TokenMetaData: metadata})
+	}
+}
+
+func (ap *accountsProcessor) loadMetadataFromSystemAccount(tokenKey []byte) (*esdt.MetaData, error) {
+	systemAccount, err := ap.accountsDB.LoadAccount(vmcommon.SystemAccountAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	userAccount, ok := systemAccount.(coreData.UserAccountHandler)
+	if !ok {
+		return nil, indexer.ErrCannotCastAccountHandlerToUserAccount
+	}
+
+	marshaledData, err := userAccount.RetrieveValueFromDataTrieTracker(tokenKey)
+	if err != nil {
+		return nil, err
+	}
+
+	esdtData := &esdt.ESDigitalToken{}
+	err = ap.internalMarshalizer.Unmarshal(esdtData, marshaledData)
+	if err != nil {
+		return nil, err
+	}
+
+	return esdtData.TokenMetaData, nil
+}
+
+func computeTokenKey(token string, nonce uint64) []byte {
+	tokenKey := []byte(core.ElrondProtectedKeyPrefix + core.ESDTKeyIdentifier + token)
+	if nonce > 0 {
+		nonceBig := big.NewInt(0).SetUint64(nonce)
+		tokenKey = append(tokenKey, nonceBig.Bytes()...)
+	}
+
+	return tokenKey
 }

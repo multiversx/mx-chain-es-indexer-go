@@ -21,6 +21,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/process/miniblocks"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/operations"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/statistics"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/transactions"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/validators"
 	"github.com/ElrondNetwork/elrond-go-core/core"
@@ -52,7 +53,7 @@ func createMockElasticProcessorArgs() *ArgElasticProcessor {
 	acp, _ := accounts.NewAccountsProcessor(&mock.MarshalizerMock{}, &mock.PubkeyConverterMock{}, &mock.AccountsStub{}, balanceConverter)
 	bp, _ := block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 	mp, _ := miniblocks.NewMiniblocksProcessor(0, &mock.HasherMock{}, &mock.MarshalizerMock{}, false)
-	vp, _ := validators.NewValidatorsProcessor(mock.NewPubkeyConverterMock(32))
+	vp, _ := validators.NewValidatorsProcessor(mock.NewPubkeyConverterMock(32), 0)
 	args := &logsevents.ArgsLogsAndEventsProcessor{
 		ShardCoordinator: &mock.ShardCoordinatorMock{},
 		PubKeyConverter:  &mock.PubkeyConverterMock{},
@@ -352,7 +353,7 @@ func TestElasticseachDatabaseSaveHeader_RequestError(t *testing.T) {
 	signerIndexes := []uint64{0, 1}
 	arguments := createMockElasticProcessorArgs()
 	dbWriter := &mock.DatabaseWriterStub{
-		DoRequestCalled: func(req *esapi.IndexRequest) error {
+		DoBulkRequestCalled: func(buff *bytes.Buffer, index string) error {
 			return localErr
 		},
 	}
@@ -447,7 +448,7 @@ func TestElasticProcessor_SaveValidatorsRating(t *testing.T) {
 		},
 	}
 
-	arguments.ValidatorsProc, _ = validators.NewValidatorsProcessor(mock.NewPubkeyConverterMock(32))
+	arguments.ValidatorsProc, _ = validators.NewValidatorsProcessor(mock.NewPubkeyConverterMock(32), 0)
 	elasticProc, _ := NewElasticProcessor(arguments)
 
 	err := elasticProc.SaveValidatorsRating(
@@ -497,7 +498,7 @@ func TestElasticsearch_saveShardValidatorsPubKeys_RequestError(t *testing.T) {
 			return localErr
 		},
 	}
-	arguments.ValidatorsProc, _ = validators.NewValidatorsProcessor(mock.NewPubkeyConverterMock(32))
+	arguments.ValidatorsProc, _ = validators.NewValidatorsProcessor(mock.NewPubkeyConverterMock(32), 0)
 	elasticDatabase := newElasticsearchProcessor(dbWriter, arguments)
 
 	err := elasticDatabase.SaveShardValidatorsPubKeys(shardID, epoch, valPubKeys)
@@ -607,7 +608,7 @@ func TestElasticProcessor_IndexEpochInfoData(t *testing.T) {
 	called := false
 	arguments := createMockElasticProcessorArgs()
 	dbWriter := &mock.DatabaseWriterStub{
-		DoRequestCalled: func(req *esapi.IndexRequest) error {
+		DoBulkRequestCalled: func(buff *bytes.Buffer, index string) error {
 			called = true
 			return nil
 		},
@@ -617,18 +618,20 @@ func TestElasticProcessor_IndexEpochInfoData(t *testing.T) {
 	elasticSearchProc.selfShardID = core.MetachainShardId
 	elasticSearchProc.enabledIndexes[elasticIndexer.EpochInfoIndex] = struct{}{}
 
+	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
 	shardHeader := &dataBlock.Header{}
-	err := elasticSearchProc.indexEpochInfoData(shardHeader)
+	err := elasticSearchProc.indexEpochInfoData(shardHeader, buffSlice)
 	require.True(t, errors.Is(err, elasticIndexer.ErrHeaderTypeAssertion))
 
+	body := &dataBlock.Body{}
 	metaHeader := &dataBlock.MetaBlock{}
 
-	err = elasticSearchProc.indexEpochInfoData(metaHeader)
+	err = elasticSearchProc.SaveHeader(metaHeader, nil, body, nil, indexer.HeaderGasConsumption{}, 0)
 	require.Nil(t, err)
 	require.True(t, called)
 }
 
-func TestElasticProcessor_SaveTransactionsIndexSCResults(t *testing.T) {
+func TestElasticProcessor_SaveTransactionNoDataShouldNotDoRequest(t *testing.T) {
 	called := false
 	arguments := createMockElasticProcessorArgs()
 	arguments.TransactionsProc = &mock.DBTransactionProcessorStub{
@@ -640,18 +643,13 @@ func TestElasticProcessor_SaveTransactionsIndexSCResults(t *testing.T) {
 				AlteredAccts: nil,
 			}
 		},
-		SerializeScResultsCalled: func(scrs []*data.ScResult) ([]*bytes.Buffer, error) {
-			return []*bytes.Buffer{{}}, nil
+		SerializeScResultsCalled: func(scrs []*data.ScResult, _ *data.BufferSlice, _ string) error {
+			return nil
 		},
 	}
 	dbWriter := &mock.DatabaseWriterStub{
 		DoBulkRequestCalled: func(buff *bytes.Buffer, index string) error {
-			if index == elasticIndexer.ScResultsIndex {
-				called = true
-			}
-			return nil
-		},
-		DoRequestCalled: func(req *esapi.IndexRequest) error {
+			called = true
 			return nil
 		},
 	}
@@ -661,65 +659,34 @@ func TestElasticProcessor_SaveTransactionsIndexSCResults(t *testing.T) {
 
 	err := elasticSearchProc.SaveTransactions(&dataBlock.Body{}, &dataBlock.Header{}, &indexer.Pool{})
 	require.Nil(t, err)
-	require.True(t, called)
-}
-
-func TestElasticProcessor_SaveTransactionsIndexReceipts(t *testing.T) {
-	called := false
-	arguments := createMockElasticProcessorArgs()
-	arguments.TransactionsProc = &mock.DBTransactionProcessorStub{
-		PrepareTransactionsForDatabaseCalled: func(body *dataBlock.Body, header coreData.HeaderHandler, pool *indexer.Pool) *data.PreparedResults {
-			return &data.PreparedResults{
-				Transactions: nil,
-				ScResults:    nil,
-				Receipts:     nil,
-				AlteredAccts: nil,
-			}
-		},
-		SerializeReceiptsCalled: func(recs []*data.Receipt) ([]*bytes.Buffer, error) {
-			return []*bytes.Buffer{{}}, nil
-		},
-	}
-	dbWriter := &mock.DatabaseWriterStub{
-		DoBulkRequestCalled: func(buff *bytes.Buffer, index string) error {
-			if index == elasticIndexer.ReceiptsIndex {
-				called = true
-			}
-			return nil
-		},
-		DoRequestCalled: func(req *esapi.IndexRequest) error {
-			return nil
-		},
-	}
-
-	elasticSearchProc := newElasticsearchProcessor(dbWriter, arguments)
-	elasticSearchProc.enabledIndexes[elasticIndexer.ReceiptsIndex] = struct{}{}
-
-	err := elasticSearchProc.SaveTransactions(&dataBlock.Body{}, &dataBlock.Header{}, &indexer.Pool{})
-	require.Nil(t, err)
-	require.True(t, called)
+	require.False(t, called)
 }
 
 func TestElasticProcessor_IndexAlteredAccounts(t *testing.T) {
 	called := false
 	dbWriter := &mock.DatabaseWriterStub{
 		DoBulkRequestCalled: func(buff *bytes.Buffer, index string) error {
-			called = true
+			return nil
+		},
+		DoMultiGetCalled: func(ids []string, index string, withSource bool, response interface{}) error {
 			return nil
 		},
 	}
 	arguments := createMockElasticProcessorArgs()
 	arguments.AccountsProc = &mock.DBAccountsHandlerStub{
-		SerializeAccountsHistoryCalled: func(accounts map[string]*data.AccountBalanceHistory) ([]*bytes.Buffer, error) {
-			return []*bytes.Buffer{{}}, nil
+		SerializeAccountsHistoryCalled: func(accounts map[string]*data.AccountBalanceHistory, _ *data.BufferSlice, _ string) error {
+			called = true
+			return nil
 		},
 	}
 	elasticSearchProc := newElasticsearchProcessor(dbWriter, arguments)
 	elasticSearchProc.enabledIndexes[elasticIndexer.AccountsESDTIndex] = struct{}{}
 	elasticSearchProc.enabledIndexes[elasticIndexer.AccountsESDTHistoryIndex] = struct{}{}
 
+	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
 	alteredAccounts := data.NewAlteredAccounts()
-	err := elasticSearchProc.indexAlteredAccounts(100, alteredAccounts, nil)
+	tagsCount := tags.NewTagsCount()
+	err := elasticSearchProc.indexAlteredAccounts(100, alteredAccounts, nil, buffSlice, tagsCount)
 	require.Nil(t, err)
 	require.True(t, called)
 }

@@ -1,0 +1,23 @@
+{
+  "identifier": "NFT-abcd-0e",
+  "token": "NFT-abcd",
+  "nonce": 14,
+  "timestamp": 5040,
+  "data": {
+    "uris": [
+      "dXJp",
+      "dXJp",
+      "dXJpMQ==",
+      "dXJpMg=="
+    ],
+    "nonEmptyURIs": true,
+    "whiteListedStorage": false,
+    "attributes": "dGFnczp0ZXN0LGZyZWUsZnVuO2Rlc2NyaXB0aW9uOlRoaXMgaXMgYSB0ZXN0IGRlc2NyaXB0aW9uIGZvciBhbiBhd2Vzb21lIG5mdDttZXRhZGF0YTptZXRhZGF0YS10ZXN0",
+    "metadata": "metadata-test",
+    "tags": [
+      "test",
+      "free",
+      "fun"
+    ]
+  }
+}

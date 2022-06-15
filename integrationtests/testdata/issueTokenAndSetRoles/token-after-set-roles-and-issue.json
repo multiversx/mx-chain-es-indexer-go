@@ -1,0 +1,35 @@
+{
+  "ticker": "SEMI",
+  "currentOwner": "61646472",
+  "roles": {
+    "ESDTRoleNFTCreate": [
+      "6d792d61646472657373"
+    ],
+    "ESDTRoleNFTBurn": [
+      "6d792d61646472657373"
+    ]
+  },
+  "name": "semi-token",
+  "type": "SemiFungibleESDT",
+  "issuer": "61646472",
+  "token": "TTT-abcd",
+  "timestamp": 10000,
+  "ownersHistory": [
+    {
+      "address": "61646472",
+      "timestamp": 10000
+    }
+  ],
+  "properties": {
+    "canMint": false,
+    "canBurn": false,
+    "canUpgrade": false,
+    "canTransferNFTCreateRole": false,
+    "canAddSpecialRoles": false,
+    "canPause": false,
+    "canFreeze": false,
+    "canWipe": false,
+    "canChangeOwner": false,
+    "canCreateMultiShard": false
+  }
+}

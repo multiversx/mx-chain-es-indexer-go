@@ -1,10 +1,15 @@
 package operations
 
 import (
+	"encoding/hex"
+	"strings"
+
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
+	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
 
 type operationsProcessor struct {
@@ -50,6 +55,8 @@ func (op *operationsProcessor) ProcessTransactionsAndSCRs(
 		scr := scrs[idx]
 		scr.Type = string(transaction.TxTypeUnsigned)
 
+		setCanBeIgnoredField(scr)
+
 		selfShard := op.shardCoordinator.SelfId()
 		if selfShard == scr.ReceiverShard {
 			scr.Status = transaction.TxStatusSuccess.String()
@@ -67,4 +74,21 @@ func (op *operationsProcessor) shouldIndex(destinationShardID uint32) bool {
 	}
 
 	return op.shardCoordinator.SelfId() == destinationShardID
+}
+
+func setCanBeIgnoredField(scr *data.ScResult) {
+	dataFieldStr := string(scr.Data)
+	hasOkPrefix := strings.HasPrefix(dataFieldStr, data.AtSeparator+hex.EncodeToString([]byte(vmcommon.Ok.String())))
+	isRefundForRelayed := scr.ReturnMessage == data.GasRefundForRelayerMessage && dataFieldStr == ""
+	if hasOkPrefix || isRefundForRelayed {
+		scr.CanBeIgnored = true
+		return
+	}
+
+	isNFTTransferOrMultiTransfer := core.BuiltInFunctionESDTNFTTransfer == scr.Operation || core.BuiltInFunctionMultiESDTNFTTransfer == scr.Operation
+	isSCAddr := core.IsSmartContractAddress(scr.SenderAddressBytes)
+	if isNFTTransferOrMultiTransfer && !isSCAddr {
+		scr.CanBeIgnored = true
+		return
+	}
 }

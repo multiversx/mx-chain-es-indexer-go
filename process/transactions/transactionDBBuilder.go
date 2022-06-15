@@ -81,6 +81,7 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		Receivers:            encodeBytesSlice(dtb.addressPubkeyConverter.Encode, res.Receivers),
 		ReceiversShardIDs:    res.ReceiversShardID,
 		IsRelayed:            res.IsRelayed,
+		Version:              tx.Version,
 	}
 }
 

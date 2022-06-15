@@ -33,7 +33,6 @@ func prepareHashesForBulkRemove(hashes []string) objectsMap {
 	return objectsMap{
 		"query": objectsMap{
 			"ids": objectsMap{
-				"type":   "_doc",
 				"values": hashes,
 			},
 		},

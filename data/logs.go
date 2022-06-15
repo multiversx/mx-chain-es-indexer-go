@@ -1,13 +1,18 @@
 package data
 
-import "time"
+import (
+	"time"
+
+	"github.com/ElrondNetwork/elastic-indexer-go/process/tokeninfo"
+)
 
 // Logs holds all the fields needed for a logs structure
 type Logs struct {
-	ID        string        `json:"-"`
-	Address   string        `json:"address"`
-	Events    []*Event      `json:"events"`
-	Timestamp time.Duration `json:"timestamp,omitempty"`
+	ID             string        `json:"-"`
+	OriginalTxHash string        `json:"originalTxHash,omitempty"`
+	Address        string        `json:"address"`
+	Events         []*Event      `json:"events"`
+	Timestamp      time.Duration `json:"timestamp,omitempty"`
 }
 
 // Event holds all the fields needed for an event structure
@@ -21,10 +26,11 @@ type Event struct {
 
 // PreparedLogsResults is the DTO that holds all the results after processing
 type PreparedLogsResults struct {
-	Tokens          TokensHandler
-	TagsCount       CountTags
-	ScDeploys       map[string]*ScDeployInfo
-	Delegators      map[string]*Delegator
-	TokensInfo      []*TokenInfo
-	NFTsDataUpdates []*NFTDataUpdate
+	Tokens                  TokensHandler
+	TokensSupply            TokensHandler
+	ScDeploys               map[string]*ScDeployInfo
+	Delegators              map[string]*Delegator
+	TokensInfo              []*TokenInfo
+	NFTsDataUpdates         []*NFTDataUpdate
+	TokenRolesAndProperties *tokeninfo.TokenRolesAndProperties
 }

@@ -136,37 +136,43 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 	if scr.RelayedValue != nil {
 		relayedValue = scr.RelayedValue.String()
 	}
+	originalSenderAddr := ""
+	if scr.OriginalSender != nil {
+		originalSenderAddr = proc.pubKeyConverter.Encode(scr.OriginalSender)
+	}
 
 	res := proc.dataFieldParser.Parse(scr.Data, scr.SndAddr, scr.RcvAddr)
 
 	return &indexerData.ScResult{
-		Hash:              hex.EncodeToString(scrHash),
-		MBHash:            hexEncodedMBHash,
-		Nonce:             scr.Nonce,
-		GasLimit:          scr.GasLimit,
-		GasPrice:          scr.GasPrice,
-		Value:             scr.Value.String(),
-		Sender:            proc.pubKeyConverter.Encode(scr.SndAddr),
-		Receiver:          proc.pubKeyConverter.Encode(scr.RcvAddr),
-		RelayerAddr:       relayerAddr,
-		RelayedValue:      relayedValue,
-		Code:              string(scr.Code),
-		Data:              scr.Data,
-		PrevTxHash:        hex.EncodeToString(scr.PrevTxHash),
-		OriginalTxHash:    hex.EncodeToString(scr.OriginalTxHash),
-		CallType:          strconv.Itoa(int(scr.CallType)),
-		CodeMetadata:      scr.CodeMetadata,
-		ReturnMessage:     string(scr.ReturnMessage),
-		Timestamp:         time.Duration(header.GetTimeStamp()),
-		SenderShard:       senderShard,
-		ReceiverShard:     receiverShard,
-		Operation:         res.Operation,
-		Function:          res.Function,
-		ESDTValues:        res.ESDTValues,
-		Tokens:            res.Tokens,
+		Hash:               hex.EncodeToString(scrHash),
+		MBHash:             hexEncodedMBHash,
+		Nonce:              scr.Nonce,
+		GasLimit:           scr.GasLimit,
+		GasPrice:           scr.GasPrice,
+		Value:              scr.Value.String(),
+		Sender:             proc.pubKeyConverter.Encode(scr.SndAddr),
+		Receiver:           proc.pubKeyConverter.Encode(scr.RcvAddr),
+		RelayerAddr:        relayerAddr,
+		RelayedValue:       relayedValue,
+		Code:               string(scr.Code),
+		Data:               scr.Data,
+		PrevTxHash:         hex.EncodeToString(scr.PrevTxHash),
+		OriginalTxHash:     hex.EncodeToString(scr.OriginalTxHash),
+		CallType:           strconv.Itoa(int(scr.CallType)),
+		CodeMetadata:       scr.CodeMetadata,
+		ReturnMessage:      string(scr.ReturnMessage),
+		Timestamp:          time.Duration(header.GetTimeStamp()),
+		SenderAddressBytes: scr.SndAddr,
+		SenderShard:        senderShard,
+		ReceiverShard:      receiverShard,
+		Operation:          res.Operation,
+		Function:           res.Function,
+		ESDTValues:         res.ESDTValues,
+		Tokens:             res.Tokens,
 		Receivers:         encodeBytesSlice(proc.pubKeyConverter.Encode, res.Receivers),
-		ReceiversShardIDs: res.ReceiversShardID,
-		IsRelayed:         res.IsRelayed,
+		ReceiversShardIDs:  res.ReceiversShardID,
+		IsRelayed:          res.IsRelayed,
+		OriginalSender:     originalSenderAddr,
 	}
 }
 

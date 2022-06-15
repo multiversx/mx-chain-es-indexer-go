@@ -1,0 +1,28 @@
+{
+  "name": "semi-token",
+  "ticker": "SSSS",
+  "token": "SSSS-abcd",
+  "issuer": "61646472",
+  "currentOwner": "61646472",
+  "type": "SemiFungibleESDT",
+  "timestamp": 5040,
+  "ownersHistory": [
+    {
+      "address": "61646472",
+      "timestamp": 5040
+    }
+  ],
+  "numDecimals": 18,
+  "properties": {
+    "canMint": false,
+    "canBurn": false,
+    "canUpgrade": false,
+    "canTransferNFTCreateRole": false,
+    "canAddSpecialRoles": false,
+    "canPause": false,
+    "canFreeze": false,
+    "canWipe": false,
+    "canChangeOwner": false,
+    "canCreateMultiShard": false
+  }
+}

@@ -65,7 +65,7 @@ func (np *nftsProcessor) processEvent(args *argsProcessEvent) argOutputProcessEv
 	sender := args.event.GetAddress()
 	senderShardID := np.shardCoordinator.ComputeId(sender)
 	if senderShardID == np.shardCoordinator.SelfId() {
-		np.processNFTEventOnSender(args.event, args.accounts, args.tokens, args.timestamp, args.tagsCount)
+		np.processNFTEventOnSender(args.event, args.accounts, args.tokens, args.tokensSupply, args.timestamp)
 	}
 
 	token := string(topics[0])
@@ -124,8 +124,8 @@ func (np *nftsProcessor) processNFTEventOnSender(
 	event coreData.EventHandler,
 	accounts data.AlteredAccountsHandler,
 	tokensCreateInfo data.TokensHandler,
+	tokensSupply data.TokensHandler,
 	timestamp uint64,
-	tagsCount data.CountTags,
 ) {
 	sender := event.GetAddress()
 	topics := event.GetTopics()
@@ -133,15 +133,26 @@ func (np *nftsProcessor) processNFTEventOnSender(
 	nonceBig := big.NewInt(0).SetBytes(topics[1])
 	bech32Addr := np.pubKeyConverter.Encode(sender)
 
+	eventIdentifier := string(event.GetIdentifier())
+	if eventIdentifier == core.BuiltInFunctionESDTNFTBurn {
+		tokensSupply.Add(&data.TokenInfo{
+			Token:      token,
+			Identifier: converters.ComputeTokenIdentifier(token, nonceBig.Uint64()),
+			Timestamp:  time.Duration(timestamp),
+			Nonce:      nonceBig.Uint64(),
+		})
+	}
+
+	isNFTCreate := eventIdentifier == core.BuiltInFunctionESDTNFTCreate
 	alteredAccount := &data.AlteredAccount{
 		IsNFTOperation:  true,
 		TokenIdentifier: token,
 		NFTNonce:        nonceBig.Uint64(),
+		IsNFTCreate:     isNFTCreate,
 	}
-
 	accounts.Add(bech32Addr, alteredAccount)
 
-	shouldReturn := string(event.GetIdentifier()) != core.BuiltInFunctionESDTNFTCreate || len(topics) < numTopicsWithReceiverAddress
+	shouldReturn := !isNFTCreate || len(topics) < numTopicsWithReceiverAddress
 	if shouldReturn {
 		return
 	}
@@ -162,8 +173,4 @@ func (np *nftsProcessor) processNFTEventOnSender(
 		Data:       tokenMetaData,
 		Nonce:      nonceBig.Uint64(),
 	})
-
-	if tokenMetaData != nil {
-		tagsCount.ParseTags(tokenMetaData.Tags)
-	}
 }

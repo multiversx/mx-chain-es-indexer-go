@@ -1,6 +1,7 @@
 package data
 
 import (
+	"encoding/json"
 	"time"
 )
 
@@ -35,4 +36,14 @@ type RoundInfo struct {
 type EpochInfo struct {
 	AccumulatedFees string `json:"accumulatedFees"`
 	DeveloperFees   string `json:"developerFees"`
+}
+
+// ResponseScroll defines the generic structure for an Elasticsearch scroll request
+type ResponseScroll struct {
+	Hits struct {
+		Hits []struct {
+			ID     string          `json:"_id"`
+			Source json.RawMessage `json:"_source"`
+		} `json:"hits"`
+	} `json:"hits"`
 }
