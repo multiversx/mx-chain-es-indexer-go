@@ -23,7 +23,7 @@ import (
 
 func createMockArgsTxsDBProc() *ArgsTransactionProcessor {
 	args := &ArgsTransactionProcessor{
-		AddressPubkeyConverter: &mock.PubkeyConverterMock{},
+		AddressPubkeyConverter: mock.NewPubkeyConverterMock(10),
 		TxFeeCalculator:        &mock.EconomicsHandlerStub{},
 		ShardCoordinator:       &mock.ShardCoordinatorMock{},
 		Hasher:                 &mock.HasherMock{},
@@ -415,7 +415,8 @@ func TestAlteredAddresses(t *testing.T) {
 
 	args := createMockArgsTxsDBProc()
 	args.ShardCoordinator = shardCoordinator
-	txDbProc, _ := NewTransactionsProcessor(args)
+	txDbProc, err := NewTransactionsProcessor(args)
+	require.Nil(t, err)
 
 	results := txDbProc.PrepareTransactionsForDatabase(body, hdr, pool)
 
