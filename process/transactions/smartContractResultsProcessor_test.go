@@ -17,6 +17,7 @@ func createDataFieldParserMock() DataFieldParser {
 	args := &datafield.ArgsOperationDataFieldParser{
 		Marshalizer:      &mock.MarshalizerMock{},
 		ShardCoordinator: &mock.ShardCoordinatorMock{},
+		AddressLength:    32,
 	}
 	parser, _ := datafield.NewOperationDataFieldParser(args)
 
@@ -64,6 +65,7 @@ func TestPrepareSmartContractResult(t *testing.T) {
 		ReceiverShard:      1,
 		Operation:          "transfer",
 		SenderAddressBytes: sndAddr,
+		Receivers:          []string{},
 	}
 
 	require.Equal(t, expectedTx, scRes)

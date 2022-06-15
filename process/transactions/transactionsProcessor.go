@@ -47,6 +47,7 @@ func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txsDatabaseProce
 	argsParser := &datafield.ArgsOperationDataFieldParser{
 		Marshalizer:      args.Marshalizer,
 		ShardCoordinator: args.ShardCoordinator,
+		AddressLength:    args.AddressPubkeyConverter.Len(),
 	}
 	operationsDataParser, err := datafield.NewOperationDataFieldParser(argsParser)
 	if err != nil {
