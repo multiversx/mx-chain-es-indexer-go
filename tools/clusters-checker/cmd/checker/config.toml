@@ -15,5 +15,5 @@
             {start = 1639317602, stop = 1647957602}, # Day 500 - Day 600
             {start = 1647957603, stop = 1667288039}, # Day 600 - Day XXX
         ]
-        indices-with-timestamp = [ "receipts", "transactions", "blocks", "miniblocks", "rounds",  "accountshistory", "scresults", "accountsesdt", "accountsesdthistory", "scdeploys", "tokens", "accounts", "logs"]
+        indices-with-timestamp = [ "receipts", "transactions", "blocks", "miniblocks", "rounds",  "accountshistory", "scresults", "accountsesdt", "accountsesdthistory", "scdeploys", "tokens", "accounts", "logs", "operations"]
         indices-no-timestamp = ["rating", "validators", "epochinfo", "tags", "delegators"]
