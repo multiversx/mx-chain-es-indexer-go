@@ -7,7 +7,7 @@ import (
 	"math/big"
 	"testing"
 
-	indexerdata "github.com/ElrondNetwork/elastic-indexer-go"
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
@@ -84,13 +84,13 @@ func TestIndexAccountsBalance(t *testing.T) {
 
 	ids := []string{"6161616162626262"}
 	genericResponse := &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.AccountsIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, data.AccountsIndex, true, genericResponse)
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/accountsBalanceWithLowerTimestamp/account-balance-first-update.json"), string(genericResponse.Docs[0].Source))
 
 	ids = []string{"6161616162626262-TTTT-abcd-00"}
 	genericResponse = &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, data.AccountsESDTIndex, true, genericResponse)
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/accountsBalanceWithLowerTimestamp/account-balance-esdt-first-update.json"), string(genericResponse.Docs[0].Source))
 
@@ -109,13 +109,13 @@ func TestIndexAccountsBalance(t *testing.T) {
 
 	ids = []string{"6161616162626262"}
 	genericResponse = &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.AccountsIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, data.AccountsIndex, true, genericResponse)
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/accountsBalanceWithLowerTimestamp/account-balance-first-update.json"), string(genericResponse.Docs[0].Source))
 
 	ids = []string{"6161616162626262-TTTT-abcd-00"}
 	genericResponse = &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, data.AccountsESDTIndex, true, genericResponse)
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/accountsBalanceWithLowerTimestamp/account-balance-esdt-first-update.json"), string(genericResponse.Docs[0].Source))
 
@@ -164,13 +164,13 @@ func TestIndexAccountsBalance(t *testing.T) {
 
 	ids = []string{"6161616162626262"}
 	genericResponse = &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.AccountsIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, data.AccountsIndex, true, genericResponse)
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/accountsBalanceWithLowerTimestamp/account-balance-second-update.json"), string(genericResponse.Docs[0].Source))
 
 	ids = []string{"6161616162626262-TTTT-abcd-00"}
 	genericResponse = &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, data.AccountsESDTIndex, true, genericResponse)
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/accountsBalanceWithLowerTimestamp/account-balance-esdt-second-update.json"), string(genericResponse.Docs[0].Source))
 
@@ -207,13 +207,13 @@ func TestIndexAccountsBalance(t *testing.T) {
 
 	ids = []string{"6161616162626262"}
 	genericResponse = &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.AccountsIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, data.AccountsIndex, true, genericResponse)
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/accountsBalanceWithLowerTimestamp/account-balance-second-update.json"), string(genericResponse.Docs[0].Source))
 
 	ids = []string{"6161616162626262-TTTT-abcd-00"}
 	genericResponse = &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, data.AccountsESDTIndex, true, genericResponse)
 	require.Nil(t, err)
 	require.False(t, genericResponse.Docs[0].Found)
 }

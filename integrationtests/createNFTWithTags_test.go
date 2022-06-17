@@ -7,7 +7,7 @@ import (
 	"math/big"
 	"testing"
 
-	indexerdata "github.com/ElrondNetwork/elastic-indexer-go"
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
@@ -88,13 +88,13 @@ func TestCreateNFTWithTags(t *testing.T) {
 
 	ids := []string{"6161616162626262-DESK-abcd-01"}
 	genericResponse := &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, data.AccountsESDTIndex, true, genericResponse)
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/createNFTWithTags/accounts-esdt-address-balance.json"), string(genericResponse.Docs[0].Source))
 
 	ids = []string{"bXVzaWM=", "aGVsbG8=", "Z2FsbGVyeQ==", "ZG8=", "YXJ0", "c29tZXRoaW5n"}
 	genericResponse = &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.TagsIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, data.TagsIndex, true, genericResponse)
 	require.Nil(t, err)
 
 	for idx, id := range ids {
@@ -130,7 +130,7 @@ func TestCreateNFTWithTags(t *testing.T) {
 	require.Nil(t, err)
 
 	genericResponse = &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.TagsIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, data.TagsIndex, true, genericResponse)
 	require.Nil(t, err)
 
 	for idx, id := range ids {

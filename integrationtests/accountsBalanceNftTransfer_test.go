@@ -8,7 +8,7 @@ import (
 	"math/big"
 	"testing"
 
-	indexerdata "github.com/ElrondNetwork/elastic-indexer-go"
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
@@ -85,7 +85,7 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 
 	ids := []string{"746573742d616464726573732d62616c616e63652d31-NFT-abcdef-718863"}
 	genericResponse := &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, data.AccountsESDTIndex, true, genericResponse)
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/accountsBalanceNftTransfer/balance-nft-after-create.json"), string(genericResponse.Docs[0].Source))
 
@@ -150,13 +150,13 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 
 	ids = []string{"746573742d616464726573732d62616c616e63652d31-NFT-abcdef-718863"}
 	genericResponse = &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, data.AccountsESDTIndex, true, genericResponse)
 	require.Nil(t, err)
 	require.False(t, genericResponse.Docs[0].Found)
 
 	ids = []string{"6e65772d61646472657373-NFT-abcdef-718863"}
 	genericResponse = &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, data.AccountsESDTIndex, true, genericResponse)
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/accountsBalanceNftTransfer/balance-nft-after-transfer.json"), string(genericResponse.Docs[0].Source))
 }
