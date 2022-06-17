@@ -1,6 +1,8 @@
 package data
 
-import "time"
+import (
+	"time"
+)
 
 const metaESDT = "MetaESDT"
 
@@ -32,18 +34,34 @@ type SourceToken struct {
 
 // TokenInfo is a structure that is needed to store information about a token
 type TokenInfo struct {
-	Name              string         `json:"name,omitempty"`
-	Ticker            string         `json:"ticker,omitempty"`
-	Identifier        string         `json:"identifier,omitempty"`
-	Token             string         `json:"token,omitempty"`
-	Issuer            string         `json:"issuer,omitempty"`
-	CurrentOwner      string         `json:"currentOwner,omitempty"`
-	Type              string         `json:"type,omitempty"`
-	Nonce             uint64         `json:"nonce,omitempty"`
-	Timestamp         time.Duration  `json:"timestamp,omitempty"`
-	Data              *TokenMetaData `json:"data,omitempty"`
-	OwnersHistory     []*OwnerData   `json:"ownersHistory,omitempty"`
-	TransferOwnership bool           `json:"-"`
+	Name              string           `json:"name,omitempty"`
+	Ticker            string           `json:"ticker,omitempty"`
+	Identifier        string           `json:"identifier,omitempty"`
+	Token             string           `json:"token,omitempty"`
+	Issuer            string           `json:"issuer,omitempty"`
+	CurrentOwner      string           `json:"currentOwner,omitempty"`
+	NumDecimals       uint64           `json:"numDecimals,omitempty"`
+	Type              string           `json:"type,omitempty"`
+	Nonce             uint64           `json:"nonce,omitempty"`
+	Timestamp         time.Duration    `json:"timestamp,omitempty"`
+	Data              *TokenMetaData   `json:"data,omitempty"`
+	OwnersHistory     []*OwnerData     `json:"ownersHistory,omitempty"`
+	TransferOwnership bool             `json:"-"`
+	Properties        *TokenProperties `json:"properties,omitempty"`
+}
+
+// TokenProperties is a structure that is needed to store all properties of a token
+type TokenProperties struct {
+	Mintable                 bool `json:"canMint"`
+	Burnable                 bool `json:"canBurn"`
+	Upgradable               bool `json:"canUpgrade"`
+	CanTransferNFTCreateRole bool `json:"canTransferNFTCreateRole"`
+	CanAddSpecialRoles       bool `json:"canAddSpecialRoles"`
+	CanPause                 bool `json:"canPause"`
+	CanFreeze                bool `json:"canFreeze"`
+	CanWipe                  bool `json:"canWipe"`
+	CanChangeOwner           bool `json:"canChangeOwner"`
+	CanCreateMultiShard      bool `json:"canCreateMultiShard"`
 }
 
 // OwnerData is a structure that is needed to store information about an owner
@@ -52,7 +70,7 @@ type OwnerData struct {
 	Timestamp time.Duration `json:"timestamp"`
 }
 
-// TokensHandler defines the actions that an tokens handler should do
+// TokensHandler defines the actions that a tokens' handler should do
 type TokensHandler interface {
 	Add(tokenInfo *TokenInfo)
 	Len() int

@@ -1,6 +1,7 @@
 package logsevents
 
 import (
+	"math/big"
 	"time"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
@@ -58,11 +59,16 @@ func (iep *esdtIssueProcessor) processEvent(args *argsProcessEvent) argOutputPro
 	// topics[1] -- token name
 	// topics[2] -- token ticker
 	// topics[3] -- token type
-	// topics[4] -- new owner address in case of transferOwnershipFunc
+	// topics[4] -- num decimals / new owner address in case of transferOwnershipFunc
 	if len(topics[0]) == 0 {
 		return argOutputProcessEvent{
 			processed: true,
 		}
+	}
+
+	numDecimals := uint64(0)
+	if len(topics) == numIssueLogTopics+1 && identifierStr != transferOwnershipFunc {
+		numDecimals = big.NewInt(0).SetBytes(topics[4]).Uint64()
 	}
 
 	encodedAddr := iep.pubkeyConverter.Encode(args.event.GetAddress())
@@ -72,6 +78,7 @@ func (iep *esdtIssueProcessor) processEvent(args *argsProcessEvent) argOutputPro
 		Name:         string(topics[1]),
 		Ticker:       string(topics[2]),
 		Type:         string(topics[3]),
+		NumDecimals:  numDecimals,
 		Issuer:       encodedAddr,
 		CurrentOwner: encodedAddr,
 		Timestamp:    time.Duration(args.timestamp),
@@ -81,6 +88,7 @@ func (iep *esdtIssueProcessor) processEvent(args *argsProcessEvent) argOutputPro
 				Timestamp: time.Duration(args.timestamp),
 			},
 		},
+		Properties: &data.TokenProperties{},
 	}
 
 	if identifierStr == transferOwnershipFunc && len(topics) >= numIssueLogTopics+1 {

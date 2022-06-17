@@ -14,6 +14,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/data/smartContractResult"
 	"github.com/ElrondNetwork/elrond-go-core/hashing"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
+	datafield "github.com/ElrondNetwork/elrond-vm-common/parsers/dataField"
 )
 
 type smartContractResultsProcessor struct {
@@ -169,7 +170,7 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 		Function:           res.Function,
 		ESDTValues:         res.ESDTValues,
 		Tokens:             res.Tokens,
-		Receivers:          res.Receivers,
+		Receivers:          datafield.EncodeBytesSlice(proc.pubKeyConverter.Encode, res.Receivers),
 		ReceiversShardIDs:  res.ReceiversShardID,
 		IsRelayed:          res.IsRelayed,
 		OriginalSender:     originalSenderAddr,

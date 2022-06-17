@@ -15,9 +15,6 @@ func (esc *esClient) DoCountRequest(index string, body []byte) (uint64, error) {
 	if err != nil {
 		return 0, err
 	}
-	if err != nil {
-		return 0, err
-	}
 
 	bodyBytes, err := getBytesFromResponse(res)
 	if err != nil {

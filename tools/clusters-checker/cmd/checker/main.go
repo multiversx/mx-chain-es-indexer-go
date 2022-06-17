@@ -87,6 +87,7 @@ func checkClusters(ctx *cli.Context) {
 	cfg, err := loadConfigFile(cfgPath)
 	if err != nil {
 		log.Error("cannot load config file", "error", err.Error())
+		return
 	}
 
 	checkCountsFlag := ctx.Bool(checkCounts.Name)
@@ -94,11 +95,13 @@ func checkClusters(ctx *cli.Context) {
 		clusterChecker, errC := checkers.CreateClusterChecker(cfg, 0, "instance_0")
 		if errC != nil {
 			log.Error("cannot create cluster checker", "error", errC.Error())
+			return
 		}
 
 		errC = clusterChecker.CompareCounts()
 		if errC != nil {
 			log.Error("cannot check counts", "error", errC.Error())
+			return
 		}
 
 		return
@@ -109,11 +112,13 @@ func checkClusters(ctx *cli.Context) {
 		clusterChecker, errC := checkers.CreateClusterChecker(cfg, 0, "instance_0")
 		if errC != nil {
 			log.Error("cannot create cluster checker", "error", errC.Error())
+			return
 		}
 
 		errC = clusterChecker.CompareIndicesNoTimestamp()
 		if errC != nil {
 			log.Error("cannot check indices", "error", errC.Error())
+			return
 		}
 
 		return
