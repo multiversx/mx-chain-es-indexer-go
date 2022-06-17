@@ -351,7 +351,7 @@ func TestElasticseachDatabaseSaveHeader_RequestError(t *testing.T) {
 	elasticDatabase := newElasticsearchProcessor(dbWriter, arguments)
 
 	err := elasticDatabase.SaveHeader(header, signerIndexes, &dataBlock.Body{}, nil, indexer.HeaderGasConsumption{}, 1)
-	require.Equal(t, localErr, err)
+	require.True(t, strings.Contains(err.Error(), localErr.Error()))
 }
 
 func TestElasticseachDatabaseSaveHeader_CheckRequestBody(t *testing.T) {
@@ -474,7 +474,7 @@ func TestElasticProcessor_SaveMiniblocks(t *testing.T) {
 		{SenderShardID: 0, ReceiverShardID: 1},
 	}}
 	err := elasticProc.SaveMiniblocks(header, body)
-	require.Equal(t, localErr, err)
+	require.True(t, strings.Contains(err.Error(), localErr.Error()))
 }
 
 func TestElasticsearch_saveShardValidatorsPubKeys_RequestError(t *testing.T) {
