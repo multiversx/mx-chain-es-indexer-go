@@ -73,7 +73,7 @@ func TestTransactionWithSCCallFail(t *testing.T) {
 				GasPrice:       0,
 				SndAddr:        []byte("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqfhllllscrt56r"),
 				RcvAddr:        []byte("erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv"),
-				Data:           []byte("@user error"),
+				Data:           []byte("@75736572206572726f72"),
 				PrevTxHash:     txHash,
 				OriginalTxHash: txHash,
 				ReturnMessage:  []byte("total delegation cap reached"),

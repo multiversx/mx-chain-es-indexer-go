@@ -17,17 +17,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const (
-	expectedTxNFTTransfer                  = `{"receiversShardIDs":[0],"receiver":"65726431757265376561323437636c6a3679716a673830756e7a36787a6a686c6a327a776d3467746736737564636d747364326377337873373468617376","data":"RVNEVE5GVFRyYW5zZmVyQDUzNmY2ZDY1NzQ2ODY5NmU2NzJkNjE2MjYzNjQ2NTY2QDAxQDAxQDAwMDAwMDAwMDAwMDAwMDAwNTAwYTdhMDI3NzFhYTA3MDkwZTYwN2YwMmIyNWY0ZDZkMjQxYmZmMzJiOTkwYTI=","signature":"","fee":"235850000000000","esdtValues":["1"],"nonce":79,"gasLimit":5000000,"gasUsed":963500,"miniBlockHash":"83c60064098aa89220b5adc9d71f22b489bfc78cb3dcb516381102d7fec959e8","round":50,"hasScResults":true,"sender":"65726431757265376561323437636c6a3679716a673830756e7a36787a6a686c6a327a776d3467746736737564636d747364326377337873373468617376","receivers":["00000000000000000500a7a02771aa07090e607f02b25f4d6d241bff32b990a2"],"receiverShard":0,"senderShard":0,"tokens":["Something-abcdef-01"],"value":"0","operation":"ESDTNFTTransfer","gasPrice":1000000000,"timestamp":5040,"status":"success","searchOrder":0}`
-	expectedTxNFTTransferFailOnDestination = `{"miniBlockHash":"83c60064098aa89220b5adc9d71f22b489bfc78cb3dcb516381102d7fec959e8","nonce":79,"round":50,"value":"0","receiver":"65726431757265376561323437636c6a3679716a673830756e7a36787a6a686c6a327a776d3467746736737564636d747364326377337873373468617376","sender":"65726431757265376561323437636c6a3679716a673830756e7a36787a6a686c6a327a776d3467746736737564636d747364326377337873373468617376","receiverShard":0,"senderShard":0,"gasPrice":1000000000,"gasLimit":5000000,"gasUsed":963500,"fee":"235850000000000","data":"RVNEVE5GVFRyYW5zZmVyQDUzNmY2ZDY1NzQ2ODY5NmU2NzJkNjE2MjYzNjQ2NTY2QDAxQDAxQDAwMDAwMDAwMDAwMDAwMDAwNTAwYTdhMDI3NzFhYTA3MDkwZTYwN2YwMmIyNWY0ZDZkMjQxYmZmMzJiOTkwYTI=","signature":"","timestamp":5040,"status":"fail","searchOrder":0,"hasScResults":true,"tokens":["Something-abcdef-01"],"esdtValues":["1"],"receivers":["00000000000000000500a7a02771aa07090e607f02b25f4d6d241bff32b990a2"],"receiversShardIDs":[0],"operation":"ESDTNFTTransfer"}`
-
-	txWithStatusOnly     = `{"miniBlockHash":"","nonce":0,"round":0,"value":"","receiver":"","sender":"","receiverShard":0,"senderShard":0,"gasPrice":0,"gasLimit":0,"gasUsed":0,"fee":"","data":null,"signature":"","timestamp":0,"status":"fail","searchOrder":0}`
-	completeTxWithStatus = `{"receiversShardIDs":[0],"receiver":"65726431757265376561323437636c6a3679716a673830756e7a36787a6a686c6a327a776d3467746736737564636d747364326377337873373468617376","data":"RVNEVE5GVFRyYW5zZmVyQDQzNGY0YzQ1NDM1NDQ5NDUyZDMyMzY2MzMxMzgzOEAwMUAwMUAwMDAwMDAwMDAwMDAwMDAwMDUwMGE3YTAyNzcxYWEwNzA5MGU2MDdmMDJiMjVmNGQ2ZDI0MWJmZjMyYjk5MGEy","signature":"","fee":"232880000000000","esdtValues":["1"],"nonce":79,"gasLimit":5000000,"gasUsed":963500,"miniBlockHash":"db7161a83f08489cba131e55f042536ee49116b622e33e70335a13e51a6c268c","round":50,"hasScResults":true,"sender":"65726431757265376561323437636c6a3679716a673830756e7a36787a6a686c6a327a776d3467746736737564636d747364326377337873373468617376","receivers":["00000000000000000500a7a02771aa07090e607f02b25f4d6d241bff32b990a2"],"receiverShard":0,"senderShard":0,"tokens":["COLECTIE-26c188-01"],"value":"0","operation":"ESDTNFTTransfer","gasPrice":1000000000,"timestamp":5040,"status":"fail","searchOrder":0}`
-
-	expectedTxNFTTransferSCCallSource      = `{"receiversShardIDs":[0],"receiver":"657264316566397878336b336d3839617a6634633478633938777063646e78356830636e787936656d34377236646334616c756430757771783234663530","data":"RVNEVE5GVFRyYW5zZmVyQDRjNGI0NjQxNTI0ZDJkMzM2NjM0NjYzOTYyQDAxNjUzNEA2ZjFlNmYwMWJjNzYyN2Y1YWVAMDAwMDAwMDAwMDAwMDAwMDA1MDBmMWM4ZjJmZGM1OGE2M2M2YjIwMWZjMmVkNjI5OTYyZDNkZmEzM2ZlN2NlYkA2MzZmNmQ3MDZmNzU2ZTY0NTI2NTc3NjE3MjY0NzM1MDcyNmY3ODc5QDAwMDAwMDAwMDAwMDAwMDAwNTAwNGY3OWVjNDRiYjEzMzcyYjVhYzlkOTk2ZDc0OTEyMGY0NzY0Mjc2MjdjZWI=","signature":"","fee":"1904415000000000","esdtValues":["2049781565634260759982"],"nonce":79,"gasLimit":150000000,"gasUsed":150000000,"miniBlockHash":"b30aaa656bf101a7fb87f6c02a9da9e70cd053a79de24f5d14276232757d9766","round":50,"hasScResults":true,"sender":"657264316566397878336b336d3839617a6634633478633938777063646e78356830636e787936656d34377236646334616c756430757771783234663530","receivers":["00000000000000000500f1c8f2fdc58a63c6b201fc2ed629962d3dfa33fe7ceb"],"function":"compoundRewardsProxy","receiverShard":0,"senderShard":0,"tokens":["LKFARM-3f4f9b-016534"],"value":"0","operation":"ESDTNFTTransfer","gasPrice":1000000000,"timestamp":5040,"status":"success","searchOrder":0}`
-	expectedTxNFTTransferSCCallAfterRefund = `{"miniBlockHash":"b30aaa656bf101a7fb87f6c02a9da9e70cd053a79de24f5d14276232757d9766","nonce":79,"round":50,"value":"0","receiver":"657264316566397878336b336d3839617a6634633478633938777063646e78356830636e787936656d34377236646334616c756430757771783234663530","sender":"657264316566397878336b336d3839617a6634633478633938777063646e78356830636e787936656d34377236646334616c756430757771783234663530","receiverShard":0,"senderShard":0,"gasPrice":1000000000,"gasLimit":150000000,"gasUsed":139832352,"fee":"1802738520000000","data":"RVNEVE5GVFRyYW5zZmVyQDRjNGI0NjQxNTI0ZDJkMzM2NjM0NjYzOTYyQDAxNjUzNEA2ZjFlNmYwMWJjNzYyN2Y1YWVAMDAwMDAwMDAwMDAwMDAwMDA1MDBmMWM4ZjJmZGM1OGE2M2M2YjIwMWZjMmVkNjI5OTYyZDNkZmEzM2ZlN2NlYkA2MzZmNmQ3MDZmNzU2ZTY0NTI2NTc3NjE3MjY0NzM1MDcyNmY3ODc5QDAwMDAwMDAwMDAwMDAwMDAwNTAwNGY3OWVjNDRiYjEzMzcyYjVhYzlkOTk2ZDc0OTEyMGY0NzY0Mjc2MjdjZWI=","signature":"","timestamp":5040,"status":"success","searchOrder":0,"hasScResults":true,"tokens":["LKFARM-3f4f9b-016534"],"esdtValues":["2049781565634260759982"],"receivers":["00000000000000000500f1c8f2fdc58a63c6b201fc2ed629962d3dfa33fe7ceb"],"receiversShardIDs":[0],"operation":"ESDTNFTTransfer","function":"compoundRewardsProxy"}`
-)
-
 func TestNFTTransferCrossShardWithSCCall(t *testing.T) {
 	setLogLevelDebug()
 
@@ -100,7 +89,10 @@ func TestNFTTransferCrossShardWithSCCall(t *testing.T) {
 	err = esClient.DoMultiGet(ids, indexerdata.TransactionsIndex, true, genericResponse)
 	require.Nil(t, err)
 
-	compareTxs(t, []byte(expectedTxNFTTransferSCCallSource), genericResponse.Docs[0].Source)
+	require.JSONEq(t,
+		readExpectedResult("./testdata/nftTransferCrossShard/tx-nft-transfer-sc-call-source.json"),
+		string(genericResponse.Docs[0].Source),
+	)
 
 	// EXECUTE transfer on the destination shard
 	bodyDstShard := &dataBlock.Body{
@@ -135,7 +127,10 @@ func TestNFTTransferCrossShardWithSCCall(t *testing.T) {
 	err = esClient.DoMultiGet(ids, indexerdata.TransactionsIndex, true, genericResponse)
 	require.Nil(t, err)
 
-	compareTxs(t, []byte(expectedTxNFTTransferSCCallAfterRefund), genericResponse.Docs[0].Source)
+	require.JSONEq(t,
+		readExpectedResult("./testdata/nftTransferCrossShard/tx-nft-transfer-sc-call-after-refund.json"),
+		string(genericResponse.Docs[0].Source),
+	)
 }
 
 // TODO check also indexes that are altered
@@ -221,7 +216,10 @@ func TestNFTTransferCrossShard(t *testing.T) {
 	err = esClient.DoMultiGet(ids, indexerdata.TransactionsIndex, true, genericResponse)
 	require.Nil(t, err)
 
-	compareTxs(t, []byte(expectedTxNFTTransfer), genericResponse.Docs[0].Source)
+	require.JSONEq(t,
+		readExpectedResult("./testdata/nftTransferCrossShard/tx-nft-transfer.json"),
+		string(genericResponse.Docs[0].Source),
+	)
 
 	// EXECUTE transfer on the destination shard
 	bodyDstShard := &dataBlock.Body{
@@ -254,7 +252,10 @@ func TestNFTTransferCrossShard(t *testing.T) {
 	err = esClient.DoMultiGet(ids, indexerdata.TransactionsIndex, true, genericResponse)
 	require.Nil(t, err)
 
-	compareTxs(t, []byte(expectedTxNFTTransferFailOnDestination), genericResponse.Docs[0].Source)
+	require.JSONEq(t,
+		readExpectedResult("./testdata/nftTransferCrossShard/tx-nft-transfer-failed-on-dst.json"),
+		string(genericResponse.Docs[0].Source),
+	)
 }
 
 func TestNFTTransferCrossShardImportDBScenarioFirstIndexDestinationAfterSource(t *testing.T) {
@@ -283,7 +284,7 @@ func TestNFTTransferCrossShardImportDBScenarioFirstIndexDestinationAfterSource(t
 		GasPrice:       1000000000,
 		SndAddr:        []byte("erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv"),
 		RcvAddr:        []byte("erd1qqqqqqqqqqqqqpgq57szwud2quysucrlq2e97ntdysdl7v4ejz3qn3njq4"),
-		Data:           []byte("ESDTNFTTransfer@434f4c45435449452d323663313838@01@01@08011202000122e50108011204434f4f4c1a20e0f3ecf555f63f2d101241dfc98b4614aff9284edd50b46a1c6e36b83558744d20c4132a2e516d5a7961565631786a7866446255575a503178655a7676544d3156686f61346f594752444d706d4a727a52435a324368747470733a2f2f697066732e696f2f697066732f516d5a7961565631786a7866446255575a503178655a7676544d3156686f61346f594752444d706d4a727a52435a3a41746167733a436f6f6c3b6d657461646174613a516d5869417850396e535948515954546143357358717a4d32645856334142516145355241725932777a4e686179"),
+		Data:           []byte("ESDTNFTTransfer@434f4c4c454354494f4e2d323663313838@01@01@08011202000122e50108011204434f4f4c1a20e0f3ecf555f63f2d101241dfc98b4614aff9284edd50b46a1c6e36b83558744d20c4132a2e516d5a7961565631786a7866446255575a503178655a7676544d3156686f61346f594752444d706d4a727a52435a324368747470733a2f2f697066732e696f2f697066732f516d5a7961565631786a7866446255575a503178655a7676544d3156686f61346f594752444d706d4a727a52435a3a41746167733a436f6f6c3b6d657461646174613a516d5869417850396e535948515954546143357358717a4d32645856334142516145355241725932777a4e686179"),
 		PrevTxHash:     txHash,
 		OriginalTxHash: txHash,
 	}
@@ -308,7 +309,7 @@ func TestNFTTransferCrossShardImportDBScenarioFirstIndexDestinationAfterSource(t
 				RcvAddr:        []byte("erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv"),
 				PrevTxHash:     []byte("1546eb9970a6dc1710b6528274e75d5095c1349706f4ff70f52a1f58e1156316"),
 				OriginalTxHash: txHash,
-				Data:           []byte("ESDTNFTTransfer@434f4c45435449452d323663313838@01@01@08011202000122e50108011204434f4f4c1a20e0f3ecf555f63f2d101241dfc98b4614aff9284edd50b46a1c6e36b83558744d20c4132a2e516d5a7961565631786a7866446255575a503178655a7676544d3156686f61346f594752444d706d4a727a52435a324368747470733a2f2f697066732e696f2f697066732f516d5a7961565631786a7866446255575a503178655a7676544d3156686f61346f594752444d706d4a727a52435a3a41746167733a436f6f6c3b6d657461646174613a516d5869417850396e535948515954546143357358717a4d32645856334142516145355241725932777a4e686179@75736572206572726f72"),
+				Data:           []byte("ESDTNFTTransfer@434f4c4c454354494f4e2d323663313838@01@01@08011202000122e50108011204434f4f4c1a20e0f3ecf555f63f2d101241dfc98b4614aff9284edd50b46a1c6e36b83558744d20c4132a2e516d5a7961565631786a7866446255575a503178655a7676544d3156686f61346f594752444d706d4a727a52435a324368747470733a2f2f697066732e696f2f697066732f516d5a7961565631786a7866446255575a503178655a7676544d3156686f61346f594752444d706d4a727a52435a3a41746167733a436f6f6c3b6d657461646174613a516d5869417850396e535948515954546143357358717a4d32645856334142516145355241725932777a4e686179@75736572206572726f72"),
 			},
 		},
 	}
@@ -321,7 +322,10 @@ func TestNFTTransferCrossShardImportDBScenarioFirstIndexDestinationAfterSource(t
 	err = esClient.DoMultiGet(ids, indexerdata.TransactionsIndex, true, genericResponse)
 	require.Nil(t, err)
 
-	compareTxs(t, []byte(txWithStatusOnly), genericResponse.Docs[0].Source)
+	require.JSONEq(t,
+		readExpectedResult("./testdata/nftTransferCrossShard/tx-with-status-only.json"),
+		string(genericResponse.Docs[0].Source),
+	)
 
 	// execute on source
 
@@ -351,7 +355,7 @@ func TestNFTTransferCrossShardImportDBScenarioFirstIndexDestinationAfterSource(t
 				RcvAddr:  []byte("erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv"),
 				GasLimit: 5000000,
 				GasPrice: 1000000000,
-				Data:     []byte("ESDTNFTTransfer@434f4c45435449452d323663313838@01@01@00000000000000000500a7a02771aa07090e607f02b25f4d6d241bff32b990a2"),
+				Data:     []byte("ESDTNFTTransfer@434f4c4c454354494f4e2d323663313838@01@01@00000000000000000500a7a02771aa07090e607f02b25f4d6d241bff32b990a2"),
 				Value:    big.NewInt(0),
 			},
 		},
@@ -375,5 +379,8 @@ func TestNFTTransferCrossShardImportDBScenarioFirstIndexDestinationAfterSource(t
 	err = esClient.DoMultiGet(ids, indexerdata.TransactionsIndex, true, genericResponse)
 	require.Nil(t, err)
 
-	compareTxs(t, []byte(completeTxWithStatus), genericResponse.Docs[0].Source)
+	require.JSONEq(t,
+		readExpectedResult("./testdata/nftTransferCrossShard/tx-complete-with-status.json"),
+		string(genericResponse.Docs[0].Source),
+	)
 }

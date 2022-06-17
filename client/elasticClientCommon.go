@@ -129,17 +129,26 @@ func extractErrorFromBulkBodyResponseBytes(response *BulkRequestResponse) error 
 			selectedItem = *item.ItemUpdate
 		}
 
+		log.Trace("worked on", "index", selectedItem.Index,
+			"_id", selectedItem.ID,
+			"result", selectedItem.Result,
+			"status", selectedItem.Status,
+		)
+
 		if selectedItem.Status < http.StatusBadRequest {
 			continue
 		}
 
 		count++
-		errorsString += fmt.Sprintf(`{ "id": "%s", "statusCode": %d, "errorType": "%s", "reason": "%s", "causedBy": { "type": "%s", "reason": "%s" }}\n`,
-			selectedItem.ID, selectedItem.Status, selectedItem.Error.Type, selectedItem.Error.Reason, selectedItem.Error.Cause.Type, selectedItem.Error.Cause.Reason)
+		errorsString += fmt.Sprintf(`{ "index": "%s", "id": "%s", "statusCode": %d, "errorType": "%s", "reason": "%s", "causedBy": { "type": "%s", "reason": "%s" }}\n`,
+			selectedItem.Index, selectedItem.ID, selectedItem.Status, selectedItem.Error.Type, selectedItem.Error.Reason, selectedItem.Error.Cause.Type, selectedItem.Error.Cause.Reason)
 
 		if count == numOfErrorsToExtractBulkResponse {
 			break
 		}
+	}
+	if errorsString == "" {
+		return nil
 	}
 
 	return fmt.Errorf("%s", errorsString)

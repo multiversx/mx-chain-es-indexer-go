@@ -1,0 +1,10 @@
+{
+  "roles": {
+    "ESDTRoleNFTCreate": [
+      "6d792d61646472657373"
+    ],
+    "ESDTRoleNFTBurn": [
+      "6d792d61646472657373"
+    ]
+  }
+}

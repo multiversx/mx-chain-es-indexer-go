@@ -76,7 +76,7 @@ func createEventsProcessors(args *ArgsLogsAndEventsProcessor) []eventsProcessor 
 	scDeploysProc := newSCDeploysProcessor(args.PubKeyConverter)
 	informativeProc := newInformativeLogsProcessor(args.TxFeeCalculator)
 	updateNFTProc := newNFTsPropertiesProcessor(args.PubKeyConverter)
-	rolesProc := newRolesProcessor(args.PubKeyConverter)
+	esdtPropProc := newEsdtPropertiesProcessor(args.PubKeyConverter)
 
 	eventsProcs := []eventsProcessor{
 		fungibleProc,
@@ -84,7 +84,7 @@ func createEventsProcessors(args *ArgsLogsAndEventsProcessor) []eventsProcessor 
 		scDeploysProc,
 		informativeProc,
 		updateNFTProc,
-		rolesProc,
+		esdtPropProc,
 	}
 
 	if args.ShardCoordinator.SelfId() == core.MetachainShardId {
@@ -116,14 +116,13 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 	}
 
 	return &data.PreparedLogsResults{
-		Tokens:          lep.logsData.tokens,
-		ScDeploys:       lep.logsData.scDeploys,
-		TagsCount:       lep.logsData.tagsCount,
-		TokensInfo:      lep.logsData.tokensInfo,
-		TokensSupply:    lep.logsData.tokensSupply,
-		Delegators:      lep.logsData.delegators,
-		NFTsDataUpdates: lep.logsData.nftsDataUpdates,
-		RolesData:       lep.logsData.rolesData,
+		Tokens:                  lep.logsData.tokens,
+		ScDeploys:               lep.logsData.scDeploys,
+		TokensInfo:              lep.logsData.tokensInfo,
+		TokensSupply:            lep.logsData.tokensSupply,
+		Delegators:              lep.logsData.delegators,
+		NFTsDataUpdates:         lep.logsData.nftsDataUpdates,
+		TokenRolesAndProperties: lep.logsData.tokenRolesAndProperties,
 	}
 }
 
@@ -141,23 +140,22 @@ func (lep *logsAndEventsProcessor) processEvent(logHash string, logAddress []byt
 	logHashHexEncoded := hex.EncodeToString([]byte(logHash))
 	for _, proc := range lep.eventsProcessors {
 		res := proc.processEvent(&argsProcessEvent{
-			event:            event,
-			txHashHexEncoded: logHashHexEncoded,
-			logAddress:       logAddress,
-			accounts:         lep.logsData.accounts,
-			tokens:           lep.logsData.tokens,
-			tokensSupply:     lep.logsData.tokensSupply,
-			tagsCount:        lep.logsData.tagsCount,
-			timestamp:        lep.logsData.timestamp,
-			scDeploys:        lep.logsData.scDeploys,
-			txs:              lep.logsData.txsMap,
-			rolesData:        lep.logsData.rolesData,
+			event:                   event,
+			txHashHexEncoded:        logHashHexEncoded,
+			logAddress:              logAddress,
+			accounts:                lep.logsData.accounts,
+			tokens:                  lep.logsData.tokens,
+			tokensSupply:            lep.logsData.tokensSupply,
+			timestamp:               lep.logsData.timestamp,
+			scDeploys:               lep.logsData.scDeploys,
+			txs:                     lep.logsData.txsMap,
+			tokenRolesAndProperties: lep.logsData.tokenRolesAndProperties,
 		})
 		if res.tokenInfo != nil {
 			lep.logsData.tokensInfo = append(lep.logsData.tokensInfo, res.tokenInfo)
 		}
 		if res.delegator != nil {
-			lep.logsData.delegators[res.delegator.Address] = res.delegator
+			lep.logsData.delegators[res.delegator.Address+res.delegator.Contract] = res.delegator
 		}
 		if res.updatePropNFT != nil {
 			lep.logsData.nftsDataUpdates = append(lep.logsData.nftsDataUpdates, res.updatePropNFT)

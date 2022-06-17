@@ -122,6 +122,16 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 				},
 			},
 		},
+		"h6": &transaction.Log{
+			Address: []byte("contract-second"),
+			Events: []*transaction.Event{
+				{
+					Address:    []byte("addr"),
+					Identifier: []byte(delegateFunc),
+					Topics:     [][]byte{big.NewInt(1000).Bytes(), big.NewInt(1000000000).Bytes(), big.NewInt(10).Bytes(), big.NewInt(1000000000).Bytes()},
+				},
+			},
+		},
 	}
 
 	logsAndEventsSlice := make([]*coreData.LogData, 0)
@@ -157,7 +167,6 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 
 	resLogs := proc.ExtractDataFromLogs(logsAndEventsSlice, res, 1000)
 	require.NotNil(t, resLogs.Tokens)
-	require.NotNil(t, resLogs.TagsCount)
 	require.True(t, res.Transactions[0].HasOperations)
 	require.True(t, res.ScResults[0].HasOperations)
 
@@ -181,6 +190,7 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 				Timestamp: 1000,
 			},
 		},
+		Properties: &data.TokenProperties{},
 	}, resLogs.TokensInfo[0])
 
 	require.Equal(t, &data.Delegator{
@@ -188,7 +198,13 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 		Contract:       "636f6e7472616374",
 		ActiveStakeNum: 0.1,
 		ActiveStake:    "1000000000",
-	}, resLogs.Delegators["61646472"])
+	}, resLogs.Delegators["61646472636f6e7472616374"])
+	require.Equal(t, &data.Delegator{
+		Address:        "61646472",
+		Contract:       "636f6e74726163742d7365636f6e64",
+		ActiveStakeNum: 0.1,
+		ActiveStake:    "1000000000",
+	}, resLogs.Delegators["61646472636f6e74726163742d7365636f6e64"])
 }
 
 func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {

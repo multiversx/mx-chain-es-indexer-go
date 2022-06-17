@@ -20,16 +20,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const (
-	expectedTokenAfterIssue = `{"name":"SEMI-token","ticker":"SEM","token":"SEMI-abcd","issuer":"61646472","currentOwner":"61646472","type":"SemiFungibleESDT","timestamp":5040,"ownersHistory":[{"address":"61646472","timestamp":5040}]}`
-	expectedAccountESDT     = `{"address":"6161616162626262","balance":"1000","balanceNum":1e-15,"token":"SEMI-abcd","identifier":"SEMI-abcd-02","tokenNonce":2,"properties":"6f6b","data":{"creator":"63726561746f72","nonEmptyURIs":false,"whiteListedStorage":false},"timestamp":5600,"type":"SemiFungibleESDT"}`
-
-	expectedAccountsESDTWithoutType      = `{"address":"6161616162626262","balance":"1000","balanceNum":1e-15,"token":"TTTT-abcd","identifier":"TTTT-abcd-02","tokenNonce":2,"properties":"6f6b","data":{"creator":"63726561746f72","nonEmptyURIs":false,"whiteListedStorage":false},"timestamp":5600}`
-	expectedSemiFungibleToken            = `{"name":"TTTT-token","ticker":"SEM","token":"TTTT-abcd","issuer":"61646472","currentOwner":"61646472","type":"SemiFungibleESDT","timestamp":5040,"ownersHistory":[{"address":"61646472","timestamp":5040}]}`
-	expectedAccountsESDTWithType         = `{"address":"6161616162626262","balance":"1000","balanceNum":1.0E-15,"token":"TTTT-abcd","identifier":"TTTT-abcd-02","tokenNonce":2,"properties":"6f6b","data":{"creator":"63726561746f72","nonEmptyURIs":false,"whiteListedStorage":false},"timestamp":5600,"type":"SemiFungibleESDT"}`
-	expectedSemiFungibleTokenAfterCreate = `{"identifier":"TTTT-abcd-02","token":"TTTT-abcd","nonce":2,"timestamp":5600,"data":{"creator":"63726561746f72","nonEmptyURIs":false,"whiteListedStorage":false},"type":"SemiFungibleESDT"}`
-)
-
 func TestIndexAccountESDTWithTokenType(t *testing.T) {
 	setLogLevelDebug()
 
@@ -78,7 +68,7 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 	genericResponse := &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse)
 	require.Nil(t, err)
-	require.JSONEq(t, expectedTokenAfterIssue, string(genericResponse.Docs[0].Source))
+	require.JSONEq(t, readExpectedResult("./testdata/accountsESDTWithTokenType/token-after-issue.json"), string(genericResponse.Docs[0].Source))
 
 	// ################ CREATE SEMI FUNGIBLE TOKEN ##########################
 	shardCoordinator = &mock.ShardCoordinatorMock{
@@ -147,7 +137,7 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 	genericResponse = &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse)
 	require.Nil(t, err)
-	require.JSONEq(t, expectedAccountESDT, string(genericResponse.Docs[0].Source))
+	require.JSONEq(t, readExpectedResult("./testdata/accountsESDTWithTokenType/account-esdt.json"), string(genericResponse.Docs[0].Source))
 
 }
 
@@ -229,7 +219,7 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 	genericResponse := &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse)
 	require.Nil(t, err)
-	require.JSONEq(t, expectedAccountsESDTWithoutType, string(genericResponse.Docs[0].Source))
+	require.JSONEq(t, readExpectedResult("./testdata/accountsESDTWithTokenType/account-esdt-without-type.json"), string(genericResponse.Docs[0].Source))
 
 	time.Sleep(time.Second)
 
@@ -270,17 +260,17 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 	genericResponse = &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse)
 	require.Nil(t, err)
-	require.JSONEq(t, expectedSemiFungibleToken, string(genericResponse.Docs[0].Source))
+	require.JSONEq(t, readExpectedResult("./testdata/accountsESDTWithTokenType/semi-fungible-token.json"), string(genericResponse.Docs[0].Source))
 
 	ids = []string{"6161616162626262-TTTT-abcd-02"}
 	genericResponse = &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse)
 	require.Nil(t, err)
-	require.JSONEq(t, expectedAccountsESDTWithType, string(genericResponse.Docs[0].Source))
+	require.JSONEq(t, readExpectedResult("./testdata/accountsESDTWithTokenType/account-esdt-with-type.json"), string(genericResponse.Docs[0].Source))
 
 	ids = []string{"TTTT-abcd-02"}
 	genericResponse = &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse)
 	require.Nil(t, err)
-	require.JSONEq(t, expectedSemiFungibleTokenAfterCreate, string(genericResponse.Docs[0].Source))
+	require.JSONEq(t, readExpectedResult("./testdata/accountsESDTWithTokenType/semi-fungible-token-after-create.json"), string(genericResponse.Docs[0].Source))
 }

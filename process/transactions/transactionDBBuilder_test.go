@@ -82,6 +82,8 @@ func TestGetMoveBalanceTransaction(t *testing.T) {
 		ReceiverUserName:     []byte("rcv"),
 		SenderUserName:       []byte("snd"),
 		Operation:            "transfer",
+		Version:              1,
+		Receivers:            []string{},
 	}
 
 	dbTx := cp.prepareTransaction(tx, txHash, mbHash, mb, header, status)

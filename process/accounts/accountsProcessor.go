@@ -93,6 +93,7 @@ func splitAlteredAccounts(userAccount coreData.UserAccountHandler, altered []*da
 				IsSender:        info.IsSender,
 				IsNFTOperation:  info.IsNFTOperation,
 				NFTNonce:        info.NFTNonce,
+				IsNFTCreate:     info.IsNFTCreate,
 			})
 		}
 
@@ -139,7 +140,7 @@ func (ap *accountsProcessor) getUserAccount(address string) (coreData.UserAccoun
 }
 
 // PrepareRegularAccountsMap will prepare a map of regular accounts
-func (ap *accountsProcessor) PrepareRegularAccountsMap(accounts []*data.Account) map[string]*data.AccountInfo {
+func (ap *accountsProcessor) PrepareRegularAccountsMap(timestamp uint64, accounts []*data.Account) map[string]*data.AccountInfo {
 	accountsMap := make(map[string]*data.AccountInfo)
 	for _, userAccount := range accounts {
 		address := ap.addressPubkeyConverter.Encode(userAccount.UserAccount.AddressBytes())
@@ -148,12 +149,13 @@ func (ap *accountsProcessor) PrepareRegularAccountsMap(accounts []*data.Account)
 		acc := &data.AccountInfo{
 			Address:                  address,
 			Nonce:                    userAccount.UserAccount.GetNonce(),
-			Balance:                  balance.String(),
+			Balance:                  converters.BigIntToString(balance),
 			BalanceNum:               balanceAsFloat,
 			IsSender:                 userAccount.IsSender,
 			IsSmartContract:          core.IsSmartContractAddress(userAccount.UserAccount.AddressBytes()),
-			TotalBalanceWithStake:    balance.String(),
+			TotalBalanceWithStake:    converters.BigIntToString(balance),
 			TotalBalanceWithStakeNum: balanceAsFloat,
+			Timestamp:                time.Duration(timestamp),
 		}
 
 		accountsMap[address] = acc
@@ -166,6 +168,7 @@ func (ap *accountsProcessor) PrepareRegularAccountsMap(accounts []*data.Account)
 func (ap *accountsProcessor) PrepareAccountsMapESDT(
 	timestamp uint64,
 	accounts []*data.AccountESDT,
+	tagsCount data.CountTags,
 ) (map[string]*data.AccountInfo, data.TokensHandler) {
 	tokensData := data.NewTokensInfo()
 	accountsESDTMap := make(map[string]*data.AccountInfo)
@@ -177,6 +180,10 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(
 				"address", address,
 				"error", err.Error())
 			continue
+		}
+
+		if tokenMetaData != nil && accountESDT.IsNFTCreate {
+			tagsCount.ParseTags(tokenMetaData.Tags)
 		}
 
 		tokenIdentifier := converters.ComputeTokenIdentifier(accountESDT.TokenIdentifier, accountESDT.NFTNonce)

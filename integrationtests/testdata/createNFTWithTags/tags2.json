@@ -1,0 +1,62 @@
+[
+  {
+    "_index": "tags-000001",
+    "_type": "_doc",
+    "_id": "bXVzaWM=",
+    "_score": 1,
+    "_source": {
+      "count": 2,
+      "tag": "music"
+    }
+  },
+  {
+    "_index": "tags-000001",
+    "_type": "_doc",
+    "_id": "aGVsbG8=",
+    "_score": 1,
+    "_source": {
+      "count": 2,
+      "tag": "hello"
+    }
+  },
+  {
+    "_index": "tags-000001",
+    "_type": "_doc",
+    "_id": "Z2FsbGVyeQ==",
+    "_score": 1,
+    "_source": {
+      "count": 2,
+      "tag": "gallery"
+    }
+  },
+  {
+    "_index": "tags-000001",
+    "_type": "_doc",
+    "_id": "ZG8=",
+    "_score": 1,
+    "_source": {
+      "count": 2,
+      "tag": "do"
+    }
+  },
+  {
+    "_index": "tags-000001",
+    "_type": "_doc",
+    "_id": "YXJ0",
+    "_score": 1,
+    "_source": {
+      "count": 2,
+      "tag": "art"
+    }
+  },
+  {
+    "_index": "tags-000001",
+    "_type": "_doc",
+    "_id": "c29tZXRoaW5n",
+    "_score": 1,
+    "_source": {
+      "count": 2,
+      "tag": "something"
+    }
+  }
+]

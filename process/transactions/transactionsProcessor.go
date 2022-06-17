@@ -5,7 +5,6 @@ import (
 
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/transactions/datafield"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
@@ -14,6 +13,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/hashing"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
+	"github.com/ElrondNetwork/elrond-vm-common/parsers/dataField"
 )
 
 var log = logger.GetOrCreate("indexer/process/transactions")
@@ -45,9 +45,9 @@ func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txsDatabaseProce
 	}
 
 	argsParser := &datafield.ArgsOperationDataFieldParser{
-		PubKeyConverter:  args.AddressPubkeyConverter,
 		Marshalizer:      args.Marshalizer,
 		ShardCoordinator: args.ShardCoordinator,
+		AddressLength:    args.AddressPubkeyConverter.Len(),
 	}
 	operationsDataParser, err := datafield.NewOperationDataFieldParser(argsParser)
 	if err != nil {
@@ -96,24 +96,28 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 	normalTxs := make(map[string]*data.Transaction)
 	rewardsTxs := make(map[string]*data.Transaction)
 
-	for _, mb := range body.MiniBlocks {
+	for mbIndex, mb := range body.MiniBlocks {
 		switch mb.Type {
 		case block.TxBlock:
-			txs, errGroup := tdp.txsGrouper.groupNormalTxs(mb, header, pool.Txs, alteredAccounts)
+			if shouldIgnoreProcessedMBScheduled(header, mbIndex) {
+				continue
+			}
+
+			txs, errGroup := tdp.txsGrouper.groupNormalTxs(mbIndex, mb, header, pool.Txs, alteredAccounts)
 			if errGroup != nil {
 				log.Warn("txsDatabaseProcessor.groupNormalTxs", "error", errGroup)
 				continue
 			}
 			mergeTxsMaps(normalTxs, txs)
 		case block.RewardsBlock:
-			txs, errGroup := tdp.txsGrouper.groupRewardsTxs(mb, header, pool.Rewards, alteredAccounts)
+			txs, errGroup := tdp.txsGrouper.groupRewardsTxs(mbIndex, mb, header, pool.Rewards, alteredAccounts)
 			if errGroup != nil {
 				log.Warn("txsDatabaseProcessor.groupRewardsTxs", "error", errGroup)
 				continue
 			}
 			mergeTxsMaps(rewardsTxs, txs)
 		case block.InvalidBlock:
-			txs, errGroup := tdp.txsGrouper.groupInvalidTxs(mb, header, pool.Invalid, alteredAccounts)
+			txs, errGroup := tdp.txsGrouper.groupInvalidTxs(mbIndex, mb, header, pool.Invalid, alteredAccounts)
 			if errGroup != nil {
 				log.Warn("txsDatabaseProcessor.groupInvalidTxs", "error", errGroup)
 				continue
@@ -171,9 +175,8 @@ func (tdp *txsDatabaseProcessor) GetRewardsTxsHashesHexEncoded(header coreData.H
 			continue
 		}
 
-		shouldIgnore := tdp.txsGrouper.isInImportMode && selfShardID == miniblock.SenderShardID
-		if shouldIgnore {
-			// do not delete rewards transactions from source shard on import DB
+		if tdp.txsGrouper.isInImportMode {
+			// do not delete rewards transactions on import DB
 			continue
 		}
 
@@ -188,6 +191,17 @@ func (tdp *txsDatabaseProcessor) GetRewardsTxsHashesHexEncoded(header coreData.H
 	}
 
 	return encodedTxsHashes
+}
+
+func shouldIgnoreProcessedMBScheduled(header coreData.HeaderHandler, mbIndex int) bool {
+	miniblockHeaders := header.GetMiniBlockHeaderHandlers()
+	if len(miniblockHeaders) <= mbIndex {
+		return false
+	}
+
+	processingType := miniblockHeaders[mbIndex].GetProcessingType()
+
+	return processingType == int32(block.Processed)
 }
 
 func getTxsHashesFromMiniblockHexEncoded(miniBlock *block.MiniBlock) []string {

@@ -41,6 +41,7 @@ func newTxsGrouper(
 }
 
 func (tg *txsGrouper) groupNormalTxs(
+	mbIndex int,
 	mb *block.MiniBlock,
 	header coreData.HeaderHandler,
 	txs map[string]coreData.TransactionHandler,
@@ -53,8 +54,9 @@ func (tg *txsGrouper) groupNormalTxs(
 		return nil, err
 	}
 
+	executedTxHashes := extractExecutedTxHashes(mbIndex, mb.TxHashes, header)
 	mbStatus := computeStatus(tg.selfShardID, mb.ReceiverShardID)
-	for _, txHash := range mb.TxHashes {
+	for _, txHash := range executedTxHashes {
 		dbTx, ok := tg.prepareNormalTxForDB(mbHash, mb, mbStatus, txHash, txs, header)
 		if !ok {
 			continue
@@ -67,6 +69,27 @@ func (tg *txsGrouper) groupNormalTxs(
 	}
 
 	return transactions, nil
+}
+
+func extractExecutedTxHashes(mbIndex int, mbTxHashes [][]byte, header coreData.HeaderHandler) [][]byte {
+	miniblockHeaders := header.GetMiniBlockHeaderHandlers()
+	if len(miniblockHeaders) <= mbIndex {
+		return mbTxHashes
+	}
+
+	firstProcessed := miniblockHeaders[mbIndex].GetIndexOfFirstTxProcessed()
+	lastProcessed := miniblockHeaders[mbIndex].GetIndexOfLastTxProcessed()
+
+	executedTxHashes := make([][]byte, 0)
+	for txIndex, txHash := range mbTxHashes {
+		if int32(txIndex) < firstProcessed || int32(txIndex) > lastProcessed {
+			continue
+		}
+
+		executedTxHashes = append(executedTxHashes, txHash)
+	}
+
+	return executedTxHashes
 }
 
 func (tg *txsGrouper) prepareNormalTxForDB(
@@ -93,6 +116,7 @@ func (tg *txsGrouper) prepareNormalTxForDB(
 }
 
 func (tg *txsGrouper) groupRewardsTxs(
+	mbIndex int,
 	mb *block.MiniBlock,
 	header coreData.HeaderHandler,
 	txs map[string]coreData.TransactionHandler,
@@ -105,7 +129,8 @@ func (tg *txsGrouper) groupRewardsTxs(
 	}
 
 	mbStatus := computeStatus(tg.selfShardID, mb.ReceiverShardID)
-	for _, txHash := range mb.TxHashes {
+	executedTxHashes := extractExecutedTxHashes(mbIndex, mb.TxHashes, header)
+	for _, txHash := range executedTxHashes {
 		rewardDBTx, ok := tg.prepareRewardTxForDB(mbHash, mb, mbStatus, txHash, txs, header)
 		if !ok {
 			continue
@@ -144,6 +169,7 @@ func (tg *txsGrouper) prepareRewardTxForDB(
 }
 
 func (tg *txsGrouper) groupInvalidTxs(
+	mbIndex int,
 	mb *block.MiniBlock,
 	header coreData.HeaderHandler,
 	txs map[string]coreData.TransactionHandler,
@@ -155,7 +181,8 @@ func (tg *txsGrouper) groupInvalidTxs(
 		return nil, err
 	}
 
-	for _, txHash := range mb.TxHashes {
+	executedTxHashes := extractExecutedTxHashes(mbIndex, mb.TxHashes, header)
+	for _, txHash := range executedTxHashes {
 		invalidDBTx, ok := tg.prepareInvalidTxForDB(mbHash, mb, txHash, txs, header)
 		if !ok {
 			continue

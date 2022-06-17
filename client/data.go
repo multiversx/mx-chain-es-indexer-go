@@ -19,9 +19,10 @@ type BulkRequestResponse struct {
 
 // Item defines the structure of a item from a bulk response
 type Item struct {
+	Index  string `json:"_index"`
 	ID     string `json:"_id"`
-	Result string `json:"result"`
 	Status int    `json:"status"`
+	Result string `json:"result"`
 	Error  struct {
 		Type   string `json:"type"`
 		Reason string `json:"reason"`

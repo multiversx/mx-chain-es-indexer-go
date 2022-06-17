@@ -19,11 +19,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const (
-	expectedNonFungibleAfterIssue  = `{"name":"NON-token","ticker":"NON","token":"NON-abcd","issuer":"61646472","currentOwner":"61646472","type":"NonFungibleESDT","timestamp":5040,"ownersHistory":[{"address":"61646472","timestamp":5040}]}`
-	expectedNonFungibleAfterCreate = `{"identifier":"NON-abcd-02","token":"NON-abcd","type":"NonFungibleESDT","nonce":2,"timestamp":5600,"data":{"creator":"63726561746f72","nonEmptyURIs":false,"whiteListedStorage":false}}`
-)
-
 func TestIssueNFTCreateAndBurn(t *testing.T) {
 	setLogLevelDebug()
 
@@ -72,7 +67,7 @@ func TestIssueNFTCreateAndBurn(t *testing.T) {
 	genericResponse := &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse)
 	require.Nil(t, err)
-	require.JSONEq(t, expectedNonFungibleAfterIssue, string(genericResponse.Docs[0].Source))
+	require.JSONEq(t, readExpectedResult("./testdata/nftIssueCreateBurn/non-fungible-after-issue.json"), string(genericResponse.Docs[0].Source))
 
 	// ################ CREATE NON FUNGIBLE TOKEN ##########################
 	shardCoordinator = &mock.ShardCoordinatorMock{
@@ -119,7 +114,7 @@ func TestIssueNFTCreateAndBurn(t *testing.T) {
 	genericResponse = &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse)
 	require.Nil(t, err)
-	require.JSONEq(t, expectedNonFungibleAfterCreate, string(genericResponse.Docs[0].Source))
+	require.JSONEq(t, readExpectedResult("./testdata/nftIssueCreateBurn/non-fungible-after-create.json"), string(genericResponse.Docs[0].Source))
 
 	// ################ BURN NON FUNGIBLE TOKEN ##########################
 

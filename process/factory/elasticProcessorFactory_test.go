@@ -12,7 +12,7 @@ func TestCreateElasticProcessor(t *testing.T) {
 	args := ArgElasticProcessorFactory{
 		Marshalizer:              &mock.MarshalizerMock{},
 		Hasher:                   &mock.HasherMock{},
-		AddressPubkeyConverter:   &mock.PubkeyConverterMock{},
+		AddressPubkeyConverter:   mock.NewPubkeyConverterMock(32),
 		ValidatorPubkeyConverter: &mock.PubkeyConverterMock{},
 		DBClient:                 esClient,
 		AccountsDB:               &mock.AccountsStub{},

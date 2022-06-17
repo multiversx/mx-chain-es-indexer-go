@@ -1,7 +1,6 @@
 package block
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 
@@ -13,36 +12,29 @@ import (
 )
 
 // SerializeBlock will serialize a block for database
-func (bp *blockProcessor) SerializeBlock(elasticBlock *data.Block) (*bytes.Buffer, error) {
+func (bp *blockProcessor) SerializeBlock(elasticBlock *data.Block, buffSlice *data.BufferSlice, index string) error {
 	if elasticBlock == nil {
-		return nil, indexer.ErrNilElasticBlock
+		return indexer.ErrNilElasticBlock
 	}
 
-	blockBytes, err := json.Marshal(elasticBlock)
-	if err != nil {
-		return nil, err
+	meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s", "_id" : "%s" } }%s`, index, elasticBlock.Hash, "\n"))
+	serializedData, errMarshal := json.Marshal(elasticBlock)
+	if errMarshal != nil {
+		return errMarshal
 	}
 
-	buff := &bytes.Buffer{}
-
-	buff.Grow(len(blockBytes))
-	_, err = buff.Write(blockBytes)
-	if err != nil {
-		return nil, err
-	}
-
-	return buff, nil
+	return buffSlice.PutData(meta, serializedData)
 }
 
 // SerializeEpochInfoData will serialize information about current epoch
-func (bp *blockProcessor) SerializeEpochInfoData(header coreData.HeaderHandler) (*bytes.Buffer, error) {
+func (bp *blockProcessor) SerializeEpochInfoData(header coreData.HeaderHandler, buffSlice *data.BufferSlice, index string) error {
 	if check.IfNil(header) {
-		return nil, indexer.ErrNilHeaderHandler
+		return indexer.ErrNilHeaderHandler
 	}
 
 	metablock, ok := header.(*block.MetaBlock)
 	if !ok {
-		return nil, fmt.Errorf("%w in blockProcessor.SerializeEpochInfoData", indexer.ErrHeaderTypeAssertion)
+		return fmt.Errorf("%w in blockProcessor.SerializeEpochInfoData", indexer.ErrHeaderTypeAssertion)
 	}
 
 	epochInfo := &data.EpochInfo{
@@ -50,17 +42,12 @@ func (bp *blockProcessor) SerializeEpochInfoData(header coreData.HeaderHandler) 
 		DeveloperFees:   metablock.DevFeesInEpoch.String(),
 	}
 
-	epochInfoBytes, err := json.Marshal(epochInfo)
-	if err != nil {
-		return nil, err
+	id := header.GetEpoch()
+	meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s", "_id" : "%d" } }%s`, index, id, "\n"))
+	serializedData, errMarshal := json.Marshal(epochInfo)
+	if errMarshal != nil {
+		return errMarshal
 	}
 
-	buff := &bytes.Buffer{}
-	buff.Grow(len(epochInfoBytes))
-	_, err = buff.Write(epochInfoBytes)
-	if err != nil {
-		return nil, err
-	}
-
-	return buff, nil
+	return buffSlice.PutData(meta, serializedData)
 }

@@ -1,6 +1,10 @@
 package data
 
-import "time"
+import (
+	"time"
+)
+
+const metaESDT = "MetaESDT"
 
 // NFTDataUpdate will contain the update information for an NFT or SFT
 type NFTDataUpdate struct {
@@ -24,23 +28,40 @@ type ResponseTokenDB struct {
 
 // SourceToken is the structure for the source body of a token
 type SourceToken struct {
-	Type string `json:"type"`
+	Type         string `json:"type"`
+	CurrentOwner string `json:"currentOwner"`
 }
 
 // TokenInfo is a structure that is needed to store information about a token
 type TokenInfo struct {
-	Name              string         `json:"name,omitempty"`
-	Ticker            string         `json:"ticker,omitempty"`
-	Identifier        string         `json:"identifier,omitempty"`
-	Token             string         `json:"token,omitempty"`
-	Issuer            string         `json:"issuer,omitempty"`
-	CurrentOwner      string         `json:"currentOwner,omitempty"`
-	Type              string         `json:"type,omitempty"`
-	Nonce             uint64         `json:"nonce,omitempty"`
-	Timestamp         time.Duration  `json:"timestamp,omitempty"`
-	Data              *TokenMetaData `json:"data,omitempty"`
-	OwnersHistory     []*OwnerData   `json:"ownersHistory,omitempty"`
-	TransferOwnership bool           `json:"-"`
+	Name              string           `json:"name,omitempty"`
+	Ticker            string           `json:"ticker,omitempty"`
+	Identifier        string           `json:"identifier,omitempty"`
+	Token             string           `json:"token,omitempty"`
+	Issuer            string           `json:"issuer,omitempty"`
+	CurrentOwner      string           `json:"currentOwner,omitempty"`
+	NumDecimals       uint64           `json:"numDecimals,omitempty"`
+	Type              string           `json:"type,omitempty"`
+	Nonce             uint64           `json:"nonce,omitempty"`
+	Timestamp         time.Duration    `json:"timestamp,omitempty"`
+	Data              *TokenMetaData   `json:"data,omitempty"`
+	OwnersHistory     []*OwnerData     `json:"ownersHistory,omitempty"`
+	TransferOwnership bool             `json:"-"`
+	Properties        *TokenProperties `json:"properties,omitempty"`
+}
+
+// TokenProperties is a structure that is needed to store all properties of a token
+type TokenProperties struct {
+	Mintable                 bool `json:"canMint"`
+	Burnable                 bool `json:"canBurn"`
+	Upgradable               bool `json:"canUpgrade"`
+	CanTransferNFTCreateRole bool `json:"canTransferNFTCreateRole"`
+	CanAddSpecialRoles       bool `json:"canAddSpecialRoles"`
+	CanPause                 bool `json:"canPause"`
+	CanFreeze                bool `json:"canFreeze"`
+	CanWipe                  bool `json:"canWipe"`
+	CanChangeOwner           bool `json:"canChangeOwner"`
+	CanCreateMultiShard      bool `json:"canCreateMultiShard"`
 }
 
 // OwnerData is a structure that is needed to store information about an owner
@@ -49,14 +70,15 @@ type OwnerData struct {
 	Timestamp time.Duration `json:"timestamp"`
 }
 
-// TokensHandler defines the actions that an tokens handler should do
+// TokensHandler defines the actions that a tokens' handler should do
 type TokensHandler interface {
 	Add(tokenInfo *TokenInfo)
 	Len() int
-	AddTypeFromResponse(res *ResponseTokens)
-	PutTypeInAccountsESDT(accountsESDT map[string]*AccountInfo)
+	AddTypeAndOwnerFromResponse(res *ResponseTokens)
+	PutTypeAndOwnerInAccountsESDT(accountsESDT map[string]*AccountInfo)
 	GetAllTokens() []string
 	GetAll() []*TokenInfo
+	GetAllWithoutMetaESDT() []*TokenInfo
 	IsInterfaceNil() bool
 }
 
@@ -91,6 +113,20 @@ func (ti *tokensInfo) GetAll() []*TokenInfo {
 	return tokens
 }
 
+// GetAllWithoutMetaESDT will return all tokens except metaESDT tokens
+func (ti *tokensInfo) GetAllWithoutMetaESDT() []*TokenInfo {
+	tokens := make([]*TokenInfo, 0)
+	for _, tokenData := range ti.tokensInfo {
+		if tokenData.Type == metaESDT {
+			continue
+		}
+
+		tokens = append(tokens, tokenData)
+	}
+
+	return tokens
+}
+
 // GetAllTokens wil return all tokens names
 func (ti *tokensInfo) GetAllTokens() []string {
 	tokensMap := make(map[string]struct{})
@@ -106,8 +142,8 @@ func (ti *tokensInfo) GetAllTokens() []string {
 	return tokensSlice
 }
 
-// AddTypeFromResponse will add token type from response
-func (ti *tokensInfo) AddTypeFromResponse(res *ResponseTokens) {
+// AddTypeAndOwnerFromResponse will add token type and current owner from response
+func (ti *tokensInfo) AddTypeAndOwnerFromResponse(res *ResponseTokens) {
 	keyTokenValueIdentifiers := make(map[string][]string)
 	for identifier, tokenData := range ti.tokensInfo {
 		keyTokenValueIdentifiers[tokenData.Token] = append(keyTokenValueIdentifiers[tokenData.Token], identifier)
@@ -129,12 +165,13 @@ func (ti *tokensInfo) AddTypeFromResponse(res *ResponseTokens) {
 			}
 
 			ti.tokensInfo[identifier].Type = tokenData.Source.Type
+			ti.tokensInfo[identifier].CurrentOwner = tokenData.Source.CurrentOwner
 		}
 	}
 }
 
-// PutTypeInAccountsESDT will put in the provided accounts ESDT map token type
-func (ti *tokensInfo) PutTypeInAccountsESDT(accountsESDT map[string]*AccountInfo) {
+// PutTypeAndOwnerInAccountsESDT will put in the provided accounts ESDT map token type and current owner
+func (ti *tokensInfo) PutTypeAndOwnerInAccountsESDT(accountsESDT map[string]*AccountInfo) {
 	for _, accountESDT := range accountsESDT {
 		tokenData, ok := ti.tokensInfo[accountESDT.TokenIdentifier]
 		if !ok {
@@ -142,6 +179,7 @@ func (ti *tokensInfo) PutTypeInAccountsESDT(accountsESDT map[string]*AccountInfo
 		}
 
 		accountESDT.Type = tokenData.Type
+		accountESDT.CurrentOwner = tokenData.CurrentOwner
 	}
 }
 
