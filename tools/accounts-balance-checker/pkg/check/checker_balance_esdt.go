@@ -138,7 +138,8 @@ func (bc *balanceChecker) compareBalances(balancesFromES, balancesFromProxy map[
 
 			err := bc.deleteExtraBalance(address, tokenIdentifier, uint64(timestampLast), accountsesdtIndex)
 			if err != nil {
-				log.Warn("cannot remove balance from es", "addr", address, "identifier", tokenIdentifier)
+				log.Warn("cannot remove balance from es",
+					"addr", address, "identifier", tokenIdentifier, "error", err)
 			}
 
 			continue
