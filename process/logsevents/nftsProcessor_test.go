@@ -123,9 +123,10 @@ func TestNftsProcessor_processLogAndEventsNFTs_Wipe(t *testing.T) {
 	altered := data.NewAlteredAccounts()
 
 	res := nftsProc.processEvent(&argsProcessEvent{
-		event:     events,
-		accounts:  altered,
-		timestamp: 10000,
+		event:        events,
+		accounts:     altered,
+		timestamp:    10000,
+		tokensSupply: data.NewTokensInfo(),
 	})
 	require.Equal(t, "nft-0123-14", res.identifier)
 	require.Equal(t, "1", res.value)
