@@ -88,12 +88,25 @@ func prepareDeleteAccountInfo(acct *data.AccountInfo, isESDT bool, index string)
 
 	meta := []byte(fmt.Sprintf(`{ "update" : {"_index":"%s", "_id" : "%s" } }%s`, index, id, "\n"))
 
+	codeToExecute := `
+		if (ctx.op == 'create') {
+			ctx.op = 'noop'
+		} else {
+			if (ctx._source.containsKey('timestamp')) {
+				if (ctx._source.timestamp <= params.timestamp) {
+					ctx.op = 'delete'
+				}
+			} else {
+				ctx.op = 'delete'
+			}
+		}
+`
 	serializedDataStr := fmt.Sprintf(`{"scripted_upsert": true, "script": {`+
-		`"source": "if ( ctx.op == 'create' )  { ctx.op = 'noop' } else { if (ctx._source.containsKey('timestamp')) { if (ctx._source.timestamp <= params.timestamp ) { ctx.op = 'delete'  } } else {  ctx.op = 'delete' } }",`+
+		`"source": "%s",`+
 		`"lang": "painless",`+
 		`"params": {"timestamp": %d}},`+
 		`"upsert": {}}`,
-		acct.Timestamp,
+		converters.FormatPainlessSource(codeToExecute), acct.Timestamp,
 	)
 
 	return meta, []byte(serializedDataStr)
@@ -116,12 +129,25 @@ func prepareSerializedAccountInfo(
 	}
 
 	meta := []byte(fmt.Sprintf(`{ "update" : {"_index": "%s", "_id" : "%s" } }%s`, index, id, "\n"))
+	codeToExecute := `
+		if (ctx.op == 'create') {
+			ctx._source = params.account
+		} else {
+			if (ctx._source.containsKey('timestamp')) {
+				if (ctx._source.timestamp <= params.account.timestamp) {
+					ctx._source = params.account
+				}
+			} else {
+				ctx._source = params.account
+			}
+		}
+`
 	serializedDataStr := fmt.Sprintf(`{"scripted_upsert": true, "script": {`+
-		`"source": "if ( ctx.op == 'create' )  { ctx._source = params.account } else { if (ctx._source.containsKey('timestamp')) { if (ctx._source.timestamp <= params.account.timestamp ) { ctx._source = params.account } } else { ctx._source = params.account } }",`+
+		`"source": "%s",`+
 		`"lang": "painless",`+
 		`"params": { "account": %s }},`+
 		`"upsert": {}}`,
-		serializedAccount,
+		converters.FormatPainlessSource(codeToExecute), serializedAccount,
 	)
 
 	return meta, []byte(serializedDataStr), nil
@@ -183,12 +209,19 @@ func (ap *accountsProcessor) SerializeTypeForProvidedIDs(
 	for _, id := range ids {
 		meta := []byte(fmt.Sprintf(`{ "update" : {"_index":"%s", "_id" : "%s" } }%s`, index, id, "\n"))
 
+		codeToExecute := `
+			if (ctx.op == 'create') {
+				ctx.op = 'noop'
+			} else {
+				ctx._source.type = params.type
+			}
+`
 		serializedDataStr := fmt.Sprintf(`{"scripted_upsert": true, "script": {`+
-			`"source": "if ( ctx.op == 'create' )  { ctx.op = 'noop' } else  { ctx._source.type = params.type }",`+
+			`"source": "%s",`+
 			`"lang": "painless",`+
 			`"params": {"type": "%s"}},`+
 			`"upsert": {}}`,
-			tokenType)
+			converters.FormatPainlessSource(codeToExecute), tokenType)
 
 		err := buffSlice.PutData(meta, []byte(serializedDataStr))
 		if err != nil {
