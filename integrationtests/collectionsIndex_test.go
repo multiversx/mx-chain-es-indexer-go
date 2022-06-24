@@ -2,10 +2,10 @@ package integrationtests
 
 import (
 	"encoding/json"
-	indexerdata "github.com/ElrondNetwork/elastic-indexer-go"
 	"math/big"
 	"testing"
 
+	indexerdata "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
