@@ -42,6 +42,9 @@ func ExtractAndSerializeCollectionsData(
 					if (ctx._source[params.col].size() == 0) {
 						ctx._source.remove(params.col)
 					}
+					if (ctx._source.size() == 0) {
+						ctx.op = 'delete';
+					}
 				}
 			}
 `
