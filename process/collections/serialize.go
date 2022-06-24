@@ -39,7 +39,7 @@ func ExtractAndSerializeCollectionsData(
 			} else {
 				if (ctx._source.containsKey(params.col)) {
 					ctx._source[params.col].remove(params.nonce);
-					if (ctx._source[params.col].length == 0) {
+					if (ctx._source[params.col].size() == 0) {
 						ctx._source.remove(params.col)
 					}
 				}
