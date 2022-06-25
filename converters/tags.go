@@ -1,6 +1,9 @@
 package converters
 
-import "strings"
+import (
+	"regexp"
+	"strings"
+)
 
 const (
 	attributesSeparator = ";"
@@ -59,6 +62,10 @@ func extractNonEmpty(tags []string, key string) []string {
 		modifiedTag := tag
 		if key == tagsKey {
 			modifiedTag = strings.ToLower(tag)
+			isAlphanumeric := regexp.MustCompile(`^[a-z\d]*$`).MatchString(modifiedTag)
+			if !isAlphanumeric {
+				continue
+			}
 		}
 
 		nonEmptyTags = append(nonEmptyTags, modifiedTag)

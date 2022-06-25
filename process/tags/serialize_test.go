@@ -14,7 +14,6 @@ func TestTagsCount_Serialize(t *testing.T) {
 
 	tagsC.ParseTags([]string{"Art"})
 	tagsC.ParseTags([]string{"Art"})
-	tagsC.ParseTags([]string{"___"})
 
 	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
 	err := tagsC.Serialize(buffSlice, "tags")

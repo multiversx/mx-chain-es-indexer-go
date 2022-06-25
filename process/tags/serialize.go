@@ -3,8 +3,6 @@ package tags
 import (
 	"encoding/base64"
 	"fmt"
-	"regexp"
-
 	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 )
@@ -13,11 +11,6 @@ import (
 func (tc *tagsCount) Serialize(buffSlice *data.BufferSlice, index string) error {
 	for tag, count := range tc.tags {
 		if tag == "" {
-			continue
-		}
-
-		isAlphanumeric := regexp.MustCompile(`^[a-zA-Z\d]*$`).MatchString(tag)
-		if !isAlphanumeric {
 			continue
 		}
 
