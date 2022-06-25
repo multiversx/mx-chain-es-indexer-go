@@ -3,7 +3,6 @@ package tags
 import (
 	"encoding/base64"
 	"fmt"
-
 	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 )
