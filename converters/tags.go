@@ -1,8 +1,8 @@
 package converters
 
 import (
-	"regexp"
 	"strings"
+	"unicode"
 )
 
 const (
@@ -62,8 +62,7 @@ func extractNonEmpty(tags []string, key string) []string {
 		modifiedTag := tag
 		if key == tagsKey {
 			modifiedTag = strings.ToLower(tag)
-			isAlphanumeric := regexp.MustCompile(`^[a-z\d]*$`).MatchString(modifiedTag)
-			if !isAlphanumeric {
+			if !isAlphanumeric(modifiedTag) {
 				continue
 			}
 		}
@@ -76,4 +75,13 @@ func extractNonEmpty(tags []string, key string) []string {
 	}
 
 	return nonEmptyTags
+}
+
+func isAlphanumeric(s string) bool {
+	for _, r := range s {
+		if !unicode.IsLetter(r) && !unicode.IsDigit(r) {
+			return false
+		}
+	}
+	return true
 }
