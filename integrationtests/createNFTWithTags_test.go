@@ -3,6 +3,7 @@
 package integrationtests
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"math/big"
 	"testing"
@@ -97,14 +98,17 @@ func TestCreateNFTWithTags(t *testing.T) {
 	err = esClient.DoMultiGet(ids, indexerdata.TagsIndex, true, genericResponse)
 	require.Nil(t, err)
 
+	tagsChecked := 0
 	for idx, id := range ids {
 		expectedDoc := getElementFromSlice("./testdata/createNFTWithTags/tags1.json", idx)
 		for _, doc := range genericResponse.Docs {
 			if doc.ID == id {
 				require.JSONEq(t, expectedDoc, string(doc.Source))
+				tagsChecked++
 			}
 		}
 	}
+	require.Equal(t, len(ids), tagsChecked)
 
 	// CREATE A SECOND NFT WITH THE SAME TAGS
 	pool = &indexer.Pool{
@@ -133,13 +137,82 @@ func TestCreateNFTWithTags(t *testing.T) {
 	err = esClient.DoMultiGet(ids, indexerdata.TagsIndex, true, genericResponse)
 	require.Nil(t, err)
 
+	tagsChecked = 0
 	for idx, id := range ids {
 		expectedDoc := getElementFromSlice("./testdata/createNFTWithTags/tags2.json", idx)
 		for _, doc := range genericResponse.Docs {
 			if doc.ID == id {
 				require.JSONEq(t, expectedDoc, string(doc.Source))
+				tagsChecked++
 			}
 		}
 	}
+	require.Equal(t, len(ids), tagsChecked)
 
+	// CREATE A 3RD NFT WITH THE SPECIAL TAGS
+	hexEncodedAttributes := "746167733a5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c2c3c3c3c3e3e3e2626262626262626262626262626262c272727273b6d657461646174613a516d533757525566464464516458654c513637516942394a33663746654d69343554526d6f79415741563568345a"
+	attributes, _ := hex.DecodeString(hexEncodedAttributes)
+
+	esdtToken = &esdt.ESDigitalToken{
+		Value:      big.NewInt(1000),
+		Properties: []byte("ok"),
+		TokenMetaData: &esdt.MetaData{
+			Creator:    []byte("creator"),
+			Attributes: attributes,
+		},
+	}
+	mockAccount = &mock.UserAccountStub{
+		RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
+			return json.Marshal(esdtToken)
+		},
+		AddressBytesCalled: func() []byte {
+			return []byte(addr)
+		},
+	}
+	accounts = &mock.AccountsStub{
+		LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
+			return mockAccount, nil
+		},
+	}
+	esProc, err = CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	require.Nil(t, err)
+
+	pool = &indexer.Pool{
+		Logs: []*coreData.LogData{
+			{
+				TxHash: "h1",
+				LogHandler: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    []byte("aaaabbbb"),
+							Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
+							Topics:     [][]byte{[]byte("DESK-abcd"), big.NewInt(3).Bytes(), big.NewInt(1).Bytes(), esdtDataBytes},
+						},
+						nil,
+					},
+				},
+			},
+		},
+	}
+
+	body = &dataBlock.Body{}
+	err = esProc.SaveTransactions(body, header, pool)
+	require.Nil(t, err)
+
+	ids = append(ids, "XFxcXFxcXFxcXFxcXFxcXFxcXA==", "JycnJw==", "PDw8Pj4+JiYmJiYmJiYmJiYmJiYm")
+	genericResponse = &GenericResponse{}
+	err = esClient.DoMultiGet(ids, indexerdata.TagsIndex, true, genericResponse)
+	require.Nil(t, err)
+
+	tagsChecked = 0
+	for idx, id := range ids {
+		expectedDoc := getElementFromSlice("./testdata/createNFTWithTags/tags3.json", idx)
+		for _, doc := range genericResponse.Docs {
+			if doc.ID == id {
+				require.JSONEq(t, expectedDoc, string(doc.Source))
+				tagsChecked++
+			}
+		}
+	}
+	require.Equal(t, len(ids), tagsChecked)
 }

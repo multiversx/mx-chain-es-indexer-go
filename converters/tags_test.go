@@ -1,6 +1,7 @@
 package converters
 
 import (
+	"encoding/hex"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -52,6 +53,11 @@ func TestPrepareTagsShouldWork(t *testing.T) {
 	attributes = []byte("tags")
 	prepared = ExtractTagsFromAttributes(attributes)
 	require.Nil(t, prepared)
+
+	hexEncodedAttributes := "746167733a5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c2c3c3c3c3e3e3e2626262626262626262626262626262c272727273b6d657461646174613a516d533757525566464464516458654c513637516942394a33663746654d69343554526d6f79415741563568345a"
+	attributes, _ = hex.DecodeString(hexEncodedAttributes)
+	prepared = ExtractTagsFromAttributes(attributes)
+	require.Equal(t, []string{"\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\", "<<<>>>&&&&&&&&&&&&&&&", "''''"}, prepared)
 }
 
 func TestExtractMetadataFromAttributesShouldWork(t *testing.T) {
