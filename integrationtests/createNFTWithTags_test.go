@@ -98,14 +98,17 @@ func TestCreateNFTWithTags(t *testing.T) {
 	err = esClient.DoMultiGet(ids, indexerdata.TagsIndex, true, genericResponse)
 	require.Nil(t, err)
 
+	tagsChecked := 0
 	for idx, id := range ids {
 		expectedDoc := getElementFromSlice("./testdata/createNFTWithTags/tags1.json", idx)
 		for _, doc := range genericResponse.Docs {
 			if doc.ID == id {
 				require.JSONEq(t, expectedDoc, string(doc.Source))
+				tagsChecked++
 			}
 		}
 	}
+	require.Equal(t, len(ids), tagsChecked)
 
 	// CREATE A SECOND NFT WITH THE SAME TAGS
 	pool = &indexer.Pool{
@@ -134,14 +137,17 @@ func TestCreateNFTWithTags(t *testing.T) {
 	err = esClient.DoMultiGet(ids, indexerdata.TagsIndex, true, genericResponse)
 	require.Nil(t, err)
 
+	tagsChecked = 0
 	for idx, id := range ids {
 		expectedDoc := getElementFromSlice("./testdata/createNFTWithTags/tags2.json", idx)
 		for _, doc := range genericResponse.Docs {
 			if doc.ID == id {
 				require.JSONEq(t, expectedDoc, string(doc.Source))
+				tagsChecked++
 			}
 		}
 	}
+	require.Equal(t, len(ids), tagsChecked)
 
 	// CREATE A 3RD NFT WITH THE SPECIAL TAGS
 	hexEncodedAttributes := "746167733a5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c2c3c3c3c3e3e3e2626262626262626262626262626262c272727273b6d657461646174613a516d533757525566464464516458654c513637516942394a33663746654d69343554526d6f79415741563568345a"
@@ -198,12 +204,15 @@ func TestCreateNFTWithTags(t *testing.T) {
 	err = esClient.DoMultiGet(ids, indexerdata.TagsIndex, true, genericResponse)
 	require.Nil(t, err)
 
+	tagsChecked = 0
 	for idx, id := range ids {
 		expectedDoc := getElementFromSlice("./testdata/createNFTWithTags/tags3.json", idx)
 		for _, doc := range genericResponse.Docs {
 			if doc.ID == id {
 				require.JSONEq(t, expectedDoc, string(doc.Source))
+				tagsChecked++
 			}
 		}
 	}
+	require.Equal(t, len(ids), tagsChecked)
 }
