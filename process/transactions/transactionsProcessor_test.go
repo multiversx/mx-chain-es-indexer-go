@@ -23,7 +23,7 @@ import (
 
 func createMockArgsTxsDBProc() *ArgsTransactionProcessor {
 	args := &ArgsTransactionProcessor{
-		AddressPubkeyConverter: &mock.PubkeyConverterMock{},
+		AddressPubkeyConverter: mock.NewPubkeyConverterMock(10),
 		TxFeeCalculator:        &mock.EconomicsHandlerStub{},
 		ShardCoordinator:       &mock.ShardCoordinatorMock{},
 		Hasher:                 &mock.HasherMock{},
