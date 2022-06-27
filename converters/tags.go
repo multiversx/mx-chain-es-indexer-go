@@ -2,7 +2,6 @@ package converters
 
 import (
 	"strings"
-	"unicode"
 )
 
 const (
@@ -62,9 +61,6 @@ func extractNonEmpty(tags []string, key string) []string {
 		modifiedTag := tag
 		if key == tagsKey {
 			modifiedTag = strings.ToLower(tag)
-			if !isAlphanumeric(modifiedTag) {
-				continue
-			}
 		}
 
 		nonEmptyTags = append(nonEmptyTags, modifiedTag)
@@ -75,13 +71,4 @@ func extractNonEmpty(tags []string, key string) []string {
 	}
 
 	return nonEmptyTags
-}
-
-func isAlphanumeric(s string) bool {
-	for _, r := range s {
-		if !unicode.IsLetter(r) && !unicode.IsDigit(r) {
-			return false
-		}
-	}
-	return true
 }
