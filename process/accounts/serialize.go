@@ -8,10 +8,10 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 )
 
-// SerializeNFTCreateInfo will serialize the provided nft create information in a way that Elastic Search expects a bulk request
+// SerializeNFTCreateInfo will serialize the provided nft create information in a way that Elasticsearch expects a bulk request
 func (ap *accountsProcessor) SerializeNFTCreateInfo(tokensInfo []*data.TokenInfo, buffSlice *data.BufferSlice, index string) error {
 	for _, tokenData := range tokensInfo {
-		meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s", "_id" : "%s" } }%s`, index, tokenData.Identifier, "\n"))
+		meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(tokenData.Identifier), "\n"))
 		serializedData, errMarshal := json.Marshal(tokenData)
 		if errMarshal != nil {
 			return errMarshal
@@ -86,7 +86,7 @@ func prepareDeleteAccountInfo(acct *data.AccountInfo, isESDT bool, index string)
 		id += fmt.Sprintf("-%s-%s", acct.TokenName, hexEncodedNonce)
 	}
 
-	meta := []byte(fmt.Sprintf(`{ "update" : {"_index":"%s", "_id" : "%s" } }%s`, index, id, "\n"))
+	meta := []byte(fmt.Sprintf(`{ "update" : {"_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(id), "\n"))
 
 	codeToExecute := `
 		if ('create' == ctx.op) {
@@ -128,7 +128,7 @@ func prepareSerializedAccountInfo(
 		return nil, nil, err
 	}
 
-	meta := []byte(fmt.Sprintf(`{ "update" : {"_index": "%s", "_id" : "%s" } }%s`, index, id, "\n"))
+	meta := []byte(fmt.Sprintf(`{ "update" : {"_index": "%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(id), "\n"))
 	codeToExecute := `
 		if ('create' == ctx.op) {
 			ctx._source = params.account
@@ -153,7 +153,7 @@ func prepareSerializedAccountInfo(
 	return meta, []byte(serializedDataStr), nil
 }
 
-// SerializeAccountsHistory will serialize accounts history in a way that Elastic Search expects a bulk request
+// SerializeAccountsHistory will serialize accounts history in a way that Elasticsearch expects a bulk request
 func (ap *accountsProcessor) SerializeAccountsHistory(
 	accounts map[string]*data.AccountBalanceHistory,
 	buffSlice *data.BufferSlice,
@@ -189,7 +189,7 @@ func prepareSerializedAccountBalanceHistory(
 	}
 
 	id += fmt.Sprintf("-%d", account.Timestamp)
-	meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s", "_id" : "%s" } }%s`, index, id, "\n"))
+	meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(id), "\n"))
 
 	serializedData, err := json.Marshal(account)
 	if err != nil {
@@ -207,7 +207,7 @@ func (ap *accountsProcessor) SerializeTypeForProvidedIDs(
 	index string,
 ) error {
 	for _, id := range ids {
-		meta := []byte(fmt.Sprintf(`{ "update" : {"_index":"%s", "_id" : "%s" } }%s`, index, id, "\n"))
+		meta := []byte(fmt.Sprintf(`{ "update" : {"_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(id), "\n"))
 
 		codeToExecute := `
 			if ('create' == ctx.op) {
@@ -221,7 +221,7 @@ func (ap *accountsProcessor) SerializeTypeForProvidedIDs(
 			`"lang": "painless",`+
 			`"params": {"type": "%s"}},`+
 			`"upsert": {}}`,
-			converters.FormatPainlessSource(codeToExecute), tokenType)
+			converters.FormatPainlessSource(codeToExecute), converters.JsonEscape(tokenType))
 
 		err := buffSlice.PutData(meta, []byte(serializedDataStr))
 		if err != nil {

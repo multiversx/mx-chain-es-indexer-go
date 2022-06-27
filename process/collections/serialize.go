@@ -27,7 +27,7 @@ func ExtractAndSerializeCollectionsData(
 		nonceBig := big.NewInt(0).SetUint64(acct.TokenNonce)
 		hexEncodedNonce := hex.EncodeToString(nonceBig.Bytes())
 
-		meta := []byte(fmt.Sprintf(`{ "update" : {"_index":"%s", "_id" : "%s" } }%s`, index, acct.Address, "\n"))
+		meta := []byte(fmt.Sprintf(`{ "update" : {"_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(acct.Address), "\n"))
 		codeToExecute := `
 			if (('create' == ctx.op) && ('0' == params.value)) {
 				ctx.op = 'noop';
@@ -49,13 +49,21 @@ func ExtractAndSerializeCollectionsData(
 			}
 `
 
-		collection := fmt.Sprintf(`{"%s":{"%s": "%s"}}`, acct.TokenName, hexEncodedNonce, acct.Balance)
+		tokenName := converters.JsonEscape(acct.TokenName)
+		tokenNonceHex := converters.JsonEscape(hexEncodedNonce)
+		balanceStr := converters.JsonEscape(acct.Balance)
+
+		collection := fmt.Sprintf(`{"%s":{"%s": "%s"}}`,
+			tokenName,
+			tokenNonceHex,
+			balanceStr,
+		)
 		serializedDataStr := fmt.Sprintf(`{"scripted_upsert": true, "script": {`+
 			`"source": "%s",`+
 			`"lang": "painless",`+
 			`"params": { "col": "%s", "nonce": "%s", "value": "%s"}},`+
 			`"upsert": %s}`,
-			converters.FormatPainlessSource(codeToExecute), acct.TokenName, hexEncodedNonce, acct.Balance, collection)
+			converters.FormatPainlessSource(codeToExecute), tokenName, tokenNonceHex, balanceStr, collection)
 
 		err := buffSlice.PutData(meta, []byte(serializedDataStr))
 		if err != nil {
