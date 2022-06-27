@@ -29,9 +29,9 @@ func ExtractAndSerializeCollectionsData(
 
 		meta := []byte(fmt.Sprintf(`{ "update" : {"_index":"%s", "_id" : "%s" } }%s`, index, acct.Address, "\n"))
 		codeToExecute := `
-			if ((ctx.op == 'create') && (params.value == '0')) {
+			if (('create' == ctx.op) && ('0' == params.value)) {
 				ctx.op = 'noop';
-			} else if (params.value != '0') {
+			} else if ('0' == params.value) {
 				if (!ctx._source.containsKey(params.col)) {
 					ctx._source[params.col] = new HashMap();
 				}

@@ -89,7 +89,7 @@ func prepareDeleteAccountInfo(acct *data.AccountInfo, isESDT bool, index string)
 	meta := []byte(fmt.Sprintf(`{ "update" : {"_index":"%s", "_id" : "%s" } }%s`, index, id, "\n"))
 
 	codeToExecute := `
-		if (ctx.op == 'create') {
+		if ('create' == ctx.op) {
 			ctx.op = 'noop'
 		} else {
 			if (ctx._source.containsKey('timestamp')) {
@@ -130,7 +130,7 @@ func prepareSerializedAccountInfo(
 
 	meta := []byte(fmt.Sprintf(`{ "update" : {"_index": "%s", "_id" : "%s" } }%s`, index, id, "\n"))
 	codeToExecute := `
-		if (ctx.op == 'create') {
+		if ('create' == ctx.op) {
 			ctx._source = params.account
 		} else {
 			if (ctx._source.containsKey('timestamp')) {
@@ -210,7 +210,7 @@ func (ap *accountsProcessor) SerializeTypeForProvidedIDs(
 		meta := []byte(fmt.Sprintf(`{ "update" : {"_index":"%s", "_id" : "%s" } }%s`, index, id, "\n"))
 
 		codeToExecute := `
-			if (ctx.op == 'create') {
+			if ('create' == ctx.op) {
 				ctx.op = 'noop'
 			} else {
 				ctx._source.type = params.type
