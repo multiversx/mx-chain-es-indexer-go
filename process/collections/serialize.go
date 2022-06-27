@@ -31,7 +31,7 @@ func ExtractAndSerializeCollectionsData(
 		codeToExecute := `
 			if (('create' == ctx.op) && ('0' == params.value)) {
 				ctx.op = 'noop';
-			} else if ('0' == params.value) {
+			} else if ('0' != params.value) {
 				if (!ctx._source.containsKey(params.col)) {
 					ctx._source[params.col] = new HashMap();
 				}
