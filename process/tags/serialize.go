@@ -22,7 +22,7 @@ func (tc *tagsCount) Serialize(buffSlice *data.BufferSlice, index string) error 
 			ctx._source.tag = params.tag
 `
 		serializedDataStr := fmt.Sprintf(`{"script": {"source": "%s","lang": "painless","params": {"count": %d, "tag": "%s"}},"upsert": {"count": %d, "tag":"%s"}}`,
-			converters.FormatPainlessSource(codeToExecute), count, tag, count, tag,
+			converters.FormatPainlessSource(codeToExecute), count, converters.JsonEscape(tag), count, converters.JsonEscape(tag),
 		)
 
 		err := buffSlice.PutData(meta, []byte(serializedDataStr))
