@@ -9,6 +9,6 @@ func JsonEscape(i string) string {
 		return ""
 	}
 
-	// Trim the beginning and trailing " character
+	// trim the beginning and trailing " character
 	return string(b[1 : len(b)-1])
 }
