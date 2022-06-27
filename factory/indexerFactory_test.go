@@ -22,7 +22,7 @@ func createMockIndexerFactoryArgs() *ArgsIndexerFactory {
 		Password:                 "",
 		Marshalizer:              &mock.MarshalizerMock{},
 		Hasher:                   &mock.HasherMock{},
-		AddressPubkeyConverter:   mock.NewPubkeyConverterMock(32),
+		AddressPubkeyConverter:   &mock.PubkeyConverterMock{},
 		ValidatorPubkeyConverter: &mock.PubkeyConverterMock{},
 		TemplatesPath:            "../testdata",
 		EnabledIndexes:           []string{"blocks", "transactions", "miniblocks", "validators", "round", "accounts", "rating"},

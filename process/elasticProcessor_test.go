@@ -419,7 +419,7 @@ func TestElasticseachSaveTransactions(t *testing.T) {
 	txPool := newTestTxPool()
 
 	args := &transactions.ArgsTransactionProcessor{
-		AddressPubkeyConverter: mock.NewPubkeyConverterMock(32),
+		AddressPubkeyConverter: &mock.PubkeyConverterMock{},
 		TxFeeCalculator:        &mock.EconomicsHandlerStub{},
 		ShardCoordinator:       &mock.ShardCoordinatorMock{},
 		Hasher:                 &mock.HasherMock{},
@@ -571,7 +571,7 @@ func TestElasticProcessor_RemoveTransactions(t *testing.T) {
 	}
 
 	args := &transactions.ArgsTransactionProcessor{
-		AddressPubkeyConverter: mock.NewPubkeyConverterMock(32),
+		AddressPubkeyConverter: &mock.PubkeyConverterMock{},
 		TxFeeCalculator:        &mock.EconomicsHandlerStub{},
 		ShardCoordinator:       &mock.ShardCoordinatorMock{},
 		Hasher:                 &mock.HasherMock{},

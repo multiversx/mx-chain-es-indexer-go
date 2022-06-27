@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	indexer "github.com/ElrondNetwork/elastic-indexer-go"
+	"github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
@@ -13,7 +13,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/data/receipt"
 	"github.com/ElrondNetwork/elrond-go-core/data/rewardTx"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	datafield "github.com/ElrondNetwork/elrond-vm-common/parsers/dataField"
 )
 
 const emptyString = ""
@@ -79,7 +78,7 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		Function:             res.Function,
 		ESDTValues:           res.ESDTValues,
 		Tokens:               res.Tokens,
-		Receivers:            datafield.EncodeBytesSlice(dtb.addressPubkeyConverter.Encode, res.Receivers),
+		Receivers:            res.Receivers,
 		ReceiversShardIDs:    res.ReceiversShardID,
 		IsRelayed:            res.IsRelayed,
 		Version:              tx.Version,
