@@ -9,6 +9,8 @@ import (
 func TestJsonEscape(t *testing.T) {
 	t.Parallel()
 
+	require.Equal(t, "", JsonEscape(""))
+	require.Equal(t, "nil", JsonEscape("nil"))
 	require.Equal(t, "hello", JsonEscape("hello"))
 	require.Equal(t, "\\\\", JsonEscape("\\"))
 	require.Equal(t, `\"'\\/.,\u003c\u003e'\"`, JsonEscape(`"'\/.,<>'"`))
