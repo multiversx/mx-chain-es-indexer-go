@@ -8,10 +8,10 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 )
 
-// SerializeNFTCreateInfo will serialize the provided nft create information in a way that Elastic Search expects a bulk request
+// SerializeNFTCreateInfo will serialize the provided nft create information in a way that Elasticsearch expects a bulk request
 func (ap *accountsProcessor) SerializeNFTCreateInfo(tokensInfo []*data.TokenInfo, buffSlice *data.BufferSlice, index string) error {
 	for _, tokenData := range tokensInfo {
-		meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s", "_id" : "%s" } }%s`, index, tokenData.Identifier, "\n"))
+		meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(tokenData.Identifier), "\n"))
 		serializedData, errMarshal := json.Marshal(tokenData)
 		if errMarshal != nil {
 			return errMarshal
@@ -86,14 +86,27 @@ func prepareDeleteAccountInfo(acct *data.AccountInfo, isESDT bool, index string)
 		id += fmt.Sprintf("-%s-%s", acct.TokenName, hexEncodedNonce)
 	}
 
-	meta := []byte(fmt.Sprintf(`{ "update" : {"_index":"%s", "_id" : "%s" } }%s`, index, id, "\n"))
+	meta := []byte(fmt.Sprintf(`{ "update" : {"_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(id), "\n"))
 
+	codeToExecute := `
+		if ('create' == ctx.op) {
+			ctx.op = 'noop'
+		} else {
+			if (ctx._source.containsKey('timestamp')) {
+				if (ctx._source.timestamp <= params.timestamp) {
+					ctx.op = 'delete'
+				}
+			} else {
+				ctx.op = 'delete'
+			}
+		}
+`
 	serializedDataStr := fmt.Sprintf(`{"scripted_upsert": true, "script": {`+
-		`"source": "if ( ctx.op == 'create' )  { ctx.op = 'noop' } else { if (ctx._source.containsKey('timestamp')) { if (ctx._source.timestamp <= params.timestamp ) { ctx.op = 'delete'  } } else {  ctx.op = 'delete' } }",`+
+		`"source": "%s",`+
 		`"lang": "painless",`+
 		`"params": {"timestamp": %d}},`+
 		`"upsert": {}}`,
-		acct.Timestamp,
+		converters.FormatPainlessSource(codeToExecute), acct.Timestamp,
 	)
 
 	return meta, []byte(serializedDataStr)
@@ -115,19 +128,32 @@ func prepareSerializedAccountInfo(
 		return nil, nil, err
 	}
 
-	meta := []byte(fmt.Sprintf(`{ "update" : {"_index": "%s", "_id" : "%s" } }%s`, index, id, "\n"))
+	meta := []byte(fmt.Sprintf(`{ "update" : {"_index": "%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(id), "\n"))
+	codeToExecute := `
+		if ('create' == ctx.op) {
+			ctx._source = params.account
+		} else {
+			if (ctx._source.containsKey('timestamp')) {
+				if (ctx._source.timestamp <= params.account.timestamp) {
+					ctx._source = params.account
+				}
+			} else {
+				ctx._source = params.account
+			}
+		}
+`
 	serializedDataStr := fmt.Sprintf(`{"scripted_upsert": true, "script": {`+
-		`"source": "if ( ctx.op == 'create' )  { ctx._source = params.account } else { if (ctx._source.containsKey('timestamp')) { if (ctx._source.timestamp <= params.account.timestamp ) { ctx._source = params.account } } else { ctx._source = params.account } }",`+
+		`"source": "%s",`+
 		`"lang": "painless",`+
 		`"params": { "account": %s }},`+
 		`"upsert": {}}`,
-		serializedAccount,
+		converters.FormatPainlessSource(codeToExecute), serializedAccount,
 	)
 
 	return meta, []byte(serializedDataStr), nil
 }
 
-// SerializeAccountsHistory will serialize accounts history in a way that Elastic Search expects a bulk request
+// SerializeAccountsHistory will serialize accounts history in a way that Elasticsearch expects a bulk request
 func (ap *accountsProcessor) SerializeAccountsHistory(
 	accounts map[string]*data.AccountBalanceHistory,
 	buffSlice *data.BufferSlice,
@@ -163,7 +189,7 @@ func prepareSerializedAccountBalanceHistory(
 	}
 
 	id += fmt.Sprintf("-%d", account.Timestamp)
-	meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s", "_id" : "%s" } }%s`, index, id, "\n"))
+	meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(id), "\n"))
 
 	serializedData, err := json.Marshal(account)
 	if err != nil {
@@ -181,14 +207,21 @@ func (ap *accountsProcessor) SerializeTypeForProvidedIDs(
 	index string,
 ) error {
 	for _, id := range ids {
-		meta := []byte(fmt.Sprintf(`{ "update" : {"_index":"%s", "_id" : "%s" } }%s`, index, id, "\n"))
+		meta := []byte(fmt.Sprintf(`{ "update" : {"_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(id), "\n"))
 
+		codeToExecute := `
+			if ('create' == ctx.op) {
+				ctx.op = 'noop'
+			} else {
+				ctx._source.type = params.type
+			}
+`
 		serializedDataStr := fmt.Sprintf(`{"scripted_upsert": true, "script": {`+
-			`"source": "if ( ctx.op == 'create' )  { ctx.op = 'noop' } else  { ctx._source.type = params.type }",`+
+			`"source": "%s",`+
 			`"lang": "painless",`+
 			`"params": {"type": "%s"}},`+
 			`"upsert": {}}`,
-			tokenType)
+			converters.FormatPainlessSource(codeToExecute), converters.JsonEscape(tokenType))
 
 		err := buffSlice.PutData(meta, []byte(serializedDataStr))
 		if err != nil {

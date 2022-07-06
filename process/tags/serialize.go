@@ -3,7 +3,7 @@ package tags
 import (
 	"encoding/base64"
 	"fmt"
-
+	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 )
 
@@ -15,8 +15,15 @@ func (tc *tagsCount) Serialize(buffSlice *data.BufferSlice, index string) error 
 		}
 
 		base64Tag := base64.StdEncoding.EncodeToString([]byte(tag))
-		meta := []byte(fmt.Sprintf(`{ "update" : {"_index":"%s", "_id" : "%s" } }%s`, index, base64Tag, "\n"))
-		serializedDataStr := fmt.Sprintf(`{"script": {"source": "ctx._source.count += params.count","lang": "painless","params": {"count": %d}},"upsert": {"count": %d}}`, count, count)
+		meta := []byte(fmt.Sprintf(`{ "update" : {"_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(base64Tag), "\n"))
+
+		codeToExecute := `
+			ctx._source.count += params.count; 
+			ctx._source.tag = params.tag
+`
+		serializedDataStr := fmt.Sprintf(`{"script": {"source": "%s","lang": "painless","params": {"count": %d, "tag": "%s"}},"upsert": {"count": %d, "tag":"%s"}}`,
+			converters.FormatPainlessSource(codeToExecute), count, converters.JsonEscape(tag), count, converters.JsonEscape(tag),
+		)
 
 		err := buffSlice.PutData(meta, []byte(serializedDataStr))
 		if err != nil {

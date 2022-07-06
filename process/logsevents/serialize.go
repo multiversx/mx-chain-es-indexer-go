@@ -14,7 +14,7 @@ import (
 // SerializeLogs will serialize the provided logs in a way that Elastic Search expects a bulk request
 func (logsAndEventsProcessor) SerializeLogs(logs []*data.Logs, buffSlice *data.BufferSlice, index string) error {
 	for _, lg := range logs {
-		meta := []byte(fmt.Sprintf(`{ "index" : {"_index":"%s", "_id" : "%s" } }%s`, index, lg.ID, "\n"))
+		meta := []byte(fmt.Sprintf(`{ "index" : {"_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(lg.ID), "\n"))
 		serializedData, errMarshal := json.Marshal(lg)
 		if errMarshal != nil {
 			return errMarshal
@@ -32,7 +32,7 @@ func (logsAndEventsProcessor) SerializeLogs(logs []*data.Logs, buffSlice *data.B
 // SerializeSCDeploys will serialize the provided smart contract deploys in a way that Elastic Search expects a bulk request
 func (logsAndEventsProcessor) SerializeSCDeploys(deploys map[string]*data.ScDeployInfo, buffSlice *data.BufferSlice, index string) error {
 	for scAddr, deployInfo := range deploys {
-		meta := []byte(fmt.Sprintf(`{ "update" : { "_index":"%s", "_id" : "%s" } }%s`, index, scAddr, "\n"))
+		meta := []byte(fmt.Sprintf(`{ "update" : { "_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(scAddr), "\n"))
 
 		serializedData, err := serializeDeploy(deployInfo)
 		if err != nil {
@@ -65,17 +65,24 @@ func serializeDeploy(deployInfo *data.ScDeployInfo) ([]byte, error) {
 		return nil, errPrepareU
 	}
 
+	codeToExecute := `
+		if (!ctx._source.containsKey('upgrades')) {
+			ctx._source.upgrades = [params.elem];
+		} else {
+			ctx._source.upgrades.add(params.elem);
+		}
+`
 	serializedDataStr := fmt.Sprintf(`{"script": {`+
-		`"source": "if (!ctx._source.containsKey('upgrades')) { ctx._source.upgrades = [ params.elem ]; } else {  ctx._source.upgrades.add(params.elem); }",`+
+		`"source": "%s",`+
 		`"lang": "painless",`+
 		`"params": {"elem": %s}},`+
 		`"upsert": %s}`,
-		string(upgradeSerialized), string(serializedData))
+		converters.FormatPainlessSource(codeToExecute), string(upgradeSerialized), string(serializedData))
 
 	return []byte(serializedDataStr), nil
 }
 
-// SerializeTokens will serialize the provided tokens data in a way that Elastic Search expects a bulk request
+// SerializeTokens will serialize the provided tokens' data in a way that Elasticsearch expects a bulk request
 func (logsAndEventsProcessor) SerializeTokens(tokens []*data.TokenInfo, updateNFTData []*data.NFTDataUpdate, buffSlice *data.BufferSlice, index string) error {
 	for _, tokenData := range tokens {
 		meta, serializedData, err := serializeToken(tokenData, index)
@@ -97,24 +104,31 @@ func serializeToken(tokenData *data.TokenInfo, index string) ([]byte, []byte, er
 		return serializeTokenTransferOwnership(tokenData, index)
 	}
 
-	meta := []byte(fmt.Sprintf(`{ "update" : { "_index":"%s", "_id" : "%s" } }%s`, index, tokenData.Token, "\n"))
+	meta := []byte(fmt.Sprintf(`{ "update" : { "_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(tokenData.Token), "\n"))
 	serializedTokenData, err := json.Marshal(tokenData)
 	if err != nil {
 		return nil, nil, err
 	}
 
+	codeToExecute := `
+		if (ctx._source.containsKey('roles')) {
+			HashMap roles = ctx._source.roles;
+			ctx._source = params.token;
+			ctx._source.roles = roles
+		}
+`
 	serializedDataStr := fmt.Sprintf(`{"script": {`+
-		`"source": "if (ctx._source.containsKey('roles')) {HashMap roles = ctx._source.roles; ctx._source = params.token; ctx._source.roles = roles}",`+
+		`"source": "%s",`+
 		`"lang": "painless",`+
 		`"params": {"token": %s}},`+
 		`"upsert": %s}`,
-		string(serializedTokenData), string(serializedTokenData))
+		converters.FormatPainlessSource(codeToExecute), string(serializedTokenData), string(serializedTokenData))
 
 	return meta, []byte(serializedDataStr), nil
 }
 
 func serializeTokenTransferOwnership(tokenData *data.TokenInfo, index string) ([]byte, []byte, error) {
-	meta := []byte(fmt.Sprintf(`{ "update" : { "_index":"%s", "_id" : "%s" } }%s`, index, tokenData.Token, "\n"))
+	meta := []byte(fmt.Sprintf(`{ "update" : { "_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(tokenData.Token), "\n"))
 	tokenDataSerialized, err := json.Marshal(tokenData)
 	if err != nil {
 		return nil, nil, err
@@ -130,17 +144,25 @@ func serializeTokenTransferOwnership(tokenData *data.TokenInfo, index string) ([
 		return nil, nil, err
 	}
 
+	codeToExecute := `
+		if (!ctx._source.containsKey('ownersHistory')) {
+			ctx._source.ownersHistory = [params.elem]
+		} else {
+			ctx._source.ownersHistory.add(params.elem)
+		}
+		ctx._source.currentOwner = params.owner
+`
 	serializedDataStr := fmt.Sprintf(`{"script": {`+
-		`"source": "if (!ctx._source.containsKey('ownersHistory')) { ctx._source.ownersHistory = [ params.elem ] } else { ctx._source.ownersHistory.add(params.elem) } ctx._source.currentOwner = params.owner ",`+
+		`"source": "%s",`+
 		`"lang": "painless",`+
 		`"params": {"elem": %s, "owner": "%s"}},`+
 		`"upsert": %s}`,
-		string(ownerDataSerialized), tokenData.CurrentOwner, string(tokenDataSerialized))
+		converters.FormatPainlessSource(codeToExecute), string(ownerDataSerialized), converters.JsonEscape(tokenData.CurrentOwner), string(tokenDataSerialized))
 
 	return meta, []byte(serializedDataStr), nil
 }
 
-// SerializeDelegators will serialize the provided delegators in a way that Elastic Search expects a bulk request
+// SerializeDelegators will serialize the provided delegators in a way that Elasticsearch expects a bulk request
 func (lep *logsAndEventsProcessor) SerializeDelegators(delegators map[string]*data.Delegator, buffSlice *data.BufferSlice, index string) error {
 	for _, delegator := range delegators {
 		meta, serializedData, err := lep.prepareSerializedDelegator(delegator, index)
@@ -160,11 +182,11 @@ func (lep *logsAndEventsProcessor) SerializeDelegators(delegators map[string]*da
 func (lep *logsAndEventsProcessor) prepareSerializedDelegator(delegator *data.Delegator, index string) ([]byte, []byte, error) {
 	id := lep.computeDelegatorID(delegator)
 	if delegator.ShouldDelete {
-		meta := []byte(fmt.Sprintf(`{ "delete" : { "_index": "%s", "_id" : "%s" } }%s`, index, id, "\n"))
+		meta := []byte(fmt.Sprintf(`{ "delete" : { "_index": "%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(id), "\n"))
 		return meta, nil, nil
 	}
 
-	meta := []byte(fmt.Sprintf(`{ "index" : { "_index": "%s", "_id" : "%s" } }%s`, index, id, "\n"))
+	meta := []byte(fmt.Sprintf(`{ "index" : { "_index": "%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(id), "\n"))
 	serializedData, errMarshal := json.Marshal(delegator)
 	if errMarshal != nil {
 		return nil, nil, errMarshal
@@ -188,7 +210,7 @@ func (lep *logsAndEventsProcessor) SerializeSupplyData(tokensSupply data.TokensH
 			continue
 		}
 
-		meta := []byte(fmt.Sprintf(`{ "delete" : { "_index": "%s", "_id" : "%s" } }%s`, index, supplyData.Identifier, "\n"))
+		meta := []byte(fmt.Sprintf(`{ "delete" : { "_index": "%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(supplyData.Identifier), "\n"))
 		err := buffSlice.PutData(meta, nil)
 		if err != nil {
 			return err
@@ -224,7 +246,7 @@ func (lep *logsAndEventsProcessor) SerializeRolesData(
 }
 
 func serializeRoleData(buffSlice *data.BufferSlice, rd *tokeninfo.RoleData, role string, index string) error {
-	meta := []byte(fmt.Sprintf(`{ "update" : {"_index": "%s", "_id" : "%s" } }%s`, index, rd.Token, "\n"))
+	meta := []byte(fmt.Sprintf(`{ "update" : {"_index": "%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(rd.Token), "\n"))
 	var serializedDataStr string
 	if rd.Set {
 		codeToExecute := `	
@@ -248,7 +270,12 @@ func serializeRoleData(buffSlice *data.BufferSlice, rd *tokeninfo.RoleData, role
 			`"lang": "painless",`+
 			`"params": { "role": "%s", "address": "%s"}},`+
 			`"upsert": { "roles": {"%s": ["%s"]}}}`,
-			converters.FormatPainlessSource(codeToExecute), role, rd.Address, role, rd.Address)
+			converters.FormatPainlessSource(codeToExecute),
+			converters.JsonEscape(role),
+			converters.JsonEscape(rd.Address),
+			converters.JsonEscape(role),
+			converters.JsonEscape(rd.Address),
+		)
 	} else {
 		codeToExecute := `
 	if (ctx._source.containsKey('roles')) {
@@ -262,14 +289,17 @@ func serializeRoleData(buffSlice *data.BufferSlice, rd *tokeninfo.RoleData, role
 			`"lang": "painless",`+
 			`"params": { "role": "%s", "address": "%s" }},`+
 			`"upsert": {} }`,
-			converters.FormatPainlessSource(codeToExecute), role, rd.Address)
+			converters.FormatPainlessSource(codeToExecute),
+			converters.JsonEscape(role),
+			converters.JsonEscape(rd.Address),
+		)
 	}
 
 	return buffSlice.PutData(meta, []byte(serializedDataStr))
 }
 
 func serializePropertiesData(buffSlice *data.BufferSlice, index string, tokenProp *tokeninfo.PropertiesData) error {
-	meta := []byte(fmt.Sprintf(`{ "update" : {"_index": "%s", "_id" : "%s" } }%s`, index, tokenProp.Token, "\n"))
+	meta := []byte(fmt.Sprintf(`{ "update" : {"_index": "%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(tokenProp.Token), "\n"))
 
 	propertiesBytes, err := json.Marshal(tokenProp.Properties)
 	if err != nil {

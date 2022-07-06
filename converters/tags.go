@@ -1,6 +1,8 @@
 package converters
 
-import "strings"
+import (
+	"strings"
+)
 
 const (
 	attributesSeparator = ";"

@@ -38,6 +38,7 @@ func newNFTsProcessor(
 			core.BuiltInFunctionESDTNFTAddQuantity:   {},
 			core.BuiltInFunctionESDTNFTCreate:        {},
 			core.BuiltInFunctionMultiESDTNFTTransfer: {},
+			core.BuiltInFunctionESDTWipe:             {},
 		},
 	}
 }
@@ -134,7 +135,7 @@ func (np *nftsProcessor) processNFTEventOnSender(
 	bech32Addr := np.pubKeyConverter.Encode(sender)
 
 	eventIdentifier := string(event.GetIdentifier())
-	if eventIdentifier == core.BuiltInFunctionESDTNFTBurn {
+	if eventIdentifier == core.BuiltInFunctionESDTNFTBurn || eventIdentifier == core.BuiltInFunctionESDTWipe {
 		tokensSupply.Add(&data.TokenInfo{
 			Token:      token,
 			Identifier: converters.ComputeTokenIdentifier(token, nonceBig.Uint64()),

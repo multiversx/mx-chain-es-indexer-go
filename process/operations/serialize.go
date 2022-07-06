@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 )
 
@@ -28,7 +29,7 @@ func (op *operationsProcessor) prepareSerializedDataForAScResult(
 	scr *data.ScResult,
 	index string,
 ) ([]byte, []byte, error) {
-	metaData := []byte(fmt.Sprintf(`{"update":{"_index":"%s","_id":"%s"}}%s`, index, scr.Hash, "\n"))
+	metaData := []byte(fmt.Sprintf(`{"update":{"_index":"%s","_id":"%s"}}%s`, index, converters.JsonEscape(scr.Hash), "\n"))
 	marshaledSCR, err := json.Marshal(scr)
 	if err != nil {
 		return nil, nil, err
@@ -44,7 +45,7 @@ func (op *operationsProcessor) prepareSerializedDataForAScResult(
 		return metaData, serializedData, nil
 	}
 
-	meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s","_id" : "%s" } }%s`, index, scr.Hash, "\n"))
+	meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s","_id" : "%s" } }%s`, index, converters.JsonEscape(scr.Hash), "\n"))
 
 	return meta, marshaledSCR, nil
 }
