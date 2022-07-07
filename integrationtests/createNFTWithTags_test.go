@@ -74,6 +74,7 @@ func TestCreateNFTWithTags(t *testing.T) {
 	coreAlteredAccounts := map[string]*indexer.AlteredAccount{
 		addrHex: {
 			Address: addrHex,
+			Balance: "0",
 			Tokens: []*indexer.AccountTokenData{
 				{
 					Identifier: "DESK-abcd",
@@ -82,7 +83,7 @@ func TestCreateNFTWithTags(t *testing.T) {
 					Properties: "ok",
 					MetaData: &esdt.MetaData{
 						Creator:    []byte("creator"),
-						Attributes: []byte("tags:hello,something,ceva,an,so,on;metadata:QmZ2QqaGq4bqsEzs5JLTjRmmvR2GAR4qXJZBN8ibfDdaud"),
+						Attributes: []byte("tags:hello,something,do,music,art,gallery;metadata:QmZ2QqaGq4bqsEzs5JLTjRmmvR2GAR4qXJZBN8ibfDdaud"),
 					},
 				},
 			},
@@ -160,28 +161,10 @@ func TestCreateNFTWithTags(t *testing.T) {
 	hexEncodedAttributes := "746167733a5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c2c3c3c3c3e3e3e2626262626262626262626262626262c272727273b6d657461646174613a516d533757525566464464516458654c513637516942394a33663746654d69343554526d6f79415741563568345a"
 	attributes, _ := hex.DecodeString(hexEncodedAttributes)
 
-	esdtToken = &esdt.ESDigitalToken{
-		Value:      big.NewInt(1000),
-		Properties: []byte("ok"),
-		TokenMetaData: &esdt.MetaData{
-			Creator:    []byte("creator"),
-			Attributes: attributes,
-		},
-	}
-	mockAccount = &mock.UserAccountStub{
-		RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
-			return json.Marshal(esdtToken)
-		},
-		AddressBytesCalled: func() []byte {
-			return []byte(addr)
-		},
-	}
-	accounts = &mock.AccountsStub{
-		LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
-			return mockAccount, nil
-		},
-	}
-	esProc, err = CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	coreAlteredAccounts[addrHex].Tokens[0].Nonce = 3
+	coreAlteredAccounts[addrHex].Tokens[0].MetaData.Attributes = attributes
+
+	esProc, err = CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
 	require.Nil(t, err)
 
 	pool = &indexer.Pool{
@@ -203,7 +186,7 @@ func TestCreateNFTWithTags(t *testing.T) {
 	}
 
 	body = &dataBlock.Body{}
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts)
 	require.Nil(t, err)
 
 	ids = append(ids, "XFxcXFxcXFxcXFxcXFxcXFxcXA==", "JycnJw==", "PDw8Pj4+JiYmJiYmJiYmJiYmJiYm")
