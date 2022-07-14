@@ -131,6 +131,14 @@ func TestNFTTransferCrossShardWithSCCall(t *testing.T) {
 		readExpectedResult("./testdata/nftTransferCrossShard/tx-nft-transfer-sc-call-after-refund.json"),
 		string(genericResponse.Docs[0].Source),
 	)
+
+	genericResponse = &GenericResponse{}
+	err = esClient.DoMultiGet(ids, indexerdata.OperationsIndex, true, genericResponse)
+	require.Nil(t, err)
+	require.JSONEq(t,
+		readExpectedResult("./testdata/nftTransferCrossShard/op-nft-transfer-sc-call-after-refund.json"),
+		string(genericResponse.Docs[0].Source),
+	)
 }
 
 // TODO check also indexes that are altered
