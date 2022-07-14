@@ -9,15 +9,15 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/smartContractResult"
-	"github.com/ElrondNetwork/elrond-vm-common/parsers/dataField"
+	datafield "github.com/ElrondNetwork/elrond-vm-common/parsers/dataField"
 	"github.com/stretchr/testify/require"
 )
 
 func createDataFieldParserMock() DataFieldParser {
 	args := &datafield.ArgsOperationDataFieldParser{
+		AddressLength:    32,
 		Marshalizer:      &mock.MarshalizerMock{},
 		ShardCoordinator: &mock.ShardCoordinatorMock{},
-		AddressLength:    32,
 	}
 	parser, _ := datafield.NewOperationDataFieldParser(args)
 

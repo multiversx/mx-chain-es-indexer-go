@@ -415,8 +415,7 @@ func TestAlteredAddresses(t *testing.T) {
 
 	args := createMockArgsTxsDBProc()
 	args.ShardCoordinator = shardCoordinator
-	txDbProc, err := NewTransactionsProcessor(args)
-	require.Nil(t, err)
+	txDbProc, _ := NewTransactionsProcessor(args)
 
 	results := txDbProc.PrepareTransactionsForDatabase(body, hdr, pool)
 
