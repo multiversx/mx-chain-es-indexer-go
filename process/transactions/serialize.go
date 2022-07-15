@@ -6,9 +6,11 @@ import (
 	"math/big"
 	"strings"
 
+	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 )
 
 // SerializeScResults will serialize the provided smart contract results in a way that Elastic Search expects a bulk request
@@ -68,6 +70,11 @@ func (tdp *txsDatabaseProcessor) SerializeTransactionWithRefund(
 		if !ok {
 			continue
 		}
+
+		if index == elasticIndexer.OperationsIndex {
+			tx.Type = string(transaction.TxTypeNormal)
+		}
+
 		gasUsed, fee := tdp.txFeeCalculator.ComputeGasUsedAndFeeBasedOnRefundValue(tx, refundValueBig)
 		tx.GasUsed = gasUsed
 		tx.Fee = fee.String()

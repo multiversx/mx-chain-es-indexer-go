@@ -44,9 +44,12 @@ func (ilp *informativeLogsProcessor) processEvent(args *argsProcessEvent) argOut
 	switch identifier {
 	case writeLogOperation:
 		{
-			gasLimit, fee := ilp.txFeeCalculator.ComputeGasUsedAndFeeBasedOnRefundValue(tx, big.NewInt(0))
-			tx.GasUsed = gasLimit
-			tx.Fee = fee.String()
+			if !tx.HadRefund {
+				gasLimit, fee := ilp.txFeeCalculator.ComputeGasUsedAndFeeBasedOnRefundValue(tx, big.NewInt(0))
+				tx.GasUsed = gasLimit
+				tx.Fee = fee.String()
+			}
+
 			tx.Status = transaction.TxStatusSuccess.String()
 		}
 	case signalErrorOperation:

@@ -364,7 +364,12 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
-	err = ei.indexTransactionsWithRefund(preparedResults.TxHashRefund, buffers)
+	err = ei.prepareAndIndexOperations(preparedResults.Transactions, preparedResults.TxHashStatus, header, preparedResults.ScResults, buffers)
+	if err != nil {
+		return err
+	}
+
+	err = ei.indexTransactionsAndOperationsWithRefund(preparedResults.TxHashRefund, buffers)
 	if err != nil {
 		return err
 	}
@@ -410,11 +415,6 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
-	err = ei.prepareAndIndexOperations(preparedResults.Transactions, preparedResults.TxHashStatus, header, preparedResults.ScResults, buffers)
-	if err != nil {
-		return err
-	}
-
 	err = ei.indexNFTBurnInfo(logsData.TokensSupply, buffers)
 	if err != nil {
 		return err
@@ -449,7 +449,7 @@ func (ei *elasticProcessor) prepareAndIndexDelegators(delegators map[string]*dat
 	return ei.logsAndEventsProc.SerializeDelegators(delegators, buffSlice, elasticIndexer.DelegatorsIndex)
 }
 
-func (ei *elasticProcessor) indexTransactionsWithRefund(txsHashRefund map[string]*data.RefundData, buffSlice *data.BufferSlice) error {
+func (ei *elasticProcessor) indexTransactionsAndOperationsWithRefund(txsHashRefund map[string]*data.RefundData, buffSlice *data.BufferSlice) error {
 	if len(txsHashRefund) == 0 {
 		return nil
 	}
@@ -474,7 +474,12 @@ func (ei *elasticProcessor) indexTransactionsWithRefund(txsHashRefund map[string
 		txsFromDB[txRes.ID] = &txRes.Source
 	}
 
-	return ei.transactionsProc.SerializeTransactionWithRefund(txsFromDB, txsHashRefund, buffSlice, elasticIndexer.TransactionsIndex)
+	err = ei.transactionsProc.SerializeTransactionWithRefund(txsFromDB, txsHashRefund, buffSlice, elasticIndexer.TransactionsIndex)
+	if err != nil {
+		return err
+	}
+
+	return ei.transactionsProc.SerializeTransactionWithRefund(txsFromDB, txsHashRefund, buffSlice, elasticIndexer.OperationsIndex)
 }
 
 func (ei *elasticProcessor) prepareAndIndexLogs(logsAndEvents []*coreData.LogData, timestamp uint64, buffSlice *data.BufferSlice) error {

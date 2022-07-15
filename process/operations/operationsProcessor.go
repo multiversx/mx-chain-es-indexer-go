@@ -34,38 +34,41 @@ func (op *operationsProcessor) ProcessTransactionsAndSCRs(
 	txs []*data.Transaction,
 	scrs []*data.ScResult,
 ) ([]*data.Transaction, []*data.ScResult) {
+	newTxsSlice := make([]*data.Transaction, 0)
+	newScrsSlice := make([]*data.ScResult, 0)
+
 	for idx, tx := range txs {
 		if !op.shouldIndex(txs[idx].ReceiverShard) {
-			// remove tx from slice
-			txs = append(txs[:idx], txs[idx+1:]...)
 			continue
 		}
 
-		tx.SmartContractResults = nil
-		tx.Type = string(transaction.TxTypeNormal)
+		copiedTx := *tx
+		copiedTx.SmartContractResults = nil
+		copiedTx.Type = string(transaction.TxTypeNormal)
+		newTxsSlice = append(newTxsSlice, &copiedTx)
 	}
 
 	for idx := 0; idx < len(scrs); idx++ {
 		if !op.shouldIndex(scrs[idx].ReceiverShard) {
-			// remove scr from slice
-			scrs = append(scrs[:idx], scrs[idx+1:]...)
 			continue
 		}
 
-		scr := scrs[idx]
-		scr.Type = string(transaction.TxTypeUnsigned)
+		copiedScr := *scrs[idx]
+		copiedScr.Type = string(transaction.TxTypeUnsigned)
 
-		setCanBeIgnoredField(scr)
+		setCanBeIgnoredField(&copiedScr)
 
 		selfShard := op.shardCoordinator.SelfId()
-		if selfShard == scr.ReceiverShard {
-			scr.Status = transaction.TxStatusSuccess.String()
+		if selfShard == copiedScr.ReceiverShard {
+			copiedScr.Status = transaction.TxStatusSuccess.String()
 		} else {
-			scr.Status = transaction.TxStatusPending.String()
+			copiedScr.Status = transaction.TxStatusPending.String()
 		}
+
+		newScrsSlice = append(newScrsSlice, &copiedScr)
 	}
 
-	return txs, scrs
+	return newTxsSlice, newScrsSlice
 }
 
 func (op *operationsProcessor) shouldIndex(destinationShardID uint32) bool {
