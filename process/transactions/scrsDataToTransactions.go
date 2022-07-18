@@ -78,6 +78,7 @@ func (st *scrsDataToTransactions) addScResultInfoIntoTx(dbScResult *data.ScResul
 		gasUsed, fee := st.txFeeCalculator.ComputeGasUsedAndFeeBasedOnRefundValue(tx, refundValue)
 		tx.GasUsed = gasUsed
 		tx.Fee = fee.String()
+		tx.HadRefund = true
 	}
 
 	return
