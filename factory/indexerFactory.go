@@ -76,6 +76,13 @@ func NewIndexer(args *ArgsIndexerFactory) (indexer.Indexer, error) {
 	return indexer.NewDataIndexer(arguments)
 }
 
+func retryBackOff(attempt int) time.Duration {
+	d := time.Duration(math.Exp2(float64(attempt))) * time.Second
+	log.Debug("elastic: retry backoff", "attempt", attempt, "sleep duration", d)
+
+	return d
+}
+
 func createElasticProcessor(args *ArgsIndexerFactory) (indexer.ElasticProcessor, error) {
 	databaseClient, err := client.NewElasticClient(elasticsearch.Config{
 		Addresses:     []string{args.Url},
@@ -83,11 +90,7 @@ func createElasticProcessor(args *ArgsIndexerFactory) (indexer.ElasticProcessor,
 		Password:      args.Password,
 		Logger:        &logging.CustomLogger{},
 		RetryOnStatus: []int{http.StatusConflict},
-		RetryBackoff: func(attempt int) time.Duration {
-			d := time.Duration(math.Exp2(float64(attempt))) * time.Second
-			log.Debug("elastic: retry backoff", "attempt", attempt, "sleep duration", d)
-			return d
-		},
+		RetryBackoff:  retryBackOff,
 	})
 	if err != nil {
 		return nil, err
