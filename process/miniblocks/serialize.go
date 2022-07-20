@@ -32,15 +32,18 @@ func (mp *miniblocksProcessor) SerializeBulkMiniBlocks(
 }
 
 func (mp *miniblocksProcessor) prepareMiniblockData(miniblockDB *data.Miniblock, isInDB bool, index string) ([]byte, []byte, error) {
+	mbHash := miniblockDB.Hash
+	miniblockDB.Hash = ""
+
 	if !isInDB {
-		meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s", "_id" : "%s"} }%s`, index, converters.JsonEscape(miniblockDB.Hash), "\n"))
+		meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s", "_id" : "%s"} }%s`, index, converters.JsonEscape(mbHash), "\n"))
 		serializedData, err := json.Marshal(miniblockDB)
 
 		return meta, serializedData, err
 	}
 
 	// prepare data for update operation
-	meta := []byte(fmt.Sprintf(`{ "update" : {"_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(miniblockDB.Hash), "\n"))
+	meta := []byte(fmt.Sprintf(`{ "update" : {"_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(mbHash), "\n"))
 	if mp.selfShardID == miniblockDB.SenderShardID && miniblockDB.ProcessingTypeOnDestination != block.Processed.String() {
 		// prepare for update sender block hash
 		serializedData := []byte(fmt.Sprintf(`{ "doc" : { "senderBlockHash" : "%s", "procTypeS": "%s" } }`, converters.JsonEscape(miniblockDB.SenderBlockHash), converters.JsonEscape(miniblockDB.ProcessingTypeOnSource)))
