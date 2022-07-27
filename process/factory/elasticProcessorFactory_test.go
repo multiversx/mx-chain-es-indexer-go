@@ -15,7 +15,6 @@ func TestCreateElasticProcessor(t *testing.T) {
 		AddressPubkeyConverter:   mock.NewPubkeyConverterMock(32),
 		ValidatorPubkeyConverter: &mock.PubkeyConverterMock{},
 		DBClient:                 &mock.DatabaseWriterStub{},
-		AccountsDB:               &mock.AccountsStub{},
 		ShardCoordinator:         &mock.ShardCoordinatorMock{},
 		TransactionFeeCalculator: &mock.EconomicsHandlerStub{},
 		EnabledIndexes:           []string{"blocks"},

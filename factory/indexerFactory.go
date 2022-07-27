@@ -39,7 +39,6 @@ type ArgsIndexerFactory struct {
 	Hasher                   hashing.Hasher
 	AddressPubkeyConverter   core.PubkeyConverter
 	ValidatorPubkeyConverter core.PubkeyConverter
-	AccountsDB               indexer.AccountsAdapter
 	TransactionFeeCalculator indexer.FeesProcessorHandler
 }
 
@@ -103,7 +102,6 @@ func createElasticProcessor(args *ArgsIndexerFactory) (indexer.ElasticProcessor,
 		ValidatorPubkeyConverter: args.ValidatorPubkeyConverter,
 		UseKibana:                args.UseKibana,
 		DBClient:                 databaseClient,
-		AccountsDB:               args.AccountsDB,
 		Denomination:             args.Denomination,
 		TransactionFeeCalculator: args.TransactionFeeCalculator,
 		IsInImportDBMode:         args.IsInImportDBMode,
@@ -136,9 +134,6 @@ func checkDataIndexerParams(arguments *ArgsIndexerFactory) error {
 	}
 	if check.IfNil(arguments.TransactionFeeCalculator) {
 		return indexer.ErrNilTransactionFeeCalculator
-	}
-	if check.IfNil(arguments.AccountsDB) {
-		return indexer.ErrNilAccountsDB
 	}
 	if check.IfNil(arguments.ShardCoordinator) {
 		return indexer.ErrNilShardCoordinator

@@ -3,6 +3,7 @@
 package integrationtests
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"math/big"
 	"testing"
@@ -15,7 +16,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/data/esdt"
 	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 	"github.com/stretchr/testify/require"
 )
 
@@ -30,9 +30,8 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 		SelfID: core.MetachainShardId,
 	}
 
-	accounts := &mock.AccountsStub{}
 	feeComputer := &mock.EconomicsHandlerMock{}
-	esProc, err := CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
 	require.Nil(t, err)
 
 	body := &dataBlock.Body{}
@@ -59,7 +58,7 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, nil)
 	require.Nil(t, err)
 
 	// ################ CREATE SEMI FUNGIBLE TOKEN 1 ##########################
@@ -67,29 +66,45 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 		SelfID: 0,
 	}
 
-	esdtToken := &esdt.ESDigitalToken{
-		Value:      big.NewInt(1000),
-		Properties: []byte("ok"),
-		TokenMetaData: &esdt.MetaData{
-			Creator: []byte("creator"),
-		},
-	}
-
 	addr := "aaaabbbbcccccccc"
-	mockAccount := &mock.UserAccountStub{
-		RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
-			return json.Marshal(esdtToken)
+	addrHex := hex.EncodeToString([]byte(addr))
+
+	addrForLog := "aaaabbbb"
+	addrForLogHex := hex.EncodeToString([]byte(addrForLog))
+
+	coreAlteredAccounts := map[string]*indexer.AlteredAccount{
+		addrHex: {
+			Address: addrHex,
+			Balance: "0",
+			Tokens: []*indexer.AccountTokenData{
+				{
+					Identifier: "SSSS-dddd",
+					Balance:    "1000",
+					Nonce:      2,
+					Properties: "ok",
+					MetaData: &esdt.MetaData{
+						Creator: []byte("creator"),
+					},
+				},
+			},
 		},
-		AddressBytesCalled: func() []byte {
-			return []byte(addr)
+		addrForLogHex: {
+			Address: addrForLogHex,
+			Balance: "0",
+			Tokens: []*indexer.AccountTokenData{
+				{
+					Identifier: "SSSS-dddd",
+					Balance:    "1000",
+					Nonce:      2,
+					Properties: "ok",
+					MetaData: &esdt.MetaData{
+						Creator: []byte("creator"),
+					},
+				},
+			},
 		},
 	}
-	accounts = &mock.AccountsStub{
-		LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
-			return mockAccount, nil
-		},
-	}
-	esProc, err = CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	esProc, err = CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
 	require.Nil(t, err)
 
 	header = &dataBlock.Header{
@@ -111,7 +126,7 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 				LogHandler: &transaction.Log{
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("aaaabbbb"),
+							Address:    []byte(addr),
 							Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
 							Topics:     [][]byte{[]byte("SSSS-dddd"), big.NewInt(2).Bytes(), big.NewInt(1).Bytes(), esdtDataBytes},
 						},
@@ -122,7 +137,7 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts)
 	require.Nil(t, err)
 	ids := []string{"61616161626262626363636363636363"}
 	genericResponse := &GenericResponse{}
@@ -138,7 +153,7 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 				LogHandler: &transaction.Log{
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("aaaabbbb"),
+							Address:    []byte(addr),
 							Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
 							Topics:     [][]byte{[]byte("SSSS-dddd"), big.NewInt(22).Bytes(), big.NewInt(1).Bytes(), esdtDataBytes},
 						},
@@ -149,7 +164,10 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool)
+	coreAlteredAccounts[addrHex].Tokens[0].Nonce = 22
+	coreAlteredAccounts[addrForLogHex].Tokens[0].Nonce = 22
+
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts)
 	require.Nil(t, err)
 	ids = []string{"61616161626262626363636363636363"}
 	genericResponse = &GenericResponse{}
@@ -158,29 +176,26 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 	require.JSONEq(t, readExpectedResult("./testdata/collectionsIndex/collections-2.json"), string(genericResponse.Docs[0].Source))
 
 	// ################ TRANSFER SEMI FUNGIBLE TOKEN 2 ##########################
-	esdtToken = &esdt.ESDigitalToken{
-		Value:      big.NewInt(0),
-		Properties: []byte("ok"),
-		TokenMetaData: &esdt.MetaData{
-			Creator: []byte("creator"),
+
+	addr = "aaaabbbbcccccccc"
+	addrHex = hex.EncodeToString([]byte(addr))
+	coreAlteredAccounts = map[string]*indexer.AlteredAccount{
+		addrHex: {
+			Address: addrHex,
+			Tokens: []*indexer.AccountTokenData{
+				{
+					Identifier: "NFT-abcdef",
+					Balance:    "0",
+					Properties: "ok",
+					MetaData: &esdt.MetaData{
+						Creator: []byte("creator"),
+					},
+				},
+			},
 		},
 	}
 
-	addr = "aaaabbbbcccccccc"
-	mockAccount = &mock.UserAccountStub{
-		RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
-			return json.Marshal(esdtToken)
-		},
-		AddressBytesCalled: func() []byte {
-			return []byte(addr)
-		},
-	}
-	accounts = &mock.AccountsStub{
-		LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
-			return mockAccount, nil
-		},
-	}
-	esProc, err = CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	esProc, err = CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
 	require.Nil(t, err)
 
 	pool = &indexer.Pool{
@@ -201,7 +216,7 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts)
 	require.Nil(t, err)
 	ids = []string{"61616161626262626363636363636363"}
 	genericResponse = &GenericResponse{}

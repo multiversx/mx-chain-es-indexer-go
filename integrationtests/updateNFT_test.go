@@ -31,11 +31,10 @@ func TestNFTUpdateMetadata(t *testing.T) {
 	}
 	marshalizedCreate, _ := json.Marshal(esdtCreateData)
 
-	accounts := &mock.AccountsStub{}
 	feeComputer := &mock.EconomicsHandlerMock{}
 	shardCoordinator := &mock.ShardCoordinatorMock{}
 
-	esProc, err := CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
 	require.Nil(t, err)
 
 	header := &dataBlock.Header{
@@ -62,7 +61,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, nil)
 	require.Nil(t, err)
 
 	ids := []string{"NFT-abcd-0e"}
@@ -89,7 +88,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, nil)
 	require.Nil(t, err)
 
 	// Add URIS 2 --- results should be the same
@@ -110,7 +109,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, nil)
 	require.Nil(t, err)
 
 	// Update attributes 1
@@ -137,7 +136,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, nil)
 	require.Nil(t, err)
 
 	ids = []string{"NFT-abcd-0e"}
@@ -165,7 +164,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, nil)
 	require.Nil(t, err)
 
 	ids = []string{"NFT-abcd-0e"}

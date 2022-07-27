@@ -22,13 +22,12 @@ func TestIssueTokenAndTransferOwnership(t *testing.T) {
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	accounts := &mock.AccountsStub{}
 	feeComputer := &mock.EconomicsHandlerMock{}
 	shardCoordinator := &mock.ShardCoordinatorMock{
 		SelfID: core.MetachainShardId,
 	}
 
-	esProc, err := CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
 	require.Nil(t, err)
 
 	body := &dataBlock.Body{}
@@ -55,7 +54,7 @@ func TestIssueTokenAndTransferOwnership(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, nil)
 	require.Nil(t, err)
 
 	ids := []string{"SSSS-abcd"}
@@ -84,7 +83,7 @@ func TestIssueTokenAndTransferOwnership(t *testing.T) {
 	}
 
 	header.TimeStamp = 10000
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, nil)
 	require.Nil(t, err)
 
 	ids = []string{"SSSS-abcd"}

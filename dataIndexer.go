@@ -140,7 +140,7 @@ func (di *dataIndexer) SaveValidatorsPubKeys(validatorsPubKeys map[uint32][][]by
 }
 
 // SaveAccounts will save the provided accounts
-func (di *dataIndexer) SaveAccounts(timestamp uint64, accounts []coreData.UserAccountHandler) error {
+func (di *dataIndexer) SaveAccounts(timestamp uint64, accounts map[string]*indexer.AlteredAccount) error {
 	wi := workItems.NewItemAccounts(di.elasticProcessor, timestamp, accounts)
 	di.dispatcher.Add(wi)
 

@@ -2,20 +2,20 @@ package workItems
 
 import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	coreData "github.com/ElrondNetwork/elrond-go-core/data"
+	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
 )
 
 type itemAccounts struct {
 	indexer        saveAccountsIndexer
 	blockTimestamp uint64
-	accounts       []coreData.UserAccountHandler
+	accounts       map[string]*indexer.AlteredAccount
 }
 
 // NewItemAccounts will create a new instance of itemAccounts
 func NewItemAccounts(
 	indexer saveAccountsIndexer,
 	blockTimestamp uint64,
-	accounts []coreData.UserAccountHandler,
+	accounts map[string]*indexer.AlteredAccount,
 ) WorkItemHandler {
 	return &itemAccounts{
 		indexer:        indexer,
@@ -26,12 +26,12 @@ func NewItemAccounts(
 
 // Save will save information about an account
 func (wiv *itemAccounts) Save() error {
-	accounts := make([]*data.Account, len(wiv.accounts))
-	for idx, account := range wiv.accounts {
-		accounts[idx] = &data.Account{
+	accounts := make([]*data.Account, 0, len(wiv.accounts))
+	for _, account := range wiv.accounts {
+		accounts = append(accounts, &data.Account{
 			UserAccount: account,
 			IsSender:    false,
-		}
+		})
 	}
 
 	err := wiv.indexer.SaveAccounts(wiv.blockTimestamp, accounts)

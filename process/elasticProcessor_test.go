@@ -50,7 +50,7 @@ func newElasticsearchProcessor(elasticsearchWriter DatabaseClientHandler, argume
 func createMockElasticProcessorArgs() *ArgElasticProcessor {
 	balanceConverter, _ := converters.NewBalanceConverter(10)
 
-	acp, _ := accounts.NewAccountsProcessor(&mock.MarshalizerMock{}, &mock.PubkeyConverterMock{}, &mock.AccountsStub{}, balanceConverter)
+	acp, _ := accounts.NewAccountsProcessor(&mock.PubkeyConverterMock{}, balanceConverter)
 	bp, _ := block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 	mp, _ := miniblocks.NewMiniblocksProcessor(0, &mock.HasherMock{}, &mock.MarshalizerMock{}, false)
 	vp, _ := validators.NewValidatorsProcessor(mock.NewPubkeyConverterMock(32), 0)
@@ -431,7 +431,7 @@ func TestElasticseachSaveTransactions(t *testing.T) {
 
 	elasticDatabase := newElasticsearchProcessor(dbWriter, arguments)
 	pool := &indexer.Pool{Txs: txPool}
-	err := elasticDatabase.SaveTransactions(body, header, pool)
+	err := elasticDatabase.SaveTransactions(body, header, pool, nil)
 	require.Equal(t, localErr, err)
 }
 
@@ -657,7 +657,7 @@ func TestElasticProcessor_SaveTransactionNoDataShouldNotDoRequest(t *testing.T) 
 	elasticSearchProc := newElasticsearchProcessor(dbWriter, arguments)
 	elasticSearchProc.enabledIndexes[elasticIndexer.ScResultsIndex] = struct{}{}
 
-	err := elasticSearchProc.SaveTransactions(&dataBlock.Body{}, &dataBlock.Header{}, &indexer.Pool{})
+	err := elasticSearchProc.SaveTransactions(&dataBlock.Body{}, &dataBlock.Header{}, &indexer.Pool{}, nil)
 	require.Nil(t, err)
 	require.False(t, called)
 }
@@ -686,7 +686,7 @@ func TestElasticProcessor_IndexAlteredAccounts(t *testing.T) {
 	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
 	alteredAccounts := data.NewAlteredAccounts()
 	tagsCount := tags.NewTagsCount()
-	err := elasticSearchProc.indexAlteredAccounts(100, alteredAccounts, nil, buffSlice, tagsCount)
+	err := elasticSearchProc.indexAlteredAccounts(100, alteredAccounts, nil, nil, buffSlice, tagsCount)
 	require.Nil(t, err)
 	require.True(t, called)
 }

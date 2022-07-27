@@ -352,6 +352,7 @@ func (ei *elasticProcessor) SaveTransactions(
 	body *block.Body,
 	header coreData.HeaderHandler,
 	pool *indexer.Pool,
+	coreAlteredAccounts map[string]*indexer.AlteredAccount,
 ) error {
 	headerTimestamp := header.GetTimeStamp()
 
@@ -374,7 +375,7 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
-	err = ei.indexNFTCreateInfo(logsData.Tokens, buffers)
+	err = ei.indexNFTCreateInfo(logsData.Tokens, coreAlteredAccounts, buffers)
 	if err != nil {
 		return err
 	}
@@ -395,7 +396,7 @@ func (ei *elasticProcessor) SaveTransactions(
 	}
 
 	tagsCount := tags.NewTagsCount()
-	err = ei.indexAlteredAccounts(headerTimestamp, preparedResults.AlteredAccts, logsData.NFTsDataUpdates, buffers, tagsCount)
+	err = ei.indexAlteredAccounts(headerTimestamp, preparedResults.AlteredAccts, logsData.NFTsDataUpdates, coreAlteredAccounts, buffers, tagsCount)
 	if err != nil {
 		return err
 	}
@@ -579,10 +580,11 @@ func (ei *elasticProcessor) indexAlteredAccounts(
 	timestamp uint64,
 	alteredAccounts data.AlteredAccountsHandler,
 	updatesNFTsData []*data.NFTDataUpdate,
+	coreAlteredAccounts map[string]*indexer.AlteredAccount,
 	buffSlice *data.BufferSlice,
 	tagsCount data.CountTags,
 ) error {
-	regularAccountsToIndex, accountsToIndexESDT := ei.accountsProc.GetAccounts(alteredAccounts)
+	regularAccountsToIndex, accountsToIndexESDT := ei.accountsProc.GetAccounts(alteredAccounts, coreAlteredAccounts)
 
 	err := ei.saveAccounts(timestamp, regularAccountsToIndex, buffSlice)
 	if err != nil {
@@ -656,7 +658,7 @@ func (ei *elasticProcessor) indexAccountsESDT(
 	return ei.accountsProc.SerializeAccountsESDT(accountsESDTMap, updatesNFTsData, buffSlice, elasticIndexer.AccountsESDTIndex)
 }
 
-func (ei *elasticProcessor) indexNFTCreateInfo(tokensData data.TokensHandler, buffSlice *data.BufferSlice) error {
+func (ei *elasticProcessor) indexNFTCreateInfo(tokensData data.TokensHandler, coreAlteredAccounts map[string]*indexer.AlteredAccount, buffSlice *data.BufferSlice) error {
 	shouldSkipIndex := !ei.isIndexEnabled(elasticIndexer.TokensIndex) || tokensData.Len() == 0
 	if shouldSkipIndex {
 		return nil
@@ -671,7 +673,7 @@ func (ei *elasticProcessor) indexNFTCreateInfo(tokensData data.TokensHandler, bu
 	tokensData.AddTypeAndOwnerFromResponse(responseTokens)
 
 	tokens := tokensData.GetAllWithoutMetaESDT()
-	ei.accountsProc.PutTokenMedataDataInTokens(tokens)
+	ei.accountsProc.PutTokenMedataDataInTokens(tokens, coreAlteredAccounts)
 
 	return ei.accountsProc.SerializeNFTCreateInfo(tokens, buffSlice, elasticIndexer.TokensIndex)
 }

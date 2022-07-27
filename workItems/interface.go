@@ -23,7 +23,7 @@ type saveBlockIndexer interface {
 		txsSize int,
 	) error
 	SaveMiniblocks(header coreData.HeaderHandler, body *block.Body) error
-	SaveTransactions(body *block.Body, header coreData.HeaderHandler, pool *indexer.Pool) error
+	SaveTransactions(body *block.Body, header coreData.HeaderHandler, pool *indexer.Pool, coreAlteredAccounts map[string]*indexer.AlteredAccount) error
 }
 
 type saveRatingIndexer interface {
