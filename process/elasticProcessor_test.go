@@ -81,9 +81,9 @@ func createMockElasticProcessorArgs() *ArgElasticProcessor {
 	}
 }
 
-func newTestTxPool() map[string]coreData.TransactionHandler {
-	txPool := map[string]coreData.TransactionHandler{
-		"tx1": &transaction.Transaction{
+func newTestTxPool() map[string]coreData.TransactionHandlerWithGasUsedAndFee {
+	txPool := map[string]coreData.TransactionHandlerWithGasUsedAndFee{
+		"tx1": indexer.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
 			Nonce:     uint64(1),
 			Value:     big.NewInt(1),
 			RcvAddr:   []byte("receiver_address1"),
@@ -92,8 +92,8 @@ func newTestTxPool() map[string]coreData.TransactionHandler {
 			GasLimit:  uint64(1000),
 			Data:      []byte("tx_data1"),
 			Signature: []byte("signature1"),
-		},
-		"tx2": &transaction.Transaction{
+		}, 0, big.NewInt(0)),
+		"tx2": indexer.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
 			Nonce:     uint64(2),
 			Value:     big.NewInt(2),
 			RcvAddr:   []byte("receiver_address2"),
@@ -102,8 +102,8 @@ func newTestTxPool() map[string]coreData.TransactionHandler {
 			GasLimit:  uint64(1000),
 			Data:      []byte("tx_data2"),
 			Signature: []byte("signature2"),
-		},
-		"tx3": &transaction.Transaction{
+		}, 0, big.NewInt(0)),
+		"tx3": indexer.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
 			Nonce:     uint64(3),
 			Value:     big.NewInt(3),
 			RcvAddr:   []byte("receiver_address3"),
@@ -112,7 +112,7 @@ func newTestTxPool() map[string]coreData.TransactionHandler {
 			GasLimit:  uint64(1000),
 			Data:      []byte("tx_data3"),
 			Signature: []byte("signature3"),
-		},
+		}, 0, big.NewInt(0)),
 	}
 
 	return txPool

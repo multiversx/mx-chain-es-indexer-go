@@ -1,6 +1,8 @@
 package transactions
 
 import (
+	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"math/big"
 	"testing"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
@@ -27,15 +29,15 @@ func TestGroupNormalTxs(t *testing.T) {
 		Type:     block.TxBlock,
 	}
 	header := &block.Header{}
-	txs := map[string]coreData.TransactionHandler{
-		string(txHash1): &transaction.Transaction{
+	txs := map[string]coreData.TransactionHandlerWithGasUsedAndFee{
+		string(txHash1): indexer.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
 			SndAddr: []byte("sender1"),
 			RcvAddr: []byte("receiver1"),
-		},
-		string(txHash2): &transaction.Transaction{
+		}, 0, big.NewInt(0)),
+		string(txHash2): indexer.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
 			SndAddr: []byte("sender2"),
 			RcvAddr: []byte("receiver2"),
-		},
+		}, 0, big.NewInt(0)),
 	}
 	alteredAddresses := data.NewAlteredAccounts()
 
@@ -87,15 +89,15 @@ func TestGroupInvalidTxs(t *testing.T) {
 		Type:     block.InvalidBlock,
 	}
 	header := &block.Header{}
-	txs := map[string]coreData.TransactionHandler{
-		string(txHash1): &transaction.Transaction{
+	txs := map[string]coreData.TransactionHandlerWithGasUsedAndFee{
+		string(txHash1): indexer.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
 			SndAddr: []byte("sender1"),
 			RcvAddr: []byte("receiver1"),
-		},
-		string(txHash2): &transaction.Transaction{
+		}, 0, big.NewInt(0)),
+		string(txHash2): indexer.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
 			SndAddr: []byte("sender2"),
 			RcvAddr: []byte("receiver2"),
-		},
+		}, 0, big.NewInt(0)),
 	}
 	alteredAddresses := data.NewAlteredAccounts()
 

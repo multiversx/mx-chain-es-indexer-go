@@ -44,7 +44,7 @@ func newSmartContractResultsProcessor(
 func (proc *smartContractResultsProcessor) processSCRs(
 	body *block.Body,
 	header coreData.HeaderHandler,
-	txsHandler map[string]data.TransactionHandler,
+	txsHandler map[string]data.TransactionHandlerWithGasUsedAndFee,
 ) []*indexerData.ScResult {
 	allSCRs := make([]*indexerData.ScResult, 0, len(txsHandler))
 	scrs := convertHandlerMap(txsHandler)
@@ -68,10 +68,10 @@ func (proc *smartContractResultsProcessor) processSCRs(
 	return allSCRs
 }
 
-func convertHandlerMap(txsHandler map[string]data.TransactionHandler) map[string]*smartContractResult.SmartContractResult {
+func convertHandlerMap(txsHandler map[string]data.TransactionHandlerWithGasUsedAndFee) map[string]*smartContractResult.SmartContractResult {
 	scrs := make(map[string]*smartContractResult.SmartContractResult, len(txsHandler))
 	for txHandlerHash, txHandler := range txsHandler {
-		scr, ok := txHandler.(*smartContractResult.SmartContractResult)
+		scr, ok := txHandler.GetTxHandler().(*smartContractResult.SmartContractResult)
 		if !ok {
 			log.Warn("smartContractResultsProcessor.processSCRsFromMiniblock cannot convert TransactionHandler to scr",
 				"scr hash", hex.EncodeToString([]byte(txHandlerHash)),

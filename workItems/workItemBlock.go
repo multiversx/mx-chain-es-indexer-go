@@ -103,26 +103,39 @@ func (wib *itemBlock) IsInterfaceNil() bool {
 // ComputeSizeOfTxs will compute size of transactions in bytes
 func ComputeSizeOfTxs(marshalizer marshal.Marshalizer, pool *indexer.Pool) int {
 	sizeTxs := 0
-	sizeTxs += computeSizeOfMap(marshalizer, pool.Txs)
-	sizeTxs += computeSizeOfMap(marshalizer, pool.Receipts)
-	sizeTxs += computeSizeOfMap(marshalizer, pool.Invalid)
-	sizeTxs += computeSizeOfMap(marshalizer, pool.Rewards)
-	sizeTxs += computeSizeOfMap(marshalizer, pool.Scrs)
+	sizeTxs += computeSizeOfMapTxsWithGasUsedAndFee(marshalizer, pool.Txs)
+	sizeTxs += computeSizeOfMapTxsWithGasUsedAndFee(marshalizer, pool.Scrs)
+	sizeTxs += computeSizeOfMapTxsWithGasUsedAndFee(marshalizer, pool.Invalid)
+	sizeTxs += computeSizeOfMapTxs(marshalizer, pool.Rewards)
+	sizeTxs += computeSizeOfMapTxs(marshalizer, pool.Receipts)
 
 	return sizeTxs
 }
 
-func computeSizeOfMap(marshalizer marshal.Marshalizer, mapTxs map[string]data.TransactionHandler) int {
+func computeSizeOfMapTxsWithGasUsedAndFee(marshalizer marshal.Marshalizer, mapTxs map[string]data.TransactionHandlerWithGasUsedAndFee) int {
 	txsSize := 0
 	for _, tx := range mapTxs {
-		txBytes, err := marshalizer.Marshal(tx)
-		if err != nil {
-			log.Debug("itemBlock.computeSizeOfMap", "error", err)
-			continue
-		}
-
-		txsSize += len(txBytes)
+		txsSize += computeTxSize(marshalizer, tx.GetTxHandler())
 	}
 
 	return txsSize
+}
+
+func computeSizeOfMapTxs(marshalizer marshal.Marshalizer, mapTxs map[string]data.TransactionHandler) int {
+	txsSize := 0
+	for _, tx := range mapTxs {
+		txsSize += computeTxSize(marshalizer, tx)
+	}
+
+	return txsSize
+}
+
+func computeTxSize(marshalizer marshal.Marshalizer, tx data.TransactionHandler) int {
+	txBytes, err := marshalizer.Marshal(tx)
+	if err != nil {
+		log.Debug("itemBlock.computeTxSize", "error", err)
+		return 0
+	}
+
+	return len(txBytes)
 }

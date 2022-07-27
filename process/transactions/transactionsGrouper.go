@@ -44,7 +44,7 @@ func (tg *txsGrouper) groupNormalTxs(
 	mbIndex int,
 	mb *block.MiniBlock,
 	header coreData.HeaderHandler,
-	txs map[string]coreData.TransactionHandler,
+	txs map[string]coreData.TransactionHandlerWithGasUsedAndFee,
 	alteredAccounts data.AlteredAccountsHandler,
 ) (map[string]*data.Transaction, error) {
 	transactions := make(map[string]*data.Transaction)
@@ -97,7 +97,7 @@ func (tg *txsGrouper) prepareNormalTxForDB(
 	mb *block.MiniBlock,
 	mbStatus string,
 	txHash []byte,
-	txs map[string]coreData.TransactionHandler,
+	txs map[string]coreData.TransactionHandlerWithGasUsedAndFee,
 	header coreData.HeaderHandler,
 ) (*data.Transaction, bool) {
 	txHandler, okGet := txs[string(txHash)]
@@ -105,7 +105,7 @@ func (tg *txsGrouper) prepareNormalTxForDB(
 		return nil, false
 	}
 
-	tx, okCast := txHandler.(*transaction.Transaction)
+	tx, okCast := txHandler.GetTxHandler().(*transaction.Transaction)
 	if !okCast {
 		return nil, false
 	}
@@ -172,7 +172,7 @@ func (tg *txsGrouper) groupInvalidTxs(
 	mbIndex int,
 	mb *block.MiniBlock,
 	header coreData.HeaderHandler,
-	txs map[string]coreData.TransactionHandler,
+	txs map[string]coreData.TransactionHandlerWithGasUsedAndFee,
 	alteredAccounts data.AlteredAccountsHandler,
 ) (map[string]*data.Transaction, error) {
 	transactions := make(map[string]*data.Transaction)
@@ -199,7 +199,7 @@ func (tg *txsGrouper) prepareInvalidTxForDB(
 	mbHash []byte,
 	mb *block.MiniBlock,
 	txHash []byte,
-	txs map[string]coreData.TransactionHandler,
+	txs map[string]coreData.TransactionHandlerWithGasUsedAndFee,
 	header coreData.HeaderHandler,
 ) (*data.Transaction, bool) {
 	txHandler, okGet := txs[string(txHash)]
@@ -207,7 +207,7 @@ func (tg *txsGrouper) prepareInvalidTxForDB(
 		return nil, false
 	}
 
-	tx, okCast := txHandler.(*transaction.Transaction)
+	tx, okCast := txHandler.GetTxHandler().(*transaction.Transaction)
 	if !okCast {
 		return nil, false
 	}

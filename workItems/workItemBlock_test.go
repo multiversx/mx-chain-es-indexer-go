@@ -19,8 +19,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func generateTxs(numTxs int) map[string]data.TransactionHandler {
-	txs := make(map[string]data.TransactionHandler, numTxs)
+func generateTxs(numTxs int) map[string]data.TransactionHandlerWithGasUsedAndFee {
+	txs := make(map[string]data.TransactionHandlerWithGasUsedAndFee, numTxs)
 	for i := 0; i < numTxs; i++ {
 		tx := &transaction.Transaction{
 			Nonce:     uint64(i),
@@ -32,7 +32,7 @@ func generateTxs(numTxs int) map[string]data.TransactionHandler {
 			Data:      []byte("dasjdksakjdksajdjksajkdjkasjdksajkdasjdksakjdksajdjksajkdjkasjdksajkdasjdksakjdksajdjksajkdjkasjdksajk"),
 			Signature: []byte("randomSignatureasdasldkasdsahjgdlhjaskldsjkaldjklasjkdjskladjkl;sajkl"),
 		}
-		txs[fmt.Sprintf("%d", i)] = tx
+		txs[fmt.Sprintf("%d", i)] = indexer.NewTransactionHandlerWithGasAndFee(tx, 0, big.NewInt(0))
 	}
 
 	return txs
@@ -200,7 +200,7 @@ func TestComputeSizeOfTxs(t *testing.T) {
 	lenTxs := workItems.ComputeSizeOfTxs(gogoMarsh, &indexer.Pool{Txs: txs})
 
 	keys := reflect.ValueOf(txs).MapKeys()
-	oneTxBytes, _ := gogoMarsh.Marshal(txs[keys[0].String()])
+	oneTxBytes, _ := gogoMarsh.Marshal(txs[keys[0].String()].GetTxHandler())
 	oneTxSize := len(oneTxBytes)
 	expectedSize := numTxs * oneTxSize
 	expectedSizeDeltaPlus := expectedSize + int(0.01*float64(expectedSize))
