@@ -119,7 +119,7 @@ func (tg *txsGrouper) groupRewardsTxs(
 	mbIndex int,
 	mb *block.MiniBlock,
 	header coreData.HeaderHandler,
-	txs map[string]coreData.TransactionHandler,
+	txs map[string]coreData.TransactionHandlerWithGasUsedAndFee,
 	alteredAccounts data.AlteredAccountsHandler,
 ) (map[string]*data.Transaction, error) {
 	rewardsTxs := make(map[string]*data.Transaction)
@@ -150,7 +150,7 @@ func (tg *txsGrouper) prepareRewardTxForDB(
 	mb *block.MiniBlock,
 	mbStatus string,
 	txHash []byte,
-	txs map[string]coreData.TransactionHandler,
+	txs map[string]coreData.TransactionHandlerWithGasUsedAndFee,
 	header coreData.HeaderHandler,
 ) (*data.Transaction, bool) {
 	txHandler, okGet := txs[string(txHash)]
@@ -158,7 +158,7 @@ func (tg *txsGrouper) prepareRewardTxForDB(
 		return nil, false
 	}
 
-	rtx, okCast := txHandler.(*rewardTx.RewardTx)
+	rtx, okCast := txHandler.GetTxHandler().(*rewardTx.RewardTx)
 	if !okCast {
 		return nil, false
 	}
@@ -229,10 +229,10 @@ func (tg *txsGrouper) shouldIndex(destinationShardID uint32) bool {
 	return tg.selfShardID == destinationShardID
 }
 
-func (tg *txsGrouper) groupReceipts(header coreData.HeaderHandler, txsPool map[string]coreData.TransactionHandler) []*data.Receipt {
+func (tg *txsGrouper) groupReceipts(header coreData.HeaderHandler, txsPool map[string]coreData.TransactionHandlerWithGasUsedAndFee) []*data.Receipt {
 	dbReceipts := make([]*data.Receipt, 0)
 	for hash, tx := range txsPool {
-		rec, ok := tx.(*receipt.Receipt)
+		rec, ok := tx.GetTxHandler().(*receipt.Receipt)
 		if !ok {
 			continue
 		}

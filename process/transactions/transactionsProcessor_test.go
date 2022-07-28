@@ -109,20 +109,20 @@ func TestPrepareTransactionsForDatabase(t *testing.T) {
 	tx5 := indexer.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{}, 0, big.NewInt(0))
 
 	rTx1Hash := []byte("rTxHash1")
-	rTx1 := &rewardTx.RewardTx{}
+	rTx1 := indexer.NewTransactionHandlerWithGasAndFee(&rewardTx.RewardTx{}, 0, big.NewInt(0))
 	rTx2Hash := []byte("rTxHash2")
-	rTx2 := &rewardTx.RewardTx{}
+	rTx2 := indexer.NewTransactionHandlerWithGasAndFee(&rewardTx.RewardTx{}, 0, big.NewInt(0))
 
 	recHash1 := []byte("recHash1")
-	rec1 := &receipt.Receipt{
+	rec1 := indexer.NewTransactionHandlerWithGasAndFee(&receipt.Receipt{
 		Value:  big.NewInt(100),
 		TxHash: txHash1,
-	}
+	}, 0, big.NewInt(0))
 	recHash2 := []byte("recHash2")
-	rec2 := &receipt.Receipt{
+	rec2 := indexer.NewTransactionHandlerWithGasAndFee(&receipt.Receipt{
 		Value:  big.NewInt(200),
 		TxHash: txHash2,
-	}
+	}, 0, big.NewInt(0))
 
 	scHash1 := []byte("scHash1")
 	scResult1 := indexer.NewTransactionHandlerWithGasAndFee(&smartContractResult.SmartContractResult{
@@ -188,14 +188,14 @@ func TestPrepareTransactionsForDatabase(t *testing.T) {
 			string(scHash2): scResult2,
 			string(scHash3): scResult3,
 		},
-		Rewards: map[string]coreData.TransactionHandler{
+		Rewards: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
 			string(rTx1Hash): rTx1,
 			string(rTx2Hash): rTx2,
 		},
 		Invalid: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
 			string(txHash5): tx5,
 		},
-		Receipts: map[string]coreData.TransactionHandler{
+		Receipts: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
 			string(recHash1): rec1,
 			string(recHash2): rec2,
 		},
@@ -396,9 +396,9 @@ func TestAlteredAddresses(t *testing.T) {
 			string(scr1Hash): scr1,
 			string(scr2Hash): scr2,
 		},
-		Rewards: map[string]coreData.TransactionHandler{
-			string(rwdTx1Hash): rwdTx1,
-			string(rwdTx2Hash): rwdTx2,
+		Rewards: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
+			string(rwdTx1Hash): indexer.NewTransactionHandlerWithGasAndFee(rwdTx1, 0, big.NewInt(0)),
+			string(rwdTx2Hash): indexer.NewTransactionHandlerWithGasAndFee(rwdTx2, 0, big.NewInt(0)),
 		},
 	}
 
@@ -470,10 +470,10 @@ func TestCheckGasUsedInvalidTransaction(t *testing.T) {
 		GasPrice: 100,
 	}, 0, big.NewInt(0))
 	recHash1 := []byte("recHash1")
-	rec1 := &receipt.Receipt{
+	rec1 := indexer.NewTransactionHandlerWithGasAndFee(&receipt.Receipt{
 		Value:  big.NewInt(100),
 		TxHash: txHash1,
-	}
+	}, 0, big.NewInt(0))
 
 	body := &block.Body{
 		MiniBlocks: []*block.MiniBlock{
@@ -494,7 +494,7 @@ func TestCheckGasUsedInvalidTransaction(t *testing.T) {
 		Invalid: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
 			string(txHash1): tx1,
 		},
-		Receipts: map[string]coreData.TransactionHandler{
+		Receipts: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
 			string(recHash1): rec1,
 		},
 	}

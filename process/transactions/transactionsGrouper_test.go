@@ -60,13 +60,13 @@ func TestGroupRewardsTxs(t *testing.T) {
 		Type:     block.RewardsBlock,
 	}
 	header := &block.Header{}
-	txs := map[string]coreData.TransactionHandler{
-		string(txHash1): &rewardTx.RewardTx{
+	txs := map[string]coreData.TransactionHandlerWithGasUsedAndFee{
+		string(txHash1): indexer.NewTransactionHandlerWithGasAndFee(&rewardTx.RewardTx{
 			RcvAddr: []byte("receiver1"),
-		},
-		string(txHash2): &rewardTx.RewardTx{
+		}, 0, big.NewInt(0)),
+		string(txHash2): indexer.NewTransactionHandlerWithGasAndFee(&rewardTx.RewardTx{
 			RcvAddr: []byte("receiver2"),
-		},
+		}, 0, big.NewInt(0)),
 	}
 	alteredAddresses := data.NewAlteredAccounts()
 
@@ -116,13 +116,13 @@ func TestGroupReceipts(t *testing.T) {
 	txHash1 := []byte("txHash1")
 	txHash2 := []byte("txHash2")
 	header := &block.Header{}
-	txs := map[string]coreData.TransactionHandler{
-		string(txHash1): &receipt.Receipt{
+	txs := map[string]coreData.TransactionHandlerWithGasUsedAndFee{
+		string(txHash1): indexer.NewTransactionHandlerWithGasAndFee(&receipt.Receipt{
 			SndAddr: []byte("sender1"),
-		},
-		string(txHash2): &receipt.Receipt{
+		}, 0, big.NewInt(0)),
+		string(txHash2): indexer.NewTransactionHandlerWithGasAndFee(&receipt.Receipt{
 			SndAddr: []byte("sender2"),
-		},
+		}, 0, big.NewInt(0)),
 	}
 
 	normalTxs := grouper.groupReceipts(header, txs)
