@@ -7,7 +7,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 )
 
 // DispatcherHandler defines the interface for the dispatcher that will manage when items are saved in elasticsearch database
@@ -25,14 +25,14 @@ type ElasticProcessor interface {
 		signersIndexes []uint64,
 		body *block.Body,
 		notarizedHeadersHashes []string,
-		gasConsumptionData indexer.HeaderGasConsumption,
+		gasConsumptionData outport.HeaderGasConsumption,
 		txsSize int,
 	) error
 	RemoveHeader(header coreData.HeaderHandler) error
 	RemoveMiniblocks(header coreData.HeaderHandler, body *block.Body) error
 	RemoveTransactions(header coreData.HeaderHandler, body *block.Body) error
 	SaveMiniblocks(header coreData.HeaderHandler, body *block.Body) error
-	SaveTransactions(body *block.Body, header coreData.HeaderHandler, pool *indexer.Pool, coreAlteredAccounts map[string]*indexer.AlteredAccount) error
+	SaveTransactions(body *block.Body, header coreData.HeaderHandler, pool *outport.Pool, coreAlteredAccounts map[string]*outport.AlteredAccount) error
 	SaveValidatorsRating(index string, validatorsRatingInfo []*data.ValidatorRatingInfo) error
 	SaveRoundsInfo(infos []*data.RoundInfo) error
 	SaveShardValidatorsPubKeys(shardID, epoch uint32, shardValidatorsPubKeys [][]byte) error
@@ -61,12 +61,12 @@ type ShardCoordinator interface {
 // Indexer is an interface for saving node specific data to other storage.
 // This could be an elastic search index, a MySql database or any other external services.
 type Indexer interface {
-	SaveBlock(args *indexer.ArgsSaveBlockData) error
+	SaveBlock(args *outport.ArgsSaveBlockData) error
 	RevertIndexedBlock(header coreData.HeaderHandler, body coreData.BodyHandler) error
-	SaveRoundsInfo(roundsInfos []*indexer.RoundInfo) error
+	SaveRoundsInfo(roundsInfos []*outport.RoundInfo) error
 	SaveValidatorsPubKeys(validatorsPubKeys map[uint32][][]byte, epoch uint32) error
-	SaveValidatorsRating(indexID string, infoRating []*indexer.ValidatorRatingInfo) error
-	SaveAccounts(blockTimestamp uint64, acc map[string]*indexer.AlteredAccount) error
+	SaveValidatorsRating(indexID string, infoRating []*outport.ValidatorRatingInfo) error
+	SaveAccounts(blockTimestamp uint64, acc map[string]*outport.AlteredAccount) error
 	FinalizedBlock(headerHash []byte) error
 	Close() error
 	IsInterfaceNil() bool

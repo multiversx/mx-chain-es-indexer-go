@@ -2,7 +2,7 @@ package indexer
 
 import (
 	"github.com/ElrondNetwork/elrond-go-core/data"
-	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 )
 
 // NilIndexer will be used when an Indexer is required, but another one isn't necessary or available
@@ -15,7 +15,7 @@ func NewNilIndexer() *NilIndexer {
 }
 
 // SaveBlock returns nil
-func (ni *NilIndexer) SaveBlock(_ *indexer.ArgsSaveBlockData) error {
+func (ni *NilIndexer) SaveBlock(_ *outport.ArgsSaveBlockData) error {
 	return nil
 }
 
@@ -25,12 +25,12 @@ func (ni *NilIndexer) RevertIndexedBlock(_ data.HeaderHandler, _ data.BodyHandle
 }
 
 // SaveRoundsInfo returns nil
-func (ni *NilIndexer) SaveRoundsInfo(_ []*indexer.RoundInfo) error {
+func (ni *NilIndexer) SaveRoundsInfo(_ []*outport.RoundInfo) error {
 	return nil
 }
 
 // SaveValidatorsRating returns nil
-func (ni *NilIndexer) SaveValidatorsRating(_ string, _ []*indexer.ValidatorRatingInfo) error {
+func (ni *NilIndexer) SaveValidatorsRating(_ string, _ []*outport.ValidatorRatingInfo) error {
 	return nil
 }
 
@@ -40,7 +40,7 @@ func (ni *NilIndexer) SaveValidatorsPubKeys(_ map[uint32][][]byte, _ uint32) err
 }
 
 // SaveAccounts returns nil
-func (ni *NilIndexer) SaveAccounts(_ uint64, _ map[string]*indexer.AlteredAccount) error {
+func (ni *NilIndexer) SaveAccounts(_ uint64, _ map[string]*outport.AlteredAccount) error {
 	return nil
 }
 

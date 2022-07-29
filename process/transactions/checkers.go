@@ -12,7 +12,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
 
@@ -46,7 +46,7 @@ func checkTxsProcessorArg(args *ArgsTransactionProcessor) error {
 func checkPrepareTransactionForDatabaseArguments(
 	body *block.Body,
 	header coreData.HeaderHandler,
-	pool *indexer.Pool,
+	pool *outport.Pool,
 ) error {
 	if body == nil {
 		return elasticIndexer.ErrNilBlockBody

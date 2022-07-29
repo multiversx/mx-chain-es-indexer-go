@@ -9,7 +9,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
-	indexerArgs "github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-go-core/hashing"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
@@ -78,7 +78,7 @@ func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txsDatabaseProce
 func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 	body *block.Body,
 	header coreData.HeaderHandler,
-	pool *indexerArgs.Pool,
+	pool *outport.Pool,
 ) *data.PreparedResults {
 	err := checkPrepareTransactionForDatabaseArguments(body, header, pool)
 	if err != nil {

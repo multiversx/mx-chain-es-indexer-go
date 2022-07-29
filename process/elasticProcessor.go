@@ -14,7 +14,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
@@ -251,7 +251,7 @@ func (ei *elasticProcessor) SaveHeader(
 	signersIndexes []uint64,
 	body *block.Body,
 	notarizedHeadersHashes []string,
-	gasConsumptionData indexer.HeaderGasConsumption,
+	gasConsumptionData outport.HeaderGasConsumption,
 	txsSize int,
 ) error {
 	if !ei.isIndexEnabled(elasticIndexer.BlockIndex) {
@@ -351,8 +351,8 @@ func (ei *elasticProcessor) miniblocksInDBMap(mbs []*data.Miniblock) (map[string
 func (ei *elasticProcessor) SaveTransactions(
 	body *block.Body,
 	header coreData.HeaderHandler,
-	pool *indexer.Pool,
-	coreAlteredAccounts map[string]*indexer.AlteredAccount,
+	pool *outport.Pool,
+	coreAlteredAccounts map[string]*outport.AlteredAccount,
 ) error {
 	headerTimestamp := header.GetTimeStamp()
 
@@ -575,7 +575,7 @@ func (ei *elasticProcessor) indexAlteredAccounts(
 	timestamp uint64,
 	alteredAccounts data.AlteredAccountsHandler,
 	updatesNFTsData []*data.NFTDataUpdate,
-	coreAlteredAccounts map[string]*indexer.AlteredAccount,
+	coreAlteredAccounts map[string]*outport.AlteredAccount,
 	buffSlice *data.BufferSlice,
 	tagsCount data.CountTags,
 ) error {
@@ -653,7 +653,7 @@ func (ei *elasticProcessor) indexAccountsESDT(
 	return ei.accountsProc.SerializeAccountsESDT(accountsESDTMap, updatesNFTsData, buffSlice, elasticIndexer.AccountsESDTIndex)
 }
 
-func (ei *elasticProcessor) indexNFTCreateInfo(tokensData data.TokensHandler, coreAlteredAccounts map[string]*indexer.AlteredAccount, buffSlice *data.BufferSlice) error {
+func (ei *elasticProcessor) indexNFTCreateInfo(tokensData data.TokensHandler, coreAlteredAccounts map[string]*outport.AlteredAccount, buffSlice *data.BufferSlice) error {
 	shouldSkipIndex := !ei.isIndexEnabled(elasticIndexer.TokensIndex) || tokensData.Len() == 0
 	if shouldSkipIndex {
 		return nil

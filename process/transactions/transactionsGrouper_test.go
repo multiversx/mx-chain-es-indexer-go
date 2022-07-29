@@ -8,7 +8,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-go-core/data/receipt"
 	"github.com/ElrondNetwork/elrond-go-core/data/rewardTx"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
@@ -30,11 +30,11 @@ func TestGroupNormalTxs(t *testing.T) {
 	}
 	header := &block.Header{}
 	txs := map[string]coreData.TransactionHandlerWithGasUsedAndFee{
-		string(txHash1): indexer.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
+		string(txHash1): outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
 			SndAddr: []byte("sender1"),
 			RcvAddr: []byte("receiver1"),
 		}, 0, big.NewInt(0)),
-		string(txHash2): indexer.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
+		string(txHash2): outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
 			SndAddr: []byte("sender2"),
 			RcvAddr: []byte("receiver2"),
 		}, 0, big.NewInt(0)),
@@ -61,10 +61,10 @@ func TestGroupRewardsTxs(t *testing.T) {
 	}
 	header := &block.Header{}
 	txs := map[string]coreData.TransactionHandlerWithGasUsedAndFee{
-		string(txHash1): indexer.NewTransactionHandlerWithGasAndFee(&rewardTx.RewardTx{
+		string(txHash1): outport.NewTransactionHandlerWithGasAndFee(&rewardTx.RewardTx{
 			RcvAddr: []byte("receiver1"),
 		}, 0, big.NewInt(0)),
-		string(txHash2): indexer.NewTransactionHandlerWithGasAndFee(&rewardTx.RewardTx{
+		string(txHash2): outport.NewTransactionHandlerWithGasAndFee(&rewardTx.RewardTx{
 			RcvAddr: []byte("receiver2"),
 		}, 0, big.NewInt(0)),
 	}
@@ -90,11 +90,11 @@ func TestGroupInvalidTxs(t *testing.T) {
 	}
 	header := &block.Header{}
 	txs := map[string]coreData.TransactionHandlerWithGasUsedAndFee{
-		string(txHash1): indexer.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
+		string(txHash1): outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
 			SndAddr: []byte("sender1"),
 			RcvAddr: []byte("receiver1"),
 		}, 0, big.NewInt(0)),
-		string(txHash2): indexer.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
+		string(txHash2): outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
 			SndAddr: []byte("sender2"),
 			RcvAddr: []byte("receiver2"),
 		}, 0, big.NewInt(0)),
@@ -117,10 +117,10 @@ func TestGroupReceipts(t *testing.T) {
 	txHash2 := []byte("txHash2")
 	header := &block.Header{}
 	txs := map[string]coreData.TransactionHandlerWithGasUsedAndFee{
-		string(txHash1): indexer.NewTransactionHandlerWithGasAndFee(&receipt.Receipt{
+		string(txHash1): outport.NewTransactionHandlerWithGasAndFee(&receipt.Receipt{
 			SndAddr: []byte("sender1"),
 		}, 0, big.NewInt(0)),
-		string(txHash2): indexer.NewTransactionHandlerWithGasAndFee(&receipt.Receipt{
+		string(txHash2): outport.NewTransactionHandlerWithGasAndFee(&receipt.Receipt{
 			SndAddr: []byte("sender2"),
 		}, 0, big.NewInt(0)),
 	}

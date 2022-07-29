@@ -9,7 +9,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	"github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 )
@@ -22,14 +22,14 @@ var log = logger.GetOrCreate("indexer/workItems")
 type itemBlock struct {
 	indexer       saveBlockIndexer
 	marshalizer   marshal.Marshalizer
-	argsSaveBlock *indexer.ArgsSaveBlockData
+	argsSaveBlock *outport.ArgsSaveBlockData
 }
 
 // NewItemBlock will create a new instance of ItemBlock
 func NewItemBlock(
 	indexer saveBlockIndexer,
 	marshalizer marshal.Marshalizer,
-	args *indexer.ArgsSaveBlockData,
+	args *outport.ArgsSaveBlockData,
 ) WorkItemHandler {
 	return &itemBlock{
 		indexer:       indexer,
@@ -60,7 +60,7 @@ func (wib *itemBlock) Save() error {
 	}
 
 	if wib.argsSaveBlock.TransactionsPool == nil {
-		wib.argsSaveBlock.TransactionsPool = &indexer.Pool{}
+		wib.argsSaveBlock.TransactionsPool = &outport.Pool{}
 	}
 
 	txsSizeInBytes := ComputeSizeOfTxs(wib.marshalizer, wib.argsSaveBlock.TransactionsPool)
@@ -101,7 +101,7 @@ func (wib *itemBlock) IsInterfaceNil() bool {
 }
 
 // ComputeSizeOfTxs will compute size of transactions in bytes
-func ComputeSizeOfTxs(marshalizer marshal.Marshalizer, pool *indexer.Pool) int {
+func ComputeSizeOfTxs(marshalizer marshal.Marshalizer, pool *outport.Pool) int {
 	sizeTxs := 0
 	sizeTxs += computeSizeOfMapTxs(marshalizer, pool.Txs)
 	sizeTxs += computeSizeOfMapTxs(marshalizer, pool.Scrs)

@@ -4,12 +4,12 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 )
 
 // DBTransactionProcessorStub -
 type DBTransactionProcessorStub struct {
-	PrepareTransactionsForDatabaseCalled func(body *block.Body, header coreData.HeaderHandler, pool *indexer.Pool) *data.PreparedResults
+	PrepareTransactionsForDatabaseCalled func(body *block.Body, header coreData.HeaderHandler, pool *outport.Pool) *data.PreparedResults
 	SerializeReceiptsCalled              func(recs []*data.Receipt, buffSlice *data.BufferSlice, index string) error
 	SerializeScResultsCalled             func(scrs []*data.ScResult, buffSlice *data.BufferSlice, index string) error
 }
@@ -19,7 +19,7 @@ func (tps *DBTransactionProcessorStub) SerializeTransactionWithRefund(_ map[stri
 }
 
 // PrepareTransactionsForDatabase -
-func (tps *DBTransactionProcessorStub) PrepareTransactionsForDatabase(body *block.Body, header coreData.HeaderHandler, pool *indexer.Pool) *data.PreparedResults {
+func (tps *DBTransactionProcessorStub) PrepareTransactionsForDatabase(body *block.Body, header coreData.HeaderHandler, pool *outport.Pool) *data.PreparedResults {
 	if tps.PrepareTransactionsForDatabaseCalled != nil {
 		return tps.PrepareTransactionsForDatabaseCalled(body, header, pool)
 	}

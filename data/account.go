@@ -3,7 +3,7 @@ package data
 import (
 	"time"
 
-	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 )
 
 // AccountInfo holds (serializable) data about an account
@@ -55,13 +55,13 @@ type AccountBalanceHistory struct {
 
 // Account is a structure that is needed for regular accounts
 type Account struct {
-	UserAccount *indexer.AlteredAccount
+	UserAccount *outport.AlteredAccount
 	IsSender    bool
 }
 
 // AccountESDT is a structure that is needed for ESDT accounts
 type AccountESDT struct {
-	Account         *indexer.AlteredAccount
+	Account         *outport.AlteredAccount
 	TokenIdentifier string
 	NFTNonce        uint64
 	IsSender        bool
