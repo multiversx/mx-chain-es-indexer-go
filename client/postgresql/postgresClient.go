@@ -703,7 +703,7 @@ func (pc *postgresClient) insertTxToken(token string, txHash string) error {
 		?,?
 	) ON CONFLICT DO NOTHING`
 
-	result := pc.ps.Exec(sql, txHash, token)
+	result := pc.ps.Exec(sql, token, txHash)
 	if result.Error != nil {
 		return result.Error
 	}
