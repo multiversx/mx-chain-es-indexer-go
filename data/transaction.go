@@ -31,9 +31,9 @@ type Transaction struct {
 	HasSCR               bool          `json:"hasScResults,omitempty"`
 	IsScCall             bool          `json:"isScCall,omitempty"`
 	HasOperations        bool          `json:"hasOperations,omitempty"`
-	Tokens               []string      `json:"tokens,omitempty" gorm:"type:text[]"`
-	ESDTValues           []string      `json:"esdtValues,omitempty" gorm:"type:text[]"`
-	Receivers            []string      `json:"receivers,omitempty" gorm:"type:text[]"`
+	Tokens               []string      `json:"tokens,omitempty" gorm:"-"`
+	ESDTValues           []string      `json:"esdtValues,omitempty" gorm:"serializer:base64"`
+	Receivers            []string      `json:"receivers,omitempty" gorm:"-"`
 	ReceiversShardIDs    []uint32      `json:"receiversShardIDs,omitempty" gorm:"serializer:json"`
 	Type                 string        `json:"type,omitempty" gorm:"serializer:base64"`
 	Operation            string        `json:"operation,omitempty" gorm:"serializer:base64"`

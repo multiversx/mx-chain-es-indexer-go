@@ -116,6 +116,16 @@ func (pc *postgresClient) CreateTables() error {
 		return err
 	}
 
+	err = pc.createTxsTokensTable()
+	if err != nil {
+		return err
+	}
+
+	err = pc.createTxsReceiversTable()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -262,6 +272,26 @@ func (pc *postgresClient) createTagsTable() error {
 		tag text NOT NULL UNIQUE,
 		count integer,
 		PRIMARY KEY (tag)
+	)`
+
+	return pc.CreateRawTable(sql)
+}
+
+func (pc *postgresClient) createTxsTokensTable() error {
+	sql := `CREATE TABLE IF NOT EXISTS txs_tokens (
+		token text NOT NULL UNIQUE,
+		txHash text,
+		PRIMARY KEY (token)
+	)`
+
+	return pc.CreateRawTable(sql)
+}
+
+func (pc *postgresClient) createTxsReceiversTable() error {
+	sql := `CREATE TABLE IF NOT EXISTS txs_receivers (
+		receiver text NOT NULL UNIQUE,
+		txHash text,
+		PRIMARY KEY (receiver)
 	)`
 
 	return pc.CreateRawTable(sql)
@@ -651,7 +681,47 @@ func (pc *postgresClient) InsertTxsOperation(txs []*data.Transaction) error {
 		return result.Error
 	}
 
+	for _, tx := range txs {
+		for _, tokenStr := range tx.Tokens {
+			pc.insertTxToken(tokenStr, tx.Hash)
+		}
+
+		for _, receiverStr := range tx.Receivers {
+			pc.insertTxReceiver(receiverStr, tx.Hash)
+		}
+	}
+
 	log.Info("Insert", "rows affected", result.RowsAffected)
+
+	return nil
+}
+
+func (pc *postgresClient) insertTxToken(token string, txHash string) error {
+	sql := `INSERT INTO txs_tokens (
+		token, txHash
+	) VALUES(
+		?,?
+	) ON CONFLICT DO NOTHING`
+
+	result := pc.ps.Exec(sql, txHash, token)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
+}
+
+func (pc *postgresClient) insertTxReceiver(receiver string, txHash string) error {
+	sql := `INSERT INTO txs_receivers (
+		receiver, txHash
+	) VALUES(
+		?,?
+	) ON CONFLICT DO NOTHING`
+
+	result := pc.ps.Exec(sql, receiver, txHash)
+	if result.Error != nil {
+		return result.Error
+	}
 
 	return nil
 }
