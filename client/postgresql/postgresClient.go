@@ -281,7 +281,7 @@ func (pc *postgresClient) createTxsTokensTable() error {
 	sql := `CREATE TABLE IF NOT EXISTS txs_tokens (
 		token text NOT NULL UNIQUE,
 		txHash text,
-		PRIMARY KEY (token)
+		PRIMARY KEY (token, txHash)
 	)`
 
 	return pc.CreateRawTable(sql)
@@ -291,7 +291,7 @@ func (pc *postgresClient) createTxsReceiversTable() error {
 	sql := `CREATE TABLE IF NOT EXISTS txs_receivers (
 		receiver text NOT NULL UNIQUE,
 		txHash text,
-		PRIMARY KEY (receiver)
+		PRIMARY KEY (receiver, txHash)
 	)`
 
 	return pc.CreateRawTable(sql)

@@ -43,7 +43,7 @@ type Transaction struct {
 	SmartContractResults []*ScResult   `json:"-" gorm:"-"`
 	ReceiverAddressBytes []byte        `json:"-" gorm:"serializer:base64"`
 	Hash                 string        `json:"-" gorm:"primaryKey;unique"`
-	BlockHash            string        `json:"-" gorm:"serializer:base64"`
+	BlockHash            string        `json:"-" gorm:"-"`
 }
 
 // GetGasLimit will return transaction gas limit
