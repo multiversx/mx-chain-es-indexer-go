@@ -279,7 +279,7 @@ func (pc *postgresClient) createTagsTable() error {
 
 func (pc *postgresClient) createTxsTokensTable() error {
 	sql := `CREATE TABLE IF NOT EXISTS txs_tokens (
-		token text NOT NULL UNIQUE,
+		token text,
 		txHash text,
 		PRIMARY KEY (token, txHash)
 	)`
@@ -289,7 +289,7 @@ func (pc *postgresClient) createTxsTokensTable() error {
 
 func (pc *postgresClient) createTxsReceiversTable() error {
 	sql := `CREATE TABLE IF NOT EXISTS txs_receivers (
-		receiver text NOT NULL UNIQUE,
+		receiver text,
 		txHash text,
 		PRIMARY KEY (receiver, txHash)
 	)`
