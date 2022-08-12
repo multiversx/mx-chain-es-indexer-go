@@ -34,7 +34,6 @@ func TestCreateNFTWithTags(t *testing.T) {
 		},
 	}
 
-	feeComputer := &mock.EconomicsHandlerMock{}
 	shardCoordinator := &mock.ShardCoordinatorMock{
 		SelfID: 0,
 	}
@@ -47,7 +46,7 @@ func TestCreateNFTWithTags(t *testing.T) {
 	addr := "aaaabbbb"
 	addrHex := hex.EncodeToString([]byte(addr))
 
-	esProc, err := CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient, shardCoordinator)
 	require.Nil(t, err)
 
 	esdtDataBytes, _ := json.Marshal(esdtToken)
@@ -164,7 +163,7 @@ func TestCreateNFTWithTags(t *testing.T) {
 	coreAlteredAccounts[addrHex].Tokens[0].Nonce = 3
 	coreAlteredAccounts[addrHex].Tokens[0].MetaData.Attributes = attributes
 
-	esProc, err = CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
+	esProc, err = CreateElasticProcessor(esClient, shardCoordinator)
 	require.Nil(t, err)
 
 	pool = &outport.Pool{

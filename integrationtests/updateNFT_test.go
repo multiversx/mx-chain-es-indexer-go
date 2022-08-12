@@ -13,6 +13,7 @@ import (
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/esdt"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/stretchr/testify/require"
 )
@@ -30,10 +31,9 @@ func TestNFTUpdateMetadata(t *testing.T) {
 	}
 	marshalizedCreate, _ := json.Marshal(esdtCreateData)
 
-	feeComputer := &mock.EconomicsHandlerMock{}
 	shardCoordinator := &mock.ShardCoordinatorMock{}
 
-	esProc, err := CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient, shardCoordinator)
 	require.Nil(t, err)
 
 	header := &dataBlock.Header{
@@ -43,7 +43,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 	body := &dataBlock.Body{}
 
 	// CREATE NFT data
-	pool := &indexer.Pool{
+	pool := &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				LogHandler: &transaction.Log{
@@ -70,7 +70,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 	require.JSONEq(t, readExpectedResult("./testdata/updateNFT/token.json"), string(genericResponse.Docs[0].Source))
 
 	// Add URIS 1
-	pool = &indexer.Pool{
+	pool = &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				LogHandler: &transaction.Log{
@@ -91,7 +91,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 	require.Nil(t, err)
 
 	// Add URIS 2 --- results should be the same
-	pool = &indexer.Pool{
+	pool = &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				LogHandler: &transaction.Log{
@@ -118,7 +118,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/updateNFT/token-after-add-uris.json"), string(genericResponse.Docs[0].Source))
 
-	pool = &indexer.Pool{
+	pool = &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				LogHandler: &transaction.Log{
@@ -146,7 +146,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 
 	// Update attributes 2
 
-	pool = &indexer.Pool{
+	pool = &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				LogHandler: &transaction.Log{

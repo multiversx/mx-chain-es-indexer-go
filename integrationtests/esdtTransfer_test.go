@@ -11,6 +11,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-go-core/data/smartContractResult"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/stretchr/testify/require"
@@ -26,10 +27,9 @@ func TestESDTTransferTooMuchGasProvided(t *testing.T) {
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	feeComputer := &mock.EconomicsHandlerMock{}
 	shardCoordinator := &mock.ShardCoordinatorMock{}
 
-	esProc, err := CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient, shardCoordinator)
 	require.Nil(t, err)
 
 	txHash := []byte("esdtTransfer")
@@ -87,13 +87,13 @@ func TestESDTTransferTooMuchGasProvided(t *testing.T) {
 		OriginalTxHash: txHash,
 	}
 
-	pool := &indexer.Pool{
-		Txs: map[string]coreData.TransactionHandler{
-			string(txHash): txESDT,
+	pool := &outport.Pool{
+		Txs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
+			string(txHash): outport.NewTransactionHandlerWithGasAndFee(txESDT, 0, big.NewInt(0)),
 		},
-		Scrs: map[string]coreData.TransactionHandler{
-			string(scrHash2): scr2,
-			string(scrHash1): scr1,
+		Scrs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
+			string(scrHash2): outport.NewTransactionHandlerWithGasAndFee(scr2, 0, big.NewInt(0)),
+			string(scrHash1): outport.NewTransactionHandlerWithGasAndFee(scr1, 0, big.NewInt(0)),
 		},
 	}
 	err = esProc.SaveTransactions(body, header, pool, nil)

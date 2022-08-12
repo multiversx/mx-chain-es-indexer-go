@@ -4,6 +4,7 @@ package integrationtests
 
 import (
 	"encoding/hex"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"math/big"
 	"testing"
 
@@ -29,10 +30,9 @@ func TestRelayedTransactionGasUsedCrossShard(t *testing.T) {
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	feeComputer := &mock.EconomicsHandlerMock{}
 	shardCoordinator := &mock.ShardCoordinatorMock{}
 
-	esProc, err := CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient, shardCoordinator)
 	require.Nil(t, err)
 
 	txHash := []byte("relayedTx")
@@ -80,12 +80,12 @@ func TestRelayedTransactionGasUsedCrossShard(t *testing.T) {
 		OriginalTxHash: txHash,
 	}
 
-	pool := &indexer.Pool{
-		Txs: map[string]coreData.TransactionHandler{
-			string(txHash): initialTx,
+	pool := &outport.Pool{
+		Txs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
+			string(txHash): outport.NewTransactionHandlerWithGasAndFee(initialTx, 0, big.NewInt(0)),
 		},
-		Scrs: map[string]coreData.TransactionHandler{
-			string(scrHash1): scr1,
+		Scrs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
+			string(scrHash1): outport.NewTransactionHandlerWithGasAndFee(scr1, 0, big.NewInt(0)),
 		},
 	}
 	err = esProc.SaveTransactions(body, header, pool, nil)
@@ -111,10 +111,10 @@ func TestRelayedTransactionGasUsedCrossShard(t *testing.T) {
 	}
 	scrWithRefund := []byte("scrWithRefund")
 	refundValueBig, _ := big.NewInt(0).SetString("86271830000000", 10)
-	poolDstShard := &indexer.Pool{
-		Scrs: map[string]coreData.TransactionHandler{
-			string(scrHash1): scr1,
-			string(scrWithRefund): &smartContractResult.SmartContractResult{
+	poolDstShard := &outport.Pool{
+		Scrs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
+			string(scrHash1): outport.NewTransactionHandlerWithGasAndFee(scr1, 0, big.NewInt(0)),
+			string(scrWithRefund): outport.NewTransactionHandlerWithGasAndFee(&smartContractResult.SmartContractResult{
 				Nonce:          3,
 				SndAddr:        []byte("erd1qqqqqqqqqqqqqpgq3dswlnnlkfd3gqrcv3dhzgnvh8ryf27g5rfsecnn2s"),
 				RcvAddr:        []byte("erd1k7j6ewjsla4zsgv8v6f6fe3dvrkgv3d0d9jerczw45hzedhyed8sh2u34u"),
@@ -123,7 +123,7 @@ func TestRelayedTransactionGasUsedCrossShard(t *testing.T) {
 				Value:          refundValueBig,
 				Data:           []byte(""),
 				ReturnMessage:  []byte("gas refund for relayer"),
-			},
+			}, 0, big.NewInt(0)),
 		},
 	}
 
@@ -142,10 +142,9 @@ func TestRelayedTransactionIntraShard(t *testing.T) {
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	feeComputer := &mock.EconomicsHandlerMock{}
 	shardCoordinator := &mock.ShardCoordinatorMock{}
 
-	esProc, err := CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient, shardCoordinator)
 	require.Nil(t, err)
 
 	txHash := []byte("relayedTxIntra")
@@ -205,13 +204,13 @@ func TestRelayedTransactionIntraShard(t *testing.T) {
 		Value:          refundValueBig,
 	}
 
-	pool := &indexer.Pool{
-		Txs: map[string]coreData.TransactionHandler{
-			string(txHash): initialTx,
+	pool := &outport.Pool{
+		Txs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
+			string(txHash): outport.NewTransactionHandlerWithGasAndFee(initialTx, 0, big.NewInt(0)),
 		},
-		Scrs: map[string]coreData.TransactionHandler{
-			string(scrHash1): scr1,
-			string(scrHash2): scr2,
+		Scrs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
+			string(scrHash1): outport.NewTransactionHandlerWithGasAndFee(scr1, 0, big.NewInt(0)),
+			string(scrHash2): outport.NewTransactionHandlerWithGasAndFee(scr2, 0, big.NewInt(0)),
 		},
 	}
 	err = esProc.SaveTransactions(body, header, pool, nil)

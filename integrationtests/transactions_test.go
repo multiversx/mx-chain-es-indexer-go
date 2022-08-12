@@ -11,6 +11,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/stretchr/testify/require"
 )
@@ -23,10 +24,9 @@ func TestElasticIndexerSaveTransactions(t *testing.T) {
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	feeComputer := &mock.EconomicsHandlerMock{}
 	shardCoordinator := &mock.ShardCoordinatorMock{}
 
-	esProc, err := CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient, shardCoordinator)
 	require.Nil(t, err)
 
 	txHash := []byte("hash")
@@ -44,9 +44,9 @@ func TestElasticIndexerSaveTransactions(t *testing.T) {
 			},
 		},
 	}
-	pool := &indexer.Pool{
-		Txs: map[string]coreData.TransactionHandler{
-			string(txHash): &transaction.Transaction{
+	pool := &outport.Pool{
+		Txs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
+			string(txHash): outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
 				Nonce:    1,
 				SndAddr:  []byte("sender"),
 				RcvAddr:  []byte("receiver"),
@@ -54,7 +54,7 @@ func TestElasticIndexerSaveTransactions(t *testing.T) {
 				GasPrice: 1000000000,
 				Data:     []byte("transfer"),
 				Value:    big.NewInt(1234),
-			},
+			}, 0, big.NewInt(0)),
 		},
 	}
 	err = esProc.SaveTransactions(body, header, pool, nil)

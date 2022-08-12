@@ -15,6 +15,7 @@ import (
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/esdt"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/stretchr/testify/require"
 )
@@ -25,14 +26,12 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	feeComputer := &mock.EconomicsHandlerMock{}
-
 	// ################ ISSUE NON FUNGIBLE TOKEN ##########################
 	shardCoordinator := &mock.ShardCoordinatorMock{
 		SelfID: core.MetachainShardId,
 	}
 
-	esProc, err := CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient, shardCoordinator)
 	require.Nil(t, err)
 
 	body := &dataBlock.Body{}
@@ -41,7 +40,7 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 		TimeStamp: 5040,
 	}
 
-	pool := &indexer.Pool{
+	pool := &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				TxHash: "h1",
@@ -59,7 +58,7 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, map[string]*indexer.AlteredAccount{})
+	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{})
 	require.Nil(t, err)
 
 	ids := []string{"SEMI-abcd"}
@@ -75,11 +74,11 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 
 	addr := "aaaabbbb"
 	encodedAddr := hex.EncodeToString([]byte(addr))
-	coreAlteredAccounts := map[string]*indexer.AlteredAccount{
+	coreAlteredAccounts := map[string]*outport.AlteredAccount{
 		encodedAddr: {
 			Address: encodedAddr,
 			Balance: "1000",
-			Tokens: []*indexer.AccountTokenData{
+			Tokens: []*outport.AccountTokenData{
 				{
 					Identifier: "SEMI-abcd",
 					Balance:    "1000",
@@ -92,7 +91,7 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 			},
 		},
 	}
-	esProc, err = CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
+	esProc, err = CreateElasticProcessor(esClient, shardCoordinator)
 	require.Nil(t, err)
 
 	header = &dataBlock.Header{
@@ -107,7 +106,7 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 	}
 	esdtDataBytes, _ := json.Marshal(esdtData)
 
-	pool = &indexer.Pool{
+	pool = &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				TxHash: "h1",
@@ -142,8 +141,6 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	feeComputer := &mock.EconomicsHandlerMock{}
-
 	// ################ CREATE SEMI FUNGIBLE TOKEN ##########################
 	shardCoordinator := &mock.ShardCoordinatorMock{
 		SelfID: 0,
@@ -153,11 +150,11 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 
 	addr := "aaaabbbb"
 	encodedAddr := hex.EncodeToString([]byte(addr))
-	coreAlteredAccounts := map[string]*indexer.AlteredAccount{
+	coreAlteredAccounts := map[string]*outport.AlteredAccount{
 		encodedAddr: {
 			Address: encodedAddr,
 			Balance: "1000",
-			Tokens: []*indexer.AccountTokenData{
+			Tokens: []*outport.AccountTokenData{
 				{
 					Identifier: "TTTT-abcd",
 					Nonce:      2,
@@ -170,7 +167,7 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 			},
 		},
 	}
-	esProc, err := CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient, shardCoordinator)
 	require.Nil(t, err)
 
 	header := &dataBlock.Header{
@@ -185,7 +182,7 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 	}
 	esdtDataBytes, _ := json.Marshal(esdtData)
 
-	pool := &indexer.Pool{
+	pool := &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				TxHash: "h1",
@@ -223,10 +220,10 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 		TimeStamp: 5040,
 	}
 
-	esProc, err = CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
+	esProc, err = CreateElasticProcessor(esClient, shardCoordinator)
 	require.Nil(t, err)
 
-	pool = &indexer.Pool{
+	pool = &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				TxHash: "h1",
@@ -244,7 +241,7 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, map[string]*indexer.AlteredAccount{})
+	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{})
 	require.Nil(t, err)
 
 	ids = []string{"TTTT-abcd"}

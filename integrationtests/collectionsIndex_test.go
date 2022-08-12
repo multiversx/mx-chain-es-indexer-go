@@ -30,8 +30,7 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 		SelfID: core.MetachainShardId,
 	}
 
-	feeComputer := &mock.EconomicsHandlerMock{}
-	esProc, err := CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient, shardCoordinator)
 	require.Nil(t, err)
 
 	body := &dataBlock.Body{}
@@ -104,7 +103,7 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 			},
 		},
 	}
-	esProc, err = CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
+	esProc, err = CreateElasticProcessor(esClient, shardCoordinator)
 	require.Nil(t, err)
 
 	header = &dataBlock.Header{
@@ -195,7 +194,7 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 		},
 	}
 
-	esProc, err = CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
+	esProc, err = CreateElasticProcessor(esClient, shardCoordinator)
 	require.Nil(t, err)
 
 	pool = &outport.Pool{

@@ -4,6 +4,7 @@ package integrationtests
 
 import (
 	"encoding/hex"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"math/big"
 	"testing"
 
@@ -27,10 +28,9 @@ func TestTransactionWithSCCallFail(t *testing.T) {
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	feeComputer := &mock.EconomicsHandlerMock{}
 	shardCoordinator := &mock.ShardCoordinatorMock{}
 
-	esProc, err := CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient, shardCoordinator)
 	require.Nil(t, err)
 
 	txHash := []byte("t")
@@ -51,9 +51,9 @@ func TestTransactionWithSCCallFail(t *testing.T) {
 	}
 
 	refundValueBig, _ := big.NewInt(0).SetString("5000000000000000000", 10)
-	pool := &indexer.Pool{
-		Txs: map[string]coreData.TransactionHandler{
-			string(txHash): &transaction.Transaction{
+	pool := &outport.Pool{
+		Txs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
+			string(txHash): outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
 				Nonce:    46,
 				SndAddr:  []byte("erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv"),
 				RcvAddr:  []byte("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqfhllllscrt56r"),
@@ -61,10 +61,10 @@ func TestTransactionWithSCCallFail(t *testing.T) {
 				GasPrice: 1000000000,
 				Data:     []byte("delegate"),
 				Value:    refundValueBig,
-			},
+			}, 0, big.NewInt(0)),
 		},
-		Scrs: map[string]coreData.TransactionHandler{
-			string(scrHash1): &smartContractResult.SmartContractResult{
+		Scrs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
+			string(scrHash1): outport.NewTransactionHandlerWithGasAndFee(&smartContractResult.SmartContractResult{
 				Nonce:          46,
 				Value:          refundValueBig,
 				GasPrice:       0,
@@ -74,7 +74,7 @@ func TestTransactionWithSCCallFail(t *testing.T) {
 				PrevTxHash:     txHash,
 				OriginalTxHash: txHash,
 				ReturnMessage:  []byte("total delegation cap reached"),
-			},
+			}, 0, big.NewInt(0)),
 		},
 	}
 	err = esProc.SaveTransactions(body, header, pool, nil)
@@ -94,10 +94,9 @@ func TestTransactionWithScCallSuccess(t *testing.T) {
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	feeComputer := &mock.EconomicsHandlerMock{}
 	shardCoordinator := &mock.ShardCoordinatorMock{}
 
-	esProc, err := CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient, shardCoordinator)
 	require.Nil(t, err)
 
 	txHash := []byte("txHashClaimRewards")
@@ -118,9 +117,9 @@ func TestTransactionWithScCallSuccess(t *testing.T) {
 	}
 
 	refundValueBig, _ := big.NewInt(0).SetString("2161082850000000", 10)
-	pool := &indexer.Pool{
-		Txs: map[string]coreData.TransactionHandler{
-			string(txHash): &transaction.Transaction{
+	pool := &outport.Pool{
+		Txs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
+			string(txHash): outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
 				Nonce:    101,
 				SndAddr:  []byte("erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv"),
 				RcvAddr:  []byte("erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt"),
@@ -128,10 +127,10 @@ func TestTransactionWithScCallSuccess(t *testing.T) {
 				GasPrice: 1000000000,
 				Data:     []byte("claimRewards"),
 				Value:    big.NewInt(0),
-			},
+			}, 0, big.NewInt(0)),
 		},
-		Scrs: map[string]coreData.TransactionHandler{
-			string(scrHash1): &smartContractResult.SmartContractResult{
+		Scrs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
+			string(scrHash1): outport.NewTransactionHandlerWithGasAndFee(&smartContractResult.SmartContractResult{
 				Nonce:          102,
 				Value:          refundValueBig,
 				GasPrice:       1000000000,
@@ -140,7 +139,7 @@ func TestTransactionWithScCallSuccess(t *testing.T) {
 				Data:           []byte("@6f6b"),
 				PrevTxHash:     txHash,
 				OriginalTxHash: txHash,
-			},
+			}, 0, big.NewInt(0)),
 		},
 	}
 	err = esProc.SaveTransactions(body, header, pool, nil)
