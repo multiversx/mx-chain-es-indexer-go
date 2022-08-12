@@ -5,14 +5,13 @@ import (
 	"testing"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/stretchr/testify/require"
 )
 
 func TestAttachSCRsToTransactionsAndReturnSCRsWithoutTx(t *testing.T) {
 	t.Parallel()
 
-	scrsDataToTxs := newScrsDataToTransactions(&mock.EconomicsHandlerMock{})
+	scrsDataToTxs := newScrsDataToTransactions()
 
 	txHash1 := []byte("txHash1")
 	txHash2 := []byte("txHash2")
@@ -24,6 +23,8 @@ func TestAttachSCRsToTransactionsAndReturnSCRsWithoutTx(t *testing.T) {
 		GasLimit: 10000000,
 		GasPrice: 1000000000,
 		Data:     []byte("callSomething"),
+		GasUsed:  5963500,
+		Fee:      "128440000000000",
 	}
 	tx2 := &data.Transaction{}
 	txs := map[string]*data.Transaction{
@@ -57,7 +58,7 @@ func TestAttachSCRsToTransactionsAndReturnSCRsWithoutTx(t *testing.T) {
 func TestProcessTransactionsAfterSCRsWereAttached(t *testing.T) {
 	t.Parallel()
 
-	scrsDataToTxs := newScrsDataToTransactions(&mock.EconomicsHandlerMock{})
+	scrsDataToTxs := newScrsDataToTransactions()
 
 	txHash1 := []byte("txHash1")
 	txHash2 := []byte("txHash2")
@@ -74,6 +75,8 @@ func TestProcessTransactionsAfterSCRsWereAttached(t *testing.T) {
 				ReturnMessage: "user error",
 			},
 		},
+		GasUsed: 10000000,
+		Fee:     "168805000000000",
 	}
 	tx2 := &data.Transaction{}
 	txs := map[string]*data.Transaction{

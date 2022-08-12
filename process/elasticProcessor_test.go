@@ -60,7 +60,6 @@ func createMockElasticProcessorArgs() *ArgElasticProcessor {
 		Marshalizer:      &mock.MarshalizerMock{},
 		BalanceConverter: balanceConverter,
 		Hasher:           &mock.HasherMock{},
-		TxFeeCalculator:  &mock.EconomicsHandlerStub{},
 	}
 	lp, _ := logsevents.NewLogsAndEventsProcessor(args)
 	op, _ := operations.NewOperationsProcessor(false, &mock.ShardCoordinatorMock{})
@@ -420,7 +419,6 @@ func TestElasticseachSaveTransactions(t *testing.T) {
 
 	args := &transactions.ArgsTransactionProcessor{
 		AddressPubkeyConverter: mock.NewPubkeyConverterMock(32),
-		TxFeeCalculator:        &mock.EconomicsHandlerStub{},
 		ShardCoordinator:       &mock.ShardCoordinatorMock{},
 		Hasher:                 &mock.HasherMock{},
 		Marshalizer:            &mock.MarshalizerMock{},
@@ -572,7 +570,6 @@ func TestElasticProcessor_RemoveTransactions(t *testing.T) {
 
 	args := &transactions.ArgsTransactionProcessor{
 		AddressPubkeyConverter: mock.NewPubkeyConverterMock(32),
-		TxFeeCalculator:        &mock.EconomicsHandlerStub{},
 		ShardCoordinator:       &mock.ShardCoordinatorMock{},
 		Hasher:                 &mock.HasherMock{},
 		Marshalizer:            &mock.MarshalizerMock{},

@@ -36,9 +36,6 @@ func checkTxsProcessorArg(args *ArgsTransactionProcessor) error {
 	if check.IfNil(args.AddressPubkeyConverter) {
 		return elasticIndexer.ErrNilPubkeyConverter
 	}
-	if check.IfNil(args.TxFeeCalculator) {
-		return elasticIndexer.ErrNilTransactionFeeCalculator
-	}
 
 	return nil
 }
@@ -75,14 +72,6 @@ func isSCRForSenderWithRefund(dbScResult *data.ScResult, tx *data.Transaction) b
 	isScrDataOk := isDataOk(dbScResult.Data)
 
 	return isFromCurrentTx && isForSender && isRightNonce && isScrDataOk
-}
-
-func isRefundForRelayed(dbScResult *data.ScResult, tx *data.Transaction) bool {
-	isForRelayed := dbScResult.ReturnMessage == data.GasRefundForRelayerMessage
-	isForSender := dbScResult.Receiver == tx.Sender
-	differentHash := dbScResult.OriginalTxHash != dbScResult.PrevTxHash
-
-	return isForRelayed && isForSender && differentHash
 }
 
 func isDataOk(data []byte) bool {

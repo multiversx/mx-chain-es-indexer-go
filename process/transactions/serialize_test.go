@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -128,29 +127,20 @@ func TestSerializeTransactionsCrossShardTxDestination(t *testing.T) {
 func TestTxsDatabaseProcessor_SerializeTransactionWithRefund(t *testing.T) {
 	t.Parallel()
 
-	txs := map[string]*data.Transaction{
+	txHashRefund := map[string]*data.FeeData{
 		"txHash": {
-			Sender:   "sender",
-			Receiver: "receiver",
-			GasLimit: 150000000,
-			GasPrice: 1000000000,
-		},
-	}
-	txHashRefund := map[string]*data.RefundData{
-		"txHash": {
-			Value:    "101676480000000",
+			Fee:      "100000",
+			GasUsed:  5000,
 			Receiver: "sender",
 		},
 	}
 
 	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
-	err := (&txsDatabaseProcessor{
-		txFeeCalculator: &mock.EconomicsHandlerMock{},
-	}).SerializeTransactionWithRefund(txs, txHashRefund, buffSlice, "transactions")
+	err := (&txsDatabaseProcessor{}).SerializeTransactionsFeeData(txHashRefund, buffSlice, "transactions")
 	require.Nil(t, err)
 
-	expectedBuff := `{ "index" : { "_index": "transactions", "_id" : "txHash" } }
-{"miniBlockHash":"","nonce":0,"round":0,"value":"","receiver":"receiver","sender":"sender","receiverShard":0,"senderShard":0,"gasPrice":1000000000,"gasLimit":150000000,"gasUsed":139832352,"fee":"1447823520000000","data":null,"signature":"","timestamp":0,"status":"","searchOrder":0}
+	expectedBuff := `{"update":{ "_index":"transactions","_id":"txHash"}}
+{"scripted_upsert": true, "script": {"source": "if ('create' == ctx.op) {ctx.op = 'noop'} else {ctx._source.fee = params.fee;ctx._source.gasUsed = params.gasUsed;}","lang": "painless","params": {"fee": "100000", "gasUsed": 5000}},"upsert": {}}
 `
 	require.Equal(t, expectedBuff, buffSlice.Buffers()[0].String())
 }

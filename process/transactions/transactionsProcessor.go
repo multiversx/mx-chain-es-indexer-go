@@ -22,7 +22,6 @@ var log = logger.GetOrCreate("indexer/process/transactions")
 // new instances
 type ArgsTransactionProcessor struct {
 	AddressPubkeyConverter core.PubkeyConverter
-	TxFeeCalculator        indexer.FeesProcessorHandler
 	ShardCoordinator       indexer.ShardCoordinator
 	Hasher                 hashing.Hasher
 	Marshalizer            marshal.Marshalizer
@@ -30,11 +29,10 @@ type ArgsTransactionProcessor struct {
 }
 
 type txsDatabaseProcessor struct {
-	txFeeCalculator indexer.FeesProcessorHandler
-	txBuilder       *dbTransactionBuilder
-	txsGrouper      *txsGrouper
-	scrsProc        *smartContractResultsProcessor
-	scrsDataToTxs   *scrsDataToTransactions
+	txBuilder     *dbTransactionBuilder
+	txsGrouper    *txsGrouper
+	scrsProc      *smartContractResultsProcessor
+	scrsDataToTxs *scrsDataToTransactions
 }
 
 // NewTransactionsProcessor will create a new instance of transactions database processor
@@ -55,10 +53,10 @@ func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txsDatabaseProce
 	}
 
 	selfShardID := args.ShardCoordinator.SelfId()
-	txBuilder := newTransactionDBBuilder(args.AddressPubkeyConverter, args.ShardCoordinator, args.TxFeeCalculator, operationsDataParser)
+	txBuilder := newTransactionDBBuilder(args.AddressPubkeyConverter, args.ShardCoordinator, operationsDataParser)
 	txsDBGrouper := newTxsGrouper(txBuilder, args.IsInImportMode, selfShardID, args.Hasher, args.Marshalizer)
 	scrProc := newSmartContractResultsProcessor(args.AddressPubkeyConverter, args.ShardCoordinator, args.Marshalizer, args.Hasher, operationsDataParser)
-	scrsDataToTxs := newScrsDataToTransactions(args.TxFeeCalculator)
+	scrsDataToTxs := newScrsDataToTransactions()
 
 	if args.IsInImportMode {
 		log.Warn("the node is in import mode! Cross shard transactions and rewards where destination shard is " +
@@ -66,11 +64,10 @@ func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txsDatabaseProce
 	}
 
 	return &txsDatabaseProcessor{
-		txFeeCalculator: args.TxFeeCalculator,
-		txBuilder:       txBuilder,
-		txsGrouper:      txsDBGrouper,
-		scrsProc:        scrProc,
-		scrsDataToTxs:   scrsDataToTxs,
+		txBuilder:     txBuilder,
+		txsGrouper:    txsDBGrouper,
+		scrsProc:      scrProc,
+		scrsDataToTxs: scrsDataToTxs,
 	}, nil
 }
 
@@ -136,7 +133,7 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 
 	srcsNoTxInCurrentShard := tdp.scrsDataToTxs.attachSCRsToTransactionsAndReturnSCRsWithoutTx(normalTxs, dbSCResults)
 	tdp.scrsDataToTxs.processTransactionsAfterSCRsWereAttached(normalTxs)
-	txHashStatus, txHashRefund := tdp.scrsDataToTxs.processSCRsWithoutTx(srcsNoTxInCurrentShard)
+	txHashStatus, txHashFee := tdp.scrsDataToTxs.processSCRsWithoutTx(srcsNoTxInCurrentShard)
 
 	sliceNormalTxs := convertMapTxsToSlice(normalTxs)
 	sliceRewardsTxs := convertMapTxsToSlice(rewardsTxs)
@@ -148,7 +145,7 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 		Receipts:     dbReceipts,
 		AlteredAccts: alteredAccounts,
 		TxHashStatus: txHashStatus,
-		TxHashRefund: txHashRefund,
+		TxHashFee:    txHashFee,
 	}
 }
 

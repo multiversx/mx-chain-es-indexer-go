@@ -3,7 +3,6 @@ package transactions
 import (
 	"encoding/json"
 	"fmt"
-	"math/big"
 	"strings"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/converters"
@@ -11,7 +10,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/core"
 )
 
-// SerializeScResults will serialize the provided smart contract results in a way that Elastic Search expects a bulk request
+// SerializeScResults will serialize the provided smart contract results in a way that ElasticSearch expects a bulk request
 func (tdp *txsDatabaseProcessor) SerializeScResults(scResults []*data.ScResult, buffSlice *data.BufferSlice, index string) error {
 	for _, sc := range scResults {
 		meta := []byte(fmt.Sprintf(`{ "index" : { "_index": "%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(sc.Hash), "\n"))
@@ -29,7 +28,7 @@ func (tdp *txsDatabaseProcessor) SerializeScResults(scResults []*data.ScResult, 
 	return nil
 }
 
-// SerializeReceipts will serialize the receipts in a way that Elastic Search expects a bulk request
+// SerializeReceipts will serialize the receipts in a way that ElasticSearch expects a bulk request
 func (tdp *txsDatabaseProcessor) SerializeReceipts(receipts []*data.Receipt, buffSlice *data.BufferSlice, index string) error {
 	for _, rec := range receipts {
 		meta := []byte(fmt.Sprintf(`{ "index" : { "_index": "%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(rec.Hash), "\n"))
@@ -47,38 +46,28 @@ func (tdp *txsDatabaseProcessor) SerializeReceipts(receipts []*data.Receipt, buf
 	return nil
 }
 
-// SerializeTransactionWithRefund will serialize transaction based on refund
-func (tdp *txsDatabaseProcessor) SerializeTransactionWithRefund(
-	txs map[string]*data.Transaction,
-	txHashRefund map[string]*data.RefundData,
-	buffSlice *data.BufferSlice,
-	index string,
-) error {
-	for txHash, tx := range txs {
-		refundForTx, ok := txHashRefund[txHash]
-		if !ok {
-			continue
-		}
+// SerializeTransactionsFeeData will serialize transactions fee data
+func (tdp *txsDatabaseProcessor) SerializeTransactionsFeeData(txHashRefund map[string]*data.FeeData, buffSlice *data.BufferSlice, index string) error {
+	for txHash, feeData := range txHashRefund {
+		meta := []byte(fmt.Sprintf(`{"update":{ "_index":"%s","_id":"%s"}}%s`, index, converters.JsonEscape(txHash), "\n"))
+		codeToExecute := `
+			if ('create' == ctx.op) {
+				ctx.op = 'noop'
+			} else {
+				ctx._source.fee = params.fee;
+				ctx._source.gasUsed = params.gasUsed;
+			}
+`
 
-		if refundForTx.Receiver != tx.Sender {
-			continue
-		}
+		serializedDataStr := fmt.Sprintf(`{"scripted_upsert": true, "script": {`+
+			`"source": "%s",`+
+			`"lang": "painless",`+
+			`"params": {"fee": "%s", "gasUsed": %d}},`+
+			`"upsert": {}}`,
+			converters.FormatPainlessSource(codeToExecute), feeData.Fee, feeData.GasUsed,
+		)
 
-		refundValueBig, ok := big.NewInt(0).SetString(refundForTx.Value, 10)
-		if !ok {
-			continue
-		}
-		gasUsed, fee := tdp.txFeeCalculator.ComputeGasUsedAndFeeBasedOnRefundValue(tx, refundValueBig)
-		tx.GasUsed = gasUsed
-		tx.Fee = fee.String()
-
-		meta := []byte(fmt.Sprintf(`{ "index" : { "_index": "%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(txHash), "\n"))
-		serializedData, errPrepare := json.Marshal(tx)
-		if errPrepare != nil {
-			return errPrepare
-		}
-
-		err := buffSlice.PutData(meta, serializedData)
+		err := buffSlice.PutData(meta, []byte(serializedDataStr))
 		if err != nil {
 			return err
 		}

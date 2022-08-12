@@ -4,14 +4,12 @@ import (
 	"testing"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/stretchr/testify/require"
 )
 
 func TestInformativeShouldIgnoreLog(t *testing.T) {
-	feeHandler := &mock.EconomicsHandlerMock{}
-	informativeLogsProc := newInformativeLogsProcessor(feeHandler)
+	informativeLogsProc := newInformativeLogsProcessor()
 
 	event := &transaction.Event{
 		Address:    []byte("addr"),
@@ -52,14 +50,11 @@ func TestInformativeLogsProcessorWriteLog(t *testing.T) {
 		txHashHexEncoded: hexEncodedTxHash,
 	}
 
-	feeHandler := &mock.EconomicsHandlerMock{}
-	informativeLogsProc := newInformativeLogsProcessor(feeHandler)
+	informativeLogsProc := newInformativeLogsProcessor()
 
 	res := informativeLogsProc.processEvent(args)
 
 	require.Equal(t, transaction.TxStatusSuccess.String(), tx.Status)
-	require.Equal(t, tx.GasLimit, tx.GasUsed)
-	require.Equal(t, "7083500000", tx.Fee)
 	require.True(t, res.processed)
 }
 
@@ -88,13 +83,10 @@ func TestInformativeLogsProcessorSignalError(t *testing.T) {
 		txHashHexEncoded: hexEncodedTxHash,
 	}
 
-	feeHandler := &mock.EconomicsHandlerMock{}
-	informativeLogsProc := newInformativeLogsProcessor(feeHandler)
+	informativeLogsProc := newInformativeLogsProcessor()
 
 	res := informativeLogsProc.processEvent(args)
 
 	require.Equal(t, transaction.TxStatusFail.String(), tx.Status)
-	require.Equal(t, tx.GasLimit, tx.GasUsed)
-	require.Equal(t, "6041000000", tx.Fee)
 	require.Equal(t, true, res.processed)
 }

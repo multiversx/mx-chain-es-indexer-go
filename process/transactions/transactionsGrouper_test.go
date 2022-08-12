@@ -19,7 +19,7 @@ func TestGroupNormalTxs(t *testing.T) {
 	t.Parallel()
 
 	parser := createDataFieldParserMock()
-	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{}, &mock.EconomicsHandlerStub{}, parser)
+	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{}, parser)
 	grouper := newTxsGrouper(txBuilder, false, 0, &mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	txHash1 := []byte("txHash1")
@@ -50,7 +50,7 @@ func TestGroupRewardsTxs(t *testing.T) {
 	t.Parallel()
 
 	parser := createDataFieldParserMock()
-	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{}, &mock.EconomicsHandlerStub{}, parser)
+	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{}, parser)
 	grouper := newTxsGrouper(txBuilder, false, 0, &mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	txHash1 := []byte("txHash1")
@@ -79,7 +79,7 @@ func TestGroupInvalidTxs(t *testing.T) {
 	t.Parallel()
 
 	parser := createDataFieldParserMock()
-	txBuilder := newTransactionDBBuilder(mock.NewPubkeyConverterMock(32), &mock.ShardCoordinatorMock{}, &mock.EconomicsHandlerStub{}, parser)
+	txBuilder := newTransactionDBBuilder(mock.NewPubkeyConverterMock(32), &mock.ShardCoordinatorMock{}, parser)
 	grouper := newTxsGrouper(txBuilder, false, 0, &mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	txHash1 := []byte("txHash1")
@@ -110,7 +110,7 @@ func TestGroupReceipts(t *testing.T) {
 	t.Parallel()
 
 	parser := createDataFieldParserMock()
-	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{}, &mock.EconomicsHandlerStub{}, parser)
+	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{}, parser)
 	grouper := newTxsGrouper(txBuilder, false, 0, &mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	txHash1 := []byte("txHash1")

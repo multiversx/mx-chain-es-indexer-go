@@ -33,7 +33,6 @@ type ArgsIndexerFactory struct {
 	Hasher                   hashing.Hasher
 	AddressPubkeyConverter   core.PubkeyConverter
 	ValidatorPubkeyConverter core.PubkeyConverter
-	TransactionFeeCalculator indexer.FeesProcessorHandler
 }
 
 // NewIndexer will create a new instance of Indexer
@@ -88,7 +87,6 @@ func createElasticProcessor(args *ArgsIndexerFactory) (indexer.ElasticProcessor,
 		UseKibana:                args.UseKibana,
 		DBClient:                 databaseClient,
 		Denomination:             args.Denomination,
-		TransactionFeeCalculator: args.TransactionFeeCalculator,
 		IsInImportDBMode:         args.IsInImportDBMode,
 		ShardCoordinator:         args.ShardCoordinator,
 		EnabledIndexes:           args.EnabledIndexes,
@@ -116,9 +114,6 @@ func checkDataIndexerParams(arguments *ArgsIndexerFactory) error {
 	}
 	if check.IfNil(arguments.Hasher) {
 		return indexer.ErrNilHasher
-	}
-	if check.IfNil(arguments.TransactionFeeCalculator) {
-		return indexer.ErrNilTransactionFeeCalculator
 	}
 	if check.IfNil(arguments.ShardCoordinator) {
 		return indexer.ErrNilShardCoordinator

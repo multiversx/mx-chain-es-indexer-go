@@ -70,7 +70,7 @@ type DBTransactionsHandler interface {
 
 	SerializeReceipts(receipts []*data.Receipt, buffSlice *data.BufferSlice, index string) error
 	SerializeTransactions(transactions []*data.Transaction, txHashStatus map[string]string, selfShardID uint32, buffSlice *data.BufferSlice, index string) error
-	SerializeTransactionWithRefund(txs map[string]*data.Transaction, txHashRefund map[string]*data.RefundData, buffSlice *data.BufferSlice, index string) error
+	SerializeTransactionsFeeData(txHashRefund map[string]*data.FeeData, buffSlice *data.BufferSlice, index string) error
 	SerializeScResults(scResults []*data.ScResult, buffSlice *data.BufferSlice, index string) error
 }
 

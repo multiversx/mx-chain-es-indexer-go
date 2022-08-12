@@ -1,9 +1,6 @@
 package logsevents
 
 import (
-	"math/big"
-
-	indexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 )
 
@@ -13,17 +10,15 @@ const (
 )
 
 type informativeLogsProcessor struct {
-	operations      map[string]struct{}
-	txFeeCalculator indexer.FeesProcessorHandler
+	operations map[string]struct{}
 }
 
-func newInformativeLogsProcessor(txFeeCalculator indexer.FeesProcessorHandler) *informativeLogsProcessor {
+func newInformativeLogsProcessor() *informativeLogsProcessor {
 	return &informativeLogsProcessor{
 		operations: map[string]struct{}{
 			writeLogOperation:    {},
 			signalErrorOperation: {},
 		},
-		txFeeCalculator: txFeeCalculator,
 	}
 }
 
@@ -44,16 +39,10 @@ func (ilp *informativeLogsProcessor) processEvent(args *argsProcessEvent) argOut
 	switch identifier {
 	case writeLogOperation:
 		{
-			gasLimit, fee := ilp.txFeeCalculator.ComputeGasUsedAndFeeBasedOnRefundValue(tx, big.NewInt(0))
-			tx.GasUsed = gasLimit
-			tx.Fee = fee.String()
 			tx.Status = transaction.TxStatusSuccess.String()
 		}
 	case signalErrorOperation:
 		{
-			tx.GasUsed = tx.GasLimit
-			fee := ilp.txFeeCalculator.ComputeTxFeeBasedOnGasUsed(tx, tx.GasLimit)
-			tx.Fee = fee.String()
 			tx.Status = transaction.TxStatusFail.String()
 		}
 	}

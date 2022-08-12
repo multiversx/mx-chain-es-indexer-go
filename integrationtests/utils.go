@@ -35,7 +35,6 @@ func createESClient(url string) (process.DatabaseClientHandler, error) {
 func CreateElasticProcessor(
 	esClient process.DatabaseClientHandler,
 	shardCoordinator indexer.ShardCoordinator,
-	feeProcessor indexer.FeesProcessorHandler,
 ) (indexer.ElasticProcessor, error) {
 	args := factory.ArgElasticProcessorFactory{
 		Marshalizer:              &mock.MarshalizerMock{},
@@ -44,7 +43,6 @@ func CreateElasticProcessor(
 		ValidatorPubkeyConverter: mock.NewPubkeyConverterMock(32),
 		DBClient:                 esClient,
 		ShardCoordinator:         shardCoordinator,
-		TransactionFeeCalculator: feeProcessor,
 		EnabledIndexes: []string{indexer.TransactionsIndex, indexer.LogsIndex, indexer.AccountsESDTIndex, indexer.ScResultsIndex,
 			indexer.ReceiptsIndex, indexer.BlockIndex, indexer.AccountsIndex, indexer.TokensIndex, indexer.TagsIndex, indexer.CollectionsIndex},
 		Denomination:     18,

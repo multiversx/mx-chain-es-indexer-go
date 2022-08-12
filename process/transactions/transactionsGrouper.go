@@ -110,7 +110,7 @@ func (tg *txsGrouper) prepareNormalTxForDB(
 		return nil, false
 	}
 
-	dbTx := tg.txBuilder.prepareTransaction(tx, txHash, mbHash, mb, header, mbStatus)
+	dbTx := tg.txBuilder.prepareTransaction(tx, txHash, mbHash, mb, header, mbStatus, txHandler.GetFee(), txHandler.GetGasUsed())
 
 	return dbTx, true
 }
@@ -212,11 +212,7 @@ func (tg *txsGrouper) prepareInvalidTxForDB(
 		return nil, false
 	}
 
-	dbTx := tg.txBuilder.prepareTransaction(tx, txHash, mbHash, mb, header, transaction.TxStatusInvalid.String())
-
-	dbTx.GasUsed = dbTx.GasLimit
-	fee := tg.txBuilder.txFeeCalculator.ComputeTxFeeBasedOnGasUsed(tx, dbTx.GasUsed)
-	dbTx.Fee = fee.String()
+	dbTx := tg.txBuilder.prepareTransaction(tx, txHash, mbHash, mb, header, transaction.TxStatusInvalid.String(), txHandler.GetFee(), txHandler.GetGasUsed())
 
 	return dbTx, true
 }

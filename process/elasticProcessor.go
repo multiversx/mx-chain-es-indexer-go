@@ -365,7 +365,7 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
-	err = ei.indexTransactionsWithRefund(preparedResults.TxHashRefund, buffers)
+	err = ei.indexTransactionsFeeData(preparedResults.TxHashFee, buffers)
 	if err != nil {
 		return err
 	}
@@ -450,32 +450,12 @@ func (ei *elasticProcessor) prepareAndIndexDelegators(delegators map[string]*dat
 	return ei.logsAndEventsProc.SerializeDelegators(delegators, buffSlice, elasticIndexer.DelegatorsIndex)
 }
 
-func (ei *elasticProcessor) indexTransactionsWithRefund(txsHashRefund map[string]*data.RefundData, buffSlice *data.BufferSlice) error {
-	if len(txsHashRefund) == 0 {
+func (ei *elasticProcessor) indexTransactionsFeeData(txsHashFeeData map[string]*data.FeeData, buffSlice *data.BufferSlice) error {
+	if len(txsHashFeeData) == 0 {
 		return nil
 	}
-	txsHashes := make([]string, len(txsHashRefund))
-	for txHash := range txsHashRefund {
-		txsHashes = append(txsHashes, txHash)
-	}
 
-	responseTransactions := &data.ResponseTransactions{}
-	err := ei.elasticClient.DoMultiGet(txsHashes, elasticIndexer.TransactionsIndex, true, responseTransactions)
-	if err != nil {
-		return err
-	}
-
-	txsFromDB := make(map[string]*data.Transaction)
-	for idx := 0; idx < len(responseTransactions.Docs); idx++ {
-		txRes := responseTransactions.Docs[idx]
-		if !txRes.Found {
-			continue
-		}
-
-		txsFromDB[txRes.ID] = &txRes.Source
-	}
-
-	return ei.transactionsProc.SerializeTransactionWithRefund(txsFromDB, txsHashRefund, buffSlice, elasticIndexer.TransactionsIndex)
+	return ei.transactionsProc.SerializeTransactionsFeeData(txsHashFeeData, buffSlice, elasticIndexer.TransactionsIndex)
 }
 
 func (ei *elasticProcessor) prepareAndIndexLogs(logsAndEvents []*coreData.LogData, timestamp uint64, buffSlice *data.BufferSlice) error {

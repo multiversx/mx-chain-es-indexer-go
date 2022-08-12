@@ -19,7 +19,6 @@ import (
 func createMockArgs() *ArgsTransactionProcessor {
 	return &ArgsTransactionProcessor{
 		AddressPubkeyConverter: &mock.PubkeyConverterMock{},
-		TxFeeCalculator:        &mock.EconomicsHandlerStub{},
 		ShardCoordinator:       &mock.ShardCoordinatorMock{},
 		Hasher:                 &mock.HasherMock{},
 		Marshalizer:            &mock.MarshalizerMock{},
@@ -43,15 +42,6 @@ func TestNewTransactionsProcessor(t *testing.T) {
 				return args
 			},
 			exErr: elasticIndexer.ErrNilPubkeyConverter,
-		},
-		{
-			name: "NilTxFeeCalculator",
-			args: func() *ArgsTransactionProcessor {
-				args := createMockArgs()
-				args.TxFeeCalculator = nil
-				return args
-			},
-			exErr: elasticIndexer.ErrNilTransactionFeeCalculator,
 		},
 		{
 			name: "NilShardCoordinator",

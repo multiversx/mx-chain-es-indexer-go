@@ -24,7 +24,6 @@ import (
 func createMockArgsTxsDBProc() *ArgsTransactionProcessor {
 	args := &ArgsTransactionProcessor{
 		AddressPubkeyConverter: mock.NewPubkeyConverterMock(10),
-		TxFeeCalculator:        &mock.EconomicsHandlerStub{},
 		ShardCoordinator:       &mock.ShardCoordinatorMock{},
 		Hasher:                 &mock.HasherMock{},
 		Marshalizer:            &mock.MarshalizerMock{},
@@ -468,7 +467,7 @@ func TestCheckGasUsedInvalidTransaction(t *testing.T) {
 	tx1 := outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
 		GasLimit: 100,
 		GasPrice: 100,
-	}, 0, big.NewInt(0))
+	}, 100, big.NewInt(0))
 	recHash1 := []byte("recHash1")
 	rec1 := outport.NewTransactionHandlerWithGasAndFee(&receipt.Receipt{
 		Value:  big.NewInt(100),
@@ -558,7 +557,7 @@ func TestTxsDatabaseProcessor_PrepareTransactionsForDatabaseInvalidTxWithSCR(t *
 		GasLimit: 100,
 		GasPrice: 123456,
 		Data:     []byte("ESDTTransfer@54474e2d383862383366@0a"),
-	}, 0, big.NewInt(0))
+	}, 100, big.NewInt(0))
 	scResHash1 := []byte("scResHash1")
 	scRes1 := outport.NewTransactionHandlerWithGasAndFee(&smartContractResult.SmartContractResult{
 		OriginalTxHash: txHash1,
@@ -603,17 +602,13 @@ func TestTxsDatabaseProcessor_PrepareTransactionsForDatabaseESDTNFTTransfer(t *t
 	t.Parallel()
 
 	txDbProc, _ := NewTransactionsProcessor(createMockArgsTxsDBProc())
-	txDbProc.scrsDataToTxs.txFeeCalculator = &mock.EconomicsHandlerStub{
-		ComputeGasUsedAndFeeBasedOnRefundValueCalled: func(tx coreData.TransactionWithFeeHandler, refundValue *big.Int) (uint64, *big.Int) {
-			return 100, big.NewInt(10000)
-		}}
 
 	txHash1 := []byte("txHash1")
 	tx1 := outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
 		GasLimit: 100,
 		GasPrice: 123456,
 		Data:     []byte("ESDTNFTTransfer@595959453643392D303837363661@01@01@000000000000000005005C83E0C42EDCE394F40B24D29D298B0249C41F028974@66756E64@890479AFC610F4BEBC087D3ADA3F7C2775C736BBA91F41FD3D65092AA482D8B0@1c20"),
-	}, 0, big.NewInt(0))
+	}, 100, big.NewInt(0))
 	scResHash1 := []byte("scResHash1")
 	scRes1 := outport.NewTransactionHandlerWithGasAndFee(&smartContractResult.SmartContractResult{
 		Nonce:          1,
