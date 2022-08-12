@@ -365,6 +365,11 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
+	err = ei.prepareAndIndexOperations(preparedResults.Transactions, preparedResults.TxHashStatus, header, preparedResults.ScResults, buffers)
+	if err != nil {
+		return err
+	}
+
 	err = ei.indexTransactionsFeeData(preparedResults.TxHashFee, buffers)
 	if err != nil {
 		return err
@@ -411,11 +416,6 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
-	err = ei.prepareAndIndexOperations(preparedResults.Transactions, preparedResults.TxHashStatus, header, preparedResults.ScResults, buffers)
-	if err != nil {
-		return err
-	}
-
 	err = ei.indexNFTBurnInfo(logsData.TokensSupply, buffers)
 	if err != nil {
 		return err
@@ -455,7 +455,12 @@ func (ei *elasticProcessor) indexTransactionsFeeData(txsHashFeeData map[string]*
 		return nil
 	}
 
-	return ei.transactionsProc.SerializeTransactionsFeeData(txsHashFeeData, buffSlice, elasticIndexer.TransactionsIndex)
+	err := ei.transactionsProc.SerializeTransactionsFeeData(txsHashFeeData, buffSlice, elasticIndexer.TransactionsIndex)
+	if err != nil {
+		return nil
+	}
+
+	return ei.transactionsProc.SerializeTransactionsFeeData(txsHashFeeData, buffSlice, elasticIndexer.OperationsIndex)
 }
 
 func (ei *elasticProcessor) prepareAndIndexLogs(logsAndEvents []*coreData.LogData, timestamp uint64, buffSlice *data.BufferSlice) error {
