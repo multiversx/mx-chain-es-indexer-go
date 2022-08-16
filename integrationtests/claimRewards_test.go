@@ -91,7 +91,7 @@ func TestTransactionWithClaimRewardsGasRefund(t *testing.T) {
 
 	pool := &outport.Pool{
 		Txs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
-			string(txHash): outport.NewTransactionHandlerWithGasAndFee(tx1, 0, big.NewInt(0)),
+			string(txHash): outport.NewTransactionHandlerWithGasAndFee(tx1, 1068000, big.NewInt(78000000000000)),
 		},
 		Scrs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
 			string(scrHash2): outport.NewTransactionHandlerWithGasAndFee(scr2, 0, big.NewInt(0)),

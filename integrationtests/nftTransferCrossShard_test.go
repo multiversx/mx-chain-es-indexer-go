@@ -73,7 +73,7 @@ func TestNFTTransferCrossShardWithSCCall(t *testing.T) {
 				GasPrice: 1000000000,
 				Data:     []byte("ESDTNFTTransfer@4c4b4641524d2d336634663962@016534@6f1e6f01bc7627f5ae@00000000000000000500f1c8f2fdc58a63c6b201fc2ed629962d3dfa33fe7ceb@636f6d706f756e645265776172647350726f7879@000000000000000005004f79ec44bb13372b5ac9d996d749120f476427627ceb"),
 				Value:    big.NewInt(0),
-			}, 0, big.NewInt(0)),
+			}, 150000000, big.NewInt(1904415000000000)),
 		},
 		Scrs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
 			string(scrHash1): outport.NewTransactionHandlerWithGasAndFee(scr1, 0, big.NewInt(0)),
@@ -115,7 +115,7 @@ func TestNFTTransferCrossShardWithSCCall(t *testing.T) {
 				OriginalTxHash: txHash,
 				Value:          refundValueBig,
 				Data:           []byte("@6f6b@017d15@0000000e4d45584641524d2d6239336536300000000000017d15000000097045173cc97554b65d@0178af"),
-			}, 0, big.NewInt(0)),
+			}, 139832352, big.NewInt(1802738520000000)),
 		},
 	}
 
@@ -196,7 +196,7 @@ func TestNFTTransferCrossShard(t *testing.T) {
 				GasPrice: 1000000000,
 				Data:     []byte("ESDTNFTTransfer@536f6d657468696e672d616263646566@01@01@00000000000000000500a7a02771aa07090e607f02b25f4d6d241bff32b990a2"),
 				Value:    big.NewInt(0),
-			}, 0, big.NewInt(0)),
+			}, 963500, big.NewInt(235850000000000)),
 		},
 		Scrs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
 			string(scrHash1): outport.NewTransactionHandlerWithGasAndFee(&smartContractResult.SmartContractResult{
@@ -359,7 +359,7 @@ func TestNFTTransferCrossShardImportDBScenarioFirstIndexDestinationAfterSource(t
 				GasPrice: 1000000000,
 				Data:     []byte("ESDTNFTTransfer@434f4c4c454354494f4e2d323663313838@01@01@00000000000000000500a7a02771aa07090e607f02b25f4d6d241bff32b990a2"),
 				Value:    big.NewInt(0),
-			}, 0, big.NewInt(0)),
+			}, 963500, big.NewInt(238820000000000)),
 		},
 		Scrs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
 			string(scrHash1): outport.NewTransactionHandlerWithGasAndFee(&smartContractResult.SmartContractResult{
