@@ -8,33 +8,34 @@ import (
 //  to be saved for a block. It has all the default fields
 //  plus some extra information for ease of search and filter
 type Block struct {
-	Nonce                 uint64          `json:"nonce"`
-	Round                 uint64          `json:"round"`
-	Epoch                 uint32          `json:"epoch"`
-	Hash                  string          `json:"-"`
-	MiniBlocksHashes      []string        `json:"miniBlocksHashes"`
-	NotarizedBlocksHashes []string        `json:"notarizedBlocksHashes"`
-	Proposer              uint64          `json:"proposer"`
-	Validators            []uint64        `json:"validators"`
-	PubKeyBitmap          string          `json:"pubKeyBitmap"`
-	Size                  int64           `json:"size"`
-	SizeTxs               int64           `json:"sizeTxs"`
-	Timestamp             time.Duration   `json:"timestamp"`
-	StateRootHash         string          `json:"stateRootHash"`
-	PrevHash              string          `json:"prevHash"`
-	ShardID               uint32          `json:"shardId"`
-	TxCount               uint32          `json:"txCount"`
-	NotarizedTxsCount     uint32          `json:"notarizedTxsCount"`
-	AccumulatedFees       string          `json:"accumulatedFees"`
-	DeveloperFees         string          `json:"developerFees"`
-	EpochStartBlock       bool            `json:"epochStartBlock"`
-	SearchOrder           uint64          `json:"searchOrder"`
-	EpochStartInfo        *EpochStartInfo `json:"epochStartInfo,omitempty"`
-	GasProvided           uint64          `json:"gasProvided"`
-	GasRefunded           uint64          `json:"gasRefunded"`
-	GasPenalized          uint64          `json:"gasPenalized"`
-	MaxGasLimit           uint64          `json:"maxGasLimit"`
-	ScheduledData         *ScheduledData  `json:"scheduledData,omitempty"`
+	Nonce                 uint64                 `json:"nonce"`
+	Round                 uint64                 `json:"round"`
+	Epoch                 uint32                 `json:"epoch"`
+	Hash                  string                 `json:"-"`
+	MiniBlocksHashes      []string               `json:"miniBlocksHashes"`
+	NotarizedBlocksHashes []string               `json:"notarizedBlocksHashes"`
+	Proposer              uint64                 `json:"proposer"`
+	Validators            []uint64               `json:"validators"`
+	PubKeyBitmap          string                 `json:"pubKeyBitmap"`
+	Size                  int64                  `json:"size"`
+	SizeTxs               int64                  `json:"sizeTxs"`
+	Timestamp             time.Duration          `json:"timestamp"`
+	StateRootHash         string                 `json:"stateRootHash"`
+	PrevHash              string                 `json:"prevHash"`
+	ShardID               uint32                 `json:"shardId"`
+	TxCount               uint32                 `json:"txCount"`
+	NotarizedTxsCount     uint32                 `json:"notarizedTxsCount"`
+	AccumulatedFees       string                 `json:"accumulatedFees"`
+	DeveloperFees         string                 `json:"developerFees"`
+	EpochStartBlock       bool                   `json:"epochStartBlock"`
+	SearchOrder           uint64                 `json:"searchOrder"`
+	EpochStartInfo        *EpochStartInfo        `json:"epochStartInfo,omitempty"`
+	GasProvided           uint64                 `json:"gasProvided"`
+	GasRefunded           uint64                 `json:"gasRefunded"`
+	GasPenalized          uint64                 `json:"gasPenalized"`
+	MaxGasLimit           uint64                 `json:"maxGasLimit"`
+	ScheduledData         *ScheduledData         `json:"scheduledData,omitempty"`
+	EpochStartShardsData  []*EpochStartShardData `json:"epochStartShardsData,omitempty"`
 }
 
 // ScheduledData is a structure that hold information about scheduled events
@@ -59,13 +60,27 @@ type EpochStartInfo struct {
 	PrevEpochStartHash               string `json:"prevEpochStartHash"`
 }
 
+// EpochStartShardData is a structure that hold information about epoch start meta block shard data
+type EpochStartShardData struct {
+	ShardID                 uint32       `json:"shardID,omitempty"`
+	Epoch                   uint32       `json:"epoch,omitempty"`
+	Round                   uint64       `json:"round,omitempty"`
+	Nonce                   uint64       `json:"nonce,omitempty"`
+	HeaderHash              string       `json:"headerHash,omitempty"`
+	RootHash                string       `json:"rootHash,omitempty"`
+	ScheduledRootHash       string       `json:"scheduledRootHash,omitempty"`
+	FirstPendingMetaBlock   string       `json:"firstPendingMetaBlock,omitempty"`
+	LastFinishedMetaBlock   string       `json:"lastFinishedMetaBlock,omitempty"`
+	PendingMiniBlockHeaders []*Miniblock `json:"pendingMiniBlockHeaders,omitempty"`
+}
+
 // Miniblock is a structure containing miniblock information
 type Miniblock struct {
-	Hash                        string        `json:"-"`
+	Hash                        string        `json:"hash,omitempty"`
 	SenderShardID               uint32        `json:"senderShard"`
 	ReceiverShardID             uint32        `json:"receiverShard"`
-	SenderBlockHash             string        `json:"senderBlockHash"`
-	ReceiverBlockHash           string        `json:"receiverBlockHash"`
+	SenderBlockHash             string        `json:"senderBlockHash,omitempty"`
+	ReceiverBlockHash           string        `json:"receiverBlockHash,omitempty"`
 	Type                        string        `json:"type"`
 	ProcessingTypeOnSource      string        `json:"procTypeS,omitempty"`
 	ProcessingTypeOnDestination string        `json:"procTypeD,omitempty"`

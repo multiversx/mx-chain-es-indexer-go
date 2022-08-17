@@ -161,6 +161,47 @@ func (bp *blockProcessor) addEpochStartInfoForMeta(header coreData.HeaderHandler
 		PrevEpochStartRound:              metaHeaderEconomics.PrevEpochStartRound,
 		PrevEpochStartHash:               hex.EncodeToString(metaHeaderEconomics.PrevEpochStartHash),
 	}
+	if len(metaHeader.EpochStart.LastFinalizedHeaders) == 0 {
+		return
+	}
+
+	epochStartShardsData := metaHeader.EpochStart.LastFinalizedHeaders
+	block.EpochStartShardsData = make([]*data.EpochStartShardData, 0, len(metaHeader.EpochStart.LastFinalizedHeaders))
+	for _, epochStartShardData := range epochStartShardsData {
+		bp.addEpochStartShardDataForMeta(epochStartShardData, block)
+	}
+}
+
+func (bp *blockProcessor) addEpochStartShardDataForMeta(epochStartShardData nodeBlock.EpochStartShardData, block *data.Block) {
+	shardData := &data.EpochStartShardData{
+		ShardID:               epochStartShardData.ShardID,
+		Epoch:                 epochStartShardData.Epoch,
+		Round:                 epochStartShardData.Round,
+		Nonce:                 epochStartShardData.Nonce,
+		HeaderHash:            hex.EncodeToString(epochStartShardData.HeaderHash),
+		RootHash:              hex.EncodeToString(epochStartShardData.RootHash),
+		ScheduledRootHash:     hex.EncodeToString(epochStartShardData.ScheduledRootHash),
+		FirstPendingMetaBlock: hex.EncodeToString(epochStartShardData.FirstPendingMetaBlock),
+		LastFinishedMetaBlock: hex.EncodeToString(epochStartShardData.LastFinishedMetaBlock),
+	}
+
+	if len(epochStartShardData.PendingMiniBlockHeaders) == 0 {
+		block.EpochStartShardsData = append(block.EpochStartShardsData, shardData)
+		return
+	}
+
+	shardData.PendingMiniBlockHeaders = make([]*data.Miniblock, 0, len(epochStartShardData.PendingMiniBlockHeaders))
+	for _, pendingMb := range epochStartShardData.PendingMiniBlockHeaders {
+		shardData.PendingMiniBlockHeaders = append(shardData.PendingMiniBlockHeaders, &data.Miniblock{
+			Hash:            hex.EncodeToString(pendingMb.Hash),
+			SenderShardID:   pendingMb.SenderShardID,
+			ReceiverShardID: pendingMb.ReceiverShardID,
+			Type:            pendingMb.Type.String(),
+			Reserved:        pendingMb.Reserved,
+		})
+	}
+
+	block.EpochStartShardsData = append(block.EpochStartShardsData, shardData)
 }
 
 func (bp *blockProcessor) getEncodedMBSHashes(body *block.Body) []string {

@@ -2,6 +2,9 @@ package factory
 
 import (
 	"fmt"
+	"math"
+	"net/http"
+	"time"
 
 	indexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/client"
@@ -11,8 +14,11 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	"github.com/ElrondNetwork/elrond-go-core/hashing"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
+	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/elastic/go-elasticsearch/v7"
 )
+
+var log = logger.GetOrCreate("indexer/factory")
 
 // ArgsIndexerFactory holds all dependencies required by the data indexer factory in order to create
 // new instances
@@ -70,12 +76,21 @@ func NewIndexer(args *ArgsIndexerFactory) (indexer.Indexer, error) {
 	return indexer.NewDataIndexer(arguments)
 }
 
+func retryBackOff(attempt int) time.Duration {
+	d := time.Duration(math.Exp2(float64(attempt))) * time.Second
+	log.Debug("elastic: retry backoff", "attempt", attempt, "sleep duration", d)
+
+	return d
+}
+
 func createElasticProcessor(args *ArgsIndexerFactory) (indexer.ElasticProcessor, error) {
 	databaseClient, err := client.NewElasticClient(elasticsearch.Config{
-		Addresses: []string{args.Url},
-		Username:  args.UserName,
-		Password:  args.Password,
-		Logger:    &logging.CustomLogger{},
+		Addresses:     []string{args.Url},
+		Username:      args.UserName,
+		Password:      args.Password,
+		Logger:        &logging.CustomLogger{},
+		RetryOnStatus: []int{http.StatusConflict},
+		RetryBackoff:  retryBackOff,
 	})
 	if err != nil {
 		return nil, err
