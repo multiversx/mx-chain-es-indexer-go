@@ -2,6 +2,7 @@ package rest
 
 import (
 	"encoding/json"
+	"fmt"
 	"math"
 	"net/http"
 	"time"
@@ -9,6 +10,8 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/tools/accounts-balance-checker/pkg/utils"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 )
+
+const maxNumOfRetries = 10
 
 var log = logger.GetOrCreate("restClient")
 
@@ -46,15 +49,20 @@ func (rc *restClient) CallGetRestEndPoint(
 	var count = 0
 TryAgain:
 	resp, err := rc.httpClient.Do(req)
-	if err != nil {
-		return err
+	if err != nil && count < maxNumOfRetries {
+		log.Warn("rc.httpClient.Do", "error", err)
+		count++
+		sleep(count)
+		goto TryAgain
 	}
+	if err != nil {
+		return fmt.Errorf("too many retries, error: %w", err)
+	}
+
 	if resp.StatusCode == http.StatusTooManyRequests || resp.StatusCode == http.StatusRequestTimeout {
 		_ = resp.Body.Close()
 		count++
-		// a simple exponential delay
-		delay := time.Duration(math.Exp2(float64(count))) * time.Second
-		time.Sleep(delay)
+		sleep(count)
 		goto TryAgain
 	}
 
@@ -71,4 +79,9 @@ TryAgain:
 	}
 
 	return nil
+}
+
+func sleep(count int) {
+	delay := time.Duration(math.Exp2(float64(count))) * time.Second
+	time.Sleep(delay)
 }

@@ -74,7 +74,7 @@ func (bc *balanceChecker) compareBalancesFromES(addr string, tokenBalanceMap map
 
 	tryAgain := bc.compareBalances(tokenBalanceMap, balancesFromProxy, addr, true)
 	if tryAgain {
-		err := bc.getFromESAndCompose(addr, balancesFromProxy, len(tokenBalanceMap))
+		err := bc.getFromESAndCompare(addr, balancesFromProxy, len(tokenBalanceMap))
 		if err != nil {
 			log.Warn("cannot compare second time", "address", addr, "error", err)
 		}
@@ -82,7 +82,7 @@ func (bc *balanceChecker) compareBalancesFromES(addr string, tokenBalanceMap map
 	}
 }
 
-func (bc *balanceChecker) getFromESAndCompose(address string, balancesFromProxy map[string]string, numBalancesFromEs int) error {
+func (bc *balanceChecker) getFromESAndCompare(address string, balancesFromProxy map[string]string, numBalancesFromEs int) error {
 	log.Info("second compare", "address", address, "total compared till now", atomic.LoadUint64(&countTotalCompared))
 
 	balancesES, err := bc.getESDBalancesFromES(address, numBalancesFromEs)
