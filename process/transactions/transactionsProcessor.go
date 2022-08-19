@@ -183,7 +183,6 @@ func (tdp *txsDatabaseProcessor) GetRewardsTxsHashesHexEncoded(header coreData.H
 		isDstMe := selfShardID == miniblock.ReceiverShardID
 		notMeta := header.GetShardID() != core.MetachainShardId
 		if isDstMe && notMeta {
-			// reward miniblock is always cross-shard
 			continue
 		}
 
