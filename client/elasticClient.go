@@ -15,8 +15,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
 
-// TODO add more unit tests
-
 const (
 	errPolicyAlreadyExists = "document already exists"
 )
@@ -152,31 +150,23 @@ func (ec *elasticClient) DoMultiGet(ids []string, index string, withSource bool,
 	return nil
 }
 
-// DoBulkRemove will do a bulk remove to elasticsearch server
-func (ec *elasticClient) DoBulkRemove(index string, hashes []string) error {
-	obj := prepareHashesForBulkRemove(hashes)
-	body, err := encode(obj)
-	if err != nil {
-		return err
-	}
-
+// DoQueryRemove will do a query remove to elasticsearch server
+func (ec *elasticClient) DoQueryRemove(index string, body *bytes.Buffer) error {
 	res, err := ec.es.DeleteByQuery(
 		[]string{index},
-		&body,
+		body,
 		ec.es.DeleteByQuery.WithIgnoreUnavailable(true),
 	)
 
 	if err != nil {
-		log.Warn("elasticClient.DoBulkRemove",
-			"cannot do bulk remove", err.Error())
+		log.Warn("elasticClient.DoQueryRemove", "cannot do query remove", err.Error())
 		return err
 	}
 
 	var decodedBody objectsMap
 	err = parseResponse(res, &decodedBody, elasticDefaultErrorResponseHandler)
 	if err != nil {
-		log.Warn("elasticClient.DoBulkRemove",
-			"error parsing response", err.Error())
+		log.Warn("elasticClient.DoQueryRemove", "error parsing response", err.Error())
 		return err
 	}
 

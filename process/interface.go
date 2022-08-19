@@ -15,7 +15,7 @@ import (
 type DatabaseClientHandler interface {
 	DoRequest(req *esapi.IndexRequest) error
 	DoBulkRequest(buff *bytes.Buffer, index string) error
-	DoBulkRemove(index string, hashes []string) error
+	DoQueryRemove(index string, buff *bytes.Buffer) error
 	DoMultiGet(ids []string, index string, withSource bool, res interface{}) error
 	DoScrollRequest(index string, body []byte, withSource bool, handlerFunc func(responseBytes []byte) error) error
 	DoCountRequest(index string, body []byte) (uint64, error)

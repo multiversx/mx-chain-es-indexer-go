@@ -34,6 +34,7 @@ type removeIndexer interface {
 	RemoveHeader(header coreData.HeaderHandler) error
 	RemoveMiniblocks(header coreData.HeaderHandler, body *block.Body) error
 	RemoveTransactions(header coreData.HeaderHandler, body *block.Body) error
+	RemoveAccountsESDT(headerTimestamp uint64) error
 }
 
 type saveRounds interface {
