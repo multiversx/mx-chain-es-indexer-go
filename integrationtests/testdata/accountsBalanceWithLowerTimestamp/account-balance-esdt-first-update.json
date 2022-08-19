@@ -4,5 +4,6 @@
   "balanceNum": 1e-15,
   "token": "TTTT-abcd",
   "timestamp": 5600,
-  "type": "FungibleESDT"
+  "type": "FungibleESDT",
+  "shardID": 0
 }
