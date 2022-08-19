@@ -257,6 +257,9 @@ func (bc *balanceChecker) getAccountsByQuery(query string) (balancesESDT, error)
 		return nil, err
 	}
 
+	//file, _ := json.MarshalIndent(&balances, "", " ")
+	//_ = ioutil.WriteFile("accounts-esdt.json", file, 0644)
+
 	return balances, nil
 }
 
