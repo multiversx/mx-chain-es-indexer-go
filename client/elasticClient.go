@@ -28,7 +28,7 @@ type (
 
 type elasticClient struct {
 	elasticBaseUrl string
-	es             *elasticsearch.Client
+	client         *elasticsearch.Client
 
 	// countScroll is used to be incremented after each scroll so the scroll duration is different each time,
 	// bypassing any possible caching based on the same request
@@ -47,7 +47,7 @@ func NewElasticClient(cfg elasticsearch.Config) (*elasticClient, error) {
 	}
 
 	ec := &elasticClient{
-		es:             es,
+		client:         es,
 		elasticBaseUrl: cfg.Addresses[0],
 	}
 
@@ -92,7 +92,7 @@ func (ec *elasticClient) CheckAndCreateAlias(alias string, indexName string) err
 
 // DoRequest will do a request to elastic server
 func (ec *elasticClient) DoRequest(req *esapi.IndexRequest) error {
-	res, err := req.Do(context.Background(), ec.es)
+	res, err := req.Do(context.Background(), ec.client)
 	if err != nil {
 		return err
 	}
@@ -106,10 +106,10 @@ func (ec *elasticClient) DoBulkRequest(buff *bytes.Buffer, index string) error {
 
 	options := make([]func(*esapi.BulkRequest), 0)
 	if index != "" {
-		options = append(options, ec.es.Bulk.WithIndex(index))
+		options = append(options, ec.client.Bulk.WithIndex(index))
 	}
 
-	res, err := ec.es.Bulk(
+	res, err := ec.client.Bulk(
 		reader,
 		options...,
 	)
@@ -130,9 +130,9 @@ func (ec *elasticClient) DoMultiGet(ids []string, index string, withSource bool,
 		return err
 	}
 
-	res, err := ec.es.Mget(
+	res, err := ec.client.Mget(
 		&body,
-		ec.es.Mget.WithIndex(index),
+		ec.client.Mget.WithIndex(index),
 	)
 	if err != nil {
 		log.Warn("elasticClient.DoMultiGet",
@@ -152,10 +152,15 @@ func (ec *elasticClient) DoMultiGet(ids []string, index string, withSource bool,
 
 // DoQueryRemove will do a query remove to elasticsearch server
 func (ec *elasticClient) DoQueryRemove(index string, body *bytes.Buffer) error {
-	res, err := ec.es.DeleteByQuery(
+	if err := ec.doRefresh(index); err != nil {
+		log.Warn("elasticClient.doRefresh", "cannot to refresh", err.Error())
+	}
+
+	res, err := ec.client.DeleteByQuery(
 		[]string{index},
 		body,
-		ec.es.DeleteByQuery.WithIgnoreUnavailable(true),
+		ec.client.DeleteByQuery.WithIgnoreUnavailable(true),
+		ec.client.DeleteByQuery.WithConflicts("proceed"),
 	)
 
 	if err != nil {
@@ -163,8 +168,7 @@ func (ec *elasticClient) DoQueryRemove(index string, body *bytes.Buffer) error {
 		return err
 	}
 
-	var decodedBody objectsMap
-	err = parseResponse(res, &decodedBody, elasticDefaultErrorResponseHandler)
+	err = parseResponse(res, nil, elasticDefaultErrorResponseHandler)
 	if err != nil {
 		log.Warn("elasticClient.DoQueryRemove", "error parsing response", err.Error())
 		return err
@@ -173,15 +177,27 @@ func (ec *elasticClient) DoQueryRemove(index string, body *bytes.Buffer) error {
 	return nil
 }
 
+func (ec *elasticClient) doRefresh(index string) error {
+	res, err := ec.client.Indices.Refresh(
+		ec.client.Indices.Refresh.WithIndex(index),
+		ec.client.Indices.Refresh.WithIgnoreUnavailable(true),
+	)
+	if err != nil {
+		return err
+	}
+
+	return parseResponse(res, nil, elasticDefaultErrorResponseHandler)
+}
+
 // TemplateExists checks weather a template is already created
 func (ec *elasticClient) templateExists(index string) bool {
-	res, err := ec.es.Indices.ExistsTemplate([]string{index})
+	res, err := ec.client.Indices.ExistsTemplate([]string{index})
 	return exists(res, err)
 }
 
 // IndexExists checks if a given index already exists
 func (ec *elasticClient) indexExists(index string) bool {
-	res, err := ec.es.Indices.Exists([]string{index})
+	res, err := ec.client.Indices.Exists([]string{index})
 	return exists(res, err)
 }
 
@@ -195,7 +211,7 @@ func (ec *elasticClient) PolicyExists(policy string) bool {
 	)
 
 	req := newRequest(http.MethodGet, policyRoute, nil)
-	res, err := ec.es.Transport.Perform(req)
+	res, err := ec.client.Transport.Perform(req)
 	if err != nil {
 		log.Warn("elasticClient.PolicyExists",
 			"error performing request", err.Error())
@@ -227,7 +243,7 @@ func (ec *elasticClient) aliasExists(alias string) bool {
 	)
 
 	req := newRequest(http.MethodHead, aliasRoute, nil)
-	res, err := ec.es.Transport.Perform(req)
+	res, err := ec.client.Transport.Perform(req)
 	if err != nil {
 		log.Warn("elasticClient.AliasExists",
 			"error performing request", err.Error())
@@ -245,7 +261,7 @@ func (ec *elasticClient) aliasExists(alias string) bool {
 
 // CreateIndex creates an elasticsearch index
 func (ec *elasticClient) createIndex(index string) error {
-	res, err := ec.es.Indices.Create(index)
+	res, err := ec.client.Indices.Create(index)
 	if err != nil {
 		return err
 	}
@@ -264,7 +280,7 @@ func (ec *elasticClient) createPolicy(policyName string, policy *bytes.Buffer) e
 	req := newRequest(http.MethodPut, policyRoute, policy)
 	req.Header[headerContentType] = headerContentTypeJSON
 	req.Header[headerXSRF] = []string{"false"}
-	res, err := ec.es.Transport.Perform(req)
+	res, err := ec.client.Transport.Perform(req)
 	if err != nil {
 		return err
 	}
@@ -291,7 +307,7 @@ func (ec *elasticClient) createPolicy(policyName string, policy *bytes.Buffer) e
 
 // CreateIndexTemplate creates an elasticsearch index template
 func (ec *elasticClient) createIndexTemplate(templateName string, template io.Reader) error {
-	res, err := ec.es.Indices.PutTemplate(templateName, template)
+	res, err := ec.client.Indices.PutTemplate(templateName, template)
 	if err != nil {
 		return err
 	}
@@ -301,7 +317,7 @@ func (ec *elasticClient) createIndexTemplate(templateName string, template io.Re
 
 // CreateAlias creates an index alias
 func (ec *elasticClient) createAlias(alias string, index string) error {
-	res, err := ec.es.Indices.PutAlias([]string{index}, alias)
+	res, err := ec.client.Indices.PutAlias([]string{index}, alias)
 	if err != nil {
 		return err
 	}
