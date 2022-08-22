@@ -327,7 +327,7 @@ func (ei *elasticProcessor) RemoveTransactions(header coreData.HeaderHandler, bo
 
 // RemoveAccountsESDT will remove data from accountsesdt index and accountsesdthistory
 func (ei *elasticProcessor) RemoveAccountsESDT(headerTimestamp uint64) error {
-	query := fmt.Sprintf(`{"query": {"bool": {"must": [{"match": {"shardID": {"query": %d,"operator": "AND"}}},{"match": {"timestamp": {"query": %d,"operator": "AND"}}}]}}}`, ei.selfShardID, headerTimestamp)
+	query := fmt.Sprintf(`{"query": {"bool": {"must": [{"match": {"shardID": {"query": %d,"operator": "AND"}}},{"match": {"timestamp": {"query": "%d","operator": "AND"}}}]}}}`, ei.selfShardID, headerTimestamp)
 	err := ei.elasticClient.DoQueryRemove(
 		elasticIndexer.AccountsESDTIndex,
 		bytes.NewBuffer([]byte(query)),
