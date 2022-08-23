@@ -15,6 +15,7 @@ type WorkItemHandler interface {
 
 type saveBlockIndexer interface {
 	SaveHeader(
+		headerHash []byte,
 		header coreData.HeaderHandler,
 		signersIndexes []uint64,
 		body *block.Body,

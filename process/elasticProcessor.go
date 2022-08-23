@@ -247,6 +247,7 @@ func getTemplateByName(templateName string, templateList map[string]*bytes.Buffe
 
 // SaveHeader will prepare and save information about a header in elasticsearch server
 func (ei *elasticProcessor) SaveHeader(
+	headerHash []byte,
 	header coreData.HeaderHandler,
 	signersIndexes []uint64,
 	body *block.Body,
@@ -258,7 +259,7 @@ func (ei *elasticProcessor) SaveHeader(
 		return nil
 	}
 
-	elasticBlock, err := ei.blockProc.PrepareBlockForDB(header, signersIndexes, body, notarizedHeadersHashes, gasConsumptionData, txsSize)
+	elasticBlock, err := ei.blockProc.PrepareBlockForDB(headerHash, header, signersIndexes, body, notarizedHeadersHashes, gasConsumptionData, txsSize)
 	if err != nil {
 		return err
 	}

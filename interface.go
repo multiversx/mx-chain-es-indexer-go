@@ -22,6 +22,7 @@ type DispatcherHandler interface {
 // ElasticProcessor defines the interface for the elastic search indexer
 type ElasticProcessor interface {
 	SaveHeader(
+		headerHash []byte,
 		header coreData.HeaderHandler,
 		signersIndexes []uint64,
 		body *block.Body,

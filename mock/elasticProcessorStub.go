@@ -10,6 +10,7 @@ import (
 // ElasticProcessorStub -
 type ElasticProcessorStub struct {
 	SaveHeaderCalled func(
+		headerHash []byte,
 		header coreData.HeaderHandler,
 		signersIndexes []uint64,
 		body *block.Body,
@@ -40,6 +41,7 @@ func (eim *ElasticProcessorStub) RemoveAccountsESDT(headerTimestamp uint64) erro
 
 // SaveHeader -
 func (eim *ElasticProcessorStub) SaveHeader(
+	headerHash []byte,
 	header coreData.HeaderHandler,
 	signersIndexes []uint64,
 	body *block.Body,
@@ -47,7 +49,7 @@ func (eim *ElasticProcessorStub) SaveHeader(
 	gasConsumptionData indexer.HeaderGasConsumption,
 	txsSize int) error {
 	if eim.SaveHeaderCalled != nil {
-		return eim.SaveHeaderCalled(header, signersIndexes, body, notarizedHeadersHashes, gasConsumptionData, txsSize)
+		return eim.SaveHeaderCalled(headerHash, header, signersIndexes, body, notarizedHeadersHashes, gasConsumptionData, txsSize)
 	}
 	return nil
 }

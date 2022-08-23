@@ -46,6 +46,7 @@ type DBAccountHandler interface {
 // DBBlockHandler defines the actions that a block handler should do
 type DBBlockHandler interface {
 	PrepareBlockForDB(
+		headerHash []byte,
 		header coreData.HeaderHandler,
 		signersIndexes []uint64,
 		body *block.Body,
