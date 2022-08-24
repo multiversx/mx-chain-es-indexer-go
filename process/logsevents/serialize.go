@@ -25,7 +25,7 @@ func (logsAndEventsProcessor) SerializeLogs(logs []*data.Logs, buffSlice *data.B
 			ctx._source = params.log
 		} else {
 			if (ctx._source.containsKey('timestamp')) {
-				if (ctx._source.timestamp <= params.account.timestamp) {
+				if (ctx._source.timestamp <= params.log.timestamp) {
 					ctx._source = params.log
 				}
 			} else {
