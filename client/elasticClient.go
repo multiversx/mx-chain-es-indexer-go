@@ -15,7 +15,10 @@ import (
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
 
+// TODO add more unit tests
+
 const (
+	esConflictsPolicy      = "proceed"
 	errPolicyAlreadyExists = "document already exists"
 )
 
@@ -160,7 +163,7 @@ func (ec *elasticClient) DoQueryRemove(index string, body *bytes.Buffer) error {
 		[]string{index},
 		body,
 		ec.client.DeleteByQuery.WithIgnoreUnavailable(true),
-		ec.client.DeleteByQuery.WithConflicts("proceed"),
+		ec.client.DeleteByQuery.WithConflicts(esConflictsPolicy),
 	)
 
 	if err != nil {

@@ -33,9 +33,9 @@ func PrepareHashesForQueryRemove(hashes []string) *bytes.Buffer {
 		hashes = []string{}
 	}
 
-	hashesM, _ := json.Marshal(hashes)
+	serializedHashes, _ := json.Marshal(hashes)
 	query := `{"query": {"ids": {"values": %s}}}`
-	deleteQuery := fmt.Sprintf(query, hashesM)
+	deleteQuery := fmt.Sprintf(query, serializedHashes)
 
 	return bytes.NewBuffer([]byte(deleteQuery))
 }
