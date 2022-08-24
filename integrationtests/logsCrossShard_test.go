@@ -49,14 +49,14 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 						nil,
 					},
 				},
-				TxHash: "h1",
+				TxHash: "cross-log",
 			},
 		},
 	}
 	err = esProc.SaveTransactions(body, header, pool)
 	require.Nil(t, err)
 
-	ids := []string{hex.EncodeToString([]byte("h1"))}
+	ids := []string{hex.EncodeToString([]byte("cross-log"))}
 	genericResponse := &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.LogsIndex, true, genericResponse)
 	require.Nil(t, err)
@@ -90,7 +90,7 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 						nil,
 					},
 				},
-				TxHash: "h1",
+				TxHash: "cross-log",
 			},
 		},
 	}
@@ -123,7 +123,7 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 						nil,
 					},
 				},
-				TxHash: "h1",
+				TxHash: "cross-log",
 			},
 		},
 	}
