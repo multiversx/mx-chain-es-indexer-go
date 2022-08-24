@@ -35,8 +35,8 @@ func TestLogsAndEventsProcessor_SerializeLogs(t *testing.T) {
 	err := (&logsAndEventsProcessor{}).SerializeLogs(logs, buffSlice, "logs")
 	require.Nil(t, err)
 
-	expectedRes := `{ "index" : {"_index":"logs", "_id" : "747848617368" } }
-{"address":"61646472657373","events":[{"address":"61646472","identifier":"ESDTNFTTransfer","topics":["bXktdG9rZW4=","AQ==","cmVjZWl2ZXI="],"data":"ZGF0YQ==","order":0}],"timestamp":1234}
+	expectedRes := `{ "update" : { "_index":"logs", "_id" : "747848617368" } }
+{"scripted_upsert": true, "script": {"source": "if ('create' == ctx.op) {ctx._source = params.log} else {if (ctx._source.containsKey('timestamp')) {if (ctx._source.timestamp <= params.account.timestamp) {ctx._source = params.log}} else {ctx._source = params.log}}","lang": "painless","params": { "log": {"address":"61646472657373","events":[{"address":"61646472","identifier":"ESDTNFTTransfer","topics":["bXktdG9rZW4=","AQ==","cmVjZWl2ZXI="],"data":"ZGF0YQ==","order":0}],"timestamp":1234} }},"upsert": {}}
 `
 	require.Equal(t, expectedRes, buffSlice.Buffers()[0].String())
 }
