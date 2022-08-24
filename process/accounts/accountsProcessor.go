@@ -20,7 +20,7 @@ import (
 
 var log = logger.GetOrCreate("indexer/process/accounts")
 
-// accountsProcessor is structure responsible for processing accounts
+// accountsProcessor is a structure responsible for processing accounts
 type accountsProcessor struct {
 	internalMarshalizer    marshal.Marshalizer
 	addressPubkeyConverter core.PubkeyConverter
