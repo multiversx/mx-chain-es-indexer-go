@@ -1,7 +1,9 @@
 package converters
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 )
@@ -23,4 +25,17 @@ func JsonEscape(i string) string {
 
 	// Trim the beginning and trailing " character
 	return string(b[1 : len(b)-1])
+}
+
+// PrepareHashesForQueryRemove will prepare the provided hashes for query remove
+func PrepareHashesForQueryRemove(hashes []string) *bytes.Buffer {
+	if len(hashes) == 0 {
+		hashes = []string{}
+	}
+
+	serializedHashes, _ := json.Marshal(hashes)
+	query := `{"query": {"ids": {"values": %s}}}`
+	deleteQuery := fmt.Sprintf(query, serializedHashes)
+
+	return bytes.NewBuffer([]byte(deleteQuery))
 }
