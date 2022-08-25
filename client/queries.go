@@ -28,13 +28,3 @@ func getDocumentsByIDsQuery(hashes []string, withSource bool) objectsMap {
 		"docs": interfaceSlice,
 	}
 }
-
-func prepareHashesForBulkRemove(hashes []string) objectsMap {
-	return objectsMap{
-		"query": objectsMap{
-			"ids": objectsMap{
-				"values": hashes,
-			},
-		},
-	}
-}

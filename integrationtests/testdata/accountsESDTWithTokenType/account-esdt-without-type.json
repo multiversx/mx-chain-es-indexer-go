@@ -11,5 +11,6 @@
 		"nonEmptyURIs": false,
 		"whiteListedStorage": false
 	},
-	"timestamp": 5600
+	"timestamp": 5600,
+	"shardID": 0
 }

@@ -51,5 +51,5 @@ func (wirb *itemRemoveBlock) Save() error {
 		return err
 	}
 
-	return nil
+	return wirb.indexer.RemoveAccountsESDT(wirb.headerHandler.GetTimeStamp())
 }

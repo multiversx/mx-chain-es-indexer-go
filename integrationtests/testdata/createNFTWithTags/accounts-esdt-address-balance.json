@@ -21,5 +21,6 @@
   "tokenNonce": 1,
   "properties": "6f6b",
   "token": "DESK-abcd",
-  "timestamp": 5600
+  "timestamp": 5600,
+  "shardID": 0
 }
