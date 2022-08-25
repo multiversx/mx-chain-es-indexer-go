@@ -27,9 +27,9 @@ func (tps *DBTransactionProcessorStub) PrepareTransactionsForDatabase(body *bloc
 	return nil
 }
 
-// GetRewardsTxsHashesHexEncoded -
-func (tps *DBTransactionProcessorStub) GetRewardsTxsHashesHexEncoded(_ coreData.HeaderHandler, _ *block.Body) []string {
-	return nil
+// GetHashesHexEncodedForRemove -
+func (tps *DBTransactionProcessorStub) GetHashesHexEncodedForRemove(_ coreData.HeaderHandler, _ *block.Body) ([]string, []string) {
+	return nil, nil
 }
 
 // SerializeReceipts -

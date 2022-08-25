@@ -162,35 +162,36 @@ func (tdp *txsDatabaseProcessor) setTransactionSearchOrder(transactions map[stri
 	return transactions
 }
 
-// GetRewardsTxsHashesHexEncoded will return reward transactions hashes from body hex encoded
-func (tdp *txsDatabaseProcessor) GetRewardsTxsHashesHexEncoded(header coreData.HeaderHandler, body *block.Body) []string {
+// GetHashesHexEncodedForRemove will return transactions hashes from body hex encoded
+func (tdp *txsDatabaseProcessor) GetHashesHexEncodedForRemove(header coreData.HeaderHandler, body *block.Body) ([]string, []string) {
 	if body == nil || check.IfNil(header) || len(header.GetMiniBlockHeadersHashes()) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	selfShardID := header.GetShardID()
 	encodedTxsHashes := make([]string, 0)
+	encodedScrsHashes := make([]string, 0)
 	for _, miniblock := range body.MiniBlocks {
-		if miniblock.Type != block.RewardsBlock {
+		shouldIgnore := miniblock.SenderShardID != miniblock.ReceiverShardID && miniblock.SenderShardID == selfShardID
+		if shouldIgnore {
+			// ignore cross-shard miniblocks at source
 			continue
 		}
 
 		if tdp.txsGrouper.isInImportMode {
-			// do not delete rewards transactions on import DB
-			continue
-		}
-
-		isDstMe := selfShardID == miniblock.ReceiverShardID
-		notMeta := header.GetShardID() != core.MetachainShardId
-		if isDstMe && notMeta {
+			// do not delete transactions on import DB
 			continue
 		}
 
 		txsHashesFromMiniblock := getTxsHashesFromMiniblockHexEncoded(miniblock)
+		if miniblock.Type == block.SmartContractResultBlock {
+			encodedScrsHashes = append(encodedScrsHashes, txsHashesFromMiniblock...)
+			continue
+		}
 		encodedTxsHashes = append(encodedTxsHashes, txsHashesFromMiniblock...)
 	}
 
-	return encodedTxsHashes
+	return encodedTxsHashes, encodedScrsHashes
 }
 
 func shouldIgnoreProcessedMBScheduled(header coreData.HeaderHandler, mbIndex int) bool {
