@@ -49,6 +49,7 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 ) *data.Transaction {
 	gasUsed := dtb.txFeeCalculator.ComputeGasLimit(tx)
 	fee := dtb.txFeeCalculator.ComputeTxFeeBasedOnGasUsed(tx, gasUsed)
+	initialPaidFee := dtb.txFeeCalculator.ComputeTxFeeBasedOnGasUsed(tx, tx.GasLimit)
 
 	isScCall := core.IsSmartContractAddress(tx.RcvAddr)
 	res := dtb.dataFieldParser.Parse(tx.Data, tx.SndAddr, tx.RcvAddr)
@@ -70,6 +71,7 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		Timestamp:            time.Duration(header.GetTimeStamp()),
 		Status:               txStatus,
 		GasUsed:              gasUsed,
+		InitialPaidFee:       initialPaidFee.String(),
 		Fee:                  fee.String(),
 		ReceiverUserName:     tx.RcvUserName,
 		SenderUserName:       tx.SndUserName,
