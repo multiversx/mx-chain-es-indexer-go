@@ -89,6 +89,8 @@ func startCheck(ctx *cli.Context) {
 			log.Error("cannot check balance EGLD", "error", err)
 			return
 		}
+
+		log.Info("done")
 	}
 
 	shouldCheckBalanceESDT := ctx.Bool(checkBalanceESDT.Name)

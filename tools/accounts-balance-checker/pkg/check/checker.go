@@ -73,6 +73,8 @@ func (bc *balanceChecker) handlerFuncScrollAccountEGLD(responseBytes []byte) err
 		go bc.checkBalance(acct.Source, done)
 	}
 
+	log.Info("comparing", "bulk count", countCheck)
+
 	return nil
 }
 

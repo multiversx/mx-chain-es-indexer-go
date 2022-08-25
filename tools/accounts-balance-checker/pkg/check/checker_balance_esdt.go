@@ -47,6 +47,8 @@ func (bc *balanceChecker) CheckESDTBalances() error {
 
 	wg.Wait()
 
+	log.Info("done", "total compared", countTotalCompared)
+
 	return nil
 }
 
