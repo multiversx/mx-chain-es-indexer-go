@@ -317,20 +317,20 @@ func (ei *elasticProcessor) RemoveMiniblocks(header coreData.HeaderHandler, body
 func (ei *elasticProcessor) RemoveTransactions(header coreData.HeaderHandler, body *block.Body) error {
 	encodedTxsHashes, encodedScrsHashes := ei.transactionsProc.GetHexEncodedHashesForRemove(header, body)
 
-	err := ei.removeBasedOnHashesIfNotEmpty(elasticIndexer.TransactionsIndex, encodedTxsHashes)
+	err := ei.removeIfHashesNotEmpty(elasticIndexer.TransactionsIndex, encodedTxsHashes)
 	if err != nil {
 		return err
 	}
 
-	err = ei.removeBasedOnHashesIfNotEmpty(elasticIndexer.ScResultsIndex, encodedScrsHashes)
+	err = ei.removeIfHashesNotEmpty(elasticIndexer.ScResultsIndex, encodedScrsHashes)
 	if err != nil {
 		return err
 	}
 
-	return ei.removeBasedOnHashesIfNotEmpty(elasticIndexer.OperationsIndex, append(encodedTxsHashes, encodedScrsHashes...))
+	return ei.removeIfHashesNotEmpty(elasticIndexer.OperationsIndex, append(encodedTxsHashes, encodedScrsHashes...))
 }
 
-func (ei *elasticProcessor) removeBasedOnHashesIfNotEmpty(index string, hashes []string) error {
+func (ei *elasticProcessor) removeIfHashesNotEmpty(index string, hashes []string) error {
 	if len(hashes) == 0 {
 		return nil
 	}
