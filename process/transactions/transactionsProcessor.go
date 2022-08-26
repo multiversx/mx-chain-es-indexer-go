@@ -162,7 +162,7 @@ func (tdp *txsDatabaseProcessor) setTransactionSearchOrder(transactions map[stri
 	return transactions
 }
 
-// GetHexEncodedHashesForRemove will return hex encoded transactions hashes and smart contract results hashes from body
+// GetHexEncodedHashesForRemove will return hex encoded transaction hashes and smart contract result hashes from body
 func (tdp *txsDatabaseProcessor) GetHexEncodedHashesForRemove(header coreData.HeaderHandler, body *block.Body) ([]string, []string) {
 	if body == nil || check.IfNil(header) || len(header.GetMiniBlockHeadersHashes()) == 0 {
 		return nil, nil
