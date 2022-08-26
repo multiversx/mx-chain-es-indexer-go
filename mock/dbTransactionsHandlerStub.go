@@ -27,8 +27,8 @@ func (tps *DBTransactionProcessorStub) PrepareTransactionsForDatabase(body *bloc
 	return nil
 }
 
-// GetHashesHexEncodedForRemove -
-func (tps *DBTransactionProcessorStub) GetHashesHexEncodedForRemove(_ coreData.HeaderHandler, _ *block.Body) ([]string, []string) {
+// GetHexEncodedHashesForRemove -
+func (tps *DBTransactionProcessorStub) GetHexEncodedHashesForRemove(_ coreData.HeaderHandler, _ *block.Body) ([]string, []string) {
 	return nil, nil
 }
 

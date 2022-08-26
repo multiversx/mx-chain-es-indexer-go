@@ -315,35 +315,29 @@ func (ei *elasticProcessor) RemoveMiniblocks(header coreData.HeaderHandler, body
 
 // RemoveTransactions will remove transaction that are in miniblock from the elasticsearch server
 func (ei *elasticProcessor) RemoveTransactions(header coreData.HeaderHandler, body *block.Body) error {
-	encodedTxsHashes, encodedScrsHashes := ei.transactionsProc.GetHashesHexEncodedForRemove(header, body)
+	encodedTxsHashes, encodedScrsHashes := ei.transactionsProc.GetHexEncodedHashesForRemove(header, body)
 
-	if len(encodedTxsHashes) != 0 {
-		err := ei.elasticClient.DoQueryRemove(
-			elasticIndexer.TransactionsIndex,
-			converters.PrepareHashesForQueryRemove(encodedTxsHashes),
-		)
-		if err != nil {
-			return err
-		}
-	}
-	if len(encodedScrsHashes) != 0 {
-		err := ei.elasticClient.DoQueryRemove(
-			elasticIndexer.ScResultsIndex,
-			converters.PrepareHashesForQueryRemove(encodedScrsHashes),
-		)
-		if err != nil {
-			return err
-		}
+	err := ei.removeBasedOnHashesIfNotEmpty(elasticIndexer.TransactionsIndex, encodedTxsHashes)
+	if err != nil {
+		return err
 	}
 
-	together := append(encodedTxsHashes, encodedScrsHashes...)
-	if len(together) == 0 {
+	err = ei.removeBasedOnHashesIfNotEmpty(elasticIndexer.ScResultsIndex, encodedScrsHashes)
+	if err != nil {
+		return err
+	}
+
+	return ei.removeBasedOnHashesIfNotEmpty(elasticIndexer.OperationsIndex, append(encodedTxsHashes, encodedScrsHashes...))
+}
+
+func (ei *elasticProcessor) removeBasedOnHashesIfNotEmpty(index string, hashes []string) error {
+	if len(hashes) == 0 {
 		return nil
 	}
 
 	return ei.elasticClient.DoQueryRemove(
-		elasticIndexer.OperationsIndex,
-		converters.PrepareHashesForQueryRemove(together),
+		index,
+		converters.PrepareHashesForQueryRemove(hashes),
 	)
 }
 

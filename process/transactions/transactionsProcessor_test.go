@@ -509,7 +509,7 @@ func TestGetRewardsTxsHashesHexEncoded(t *testing.T) {
 
 	txDBProc, _ := NewTransactionsProcessor(createMockArgsTxsDBProc())
 
-	res, _ := txDBProc.GetHashesHexEncodedForRemove(nil, nil)
+	res, _ := txDBProc.GetHexEncodedHashesForRemove(nil, nil)
 	require.Nil(t, res)
 
 	header := &block.Header{
@@ -572,7 +572,7 @@ func TestGetRewardsTxsHashesHexEncoded(t *testing.T) {
 		"6836",
 	}
 
-	txsHashes, scrHashes := txDBProc.GetHashesHexEncodedForRemove(header, body)
+	txsHashes, scrHashes := txDBProc.GetHexEncodedHashesForRemove(header, body)
 	require.Equal(t, expectedHashes, txsHashes)
 	require.Equal(t, expectedScrHashes, scrHashes)
 }
