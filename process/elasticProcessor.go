@@ -315,14 +315,29 @@ func (ei *elasticProcessor) RemoveMiniblocks(header coreData.HeaderHandler, body
 
 // RemoveTransactions will remove transaction that are in miniblock from the elasticsearch server
 func (ei *elasticProcessor) RemoveTransactions(header coreData.HeaderHandler, body *block.Body) error {
-	encodedTxsHashes := ei.transactionsProc.GetRewardsTxsHashesHexEncoded(header, body)
-	if len(encodedTxsHashes) == 0 {
+	encodedTxsHashes, encodedScrsHashes := ei.transactionsProc.GetHexEncodedHashesForRemove(header, body)
+
+	err := ei.removeIfHashesNotEmpty(elasticIndexer.TransactionsIndex, encodedTxsHashes)
+	if err != nil {
+		return err
+	}
+
+	err = ei.removeIfHashesNotEmpty(elasticIndexer.ScResultsIndex, encodedScrsHashes)
+	if err != nil {
+		return err
+	}
+
+	return ei.removeIfHashesNotEmpty(elasticIndexer.OperationsIndex, append(encodedTxsHashes, encodedScrsHashes...))
+}
+
+func (ei *elasticProcessor) removeIfHashesNotEmpty(index string, hashes []string) error {
+	if len(hashes) == 0 {
 		return nil
 	}
 
 	return ei.elasticClient.DoQueryRemove(
-		elasticIndexer.TransactionsIndex,
-		converters.PrepareHashesForQueryRemove(encodedTxsHashes),
+		index,
+		converters.PrepareHashesForQueryRemove(hashes),
 	)
 }
 
