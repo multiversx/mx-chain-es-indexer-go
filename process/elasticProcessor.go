@@ -317,7 +317,6 @@ func (ei *elasticProcessor) RemoveMiniblocks(header coreData.HeaderHandler, body
 func (ei *elasticProcessor) RemoveTransactions(header coreData.HeaderHandler, body *block.Body) error {
 	encodedTxsHashes, encodedScrsHashes := ei.transactionsProc.GetHashesHexEncodedForRemove(header, body)
 
-	together := make([]string, 0)
 	if len(encodedTxsHashes) != 0 {
 		err := ei.elasticClient.DoQueryRemove(
 			elasticIndexer.TransactionsIndex,
@@ -337,7 +336,7 @@ func (ei *elasticProcessor) RemoveTransactions(header coreData.HeaderHandler, bo
 		}
 	}
 
-	together = append(encodedTxsHashes, encodedScrsHashes...)
+	together := append(encodedTxsHashes, encodedScrsHashes...)
 	if len(together) == 0 {
 		return nil
 	}
