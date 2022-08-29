@@ -78,7 +78,7 @@ func (t *Transaction) GetValue() *big.Int {
 	return bigIntValue
 }
 
-// Receipt is a structure containing all the fields that need to be save for a Receipt
+// Receipt is a structure containing all the fields that need to be safe for a Receipt
 type Receipt struct {
 	Hash      string        `json:"-"`
 	Value     string        `json:"value"`

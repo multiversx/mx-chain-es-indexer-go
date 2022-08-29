@@ -2,7 +2,7 @@ package data
 
 import "bytes"
 
-// DefaultMaxBulkSize is the constant for the maximum size of one bulk request that is sent to the elaticsearch database
+// DefaultMaxBulkSize is the constant for the maximum size of one bulk request that is sent to the Elasticsearch database
 const DefaultMaxBulkSize = 4194304 // 4MB
 
 // BufferSlice extend structure bytes.Buffer with new methods

@@ -1,6 +1,6 @@
 package checkers
 
-// ESClient defines what a ES client should do
+// ESClient defines what an ES client should do
 type ESClient interface {
 	InitializeScroll(index string, body []byte, response interface{}) (string, bool, error)
 	DoScrollRequestV2(scrollID string, response interface{}) (string, bool, error)

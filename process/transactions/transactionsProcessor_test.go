@@ -3,7 +3,6 @@ package transactions
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"math/big"
 	"testing"
 
@@ -13,6 +12,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-go-core/data/receipt"
 	"github.com/ElrondNetwork/elrond-go-core/data/rewardTx"
 	"github.com/ElrondNetwork/elrond-go-core/data/smartContractResult"

@@ -11,7 +11,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/core"
 )
 
-// SerializeLogs will serialize the provided logs in a way that Elastic Search expects a bulk request
+// SerializeLogs will serialize the provided logs in a way that Elasticsearch expects a bulk request
 func (*logsAndEventsProcessor) SerializeLogs(logs []*data.Logs, buffSlice *data.BufferSlice, index string) error {
 	for _, lg := range logs {
 		meta := []byte(fmt.Sprintf(`{ "update" : { "_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(lg.ID), "\n"))
@@ -50,7 +50,7 @@ func (*logsAndEventsProcessor) SerializeLogs(logs []*data.Logs, buffSlice *data.
 	return nil
 }
 
-// SerializeSCDeploys will serialize the provided smart contract deploys in a way that Elastic Search expects a bulk request
+// SerializeSCDeploys will serialize the provided smart contract deploys in a way that Elasticsearch expects a bulk request
 func (*logsAndEventsProcessor) SerializeSCDeploys(deploys map[string]*data.ScDeployInfo, buffSlice *data.BufferSlice, index string) error {
 	for scAddr, deployInfo := range deploys {
 		meta := []byte(fmt.Sprintf(`{ "update" : { "_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(scAddr), "\n"))

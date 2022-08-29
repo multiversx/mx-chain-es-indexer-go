@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
+
 	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"

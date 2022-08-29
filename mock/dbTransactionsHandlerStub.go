@@ -14,6 +14,7 @@ type DBTransactionProcessorStub struct {
 	SerializeScResultsCalled             func(scrs []*data.ScResult, buffSlice *data.BufferSlice, index string) error
 }
 
+// SerializeTransactionsFeeData -
 func (tps *DBTransactionProcessorStub) SerializeTransactionsFeeData(_ map[string]*data.FeeData, _ *data.BufferSlice, _ string) error {
 	return nil
 }
