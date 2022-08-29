@@ -13,6 +13,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v7"
 )
 
+// CreateBalanceChecker will create a new instance of balanceChecker
 func CreateBalanceChecker(cfg *config.Config, repair bool) (*balanceChecker, error) {
 	esClient, err := esclient.NewElasticClient(elasticsearch.Config{
 		Addresses: []string{cfg.Elasticsearch.URL},
@@ -47,5 +48,5 @@ func CreateBalanceChecker(cfg *config.Config, repair bool) (*balanceChecker, err
 		return nil, err
 	}
 
-	return NewBalanceChecker(esClient, restClient, pubKeyConverter, balanceToFloat, repair)
+	return NewBalanceChecker(esClient, restClient, pubKeyConverter, balanceToFloat, repair, cfg.Proxy.MaxNumberOfRequestsInParallel)
 }

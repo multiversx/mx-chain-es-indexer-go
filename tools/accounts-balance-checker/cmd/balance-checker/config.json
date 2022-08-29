@@ -5,6 +5,7 @@
     "password": ""
   },
   "proxy": {
-    "url": ""
+    "url": "",
+    "parallel-requests": 40
   }
 }

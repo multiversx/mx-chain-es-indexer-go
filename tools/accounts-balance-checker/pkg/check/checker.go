@@ -10,42 +10,60 @@ import (
 	indexerData "github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/tools/accounts-balance-checker/pkg/utils"
 	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 )
 
 const (
-	accountsIndex                 = "accounts"
-	accountEndpoint               = "/address/%s/balance"
-	maxNumberOfRequestsInParallel = 40
+	accountsIndex          = "accounts"
+	addressBalanceEndpoint = "/address/%s/balance"
 )
 
 var log = logger.GetOrCreate("checker")
 
 type balanceChecker struct {
-	balanceToFloat  indexer.BalanceConverter
-	pubKeyConverter core.PubkeyConverter
-	esClient        ESClientHandler
-	restClient      RestClientHandler
+	balanceToFloat                indexer.BalanceConverter
+	pubKeyConverter               core.PubkeyConverter
+	esClient                      ESClientHandler
+	restClient                    RestClientHandler
+	maxNumberOfRequestsInParallel int
 
 	doRepair bool
 }
 
+// NewBalanceChecker will create a new instance of balanceChecker
 func NewBalanceChecker(
 	esClient ESClientHandler,
 	restClient RestClientHandler,
 	pubKeyConverter core.PubkeyConverter,
 	balanceToFloat indexer.BalanceConverter,
 	repair bool,
+	maxNumberOfRequestsInParallel int,
 ) (*balanceChecker, error) {
+	if check.IfNilReflect(esClient) {
+		return nil, errors.New("nil elastic client")
+	}
+	if check.IfNilReflect(restClient) {
+		return nil, errors.New("nil rest client")
+	}
+	if check.IfNil(pubKeyConverter) {
+		return nil, errors.New("nil pub key converter")
+	}
+	if check.IfNilReflect(balanceToFloat) {
+		return nil, errors.New("nil balance converter")
+	}
+
 	return &balanceChecker{
-		esClient:        esClient,
-		restClient:      restClient,
-		pubKeyConverter: pubKeyConverter,
-		balanceToFloat:  balanceToFloat,
-		doRepair:        repair,
+		esClient:                      esClient,
+		restClient:                    restClient,
+		pubKeyConverter:               pubKeyConverter,
+		balanceToFloat:                balanceToFloat,
+		doRepair:                      repair,
+		maxNumberOfRequestsInParallel: maxNumberOfRequestsInParallel,
 	}, nil
 }
 
+// CheckEGLDBalances will compare the EGLD balance from the Elasticsearch database with the results from gateway
 func (bc *balanceChecker) CheckEGLDBalances() error {
 	return bc.esClient.DoScrollRequestAllDocuments(
 		accountsIndex,
@@ -66,7 +84,7 @@ func (bc *balanceChecker) handlerFuncScrollAccountEGLD(responseBytes []byte) err
 
 	defer utils.LogExecutionTime(log, time.Now(), fmt.Sprintf("checked bulk of accounts %d", countCheck))
 
-	maxGoroutines := maxNumberOfRequestsInParallel
+	maxGoroutines := bc.maxNumberOfRequestsInParallel
 	done := make(chan struct{}, maxGoroutines)
 	for _, acct := range accountsRes.Hits.Hits {
 		done <- struct{}{}
@@ -83,9 +101,6 @@ func (bc *balanceChecker) checkBalance(acct indexerData.AccountInfo, done chan s
 		<-done
 	}()
 
-	if acct.Balance == "0" {
-		return
-	}
 	gatewayBalance, errGetBalance := bc.getAccountBalance(acct.Address)
 	if errGetBalance != nil {
 		log.Error("cannot get balance for address",
@@ -121,7 +136,7 @@ func (bc *balanceChecker) checkBalance(acct indexerData.AccountInfo, done chan s
 }
 
 func (bc *balanceChecker) getAccountBalance(address string) (string, error) {
-	endpoint := fmt.Sprintf(accountEndpoint, address)
+	endpoint := fmt.Sprintf(addressBalanceEndpoint, address)
 
 	accountResponse := &AccountResponse{}
 	err := bc.restClient.CallGetRestEndPoint(endpoint, accountResponse)

@@ -16,6 +16,7 @@ type esClient struct {
 	countScroll int
 }
 
+// NewElasticClient will create a new instance of esClient
 func NewElasticClient(cfg elasticsearch.Config) (*esClient, error) {
 	elasticClient, err := elasticsearch.NewClient(cfg)
 	if err != nil {

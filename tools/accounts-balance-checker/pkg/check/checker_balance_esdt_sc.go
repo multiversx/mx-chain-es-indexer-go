@@ -13,7 +13,7 @@ func (bc *balanceChecker) checkBalancesSC(addr string, balancesFromES map[string
 
 	var (
 		wg    = &sync.WaitGroup{}
-		done  = make(chan struct{}, maxNumberOfRequestsInParallel)
+		done  = make(chan struct{}, bc.maxNumberOfRequestsInParallel)
 		mutex = &sync.Mutex{}
 	)
 

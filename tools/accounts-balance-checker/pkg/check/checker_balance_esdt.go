@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"os"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -26,16 +24,16 @@ const (
 
 var countTotalCompared uint64 = 0
 
+// CheckESDTBalances will compare all the ESDT balances from the Elasticsearch with the results from gateway
 func (bc *balanceChecker) CheckESDTBalances() error {
 	balancesFromEs, err := bc.getAccountsByQuery(matchAllQuery)
-	//balancesFromEs, err := bc.getAllESDTAccountsFromFile()
 	if err != nil {
 		return err
 	}
 
 	log.Info("total accounts with ESDT tokens ", "count", len(balancesFromEs))
 
-	maxGoroutines := maxNumberOfRequestsInParallel
+	maxGoroutines := bc.maxNumberOfRequestsInParallel
 	done, wg := make(chan struct{}, maxGoroutines), &sync.WaitGroup{}
 	for addr, tokenBalanceMap := range balancesFromEs {
 		done <- struct{}{}
@@ -87,7 +85,7 @@ func (bc *balanceChecker) compareBalancesFromES(addr string, tokenBalanceMap map
 func (bc *balanceChecker) getFromESAndCompare(address string, balancesFromProxy map[string]string, numBalancesFromEs int) error {
 	log.Info("second compare", "address", address, "total compared till now", atomic.LoadUint64(&countTotalCompared))
 
-	balancesES, err := bc.getESDBalancesFromES(address, numBalancesFromEs)
+	balancesES, err := bc.getESDTBalancesFromES(address, numBalancesFromEs)
 	if err != nil {
 		return err
 	}
@@ -97,11 +95,11 @@ func (bc *balanceChecker) getFromESAndCompare(address string, balancesFromProxy 
 	return nil
 }
 
-func (bc *balanceChecker) getESDBalancesFromES(address string, numOfBalances int) (balancesESDT, error) {
+func (bc *balanceChecker) getESDTBalancesFromES(address string, numOfBalances int) (balancesESDT, error) {
 	encoded, _ := encodeQuery(getBalancesByAddress(address))
 
 	if numOfBalances > maxDocumentsFromES {
-		log.Info("bc.getESDBalancesFromES", "number of balances", numOfBalances, "address", address)
+		log.Info("bc.getESDTBalancesFromES", "number of balances", numOfBalances, "address", address)
 		return bc.getAccountsByQuery(encoded.String())
 	}
 
@@ -261,16 +259,6 @@ func (bc *balanceChecker) getAccountsByQuery(query string) (balancesESDT, error)
 
 	//file, _ := json.MarshalIndent(&balances, "", " ")
 	//_ = ioutil.WriteFile("accounts-esdt.json", file, 0644)
-
-	return balances, nil
-}
-
-// TODO delete this after testing is done
-func (bc *balanceChecker) getAllESDTAccountsFromFile() (balancesESDT, error) {
-	balances := newBalancesESDT()
-	jsonFile, _ := os.Open("./accounts-esdt.json")
-	byteValue, _ := ioutil.ReadAll(jsonFile)
-	_ = json.Unmarshal(byteValue, &balances)
 
 	return balances, nil
 }
