@@ -15,6 +15,7 @@ type WorkItemHandler interface {
 
 type saveBlockIndexer interface {
 	SaveHeader(
+		headerHash []byte,
 		header coreData.HeaderHandler,
 		signersIndexes []uint64,
 		body *block.Body,
@@ -34,6 +35,7 @@ type removeIndexer interface {
 	RemoveHeader(header coreData.HeaderHandler) error
 	RemoveMiniblocks(header coreData.HeaderHandler, body *block.Body) error
 	RemoveTransactions(header coreData.HeaderHandler, body *block.Body) error
+	RemoveAccountsESDT(headerTimestamp uint64) error
 }
 
 type saveRounds interface {

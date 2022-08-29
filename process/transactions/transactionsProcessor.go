@@ -162,35 +162,43 @@ func (tdp *txsDatabaseProcessor) setTransactionSearchOrder(transactions map[stri
 	return transactions
 }
 
-// GetRewardsTxsHashesHexEncoded will return reward transactions hashes from body hex encoded
-func (tdp *txsDatabaseProcessor) GetRewardsTxsHashesHexEncoded(header coreData.HeaderHandler, body *block.Body) []string {
+// GetHexEncodedHashesForRemove will return hex encoded transaction hashes and smart contract result hashes from body
+func (tdp *txsDatabaseProcessor) GetHexEncodedHashesForRemove(header coreData.HeaderHandler, body *block.Body) ([]string, []string) {
 	if body == nil || check.IfNil(header) || len(header.GetMiniBlockHeadersHashes()) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	selfShardID := header.GetShardID()
 	encodedTxsHashes := make([]string, 0)
+	encodedScrsHashes := make([]string, 0)
 	for _, miniblock := range body.MiniBlocks {
-		if miniblock.Type != block.RewardsBlock {
+		if isCrossShardAtSourceAndNoRewardsMB(selfShardID, miniblock) {
+			// ignore cross-shard miniblocks at source ( exception to this rule are rewards miniblocks)
 			continue
 		}
 
 		if tdp.txsGrouper.isInImportMode {
-			// do not delete rewards transactions on import DB
-			continue
-		}
-
-		isDstMe := selfShardID == miniblock.ReceiverShardID
-		if isDstMe {
-			// reward miniblock is always cross-shard
+			// do not delete transactions on import DB
 			continue
 		}
 
 		txsHashesFromMiniblock := getTxsHashesFromMiniblockHexEncoded(miniblock)
+		if miniblock.Type == block.SmartContractResultBlock {
+			encodedScrsHashes = append(encodedScrsHashes, txsHashesFromMiniblock...)
+			continue
+		}
 		encodedTxsHashes = append(encodedTxsHashes, txsHashesFromMiniblock...)
 	}
 
-	return encodedTxsHashes
+	return encodedTxsHashes, encodedScrsHashes
+}
+
+func isCrossShardAtSourceAndNoRewardsMB(selfShardID uint32, miniblock *block.MiniBlock) bool {
+	isCrossShard := miniblock.SenderShardID != miniblock.ReceiverShardID
+	isAtSource := miniblock.SenderShardID == selfShardID
+	noRewardsMb := miniblock.Type != block.RewardsBlock
+
+	return isCrossShard && isAtSource && noRewardsMb
 }
 
 func shouldIgnoreProcessedMBScheduled(header coreData.HeaderHandler, mbIndex int) bool {

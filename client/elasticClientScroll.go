@@ -15,9 +15,9 @@ import (
 
 // DoCountRequest will get the number of elements that correspond with the provided query
 func (ec *elasticClient) DoCountRequest(index string, body []byte) (uint64, error) {
-	res, err := ec.es.Count(
-		ec.es.Count.WithIndex(index),
-		ec.es.Count.WithBody(bytes.NewBuffer(body)),
+	res, err := ec.client.Count(
+		ec.client.Count.WithIndex(index),
+		ec.client.Count.WithBody(bytes.NewBuffer(body)),
 	)
 	if err != nil {
 		return 0, err
@@ -44,13 +44,13 @@ func (ec *elasticClient) DoScrollRequest(
 	handlerFunc func(responseBytes []byte) error,
 ) error {
 	ec.countScroll++
-	res, err := ec.es.Search(
-		ec.es.Search.WithSize(9000),
-		ec.es.Search.WithScroll(10*time.Minute+time.Duration(ec.countScroll)*time.Millisecond),
-		ec.es.Search.WithContext(context.Background()),
-		ec.es.Search.WithIndex(index),
-		ec.es.Search.WithBody(bytes.NewBuffer(body)),
-		ec.es.Search.WithSource(strconv.FormatBool(withSource)),
+	res, err := ec.client.Search(
+		ec.client.Search.WithSize(9000),
+		ec.client.Search.WithScroll(10*time.Minute+time.Duration(ec.countScroll)*time.Millisecond),
+		ec.client.Search.WithContext(context.Background()),
+		ec.client.Search.WithIndex(index),
+		ec.client.Search.WithBody(bytes.NewBuffer(body)),
+		ec.client.Search.WithSource(strconv.FormatBool(withSource)),
 	)
 	if err != nil {
 		return err
@@ -103,9 +103,9 @@ func (ec *elasticClient) iterateScroll(
 
 func (ec *elasticClient) getScrollResponse(scrollID string) ([]byte, error) {
 	ec.countScroll++
-	res, err := ec.es.Scroll(
-		ec.es.Scroll.WithScrollID(scrollID),
-		ec.es.Scroll.WithScroll(2*time.Minute+time.Duration(ec.countScroll)*time.Millisecond),
+	res, err := ec.client.Scroll(
+		ec.client.Scroll.WithScrollID(scrollID),
+		ec.client.Scroll.WithScroll(2*time.Minute+time.Duration(ec.countScroll)*time.Millisecond),
 	)
 	if err != nil {
 		return nil, err
@@ -115,8 +115,8 @@ func (ec *elasticClient) getScrollResponse(scrollID string) ([]byte, error) {
 }
 
 func (ec *elasticClient) clearScroll(scrollID string) error {
-	resp, err := ec.es.ClearScroll(
-		ec.es.ClearScroll.WithScrollID(scrollID),
+	resp, err := ec.client.ClearScroll(
+		ec.client.ClearScroll.WithScrollID(scrollID),
 	)
 	if err != nil {
 		return err
