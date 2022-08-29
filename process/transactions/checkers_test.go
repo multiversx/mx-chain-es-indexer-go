@@ -11,7 +11,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 	"github.com/stretchr/testify/require"
 )
@@ -19,7 +19,6 @@ import (
 func createMockArgs() *ArgsTransactionProcessor {
 	return &ArgsTransactionProcessor{
 		AddressPubkeyConverter: &mock.PubkeyConverterMock{},
-		TxFeeCalculator:        &mock.EconomicsHandlerStub{},
 		ShardCoordinator:       &mock.ShardCoordinatorMock{},
 		Hasher:                 &mock.HasherMock{},
 		Marshalizer:            &mock.MarshalizerMock{},
@@ -43,15 +42,6 @@ func TestNewTransactionsProcessor(t *testing.T) {
 				return args
 			},
 			exErr: elasticIndexer.ErrNilPubkeyConverter,
-		},
-		{
-			name: "NilTxFeeCalculator",
-			args: func() *ArgsTransactionProcessor {
-				args := createMockArgs()
-				args.TxFeeCalculator = nil
-				return args
-			},
-			exErr: elasticIndexer.ErrNilTransactionFeeCalculator,
 		},
 		{
 			name: "NilShardCoordinator",
@@ -93,26 +83,26 @@ func TestCheckTxsProcessorArg(t *testing.T) {
 
 	tests := []struct {
 		name  string
-		args  func() (body *block.Body, header coreData.HeaderHandler, pool *indexer.Pool)
+		args  func() (body *block.Body, header coreData.HeaderHandler, pool *outport.Pool)
 		exErr error
 	}{
 		{
 			name: "NilBlockBody",
-			args: func() (body *block.Body, header coreData.HeaderHandler, pool *indexer.Pool) {
-				return nil, &block.Header{}, &indexer.Pool{}
+			args: func() (body *block.Body, header coreData.HeaderHandler, pool *outport.Pool) {
+				return nil, &block.Header{}, &outport.Pool{}
 			},
 			exErr: elasticIndexer.ErrNilBlockBody,
 		},
 		{
 			name: "NilHeaderHandler",
-			args: func() (body *block.Body, header coreData.HeaderHandler, pool *indexer.Pool) {
-				return &block.Body{}, nil, &indexer.Pool{}
+			args: func() (body *block.Body, header coreData.HeaderHandler, pool *outport.Pool) {
+				return &block.Body{}, nil, &outport.Pool{}
 			},
 			exErr: elasticIndexer.ErrNilHeaderHandler,
 		},
 		{
 			name: "NilPool",
-			args: func() (body *block.Body, header coreData.HeaderHandler, pool *indexer.Pool) {
+			args: func() (body *block.Body, header coreData.HeaderHandler, pool *outport.Pool) {
 				return &block.Body{}, &block.Header{}, nil
 			},
 			exErr: elasticIndexer.ErrNilPool,

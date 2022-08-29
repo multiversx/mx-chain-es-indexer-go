@@ -12,7 +12,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/stretchr/testify/require"
 )
@@ -23,11 +23,9 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	accounts := &mock.AccountsStub{}
-	feeComputer := &mock.EconomicsHandlerMock{}
 	shardCoordinator := &mock.ShardCoordinatorMock{}
 
-	esProc, err := CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient, shardCoordinator)
 	require.Nil(t, err)
 
 	header := &dataBlock.Header{
@@ -37,7 +35,7 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 	body := &dataBlock.Body{}
 
 	// INDEX ON SOURCE
-	pool := &indexer.Pool{
+	pool := &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				LogHandler: &transaction.Log{
@@ -55,7 +53,7 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{})
 	require.Nil(t, err)
 
 	ids := []string{hex.EncodeToString([]byte("cross-log"))}
@@ -72,7 +70,7 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 		Round:     50,
 		TimeStamp: 6040,
 	}
-	pool = &indexer.Pool{
+	pool = &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				LogHandler: &transaction.Log{
@@ -96,7 +94,7 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{})
 	require.Nil(t, err)
 
 	err = esClient.DoMultiGet(ids, indexerdata.LogsIndex, true, genericResponse)
@@ -111,7 +109,7 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 		Round:     50,
 		TimeStamp: 5000,
 	}
-	pool = &indexer.Pool{
+	pool = &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				LogHandler: &transaction.Log{
@@ -129,7 +127,7 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{})
 	require.Nil(t, err)
 
 	err = esClient.DoMultiGet(ids, indexerdata.LogsIndex, true, genericResponse)

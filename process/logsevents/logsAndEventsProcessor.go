@@ -20,7 +20,6 @@ type ArgsLogsAndEventsProcessor struct {
 	Marshalizer      marshal.Marshalizer
 	BalanceConverter elasticIndexer.BalanceConverter
 	Hasher           hashing.Hasher
-	TxFeeCalculator  elasticIndexer.FeesProcessorHandler
 }
 
 type logsAndEventsProcessor struct {
@@ -63,9 +62,6 @@ func checkArgsLogsAndEventsProcessor(args *ArgsLogsAndEventsProcessor) error {
 	if check.IfNil(args.Hasher) {
 		return elasticIndexer.ErrNilHasher
 	}
-	if check.IfNil(args.TxFeeCalculator) {
-		return elasticIndexer.ErrNilTransactionFeeCalculator
-	}
 
 	return nil
 }
@@ -74,7 +70,7 @@ func createEventsProcessors(args *ArgsLogsAndEventsProcessor) []eventsProcessor 
 	nftsProc := newNFTsProcessor(args.ShardCoordinator, args.PubKeyConverter, args.Marshalizer)
 	fungibleProc := newFungibleESDTProcessor(args.PubKeyConverter, args.ShardCoordinator)
 	scDeploysProc := newSCDeploysProcessor(args.PubKeyConverter)
-	informativeProc := newInformativeLogsProcessor(args.TxFeeCalculator)
+	informativeProc := newInformativeLogsProcessor()
 	updateNFTProc := newNFTsPropertiesProcessor(args.PubKeyConverter)
 	esdtPropProc := newEsdtPropertiesProcessor(args.PubKeyConverter)
 

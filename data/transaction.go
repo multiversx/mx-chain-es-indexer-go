@@ -78,7 +78,7 @@ func (t *Transaction) GetValue() *big.Int {
 	return bigIntValue
 }
 
-// Receipt is a structure containing all the fields that need to be save for a Receipt
+// Receipt is a structure containing all the fields that need to be safe for a Receipt
 type Receipt struct {
 	Hash      string        `json:"-"`
 	Value     string        `json:"value"`
@@ -95,7 +95,7 @@ type PreparedResults struct {
 	Receipts     []*Receipt
 	AlteredAccts AlteredAccountsHandler
 	TxHashStatus map[string]string
-	TxHashRefund map[string]*RefundData
+	TxHashFee    map[string]*FeeData
 }
 
 // ResponseTransactions is the structure for the transactions response
@@ -110,8 +110,9 @@ type ResponseTransactionDB struct {
 	Source Transaction `json:"_source"`
 }
 
-// RefundData is the structure that contains data about a refund
-type RefundData struct {
-	Value    string
+// FeeData is the structure that contains data about transaction fee and gas used
+type FeeData struct {
+	Fee      string
+	GasUsed  uint64
 	Receiver string
 }

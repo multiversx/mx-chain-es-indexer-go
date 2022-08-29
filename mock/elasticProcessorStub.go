@@ -4,7 +4,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 )
 
 // ElasticProcessorStub -
@@ -15,14 +15,14 @@ type ElasticProcessorStub struct {
 		signersIndexes []uint64,
 		body *block.Body,
 		notarizedHeadersHashes []string,
-		gasConsumptionData indexer.HeaderGasConsumption,
+		gasConsumptionData outport.HeaderGasConsumption,
 		txsSize int,
 	) error
 	RemoveHeaderCalled               func(header coreData.HeaderHandler) error
 	RemoveMiniblocksCalled           func(header coreData.HeaderHandler, body *block.Body) error
 	RemoveTransactionsCalled         func(header coreData.HeaderHandler, body *block.Body) error
 	SaveMiniblocksCalled             func(header coreData.HeaderHandler, body *block.Body) error
-	SaveTransactionsCalled           func(body *block.Body, header coreData.HeaderHandler, pool *indexer.Pool, coreAlteredAccounts map[string]*indexer.AlteredAccount) error
+	SaveTransactionsCalled           func(body *block.Body, header coreData.HeaderHandler, pool *outport.Pool, coreAlteredAccounts map[string]*outport.AlteredAccount) error
 	SaveValidatorsRatingCalled       func(index string, validatorsRatingInfo []*data.ValidatorRatingInfo) error
 	SaveRoundsInfoCalled             func(infos []*data.RoundInfo) error
 	SaveShardValidatorsPubKeysCalled func(shardID, epoch uint32, shardValidatorsPubKeys [][]byte) error
@@ -46,7 +46,7 @@ func (eim *ElasticProcessorStub) SaveHeader(
 	signersIndexes []uint64,
 	body *block.Body,
 	notarizedHeadersHashes []string,
-	gasConsumptionData indexer.HeaderGasConsumption,
+	gasConsumptionData outport.HeaderGasConsumption,
 	txsSize int) error {
 	if eim.SaveHeaderCalled != nil {
 		return eim.SaveHeaderCalled(headerHash, header, signersIndexes, body, notarizedHeadersHashes, gasConsumptionData, txsSize)
@@ -87,7 +87,7 @@ func (eim *ElasticProcessorStub) SaveMiniblocks(header coreData.HeaderHandler, b
 }
 
 // SaveTransactions -
-func (eim *ElasticProcessorStub) SaveTransactions(body *block.Body, header coreData.HeaderHandler, pool *indexer.Pool, coreAlteredAccounts map[string]*indexer.AlteredAccount) error {
+func (eim *ElasticProcessorStub) SaveTransactions(body *block.Body, header coreData.HeaderHandler, pool *outport.Pool, coreAlteredAccounts map[string]*outport.AlteredAccount) error {
 	if eim.SaveTransactionsCalled != nil {
 		return eim.SaveTransactionsCalled(body, header, pool, coreAlteredAccounts)
 	}

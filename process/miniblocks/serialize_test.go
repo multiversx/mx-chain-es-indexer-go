@@ -1,11 +1,11 @@
 package miniblocks
 
 import (
-	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"testing"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
+	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/stretchr/testify/require"
 )
 

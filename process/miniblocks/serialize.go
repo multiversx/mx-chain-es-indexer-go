@@ -9,7 +9,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 )
 
-// SerializeBulkMiniBlocks will serialize the provided miniblocks slice in a way that Elastic Search expects a bulk request
+// SerializeBulkMiniBlocks will serialize the provided miniblocks slice in a way that Elasticsearch expects a bulk request
 func (mp *miniblocksProcessor) SerializeBulkMiniBlocks(
 	bulkMbs []*data.Miniblock,
 	existsInDb map[string]bool,

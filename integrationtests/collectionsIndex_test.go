@@ -14,7 +14,7 @@ import (
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/esdt"
-	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/stretchr/testify/require"
 )
@@ -30,8 +30,7 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 		SelfID: core.MetachainShardId,
 	}
 
-	feeComputer := &mock.EconomicsHandlerMock{}
-	esProc, err := CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient, shardCoordinator)
 	require.Nil(t, err)
 
 	body := &dataBlock.Body{}
@@ -40,7 +39,7 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 		TimeStamp: 5040,
 	}
 
-	pool := &indexer.Pool{
+	pool := &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				TxHash: "h1",
@@ -72,11 +71,11 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 	addrForLog := "aaaabbbb"
 	addrForLogHex := hex.EncodeToString([]byte(addrForLog))
 
-	coreAlteredAccounts := map[string]*indexer.AlteredAccount{
+	coreAlteredAccounts := map[string]*outport.AlteredAccount{
 		addrHex: {
 			Address: addrHex,
 			Balance: "0",
-			Tokens: []*indexer.AccountTokenData{
+			Tokens: []*outport.AccountTokenData{
 				{
 					Identifier: "SSSS-dddd",
 					Balance:    "1000",
@@ -91,7 +90,7 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 		addrForLogHex: {
 			Address: addrForLogHex,
 			Balance: "0",
-			Tokens: []*indexer.AccountTokenData{
+			Tokens: []*outport.AccountTokenData{
 				{
 					Identifier: "SSSS-dddd",
 					Balance:    "1000",
@@ -104,7 +103,7 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 			},
 		},
 	}
-	esProc, err = CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
+	esProc, err = CreateElasticProcessor(esClient, shardCoordinator)
 	require.Nil(t, err)
 
 	header = &dataBlock.Header{
@@ -119,7 +118,7 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 	}
 	esdtDataBytes, _ := json.Marshal(esdtData)
 
-	pool = &indexer.Pool{
+	pool = &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				TxHash: "h1",
@@ -146,7 +145,7 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 	require.JSONEq(t, readExpectedResult("./testdata/collectionsIndex/collections-1.json"), string(genericResponse.Docs[0].Source))
 
 	// ################ CREATE SEMI FUNGIBLE TOKEN 2 ##########################
-	pool = &indexer.Pool{
+	pool = &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				TxHash: "h1",
@@ -179,10 +178,10 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 
 	addr = "aaaabbbbcccccccc"
 	addrHex = hex.EncodeToString([]byte(addr))
-	coreAlteredAccounts = map[string]*indexer.AlteredAccount{
+	coreAlteredAccounts = map[string]*outport.AlteredAccount{
 		addrHex: {
 			Address: addrHex,
-			Tokens: []*indexer.AccountTokenData{
+			Tokens: []*outport.AccountTokenData{
 				{
 					Identifier: "NFT-abcdef",
 					Balance:    "0",
@@ -195,10 +194,10 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 		},
 	}
 
-	esProc, err = CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
+	esProc, err = CreateElasticProcessor(esClient, shardCoordinator)
 	require.Nil(t, err)
 
-	pool = &indexer.Pool{
+	pool = &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				TxHash: "h1",

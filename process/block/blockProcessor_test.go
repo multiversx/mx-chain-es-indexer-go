@@ -11,7 +11,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
-	coreIndexerData "github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-go-core/hashing"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
 	"github.com/stretchr/testify/require"
@@ -72,7 +72,7 @@ func TestBlockProcessor_PrepareBlockForDBShouldWork(t *testing.T) {
 					ReceiverShardID: 2,
 				},
 			},
-		}, nil, coreIndexerData.HeaderGasConsumption{}, 0)
+		}, nil, outport.HeaderGasConsumption{}, 0)
 	require.Nil(t, err)
 
 	expectedBlock := &data.Block{
@@ -94,7 +94,7 @@ func TestBlockProcessor_PrepareBlockForDBNilHeader(t *testing.T) {
 
 	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 
-	dbBlock, err := bp.PrepareBlockForDB([]byte("hash"), nil, nil, &dataBlock.Body{}, nil, coreIndexerData.HeaderGasConsumption{}, 0)
+	dbBlock, err := bp.PrepareBlockForDB([]byte("hash"),nil, nil, &dataBlock.Body{}, nil, outport.HeaderGasConsumption{}, 0)
 	require.Equal(t, indexer.ErrNilHeaderHandler, err)
 	require.Nil(t, dbBlock)
 }
@@ -104,7 +104,7 @@ func TestBlockProcessor_PrepareBlockForDBNilBody(t *testing.T) {
 
 	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 
-	dbBlock, err := bp.PrepareBlockForDB([]byte("hash"), &dataBlock.MetaBlock{}, nil, nil, nil, coreIndexerData.HeaderGasConsumption{}, 0)
+	dbBlock, err := bp.PrepareBlockForDB([]byte("hash"),&dataBlock.MetaBlock{}, nil, nil, nil, outport.HeaderGasConsumption{}, 0)
 	require.Equal(t, indexer.ErrNilBlockBody, err)
 	require.Nil(t, dbBlock)
 }
@@ -119,7 +119,7 @@ func TestBlockProcessor_PrepareBlockForDBMarshalFailHeader(t *testing.T) {
 		},
 	})
 
-	dbBlock, err := bp.PrepareBlockForDB([]byte("hash"), &dataBlock.MetaBlock{}, nil, &dataBlock.Body{}, nil, coreIndexerData.HeaderGasConsumption{}, 0)
+	dbBlock, err := bp.PrepareBlockForDB([]byte("hash"), &dataBlock.MetaBlock{}, nil, &dataBlock.Body{}, nil, outport.HeaderGasConsumption{}, 0)
 	require.Equal(t, expectedErr, err)
 	require.Nil(t, dbBlock)
 }
@@ -141,7 +141,7 @@ func TestBlockProcessor_PrepareBlockForDBMarshalFailBlock(t *testing.T) {
 		},
 	})
 
-	dbBlock, err := bp.PrepareBlockForDB([]byte("hash"), &dataBlock.MetaBlock{}, nil, &dataBlock.Body{}, nil, coreIndexerData.HeaderGasConsumption{}, 0)
+	dbBlock, err := bp.PrepareBlockForDB([]byte("hash"), &dataBlock.MetaBlock{}, nil, &dataBlock.Body{}, nil, outport.HeaderGasConsumption{}, 0)
 	require.Equal(t, expectedErr, err)
 	require.Nil(t, dbBlock)
 }
@@ -204,7 +204,7 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 				TxCount: 120,
 			},
 		},
-	}, nil, &dataBlock.Body{}, nil, coreIndexerData.HeaderGasConsumption{}, 0)
+	}, nil, &dataBlock.Body{}, nil, outport.HeaderGasConsumption{}, 0)
 	require.Equal(t, nil, err)
 	require.Equal(t, &data.Block{
 		Nonce:                 0,

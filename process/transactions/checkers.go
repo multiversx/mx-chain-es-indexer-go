@@ -12,7 +12,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
 
@@ -36,9 +36,6 @@ func checkTxsProcessorArg(args *ArgsTransactionProcessor) error {
 	if check.IfNil(args.AddressPubkeyConverter) {
 		return elasticIndexer.ErrNilPubkeyConverter
 	}
-	if check.IfNil(args.TxFeeCalculator) {
-		return elasticIndexer.ErrNilTransactionFeeCalculator
-	}
 
 	return nil
 }
@@ -46,7 +43,7 @@ func checkTxsProcessorArg(args *ArgsTransactionProcessor) error {
 func checkPrepareTransactionForDatabaseArguments(
 	body *block.Body,
 	header coreData.HeaderHandler,
-	pool *indexer.Pool,
+	pool *outport.Pool,
 ) error {
 	if body == nil {
 		return elasticIndexer.ErrNilBlockBody
@@ -75,14 +72,6 @@ func isSCRForSenderWithRefund(dbScResult *data.ScResult, tx *data.Transaction) b
 	isScrDataOk := isDataOk(dbScResult.Data)
 
 	return isFromCurrentTx && isForSender && isRightNonce && isScrDataOk
-}
-
-func isRefundForRelayed(dbScResult *data.ScResult, tx *data.Transaction) bool {
-	isForRelayed := dbScResult.ReturnMessage == data.GasRefundForRelayerMessage
-	isForSender := dbScResult.Receiver == tx.Sender
-	differentHash := dbScResult.OriginalTxHash != dbScResult.PrevTxHash
-
-	return isForRelayed && isForSender && differentHash
 }
 
 func isDataOk(data []byte) bool {

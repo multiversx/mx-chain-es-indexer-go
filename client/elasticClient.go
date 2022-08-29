@@ -125,7 +125,7 @@ func (ec *elasticClient) DoBulkRequest(buff *bytes.Buffer, index string) error {
 	return elasticBulkRequestResponseHandler(res)
 }
 
-// DoMultiGet wil do a multi get request to elaticsearch server
+// DoMultiGet wil do a multi get request to Elasticsearch server
 func (ec *elasticClient) DoMultiGet(ids []string, index string, withSource bool, resBody interface{}) error {
 	obj := getDocumentsByIDsQuery(ids, withSource)
 	body, err := encode(obj)

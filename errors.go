@@ -35,9 +35,6 @@ var ErrNoElasticUrlProvided = errors.New("no elastic url provided")
 // ErrBackOff signals that an error was received from the server
 var ErrBackOff = errors.New("back off something is not working well")
 
-// ErrNilTransactionFeeCalculator signals that a nil transaction fee calculator has been provided
-var ErrNilTransactionFeeCalculator = errors.New("nil transaction fee calculator")
-
 // ErrNilHasher signals that a nil hasher has been provided
 var ErrNilHasher = errors.New("nil hasher provided")
 

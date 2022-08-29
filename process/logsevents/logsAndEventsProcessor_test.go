@@ -23,7 +23,6 @@ func createMockArgs() *ArgsLogsAndEventsProcessor {
 		Marshalizer:      &mock.MarshalizerMock{},
 		BalanceConverter: balanceConverter,
 		Hasher:           &mock.HasherMock{},
-		TxFeeCalculator:  &mock.EconomicsHandlerStub{},
 	}
 }
 
@@ -54,11 +53,6 @@ func TestNewLogsAndEventsProcessor(t *testing.T) {
 	args.Hasher = nil
 	_, err = NewLogsAndEventsProcessor(args)
 	require.Equal(t, elasticIndexer.ErrNilHasher, err)
-
-	args = createMockArgs()
-	args.TxFeeCalculator = nil
-	_, err = NewLogsAndEventsProcessor(args)
-	require.Equal(t, elasticIndexer.ErrNilTransactionFeeCalculator, err)
 
 	args = createMockArgs()
 	proc, err := NewLogsAndEventsProcessor(args)

@@ -7,7 +7,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/process/tokeninfo"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
 
@@ -30,11 +30,11 @@ type DatabaseClientHandler interface {
 
 // DBAccountHandler defines the actions that an accounts' handler should do
 type DBAccountHandler interface {
-	GetAccounts(alteredAccounts data.AlteredAccountsHandler, coreAlteredAccounts map[string]*indexer.AlteredAccount) ([]*data.Account, []*data.AccountESDT)
+	GetAccounts(alteredAccounts data.AlteredAccountsHandler, coreAlteredAccounts map[string]*outport.AlteredAccount) ([]*data.Account, []*data.AccountESDT)
 	PrepareRegularAccountsMap(timestamp uint64, accounts []*data.Account) map[string]*data.AccountInfo
 	PrepareAccountsMapESDT(timestamp uint64, accounts []*data.AccountESDT, tagsCount data.CountTags) (map[string]*data.AccountInfo, data.TokensHandler)
 	PrepareAccountsHistory(timestamp uint64, accounts map[string]*data.AccountInfo) map[string]*data.AccountBalanceHistory
-	PutTokenMedataDataInTokens(tokensData []*data.TokenInfo, coreAlteredAccounts map[string]*indexer.AlteredAccount)
+	PutTokenMedataDataInTokens(tokensData []*data.TokenInfo, coreAlteredAccounts map[string]*outport.AlteredAccount)
 
 	SerializeAccountsHistory(accounts map[string]*data.AccountBalanceHistory, buffSlice *data.BufferSlice, index string) error
 	SerializeAccounts(accounts map[string]*data.AccountInfo, buffSlice *data.BufferSlice, index string) error
@@ -51,7 +51,7 @@ type DBBlockHandler interface {
 		signersIndexes []uint64,
 		body *block.Body,
 		notarizedHeadersHashes []string,
-		gasConsumptionData indexer.HeaderGasConsumption,
+		gasConsumptionData outport.HeaderGasConsumption,
 		sizeTxs int,
 	) (*data.Block, error)
 	ComputeHeaderHash(header coreData.HeaderHandler) ([]byte, error)
@@ -65,13 +65,13 @@ type DBTransactionsHandler interface {
 	PrepareTransactionsForDatabase(
 		body *block.Body,
 		header coreData.HeaderHandler,
-		pool *indexer.Pool,
+		pool *outport.Pool,
 	) *data.PreparedResults
 	GetHexEncodedHashesForRemove(header coreData.HeaderHandler, body *block.Body) ([]string, []string)
 
 	SerializeReceipts(receipts []*data.Receipt, buffSlice *data.BufferSlice, index string) error
 	SerializeTransactions(transactions []*data.Transaction, txHashStatus map[string]string, selfShardID uint32, buffSlice *data.BufferSlice, index string) error
-	SerializeTransactionWithRefund(txs map[string]*data.Transaction, txHashRefund map[string]*data.RefundData, buffSlice *data.BufferSlice, index string) error
+	SerializeTransactionsFeeData(txHashRefund map[string]*data.FeeData, buffSlice *data.BufferSlice, index string) error
 	SerializeScResults(scResults []*data.ScResult, buffSlice *data.BufferSlice, index string) error
 }
 

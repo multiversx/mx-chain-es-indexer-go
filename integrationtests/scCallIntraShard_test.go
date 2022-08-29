@@ -11,15 +11,10 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-go-core/data/smartContractResult"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/stretchr/testify/require"
-)
-
-const (
-	claimRewardsTx = `{"initialPaidFee":"2567320000000000","miniBlockHash":"60b38b11110d28d1b361359f9688bb041bb9180219a612a83ff00dcc0db4d607","nonce":101,"round":50,"value":"0","receiver":"65726431717171717171717171717171717067717877616b7432673775396174736e723033677163676d68637633387074376d6b64393471367368757774","sender":"65726431757265376561323437636c6a3679716a673830756e7a36787a6a686c6a327a776d3467746736737564636d747364326377337873373468617376","receiverShard":0,"senderShard":0,"gasPrice":1000000000,"gasLimit":250000000,"gasUsed":33891715,"fee":"406237150000000","data":"Y2xhaW1SZXdhcmRz","signature":"","timestamp":5040,"status":"success","searchOrder":0,"hasScResults":true,"operation":"transfer"}`
-	scCallFailTx   = `{"initialPaidFee":"181380000000000","miniBlockHash":"5d04f80b044352bfbbde123702323eae07fdd8ca77f24f256079006058b6e7b4","nonce":46,"round":50,"value":"5000000000000000000","receiver":"6572643171717171717171717171717171717170717171717171717171717171717171717171717171717171717171717166686c6c6c6c73637274353672","sender":"65726431757265376561323437636c6a3679716a673830756e7a36787a6a686c6a327a776d3467746736737564636d747364326377337873373468617376","receiverShard":0,"senderShard":0,"gasPrice":1000000000,"gasLimit":12000000,"gasUsed":12000000,"fee":"181380000000000","data":"ZGVsZWdhdGU=","signature":"","timestamp":5040,"status":"fail","searchOrder":0,"hasScResults":true,"operation":"transfer"}`
 )
 
 func TestTransactionWithSCCallFail(t *testing.T) {
@@ -28,10 +23,9 @@ func TestTransactionWithSCCallFail(t *testing.T) {
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	feeComputer := &mock.EconomicsHandlerMock{}
 	shardCoordinator := &mock.ShardCoordinatorMock{}
 
-	esProc, err := CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient, shardCoordinator)
 	require.Nil(t, err)
 
 	txHash := []byte("t")
@@ -52,20 +46,23 @@ func TestTransactionWithSCCallFail(t *testing.T) {
 	}
 
 	refundValueBig, _ := big.NewInt(0).SetString("5000000000000000000", 10)
-	pool := &indexer.Pool{
-		Txs: map[string]coreData.TransactionHandler{
-			string(txHash): &transaction.Transaction{
-				Nonce:    46,
-				SndAddr:  []byte("erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv"),
-				RcvAddr:  []byte("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqfhllllscrt56r"),
-				GasLimit: 12000000,
-				GasPrice: 1000000000,
-				Data:     []byte("delegate"),
-				Value:    refundValueBig,
-			},
+	tx := outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
+		Nonce:    46,
+		SndAddr:  []byte("erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv"),
+		RcvAddr:  []byte("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqfhllllscrt56r"),
+		GasLimit: 12000000,
+		GasPrice: 1000000000,
+		Data:     []byte("delegate"),
+		Value:    refundValueBig,
+	}, 12000000, big.NewInt(181380000000000))
+	tx.SetInitialPaidFee(big.NewInt(181380000000000))
+
+	pool := &outport.Pool{
+		Txs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
+			string(txHash): tx,
 		},
-		Scrs: map[string]coreData.TransactionHandler{
-			string(scrHash1): &smartContractResult.SmartContractResult{
+		Scrs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
+			string(scrHash1): outport.NewTransactionHandlerWithGasAndFee(&smartContractResult.SmartContractResult{
 				Nonce:          46,
 				Value:          refundValueBig,
 				GasPrice:       0,
@@ -75,7 +72,7 @@ func TestTransactionWithSCCallFail(t *testing.T) {
 				PrevTxHash:     txHash,
 				OriginalTxHash: txHash,
 				ReturnMessage:  []byte("total delegation cap reached"),
-			},
+			}, 0, big.NewInt(0)),
 		},
 	}
 	err = esProc.SaveTransactions(body, header, pool, nil)
@@ -86,7 +83,10 @@ func TestTransactionWithSCCallFail(t *testing.T) {
 	err = esClient.DoMultiGet(ids, indexerData.TransactionsIndex, true, genericResponse)
 	require.Nil(t, err)
 
-	compareTxs(t, []byte(scCallFailTx), genericResponse.Docs[0].Source)
+	require.JSONEq(t,
+		readExpectedResult("./testdata/scCallIntraShard/sc-call-fail.json"),
+		string(genericResponse.Docs[0].Source),
+	)
 }
 
 func TestTransactionWithScCallSuccess(t *testing.T) {
@@ -95,10 +95,9 @@ func TestTransactionWithScCallSuccess(t *testing.T) {
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	feeComputer := &mock.EconomicsHandlerMock{}
 	shardCoordinator := &mock.ShardCoordinatorMock{}
 
-	esProc, err := CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient, shardCoordinator)
 	require.Nil(t, err)
 
 	txHash := []byte("txHashClaimRewards")
@@ -118,21 +117,24 @@ func TestTransactionWithScCallSuccess(t *testing.T) {
 		},
 	}
 
+	tx := outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
+		Nonce:    101,
+		SndAddr:  []byte("erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv"),
+		RcvAddr:  []byte("erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt"),
+		GasLimit: 250000000,
+		GasPrice: 1000000000,
+		Data:     []byte("claimRewards"),
+		Value:    big.NewInt(0),
+	}, 33891715, big.NewInt(406237150000000))
+	tx.SetInitialPaidFee(big.NewInt(2567320000000000))
+
 	refundValueBig, _ := big.NewInt(0).SetString("2161082850000000", 10)
-	pool := &indexer.Pool{
-		Txs: map[string]coreData.TransactionHandler{
-			string(txHash): &transaction.Transaction{
-				Nonce:    101,
-				SndAddr:  []byte("erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv"),
-				RcvAddr:  []byte("erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt"),
-				GasLimit: 250000000,
-				GasPrice: 1000000000,
-				Data:     []byte("claimRewards"),
-				Value:    big.NewInt(0),
-			},
+	pool := &outport.Pool{
+		Txs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
+			string(txHash): tx,
 		},
-		Scrs: map[string]coreData.TransactionHandler{
-			string(scrHash1): &smartContractResult.SmartContractResult{
+		Scrs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
+			string(scrHash1): outport.NewTransactionHandlerWithGasAndFee(&smartContractResult.SmartContractResult{
 				Nonce:          102,
 				Value:          refundValueBig,
 				GasPrice:       1000000000,
@@ -141,7 +143,7 @@ func TestTransactionWithScCallSuccess(t *testing.T) {
 				Data:           []byte("@6f6b"),
 				PrevTxHash:     txHash,
 				OriginalTxHash: txHash,
-			},
+			}, 0, big.NewInt(0)),
 		},
 	}
 	err = esProc.SaveTransactions(body, header, pool, nil)
@@ -152,5 +154,8 @@ func TestTransactionWithScCallSuccess(t *testing.T) {
 	err = esClient.DoMultiGet(ids, indexerData.TransactionsIndex, true, genericResponse)
 	require.Nil(t, err)
 
-	compareTxs(t, []byte(claimRewardsTx), genericResponse.Docs[0].Source)
+	require.JSONEq(t,
+		readExpectedResult("./testdata/scCallIntraShard/claim-rewards.json"),
+		string(genericResponse.Docs[0].Source),
+	)
 }

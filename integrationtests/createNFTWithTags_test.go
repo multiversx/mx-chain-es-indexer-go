@@ -14,7 +14,7 @@ import (
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/esdt"
-	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/stretchr/testify/require"
 )
@@ -34,7 +34,6 @@ func TestCreateNFTWithTags(t *testing.T) {
 		},
 	}
 
-	feeComputer := &mock.EconomicsHandlerMock{}
 	shardCoordinator := &mock.ShardCoordinatorMock{
 		SelfID: 0,
 	}
@@ -47,13 +46,13 @@ func TestCreateNFTWithTags(t *testing.T) {
 	addr := "aaaabbbb"
 	addrHex := hex.EncodeToString([]byte(addr))
 
-	esProc, err := CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient, shardCoordinator)
 	require.Nil(t, err)
 
 	esdtDataBytes, _ := json.Marshal(esdtToken)
 
 	// CREATE A FIRST NFT WITH THE TAGS
-	pool := &indexer.Pool{
+	pool := &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				TxHash: "h1",
@@ -71,11 +70,11 @@ func TestCreateNFTWithTags(t *testing.T) {
 		},
 	}
 
-	coreAlteredAccounts := map[string]*indexer.AlteredAccount{
+	coreAlteredAccounts := map[string]*outport.AlteredAccount{
 		addrHex: {
 			Address: addrHex,
 			Balance: "0",
-			Tokens: []*indexer.AccountTokenData{
+			Tokens: []*outport.AccountTokenData{
 				{
 					Identifier: "DESK-abcd",
 					Nonce:      1,
@@ -118,7 +117,7 @@ func TestCreateNFTWithTags(t *testing.T) {
 	require.Equal(t, len(ids), tagsChecked)
 
 	// CREATE A SECOND NFT WITH THE SAME TAGS
-	pool = &indexer.Pool{
+	pool = &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				TxHash: "h1",
@@ -164,10 +163,10 @@ func TestCreateNFTWithTags(t *testing.T) {
 	coreAlteredAccounts[addrHex].Tokens[0].Nonce = 3
 	coreAlteredAccounts[addrHex].Tokens[0].MetaData.Attributes = attributes
 
-	esProc, err = CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
+	esProc, err = CreateElasticProcessor(esClient, shardCoordinator)
 	require.Nil(t, err)
 
-	pool = &indexer.Pool{
+	pool = &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				TxHash: "h1",

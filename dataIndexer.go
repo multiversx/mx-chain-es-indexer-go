@@ -5,7 +5,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/workItems"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
-	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
 )
 
@@ -59,7 +59,7 @@ func checkIndexerArgs(arguments ArgDataIndexer) error {
 }
 
 // SaveBlock saves the block info in the queue to be sent to elastic
-func (di *dataIndexer) SaveBlock(args *indexer.ArgsSaveBlockData) error {
+func (di *dataIndexer) SaveBlock(args *outport.ArgsSaveBlockData) error {
 	wi := workItems.NewItemBlock(
 		di.elasticProcessor,
 		di.marshalizer,
@@ -88,7 +88,7 @@ func (di *dataIndexer) RevertIndexedBlock(header coreData.HeaderHandler, body co
 }
 
 // SaveRoundsInfo will save data about a slice of rounds in elasticsearch
-func (di *dataIndexer) SaveRoundsInfo(rf []*indexer.RoundInfo) error {
+func (di *dataIndexer) SaveRoundsInfo(rf []*outport.RoundInfo) error {
 	roundsInfo := make([]*data.RoundInfo, 0)
 	for _, info := range rf {
 		roundsInfo = append(roundsInfo, &data.RoundInfo{
@@ -108,7 +108,7 @@ func (di *dataIndexer) SaveRoundsInfo(rf []*indexer.RoundInfo) error {
 }
 
 // SaveValidatorsRating will save all validators rating info to elasticsearch
-func (di *dataIndexer) SaveValidatorsRating(indexID string, validatorsRatingInfo []*indexer.ValidatorRatingInfo) error {
+func (di *dataIndexer) SaveValidatorsRating(indexID string, validatorsRatingInfo []*outport.ValidatorRatingInfo) error {
 	valRatingInfo := make([]*data.ValidatorRatingInfo, 0)
 	for _, info := range validatorsRatingInfo {
 		valRatingInfo = append(valRatingInfo, &data.ValidatorRatingInfo{
@@ -140,7 +140,7 @@ func (di *dataIndexer) SaveValidatorsPubKeys(validatorsPubKeys map[uint32][][]by
 }
 
 // SaveAccounts will save the provided accounts
-func (di *dataIndexer) SaveAccounts(timestamp uint64, accounts map[string]*indexer.AlteredAccount) error {
+func (di *dataIndexer) SaveAccounts(timestamp uint64, accounts map[string]*outport.AlteredAccount) error {
 	wi := workItems.NewItemAccounts(di.elasticProcessor, timestamp, accounts)
 	di.dispatcher.Add(wi)
 

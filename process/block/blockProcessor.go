@@ -14,7 +14,7 @@ import (
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	nodeBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
-	coreIndexerData "github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-go-core/hashing"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
@@ -49,7 +49,7 @@ func (bp *blockProcessor) PrepareBlockForDB(
 	signersIndexes []uint64,
 	body *block.Body,
 	notarizedHeadersHashes []string,
-	gasConsumptionData coreIndexerData.HeaderGasConsumption,
+	gasConsumptionData outport.HeaderGasConsumption,
 	sizeTxs int,
 ) (*data.Block, error) {
 	if check.IfNil(header) {

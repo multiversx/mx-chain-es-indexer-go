@@ -2,6 +2,7 @@ package transactions
 
 import (
 	"encoding/hex"
+	"math/big"
 	"testing"
 	"time"
 
@@ -48,7 +49,7 @@ func TestPrepareSmartContractResult(t *testing.T) {
 	header := &block.Header{TimeStamp: 100}
 
 	mbHash := []byte("hash")
-	scRes := scrsProc.prepareSmartContractResult([]byte(scHash), mbHash, smartContractRes, header, 0, 1)
+	scRes := scrsProc.prepareSmartContractResult([]byte(scHash), mbHash, smartContractRes, header, 0, 1, big.NewInt(0), 0)
 	expectedTx := &data.ScResult{
 		Nonce:              nonce,
 		Hash:               hex.EncodeToString([]byte(scHash)),
@@ -66,6 +67,7 @@ func TestPrepareSmartContractResult(t *testing.T) {
 		Operation:          "transfer",
 		SenderAddressBytes: sndAddr,
 		Receivers:          []string{},
+		InitialTxFee:       "0",
 	}
 
 	require.Equal(t, expectedTx, scRes)

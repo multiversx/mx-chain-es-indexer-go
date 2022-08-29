@@ -26,7 +26,6 @@ type ArgElasticProcessorFactory struct {
 	ValidatorPubkeyConverter core.PubkeyConverter
 	DBClient                 processIndexer.DatabaseClientHandler
 	ShardCoordinator         indexer.ShardCoordinator
-	TransactionFeeCalculator indexer.FeesProcessorHandler
 	EnabledIndexes           []string
 	Denomination             int
 	BulkRequestMaxSize       int
@@ -82,7 +81,6 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (indexer.Elast
 
 	argsTxsProc := &transactions.ArgsTransactionProcessor{
 		AddressPubkeyConverter: arguments.AddressPubkeyConverter,
-		TxFeeCalculator:        arguments.TransactionFeeCalculator,
 		ShardCoordinator:       arguments.ShardCoordinator,
 		Hasher:                 arguments.Hasher,
 		Marshalizer:            arguments.Marshalizer,
@@ -99,7 +97,6 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (indexer.Elast
 		Marshalizer:      arguments.Marshalizer,
 		BalanceConverter: balanceConverter,
 		Hasher:           arguments.Hasher,
-		TxFeeCalculator:  arguments.TransactionFeeCalculator,
 	}
 	logsAndEventsProc, err := logsevents.NewLogsAndEventsProcessor(argsLogsAndEventsProc)
 	if err != nil {

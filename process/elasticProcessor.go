@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
+
 	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
@@ -14,7 +15,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
@@ -252,7 +253,7 @@ func (ei *elasticProcessor) SaveHeader(
 	signersIndexes []uint64,
 	body *block.Body,
 	notarizedHeadersHashes []string,
-	gasConsumptionData indexer.HeaderGasConsumption,
+	gasConsumptionData outport.HeaderGasConsumption,
 	txsSize int,
 ) error {
 	if !ei.isIndexEnabled(elasticIndexer.BlockIndex) {
@@ -393,8 +394,8 @@ func (ei *elasticProcessor) miniblocksInDBMap(mbs []*data.Miniblock) (map[string
 func (ei *elasticProcessor) SaveTransactions(
 	body *block.Body,
 	header coreData.HeaderHandler,
-	pool *indexer.Pool,
-	coreAlteredAccounts map[string]*indexer.AlteredAccount,
+	pool *outport.Pool,
+	coreAlteredAccounts map[string]*outport.AlteredAccount,
 ) error {
 	headerTimestamp := header.GetTimeStamp()
 
@@ -412,7 +413,7 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
-	err = ei.indexTransactionsAndOperationsWithRefund(preparedResults.TxHashRefund, buffers)
+	err = ei.indexTransactionsFeeData(preparedResults.TxHashFee, buffers)
 	if err != nil {
 		return err
 	}
@@ -492,37 +493,17 @@ func (ei *elasticProcessor) prepareAndIndexDelegators(delegators map[string]*dat
 	return ei.logsAndEventsProc.SerializeDelegators(delegators, buffSlice, elasticIndexer.DelegatorsIndex)
 }
 
-func (ei *elasticProcessor) indexTransactionsAndOperationsWithRefund(txsHashRefund map[string]*data.RefundData, buffSlice *data.BufferSlice) error {
-	if len(txsHashRefund) == 0 {
+func (ei *elasticProcessor) indexTransactionsFeeData(txsHashFeeData map[string]*data.FeeData, buffSlice *data.BufferSlice) error {
+	if len(txsHashFeeData) == 0 {
 		return nil
 	}
-	txsHashes := make([]string, len(txsHashRefund))
-	for txHash := range txsHashRefund {
-		txsHashes = append(txsHashes, txHash)
-	}
 
-	responseTransactions := &data.ResponseTransactions{}
-	err := ei.elasticClient.DoMultiGet(txsHashes, elasticIndexer.TransactionsIndex, true, responseTransactions)
+	err := ei.transactionsProc.SerializeTransactionsFeeData(txsHashFeeData, buffSlice, elasticIndexer.TransactionsIndex)
 	if err != nil {
-		return err
+		return nil
 	}
 
-	txsFromDB := make(map[string]*data.Transaction)
-	for idx := 0; idx < len(responseTransactions.Docs); idx++ {
-		txRes := responseTransactions.Docs[idx]
-		if !txRes.Found {
-			continue
-		}
-
-		txsFromDB[txRes.ID] = &txRes.Source
-	}
-
-	err = ei.transactionsProc.SerializeTransactionWithRefund(txsFromDB, txsHashRefund, buffSlice, elasticIndexer.TransactionsIndex)
-	if err != nil {
-		return err
-	}
-
-	return ei.transactionsProc.SerializeTransactionWithRefund(txsFromDB, txsHashRefund, buffSlice, elasticIndexer.OperationsIndex)
+	return ei.transactionsProc.SerializeTransactionsFeeData(txsHashFeeData, buffSlice, elasticIndexer.OperationsIndex)
 }
 
 func (ei *elasticProcessor) prepareAndIndexLogs(logsAndEvents []*coreData.LogData, timestamp uint64, buffSlice *data.BufferSlice) error {
@@ -622,7 +603,7 @@ func (ei *elasticProcessor) indexAlteredAccounts(
 	timestamp uint64,
 	alteredAccounts data.AlteredAccountsHandler,
 	updatesNFTsData []*data.NFTDataUpdate,
-	coreAlteredAccounts map[string]*indexer.AlteredAccount,
+	coreAlteredAccounts map[string]*outport.AlteredAccount,
 	buffSlice *data.BufferSlice,
 	tagsCount data.CountTags,
 ) error {
@@ -700,7 +681,7 @@ func (ei *elasticProcessor) indexAccountsESDT(
 	return ei.accountsProc.SerializeAccountsESDT(accountsESDTMap, updatesNFTsData, buffSlice, elasticIndexer.AccountsESDTIndex)
 }
 
-func (ei *elasticProcessor) indexNFTCreateInfo(tokensData data.TokensHandler, coreAlteredAccounts map[string]*indexer.AlteredAccount, buffSlice *data.BufferSlice) error {
+func (ei *elasticProcessor) indexNFTCreateInfo(tokensData data.TokensHandler, coreAlteredAccounts map[string]*outport.AlteredAccount, buffSlice *data.BufferSlice) error {
 	shouldSkipIndex := !ei.isIndexEnabled(elasticIndexer.TokensIndex) || tokensData.Len() == 0
 	if shouldSkipIndex {
 		return nil

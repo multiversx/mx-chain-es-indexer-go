@@ -1,12 +1,14 @@
 package transactions
 
 import (
+	"math/big"
 	"testing"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-go-core/data/receipt"
 	"github.com/ElrondNetwork/elrond-go-core/data/rewardTx"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
@@ -17,7 +19,7 @@ func TestGroupNormalTxs(t *testing.T) {
 	t.Parallel()
 
 	parser := createDataFieldParserMock()
-	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{}, &mock.EconomicsHandlerStub{}, parser)
+	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{}, parser)
 	grouper := newTxsGrouper(txBuilder, false, 0, &mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	txHash1 := []byte("txHash1")
@@ -27,15 +29,15 @@ func TestGroupNormalTxs(t *testing.T) {
 		Type:     block.TxBlock,
 	}
 	header := &block.Header{}
-	txs := map[string]coreData.TransactionHandler{
-		string(txHash1): &transaction.Transaction{
+	txs := map[string]coreData.TransactionHandlerWithGasUsedAndFee{
+		string(txHash1): outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
 			SndAddr: []byte("sender1"),
 			RcvAddr: []byte("receiver1"),
-		},
-		string(txHash2): &transaction.Transaction{
+		}, 0, big.NewInt(0)),
+		string(txHash2): outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
 			SndAddr: []byte("sender2"),
 			RcvAddr: []byte("receiver2"),
-		},
+		}, 0, big.NewInt(0)),
 	}
 	alteredAddresses := data.NewAlteredAccounts()
 
@@ -48,7 +50,7 @@ func TestGroupRewardsTxs(t *testing.T) {
 	t.Parallel()
 
 	parser := createDataFieldParserMock()
-	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{}, &mock.EconomicsHandlerStub{}, parser)
+	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{}, parser)
 	grouper := newTxsGrouper(txBuilder, false, 0, &mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	txHash1 := []byte("txHash1")
@@ -58,13 +60,13 @@ func TestGroupRewardsTxs(t *testing.T) {
 		Type:     block.RewardsBlock,
 	}
 	header := &block.Header{}
-	txs := map[string]coreData.TransactionHandler{
-		string(txHash1): &rewardTx.RewardTx{
+	txs := map[string]coreData.TransactionHandlerWithGasUsedAndFee{
+		string(txHash1): outport.NewTransactionHandlerWithGasAndFee(&rewardTx.RewardTx{
 			RcvAddr: []byte("receiver1"),
-		},
-		string(txHash2): &rewardTx.RewardTx{
+		}, 0, big.NewInt(0)),
+		string(txHash2): outport.NewTransactionHandlerWithGasAndFee(&rewardTx.RewardTx{
 			RcvAddr: []byte("receiver2"),
-		},
+		}, 0, big.NewInt(0)),
 	}
 	alteredAddresses := data.NewAlteredAccounts()
 
@@ -77,7 +79,7 @@ func TestGroupInvalidTxs(t *testing.T) {
 	t.Parallel()
 
 	parser := createDataFieldParserMock()
-	txBuilder := newTransactionDBBuilder(mock.NewPubkeyConverterMock(32), &mock.ShardCoordinatorMock{}, &mock.EconomicsHandlerStub{}, parser)
+	txBuilder := newTransactionDBBuilder(mock.NewPubkeyConverterMock(32), &mock.ShardCoordinatorMock{}, parser)
 	grouper := newTxsGrouper(txBuilder, false, 0, &mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	txHash1 := []byte("txHash1")
@@ -87,15 +89,15 @@ func TestGroupInvalidTxs(t *testing.T) {
 		Type:     block.InvalidBlock,
 	}
 	header := &block.Header{}
-	txs := map[string]coreData.TransactionHandler{
-		string(txHash1): &transaction.Transaction{
+	txs := map[string]coreData.TransactionHandlerWithGasUsedAndFee{
+		string(txHash1): outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
 			SndAddr: []byte("sender1"),
 			RcvAddr: []byte("receiver1"),
-		},
-		string(txHash2): &transaction.Transaction{
+		}, 0, big.NewInt(0)),
+		string(txHash2): outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
 			SndAddr: []byte("sender2"),
 			RcvAddr: []byte("receiver2"),
-		},
+		}, 0, big.NewInt(0)),
 	}
 	alteredAddresses := data.NewAlteredAccounts()
 
@@ -108,19 +110,19 @@ func TestGroupReceipts(t *testing.T) {
 	t.Parallel()
 
 	parser := createDataFieldParserMock()
-	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{}, &mock.EconomicsHandlerStub{}, parser)
+	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{}, parser)
 	grouper := newTxsGrouper(txBuilder, false, 0, &mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	txHash1 := []byte("txHash1")
 	txHash2 := []byte("txHash2")
 	header := &block.Header{}
-	txs := map[string]coreData.TransactionHandler{
-		string(txHash1): &receipt.Receipt{
+	txs := map[string]coreData.TransactionHandlerWithGasUsedAndFee{
+		string(txHash1): outport.NewTransactionHandlerWithGasAndFee(&receipt.Receipt{
 			SndAddr: []byte("sender1"),
-		},
-		string(txHash2): &receipt.Receipt{
+		}, 0, big.NewInt(0)),
+		string(txHash2): outport.NewTransactionHandlerWithGasAndFee(&receipt.Receipt{
 			SndAddr: []byte("sender2"),
-		},
+		}, 0, big.NewInt(0)),
 	}
 
 	normalTxs := grouper.groupReceipts(header, txs)

@@ -1,9 +1,9 @@
 package tags
 
 import (
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"testing"
 
+	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/stretchr/testify/require"
 )
 

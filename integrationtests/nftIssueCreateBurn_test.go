@@ -13,7 +13,7 @@ import (
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/esdt"
-	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/stretchr/testify/require"
 )
@@ -24,14 +24,12 @@ func TestIssueNFTCreateAndBurn(t *testing.T) {
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	feeComputer := &mock.EconomicsHandlerMock{}
-
 	// ################ ISSUE NON FUNGIBLE TOKEN ##########################
 	shardCoordinator := &mock.ShardCoordinatorMock{
 		SelfID: core.MetachainShardId,
 	}
 
-	esProc, err := CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient, shardCoordinator)
 	require.Nil(t, err)
 
 	body := &dataBlock.Body{}
@@ -40,7 +38,7 @@ func TestIssueNFTCreateAndBurn(t *testing.T) {
 		TimeStamp: 5040,
 	}
 
-	pool := &indexer.Pool{
+	pool := &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				TxHash: "h1",
@@ -72,7 +70,7 @@ func TestIssueNFTCreateAndBurn(t *testing.T) {
 		SelfID: 0,
 	}
 
-	esProc, err = CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
+	esProc, err = CreateElasticProcessor(esClient, shardCoordinator)
 	require.Nil(t, err)
 
 	header = &dataBlock.Header{
@@ -87,7 +85,7 @@ func TestIssueNFTCreateAndBurn(t *testing.T) {
 	}
 	esdtDataBytes, _ := json.Marshal(esdtData)
 
-	pool = &indexer.Pool{
+	pool = &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				TxHash: "h1",
@@ -121,7 +119,7 @@ func TestIssueNFTCreateAndBurn(t *testing.T) {
 		TimeStamp: 5666,
 	}
 
-	pool = &indexer.Pool{
+	pool = &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				TxHash: "h1",

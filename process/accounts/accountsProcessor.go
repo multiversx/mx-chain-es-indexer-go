@@ -12,7 +12,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	"github.com/ElrondNetwork/elrond-go-core/data/esdt"
-	coreIndexerData "github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 )
 
@@ -47,7 +47,7 @@ func NewAccountsProcessor(
 
 // TODO: refactor this as the altered accounts are already computed on the node. EN-12389
 // GetAccounts will get accounts for regular operations and esdt operations
-func (ap *accountsProcessor) GetAccounts(alteredAccounts data.AlteredAccountsHandler, coreAlteredAccounts map[string]*coreIndexerData.AlteredAccount) ([]*data.Account, []*data.AccountESDT) {
+func (ap *accountsProcessor) GetAccounts(alteredAccounts data.AlteredAccountsHandler, coreAlteredAccounts map[string]*outport.AlteredAccount) ([]*data.Account, []*data.AccountESDT) {
 	regularAccountsToIndex := make([]*data.Account, 0)
 	accountsToIndexESDT := make([]*data.AccountESDT, 0)
 
@@ -73,7 +73,7 @@ func (ap *accountsProcessor) GetAccounts(alteredAccounts data.AlteredAccountsHan
 }
 
 func splitAlteredAccounts(
-	account *coreIndexerData.AlteredAccount,
+	account *outport.AlteredAccount,
 	altered []*data.AlteredAccount,
 ) ([]*data.Account, []*data.AccountESDT) {
 	regularAccountsToIndex := make([]*data.Account, 0)
@@ -263,7 +263,7 @@ func (ap *accountsProcessor) getESDTInfo(accountESDT *data.AccountESDT) (*big.In
 }
 
 // PutTokenMedataDataInTokens will put the TokenMedata in provided tokens data
-func (ap *accountsProcessor) PutTokenMedataDataInTokens(tokensData []*data.TokenInfo, coreAlteredAccounts map[string]*coreIndexerData.AlteredAccount) {
+func (ap *accountsProcessor) PutTokenMedataDataInTokens(tokensData []*data.TokenInfo, coreAlteredAccounts map[string]*outport.AlteredAccount) {
 	for _, tokenData := range tokensData {
 		if tokenData.Data != nil || tokenData.Nonce == 0 {
 			continue
@@ -284,7 +284,7 @@ func (ap *accountsProcessor) PutTokenMedataDataInTokens(tokensData []*data.Token
 
 func (ap *accountsProcessor) loadMetadataForToken(
 	tokenData *data.TokenInfo,
-	coreAlteredAccounts map[string]*coreIndexerData.AlteredAccount,
+	coreAlteredAccounts map[string]*outport.AlteredAccount,
 ) (*esdt.MetaData, error) {
 	for _, account := range coreAlteredAccounts {
 		for _, token := range account.Tokens {

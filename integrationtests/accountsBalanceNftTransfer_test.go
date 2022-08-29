@@ -12,7 +12,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/stretchr/testify/require"
 )
@@ -22,8 +22,6 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
-
-	feeComputer := &mock.EconomicsHandlerMock{}
 
 	// ################ CREATE NFT ##########################
 	shardCoordinator := &mock.ShardCoordinatorMock{
@@ -35,7 +33,7 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 	addr := "test-address-balance-1"
 	addrHex := hex.EncodeToString([]byte(addr))
 
-	esProc, err := CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient, shardCoordinator)
 	require.Nil(t, err)
 
 	header := &dataBlock.Header{
@@ -43,7 +41,7 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 		TimeStamp: 5600,
 	}
 
-	pool := &indexer.Pool{
+	pool := &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				TxHash: "h1",
@@ -61,10 +59,10 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 		},
 	}
 
-	coreAlteredAccounts := map[string]*indexer.AlteredAccount{
+	coreAlteredAccounts := map[string]*outport.AlteredAccount{
 		addrHex: {
 			Address: addrHex,
-			Tokens: []*indexer.AccountTokenData{
+			Tokens: []*outport.AccountTokenData{
 				{
 					Identifier: "NFT-abcdef",
 					Nonce:      7440483,
@@ -90,7 +88,7 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 		TimeStamp: 5600,
 	}
 
-	pool = &indexer.Pool{
+	pool = &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				TxHash: "h1",
@@ -111,16 +109,16 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 	addrReceiver := "new-address"
 	addrReceiverHex := hex.EncodeToString([]byte(addrReceiver))
 
-	esProc, err = CreateElasticProcessor(esClient, shardCoordinator, feeComputer)
+	esProc, err = CreateElasticProcessor(esClient, shardCoordinator)
 	require.Nil(t, err)
 
-	coreAlteredAccounts = map[string]*indexer.AlteredAccount{
+	coreAlteredAccounts = map[string]*outport.AlteredAccount{
 		addrHex: {
 			Address: addrHex,
 		},
 		addrReceiverHex: {
 			Address: addrReceiverHex,
-			Tokens: []*indexer.AccountTokenData{
+			Tokens: []*outport.AccountTokenData{
 				{
 					Identifier: "NFT-abcdef",
 					Nonce:      7440483,

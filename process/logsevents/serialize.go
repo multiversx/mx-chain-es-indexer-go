@@ -11,8 +11,8 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/core"
 )
 
-// SerializeLogs will serialize the provided logs in a way that Elastic Search expects a bulk request
-func (logsAndEventsProcessor) SerializeLogs(logs []*data.Logs, buffSlice *data.BufferSlice, index string) error {
+// SerializeLogs will serialize the provided logs in a way that Elasticsearch expects a bulk request
+func (*logsAndEventsProcessor) SerializeLogs(logs []*data.Logs, buffSlice *data.BufferSlice, index string) error {
 	for _, lg := range logs {
 		meta := []byte(fmt.Sprintf(`{ "update" : { "_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(lg.ID), "\n"))
 		serializedData, errMarshal := json.Marshal(lg)
@@ -50,8 +50,8 @@ func (logsAndEventsProcessor) SerializeLogs(logs []*data.Logs, buffSlice *data.B
 	return nil
 }
 
-// SerializeSCDeploys will serialize the provided smart contract deploys in a way that Elastic Search expects a bulk request
-func (logsAndEventsProcessor) SerializeSCDeploys(deploys map[string]*data.ScDeployInfo, buffSlice *data.BufferSlice, index string) error {
+// SerializeSCDeploys will serialize the provided smart contract deploys in a way that Elasticsearch expects a bulk request
+func (*logsAndEventsProcessor) SerializeSCDeploys(deploys map[string]*data.ScDeployInfo, buffSlice *data.BufferSlice, index string) error {
 	for scAddr, deployInfo := range deploys {
 		meta := []byte(fmt.Sprintf(`{ "update" : { "_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(scAddr), "\n"))
 
@@ -104,7 +104,7 @@ func serializeDeploy(deployInfo *data.ScDeployInfo) ([]byte, error) {
 }
 
 // SerializeTokens will serialize the provided tokens' data in a way that Elasticsearch expects a bulk request
-func (logsAndEventsProcessor) SerializeTokens(tokens []*data.TokenInfo, updateNFTData []*data.NFTDataUpdate, buffSlice *data.BufferSlice, index string) error {
+func (*logsAndEventsProcessor) SerializeTokens(tokens []*data.TokenInfo, updateNFTData []*data.NFTDataUpdate, buffSlice *data.BufferSlice, index string) error {
 	for _, tokenData := range tokens {
 		meta, serializedData, err := serializeToken(tokenData, index)
 		if err != nil {

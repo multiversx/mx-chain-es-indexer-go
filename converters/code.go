@@ -5,7 +5,7 @@ import "strings"
 // TODO use FormatPainlessSource everywhere
 
 // FormatPainlessSource will clean all new lines and white spaces from the input
-// Input example:
+// example:
 /*`
 	if (!ctx._source.containsKey('roles')) {
 		ctx._source.roles = new HashMap();

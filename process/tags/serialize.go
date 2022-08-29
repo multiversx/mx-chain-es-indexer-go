@@ -3,11 +3,12 @@ package tags
 import (
 	"encoding/base64"
 	"fmt"
+
 	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 )
 
-// Serialize will serialize tagsCount in a way that Elastic Search expects a bulk request
+// Serialize will serialize tagsCount in a way that Elasticsearch expects a bulk request
 func (tc *tagsCount) Serialize(buffSlice *data.BufferSlice, index string) error {
 	for tag, count := range tc.tags {
 		if tag == "" {

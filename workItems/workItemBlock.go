@@ -9,7 +9,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	"github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 )
@@ -22,14 +22,14 @@ var log = logger.GetOrCreate("indexer/workItems")
 type itemBlock struct {
 	indexer       saveBlockIndexer
 	marshalizer   marshal.Marshalizer
-	argsSaveBlock *indexer.ArgsSaveBlockData
+	argsSaveBlock *outport.ArgsSaveBlockData
 }
 
 // NewItemBlock will create a new instance of ItemBlock
 func NewItemBlock(
 	indexer saveBlockIndexer,
 	marshalizer marshal.Marshalizer,
-	args *indexer.ArgsSaveBlockData,
+	args *outport.ArgsSaveBlockData,
 ) WorkItemHandler {
 	return &itemBlock{
 		indexer:       indexer,
@@ -60,7 +60,7 @@ func (wib *itemBlock) Save() error {
 	}
 
 	if wib.argsSaveBlock.TransactionsPool == nil {
-		wib.argsSaveBlock.TransactionsPool = &indexer.Pool{}
+		wib.argsSaveBlock.TransactionsPool = &outport.Pool{}
 	}
 
 	txsSizeInBytes := ComputeSizeOfTxs(wib.marshalizer, wib.argsSaveBlock.TransactionsPool)
@@ -102,28 +102,32 @@ func (wib *itemBlock) IsInterfaceNil() bool {
 }
 
 // ComputeSizeOfTxs will compute size of transactions in bytes
-func ComputeSizeOfTxs(marshalizer marshal.Marshalizer, pool *indexer.Pool) int {
+func ComputeSizeOfTxs(marshalizer marshal.Marshalizer, pool *outport.Pool) int {
 	sizeTxs := 0
-	sizeTxs += computeSizeOfMap(marshalizer, pool.Txs)
-	sizeTxs += computeSizeOfMap(marshalizer, pool.Receipts)
-	sizeTxs += computeSizeOfMap(marshalizer, pool.Invalid)
-	sizeTxs += computeSizeOfMap(marshalizer, pool.Rewards)
-	sizeTxs += computeSizeOfMap(marshalizer, pool.Scrs)
+	sizeTxs += computeSizeOfMapTxs(marshalizer, pool.Txs)
+	sizeTxs += computeSizeOfMapTxs(marshalizer, pool.Scrs)
+	sizeTxs += computeSizeOfMapTxs(marshalizer, pool.Invalid)
+	sizeTxs += computeSizeOfMapTxs(marshalizer, pool.Rewards)
+	sizeTxs += computeSizeOfMapTxs(marshalizer, pool.Receipts)
 
 	return sizeTxs
 }
 
-func computeSizeOfMap(marshalizer marshal.Marshalizer, mapTxs map[string]data.TransactionHandler) int {
+func computeSizeOfMapTxs(marshalizer marshal.Marshalizer, mapTxs map[string]data.TransactionHandlerWithGasUsedAndFee) int {
 	txsSize := 0
 	for _, tx := range mapTxs {
-		txBytes, err := marshalizer.Marshal(tx)
-		if err != nil {
-			log.Debug("itemBlock.computeSizeOfMap", "error", err)
-			continue
-		}
-
-		txsSize += len(txBytes)
+		txsSize += computeTxSize(marshalizer, tx.GetTxHandler())
 	}
 
 	return txsSize
+}
+
+func computeTxSize(marshalizer marshal.Marshalizer, tx data.TransactionHandler) int {
+	txBytes, err := marshalizer.Marshal(tx)
+	if err != nil {
+		log.Debug("itemBlock.computeTxSize", "error", err)
+		return 0
+	}
+
+	return len(txBytes)
 }
