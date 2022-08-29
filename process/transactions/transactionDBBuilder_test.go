@@ -78,7 +78,7 @@ func TestGetMoveBalanceTransaction(t *testing.T) {
 		Receivers:            []string{},
 	}
 
-	dbTx := cp.prepareTransaction(tx, txHash, mbHash, mb, header, status, big.NewInt(100), 500)
+	dbTx := cp.prepareTransaction(tx, txHash, mbHash, mb, header, status, big.NewInt(100), 500, big.NewInt(100))
 	require.Equal(t, expectedTx, dbTx)
 }
 
