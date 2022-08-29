@@ -42,17 +42,19 @@ func TestElasticIndexerSaveTransactions(t *testing.T) {
 			},
 		},
 	}
+	tx := outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
+		Nonce:    1,
+		SndAddr:  []byte("sender"),
+		RcvAddr:  []byte("receiver"),
+		GasLimit: 70000,
+		GasPrice: 1000000000,
+		Data:     []byte("transfer"),
+		Value:    big.NewInt(1234),
+	}, 62000, big.NewInt(62000000000000))
+	tx.SetInitialPaidFee(big.NewInt(62080000000000))
 	pool := &outport.Pool{
 		Txs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
-			string(txHash): outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
-				Nonce:    1,
-				SndAddr:  []byte("sender"),
-				RcvAddr:  []byte("receiver"),
-				GasLimit: 70000,
-				GasPrice: 1000000000,
-				Data:     []byte("transfer"),
-				Value:    big.NewInt(1234),
-			}, 62000, big.NewInt(62000000000000)),
+			string(txHash): tx,
 		},
 	}
 	err = esProc.SaveTransactions(body, header, pool, nil)

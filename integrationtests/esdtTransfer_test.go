@@ -83,9 +83,13 @@ func TestESDTTransferTooMuchGasProvided(t *testing.T) {
 		OriginalTxHash: txHash,
 	}
 
+	initialPaidFee, _ := big.NewInt(0).SetString("104000110000000", 10)
+	tx := outport.NewTransactionHandlerWithGasAndFee(txESDT, 104011, big.NewInt(104000110000000))
+	tx.SetInitialPaidFee(initialPaidFee)
+
 	pool := &outport.Pool{
 		Txs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
-			string(txHash): outport.NewTransactionHandlerWithGasAndFee(txESDT, 104011, big.NewInt(104000110000000)),
+			string(txHash): tx,
 		},
 		Scrs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
 			string(scrHash2): outport.NewTransactionHandlerWithGasAndFee(scr2, 0, big.NewInt(0)),

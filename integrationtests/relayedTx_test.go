@@ -73,9 +73,12 @@ func TestRelayedTransactionGasUsedCrossShard(t *testing.T) {
 		OriginalTxHash: txHash,
 	}
 
+	tx := outport.NewTransactionHandlerWithGasAndFee(initialTx, 16610000, big.NewInt(1760000000000000))
+	tx.SetInitialPaidFee(big.NewInt(1760000000000000))
+
 	pool := &outport.Pool{
 		Txs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
-			string(txHash): outport.NewTransactionHandlerWithGasAndFee(initialTx, 16610000, big.NewInt(1760000000000000)),
+			string(txHash): tx,
 		},
 		Scrs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
 			string(scrHash1): outport.NewTransactionHandlerWithGasAndFee(scr1, 0, big.NewInt(0)),
@@ -203,9 +206,11 @@ func TestRelayedTransactionIntraShard(t *testing.T) {
 		Value:          refundValueBig,
 	}
 
+	tx := outport.NewTransactionHandlerWithGasAndFee(initialTx, 10556000, big.NewInt(2257820000000000))
+	tx.SetInitialPaidFee(big.NewInt(2306320000000000))
 	pool := &outport.Pool{
 		Txs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
-			string(txHash): outport.NewTransactionHandlerWithGasAndFee(initialTx, 10556000, big.NewInt(2257820000000000)),
+			string(txHash): tx,
 		},
 		Scrs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
 			string(scrHash1): outport.NewTransactionHandlerWithGasAndFee(scr1, 0, big.NewInt(0)),

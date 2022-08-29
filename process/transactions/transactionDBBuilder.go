@@ -46,6 +46,7 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 	txStatus string,
 	fee *big.Int,
 	gasUsed uint64,
+	initialPaidFee *big.Int,
 ) *data.Transaction {
 	isScCall := core.IsSmartContractAddress(tx.RcvAddr)
 	res := dtb.dataFieldParser.Parse(tx.Data, tx.SndAddr, tx.RcvAddr)

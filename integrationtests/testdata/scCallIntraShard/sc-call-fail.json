@@ -11,6 +11,7 @@
   "gasLimit": 12000000,
   "gasUsed": 12000000,
   "fee": "181380000000000",
+  "initialPaidFee": "181380000000000",
   "data": "ZGVsZWdhdGU=",
   "signature": "",
   "timestamp": 5040,

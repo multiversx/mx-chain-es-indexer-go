@@ -3,6 +3,7 @@
 package integrationtests
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"math/big"
 	"testing"
@@ -13,9 +14,8 @@ import (
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/esdt"
-	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 	"github.com/stretchr/testify/require"
 )
 
@@ -24,8 +24,6 @@ func TestAccountsESDTDeleteOnRollback(t *testing.T) {
 
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
-
-	feeComputer := &mock.EconomicsHandlerMock{}
 
 	shardCoordinator := &mock.ShardCoordinatorMock{
 		SelfID: 1,
@@ -41,27 +39,30 @@ func TestAccountsESDTDeleteOnRollback(t *testing.T) {
 			Creator: []byte("creator"),
 		},
 	}
-	addr := "aaaabbbb"
-	mockAccount := &mock.UserAccountStub{
-		RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
-			return json.Marshal(esdtToken)
-		},
-		AddressBytesCalled: func() []byte {
-			return []byte(addr)
-		},
-	}
-	accounts := &mock.AccountsStub{
-		LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
-			return mockAccount, nil
+	addr := hex.EncodeToString([]byte("aaaabbbb"))
+	coreAlteredAccounts := map[string]*outport.AlteredAccount{
+		addr: {
+			Address: addr,
+			Tokens: []*outport.AccountTokenData{
+				{
+					Identifier: "TOKEN-eeee",
+					Nonce:      2,
+					Balance:    "1000",
+					MetaData: &esdt.MetaData{
+						Creator: []byte("creator"),
+					},
+					Properties: "ok",
+				},
+			},
 		},
 	}
 
-	esProc, err := CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient, shardCoordinator)
 	require.Nil(t, err)
 
 	// CREATE SEMI-FUNGIBLE TOKEN
 	esdtDataBytes, _ := json.Marshal(esdtToken)
-	pool := &indexer.Pool{
+	pool := &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				TxHash: "h1",
@@ -85,7 +86,7 @@ func TestAccountsESDTDeleteOnRollback(t *testing.T) {
 		TimeStamp: 5040,
 	}
 
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts)
 	require.Nil(t, err)
 
 	ids := []string{"6161616162626262-TOKEN-eeee-02"}

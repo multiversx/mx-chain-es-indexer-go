@@ -63,17 +63,20 @@ func TestNFTTransferCrossShardWithSCCall(t *testing.T) {
 		OriginalTxHash: txHash,
 	}
 
+	tx := outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
+		Nonce:    79,
+		SndAddr:  []byte("erd1ef9xx3k3m89azf4c4xc98wpcdnx5h0cnxy6em47r6dc4alud0uwqx24f50"),
+		RcvAddr:  []byte("erd1ef9xx3k3m89azf4c4xc98wpcdnx5h0cnxy6em47r6dc4alud0uwqx24f50"),
+		GasLimit: 150000000,
+		GasPrice: 1000000000,
+		Data:     []byte("ESDTNFTTransfer@4c4b4641524d2d336634663962@016534@6f1e6f01bc7627f5ae@00000000000000000500f1c8f2fdc58a63c6b201fc2ed629962d3dfa33fe7ceb@636f6d706f756e645265776172647350726f7879@000000000000000005004f79ec44bb13372b5ac9d996d749120f476427627ceb"),
+		Value:    big.NewInt(0),
+	}, 150000000, big.NewInt(1904415000000000))
+	tx.SetInitialPaidFee(big.NewInt(1904415000000000))
+
 	pool := &outport.Pool{
 		Txs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
-			string(txHash): outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
-				Nonce:    79,
-				SndAddr:  []byte("erd1ef9xx3k3m89azf4c4xc98wpcdnx5h0cnxy6em47r6dc4alud0uwqx24f50"),
-				RcvAddr:  []byte("erd1ef9xx3k3m89azf4c4xc98wpcdnx5h0cnxy6em47r6dc4alud0uwqx24f50"),
-				GasLimit: 150000000,
-				GasPrice: 1000000000,
-				Data:     []byte("ESDTNFTTransfer@4c4b4641524d2d336634663962@016534@6f1e6f01bc7627f5ae@00000000000000000500f1c8f2fdc58a63c6b201fc2ed629962d3dfa33fe7ceb@636f6d706f756e645265776172647350726f7879@000000000000000005004f79ec44bb13372b5ac9d996d749120f476427627ceb"),
-				Value:    big.NewInt(0),
-			}, 150000000, big.NewInt(1904415000000000)),
+			string(txHash): tx,
 		},
 		Scrs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
 			string(scrHash1): outport.NewTransactionHandlerWithGasAndFee(scr1, 0, big.NewInt(0)),
@@ -185,18 +188,21 @@ func TestNFTTransferCrossShard(t *testing.T) {
 		OriginalTxHash: txHash,
 	}
 
+	tx := outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
+		Nonce:    79,
+		SndAddr:  []byte("erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv"),
+		RcvAddr:  []byte("erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv"),
+		GasLimit: 5000000,
+		GasPrice: 1000000000,
+		Data:     []byte("ESDTNFTTransfer@536f6d657468696e672d616263646566@01@01@00000000000000000500a7a02771aa07090e607f02b25f4d6d241bff32b990a2"),
+		Value:    big.NewInt(0),
+	}, 963500, big.NewInt(235850000000000))
+	tx.SetInitialPaidFee(big.NewInt(276215000000000))
+
 	refundValueBig, _ := big.NewInt(0).SetString("40365000000000", 10)
 	pool := &outport.Pool{
 		Txs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
-			string(txHash): outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
-				Nonce:    79,
-				SndAddr:  []byte("erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv"),
-				RcvAddr:  []byte("erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv"),
-				GasLimit: 5000000,
-				GasPrice: 1000000000,
-				Data:     []byte("ESDTNFTTransfer@536f6d657468696e672d616263646566@01@01@00000000000000000500a7a02771aa07090e607f02b25f4d6d241bff32b990a2"),
-				Value:    big.NewInt(0),
-			}, 963500, big.NewInt(235850000000000)),
+			string(txHash): tx,
 		},
 		Scrs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
 			string(scrHash1): outport.NewTransactionHandlerWithGasAndFee(&smartContractResult.SmartContractResult{
@@ -348,18 +354,21 @@ func TestNFTTransferCrossShardImportDBScenarioFirstIndexDestinationAfterSource(t
 		},
 	}
 
+	tx := outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
+		Nonce:    79,
+		SndAddr:  []byte("erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv"),
+		RcvAddr:  []byte("erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv"),
+		GasLimit: 5000000,
+		GasPrice: 1000000000,
+		Data:     []byte("ESDTNFTTransfer@434f4c4c454354494f4e2d323663313838@01@01@00000000000000000500a7a02771aa07090e607f02b25f4d6d241bff32b990a2"),
+		Value:    big.NewInt(0),
+	}, 963500, big.NewInt(238820000000000))
+	tx.SetInitialPaidFee(big.NewInt(595490000000000))
+
 	refundValueBig, _ := big.NewInt(0).SetString("40365000000000", 10)
 	pool := &outport.Pool{
 		Txs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
-			string(txHash): outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
-				Nonce:    79,
-				SndAddr:  []byte("erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv"),
-				RcvAddr:  []byte("erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv"),
-				GasLimit: 5000000,
-				GasPrice: 1000000000,
-				Data:     []byte("ESDTNFTTransfer@434f4c4c454354494f4e2d323663313838@01@01@00000000000000000500a7a02771aa07090e607f02b25f4d6d241bff32b990a2"),
-				Value:    big.NewInt(0),
-			}, 963500, big.NewInt(238820000000000)),
+			string(txHash): tx,
 		},
 		Scrs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
 			string(scrHash1): outport.NewTransactionHandlerWithGasAndFee(&smartContractResult.SmartContractResult{

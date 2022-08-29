@@ -46,17 +46,20 @@ func TestTransactionWithSCCallFail(t *testing.T) {
 	}
 
 	refundValueBig, _ := big.NewInt(0).SetString("5000000000000000000", 10)
+	tx := outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
+		Nonce:    46,
+		SndAddr:  []byte("erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv"),
+		RcvAddr:  []byte("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqfhllllscrt56r"),
+		GasLimit: 12000000,
+		GasPrice: 1000000000,
+		Data:     []byte("delegate"),
+		Value:    refundValueBig,
+	}, 12000000, big.NewInt(181380000000000))
+	tx.SetInitialPaidFee(big.NewInt(181380000000000))
+
 	pool := &outport.Pool{
 		Txs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
-			string(txHash): outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
-				Nonce:    46,
-				SndAddr:  []byte("erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv"),
-				RcvAddr:  []byte("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqfhllllscrt56r"),
-				GasLimit: 12000000,
-				GasPrice: 1000000000,
-				Data:     []byte("delegate"),
-				Value:    refundValueBig,
-			}, 12000000, big.NewInt(181380000000000)),
+			string(txHash): tx,
 		},
 		Scrs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
 			string(scrHash1): outport.NewTransactionHandlerWithGasAndFee(&smartContractResult.SmartContractResult{
@@ -114,18 +117,21 @@ func TestTransactionWithScCallSuccess(t *testing.T) {
 		},
 	}
 
+	tx := outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
+		Nonce:    101,
+		SndAddr:  []byte("erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv"),
+		RcvAddr:  []byte("erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt"),
+		GasLimit: 250000000,
+		GasPrice: 1000000000,
+		Data:     []byte("claimRewards"),
+		Value:    big.NewInt(0),
+	}, 33891715, big.NewInt(406237150000000))
+	tx.SetInitialPaidFee(big.NewInt(2567320000000000))
+
 	refundValueBig, _ := big.NewInt(0).SetString("2161082850000000", 10)
 	pool := &outport.Pool{
 		Txs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
-			string(txHash): outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
-				Nonce:    101,
-				SndAddr:  []byte("erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv"),
-				RcvAddr:  []byte("erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt"),
-				GasLimit: 250000000,
-				GasPrice: 1000000000,
-				Data:     []byte("claimRewards"),
-				Value:    big.NewInt(0),
-			}, 33891715, big.NewInt(406237150000000)),
+			string(txHash): tx,
 		},
 		Scrs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
 			string(scrHash1): outport.NewTransactionHandlerWithGasAndFee(&smartContractResult.SmartContractResult{

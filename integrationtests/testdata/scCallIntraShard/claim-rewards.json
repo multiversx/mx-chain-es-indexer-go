@@ -10,6 +10,7 @@
   "gasPrice": 1000000000,
   "gasLimit": 250000000,
   "gasUsed": 33891715,
+  "initialPaidFee": "2567320000000000",
   "fee": "406237150000000",
   "data": "Y2xhaW1SZXdhcmRz",
   "signature": "",
