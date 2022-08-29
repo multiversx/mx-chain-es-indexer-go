@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
-
 	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
+	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/collections"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
@@ -247,6 +247,7 @@ func getTemplateByName(templateName string, templateList map[string]*bytes.Buffe
 
 // SaveHeader will prepare and save information about a header in elasticsearch server
 func (ei *elasticProcessor) SaveHeader(
+	headerHash []byte,
 	header coreData.HeaderHandler,
 	signersIndexes []uint64,
 	body *block.Body,
@@ -258,7 +259,7 @@ func (ei *elasticProcessor) SaveHeader(
 		return nil
 	}
 
-	elasticBlock, err := ei.blockProc.PrepareBlockForDB(header, signersIndexes, body, notarizedHeadersHashes, gasConsumptionData, txsSize)
+	elasticBlock, err := ei.blockProc.PrepareBlockForDB(headerHash, header, signersIndexes, body, notarizedHeadersHashes, gasConsumptionData, txsSize)
 	if err != nil {
 		return err
 	}
@@ -293,7 +294,10 @@ func (ei *elasticProcessor) RemoveHeader(header coreData.HeaderHandler) error {
 		return err
 	}
 
-	return ei.elasticClient.DoBulkRemove(elasticIndexer.BlockIndex, []string{hex.EncodeToString(headerHash)})
+	return ei.elasticClient.DoQueryRemove(
+		elasticIndexer.BlockIndex,
+		converters.PrepareHashesForQueryRemove([]string{hex.EncodeToString(headerHash)}),
+	)
 }
 
 // RemoveMiniblocks will remove all miniblocks that are in header from elasticsearch server
@@ -303,17 +307,55 @@ func (ei *elasticProcessor) RemoveMiniblocks(header coreData.HeaderHandler, body
 		return nil
 	}
 
-	return ei.elasticClient.DoBulkRemove(elasticIndexer.MiniblocksIndex, encodedMiniblocksHashes)
+	return ei.elasticClient.DoQueryRemove(
+		elasticIndexer.MiniblocksIndex,
+		converters.PrepareHashesForQueryRemove(encodedMiniblocksHashes),
+	)
 }
 
 // RemoveTransactions will remove transaction that are in miniblock from the elasticsearch server
 func (ei *elasticProcessor) RemoveTransactions(header coreData.HeaderHandler, body *block.Body) error {
-	encodedTxsHashes := ei.transactionsProc.GetRewardsTxsHashesHexEncoded(header, body)
-	if len(encodedTxsHashes) == 0 {
+	encodedTxsHashes, encodedScrsHashes := ei.transactionsProc.GetHexEncodedHashesForRemove(header, body)
+
+	err := ei.removeIfHashesNotEmpty(elasticIndexer.TransactionsIndex, encodedTxsHashes)
+	if err != nil {
+		return err
+	}
+
+	err = ei.removeIfHashesNotEmpty(elasticIndexer.ScResultsIndex, encodedScrsHashes)
+	if err != nil {
+		return err
+	}
+
+	return ei.removeIfHashesNotEmpty(elasticIndexer.OperationsIndex, append(encodedTxsHashes, encodedScrsHashes...))
+}
+
+func (ei *elasticProcessor) removeIfHashesNotEmpty(index string, hashes []string) error {
+	if len(hashes) == 0 {
 		return nil
 	}
 
-	return ei.elasticClient.DoBulkRemove(elasticIndexer.TransactionsIndex, encodedTxsHashes)
+	return ei.elasticClient.DoQueryRemove(
+		index,
+		converters.PrepareHashesForQueryRemove(hashes),
+	)
+}
+
+// RemoveAccountsESDT will remove data from accountsesdt index and accountsesdthistory
+func (ei *elasticProcessor) RemoveAccountsESDT(headerTimestamp uint64) error {
+	query := fmt.Sprintf(`{"query": {"bool": {"must": [{"match": {"shardID": {"query": %d,"operator": "AND"}}},{"match": {"timestamp": {"query": "%d","operator": "AND"}}}]}}}`, ei.selfShardID, headerTimestamp)
+	err := ei.elasticClient.DoQueryRemove(
+		elasticIndexer.AccountsESDTIndex,
+		bytes.NewBuffer([]byte(query)),
+	)
+	if err != nil {
+		return err
+	}
+
+	return ei.elasticClient.DoQueryRemove(
+		elasticIndexer.AccountsESDTHistoryIndex,
+		bytes.NewBuffer([]byte(query)),
+	)
 }
 
 // SaveMiniblocks will prepare and save information about miniblocks in elasticsearch server
