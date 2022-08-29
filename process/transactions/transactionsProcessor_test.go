@@ -508,7 +508,7 @@ func TestGetRewardsTxsHashesHexEncoded(t *testing.T) {
 
 	txDBProc, _ := NewTransactionsProcessor(createMockArgsTxsDBProc())
 
-	res := txDBProc.GetRewardsTxsHashesHexEncoded(nil, nil)
+	res, _ := txDBProc.GetHexEncodedHashesForRemove(nil, nil)
 	require.Nil(t, res)
 
 	header := &block.Header{
@@ -533,18 +533,47 @@ func TestGetRewardsTxsHashesHexEncoded(t *testing.T) {
 			},
 			{
 				TxHashes: [][]byte{
-					[]byte("h2"),
+					[]byte("h3"),
 				},
 				Type: block.TxBlock,
+			},
+			{
+				TxHashes: [][]byte{
+					[]byte("h4"),
+				},
+				Type:            block.TxBlock,
+				SenderShardID:   core.MetachainShardId,
+				ReceiverShardID: 0,
+			},
+			{
+				TxHashes: [][]byte{
+					[]byte("h5"),
+				},
+				Type:            block.TxBlock,
+				SenderShardID:   2,
+				ReceiverShardID: core.MetachainShardId,
+			},
+			{
+				TxHashes: [][]byte{
+					[]byte("h6"),
+				},
+				Type:            block.SmartContractResultBlock,
+				SenderShardID:   2,
+				ReceiverShardID: core.MetachainShardId,
 			},
 		},
 	}
 
 	expectedHashes := []string{
-		"6831", "6832",
+		"6831", "6832", "6833", "6835",
 	}
-	txsHashes := txDBProc.GetRewardsTxsHashesHexEncoded(header, body)
+	expectedScrHashes := []string{
+		"6836",
+	}
+
+	txsHashes, scrHashes := txDBProc.GetHexEncodedHashesForRemove(header, body)
 	require.Equal(t, expectedHashes, txsHashes)
+	require.Equal(t, expectedScrHashes, scrHashes)
 }
 
 func TestTxsDatabaseProcessor_PrepareTransactionsForDatabaseInvalidTxWithSCR(t *testing.T) {

@@ -64,6 +64,7 @@ func TestGetMoveBalanceTransaction(t *testing.T) {
 		GasPrice:             gasPrice,
 		GasLimit:             gasLimit,
 		GasUsed:              uint64(500),
+		InitialPaidFee:       "100",
 		Data:                 tx.Data,
 		Signature:            hex.EncodeToString(tx.Signature),
 		Timestamp:            time.Duration(header.GetTimeStamp()),

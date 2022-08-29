@@ -10,7 +10,7 @@ import (
 type DatabaseWriterStub struct {
 	DoRequestCalled           func(req *esapi.IndexRequest) error
 	DoBulkRequestCalled       func(buff *bytes.Buffer, index string) error
-	DoBulkRemoveCalled        func(index string, hashes []string) error
+	DoQueryRemoveCalled       func(index string, body *bytes.Buffer) error
 	DoMultiGetCalled          func(ids []string, index string, withSource bool, response interface{}) error
 	CheckAndCreateIndexCalled func(index string) error
 	DoScrollRequestCalled     func(index string, body []byte, withSource bool, handlerFunc func(responseBytes []byte) error) error
@@ -54,10 +54,10 @@ func (dwm *DatabaseWriterStub) DoMultiGet(hashes []string, index string, withSou
 	return nil
 }
 
-// DoBulkRemove -
-func (dwm *DatabaseWriterStub) DoBulkRemove(index string, hashes []string) error {
-	if dwm.DoBulkRemoveCalled != nil {
-		return dwm.DoBulkRemoveCalled(index, hashes)
+// DoQueryRemove -
+func (dwm *DatabaseWriterStub) DoQueryRemove(index string, body *bytes.Buffer) error {
+	if dwm.DoQueryRemoveCalled != nil {
+		return dwm.DoQueryRemoveCalled(index, body)
 	}
 
 	return nil

@@ -18,16 +18,18 @@ import (
 
 var log = logger.GetOrCreate("indexer/process/accounts")
 
-// accountsProcessor a is structure responsible for processing accounts
+// accountsProcessor is a structure responsible for processing accounts
 type accountsProcessor struct {
 	addressPubkeyConverter core.PubkeyConverter
 	balanceConverter       indexer.BalanceConverter
+	shardID                uint32
 }
 
 // NewAccountsProcessor will create a new instance of accounts processor
 func NewAccountsProcessor(
 	addressPubkeyConverter core.PubkeyConverter,
 	balanceConverter indexer.BalanceConverter,
+	shardID uint32,
 ) (*accountsProcessor, error) {
 	if check.IfNil(addressPubkeyConverter) {
 		return nil, indexer.ErrNilPubkeyConverter
@@ -39,6 +41,7 @@ func NewAccountsProcessor(
 	return &accountsProcessor{
 		addressPubkeyConverter: addressPubkeyConverter,
 		balanceConverter:       balanceConverter,
+		shardID:                shardID,
 	}, nil
 }
 
@@ -133,6 +136,7 @@ func (ap *accountsProcessor) PrepareRegularAccountsMap(timestamp uint64, account
 			TotalBalanceWithStake:    converters.BigIntToString(balance),
 			TotalBalanceWithStakeNum: balanceAsFloat,
 			Timestamp:                time.Duration(timestamp),
+			ShardID:                  ap.shardID,
 		}
 
 		accountsMap[address] = acc
@@ -181,6 +185,7 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(
 			IsSmartContract: core.IsSmartContractAddress(addressBytes),
 			Data:            tokenMetaData,
 			Timestamp:       time.Duration(timestamp),
+			ShardID:         ap.shardID,
 		}
 
 		if acc.TokenNonce == 0 {
@@ -219,6 +224,7 @@ func (ap *accountsProcessor) PrepareAccountsHistory(
 			IsSender:        userAccount.IsSender,
 			IsSmartContract: userAccount.IsSmartContract,
 			Identifier:      converters.ComputeTokenIdentifier(userAccount.TokenName, userAccount.TokenNonce),
+			ShardID:         ap.shardID,
 		}
 		keyInMap := fmt.Sprintf("%s-%s-%d", acc.Address, acc.Token, acc.TokenNonce)
 		accountsMap[keyInMap] = acc

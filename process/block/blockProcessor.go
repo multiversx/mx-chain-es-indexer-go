@@ -44,6 +44,7 @@ func NewBlockProcessor(hasher hashing.Hasher, marshalizer marshal.Marshalizer) (
 
 // PrepareBlockForDB will prepare a database block and serialize it for database
 func (bp *blockProcessor) PrepareBlockForDB(
+	headerHash []byte,
 	header coreData.HeaderHandler,
 	signersIndexes []uint64,
 	body *block.Body,
@@ -58,7 +59,7 @@ func (bp *blockProcessor) PrepareBlockForDB(
 		return nil, indexer.ErrNilBlockBody
 	}
 
-	blockSizeInBytes, headerHash, err := bp.computeBlockSizeAndHeaderHash(header, body)
+	blockSizeInBytes, err := bp.computeBlockSize(header, body)
 	if err != nil {
 		return nil, err
 	}
@@ -221,21 +222,19 @@ func (bp *blockProcessor) getEncodedMBSHashes(body *block.Body) []string {
 	return miniblocksHashes
 }
 
-func (bp *blockProcessor) computeBlockSizeAndHeaderHash(header coreData.HeaderHandler, body *block.Body) (int, []byte, error) {
+func (bp *blockProcessor) computeBlockSize(header coreData.HeaderHandler, body *block.Body) (int, error) {
 	headerBytes, err := bp.marshalizer.Marshal(header)
 	if err != nil {
-		return 0, nil, err
+		return 0, err
 	}
 	bodyBytes, err := bp.marshalizer.Marshal(body)
 	if err != nil {
-		return 0, nil, err
+		return 0, err
 	}
 
 	blockSize := len(headerBytes) + len(bodyBytes)
 
-	headerHash := bp.hasher.Compute(string(headerBytes))
-
-	return blockSize, headerHash, nil
+	return blockSize, nil
 }
 
 func (bp *blockProcessor) getLeaderIndex(signersIndexes []uint64) uint64 {

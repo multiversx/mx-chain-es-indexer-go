@@ -16,15 +16,16 @@ type AccountInfo struct {
 	TokenIdentifier          string         `json:"identifier,omitempty"`
 	TokenNonce               uint64         `json:"tokenNonce,omitempty"`
 	Properties               string         `json:"properties,omitempty"`
-	IsSender                 bool           `json:"-"`
-	IsSmartContract          bool           `json:"-"`
-	IsNFTCreate              bool           `json:"-"`
 	TotalBalanceWithStake    string         `json:"totalBalanceWithStake,omitempty"`
 	TotalBalanceWithStakeNum float64        `json:"totalBalanceWithStakeNum,omitempty"`
 	Data                     *TokenMetaData `json:"data,omitempty"`
 	Timestamp                time.Duration  `json:"timestamp,omitempty"`
 	Type                     string         `json:"type,omitempty"`
 	CurrentOwner             string         `json:"currentOwner,omitempty"`
+	ShardID                  uint32         `json:"shardID"`
+	IsSender                 bool           `json:"-"`
+	IsSmartContract          bool           `json:"-"`
+	IsNFTCreate              bool           `json:"-"`
 }
 
 // TokenMetaData holds data about a token metadata
@@ -51,6 +52,7 @@ type AccountBalanceHistory struct {
 	TokenNonce      uint64        `json:"tokenNonce,omitempty"`
 	IsSender        bool          `json:"isSender,omitempty"`
 	IsSmartContract bool          `json:"isSmartContract,omitempty"`
+	ShardID         uint32        `json:"shardID"`
 }
 
 // Account is a structure that is needed for regular accounts

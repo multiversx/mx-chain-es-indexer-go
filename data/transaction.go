@@ -21,6 +21,7 @@ type Transaction struct {
 	GasLimit             uint64        `json:"gasLimit"`
 	GasUsed              uint64        `json:"gasUsed"`
 	Fee                  string        `json:"fee"`
+	InitialPaidFee       string        `json:"initialPaidFee,omitempty"`
 	Data                 []byte        `json:"data"`
 	Signature            string        `json:"signature"`
 	Timestamp            time.Duration `json:"timestamp"`

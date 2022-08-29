@@ -67,6 +67,7 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		Timestamp:            time.Duration(header.GetTimeStamp()),
 		Status:               txStatus,
 		GasUsed:              gasUsed,
+		InitialPaidFee:       initialPaidFee.String(),
 		Fee:                  fee.String(),
 		ReceiverUserName:     tx.RcvUserName,
 		SenderUserName:       tx.SndUserName,

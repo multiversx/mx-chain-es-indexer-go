@@ -29,5 +29,6 @@
   "gasPrice": 1000000000,
   "timestamp": 5040,
   "status": "fail",
+  "initialPaidFee": "279185000000000",
   "searchOrder": 0
 }

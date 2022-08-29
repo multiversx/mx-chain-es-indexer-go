@@ -60,6 +60,7 @@ func TestBlockProcessor_PrepareBlockForDBShouldWork(t *testing.T) {
 	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	dbBlock, err := bp.PrepareBlockForDB(
+		[]byte("hash"),
 		&dataBlock.Header{},
 		[]uint64{0, 1, 2},
 		&dataBlock.Body{
@@ -75,7 +76,7 @@ func TestBlockProcessor_PrepareBlockForDBShouldWork(t *testing.T) {
 	require.Nil(t, err)
 
 	expectedBlock := &data.Block{
-		Hash:                  "c7c81a1b22b67680f35837b474387ddfe10f67e104034c80f94ab9e5a0a089fb",
+		Hash:                  "68617368",
 		Validators:            []uint64{0x0, 0x1, 0x2},
 		EpochStartBlock:       false,
 		SearchOrder:           0x3fc,
@@ -93,7 +94,7 @@ func TestBlockProcessor_PrepareBlockForDBNilHeader(t *testing.T) {
 
 	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 
-	dbBlock, err := bp.PrepareBlockForDB(nil, nil, &dataBlock.Body{}, nil, outport.HeaderGasConsumption{}, 0)
+	dbBlock, err := bp.PrepareBlockForDB([]byte("hash"),nil, nil, &dataBlock.Body{}, nil, outport.HeaderGasConsumption{}, 0)
 	require.Equal(t, indexer.ErrNilHeaderHandler, err)
 	require.Nil(t, dbBlock)
 }
@@ -103,7 +104,7 @@ func TestBlockProcessor_PrepareBlockForDBNilBody(t *testing.T) {
 
 	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 
-	dbBlock, err := bp.PrepareBlockForDB(&dataBlock.MetaBlock{}, nil, nil, nil, outport.HeaderGasConsumption{}, 0)
+	dbBlock, err := bp.PrepareBlockForDB([]byte("hash"),&dataBlock.MetaBlock{}, nil, nil, nil, outport.HeaderGasConsumption{}, 0)
 	require.Equal(t, indexer.ErrNilBlockBody, err)
 	require.Nil(t, dbBlock)
 }
@@ -118,7 +119,7 @@ func TestBlockProcessor_PrepareBlockForDBMarshalFailHeader(t *testing.T) {
 		},
 	})
 
-	dbBlock, err := bp.PrepareBlockForDB(&dataBlock.MetaBlock{}, nil, &dataBlock.Body{}, nil, outport.HeaderGasConsumption{}, 0)
+	dbBlock, err := bp.PrepareBlockForDB([]byte("hash"), &dataBlock.MetaBlock{}, nil, &dataBlock.Body{}, nil, outport.HeaderGasConsumption{}, 0)
 	require.Equal(t, expectedErr, err)
 	require.Nil(t, dbBlock)
 }
@@ -140,7 +141,7 @@ func TestBlockProcessor_PrepareBlockForDBMarshalFailBlock(t *testing.T) {
 		},
 	})
 
-	dbBlock, err := bp.PrepareBlockForDB(&dataBlock.MetaBlock{}, nil, &dataBlock.Body{}, nil, outport.HeaderGasConsumption{}, 0)
+	dbBlock, err := bp.PrepareBlockForDB([]byte("hash"), &dataBlock.MetaBlock{}, nil, &dataBlock.Body{}, nil, outport.HeaderGasConsumption{}, 0)
 	require.Equal(t, expectedErr, err)
 	require.Nil(t, dbBlock)
 }
@@ -161,7 +162,7 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 
 	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 
-	dbBlock, err := bp.PrepareBlockForDB(&dataBlock.MetaBlock{
+	dbBlock, err := bp.PrepareBlockForDB([]byte("hash"), &dataBlock.MetaBlock{
 		TxCount: 1000,
 		EpochStart: dataBlock.EpochStart{
 			LastFinalizedHeaders: []dataBlock.EpochStartShardData{{
@@ -209,7 +210,7 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 		Nonce:                 0,
 		Round:                 0,
 		Epoch:                 0,
-		Hash:                  "a6d891a7692e19f97ad2993b7804708995d2d9deb008692d1e43084a79d04da5",
+		Hash:                  "68617368",
 		MiniBlocksHashes:      []string{},
 		NotarizedBlocksHashes: nil,
 		Proposer:              0,

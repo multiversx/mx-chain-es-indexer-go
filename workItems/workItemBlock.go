@@ -65,6 +65,7 @@ func (wib *itemBlock) Save() error {
 
 	txsSizeInBytes := ComputeSizeOfTxs(wib.marshalizer, wib.argsSaveBlock.TransactionsPool)
 	err := wib.indexer.SaveHeader(
+		wib.argsSaveBlock.HeaderHash,
 		wib.argsSaveBlock.Header,
 		wib.argsSaveBlock.SignersIndexes,
 		body,

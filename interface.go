@@ -21,6 +21,7 @@ type DispatcherHandler interface {
 // ElasticProcessor defines the interface for the elastic search indexer
 type ElasticProcessor interface {
 	SaveHeader(
+		headerHash []byte,
 		header coreData.HeaderHandler,
 		signersIndexes []uint64,
 		body *block.Body,
@@ -31,6 +32,7 @@ type ElasticProcessor interface {
 	RemoveHeader(header coreData.HeaderHandler) error
 	RemoveMiniblocks(header coreData.HeaderHandler, body *block.Body) error
 	RemoveTransactions(header coreData.HeaderHandler, body *block.Body) error
+	RemoveAccountsESDT(headerTimestamp uint64) error
 	SaveMiniblocks(header coreData.HeaderHandler, body *block.Body) error
 	SaveTransactions(body *block.Body, header coreData.HeaderHandler, pool *outport.Pool, coreAlteredAccounts map[string]*outport.AlteredAccount) error
 	SaveValidatorsRating(index string, validatorsRatingInfo []*data.ValidatorRatingInfo) error

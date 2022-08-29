@@ -10,6 +10,7 @@ import (
 // ElasticProcessorStub -
 type ElasticProcessorStub struct {
 	SaveHeaderCalled func(
+		headerHash []byte,
 		header coreData.HeaderHandler,
 		signersIndexes []uint64,
 		body *block.Body,
@@ -26,10 +27,21 @@ type ElasticProcessorStub struct {
 	SaveRoundsInfoCalled             func(infos []*data.RoundInfo) error
 	SaveShardValidatorsPubKeysCalled func(shardID, epoch uint32, shardValidatorsPubKeys [][]byte) error
 	SaveAccountsCalled               func(timestamp uint64, acc []*data.Account) error
+	RemoveAccountsESDTCalled         func(headerTimestamp uint64) error
+}
+
+// RemoveAccountsESDT -
+func (eim *ElasticProcessorStub) RemoveAccountsESDT(headerTimestamp uint64) error {
+	if eim.RemoveAccountsESDTCalled != nil {
+		return eim.RemoveAccountsESDTCalled(headerTimestamp)
+	}
+
+	return nil
 }
 
 // SaveHeader -
 func (eim *ElasticProcessorStub) SaveHeader(
+	headerHash []byte,
 	header coreData.HeaderHandler,
 	signersIndexes []uint64,
 	body *block.Body,
@@ -37,7 +49,7 @@ func (eim *ElasticProcessorStub) SaveHeader(
 	gasConsumptionData outport.HeaderGasConsumption,
 	txsSize int) error {
 	if eim.SaveHeaderCalled != nil {
-		return eim.SaveHeaderCalled(header, signersIndexes, body, notarizedHeadersHashes, gasConsumptionData, txsSize)
+		return eim.SaveHeaderCalled(headerHash, header, signersIndexes, body, notarizedHeadersHashes, gasConsumptionData, txsSize)
 	}
 	return nil
 }

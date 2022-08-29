@@ -13,5 +13,6 @@
 	},
 	"timestamp": 5600,
 	"type": "SemiFungibleESDT",
-	"currentOwner":"61646472"
+	"currentOwner":"61646472",
+	"shardID": 0
 }

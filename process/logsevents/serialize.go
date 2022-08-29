@@ -14,13 +14,34 @@ import (
 // SerializeLogs will serialize the provided logs in a way that Elastic Search expects a bulk request
 func (*logsAndEventsProcessor) SerializeLogs(logs []*data.Logs, buffSlice *data.BufferSlice, index string) error {
 	for _, lg := range logs {
-		meta := []byte(fmt.Sprintf(`{ "index" : {"_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(lg.ID), "\n"))
+		meta := []byte(fmt.Sprintf(`{ "update" : { "_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(lg.ID), "\n"))
 		serializedData, errMarshal := json.Marshal(lg)
 		if errMarshal != nil {
 			return errMarshal
 		}
 
-		err := buffSlice.PutData(meta, serializedData)
+		codeToExecute := `
+		if ('create' == ctx.op) {
+			ctx._source = params.log
+		} else {
+			if (ctx._source.containsKey('timestamp')) {
+				if (ctx._source.timestamp <= params.log.timestamp) {
+					ctx._source = params.log
+				}
+			} else {
+				ctx._source = params.log
+			}
+		}
+`
+		serializedDataStr := fmt.Sprintf(`{"scripted_upsert": true, "script": {`+
+			`"source": "%s",`+
+			`"lang": "painless",`+
+			`"params": { "log": %s }},`+
+			`"upsert": {}}`,
+			converters.FormatPainlessSource(codeToExecute), serializedData,
+		)
+
+		err := buffSlice.PutData(meta, []byte(serializedDataStr))
 		if err != nil {
 			return err
 		}
