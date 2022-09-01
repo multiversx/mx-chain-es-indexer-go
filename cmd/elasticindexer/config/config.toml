@@ -1,0 +1,29 @@
+[config]
+    enabled-indices =  [
+        "rating", "transactions", "blocks", "validators", "miniblocks", "rounds", "accounts", "accountshistory",
+        "receipts", "scresults", "accountsesdt", "accountsesdthistory", "epochinfo", "scdeploys", "tokens", "tags", "logs", "delegators", "operations", "collections"
+    ]
+    [config.elastic-cluster]
+        use-kibana = false
+        url = "http://localhost:9200"
+        username = ""
+        password = ""
+        bulk-request-max-size-in-bytes = 4194304 # 4MB
+    [config.web-socket]
+        server-url = "localhost:22111"
+        data-marshaller-type = "json"
+    [config.address-converter]
+        length = 32
+        type = "bech32"
+    [config.validator-keys-converter]
+        length = 96
+        type = "hex"
+    [config.hasher]
+        type = "blake2b"
+    [config.economics]
+        denomination = 18
+    [config.logs]
+        log-file-life-span-in-mb = 1024 # 1GB
+        log-file-life-span-in-sec = 432000 # 5 days
+        log-file-prefix = "elastic-indexer"
+        logs-path = "logs"

@@ -23,8 +23,9 @@ var log = logger.GetOrCreate("indexer/factory")
 // ArgsIndexerFactory holds all dependencies required by the data indexer factory in order to create
 // new instances
 type ArgsIndexerFactory struct {
-	Enabled                  bool
-	UseKibana                bool
+	Enabled   bool
+	UseKibana bool
+	// move this in ArgSaveBlock
 	IsInImportDBMode         bool
 	IndexerCacheSize         int
 	Denomination             int
