@@ -17,7 +17,6 @@ func NewDataIndexerArguments() ArgDataIndexer {
 		Marshalizer:      &mock.MarshalizerMock{},
 		DataDispatcher:   &mock.DispatcherMock{},
 		ElasticProcessor: &mock.ElasticProcessorStub{},
-		ShardCoordinator: &mock.ShardCoordinatorMock{},
 	}
 }
 

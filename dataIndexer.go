@@ -11,7 +11,6 @@ import (
 
 // ArgDataIndexer is a structure that is used to store all the components that are needed to create an indexer
 type ArgDataIndexer struct {
-	ShardCoordinator ShardCoordinator
 	Marshalizer      marshal.Marshalizer
 	DataDispatcher   DispatcherHandler
 	ElasticProcessor ElasticProcessor
@@ -50,9 +49,6 @@ func checkIndexerArgs(arguments ArgDataIndexer) error {
 	}
 	if check.IfNil(arguments.Marshalizer) {
 		return ErrNilMarshalizer
-	}
-	if check.IfNil(arguments.ShardCoordinator) {
-		return ErrNilShardCoordinator
 	}
 
 	return nil

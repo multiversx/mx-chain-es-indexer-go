@@ -67,7 +67,6 @@ func NewIndexer(args *ArgsIndexerFactory) (indexer.Indexer, error) {
 
 	arguments := indexer.ArgDataIndexer{
 		Marshalizer:      args.Marshalizer,
-		ShardCoordinator: args.ShardCoordinator,
 		ElasticProcessor: elasticProcessor,
 		DataDispatcher:   dispatcher,
 	}
