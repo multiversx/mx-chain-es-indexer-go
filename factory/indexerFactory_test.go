@@ -6,8 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	indexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	"github.com/stretchr/testify/require"
 )
 
@@ -44,7 +44,7 @@ func TestNewIndexerFactory(t *testing.T) {
 				args.IndexerCacheSize = -1
 				return args
 			},
-			exError: indexer.ErrNegativeCacheSize,
+			exError: dataindexer.ErrNegativeCacheSize,
 		},
 		{
 			name: "NilAddressPubkeyConverter",
@@ -53,7 +53,7 @@ func TestNewIndexerFactory(t *testing.T) {
 				args.AddressPubkeyConverter = nil
 				return args
 			},
-			exError: indexer.ErrNilPubkeyConverter,
+			exError: dataindexer.ErrNilPubkeyConverter,
 		},
 		{
 			name: "NilValidatorPubkeyConverter",
@@ -62,7 +62,7 @@ func TestNewIndexerFactory(t *testing.T) {
 				args.ValidatorPubkeyConverter = nil
 				return args
 			},
-			exError: indexer.ErrNilPubkeyConverter,
+			exError: dataindexer.ErrNilPubkeyConverter,
 		},
 		{
 			name: "NilMarshalizer",
@@ -71,7 +71,7 @@ func TestNewIndexerFactory(t *testing.T) {
 				args.Marshalizer = nil
 				return args
 			},
-			exError: indexer.ErrNilMarshalizer,
+			exError: dataindexer.ErrNilMarshalizer,
 		},
 		{
 			name: "NilHasher",
@@ -80,7 +80,7 @@ func TestNewIndexerFactory(t *testing.T) {
 				args.Hasher = nil
 				return args
 			},
-			exError: indexer.ErrNilHasher,
+			exError: dataindexer.ErrNilHasher,
 		},
 		{
 			name: "EmptyUrl",
@@ -89,7 +89,7 @@ func TestNewIndexerFactory(t *testing.T) {
 				args.Url = ""
 				return args
 			},
-			exError: indexer.ErrNilUrl,
+			exError: dataindexer.ErrNilUrl,
 		},
 		{
 			name: "NilShardCoordinator",
@@ -98,7 +98,7 @@ func TestNewIndexerFactory(t *testing.T) {
 				args.ShardCoordinator = nil
 				return args
 			},
-			exError: indexer.ErrNilShardCoordinator,
+			exError: dataindexer.ErrNilShardCoordinator,
 		},
 		{
 			name: "All arguments ok",
@@ -125,7 +125,7 @@ func TestIndexerFactoryCreate_NilIndexer(t *testing.T) {
 	nilIndexer, err := NewIndexer(args)
 	require.NoError(t, err)
 
-	_, ok := nilIndexer.(*indexer.NilIndexer)
+	_, ok := nilIndexer.(*dataindexer.NilIndexer)
 	require.True(t, ok)
 }
 

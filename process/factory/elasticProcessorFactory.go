@@ -1,18 +1,18 @@
 package factory
 
 import (
-	indexer "github.com/ElrondNetwork/elastic-indexer-go"
-	"github.com/ElrondNetwork/elastic-indexer-go/converters"
-	processIndexer "github.com/ElrondNetwork/elastic-indexer-go/process"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/accounts"
-	blockProc "github.com/ElrondNetwork/elastic-indexer-go/process/block"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/logsevents"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/miniblocks"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/operations"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/statistics"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/templatesAndPolicies"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/transactions"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/validators"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/accounts"
+	blockProc "github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/block"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/converters"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/logsevents"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/miniblocks"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/operations"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/statistics"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/templatesAndPolicies"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/transactions"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/validators"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/hashing"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
@@ -24,8 +24,8 @@ type ArgElasticProcessorFactory struct {
 	Hasher                   hashing.Hasher
 	AddressPubkeyConverter   core.PubkeyConverter
 	ValidatorPubkeyConverter core.PubkeyConverter
-	DBClient                 processIndexer.DatabaseClientHandler
-	ShardCoordinator         indexer.ShardCoordinator
+	DBClient                 elasticproc.DatabaseClientHandler
+	ShardCoordinator         dataindexer.ShardCoordinator
 	EnabledIndexes           []string
 	Denomination             int
 	BulkRequestMaxSize       int
@@ -34,7 +34,7 @@ type ArgElasticProcessorFactory struct {
 }
 
 // CreateElasticProcessor will create a new instance of ElasticProcessor
-func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (indexer.ElasticProcessor, error) {
+func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (dataindexer.ElasticProcessor, error) {
 	templatesAndPoliciesReader := templatesAndPolicies.CreateTemplatesAndPoliciesReader(arguments.UseKibana)
 	indexTemplates, indexPolicies, err := templatesAndPoliciesReader.GetElasticTemplatesAndPolicies()
 	if err != nil {
@@ -46,7 +46,7 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (indexer.Elast
 		enabledIndexesMap[index] = struct{}{}
 	}
 	if len(enabledIndexesMap) == 0 {
-		return nil, indexer.ErrEmptyEnabledIndexes
+		return nil, dataindexer.ErrEmptyEnabledIndexes
 	}
 
 	balanceConverter, err := converters.NewBalanceConverter(arguments.Denomination)
@@ -108,7 +108,7 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (indexer.Elast
 		return nil, err
 	}
 
-	args := &processIndexer.ArgElasticProcessor{
+	args := &elasticproc.ArgElasticProcessor{
 		BulkRequestMaxSize: arguments.BulkRequestMaxSize,
 		TransactionsProc:   txsProc,
 		AccountsProc:       accountsProc,
@@ -126,5 +126,5 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (indexer.Elast
 		OperationsProc:     operationsProc,
 	}
 
-	return processIndexer.NewElasticProcessor(args)
+	return elasticproc.NewElasticProcessor(args)
 }

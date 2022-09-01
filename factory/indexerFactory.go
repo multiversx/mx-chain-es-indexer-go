@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	indexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/client"
 	"github.com/ElrondNetwork/elastic-indexer-go/client/logging"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/factory"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
@@ -35,7 +35,7 @@ type ArgsIndexerFactory struct {
 	Password                 string
 	TemplatesPath            string
 	EnabledIndexes           []string
-	ShardCoordinator         indexer.ShardCoordinator
+	ShardCoordinator         dataindexer.ShardCoordinator
 	Marshalizer              marshal.Marshalizer
 	Hasher                   hashing.Hasher
 	AddressPubkeyConverter   core.PubkeyConverter
@@ -43,14 +43,14 @@ type ArgsIndexerFactory struct {
 }
 
 // NewIndexer will create a new instance of Indexer
-func NewIndexer(args *ArgsIndexerFactory) (indexer.Indexer, error) {
+func NewIndexer(args *ArgsIndexerFactory) (dataindexer.Indexer, error) {
 	err := checkDataIndexerParams(args)
 	if err != nil {
 		return nil, err
 	}
 
 	if !args.Enabled {
-		return indexer.NewNilIndexer(), nil
+		return dataindexer.NewNilIndexer(), nil
 	}
 
 	elasticProcessor, err := createElasticProcessor(args)
@@ -58,20 +58,20 @@ func NewIndexer(args *ArgsIndexerFactory) (indexer.Indexer, error) {
 		return nil, err
 	}
 
-	dispatcher, err := indexer.NewDataDispatcher(args.IndexerCacheSize)
+	dispatcher, err := dataindexer.NewDataDispatcher(args.IndexerCacheSize)
 	if err != nil {
 		return nil, err
 	}
 
 	dispatcher.StartIndexData()
 
-	arguments := indexer.ArgDataIndexer{
+	arguments := dataindexer.ArgDataIndexer{
 		Marshalizer:      args.Marshalizer,
 		ElasticProcessor: elasticProcessor,
 		DataDispatcher:   dispatcher,
 	}
 
-	return indexer.NewDataIndexer(arguments)
+	return dataindexer.NewDataIndexer(arguments)
 }
 
 func retryBackOff(attempt int) time.Duration {
@@ -81,7 +81,7 @@ func retryBackOff(attempt int) time.Duration {
 	return d
 }
 
-func createElasticProcessor(args *ArgsIndexerFactory) (indexer.ElasticProcessor, error) {
+func createElasticProcessor(args *ArgsIndexerFactory) (dataindexer.ElasticProcessor, error) {
 	databaseClient, err := client.NewElasticClient(elasticsearch.Config{
 		Addresses:     []string{args.Url},
 		Username:      args.UserName,
@@ -113,25 +113,25 @@ func createElasticProcessor(args *ArgsIndexerFactory) (indexer.ElasticProcessor,
 
 func checkDataIndexerParams(arguments *ArgsIndexerFactory) error {
 	if arguments.IndexerCacheSize < 0 {
-		return indexer.ErrNegativeCacheSize
+		return dataindexer.ErrNegativeCacheSize
 	}
 	if check.IfNil(arguments.AddressPubkeyConverter) {
-		return fmt.Errorf("%w when setting AddressPubkeyConverter in indexer", indexer.ErrNilPubkeyConverter)
+		return fmt.Errorf("%w when setting AddressPubkeyConverter in indexer", dataindexer.ErrNilPubkeyConverter)
 	}
 	if check.IfNil(arguments.ValidatorPubkeyConverter) {
-		return fmt.Errorf("%w when setting ValidatorPubkeyConverter in indexer", indexer.ErrNilPubkeyConverter)
+		return fmt.Errorf("%w when setting ValidatorPubkeyConverter in indexer", dataindexer.ErrNilPubkeyConverter)
 	}
 	if arguments.Url == "" {
-		return indexer.ErrNilUrl
+		return dataindexer.ErrNilUrl
 	}
 	if check.IfNil(arguments.Marshalizer) {
-		return indexer.ErrNilMarshalizer
+		return dataindexer.ErrNilMarshalizer
 	}
 	if check.IfNil(arguments.Hasher) {
-		return indexer.ErrNilHasher
+		return dataindexer.ErrNilHasher
 	}
 	if check.IfNil(arguments.ShardCoordinator) {
-		return indexer.ErrNilShardCoordinator
+		return dataindexer.ErrNilShardCoordinator
 	}
 
 	return nil
