@@ -10,7 +10,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/factory"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/factory"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/elastic/go-elasticsearch/v7"
 )

@@ -9,7 +9,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/client"
 	"github.com/ElrondNetwork/elastic-indexer-go/client/logging"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/factory"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/factory"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	"github.com/ElrondNetwork/elrond-go-core/hashing"
