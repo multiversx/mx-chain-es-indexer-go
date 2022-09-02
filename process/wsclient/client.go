@@ -10,6 +10,7 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go-core/data/typeConverters/uint64ByteSlice"
 	"github.com/ElrondNetwork/elrond-go-core/websocketOutportDriver"
+	"github.com/ElrondNetwork/elrond-go-core/websocketOutportDriver/data"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/gorilla/websocket"
 )
@@ -28,10 +29,10 @@ var (
 
 type client struct {
 	urlReceive string
-	actions    map[uint32]Handler
+	actions    map[data.OperationType]Handler
 }
 
-func NewWebSocketClient(urlReceive string, actions map[uint32]Handler) (*client, error) {
+func NewWebSocketClient(urlReceive string, actions map[data.OperationType]Handler) (*client, error) {
 	urlReceiveData := url.URL{Scheme: "ws", Host: fmt.Sprintf(urlReceive), Path: "/operations"}
 
 	return &client{
@@ -119,7 +120,7 @@ func (c *client) verifyPayloadAndSendAckIfNeeded(payload []byte, ackHandler wsCo
 		"data", payloadData.Payload,
 	)
 
-	function, ok := c.actions[payloadData.OperationType.Uint32()]
+	function, ok := c.actions[payloadData.OperationType]
 	if !ok {
 		log.Warn("invalid operation", "operation type", payloadData.OperationType.String())
 	}
