@@ -27,7 +27,6 @@ func createMockArgsTxsDBProc() *ArgsTransactionProcessor {
 		ShardCoordinator:       &mock.ShardCoordinatorMock{},
 		Hasher:                 &mock.HasherMock{},
 		Marshalizer:            &mock.MarshalizerMock{},
-		IsInImportMode:         false,
 	}
 	return args
 }
@@ -202,7 +201,7 @@ func TestPrepareTransactionsForDatabase(t *testing.T) {
 
 	txDbProc, _ := NewTransactionsProcessor(createMockArgsTxsDBProc())
 
-	results := txDbProc.PrepareTransactionsForDatabase(body, header, pool)
+	results := txDbProc.PrepareTransactionsForDatabase(body, header, pool, false)
 	assert.Equal(t, 7, len(results.Transactions))
 
 }
@@ -257,7 +256,7 @@ func TestRelayedTransactions(t *testing.T) {
 
 	txDbProc, _ := NewTransactionsProcessor(createMockArgsTxsDBProc())
 
-	results := txDbProc.PrepareTransactionsForDatabase(body, header, pool)
+	results := txDbProc.PrepareTransactionsForDatabase(body, header, pool, false)
 	assert.Equal(t, 1, len(results.Transactions))
 	assert.Equal(t, 2, len(results.Transactions[0].SmartContractResults))
 	assert.Equal(t, transaction.TxStatusSuccess.String(), results.Transactions[0].Status)
@@ -416,7 +415,7 @@ func TestAlteredAddresses(t *testing.T) {
 	args.ShardCoordinator = shardCoordinator
 	txDbProc, _ := NewTransactionsProcessor(args)
 
-	results := txDbProc.PrepareTransactionsForDatabase(body, hdr, pool)
+	results := txDbProc.PrepareTransactionsForDatabase(body, hdr, pool, false)
 
 	for addrActual := range results.AlteredAccts.GetAll() {
 		_, found := expectedAlteredAccounts[addrActual]
@@ -498,7 +497,7 @@ func TestCheckGasUsedInvalidTransaction(t *testing.T) {
 		},
 	}
 
-	results := txDbProc.PrepareTransactionsForDatabase(body, header, pool)
+	results := txDbProc.PrepareTransactionsForDatabase(body, header, pool, false)
 	require.Len(t, results.Transactions, 1)
 	require.Equal(t, tx1.GetGasLimit(), results.Transactions[0].GasUsed)
 }
@@ -616,7 +615,7 @@ func TestTxsDatabaseProcessor_PrepareTransactionsForDatabaseInvalidTxWithSCR(t *
 		},
 	}
 
-	results := txDbProc.PrepareTransactionsForDatabase(body, header, pool)
+	results := txDbProc.PrepareTransactionsForDatabase(body, header, pool, false)
 	require.NotNil(t, results)
 	require.Len(t, results.Transactions, 1)
 	require.Len(t, results.ScResults, 1)
@@ -670,7 +669,7 @@ func TestTxsDatabaseProcessor_PrepareTransactionsForDatabaseESDTNFTTransfer(t *t
 		},
 	}
 
-	results := txDbProc.PrepareTransactionsForDatabase(body, header, pool)
+	results := txDbProc.PrepareTransactionsForDatabase(body, header, pool, false)
 	require.NotNil(t, results)
 	require.Len(t, results.Transactions, 1)
 	require.Len(t, results.ScResults, 1)
@@ -735,7 +734,7 @@ func TestTxsDatabaseProcessor_IssueESDTTx(t *testing.T) {
 		},
 	}
 
-	res := txDbProc.PrepareTransactionsForDatabase(body, header, pool)
+	res := txDbProc.PrepareTransactionsForDatabase(body, header, pool, false)
 	require.Equal(t, "success", res.Transactions[0].Status)
 	require.Equal(t, 2, len(res.ScResults))
 
@@ -761,7 +760,7 @@ func TestTxsDatabaseProcessor_IssueESDTTx(t *testing.T) {
 		},
 	}
 
-	res = txDbProc.PrepareTransactionsForDatabase(body, header, pool)
+	res = txDbProc.PrepareTransactionsForDatabase(body, header, pool, false)
 	require.Equal(t, "fail", res.Transactions[0].Status)
 	require.Equal(t, 1, len(res.ScResults))
 }

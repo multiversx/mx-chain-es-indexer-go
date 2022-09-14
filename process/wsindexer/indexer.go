@@ -93,3 +93,8 @@ func (i *indexer) saveAccounts(marshalledData []byte) error {
 func (i *indexer) finalizedBlock(_ []byte) error {
 	return nil
 }
+
+// Close will close the indexer
+func (i *indexer) Close() error {
+	return i.di.Close()
+}

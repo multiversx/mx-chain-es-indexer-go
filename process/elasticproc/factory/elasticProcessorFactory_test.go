@@ -18,7 +18,6 @@ func TestCreateElasticProcessor(t *testing.T) {
 		ShardCoordinator:         &mock.ShardCoordinatorMock{},
 		EnabledIndexes:           []string{"blocks"},
 		Denomination:             1,
-		IsInImportDBMode:         false,
 		UseKibana:                false,
 	}
 

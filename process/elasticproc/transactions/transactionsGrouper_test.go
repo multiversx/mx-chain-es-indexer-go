@@ -20,7 +20,7 @@ func TestGroupNormalTxs(t *testing.T) {
 
 	parser := createDataFieldParserMock()
 	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{}, parser)
-	grouper := newTxsGrouper(txBuilder, false, 0, &mock.HasherMock{}, &mock.MarshalizerMock{})
+	grouper := newTxsGrouper(txBuilder, &mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	txHash1 := []byte("txHash1")
 	txHash2 := []byte("txHash2")
@@ -41,7 +41,7 @@ func TestGroupNormalTxs(t *testing.T) {
 	}
 	alteredAddresses := data.NewAlteredAccounts()
 
-	normalTxs, _ := grouper.groupNormalTxs(0, mb, header, txs, alteredAddresses)
+	normalTxs, _ := grouper.groupNormalTxs(0, mb, header, txs, alteredAddresses, false)
 	require.Len(t, normalTxs, 2)
 	require.Equal(t, 4, alteredAddresses.Len())
 }
@@ -51,7 +51,7 @@ func TestGroupRewardsTxs(t *testing.T) {
 
 	parser := createDataFieldParserMock()
 	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{}, parser)
-	grouper := newTxsGrouper(txBuilder, false, 0, &mock.HasherMock{}, &mock.MarshalizerMock{})
+	grouper := newTxsGrouper(txBuilder, &mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	txHash1 := []byte("txHash1")
 	txHash2 := []byte("txHash2")
@@ -70,7 +70,7 @@ func TestGroupRewardsTxs(t *testing.T) {
 	}
 	alteredAddresses := data.NewAlteredAccounts()
 
-	normalTxs, _ := grouper.groupRewardsTxs(0, mb, header, txs, alteredAddresses)
+	normalTxs, _ := grouper.groupRewardsTxs(0, mb, header, txs, alteredAddresses, false)
 	require.Len(t, normalTxs, 2)
 	require.Equal(t, 2, alteredAddresses.Len())
 }
@@ -80,7 +80,7 @@ func TestGroupInvalidTxs(t *testing.T) {
 
 	parser := createDataFieldParserMock()
 	txBuilder := newTransactionDBBuilder(mock.NewPubkeyConverterMock(32), &mock.ShardCoordinatorMock{}, parser)
-	grouper := newTxsGrouper(txBuilder, false, 0, &mock.HasherMock{}, &mock.MarshalizerMock{})
+	grouper := newTxsGrouper(txBuilder, &mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	txHash1 := []byte("txHash1")
 	txHash2 := []byte("txHash2")
@@ -111,7 +111,7 @@ func TestGroupReceipts(t *testing.T) {
 
 	parser := createDataFieldParserMock()
 	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{}, parser)
-	grouper := newTxsGrouper(txBuilder, false, 0, &mock.HasherMock{}, &mock.MarshalizerMock{})
+	grouper := newTxsGrouper(txBuilder, &mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	txHash1 := []byte("txHash1")
 	txHash2 := []byte("txHash2")

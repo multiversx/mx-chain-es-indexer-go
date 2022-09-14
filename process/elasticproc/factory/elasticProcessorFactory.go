@@ -29,7 +29,6 @@ type ArgElasticProcessorFactory struct {
 	EnabledIndexes           []string
 	Denomination             int
 	BulkRequestMaxSize       int
-	IsInImportDBMode         bool
 	UseKibana                bool
 }
 
@@ -68,7 +67,7 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (dataindexer.E
 		return nil, err
 	}
 
-	miniblocksProc, err := miniblocks.NewMiniblocksProcessor(arguments.ShardCoordinator.SelfId(), arguments.Hasher, arguments.Marshalizer, arguments.IsInImportDBMode)
+	miniblocksProc, err := miniblocks.NewMiniblocksProcessor(arguments.ShardCoordinator.SelfId(), arguments.Hasher, arguments.Marshalizer)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +83,6 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (dataindexer.E
 		ShardCoordinator:       arguments.ShardCoordinator,
 		Hasher:                 arguments.Hasher,
 		Marshalizer:            arguments.Marshalizer,
-		IsInImportMode:         arguments.IsInImportDBMode,
 	}
 	txsProc, err := transactions.NewTransactionsProcessor(argsTxsProc)
 	if err != nil {
@@ -103,7 +101,7 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (dataindexer.E
 		return nil, err
 	}
 
-	operationsProc, err := operations.NewOperationsProcessor(arguments.IsInImportDBMode, arguments.ShardCoordinator)
+	operationsProc, err := operations.NewOperationsProcessor(arguments.ShardCoordinator)
 	if err != nil {
 		return nil, err
 	}

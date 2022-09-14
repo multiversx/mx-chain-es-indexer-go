@@ -26,7 +26,6 @@ type ArgsIndexerFactory struct {
 	Enabled   bool
 	UseKibana bool
 	// move this in ArgSaveBlock
-	IsInImportDBMode         bool
 	IndexerCacheSize         int
 	Denomination             int
 	BulkRequestMaxSize       int
@@ -102,7 +101,6 @@ func createElasticProcessor(args *ArgsIndexerFactory) (dataindexer.ElasticProces
 		UseKibana:                args.UseKibana,
 		DBClient:                 databaseClient,
 		Denomination:             args.Denomination,
-		IsInImportDBMode:         args.IsInImportDBMode,
 		ShardCoordinator:         args.ShardCoordinator,
 		EnabledIndexes:           args.EnabledIndexes,
 		BulkRequestMaxSize:       args.BulkRequestMaxSize,

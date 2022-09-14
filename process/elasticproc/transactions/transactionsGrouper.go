@@ -17,26 +17,20 @@ const (
 )
 
 type txsGrouper struct {
-	isInImportMode bool
-	selfShardID    uint32
-	txBuilder      *dbTransactionBuilder
-	hasher         hashing.Hasher
-	marshalizer    marshal.Marshalizer
+	txBuilder   *dbTransactionBuilder
+	hasher      hashing.Hasher
+	marshalizer marshal.Marshalizer
 }
 
 func newTxsGrouper(
 	txBuilder *dbTransactionBuilder,
-	isInImportMode bool,
-	selfShardID uint32,
 	hasher hashing.Hasher,
 	marshalizer marshal.Marshalizer,
 ) *txsGrouper {
 	return &txsGrouper{
-		txBuilder:      txBuilder,
-		selfShardID:    selfShardID,
-		isInImportMode: isInImportMode,
-		hasher:         hasher,
-		marshalizer:    marshalizer,
+		txBuilder:   txBuilder,
+		hasher:      hasher,
+		marshalizer: marshalizer,
 	}
 }
 
@@ -46,6 +40,7 @@ func (tg *txsGrouper) groupNormalTxs(
 	header coreData.HeaderHandler,
 	txs map[string]coreData.TransactionHandlerWithGasUsedAndFee,
 	alteredAccounts data.AlteredAccountsHandler,
+	isImportDB bool,
 ) (map[string]*data.Transaction, error) {
 	transactions := make(map[string]*data.Transaction)
 
@@ -54,16 +49,17 @@ func (tg *txsGrouper) groupNormalTxs(
 		return nil, err
 	}
 
+	selfShardID := header.GetShardID()
 	executedTxHashes := extractExecutedTxHashes(mbIndex, mb.TxHashes, header)
-	mbStatus := computeStatus(tg.selfShardID, mb.ReceiverShardID)
+	mbStatus := computeStatus(selfShardID, mb.ReceiverShardID)
 	for _, txHash := range executedTxHashes {
 		dbTx, ok := tg.prepareNormalTxForDB(mbHash, mb, mbStatus, txHash, txs, header)
 		if !ok {
 			continue
 		}
 
-		tg.addToAlteredAddresses(dbTx, alteredAccounts, mb, tg.selfShardID, false)
-		if tg.shouldIndex(mb.ReceiverShardID) {
+		tg.addToAlteredAddresses(dbTx, alteredAccounts, mb, selfShardID, false)
+		if tg.shouldIndex(mb.ReceiverShardID, isImportDB, selfShardID) {
 			transactions[string(txHash)] = dbTx
 		}
 	}
@@ -121,6 +117,7 @@ func (tg *txsGrouper) groupRewardsTxs(
 	header coreData.HeaderHandler,
 	txs map[string]coreData.TransactionHandlerWithGasUsedAndFee,
 	alteredAccounts data.AlteredAccountsHandler,
+	isImportDB bool,
 ) (map[string]*data.Transaction, error) {
 	rewardsTxs := make(map[string]*data.Transaction)
 	mbHash, err := core.CalculateHash(tg.marshalizer, tg.hasher, mb)
@@ -128,7 +125,8 @@ func (tg *txsGrouper) groupRewardsTxs(
 		return nil, err
 	}
 
-	mbStatus := computeStatus(tg.selfShardID, mb.ReceiverShardID)
+	selfShardID := header.GetShardID()
+	mbStatus := computeStatus(selfShardID, mb.ReceiverShardID)
 	executedTxHashes := extractExecutedTxHashes(mbIndex, mb.TxHashes, header)
 	for _, txHash := range executedTxHashes {
 		rewardDBTx, ok := tg.prepareRewardTxForDB(mbHash, mb, mbStatus, txHash, txs, header)
@@ -136,8 +134,8 @@ func (tg *txsGrouper) groupRewardsTxs(
 			continue
 		}
 
-		tg.addToAlteredAddresses(rewardDBTx, alteredAccounts, mb, tg.selfShardID, true)
-		if tg.shouldIndex(mb.ReceiverShardID) {
+		tg.addToAlteredAddresses(rewardDBTx, alteredAccounts, mb, selfShardID, true)
+		if tg.shouldIndex(mb.ReceiverShardID, isImportDB, selfShardID) {
 			rewardsTxs[string(txHash)] = rewardDBTx
 		}
 	}
@@ -188,7 +186,7 @@ func (tg *txsGrouper) groupInvalidTxs(
 			continue
 		}
 
-		tg.addToAlteredAddresses(invalidDBTx, alteredAccounts, mb, tg.selfShardID, false)
+		tg.addToAlteredAddresses(invalidDBTx, alteredAccounts, mb, header.GetShardID(), false)
 		transactions[string(txHash)] = invalidDBTx
 	}
 
@@ -217,12 +215,12 @@ func (tg *txsGrouper) prepareInvalidTxForDB(
 	return dbTx, true
 }
 
-func (tg *txsGrouper) shouldIndex(destinationShardID uint32) bool {
-	if !tg.isInImportMode {
+func (tg *txsGrouper) shouldIndex(destinationShardID uint32, isImportDB bool, selfShardID uint32) bool {
+	if !isImportDB {
 		return true
 	}
 
-	return tg.selfShardID == destinationShardID
+	return selfShardID == destinationShardID
 }
 
 func (tg *txsGrouper) groupReceipts(header coreData.HeaderHandler, txsPool map[string]coreData.TransactionHandlerWithGasUsedAndFee) []*data.Receipt {

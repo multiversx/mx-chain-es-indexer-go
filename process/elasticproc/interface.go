@@ -66,6 +66,7 @@ type DBTransactionsHandler interface {
 		body *block.Body,
 		header coreData.HeaderHandler,
 		pool *outport.Pool,
+		isImportDB bool,
 	) *data.PreparedResults
 	GetHexEncodedHashesForRemove(header coreData.HeaderHandler, body *block.Body) ([]string, []string)
 
@@ -118,6 +119,6 @@ type DBLogsAndEventsHandler interface {
 
 // OperationsHandler defines the actions that an operations' handler should do
 type OperationsHandler interface {
-	ProcessTransactionsAndSCRs(txs []*data.Transaction, scrs []*data.ScResult) ([]*data.Transaction, []*data.ScResult)
+	ProcessTransactionsAndSCRs(txs []*data.Transaction, scrs []*data.ScResult, isImportDB bool) ([]*data.Transaction, []*data.ScResult)
 	SerializeSCRs(scrs []*data.ScResult, buffSlice *data.BufferSlice, index string) error
 }

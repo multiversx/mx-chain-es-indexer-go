@@ -13,18 +13,16 @@ import (
 )
 
 type operationsProcessor struct {
-	importDBMode     bool
 	shardCoordinator dataindexer.ShardCoordinator
 }
 
 // NewOperationsProcessor will create a new instance of operationsProcessor
-func NewOperationsProcessor(importDBMode bool, shardCoordinator dataindexer.ShardCoordinator) (*operationsProcessor, error) {
+func NewOperationsProcessor(shardCoordinator dataindexer.ShardCoordinator) (*operationsProcessor, error) {
 	if check.IfNil(shardCoordinator) {
 		return nil, dataindexer.ErrNilShardCoordinator
 	}
 
 	return &operationsProcessor{
-		importDBMode:     importDBMode,
 		shardCoordinator: shardCoordinator,
 	}, nil
 }
@@ -33,12 +31,13 @@ func NewOperationsProcessor(importDBMode bool, shardCoordinator dataindexer.Shar
 func (op *operationsProcessor) ProcessTransactionsAndSCRs(
 	txs []*data.Transaction,
 	scrs []*data.ScResult,
+	isImportDB bool,
 ) ([]*data.Transaction, []*data.ScResult) {
 	newTxsSlice := make([]*data.Transaction, 0)
 	newScrsSlice := make([]*data.ScResult, 0)
 
 	for idx, tx := range txs {
-		if !op.shouldIndex(txs[idx].ReceiverShard) {
+		if !op.shouldIndex(txs[idx].ReceiverShard, isImportDB) {
 			continue
 		}
 
@@ -49,7 +48,7 @@ func (op *operationsProcessor) ProcessTransactionsAndSCRs(
 	}
 
 	for idx := 0; idx < len(scrs); idx++ {
-		if !op.shouldIndex(scrs[idx].ReceiverShard) {
+		if !op.shouldIndex(scrs[idx].ReceiverShard, isImportDB) {
 			continue
 		}
 
@@ -71,8 +70,8 @@ func (op *operationsProcessor) ProcessTransactionsAndSCRs(
 	return newTxsSlice, newScrsSlice
 }
 
-func (op *operationsProcessor) shouldIndex(destinationShardID uint32) bool {
-	if !op.importDBMode {
+func (op *operationsProcessor) shouldIndex(destinationShardID uint32, isImportDB bool) bool {
+	if !isImportDB {
 		return true
 	}
 

@@ -25,7 +25,6 @@ type ArgsTransactionProcessor struct {
 	ShardCoordinator       indexer.ShardCoordinator
 	Hasher                 hashing.Hasher
 	Marshalizer            marshal.Marshalizer
-	IsInImportMode         bool
 }
 
 type txsDatabaseProcessor struct {
@@ -52,16 +51,10 @@ func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txsDatabaseProce
 		return nil, err
 	}
 
-	selfShardID := args.ShardCoordinator.SelfId()
 	txBuilder := newTransactionDBBuilder(args.AddressPubkeyConverter, args.ShardCoordinator, operationsDataParser)
-	txsDBGrouper := newTxsGrouper(txBuilder, args.IsInImportMode, selfShardID, args.Hasher, args.Marshalizer)
+	txsDBGrouper := newTxsGrouper(txBuilder, args.Hasher, args.Marshalizer)
 	scrProc := newSmartContractResultsProcessor(args.AddressPubkeyConverter, args.ShardCoordinator, args.Marshalizer, args.Hasher, operationsDataParser)
 	scrsDataToTxs := newScrsDataToTransactions()
-
-	if args.IsInImportMode {
-		log.Warn("the node is in import mode! Cross shard transactions and rewards where destination shard is " +
-			"not the current node's shard won't be indexed in Elastic Search")
-	}
 
 	return &txsDatabaseProcessor{
 		txBuilder:     txBuilder,
@@ -76,6 +69,7 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 	body *block.Body,
 	header coreData.HeaderHandler,
 	pool *outport.Pool,
+	isImportDB bool,
 ) *data.PreparedResults {
 	err := checkPrepareTransactionForDatabaseArguments(body, header, pool)
 	if err != nil {
@@ -100,14 +94,14 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 				continue
 			}
 
-			txs, errGroup := tdp.txsGrouper.groupNormalTxs(mbIndex, mb, header, pool.Txs, alteredAccounts)
+			txs, errGroup := tdp.txsGrouper.groupNormalTxs(mbIndex, mb, header, pool.Txs, alteredAccounts, isImportDB)
 			if errGroup != nil {
 				log.Warn("txsDatabaseProcessor.groupNormalTxs", "error", errGroup)
 				continue
 			}
 			mergeTxsMaps(normalTxs, txs)
 		case block.RewardsBlock:
-			txs, errGroup := tdp.txsGrouper.groupRewardsTxs(mbIndex, mb, header, pool.Rewards, alteredAccounts)
+			txs, errGroup := tdp.txsGrouper.groupRewardsTxs(mbIndex, mb, header, pool.Rewards, alteredAccounts, isImportDB)
 			if errGroup != nil {
 				log.Warn("txsDatabaseProcessor.groupRewardsTxs", "error", errGroup)
 				continue
@@ -171,11 +165,6 @@ func (tdp *txsDatabaseProcessor) GetHexEncodedHashesForRemove(header coreData.He
 	for _, miniblock := range body.MiniBlocks {
 		if isCrossShardAtSourceAndNoRewardsMB(selfShardID, miniblock) {
 			// ignore cross-shard miniblocks at source ( exception to this rule are rewards miniblocks)
-			continue
-		}
-
-		if tdp.txsGrouper.isInImportMode {
-			// do not delete transactions on import DB
 			continue
 		}
 
