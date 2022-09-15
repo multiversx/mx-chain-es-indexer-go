@@ -13,6 +13,7 @@ type Block struct {
 	Epoch                 uint32                 `json:"epoch"`
 	Hash                  string                 `json:"-"`
 	MiniBlocksHashes      []string               `json:"miniBlocksHashes"`
+	MiniBlocksDetails     []*MiniBlocksDetails   `json:"miniBlocksDetails,omitempty"`
 	NotarizedBlocksHashes []string               `json:"notarizedBlocksHashes"`
 	Proposer              uint64                 `json:"proposer"`
 	Validators            []uint64               `json:"validators"`
@@ -36,6 +37,13 @@ type Block struct {
 	MaxGasLimit           uint64                 `json:"maxGasLimit"`
 	ScheduledData         *ScheduledData         `json:"scheduledData,omitempty"`
 	EpochStartShardsData  []*EpochStartShardData `json:"epochStartShardsData,omitempty"`
+}
+
+// MiniBlocksDetails is a structure that hold information about mini-blocks execution details
+type MiniBlocksDetails struct {
+	IndexFirstProcessedTx int32 `json:"firstProcessedTx"`
+	IndexLastProcessedTx  int32 `json:"lastProcessedTx"`
+	MBIndex               int   `json:"mbIndex"`
 }
 
 // ScheduledData is a structure that hold information about scheduled events
