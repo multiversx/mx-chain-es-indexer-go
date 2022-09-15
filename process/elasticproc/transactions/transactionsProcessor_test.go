@@ -709,7 +709,9 @@ func TestTxsDatabaseProcessor_IssueESDTTx(t *testing.T) {
 			},
 		},
 	}
-	header := &block.Header{}
+	header := &block.Header{
+		ShardID: core.MetachainShardId,
+	}
 	pool := &outport.Pool{
 		Txs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
 			"t1": outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{

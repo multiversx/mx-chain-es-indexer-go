@@ -22,7 +22,6 @@ func createMockArgs() *ArgsTransactionProcessor {
 		ShardCoordinator:       &mock.ShardCoordinatorMock{},
 		Hasher:                 &mock.HasherMock{},
 		Marshalizer:            &mock.MarshalizerMock{},
-		IsInImportMode:         false,
 	}
 }
 

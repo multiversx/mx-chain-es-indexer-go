@@ -53,7 +53,7 @@ func createMockElasticProcessorArgs() *ArgElasticProcessor {
 
 	acp, _ := accounts.NewAccountsProcessor(&mock.PubkeyConverterMock{}, balanceConverter, 0)
 	bp, _ := block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
-	mp, _ := miniblocks.NewMiniblocksProcessor(0, &mock.HasherMock{}, &mock.MarshalizerMock{}, false)
+	mp, _ := miniblocks.NewMiniblocksProcessor(0, &mock.HasherMock{}, &mock.MarshalizerMock{})
 	vp, _ := validators.NewValidatorsProcessor(mock.NewPubkeyConverterMock(32), 0)
 	args := &logsevents.ArgsLogsAndEventsProcessor{
 		ShardCoordinator: &mock.ShardCoordinatorMock{},
@@ -63,7 +63,7 @@ func createMockElasticProcessorArgs() *ArgElasticProcessor {
 		Hasher:           &mock.HasherMock{},
 	}
 	lp, _ := logsevents.NewLogsAndEventsProcessor(args)
-	op, _ := operations.NewOperationsProcessor(false, &mock.ShardCoordinatorMock{})
+	op, _ := operations.NewOperationsProcessor(&mock.ShardCoordinatorMock{})
 
 	return &ArgElasticProcessor{
 		DBClient: &mock.DatabaseWriterStub{},
@@ -316,7 +316,7 @@ func TestElasticProcessor_RemoveMiniblocks(t *testing.T) {
 		},
 	}
 
-	args.MiniblocksProc, _ = miniblocks.NewMiniblocksProcessor(0, &mock.HasherMock{}, &mock.MarshalizerMock{}, false)
+	args.MiniblocksProc, _ = miniblocks.NewMiniblocksProcessor(0, &mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	elasticProc, err := NewElasticProcessor(args)
 	require.NoError(t, err)
@@ -424,14 +424,13 @@ func TestElasticseachSaveTransactions(t *testing.T) {
 		ShardCoordinator:       &mock.ShardCoordinatorMock{},
 		Hasher:                 &mock.HasherMock{},
 		Marshalizer:            &mock.MarshalizerMock{},
-		IsInImportMode:         false,
 	}
 	txDbProc, _ := transactions.NewTransactionsProcessor(args)
 	arguments.TransactionsProc = txDbProc
 
 	elasticDatabase := newElasticsearchProcessor(dbWriter, arguments)
 	pool := &outport.Pool{Txs: txPool}
-	err := elasticDatabase.SaveTransactions(body, header, pool, nil)
+	err := elasticDatabase.SaveTransactions(body, header, pool, nil, false)
 	require.Equal(t, localErr, err)
 }
 
@@ -476,7 +475,7 @@ func TestElasticProcessor_SaveMiniblocks(t *testing.T) {
 		},
 	}
 
-	arguments.MiniblocksProc, _ = miniblocks.NewMiniblocksProcessor(0, &mock.HasherMock{}, &mock.MarshalizerMock{}, false)
+	arguments.MiniblocksProc, _ = miniblocks.NewMiniblocksProcessor(0, &mock.HasherMock{}, &mock.MarshalizerMock{})
 	elasticProc, _ := NewElasticProcessor(arguments)
 
 	header := &dataBlock.Header{}
@@ -577,7 +576,6 @@ func TestElasticProcessor_RemoveTransactions(t *testing.T) {
 		ShardCoordinator:       &mock.ShardCoordinatorMock{},
 		Hasher:                 &mock.HasherMock{},
 		Marshalizer:            &mock.MarshalizerMock{},
-		IsInImportMode:         false,
 	}
 	txDbProc, _ := transactions.NewTransactionsProcessor(args)
 
@@ -658,7 +656,7 @@ func TestElasticProcessor_SaveTransactionNoDataShouldNotDoRequest(t *testing.T) 
 	elasticSearchProc := newElasticsearchProcessor(dbWriter, arguments)
 	elasticSearchProc.enabledIndexes[dataindexer.ScResultsIndex] = struct{}{}
 
-	err := elasticSearchProc.SaveTransactions(&dataBlock.Body{}, &dataBlock.Header{}, &outport.Pool{}, nil)
+	err := elasticSearchProc.SaveTransactions(&dataBlock.Body{}, &dataBlock.Header{}, &outport.Pool{}, nil, false)
 	require.Nil(t, err)
 	require.False(t, called)
 }

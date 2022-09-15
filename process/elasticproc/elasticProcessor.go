@@ -396,10 +396,11 @@ func (ei *elasticProcessor) SaveTransactions(
 	header coreData.HeaderHandler,
 	pool *outport.Pool,
 	coreAlteredAccounts map[string]*outport.AlteredAccount,
+	isImportDB bool,
 ) error {
 	headerTimestamp := header.GetTimeStamp()
 
-	preparedResults := ei.transactionsProc.PrepareTransactionsForDatabase(body, header, pool)
+	preparedResults := ei.transactionsProc.PrepareTransactionsForDatabase(body, header, pool, isImportDB)
 	logsData := ei.logsAndEventsProc.ExtractDataFromLogs(pool.Logs, preparedResults, headerTimestamp)
 
 	buffers := data.NewBufferSlice(ei.bulkRequestMaxSize)
@@ -408,7 +409,7 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
-	err = ei.prepareAndIndexOperations(preparedResults.Transactions, preparedResults.TxHashStatus, header, preparedResults.ScResults, buffers)
+	err = ei.prepareAndIndexOperations(preparedResults.Transactions, preparedResults.TxHashStatus, header, preparedResults.ScResults, buffers, isImportDB)
 	if err != nil {
 		return err
 	}
@@ -538,12 +539,13 @@ func (ei *elasticProcessor) prepareAndIndexOperations(
 	header coreData.HeaderHandler,
 	scrs []*data.ScResult,
 	buffSlice *data.BufferSlice,
+	isImportDB bool,
 ) error {
 	if !ei.isIndexEnabled(elasticIndexer.OperationsIndex) {
 		return nil
 	}
 
-	processedTxs, processedSCRs := ei.operationsProc.ProcessTransactionsAndSCRs(txs, scrs)
+	processedTxs, processedSCRs := ei.operationsProc.ProcessTransactionsAndSCRs(txs, scrs, isImportDB)
 
 	err := ei.transactionsProc.SerializeTransactions(processedTxs, txHashStatus, header.GetShardID(), buffSlice, elasticIndexer.OperationsIndex)
 	if err != nil {

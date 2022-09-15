@@ -13,11 +13,11 @@ import (
 func TestNewOperationsProcessor(t *testing.T) {
 	t.Parallel()
 
-	op, err := NewOperationsProcessor(false, nil)
+	op, err := NewOperationsProcessor(nil)
 	require.Nil(t, op)
 	require.Equal(t, indexer.ErrNilShardCoordinator, err)
 
-	op, err = NewOperationsProcessor(false, &mock.ShardCoordinatorMock{})
+	op, err = NewOperationsProcessor(&mock.ShardCoordinatorMock{})
 	require.NotNil(t, op)
 	require.Nil(t, err)
 }
@@ -25,7 +25,7 @@ func TestNewOperationsProcessor(t *testing.T) {
 func TestOperationsProcessor_ProcessTransactionsAndSCRSTransactions(t *testing.T) {
 	t.Parallel()
 
-	op, _ := NewOperationsProcessor(true, &mock.ShardCoordinatorMock{})
+	op, _ := NewOperationsProcessor(&mock.ShardCoordinatorMock{})
 
 	txs := []*data.Transaction{
 		{},
@@ -34,7 +34,7 @@ func TestOperationsProcessor_ProcessTransactionsAndSCRSTransactions(t *testing.T
 		},
 	}
 
-	processedTxs, _ := op.ProcessTransactionsAndSCRs(txs, nil)
+	processedTxs, _ := op.ProcessTransactionsAndSCRs(txs, nil, true)
 	require.Equal(t, []*data.Transaction{
 		{Type: string(transaction.TxTypeNormal)},
 	}, processedTxs)
@@ -43,7 +43,7 @@ func TestOperationsProcessor_ProcessTransactionsAndSCRSTransactions(t *testing.T
 func TestOperationsProcessor_ProcessTransactionsAndSCRSSmartContractResults(t *testing.T) {
 	t.Parallel()
 
-	op, _ := NewOperationsProcessor(true, &mock.ShardCoordinatorMock{})
+	op, _ := NewOperationsProcessor(&mock.ShardCoordinatorMock{})
 
 	scrs := []*data.ScResult{
 		{},
@@ -52,7 +52,7 @@ func TestOperationsProcessor_ProcessTransactionsAndSCRSSmartContractResults(t *t
 		},
 	}
 
-	_, processedSCRs := op.ProcessTransactionsAndSCRs(nil, scrs)
+	_, processedSCRs := op.ProcessTransactionsAndSCRs(nil, scrs, true)
 	require.Equal(t, []*data.ScResult{
 		{Type: string(transaction.TxTypeUnsigned), Status: transaction.TxStatusSuccess.String()},
 	}, processedSCRs)
@@ -61,7 +61,7 @@ func TestOperationsProcessor_ProcessTransactionsAndSCRSSmartContractResults(t *t
 func TestOperationsProcessor_ShouldIgnoreSCRs(t *testing.T) {
 	t.Parallel()
 
-	op, _ := NewOperationsProcessor(true, &mock.ShardCoordinatorMock{})
+	op, _ := NewOperationsProcessor(&mock.ShardCoordinatorMock{})
 
 	scrs := []*data.ScResult{
 		{
@@ -77,7 +77,7 @@ func TestOperationsProcessor_ShouldIgnoreSCRs(t *testing.T) {
 		},
 	}
 
-	_, processedSCRs := op.ProcessTransactionsAndSCRs(nil, scrs)
+	_, processedSCRs := op.ProcessTransactionsAndSCRs(nil, scrs, false)
 	for _, scr := range processedSCRs {
 		require.True(t, scr.CanBeIgnored)
 	}

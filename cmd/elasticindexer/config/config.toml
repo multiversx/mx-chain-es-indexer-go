@@ -1,7 +1,8 @@
 [config]
     enabled-indices =  [
         "rating", "transactions", "blocks", "validators", "miniblocks", "rounds", "accounts", "accountshistory",
-        "receipts", "scresults", "accountsesdt", "accountsesdthistory", "epochinfo", "scdeploys", "tokens", "tags", "logs", "delegators", "operations", "collections"
+        "receipts", "scresults", "accountsesdt", "accountsesdthistory", "epochinfo", "scdeploys", "tokens", "tags",
+        "logs", "delegators", "operations", "collections"
     ]
     [config.elastic-cluster]
         use-kibana = false

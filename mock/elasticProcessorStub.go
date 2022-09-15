@@ -87,7 +87,7 @@ func (eim *ElasticProcessorStub) SaveMiniblocks(header coreData.HeaderHandler, b
 }
 
 // SaveTransactions -
-func (eim *ElasticProcessorStub) SaveTransactions(body *block.Body, header coreData.HeaderHandler, pool *outport.Pool, coreAlteredAccounts map[string]*outport.AlteredAccount) error {
+func (eim *ElasticProcessorStub) SaveTransactions(body *block.Body, header coreData.HeaderHandler, pool *outport.Pool, coreAlteredAccounts map[string]*outport.AlteredAccount, _ bool) error {
 	if eim.SaveTransactionsCalled != nil {
 		return eim.SaveTransactionsCalled(body, header, pool, coreAlteredAccounts)
 	}

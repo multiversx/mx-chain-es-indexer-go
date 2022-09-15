@@ -160,13 +160,8 @@ func (mp *miniblocksProcessor) GetMiniblocksHashesHexEncoded(header coreData.Hea
 		}
 
 		isCrossShard := miniblock.ReceiverShardID != miniblock.SenderShardID
-		shouldIgnore := selfShardID == miniblock.SenderShardID && isCrossShard
-		if shouldIgnore {
-			continue
-		}
-
-		isDstMe := selfShardID == miniblock.ReceiverShardID
-		if isDstMe && isCrossShard {
+		isCrossShardOnDestination := selfShardID == miniblock.ReceiverShardID && isCrossShard
+		if isCrossShardOnDestination {
 			continue
 		}
 

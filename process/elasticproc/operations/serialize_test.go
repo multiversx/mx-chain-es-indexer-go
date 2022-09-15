@@ -11,7 +11,7 @@ import (
 func TestOperationsProcessor_SerializeSCRS(t *testing.T) {
 	t.Parallel()
 
-	op, _ := NewOperationsProcessor(false, &mock.ShardCoordinatorMock{})
+	op, _ := NewOperationsProcessor(&mock.ShardCoordinatorMock{})
 
 	scrs := []*data.ScResult{
 		{
