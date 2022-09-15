@@ -75,7 +75,7 @@ func TestTransactionWithSCCallFail(t *testing.T) {
 			}, 0, big.NewInt(0)),
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, nil)
+	err = esProc.SaveTransactions(body, header, pool, nil, false)
 	require.Nil(t, err)
 
 	ids := []string{hex.EncodeToString(txHash)}
@@ -146,7 +146,7 @@ func TestTransactionWithScCallSuccess(t *testing.T) {
 			}, 0, big.NewInt(0)),
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, nil)
+	err = esProc.SaveTransactions(body, header, pool, nil, false)
 	require.Nil(t, err)
 
 	ids := []string{hex.EncodeToString(txHash)}

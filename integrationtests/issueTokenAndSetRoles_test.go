@@ -58,7 +58,7 @@ func TestIssueTokenAndSetRole(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{})
+	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false)
 	require.Nil(t, err)
 
 	ids := []string{"TOK-abcd"}
@@ -87,7 +87,7 @@ func TestIssueTokenAndSetRole(t *testing.T) {
 	}
 
 	header.TimeStamp = 10000
-	err = esProc.SaveTransactions(body, header, pool, nil)
+	err = esProc.SaveTransactions(body, header, pool, nil, false)
 	require.Nil(t, err)
 
 	ids = []string{"TOK-abcd"}
@@ -120,7 +120,7 @@ func TestIssueTokenAndSetRole(t *testing.T) {
 	}
 
 	header.TimeStamp = 10000
-	err = esProc.SaveTransactions(body, header, pool, nil)
+	err = esProc.SaveTransactions(body, header, pool, nil, false)
 	require.Nil(t, err)
 
 	ids = []string{"TOK-abcd"}
@@ -149,7 +149,7 @@ func TestIssueTokenAndSetRole(t *testing.T) {
 	}
 
 	header.TimeStamp = 10000
-	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{})
+	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false)
 	require.Nil(t, err)
 
 	ids = []string{"TOK-abcd"}
@@ -198,7 +198,7 @@ func TestIssueSetRolesEventAndAfterTokenIssue(t *testing.T) {
 	}
 
 	header.TimeStamp = 10000
-	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{})
+	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false)
 	require.Nil(t, err)
 
 	ids := []string{"TTT-abcd"}
@@ -226,7 +226,7 @@ func TestIssueSetRolesEventAndAfterTokenIssue(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{})
+	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false)
 	require.Nil(t, err)
 
 	ids = []string{"TTT-abcd"}

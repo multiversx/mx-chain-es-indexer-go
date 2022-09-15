@@ -60,7 +60,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, nil)
+	err = esProc.SaveTransactions(body, header, pool, nil, false)
 	require.Nil(t, err)
 
 	ids := []string{"NFT-abcd-0e"}
@@ -87,7 +87,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, nil)
+	err = esProc.SaveTransactions(body, header, pool, nil, false)
 	require.Nil(t, err)
 
 	// Add URIS 2 --- results should be the same
@@ -108,7 +108,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, nil)
+	err = esProc.SaveTransactions(body, header, pool, nil, false)
 	require.Nil(t, err)
 
 	// Update attributes 1
@@ -135,7 +135,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, nil)
+	err = esProc.SaveTransactions(body, header, pool, nil, false)
 	require.Nil(t, err)
 
 	ids = []string{"NFT-abcd-0e"}
@@ -163,7 +163,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, nil)
+	err = esProc.SaveTransactions(body, header, pool, nil, false)
 	require.Nil(t, err)
 
 	ids = []string{"NFT-abcd-0e"}

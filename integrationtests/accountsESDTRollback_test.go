@@ -86,7 +86,7 @@ func TestAccountsESDTDeleteOnRollback(t *testing.T) {
 		TimeStamp: 5040,
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false)
 	require.Nil(t, err)
 
 	ids := []string{"6161616162626262-TOKEN-eeee-02"}

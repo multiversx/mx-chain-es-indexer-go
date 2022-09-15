@@ -27,7 +27,6 @@ func createMockIndexerFactoryArgs() *ArgsIndexerFactory {
 		TemplatesPath:            "../testdata",
 		EnabledIndexes:           []string{"blocks", "transactions", "miniblocks", "validators", "round", "accounts", "rating"},
 		ShardCoordinator:         &mock.ShardCoordinatorMock{},
-		IsInImportDBMode:         false,
 	}
 }
 

@@ -116,7 +116,7 @@ func TestTransactionWithClaimRewardsGasRefund(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, nil)
+	err = esProc.SaveTransactions(body, header, pool, nil, false)
 	require.Nil(t, err)
 
 	ids := []string{hex.EncodeToString(txHash)}

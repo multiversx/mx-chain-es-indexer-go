@@ -43,8 +43,7 @@ func CreateElasticProcessor(
 		EnabledIndexes: []string{dataindexer.TransactionsIndex, dataindexer.LogsIndex, dataindexer.AccountsESDTIndex, dataindexer.ScResultsIndex,
 			dataindexer.ReceiptsIndex, dataindexer.BlockIndex, dataindexer.AccountsIndex, dataindexer.TokensIndex, dataindexer.TagsIndex, dataindexer.CollectionsIndex,
 			dataindexer.OperationsIndex},
-		Denomination:     18,
-		IsInImportDBMode: false,
+		Denomination: 18,
 	}
 
 	return factory.CreateElasticProcessor(args)
