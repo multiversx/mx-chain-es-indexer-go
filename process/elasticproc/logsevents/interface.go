@@ -17,6 +17,8 @@ type argsProcessEvent struct {
 	tokenRolesAndProperties *tokeninfo.TokenRolesAndProperties
 	timestamp               uint64
 	logAddress              []byte
+	selfShardID             uint32
+	numOfShards             uint32
 }
 
 type argOutputProcessEvent struct {

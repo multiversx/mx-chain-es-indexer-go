@@ -5,26 +5,17 @@ import (
 	"strings"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	"github.com/ElrondNetwork/elrond-go-core/core"
-	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
 
 type operationsProcessor struct {
-	shardCoordinator dataindexer.ShardCoordinator
 }
 
 // NewOperationsProcessor will create a new instance of operationsProcessor
-func NewOperationsProcessor(shardCoordinator dataindexer.ShardCoordinator) (*operationsProcessor, error) {
-	if check.IfNil(shardCoordinator) {
-		return nil, dataindexer.ErrNilShardCoordinator
-	}
-
-	return &operationsProcessor{
-		shardCoordinator: shardCoordinator,
-	}, nil
+func NewOperationsProcessor() (*operationsProcessor, error) {
+	return &operationsProcessor{}, nil
 }
 
 // ProcessTransactionsAndSCRs will prepare transactions and smart contract results to be indexed
@@ -32,12 +23,13 @@ func (op *operationsProcessor) ProcessTransactionsAndSCRs(
 	txs []*data.Transaction,
 	scrs []*data.ScResult,
 	isImportDB bool,
+	selfShardID uint32,
 ) ([]*data.Transaction, []*data.ScResult) {
 	newTxsSlice := make([]*data.Transaction, 0)
 	newScrsSlice := make([]*data.ScResult, 0)
 
 	for idx, tx := range txs {
-		if !op.shouldIndex(txs[idx].ReceiverShard, isImportDB) {
+		if !op.shouldIndex(txs[idx].ReceiverShard, isImportDB, selfShardID) {
 			continue
 		}
 
@@ -48,7 +40,7 @@ func (op *operationsProcessor) ProcessTransactionsAndSCRs(
 	}
 
 	for idx := 0; idx < len(scrs); idx++ {
-		if !op.shouldIndex(scrs[idx].ReceiverShard, isImportDB) {
+		if !op.shouldIndex(scrs[idx].ReceiverShard, isImportDB, selfShardID) {
 			continue
 		}
 
@@ -56,9 +48,7 @@ func (op *operationsProcessor) ProcessTransactionsAndSCRs(
 		copiedScr.Type = string(transaction.TxTypeUnsigned)
 
 		setCanBeIgnoredField(&copiedScr)
-
-		selfShard := op.shardCoordinator.SelfId()
-		if selfShard == copiedScr.ReceiverShard {
+		if selfShardID == copiedScr.ReceiverShard {
 			copiedScr.Status = transaction.TxStatusSuccess.String()
 		} else {
 			copiedScr.Status = transaction.TxStatusPending.String()
@@ -70,12 +60,12 @@ func (op *operationsProcessor) ProcessTransactionsAndSCRs(
 	return newTxsSlice, newScrsSlice
 }
 
-func (op *operationsProcessor) shouldIndex(destinationShardID uint32, isImportDB bool) bool {
+func (op *operationsProcessor) shouldIndex(destinationShardID uint32, isImportDB bool, selfShardID uint32) bool {
 	if !isImportDB {
 		return true
 	}
 
-	return op.shardCoordinator.SelfId() == destinationShardID
+	return selfShardID == destinationShardID
 }
 
 func setCanBeIgnoredField(scr *data.ScResult) {

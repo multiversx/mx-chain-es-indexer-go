@@ -31,9 +31,9 @@ type DatabaseClientHandler interface {
 // DBAccountHandler defines the actions that an accounts' handler should do
 type DBAccountHandler interface {
 	GetAccounts(alteredAccounts data.AlteredAccountsHandler, coreAlteredAccounts map[string]*outport.AlteredAccount) ([]*data.Account, []*data.AccountESDT)
-	PrepareRegularAccountsMap(timestamp uint64, accounts []*data.Account) map[string]*data.AccountInfo
-	PrepareAccountsMapESDT(timestamp uint64, accounts []*data.AccountESDT, tagsCount data.CountTags) (map[string]*data.AccountInfo, data.TokensHandler)
-	PrepareAccountsHistory(timestamp uint64, accounts map[string]*data.AccountInfo) map[string]*data.AccountBalanceHistory
+	PrepareRegularAccountsMap(timestamp uint64, accounts []*data.Account, shardID uint32) map[string]*data.AccountInfo
+	PrepareAccountsMapESDT(timestamp uint64, accounts []*data.AccountESDT, tagsCount data.CountTags, shardID uint32) (map[string]*data.AccountInfo, data.TokensHandler)
+	PrepareAccountsHistory(timestamp uint64, accounts map[string]*data.AccountInfo, shardID uint32) map[string]*data.AccountBalanceHistory
 	PutTokenMedataDataInTokens(tokensData []*data.TokenInfo, coreAlteredAccounts map[string]*outport.AlteredAccount)
 
 	SerializeAccountsHistory(accounts map[string]*data.AccountBalanceHistory, buffSlice *data.BufferSlice, index string) error
@@ -81,7 +81,7 @@ type DBMiniblocksHandler interface {
 	PrepareDBMiniblocks(header coreData.HeaderHandler, body *block.Body) []*data.Miniblock
 	GetMiniblocksHashesHexEncoded(header coreData.HeaderHandler, body *block.Body) []string
 
-	SerializeBulkMiniBlocks(bulkMbs []*data.Miniblock, mbsInDB map[string]bool, buffSlice *data.BufferSlice, index string)
+	SerializeBulkMiniBlocks(bulkMbs []*data.Miniblock, mbsInDB map[string]bool, buffSlice *data.BufferSlice, index string, shardID uint32)
 }
 
 // DBStatisticsHandler defines the actions that a database statistics handler should do
@@ -119,6 +119,6 @@ type DBLogsAndEventsHandler interface {
 
 // OperationsHandler defines the actions that an operations' handler should do
 type OperationsHandler interface {
-	ProcessTransactionsAndSCRs(txs []*data.Transaction, scrs []*data.ScResult, isImportDB bool) ([]*data.Transaction, []*data.ScResult)
+	ProcessTransactionsAndSCRs(txs []*data.Transaction, scrs []*data.ScResult, isImportDB bool, shardID uint32) ([]*data.Transaction, []*data.ScResult)
 	SerializeSCRs(scrs []*data.ScResult, buffSlice *data.BufferSlice, index string) error
 }

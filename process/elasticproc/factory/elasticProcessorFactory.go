@@ -25,7 +25,6 @@ type ArgElasticProcessorFactory struct {
 	AddressPubkeyConverter   core.PubkeyConverter
 	ValidatorPubkeyConverter core.PubkeyConverter
 	DBClient                 elasticproc.DatabaseClientHandler
-	ShardCoordinator         dataindexer.ShardCoordinator
 	EnabledIndexes           []string
 	Denomination             int
 	BulkRequestMaxSize       int
@@ -56,7 +55,6 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (dataindexer.E
 	accountsProc, err := accounts.NewAccountsProcessor(
 		arguments.AddressPubkeyConverter,
 		balanceConverter,
-		arguments.ShardCoordinator.SelfId(),
 	)
 	if err != nil {
 		return nil, err
@@ -67,7 +65,7 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (dataindexer.E
 		return nil, err
 	}
 
-	miniblocksProc, err := miniblocks.NewMiniblocksProcessor(arguments.ShardCoordinator.SelfId(), arguments.Hasher, arguments.Marshalizer)
+	miniblocksProc, err := miniblocks.NewMiniblocksProcessor(arguments.Hasher, arguments.Marshalizer)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +78,6 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (dataindexer.E
 
 	argsTxsProc := &transactions.ArgsTransactionProcessor{
 		AddressPubkeyConverter: arguments.AddressPubkeyConverter,
-		ShardCoordinator:       arguments.ShardCoordinator,
 		Hasher:                 arguments.Hasher,
 		Marshalizer:            arguments.Marshalizer,
 	}
@@ -90,7 +87,6 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (dataindexer.E
 	}
 
 	argsLogsAndEventsProc := &logsevents.ArgsLogsAndEventsProcessor{
-		ShardCoordinator: arguments.ShardCoordinator,
 		PubKeyConverter:  arguments.AddressPubkeyConverter,
 		Marshalizer:      arguments.Marshalizer,
 		BalanceConverter: balanceConverter,
@@ -101,7 +97,7 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (dataindexer.E
 		return nil, err
 	}
 
-	operationsProc, err := operations.NewOperationsProcessor(arguments.ShardCoordinator)
+	operationsProc, err := operations.NewOperationsProcessor()
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +116,6 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (dataindexer.E
 		UseKibana:          arguments.UseKibana,
 		IndexTemplates:     indexTemplates,
 		IndexPolicies:      indexPolicies,
-		SelfShardID:        arguments.ShardCoordinator.SelfId(),
 		OperationsProc:     operationsProc,
 	}
 

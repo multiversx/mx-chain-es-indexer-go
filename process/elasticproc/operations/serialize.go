@@ -9,9 +9,9 @@ import (
 )
 
 // SerializeSCRs will serialize smart contract results
-func (op *operationsProcessor) SerializeSCRs(scrs []*data.ScResult, buffSlice *data.BufferSlice, index string) error {
+func (op *operationsProcessor) SerializeSCRs(scrs []*data.ScResult, buffSlice *data.BufferSlice, index string, selfShardID uint32) error {
 	for _, scr := range scrs {
-		meta, serializedData, err := op.prepareSerializedDataForAScResult(scr, index)
+		meta, serializedData, err := op.prepareSerializedDataForAScResult(scr, index, selfShardID)
 		if err != nil {
 			return err
 		}
@@ -28,6 +28,7 @@ func (op *operationsProcessor) SerializeSCRs(scrs []*data.ScResult, buffSlice *d
 func (op *operationsProcessor) prepareSerializedDataForAScResult(
 	scr *data.ScResult,
 	index string,
+	selfShardID uint32,
 ) ([]byte, []byte, error) {
 	metaData := []byte(fmt.Sprintf(`{"update":{"_index":"%s","_id":"%s"}}%s`, index, converters.JsonEscape(scr.Hash), "\n"))
 	marshaledSCR, err := json.Marshal(scr)
@@ -35,7 +36,6 @@ func (op *operationsProcessor) prepareSerializedDataForAScResult(
 		return nil, nil, err
 	}
 
-	selfShardID := op.shardCoordinator.SelfId()
 	isCrossShardOnSourceShard := scr.SenderShard != scr.ReceiverShard && scr.SenderShard == selfShardID
 	if isCrossShardOnSourceShard {
 		serializedData :=

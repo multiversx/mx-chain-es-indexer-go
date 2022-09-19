@@ -51,19 +51,18 @@ func newElasticsearchProcessor(elasticsearchWriter DatabaseClientHandler, argume
 func createMockElasticProcessorArgs() *ArgElasticProcessor {
 	balanceConverter, _ := converters.NewBalanceConverter(10)
 
-	acp, _ := accounts.NewAccountsProcessor(&mock.PubkeyConverterMock{}, balanceConverter, 0)
+	acp, _ := accounts.NewAccountsProcessor(&mock.PubkeyConverterMock{}, balanceConverter)
 	bp, _ := block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
-	mp, _ := miniblocks.NewMiniblocksProcessor(0, &mock.HasherMock{}, &mock.MarshalizerMock{})
+	mp, _ := miniblocks.NewMiniblocksProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 	vp, _ := validators.NewValidatorsProcessor(mock.NewPubkeyConverterMock(32), 0)
 	args := &logsevents.ArgsLogsAndEventsProcessor{
-		ShardCoordinator: &mock.ShardCoordinatorMock{},
 		PubKeyConverter:  &mock.PubkeyConverterMock{},
 		Marshalizer:      &mock.MarshalizerMock{},
 		BalanceConverter: balanceConverter,
 		Hasher:           &mock.HasherMock{},
 	}
 	lp, _ := logsevents.NewLogsAndEventsProcessor(args)
-	op, _ := operations.NewOperationsProcessor(&mock.ShardCoordinatorMock{})
+	op, _ := operations.NewOperationsProcessor()
 
 	return &ArgElasticProcessor{
 		DBClient: &mock.DatabaseWriterStub{},
@@ -316,7 +315,7 @@ func TestElasticProcessor_RemoveMiniblocks(t *testing.T) {
 		},
 	}
 
-	args.MiniblocksProc, _ = miniblocks.NewMiniblocksProcessor(0, &mock.HasherMock{}, &mock.MarshalizerMock{})
+	args.MiniblocksProc, _ = miniblocks.NewMiniblocksProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	elasticProc, err := NewElasticProcessor(args)
 	require.NoError(t, err)
@@ -421,7 +420,6 @@ func TestElasticseachSaveTransactions(t *testing.T) {
 
 	args := &transactions.ArgsTransactionProcessor{
 		AddressPubkeyConverter: mock.NewPubkeyConverterMock(32),
-		ShardCoordinator:       &mock.ShardCoordinatorMock{},
 		Hasher:                 &mock.HasherMock{},
 		Marshalizer:            &mock.MarshalizerMock{},
 	}
@@ -475,7 +473,7 @@ func TestElasticProcessor_SaveMiniblocks(t *testing.T) {
 		},
 	}
 
-	arguments.MiniblocksProc, _ = miniblocks.NewMiniblocksProcessor(0, &mock.HasherMock{}, &mock.MarshalizerMock{})
+	arguments.MiniblocksProc, _ = miniblocks.NewMiniblocksProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 	elasticProc, _ := NewElasticProcessor(arguments)
 
 	header := &dataBlock.Header{}
@@ -573,7 +571,6 @@ func TestElasticProcessor_RemoveTransactions(t *testing.T) {
 
 	args := &transactions.ArgsTransactionProcessor{
 		AddressPubkeyConverter: mock.NewPubkeyConverterMock(32),
-		ShardCoordinator:       &mock.ShardCoordinatorMock{},
 		Hasher:                 &mock.HasherMock{},
 		Marshalizer:            &mock.MarshalizerMock{},
 	}
@@ -614,11 +611,12 @@ func TestElasticProcessor_IndexEpochInfoData(t *testing.T) {
 	}
 
 	elasticSearchProc := newElasticsearchProcessor(dbWriter, arguments)
-	elasticSearchProc.selfShardID = core.MetachainShardId
 	elasticSearchProc.enabledIndexes[dataindexer.EpochInfoIndex] = struct{}{}
 
 	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
-	shardHeader := &dataBlock.Header{}
+	shardHeader := &dataBlock.Header{
+		ShardID: core.MetachainShardId,
+	}
 	err := elasticSearchProc.indexEpochInfoData(shardHeader, buffSlice)
 	require.True(t, errors.Is(err, dataindexer.ErrHeaderTypeAssertion))
 
@@ -685,7 +683,7 @@ func TestElasticProcessor_IndexAlteredAccounts(t *testing.T) {
 	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
 	alteredAccounts := data.NewAlteredAccounts()
 	tagsCount := tags.NewTagsCount()
-	err := elasticSearchProc.indexAlteredAccounts(100, alteredAccounts, nil, nil, buffSlice, tagsCount)
+	err := elasticSearchProc.indexAlteredAccounts(100, alteredAccounts, nil, nil, buffSlice, tagsCount, 0)
 	require.Nil(t, err)
 	require.True(t, called)
 }

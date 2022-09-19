@@ -19,7 +19,6 @@ import (
 func createMockArgs() *ArgsTransactionProcessor {
 	return &ArgsTransactionProcessor{
 		AddressPubkeyConverter: &mock.PubkeyConverterMock{},
-		ShardCoordinator:       &mock.ShardCoordinatorMock{},
 		Hasher:                 &mock.HasherMock{},
 		Marshalizer:            &mock.MarshalizerMock{},
 	}
@@ -41,15 +40,6 @@ func TestNewTransactionsProcessor(t *testing.T) {
 				return args
 			},
 			exErr: elasticIndexer.ErrNilPubkeyConverter,
-		},
-		{
-			name: "NilShardCoordinator",
-			args: func() *ArgsTransactionProcessor {
-				args := createMockArgs()
-				args.ShardCoordinator = nil
-				return args
-			},
-			exErr: elasticIndexer.ErrNilShardCoordinator,
 		},
 		{
 			name: "NilMarshalizer",

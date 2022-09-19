@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	converters2 "github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/converters"
 	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/core/sharding"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/esdt"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
@@ -19,19 +19,16 @@ var log = logger.GetOrCreate("indexer/process/logsevents")
 type nftsProcessor struct {
 	pubKeyConverter          core.PubkeyConverter
 	nftOperationsIdentifiers map[string]struct{}
-	shardCoordinator         elasticIndexer.ShardCoordinator
 	marshalizer              marshal.Marshalizer
 }
 
 func newNFTsProcessor(
-	shardCoordinator elasticIndexer.ShardCoordinator,
 	pubKeyConverter core.PubkeyConverter,
 	marshalizer marshal.Marshalizer,
 ) *nftsProcessor {
 	return &nftsProcessor{
-		shardCoordinator: shardCoordinator,
-		pubKeyConverter:  pubKeyConverter,
-		marshalizer:      marshalizer,
+		pubKeyConverter: pubKeyConverter,
+		marshalizer:     marshalizer,
 		nftOperationsIdentifiers: map[string]struct{}{
 			core.BuiltInFunctionESDTNFTTransfer:      {},
 			core.BuiltInFunctionESDTNFTBurn:          {},
@@ -64,8 +61,8 @@ func (np *nftsProcessor) processEvent(args *argsProcessEvent) argOutputProcessEv
 	}
 
 	sender := args.event.GetAddress()
-	senderShardID := np.shardCoordinator.ComputeId(sender)
-	if senderShardID == np.shardCoordinator.SelfId() {
+	senderShardID := sharding.ComputeShardID(sender, args.numOfShards)
+	if senderShardID == args.selfShardID {
 		np.processNFTEventOnSender(args.event, args.accounts, args.tokens, args.tokensSupply, args.timestamp)
 	}
 
@@ -83,8 +80,8 @@ func (np *nftsProcessor) processEvent(args *argsProcessEvent) argOutputProcessEv
 
 	receiver := args.event.GetTopics()[3]
 	encodedReceiver := np.pubKeyConverter.Encode(topics[3])
-	receiverShardID := np.shardCoordinator.ComputeId(receiver)
-	if receiverShardID != np.shardCoordinator.SelfId() {
+	receiverShardID := sharding.ComputeShardID(receiver, args.numOfShards)
+	if receiverShardID != args.selfShardID {
 		return argOutputProcessEvent{
 			identifier:      identifier,
 			value:           valueBig.String(),

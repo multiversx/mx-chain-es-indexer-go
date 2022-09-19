@@ -7,8 +7,8 @@ import (
 	"time"
 
 	indexerData "github.com/ElrondNetwork/elastic-indexer-go/data"
-	indexer "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/core/sharding"
 	"github.com/ElrondNetwork/elrond-go-core/data"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
@@ -19,26 +19,23 @@ import (
 )
 
 type smartContractResultsProcessor struct {
-	pubKeyConverter  core.PubkeyConverter
-	shardCoordinator indexer.ShardCoordinator
-	hasher           hashing.Hasher
-	marshalizer      marshal.Marshalizer
-	dataFieldParser  DataFieldParser
+	pubKeyConverter core.PubkeyConverter
+	hasher          hashing.Hasher
+	marshalizer     marshal.Marshalizer
+	dataFieldParser DataFieldParser
 }
 
 func newSmartContractResultsProcessor(
 	pubKeyConverter core.PubkeyConverter,
-	shardCoordinator indexer.ShardCoordinator,
 	marshalzier marshal.Marshalizer,
 	hasher hashing.Hasher,
 	dataFieldParser DataFieldParser,
 ) *smartContractResultsProcessor {
 	return &smartContractResultsProcessor{
-		pubKeyConverter:  pubKeyConverter,
-		shardCoordinator: shardCoordinator,
-		marshalizer:      marshalzier,
-		hasher:           hasher,
-		dataFieldParser:  dataFieldParser,
+		pubKeyConverter: pubKeyConverter,
+		marshalizer:     marshalzier,
+		hasher:          hasher,
+		dataFieldParser: dataFieldParser,
 	}
 }
 
@@ -58,7 +55,7 @@ func (proc *smartContractResultsProcessor) processSCRs(
 		allSCRs = append(allSCRs, indexerSCRs...)
 	}
 
-	selfShardID := proc.shardCoordinator.SelfId()
+	selfShardID := header.GetShardID()
 	for scrHash, noMBScr := range txsHandler {
 		scr, ok := noMBScr.GetTxHandler().(*smartContractResult.SmartContractResult)
 		if !ok {
@@ -176,11 +173,12 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 func (proc *smartContractResultsProcessor) addScrsReceiverToAlteredAccounts(
 	alteredAccounts indexerData.AlteredAccountsHandler,
 	scrs []*indexerData.ScResult,
+	selfShardID uint32,
+	numOfShards uint32,
 ) {
 	for _, scr := range scrs {
 		receiverAddr, _ := proc.pubKeyConverter.Decode(scr.Receiver)
-		shardID := proc.shardCoordinator.ComputeId(receiverAddr)
-		if shardID != proc.shardCoordinator.SelfId() {
+		if selfShardID != sharding.ComputeShardID(receiverAddr, numOfShards) {
 			continue
 		}
 

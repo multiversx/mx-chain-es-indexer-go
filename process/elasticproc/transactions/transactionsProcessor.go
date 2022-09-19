@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	indexer "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
@@ -22,7 +21,6 @@ var log = logger.GetOrCreate("indexer/process/transactions")
 // new instances
 type ArgsTransactionProcessor struct {
 	AddressPubkeyConverter core.PubkeyConverter
-	ShardCoordinator       indexer.ShardCoordinator
 	Hasher                 hashing.Hasher
 	Marshalizer            marshal.Marshalizer
 }
@@ -42,18 +40,17 @@ func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txsDatabaseProce
 	}
 
 	argsParser := &datafield.ArgsOperationDataFieldParser{
-		AddressLength:    args.AddressPubkeyConverter.Len(),
-		Marshalizer:      args.Marshalizer,
-		ShardCoordinator: args.ShardCoordinator,
+		AddressLength: args.AddressPubkeyConverter.Len(),
+		Marshalizer:   args.Marshalizer,
 	}
 	operationsDataParser, err := datafield.NewOperationDataFieldParser(argsParser)
 	if err != nil {
 		return nil, err
 	}
 
-	txBuilder := newTransactionDBBuilder(args.AddressPubkeyConverter, args.ShardCoordinator, operationsDataParser)
+	txBuilder := newTransactionDBBuilder(args.AddressPubkeyConverter, operationsDataParser)
 	txsDBGrouper := newTxsGrouper(txBuilder, args.Hasher, args.Marshalizer)
-	scrProc := newSmartContractResultsProcessor(args.AddressPubkeyConverter, args.ShardCoordinator, args.Marshalizer, args.Hasher, operationsDataParser)
+	scrProc := newSmartContractResultsProcessor(args.AddressPubkeyConverter, args.Marshalizer, args.Hasher, operationsDataParser)
 	scrsDataToTxs := newScrsDataToTransactions()
 
 	return &txsDatabaseProcessor{
@@ -70,6 +67,7 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 	header coreData.HeaderHandler,
 	pool *outport.Pool,
 	isImportDB bool,
+	numOfShards uint32,
 ) *data.PreparedResults {
 	err := checkPrepareTransactionForDatabaseArguments(body, header, pool)
 	if err != nil {
@@ -123,7 +121,7 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 	dbReceipts := tdp.txsGrouper.groupReceipts(header, pool.Receipts)
 	dbSCResults := tdp.scrsProc.processSCRs(body, header, pool.Scrs)
 
-	tdp.scrsProc.addScrsReceiverToAlteredAccounts(alteredAccounts, dbSCResults)
+	tdp.scrsProc.addScrsReceiverToAlteredAccounts(alteredAccounts, dbSCResults, header.GetShardID(), numOfShards)
 
 	srcsNoTxInCurrentShard := tdp.scrsDataToTxs.attachSCRsToTransactionsAndReturnSCRsWithoutTx(normalTxs, dbSCResults)
 	tdp.scrsDataToTxs.processTransactionsAfterSCRsWereAttached(normalTxs)

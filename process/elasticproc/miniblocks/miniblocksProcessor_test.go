@@ -16,20 +16,20 @@ func TestNewMiniblocksProcessor(t *testing.T) {
 
 	tests := []struct {
 		name  string
-		args  func() (uint32, hashing.Hasher, marshal.Marshalizer)
+		args  func() (hashing.Hasher, marshal.Marshalizer)
 		exErr error
 	}{
 		{
 			name: "NilHash",
-			args: func() (uint32, hashing.Hasher, marshal.Marshalizer) {
-				return 0, nil, &mock.MarshalizerMock{}
+			args: func() (hashing.Hasher, marshal.Marshalizer) {
+				return nil, &mock.MarshalizerMock{}
 			},
 			exErr: dataindexer.ErrNilHasher,
 		},
 		{
 			name: "NilMarshalizer",
-			args: func() (uint32, hashing.Hasher, marshal.Marshalizer) {
-				return 0, &mock.HasherMock{}, nil
+			args: func() (hashing.Hasher, marshal.Marshalizer) {
+				return &mock.HasherMock{}, nil
 			},
 			exErr: dataindexer.ErrNilMarshalizer,
 		},
@@ -44,7 +44,7 @@ func TestNewMiniblocksProcessor(t *testing.T) {
 func TestMiniblocksProcessor_PrepareDBMiniblocks(t *testing.T) {
 	t.Parallel()
 
-	mp, _ := NewMiniblocksProcessor(0, &mock.HasherMock{}, &mock.MarshalizerMock{})
+	mp, _ := NewMiniblocksProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	header := &dataBlock.Header{}
 	body := &dataBlock.Body{
@@ -72,7 +72,7 @@ func TestMiniblocksProcessor_PrepareScheduledMB(t *testing.T) {
 	t.Parallel()
 
 	marshalizer := &marshal.GogoProtoMarshalizer{}
-	mp, _ := NewMiniblocksProcessor(0, &mock.HasherMock{}, marshalizer)
+	mp, _ := NewMiniblocksProcessor(&mock.HasherMock{}, marshalizer)
 
 	mbhr := &dataBlock.MiniBlockHeaderReserved{
 		ExecutionType: dataBlock.ProcessingType(1),
@@ -111,7 +111,7 @@ func TestMiniblocksProcessor_PrepareScheduledMB(t *testing.T) {
 func TestMiniblocksProcessor_GetMiniblocksHashesHexEncoded(t *testing.T) {
 	t.Parallel()
 
-	mp, _ := NewMiniblocksProcessor(0, &mock.HasherMock{}, &mock.MarshalizerMock{})
+	mp, _ := NewMiniblocksProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	header := &dataBlock.Header{
 		MiniBlockHeaders: []dataBlock.MiniBlockHeader{
@@ -147,7 +147,7 @@ func TestMiniblocksProcessor_GetMiniblocksHashesHexEncoded(t *testing.T) {
 func TestMiniblocksProcessor_GetMiniblocksHashesHexEncodedImportDBMode(t *testing.T) {
 	t.Parallel()
 
-	mp, _ := NewMiniblocksProcessor(1, &mock.HasherMock{}, &mock.MarshalizerMock{})
+	mp, _ := NewMiniblocksProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	header := &dataBlock.Header{
 		MiniBlockHeaders: []dataBlock.MiniBlockHeader{

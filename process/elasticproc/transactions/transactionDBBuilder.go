@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	indexer "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/core/sharding"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/receipt"
@@ -21,18 +21,15 @@ const emptyString = ""
 
 type dbTransactionBuilder struct {
 	addressPubkeyConverter core.PubkeyConverter
-	shardCoordinator       indexer.ShardCoordinator
 	dataFieldParser        DataFieldParser
 }
 
 func newTransactionDBBuilder(
 	addressPubkeyConverter core.PubkeyConverter,
-	shardCoordinator indexer.ShardCoordinator,
 	dataFieldParser DataFieldParser,
 ) *dbTransactionBuilder {
 	return &dbTransactionBuilder{
 		addressPubkeyConverter: addressPubkeyConverter,
-		shardCoordinator:       shardCoordinator,
 		dataFieldParser:        dataFieldParser,
 	}
 }
@@ -128,11 +125,15 @@ func (dtb *dbTransactionBuilder) prepareReceipt(
 	}
 }
 
-func (dtb *dbTransactionBuilder) isInSameShard(sender string) bool {
+func (dtb *dbTransactionBuilder) isInSameShard(
+	sender string,
+	selfShardID uint32,
+	numOfShard uint32,
+) bool {
 	senderBytes, err := dtb.addressPubkeyConverter.Decode(sender)
 	if err != nil {
 		return false
 	}
 
-	return dtb.shardCoordinator.ComputeId(senderBytes) == dtb.shardCoordinator.SelfId()
+	return sharding.ComputeShardID(senderBytes, numOfShard) == selfShardID
 }

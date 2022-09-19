@@ -22,14 +22,12 @@ var log = logger.GetOrCreate("indexer/process/accounts")
 type accountsProcessor struct {
 	addressPubkeyConverter core.PubkeyConverter
 	balanceConverter       dataindexer.BalanceConverter
-	shardID                uint32
 }
 
 // NewAccountsProcessor will create a new instance of accounts processor
 func NewAccountsProcessor(
 	addressPubkeyConverter core.PubkeyConverter,
 	balanceConverter dataindexer.BalanceConverter,
-	shardID uint32,
 ) (*accountsProcessor, error) {
 	if check.IfNil(addressPubkeyConverter) {
 		return nil, dataindexer.ErrNilPubkeyConverter
@@ -41,7 +39,6 @@ func NewAccountsProcessor(
 	return &accountsProcessor{
 		addressPubkeyConverter: addressPubkeyConverter,
 		balanceConverter:       balanceConverter,
-		shardID:                shardID,
 	}, nil
 }
 
@@ -110,7 +107,7 @@ func notZeroBalance(balance string) bool {
 }
 
 // PrepareRegularAccountsMap will prepare a map of regular accounts
-func (ap *accountsProcessor) PrepareRegularAccountsMap(timestamp uint64, accounts []*data.Account) map[string]*data.AccountInfo {
+func (ap *accountsProcessor) PrepareRegularAccountsMap(timestamp uint64, accounts []*data.Account, shardID uint32) map[string]*data.AccountInfo {
 	accountsMap := make(map[string]*data.AccountInfo)
 	for _, userAccount := range accounts {
 		address := userAccount.UserAccount.Address
@@ -136,7 +133,7 @@ func (ap *accountsProcessor) PrepareRegularAccountsMap(timestamp uint64, account
 			TotalBalanceWithStake:    converters.BigIntToString(balance),
 			TotalBalanceWithStakeNum: balanceAsFloat,
 			Timestamp:                time.Duration(timestamp),
-			ShardID:                  ap.shardID,
+			ShardID:                  shardID,
 		}
 
 		accountsMap[address] = acc
@@ -150,6 +147,7 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(
 	timestamp uint64,
 	accounts []*data.AccountESDT,
 	tagsCount data.CountTags,
+	shardID uint32,
 ) (map[string]*data.AccountInfo, data.TokensHandler) {
 	tokensData := data.NewTokensInfo()
 	accountsESDTMap := make(map[string]*data.AccountInfo)
@@ -185,7 +183,7 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(
 			IsSmartContract: core.IsSmartContractAddress(addressBytes),
 			Data:            tokenMetaData,
 			Timestamp:       time.Duration(timestamp),
-			ShardID:         ap.shardID,
+			ShardID:         shardID,
 		}
 
 		if acc.TokenNonce == 0 {
@@ -212,6 +210,7 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(
 func (ap *accountsProcessor) PrepareAccountsHistory(
 	timestamp uint64,
 	accounts map[string]*data.AccountInfo,
+	shardID uint32,
 ) map[string]*data.AccountBalanceHistory {
 	accountsMap := make(map[string]*data.AccountBalanceHistory)
 	for _, userAccount := range accounts {
@@ -224,7 +223,7 @@ func (ap *accountsProcessor) PrepareAccountsHistory(
 			IsSender:        userAccount.IsSender,
 			IsSmartContract: userAccount.IsSmartContract,
 			Identifier:      converters.ComputeTokenIdentifier(userAccount.TokenName, userAccount.TokenNonce),
-			ShardID:         ap.shardID,
+			ShardID:         shardID,
 		}
 		keyInMap := fmt.Sprintf("%s-%s-%d", acc.Address, acc.Token, acc.TokenNonce)
 		accountsMap[keyInMap] = acc

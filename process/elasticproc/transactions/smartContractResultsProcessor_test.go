@@ -30,7 +30,7 @@ func TestPrepareSmartContractResult(t *testing.T) {
 
 	parser := createDataFieldParserMock()
 	pubKeyConverter := &mock.PubkeyConverterMock{}
-	scrsProc := newSmartContractResultsProcessor(pubKeyConverter, &mock.ShardCoordinatorMock{}, &mock.MarshalizerMock{}, &mock.HasherMock{}, parser)
+	scrsProc := newSmartContractResultsProcessor(pubKeyConverter, &mock.MarshalizerMock{}, &mock.HasherMock{}, parser)
 
 	nonce := uint64(10)
 	txHash := []byte("txHash")
@@ -77,7 +77,7 @@ func TestAddScrsReceiverToAlteredAccounts_ShouldWork(t *testing.T) {
 	t.Parallel()
 
 	parser := createDataFieldParserMock()
-	scrsProc := newSmartContractResultsProcessor(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{}, &mock.MarshalizerMock{}, &mock.HasherMock{}, parser)
+	scrsProc := newSmartContractResultsProcessor(&mock.PubkeyConverterMock{}, &mock.MarshalizerMock{}, &mock.HasherMock{}, parser)
 
 	alteredAddress := data.NewAlteredAccounts()
 	scrs := []*data.ScResult{
@@ -88,7 +88,7 @@ func TestAddScrsReceiverToAlteredAccounts_ShouldWork(t *testing.T) {
 			Value:    "1",
 		},
 	}
-	scrsProc.addScrsReceiverToAlteredAccounts(alteredAddress, scrs)
+	scrsProc.addScrsReceiverToAlteredAccounts(alteredAddress, scrs, 0, 3)
 	require.Equal(t, 1, alteredAddress.Len())
 
 	_, ok := alteredAddress.Get("020202")

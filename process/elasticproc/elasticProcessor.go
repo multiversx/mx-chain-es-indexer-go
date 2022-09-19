@@ -45,7 +45,6 @@ type objectsMap = map[string]interface{}
 type ArgElasticProcessor struct {
 	BulkRequestMaxSize int
 	UseKibana          bool
-	SelfShardID        uint32
 	IndexTemplates     map[string]*bytes.Buffer
 	IndexPolicies      map[string]*bytes.Buffer
 	EnabledIndexes     map[string]struct{}
@@ -62,7 +61,6 @@ type ArgElasticProcessor struct {
 
 type elasticProcessor struct {
 	bulkRequestMaxSize int
-	selfShardID        uint32
 	enabledIndexes     map[string]struct{}
 	elasticClient      DatabaseClientHandler
 	accountsProc       DBAccountHandler
@@ -89,7 +87,6 @@ func NewElasticProcessor(arguments *ArgElasticProcessor) (*elasticProcessor, err
 		blockProc:          arguments.BlockProc,
 		miniblocksProc:     arguments.MiniblocksProc,
 		transactionsProc:   arguments.TransactionsProc,
-		selfShardID:        arguments.SelfShardID,
 		statisticsProc:     arguments.StatisticsProc,
 		validatorsProc:     arguments.ValidatorsProc,
 		logsAndEventsProc:  arguments.LogsAndEventsProc,
@@ -281,7 +278,7 @@ func (ei *elasticProcessor) SaveHeader(
 
 func (ei *elasticProcessor) indexEpochInfoData(header coreData.HeaderHandler, buffSlice *data.BufferSlice) error {
 	if !ei.isIndexEnabled(elasticIndexer.EpochInfoIndex) ||
-		ei.selfShardID != core.MetachainShardId {
+		header.GetShardID() != core.MetachainShardId {
 		return nil
 	}
 
@@ -343,8 +340,8 @@ func (ei *elasticProcessor) removeIfHashesNotEmpty(index string, hashes []string
 }
 
 // RemoveAccountsESDT will remove data from accountsesdt index and accountsesdthistory
-func (ei *elasticProcessor) RemoveAccountsESDT(headerTimestamp uint64) error {
-	query := fmt.Sprintf(`{"query": {"bool": {"must": [{"match": {"shardID": {"query": %d,"operator": "AND"}}},{"match": {"timestamp": {"query": "%d","operator": "AND"}}}]}}}`, ei.selfShardID, headerTimestamp)
+func (ei *elasticProcessor) RemoveAccountsESDT(headerTimestamp uint64, shardID uint32) error {
+	query := fmt.Sprintf(`{"query": {"bool": {"must": [{"match": {"shardID": {"query": %d,"operator": "AND"}}},{"match": {"timestamp": {"query": "%d","operator": "AND"}}}]}}}`, shardID, headerTimestamp)
 	err := ei.elasticClient.DoQueryRemove(
 		elasticIndexer.AccountsESDTIndex,
 		bytes.NewBuffer([]byte(query)),
@@ -376,7 +373,7 @@ func (ei *elasticProcessor) SaveMiniblocks(header coreData.HeaderHandler, body *
 	}
 
 	buffSlice := data.NewBufferSlice(ei.bulkRequestMaxSize)
-	ei.miniblocksProc.SerializeBulkMiniBlocks(mbs, miniblocksInDBMap, buffSlice, elasticIndexer.MiniblocksIndex)
+	ei.miniblocksProc.SerializeBulkMiniBlocks(mbs, miniblocksInDBMap, buffSlice, elasticIndexer.MiniblocksIndex, header.GetShardID())
 
 	return ei.doBulkRequests("", buffSlice.Buffers())
 }
@@ -440,7 +437,7 @@ func (ei *elasticProcessor) SaveTransactions(
 	}
 
 	tagsCount := tags.NewTagsCount()
-	err = ei.indexAlteredAccounts(headerTimestamp, preparedResults.AlteredAccts, logsData.NFTsDataUpdates, coreAlteredAccounts, buffers, tagsCount)
+	err = ei.indexAlteredAccounts(headerTimestamp, preparedResults.AlteredAccts, logsData.NFTsDataUpdates, coreAlteredAccounts, buffers, tagsCount, header.GetShardID())
 	if err != nil {
 		return err
 	}
@@ -545,7 +542,7 @@ func (ei *elasticProcessor) prepareAndIndexOperations(
 		return nil
 	}
 
-	processedTxs, processedSCRs := ei.operationsProc.ProcessTransactionsAndSCRs(txs, scrs, isImportDB)
+	processedTxs, processedSCRs := ei.operationsProc.ProcessTransactionsAndSCRs(txs, scrs, isImportDB, header.GetShardID())
 
 	err := ei.transactionsProc.SerializeTransactions(processedTxs, txHashStatus, header.GetShardID(), buffSlice, elasticIndexer.OperationsIndex)
 	if err != nil {
@@ -608,15 +605,16 @@ func (ei *elasticProcessor) indexAlteredAccounts(
 	coreAlteredAccounts map[string]*outport.AlteredAccount,
 	buffSlice *data.BufferSlice,
 	tagsCount data.CountTags,
+	shardID uint32,
 ) error {
 	regularAccountsToIndex, accountsToIndexESDT := ei.accountsProc.GetAccounts(alteredAccounts, coreAlteredAccounts)
 
-	err := ei.saveAccounts(timestamp, regularAccountsToIndex, buffSlice)
+	err := ei.saveAccounts(timestamp, regularAccountsToIndex, buffSlice, shardID)
 	if err != nil {
 		return err
 	}
 
-	return ei.saveAccountsESDT(timestamp, accountsToIndexESDT, updatesNFTsData, buffSlice, tagsCount)
+	return ei.saveAccountsESDT(timestamp, accountsToIndexESDT, updatesNFTsData, buffSlice, tagsCount, shardID)
 }
 
 func (ei *elasticProcessor) saveAccountsESDT(
@@ -625,8 +623,9 @@ func (ei *elasticProcessor) saveAccountsESDT(
 	updatesNFTsData []*data.NFTDataUpdate,
 	buffSlice *data.BufferSlice,
 	tagsCount data.CountTags,
+	shardID uint32,
 ) error {
-	accountsESDTMap, tokensData := ei.accountsProc.PrepareAccountsMapESDT(timestamp, wrappedAccounts, tagsCount)
+	accountsESDTMap, tokensData := ei.accountsProc.PrepareAccountsMapESDT(timestamp, wrappedAccounts, tagsCount, shardID)
 	err := ei.addTokenTypeAndCurrentOwnerInAccountsESDT(tokensData, accountsESDTMap)
 	if err != nil {
 		return err
@@ -642,7 +641,7 @@ func (ei *elasticProcessor) saveAccountsESDT(
 		return err
 	}
 
-	return ei.saveAccountsESDTHistory(timestamp, accountsESDTMap, buffSlice)
+	return ei.saveAccountsESDTHistory(timestamp, accountsESDTMap, buffSlice, shardID)
 }
 
 func (ei *elasticProcessor) addTokenTypeAndCurrentOwnerInAccountsESDT(tokensData data.TokensHandler, accountsESDTMap map[string]*data.AccountInfo) error {
@@ -721,19 +720,19 @@ func (ei *elasticProcessor) indexNFTBurnInfo(tokensData data.TokensHandler, buff
 }
 
 // SaveAccounts will prepare and save information about provided accounts in elasticsearch server
-func (ei *elasticProcessor) SaveAccounts(timestamp uint64, accts []*data.Account) error {
+func (ei *elasticProcessor) SaveAccounts(timestamp uint64, accts []*data.Account, shardID uint32) error {
 	buffSlice := data.NewBufferSlice(ei.bulkRequestMaxSize)
-	return ei.saveAccounts(timestamp, accts, buffSlice)
+	return ei.saveAccounts(timestamp, accts, buffSlice, shardID)
 }
 
-func (ei *elasticProcessor) saveAccounts(timestamp uint64, accts []*data.Account, buffSlice *data.BufferSlice) error {
-	accountsMap := ei.accountsProc.PrepareRegularAccountsMap(timestamp, accts)
+func (ei *elasticProcessor) saveAccounts(timestamp uint64, accts []*data.Account, buffSlice *data.BufferSlice, shardID uint32) error {
+	accountsMap := ei.accountsProc.PrepareRegularAccountsMap(timestamp, accts, shardID)
 	err := ei.indexAccounts(accountsMap, elasticIndexer.AccountsIndex, buffSlice)
 	if err != nil {
 		return err
 	}
 
-	return ei.saveAccountsHistory(timestamp, accountsMap, buffSlice)
+	return ei.saveAccountsHistory(timestamp, accountsMap, buffSlice, shardID)
 }
 
 func (ei *elasticProcessor) indexAccounts(accountsMap map[string]*data.AccountInfo, index string, buffSlice *data.BufferSlice) error {
@@ -748,22 +747,22 @@ func (ei *elasticProcessor) serializeAndIndexAccounts(accountsMap map[string]*da
 	return ei.accountsProc.SerializeAccounts(accountsMap, buffSlice, index)
 }
 
-func (ei *elasticProcessor) saveAccountsESDTHistory(timestamp uint64, accountsInfoMap map[string]*data.AccountInfo, buffSlice *data.BufferSlice) error {
+func (ei *elasticProcessor) saveAccountsESDTHistory(timestamp uint64, accountsInfoMap map[string]*data.AccountInfo, buffSlice *data.BufferSlice, shardID uint32) error {
 	if !ei.isIndexEnabled(elasticIndexer.AccountsESDTHistoryIndex) {
 		return nil
 	}
 
-	accountsMap := ei.accountsProc.PrepareAccountsHistory(timestamp, accountsInfoMap)
+	accountsMap := ei.accountsProc.PrepareAccountsHistory(timestamp, accountsInfoMap, shardID)
 
 	return ei.serializeAndIndexAccountsHistory(accountsMap, elasticIndexer.AccountsESDTHistoryIndex, buffSlice)
 }
 
-func (ei *elasticProcessor) saveAccountsHistory(timestamp uint64, accountsInfoMap map[string]*data.AccountInfo, buffSlice *data.BufferSlice) error {
+func (ei *elasticProcessor) saveAccountsHistory(timestamp uint64, accountsInfoMap map[string]*data.AccountInfo, buffSlice *data.BufferSlice, shardID uint32) error {
 	if !ei.isIndexEnabled(elasticIndexer.AccountsHistoryIndex) {
 		return nil
 	}
 
-	accountsMap := ei.accountsProc.PrepareAccountsHistory(timestamp, accountsInfoMap)
+	accountsMap := ei.accountsProc.PrepareAccountsHistory(timestamp, accountsInfoMap, shardID)
 
 	return ei.serializeAndIndexAccountsHistory(accountsMap, elasticIndexer.AccountsHistoryIndex, buffSlice)
 }

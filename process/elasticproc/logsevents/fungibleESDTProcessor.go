@@ -4,8 +4,8 @@ import (
 	"math/big"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/core/sharding"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 )
 
@@ -15,14 +15,12 @@ const (
 
 type fungibleESDTProcessor struct {
 	pubKeyConverter               core.PubkeyConverter
-	shardCoordinator              dataindexer.ShardCoordinator
 	fungibleOperationsIdentifiers map[string]struct{}
 }
 
-func newFungibleESDTProcessor(pubKeyConverter core.PubkeyConverter, shardCoordinator dataindexer.ShardCoordinator) *fungibleESDTProcessor {
+func newFungibleESDTProcessor(pubKeyConverter core.PubkeyConverter) *fungibleESDTProcessor {
 	return &fungibleESDTProcessor{
-		pubKeyConverter:  pubKeyConverter,
-		shardCoordinator: shardCoordinator,
+		pubKeyConverter: pubKeyConverter,
 		fungibleOperationsIdentifiers: map[string]struct{}{
 			core.BuiltInFunctionESDTTransfer:         {},
 			core.BuiltInFunctionESDTBurn:             {},
@@ -55,8 +53,8 @@ func (fep *fungibleESDTProcessor) processEvent(args *argsProcessEvent) argOutput
 		}
 	}
 
-	selfShardID := fep.shardCoordinator.SelfId()
-	senderShardID := fep.shardCoordinator.ComputeId(address)
+	selfShardID := args.selfShardID
+	senderShardID := sharding.ComputeShardID(address, args.numOfShards)
 	if senderShardID == selfShardID {
 		fep.processEventOnSenderShard(args.event, args.accounts)
 	}
@@ -95,7 +93,7 @@ func (fep *fungibleESDTProcessor) processEventDestination(
 	}
 
 	receiverAddr := topics[3]
-	receiverShardID := fep.shardCoordinator.ComputeId(receiverAddr)
+	receiverShardID := sharding.ComputeShardID(receiverAddr, args.numOfShards)
 	encodedReceiver := fep.pubKeyConverter.Encode(receiverAddr)
 	if receiverShardID != selfShardID {
 		return tokenID, valueBig.String(), "", 0

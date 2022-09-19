@@ -24,7 +24,6 @@ import (
 func createMockArgsTxsDBProc() *ArgsTransactionProcessor {
 	args := &ArgsTransactionProcessor{
 		AddressPubkeyConverter: mock.NewPubkeyConverterMock(10),
-		ShardCoordinator:       &mock.ShardCoordinatorMock{},
 		Hasher:                 &mock.HasherMock{},
 		Marshalizer:            &mock.MarshalizerMock{},
 	}
@@ -201,7 +200,7 @@ func TestPrepareTransactionsForDatabase(t *testing.T) {
 
 	txDbProc, _ := NewTransactionsProcessor(createMockArgsTxsDBProc())
 
-	results := txDbProc.PrepareTransactionsForDatabase(body, header, pool, false)
+	results := txDbProc.PrepareTransactionsForDatabase(body, header, pool, false, 3)
 	assert.Equal(t, 7, len(results.Transactions))
 
 }
@@ -256,7 +255,7 @@ func TestRelayedTransactions(t *testing.T) {
 
 	txDbProc, _ := NewTransactionsProcessor(createMockArgsTxsDBProc())
 
-	results := txDbProc.PrepareTransactionsForDatabase(body, header, pool, false)
+	results := txDbProc.PrepareTransactionsForDatabase(body, header, pool, false, 3)
 	assert.Equal(t, 1, len(results.Transactions))
 	assert.Equal(t, 2, len(results.Transactions[0].SmartContractResults))
 	assert.Equal(t, transaction.TxStatusSuccess.String(), results.Transactions[0].Status)
@@ -400,22 +399,10 @@ func TestAlteredAddresses(t *testing.T) {
 		},
 	}
 
-	shardCoordinator := &mock.ShardCoordinatorMock{
-		ComputeIdCalled: func(address []byte) uint32 {
-			switch string(address) {
-			case string(address1), string(address4), string(address5), string(address7), string(address9):
-				return 0
-			default:
-				return 1
-			}
-		},
-	}
-
 	args := createMockArgsTxsDBProc()
-	args.ShardCoordinator = shardCoordinator
 	txDbProc, _ := NewTransactionsProcessor(args)
 
-	results := txDbProc.PrepareTransactionsForDatabase(body, hdr, pool, false)
+	results := txDbProc.PrepareTransactionsForDatabase(body, hdr, pool, false, 3)
 
 	for addrActual := range results.AlteredAccts.GetAll() {
 		_, found := expectedAlteredAccounts[addrActual]
@@ -497,7 +484,7 @@ func TestCheckGasUsedInvalidTransaction(t *testing.T) {
 		},
 	}
 
-	results := txDbProc.PrepareTransactionsForDatabase(body, header, pool, false)
+	results := txDbProc.PrepareTransactionsForDatabase(body, header, pool, false, 3)
 	require.Len(t, results.Transactions, 1)
 	require.Equal(t, tx1.GetGasLimit(), results.Transactions[0].GasUsed)
 }
@@ -615,7 +602,7 @@ func TestTxsDatabaseProcessor_PrepareTransactionsForDatabaseInvalidTxWithSCR(t *
 		},
 	}
 
-	results := txDbProc.PrepareTransactionsForDatabase(body, header, pool, false)
+	results := txDbProc.PrepareTransactionsForDatabase(body, header, pool, false, 3)
 	require.NotNil(t, results)
 	require.Len(t, results.Transactions, 1)
 	require.Len(t, results.ScResults, 1)
@@ -669,7 +656,7 @@ func TestTxsDatabaseProcessor_PrepareTransactionsForDatabaseESDTNFTTransfer(t *t
 		},
 	}
 
-	results := txDbProc.PrepareTransactionsForDatabase(body, header, pool, false)
+	results := txDbProc.PrepareTransactionsForDatabase(body, header, pool, false, 3)
 	require.NotNil(t, results)
 	require.Len(t, results.Transactions, 1)
 	require.Len(t, results.ScResults, 1)
@@ -686,7 +673,6 @@ func TestTxsDatabaseProcessor_IssueESDTTx(t *testing.T) {
 	args := createMockArgsTxsDBProc()
 	pubKeyConv, _ := pubkeyConverter.NewBech32PubkeyConverter(32, log)
 	args.AddressPubkeyConverter = pubKeyConv
-	args.ShardCoordinator = &mock.ShardCoordinatorMock{SelfID: core.MetachainShardId}
 	txDbProc, _ := NewTransactionsProcessor(args)
 
 	decodeBech32 := func(key string) []byte {
@@ -736,7 +722,7 @@ func TestTxsDatabaseProcessor_IssueESDTTx(t *testing.T) {
 		},
 	}
 
-	res := txDbProc.PrepareTransactionsForDatabase(body, header, pool, false)
+	res := txDbProc.PrepareTransactionsForDatabase(body, header, pool, false, 3)
 	require.Equal(t, "success", res.Transactions[0].Status)
 	require.Equal(t, 2, len(res.ScResults))
 
@@ -762,7 +748,7 @@ func TestTxsDatabaseProcessor_IssueESDTTx(t *testing.T) {
 		},
 	}
 
-	res = txDbProc.PrepareTransactionsForDatabase(body, header, pool, false)
+	res = txDbProc.PrepareTransactionsForDatabase(body, header, pool, false, 3)
 	require.Equal(t, "fail", res.Transactions[0].Status)
 	require.Equal(t, 1, len(res.ScResults))
 }

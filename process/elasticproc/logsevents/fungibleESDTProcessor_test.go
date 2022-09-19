@@ -1,7 +1,6 @@
 package logsevents
 
 import (
-	"bytes"
 	"math/big"
 	"testing"
 
@@ -15,7 +14,7 @@ import (
 func TestProcessLogsAndEventsESDT_IntraShard(t *testing.T) {
 	t.Parallel()
 
-	fungibleProc := newFungibleESDTProcessor(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{})
+	fungibleProc := newFungibleESDTProcessor(&mock.PubkeyConverterMock{})
 
 	event := &transaction.Event{
 		Address:    []byte("addr"),
@@ -48,14 +47,7 @@ func TestProcessLogsAndEventsESDT_CrossShardOnSource(t *testing.T) {
 	t.Parallel()
 
 	receiverAddr := []byte("receiver")
-	fungibleProc := newFungibleESDTProcessor(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{
-		ComputeIdCalled: func(address []byte) uint32 {
-			if bytes.Equal(address, receiverAddr) {
-				return 1
-			}
-			return 0
-		},
-	})
+	fungibleProc := newFungibleESDTProcessor(&mock.PubkeyConverterMock{})
 
 	event := &transaction.Event{
 		Address:    []byte("addr"),
@@ -89,14 +81,7 @@ func TestProcessLogsAndEventsESDT_CrossShardOnDestination(t *testing.T) {
 
 	senderAddr := []byte("addr")
 	receiverAddr := []byte("receiver")
-	fungibleProc := newFungibleESDTProcessor(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{
-		ComputeIdCalled: func(address []byte) uint32 {
-			if bytes.Equal(address, senderAddr) {
-				return 1
-			}
-			return 0
-		},
-	})
+	fungibleProc := newFungibleESDTProcessor(&mock.PubkeyConverterMock{})
 
 	event := &transaction.Event{
 		Address:    senderAddr,

@@ -27,9 +27,6 @@ func checkTxsProcessorArg(args *ArgsTransactionProcessor) error {
 	if check.IfNil(args.Marshalizer) {
 		return elasticIndexer.ErrNilMarshalizer
 	}
-	if check.IfNil(args.ShardCoordinator) {
-		return elasticIndexer.ErrNilShardCoordinator
-	}
 	if check.IfNil(args.Hasher) {
 		return elasticIndexer.ErrNilHasher
 	}

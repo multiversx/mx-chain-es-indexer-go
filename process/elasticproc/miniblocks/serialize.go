@@ -15,9 +15,10 @@ func (mp *miniblocksProcessor) SerializeBulkMiniBlocks(
 	existsInDb map[string]bool,
 	buffSlice *data.BufferSlice,
 	index string,
+	shardID uint32,
 ) {
 	for _, mb := range bulkMbs {
-		meta, serializedData, err := mp.prepareMiniblockData(mb, existsInDb[mb.Hash], index)
+		meta, serializedData, err := mp.prepareMiniblockData(mb, existsInDb[mb.Hash], index, shardID)
 		if err != nil {
 			log.Warn("miniblocksProcessor.prepareMiniblockData cannot prepare miniblock data", "error", err)
 			continue
@@ -31,7 +32,7 @@ func (mp *miniblocksProcessor) SerializeBulkMiniBlocks(
 	}
 }
 
-func (mp *miniblocksProcessor) prepareMiniblockData(miniblockDB *data.Miniblock, isInDB bool, index string) ([]byte, []byte, error) {
+func (mp *miniblocksProcessor) prepareMiniblockData(miniblockDB *data.Miniblock, isInDB bool, index string, shardID uint32) ([]byte, []byte, error) {
 	mbHash := miniblockDB.Hash
 	miniblockDB.Hash = ""
 
@@ -44,7 +45,7 @@ func (mp *miniblocksProcessor) prepareMiniblockData(miniblockDB *data.Miniblock,
 
 	// prepare data for update operation
 	meta := []byte(fmt.Sprintf(`{ "update" : {"_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(mbHash), "\n"))
-	if mp.selfShardID == miniblockDB.SenderShardID && miniblockDB.ProcessingTypeOnDestination != block.Processed.String() {
+	if shardID == miniblockDB.SenderShardID && miniblockDB.ProcessingTypeOnDestination != block.Processed.String() {
 		// prepare for update sender block hash
 		serializedData := []byte(fmt.Sprintf(`{ "doc" : { "senderBlockHash" : "%s", "procTypeS": "%s" } }`, converters.JsonEscape(miniblockDB.SenderBlockHash), converters.JsonEscape(miniblockDB.ProcessingTypeOnSource)))
 

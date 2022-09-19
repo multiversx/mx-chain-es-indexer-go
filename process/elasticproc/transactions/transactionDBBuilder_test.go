@@ -19,7 +19,6 @@ import (
 func createCommonProcessor() dbTransactionBuilder {
 	return dbTransactionBuilder{
 		addressPubkeyConverter: mock.NewPubkeyConverterMock(32),
-		shardCoordinator:       &mock.ShardCoordinatorMock{},
 		dataFieldParser:        createDataFieldParserMock(),
 	}
 }

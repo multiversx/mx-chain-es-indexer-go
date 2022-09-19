@@ -15,7 +15,6 @@ import (
 
 // ArgsLogsAndEventsProcessor  holds all dependencies required to create new instances of logsAndEventsProcessor
 type ArgsLogsAndEventsProcessor struct {
-	ShardCoordinator dataindexer.ShardCoordinator
 	PubKeyConverter  core.PubkeyConverter
 	Marshalizer      marshal.Marshalizer
 	BalanceConverter dataindexer.BalanceConverter
@@ -47,9 +46,6 @@ func NewLogsAndEventsProcessor(args *ArgsLogsAndEventsProcessor) (*logsAndEvents
 }
 
 func checkArgsLogsAndEventsProcessor(args *ArgsLogsAndEventsProcessor) error {
-	if check.IfNil(args.ShardCoordinator) {
-		return dataindexer.ErrNilShardCoordinator
-	}
 	if check.IfNil(args.PubKeyConverter) {
 		return dataindexer.ErrNilPubkeyConverter
 	}
@@ -67,8 +63,8 @@ func checkArgsLogsAndEventsProcessor(args *ArgsLogsAndEventsProcessor) error {
 }
 
 func createEventsProcessors(args *ArgsLogsAndEventsProcessor) []eventsProcessor {
-	nftsProc := newNFTsProcessor(args.ShardCoordinator, args.PubKeyConverter, args.Marshalizer)
-	fungibleProc := newFungibleESDTProcessor(args.PubKeyConverter, args.ShardCoordinator)
+	nftsProc := newNFTsProcessor(args.PubKeyConverter, args.Marshalizer)
+	fungibleProc := newFungibleESDTProcessor(args.PubKeyConverter)
 	scDeploysProc := newSCDeploysProcessor(args.PubKeyConverter)
 	informativeProc := newInformativeLogsProcessor()
 	updateNFTProc := newNFTsPropertiesProcessor(args.PubKeyConverter)
@@ -83,13 +79,13 @@ func createEventsProcessors(args *ArgsLogsAndEventsProcessor) []eventsProcessor 
 		esdtPropProc,
 	}
 
-	if args.ShardCoordinator.SelfId() == core.MetachainShardId {
-		esdtIssueProc := newESDTIssueProcessor(args.PubKeyConverter)
-		eventsProcs = append(eventsProcs, esdtIssueProc)
+	//if args.ShardCoordinator.SelfId() == core.MetachainShardId {
+	esdtIssueProc := newESDTIssueProcessor(args.PubKeyConverter)
+	eventsProcs = append(eventsProcs, esdtIssueProc)
 
-		delegatorsProcessor := newDelegatorsProcessor(args.PubKeyConverter, args.BalanceConverter)
-		eventsProcs = append(eventsProcs, delegatorsProcessor)
-	}
+	delegatorsProcessor := newDelegatorsProcessor(args.PubKeyConverter, args.BalanceConverter)
+	eventsProcs = append(eventsProcs, delegatorsProcessor)
+	//}
 
 	return eventsProcs
 }

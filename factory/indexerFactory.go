@@ -34,7 +34,6 @@ type ArgsIndexerFactory struct {
 	Password                 string
 	TemplatesPath            string
 	EnabledIndexes           []string
-	ShardCoordinator         dataindexer.ShardCoordinator
 	Marshalizer              marshal.Marshalizer
 	Hasher                   hashing.Hasher
 	AddressPubkeyConverter   core.PubkeyConverter
@@ -101,7 +100,6 @@ func createElasticProcessor(args *ArgsIndexerFactory) (dataindexer.ElasticProces
 		UseKibana:                args.UseKibana,
 		DBClient:                 databaseClient,
 		Denomination:             args.Denomination,
-		ShardCoordinator:         args.ShardCoordinator,
 		EnabledIndexes:           args.EnabledIndexes,
 		BulkRequestMaxSize:       args.BulkRequestMaxSize,
 	}
@@ -127,9 +125,6 @@ func checkDataIndexerParams(arguments *ArgsIndexerFactory) error {
 	}
 	if check.IfNil(arguments.Hasher) {
 		return dataindexer.ErrNilHasher
-	}
-	if check.IfNil(arguments.ShardCoordinator) {
-		return dataindexer.ErrNilShardCoordinator
 	}
 
 	return nil

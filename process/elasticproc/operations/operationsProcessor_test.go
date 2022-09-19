@@ -4,8 +4,6 @@ import (
 	"testing"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/mock"
-	indexer "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/stretchr/testify/require"
 )
@@ -13,11 +11,7 @@ import (
 func TestNewOperationsProcessor(t *testing.T) {
 	t.Parallel()
 
-	op, err := NewOperationsProcessor(nil)
-	require.Nil(t, op)
-	require.Equal(t, indexer.ErrNilShardCoordinator, err)
-
-	op, err = NewOperationsProcessor(&mock.ShardCoordinatorMock{})
+	op, err := NewOperationsProcessor()
 	require.NotNil(t, op)
 	require.Nil(t, err)
 }
@@ -25,7 +19,7 @@ func TestNewOperationsProcessor(t *testing.T) {
 func TestOperationsProcessor_ProcessTransactionsAndSCRSTransactions(t *testing.T) {
 	t.Parallel()
 
-	op, _ := NewOperationsProcessor(&mock.ShardCoordinatorMock{})
+	op, _ := NewOperationsProcessor()
 
 	txs := []*data.Transaction{
 		{},
@@ -34,7 +28,7 @@ func TestOperationsProcessor_ProcessTransactionsAndSCRSTransactions(t *testing.T
 		},
 	}
 
-	processedTxs, _ := op.ProcessTransactionsAndSCRs(txs, nil, true)
+	processedTxs, _ := op.ProcessTransactionsAndSCRs(txs, nil, true, 0)
 	require.Equal(t, []*data.Transaction{
 		{Type: string(transaction.TxTypeNormal)},
 	}, processedTxs)
@@ -43,7 +37,7 @@ func TestOperationsProcessor_ProcessTransactionsAndSCRSTransactions(t *testing.T
 func TestOperationsProcessor_ProcessTransactionsAndSCRSSmartContractResults(t *testing.T) {
 	t.Parallel()
 
-	op, _ := NewOperationsProcessor(&mock.ShardCoordinatorMock{})
+	op, _ := NewOperationsProcessor()
 
 	scrs := []*data.ScResult{
 		{},
@@ -52,7 +46,7 @@ func TestOperationsProcessor_ProcessTransactionsAndSCRSSmartContractResults(t *t
 		},
 	}
 
-	_, processedSCRs := op.ProcessTransactionsAndSCRs(nil, scrs, true)
+	_, processedSCRs := op.ProcessTransactionsAndSCRs(nil, scrs, true, 0)
 	require.Equal(t, []*data.ScResult{
 		{Type: string(transaction.TxTypeUnsigned), Status: transaction.TxStatusSuccess.String()},
 	}, processedSCRs)
@@ -61,7 +55,7 @@ func TestOperationsProcessor_ProcessTransactionsAndSCRSSmartContractResults(t *t
 func TestOperationsProcessor_ShouldIgnoreSCRs(t *testing.T) {
 	t.Parallel()
 
-	op, _ := NewOperationsProcessor(&mock.ShardCoordinatorMock{})
+	op, _ := NewOperationsProcessor()
 
 	scrs := []*data.ScResult{
 		{
@@ -77,7 +71,7 @@ func TestOperationsProcessor_ShouldIgnoreSCRs(t *testing.T) {
 		},
 	}
 
-	_, processedSCRs := op.ProcessTransactionsAndSCRs(nil, scrs, false)
+	_, processedSCRs := op.ProcessTransactionsAndSCRs(nil, scrs, false, 0)
 	for _, scr := range processedSCRs {
 		require.True(t, scr.CanBeIgnored)
 	}

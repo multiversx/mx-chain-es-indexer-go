@@ -18,14 +18,12 @@ import (
 var log = logger.GetOrCreate("indexer/process/miniblocks")
 
 type miniblocksProcessor struct {
-	hasher      hashing.Hasher
-	marshalier  marshal.Marshalizer
-	selfShardID uint32
+	hasher     hashing.Hasher
+	marshalier marshal.Marshalizer
 }
 
 // NewMiniblocksProcessor will create a new instance of miniblocksProcessor
 func NewMiniblocksProcessor(
-	selfShardID uint32,
 	hasher hashing.Hasher,
 	marshalier marshal.Marshalizer,
 ) (*miniblocksProcessor, error) {
@@ -37,9 +35,8 @@ func NewMiniblocksProcessor(
 	}
 
 	return &miniblocksProcessor{
-		hasher:      hasher,
-		marshalier:  marshalier,
-		selfShardID: selfShardID,
+		hasher:     hasher,
+		marshalier: marshalier,
 	}, nil
 }
 
