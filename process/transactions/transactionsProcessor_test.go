@@ -562,6 +562,14 @@ func TestGetRewardsTxsHashesHexEncoded(t *testing.T) {
 				SenderShardID:   2,
 				ReceiverShardID: core.MetachainShardId,
 			},
+			{
+				TxHashes: [][]byte{
+					[]byte("h7"),
+				},
+				Type:            block.SmartContractResultBlock,
+				SenderShardID:   core.MetachainShardId,
+				ReceiverShardID: 0,
+			},
 		},
 	}
 
@@ -569,7 +577,7 @@ func TestGetRewardsTxsHashesHexEncoded(t *testing.T) {
 		"6831", "6832", "6833", "6835",
 	}
 	expectedScrHashes := []string{
-		"6836",
+		"6836", "6837",
 	}
 
 	txsHashes, scrHashes := txDBProc.GetHexEncodedHashesForRemove(header, body)
