@@ -172,8 +172,9 @@ func (tdp *txsDatabaseProcessor) GetHexEncodedHashesForRemove(header coreData.He
 	encodedTxsHashes := make([]string, 0)
 	encodedScrsHashes := make([]string, 0)
 	for _, miniblock := range body.MiniBlocks {
-		if isCrossShardAtSourceAndNoRewardsMB(selfShardID, miniblock) {
-			// ignore cross-shard miniblocks at source ( exception to this rule are rewards miniblocks)
+		shouldIgnore := isCrossShardAtSourceNormalTx(selfShardID, miniblock)
+		if shouldIgnore {
+			// ignore cross-shard miniblocks at source with normal txs
 			continue
 		}
 
@@ -193,12 +194,12 @@ func (tdp *txsDatabaseProcessor) GetHexEncodedHashesForRemove(header coreData.He
 	return encodedTxsHashes, encodedScrsHashes
 }
 
-func isCrossShardAtSourceAndNoRewardsMB(selfShardID uint32, miniblock *block.MiniBlock) bool {
+func isCrossShardAtSourceNormalTx(selfShardID uint32, miniblock *block.MiniBlock) bool {
 	isCrossShard := miniblock.SenderShardID != miniblock.ReceiverShardID
 	isAtSource := miniblock.SenderShardID == selfShardID
-	noRewardsMb := miniblock.Type != block.RewardsBlock
+	txBlock := miniblock.Type == block.TxBlock
 
-	return isCrossShard && isAtSource && noRewardsMb
+	return isCrossShard && isAtSource && txBlock
 }
 
 func shouldIgnoreProcessedMBScheduled(header coreData.HeaderHandler, mbIndex int) bool {
