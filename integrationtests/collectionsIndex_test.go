@@ -8,7 +8,6 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	indexerdata "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
@@ -26,17 +25,14 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 	require.Nil(t, err)
 
 	// ################ ISSUE NON FUNGIBLE TOKEN ##########################
-	shardCoordinator := &mock.ShardCoordinatorMock{
-		SelfID: core.MetachainShardId,
-	}
-
-	esProc, err := CreateElasticProcessor(esClient, shardCoordinator)
+	esProc, err := CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
 	body := &dataBlock.Body{}
 	header := &dataBlock.Header{
 		Round:     50,
 		TimeStamp: 5040,
+		ShardID:   core.MetachainShardId,
 	}
 
 	pool := &outport.Pool{
@@ -57,14 +53,10 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, nil, false)
+	err = esProc.SaveTransactions(body, header, pool, nil, false, 3)
 	require.Nil(t, err)
 
 	// ################ CREATE SEMI FUNGIBLE TOKEN 1 ##########################
-	shardCoordinator = &mock.ShardCoordinatorMock{
-		SelfID: 0,
-	}
-
 	addr := "aaaabbbbcccccccc"
 	addrHex := hex.EncodeToString([]byte(addr))
 
@@ -103,12 +95,13 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 			},
 		},
 	}
-	esProc, err = CreateElasticProcessor(esClient, shardCoordinator)
+	esProc, err = CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
 	header = &dataBlock.Header{
 		Round:     51,
 		TimeStamp: 5600,
+		ShardID:   1,
 	}
 
 	esdtData := &esdt.ESDigitalToken{
@@ -136,7 +129,7 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, 3)
 	require.Nil(t, err)
 	ids := []string{"61616161626262626363636363636363"}
 	genericResponse := &GenericResponse{}
@@ -166,7 +159,7 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 	coreAlteredAccounts[addrHex].Tokens[0].Nonce = 22
 	coreAlteredAccounts[addrForLogHex].Tokens[0].Nonce = 22
 
-	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, 3)
 	require.Nil(t, err)
 	ids = []string{"61616161626262626363636363636363"}
 	genericResponse = &GenericResponse{}
@@ -194,7 +187,7 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 		},
 	}
 
-	esProc, err = CreateElasticProcessor(esClient, shardCoordinator)
+	esProc, err = CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
 	pool = &outport.Pool{
@@ -215,7 +208,7 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, 3)
 	require.Nil(t, err)
 	ids = []string{"61616161626262626363636363636363"}
 	genericResponse = &GenericResponse{}

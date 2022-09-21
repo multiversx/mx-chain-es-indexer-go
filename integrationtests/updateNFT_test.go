@@ -7,7 +7,6 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	indexerdata "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
@@ -31,14 +30,13 @@ func TestNFTUpdateMetadata(t *testing.T) {
 	}
 	marshalizedCreate, _ := json.Marshal(esdtCreateData)
 
-	shardCoordinator := &mock.ShardCoordinatorMock{}
-
-	esProc, err := CreateElasticProcessor(esClient, shardCoordinator)
+	esProc, err := CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
 	header := &dataBlock.Header{
 		Round:     50,
 		TimeStamp: 5040,
+		ShardID:   2,
 	}
 	body := &dataBlock.Body{}
 
@@ -60,7 +58,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, nil, false)
+	err = esProc.SaveTransactions(body, header, pool, nil, false, 3)
 	require.Nil(t, err)
 
 	ids := []string{"NFT-abcd-0e"}
@@ -87,7 +85,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, nil, false)
+	err = esProc.SaveTransactions(body, header, pool, nil, false, 3)
 	require.Nil(t, err)
 
 	// Add URIS 2 --- results should be the same
@@ -108,7 +106,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, nil, false)
+	err = esProc.SaveTransactions(body, header, pool, nil, false, 3)
 	require.Nil(t, err)
 
 	// Update attributes 1
@@ -135,7 +133,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, nil, false)
+	err = esProc.SaveTransactions(body, header, pool, nil, false, 3)
 	require.Nil(t, err)
 
 	ids = []string{"NFT-abcd-0e"}
@@ -163,7 +161,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, nil, false)
+	err = esProc.SaveTransactions(body, header, pool, nil, false, 3)
 	require.Nil(t, err)
 
 	ids = []string{"NFT-abcd-0e"}

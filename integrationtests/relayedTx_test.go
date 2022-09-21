@@ -7,7 +7,6 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	indexerdata "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
@@ -23,9 +22,7 @@ func TestRelayedTransactionGasUsedCrossShard(t *testing.T) {
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	shardCoordinator := &mock.ShardCoordinatorMock{}
-
-	esProc, err := CreateElasticProcessor(esClient, shardCoordinator)
+	esProc, err := CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
 	txHash := []byte("relayedTx")
@@ -84,7 +81,7 @@ func TestRelayedTransactionGasUsedCrossShard(t *testing.T) {
 			string(scrHash1): outport.NewTransactionHandlerWithGasAndFee(scr1, 0, big.NewInt(0)),
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, nil, false)
+	err = esProc.SaveTransactions(body, header, pool, nil, false, 3)
 	require.Nil(t, err)
 
 	ids := []string{hex.EncodeToString(txHash)}
@@ -126,7 +123,7 @@ func TestRelayedTransactionGasUsedCrossShard(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(bodyDstShard, header, poolDstShard, nil, false)
+	err = esProc.SaveTransactions(bodyDstShard, header, poolDstShard, nil, false, 3)
 	require.Nil(t, err)
 
 	err = esClient.DoMultiGet(ids, indexerdata.TransactionsIndex, true, genericResponse)
@@ -144,9 +141,7 @@ func TestRelayedTransactionIntraShard(t *testing.T) {
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	shardCoordinator := &mock.ShardCoordinatorMock{}
-
-	esProc, err := CreateElasticProcessor(esClient, shardCoordinator)
+	esProc, err := CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
 	txHash := []byte("relayedTxIntra")
@@ -217,7 +212,7 @@ func TestRelayedTransactionIntraShard(t *testing.T) {
 			string(scrHash2): outport.NewTransactionHandlerWithGasAndFee(scr2, 0, big.NewInt(0)),
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, nil, false)
+	err = esProc.SaveTransactions(body, header, pool, nil, false, 3)
 	require.Nil(t, err)
 
 	ids := []string{hex.EncodeToString(txHash)}

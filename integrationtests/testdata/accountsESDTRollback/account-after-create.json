@@ -8,7 +8,7 @@
     "whiteListedStorage": false,
     "nonEmptyURIs": false
   },
-  "shardID": 1,
+  "shardID": 2,
   "tokenNonce": 2,
   "properties": "6f6b",
   "token": "TOKEN-eeee",

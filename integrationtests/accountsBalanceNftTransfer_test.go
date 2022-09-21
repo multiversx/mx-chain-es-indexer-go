@@ -7,7 +7,6 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	indexerdata "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
@@ -24,21 +23,18 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 	require.Nil(t, err)
 
 	// ################ CREATE NFT ##########################
-	shardCoordinator := &mock.ShardCoordinatorMock{
-		SelfID: 0,
-	}
-
 	body := &dataBlock.Body{}
 
 	addr := "test-address-balance-1"
 	addrHex := hex.EncodeToString([]byte(addr))
 
-	esProc, err := CreateElasticProcessor(esClient, shardCoordinator)
+	esProc, err := CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
 	header := &dataBlock.Header{
 		Round:     51,
 		TimeStamp: 5600,
+		ShardID:   1,
 	}
 
 	pool := &outport.Pool{
@@ -72,7 +68,7 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, 3)
 	require.Nil(t, err)
 
 	ids := []string{"746573742d616464726573732d62616c616e63652d31-NFT-abcdef-718863"}
@@ -86,6 +82,7 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 	header = &dataBlock.Header{
 		Round:     51,
 		TimeStamp: 5600,
+		ShardID:   1,
 	}
 
 	pool = &outport.Pool{
@@ -109,7 +106,7 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 	addrReceiver := "new-address"
 	addrReceiverHex := hex.EncodeToString([]byte(addrReceiver))
 
-	esProc, err = CreateElasticProcessor(esClient, shardCoordinator)
+	esProc, err = CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
 	coreAlteredAccounts = map[string]*outport.AlteredAccount{
@@ -127,7 +124,7 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, 3)
 	require.Nil(t, err)
 
 	ids = []string{"746573742d616464726573732d62616c616e63652d31-NFT-abcdef-718863"}

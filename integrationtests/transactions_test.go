@@ -7,7 +7,6 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	indexerData "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
@@ -22,9 +21,7 @@ func TestElasticIndexerSaveTransactions(t *testing.T) {
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	shardCoordinator := &mock.ShardCoordinatorMock{}
-
-	esProc, err := CreateElasticProcessor(esClient, shardCoordinator)
+	esProc, err := CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
 	txHash := []byte("hash")
@@ -57,7 +54,7 @@ func TestElasticIndexerSaveTransactions(t *testing.T) {
 			string(txHash): tx,
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, nil, false)
+	err = esProc.SaveTransactions(body, header, pool, nil, false, 3)
 	require.Nil(t, err)
 
 	ids := []string{hex.EncodeToString(txHash)}

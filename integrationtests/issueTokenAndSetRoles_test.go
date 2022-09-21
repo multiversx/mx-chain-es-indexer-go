@@ -6,7 +6,6 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	indexerdata "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
@@ -22,17 +21,14 @@ func TestIssueTokenAndSetRole(t *testing.T) {
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	shardCoordinator := &mock.ShardCoordinatorMock{
-		SelfID: core.MetachainShardId,
-	}
-
-	esProc, err := CreateElasticProcessor(esClient, shardCoordinator)
+	esProc, err := CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
 	body := &dataBlock.Body{}
 	header := &dataBlock.Header{
 		Round:     50,
 		TimeStamp: 5040,
+		ShardID:   core.MetachainShardId,
 	}
 
 	pool := &outport.Pool{
@@ -58,7 +54,7 @@ func TestIssueTokenAndSetRole(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, 3)
 	require.Nil(t, err)
 
 	ids := []string{"TOK-abcd"}
@@ -87,7 +83,7 @@ func TestIssueTokenAndSetRole(t *testing.T) {
 	}
 
 	header.TimeStamp = 10000
-	err = esProc.SaveTransactions(body, header, pool, nil, false)
+	err = esProc.SaveTransactions(body, header, pool, nil, false, 3)
 	require.Nil(t, err)
 
 	ids = []string{"TOK-abcd"}
@@ -120,7 +116,7 @@ func TestIssueTokenAndSetRole(t *testing.T) {
 	}
 
 	header.TimeStamp = 10000
-	err = esProc.SaveTransactions(body, header, pool, nil, false)
+	err = esProc.SaveTransactions(body, header, pool, nil, false, 3)
 	require.Nil(t, err)
 
 	ids = []string{"TOK-abcd"}
@@ -149,7 +145,7 @@ func TestIssueTokenAndSetRole(t *testing.T) {
 	}
 
 	header.TimeStamp = 10000
-	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, 3)
 	require.Nil(t, err)
 
 	ids = []string{"TOK-abcd"}
@@ -165,17 +161,14 @@ func TestIssueSetRolesEventAndAfterTokenIssue(t *testing.T) {
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	shardCoordinator := &mock.ShardCoordinatorMock{
-		SelfID: core.MetachainShardId,
-	}
-
-	esProc, err := CreateElasticProcessor(esClient, shardCoordinator)
+	esProc, err := CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
 	body := &dataBlock.Body{}
 	header := &dataBlock.Header{
 		Round:     50,
 		TimeStamp: 5040,
+		ShardID:   core.MetachainShardId,
 	}
 
 	// SET ROLES
@@ -198,7 +191,7 @@ func TestIssueSetRolesEventAndAfterTokenIssue(t *testing.T) {
 	}
 
 	header.TimeStamp = 10000
-	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, 3)
 	require.Nil(t, err)
 
 	ids := []string{"TTT-abcd"}
@@ -226,7 +219,7 @@ func TestIssueSetRolesEventAndAfterTokenIssue(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, 3)
 	require.Nil(t, err)
 
 	ids = []string{"TTT-abcd"}

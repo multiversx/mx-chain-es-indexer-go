@@ -22,7 +22,7 @@
     "000000000000000005008b60efce7fb25b140078645b71226cb9c644abc8a0d3"
   ],
   "receiversShardIDs": [
-    0
+    1
   ],
   "operation": "transfer",
   "function": "saveAttestation",

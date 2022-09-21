@@ -7,7 +7,6 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	indexerdata "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
@@ -24,17 +23,14 @@ func TestTransactionWithClaimRewardsGasRefund(t *testing.T) {
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	shardCoordinator := &mock.ShardCoordinatorMock{
-		SelfID: core.MetachainShardId,
-	}
-
-	esProc, err := CreateElasticProcessor(esClient, shardCoordinator)
+	esProc, err := CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
 	txHash := []byte("claimRewards")
 	header := &dataBlock.Header{
 		Round:     50,
 		TimeStamp: 5040,
+		ShardID:   core.MetachainShardId,
 	}
 
 	scrHash1 := []byte("scrRefundGasReward")
@@ -116,7 +112,7 @@ func TestTransactionWithClaimRewardsGasRefund(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, nil, false)
+	err = esProc.SaveTransactions(body, header, pool, nil, false, 3)
 	require.Nil(t, err)
 
 	ids := []string{hex.EncodeToString(txHash)}

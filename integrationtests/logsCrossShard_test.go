@@ -7,7 +7,6 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	indexerdata "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
@@ -23,9 +22,7 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	shardCoordinator := &mock.ShardCoordinatorMock{}
-
-	esProc, err := CreateElasticProcessor(esClient, shardCoordinator)
+	esProc, err := CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
 	header := &dataBlock.Header{
@@ -53,7 +50,7 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, 3)
 	require.Nil(t, err)
 
 	ids := []string{hex.EncodeToString([]byte("cross-log"))}
@@ -94,7 +91,7 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, 3)
 	require.Nil(t, err)
 
 	err = esClient.DoMultiGet(ids, indexerdata.LogsIndex, true, genericResponse)
@@ -127,7 +124,7 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, 3)
 	require.Nil(t, err)
 
 	err = esClient.DoMultiGet(ids, indexerdata.LogsIndex, true, genericResponse)

@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	indexerdata "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
@@ -27,16 +26,13 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 	require.Nil(t, err)
 
 	// ################ ISSUE NON FUNGIBLE TOKEN ##########################
-	shardCoordinator := &mock.ShardCoordinatorMock{
-		SelfID: core.MetachainShardId,
-	}
-
-	esProc, err := CreateElasticProcessor(esClient, shardCoordinator)
+	esProc, err := CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
 	body := &dataBlock.Body{}
 	header := &dataBlock.Header{
 		Round:     50,
+		ShardID:   core.MetachainShardId,
 		TimeStamp: 5040,
 	}
 
@@ -58,7 +54,7 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, 3)
 	require.Nil(t, err)
 
 	ids := []string{"SEMI-abcd"}
@@ -68,10 +64,6 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 	require.JSONEq(t, readExpectedResult("./testdata/accountsESDTWithTokenType/token-after-issue.json"), string(genericResponse.Docs[0].Source))
 
 	// ################ CREATE SEMI FUNGIBLE TOKEN ##########################
-	shardCoordinator = &mock.ShardCoordinatorMock{
-		SelfID: 0,
-	}
-
 	addr := "aaaabbbb"
 	encodedAddr := hex.EncodeToString([]byte(addr))
 	coreAlteredAccounts := map[string]*outport.AlteredAccount{
@@ -91,12 +83,13 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 			},
 		},
 	}
-	esProc, err = CreateElasticProcessor(esClient, shardCoordinator)
+	esProc, err = CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
 	header = &dataBlock.Header{
 		Round:     51,
 		TimeStamp: 5600,
+		ShardID:   2,
 	}
 
 	esdtData := &esdt.ESDigitalToken{
@@ -124,7 +117,7 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, 3)
 	require.Nil(t, err)
 
 	ids = []string{"6161616162626262-SEMI-abcd-02"}
@@ -141,11 +134,7 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	// ################ CREATE SEMI FUNGIBLE TOKEN ##########################
-	shardCoordinator := &mock.ShardCoordinatorMock{
-		SelfID: 0,
-	}
-
+	// ################ CREATE SEMI FUNGIBLE TOKEN #########################
 	body := &dataBlock.Body{}
 
 	addr := "aaaabbbb"
@@ -167,12 +156,13 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 			},
 		},
 	}
-	esProc, err := CreateElasticProcessor(esClient, shardCoordinator)
+	esProc, err := CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
 	header := &dataBlock.Header{
 		Round:     51,
 		TimeStamp: 5600,
+		ShardID:   2,
 	}
 
 	esdtData := &esdt.ESDigitalToken{
@@ -200,7 +190,7 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, 3)
 	require.Nil(t, err)
 
 	ids := []string{"6161616162626262-TTTT-abcd-02"}
@@ -212,15 +202,13 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 	time.Sleep(time.Second)
 
 	// ################ ISSUE NON FUNGIBLE TOKEN ##########################
-	shardCoordinator = &mock.ShardCoordinatorMock{
-		SelfID: core.MetachainShardId,
-	}
 	header = &dataBlock.Header{
 		Round:     50,
 		TimeStamp: 5040,
+		ShardID:   core.MetachainShardId,
 	}
 
-	esProc, err = CreateElasticProcessor(esClient, shardCoordinator)
+	esProc, err = CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
 	pool = &outport.Pool{
@@ -241,7 +229,7 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, 3)
 	require.Nil(t, err)
 
 	ids = []string{"TTTT-abcd"}

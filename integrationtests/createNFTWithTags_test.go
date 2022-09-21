@@ -8,7 +8,6 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	indexerdata "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
@@ -34,19 +33,16 @@ func TestCreateNFTWithTags(t *testing.T) {
 		},
 	}
 
-	shardCoordinator := &mock.ShardCoordinatorMock{
-		SelfID: 0,
-	}
-
 	header := &dataBlock.Header{
 		Round:     51,
 		TimeStamp: 5600,
+		ShardID:   2,
 	}
 
 	addr := "aaaabbbb"
 	addrHex := hex.EncodeToString([]byte(addr))
 
-	esProc, err := CreateElasticProcessor(esClient, shardCoordinator)
+	esProc, err := CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
 	esdtDataBytes, _ := json.Marshal(esdtToken)
@@ -90,7 +86,7 @@ func TestCreateNFTWithTags(t *testing.T) {
 	}
 
 	body := &dataBlock.Body{}
-	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, 3)
 	require.Nil(t, err)
 
 	ids := []string{"6161616162626262-DESK-abcd-01"}
@@ -137,7 +133,7 @@ func TestCreateNFTWithTags(t *testing.T) {
 
 	coreAlteredAccounts[addrHex].Tokens[0].Nonce = 2
 	body = &dataBlock.Body{}
-	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, 3)
 	require.Nil(t, err)
 
 	genericResponse = &GenericResponse{}
@@ -163,7 +159,7 @@ func TestCreateNFTWithTags(t *testing.T) {
 	coreAlteredAccounts[addrHex].Tokens[0].Nonce = 3
 	coreAlteredAccounts[addrHex].Tokens[0].MetaData.Attributes = attributes
 
-	esProc, err = CreateElasticProcessor(esClient, shardCoordinator)
+	esProc, err = CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
 	pool = &outport.Pool{
@@ -185,7 +181,7 @@ func TestCreateNFTWithTags(t *testing.T) {
 	}
 
 	body = &dataBlock.Body{}
-	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, 3)
 	require.Nil(t, err)
 
 	ids = append(ids, "XFxcXFxcXFxcXFxcXFxcXFxcXA==", "JycnJw==", "PDw8Pj4+JiYmJiYmJiYmJiYmJiYm")
