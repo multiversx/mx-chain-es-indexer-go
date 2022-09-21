@@ -16,9 +16,8 @@ import (
 
 func createDataFieldParserMock() DataFieldParser {
 	args := &datafield.ArgsOperationDataFieldParser{
-		AddressLength:    32,
-		Marshalizer:      &mock.MarshalizerMock{},
-		ShardCoordinator: &mock.ShardCoordinatorMock{},
+		AddressLength: 32,
+		Marshalizer:   &mock.MarshalizerMock{},
 	}
 	parser, _ := datafield.NewOperationDataFieldParser(args)
 
@@ -49,7 +48,7 @@ func TestPrepareSmartContractResult(t *testing.T) {
 	header := &block.Header{TimeStamp: 100}
 
 	mbHash := []byte("hash")
-	scRes := scrsProc.prepareSmartContractResult([]byte(scHash), mbHash, smartContractRes, header, 0, 1, big.NewInt(0), 0)
+	scRes := scrsProc.prepareSmartContractResult([]byte(scHash), mbHash, smartContractRes, header, 0, 1, big.NewInt(0), 0, 3)
 	expectedTx := &data.ScResult{
 		Nonce:              nonce,
 		Hash:               hex.EncodeToString([]byte(scHash)),
@@ -88,7 +87,7 @@ func TestAddScrsReceiverToAlteredAccounts_ShouldWork(t *testing.T) {
 			Value:    "1",
 		},
 	}
-	scrsProc.addScrsReceiverToAlteredAccounts(alteredAddress, scrs, 0, 3)
+	scrsProc.addScrsReceiverToAlteredAccounts(alteredAddress, scrs, 2, 3)
 	require.Equal(t, 1, alteredAddress.Len())
 
 	_, ok := alteredAddress.Get("020202")

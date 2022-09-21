@@ -43,6 +43,7 @@ func (proc *smartContractResultsProcessor) processSCRs(
 	body *block.Body,
 	header coreData.HeaderHandler,
 	txsHandler map[string]data.TransactionHandlerWithGasUsedAndFee,
+	numOfShards uint32,
 ) []*indexerData.ScResult {
 	allSCRs := make([]*indexerData.ScResult, 0, len(txsHandler))
 	for _, mb := range body.MiniBlocks {
@@ -50,7 +51,7 @@ func (proc *smartContractResultsProcessor) processSCRs(
 			continue
 		}
 
-		indexerSCRs := proc.processSCRsFromMiniblock(header, mb, txsHandler)
+		indexerSCRs := proc.processSCRsFromMiniblock(header, mb, txsHandler, numOfShards)
 
 		allSCRs = append(allSCRs, indexerSCRs...)
 	}
@@ -62,7 +63,7 @@ func (proc *smartContractResultsProcessor) processSCRs(
 			continue
 		}
 
-		indexerScr := proc.prepareSmartContractResult([]byte(scrHash), nil, scr, header, selfShardID, selfShardID, noMBScr.GetFee(), noMBScr.GetGasUsed())
+		indexerScr := proc.prepareSmartContractResult([]byte(scrHash), nil, scr, header, selfShardID, selfShardID, noMBScr.GetFee(), noMBScr.GetGasUsed(), numOfShards)
 
 		allSCRs = append(allSCRs, indexerScr)
 	}
@@ -74,6 +75,7 @@ func (proc *smartContractResultsProcessor) processSCRsFromMiniblock(
 	header coreData.HeaderHandler,
 	mb *block.MiniBlock,
 	scrs map[string]data.TransactionHandlerWithGasUsedAndFee,
+	numOfShards uint32,
 ) []*indexerData.ScResult {
 	mbHash, err := core.CalculateHash(proc.marshalizer, proc.hasher, mb)
 	if err != nil {
@@ -95,7 +97,7 @@ func (proc *smartContractResultsProcessor) processSCRsFromMiniblock(
 			continue
 		}
 
-		indexerSCR := proc.prepareSmartContractResult(scrHash, mbHash, scr, header, mb.SenderShardID, mb.ReceiverShardID, scrHandler.GetFee(), scrHandler.GetGasUsed())
+		indexerSCR := proc.prepareSmartContractResult(scrHash, mbHash, scr, header, mb.SenderShardID, mb.ReceiverShardID, scrHandler.GetFee(), scrHandler.GetGasUsed(), numOfShards)
 		indexerSCRs = append(indexerSCRs, indexerSCR)
 
 		delete(scrs, string(scrHash))
@@ -113,6 +115,7 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 	receiverShard uint32,
 	initialTxFee *big.Int,
 	initialTxGasUsed uint64,
+	numOfShards uint32,
 ) *indexerData.ScResult {
 	hexEncodedMBHash := ""
 	if len(mbHash) > 0 {
@@ -133,7 +136,7 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 		originalSenderAddr = proc.pubKeyConverter.Encode(scr.OriginalSender)
 	}
 
-	res := proc.dataFieldParser.Parse(scr.Data, scr.SndAddr, scr.RcvAddr)
+	res := proc.dataFieldParser.Parse(scr.Data, scr.SndAddr, scr.RcvAddr, numOfShards)
 
 	return &indexerData.ScResult{
 		Hash:               hex.EncodeToString(scrHash),

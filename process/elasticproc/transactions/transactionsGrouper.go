@@ -41,6 +41,7 @@ func (tg *txsGrouper) groupNormalTxs(
 	txs map[string]coreData.TransactionHandlerWithGasUsedAndFee,
 	alteredAccounts data.AlteredAccountsHandler,
 	isImportDB bool,
+	numOfShards uint32,
 ) (map[string]*data.Transaction, error) {
 	transactions := make(map[string]*data.Transaction)
 
@@ -53,7 +54,7 @@ func (tg *txsGrouper) groupNormalTxs(
 	executedTxHashes := extractExecutedTxHashes(mbIndex, mb.TxHashes, header)
 	mbStatus := computeStatus(selfShardID, mb.ReceiverShardID)
 	for _, txHash := range executedTxHashes {
-		dbTx, ok := tg.prepareNormalTxForDB(mbHash, mb, mbStatus, txHash, txs, header)
+		dbTx, ok := tg.prepareNormalTxForDB(mbHash, mb, mbStatus, txHash, txs, header, numOfShards)
 		if !ok {
 			continue
 		}
@@ -95,6 +96,7 @@ func (tg *txsGrouper) prepareNormalTxForDB(
 	txHash []byte,
 	txs map[string]coreData.TransactionHandlerWithGasUsedAndFee,
 	header coreData.HeaderHandler,
+	numOfShards uint32,
 ) (*data.Transaction, bool) {
 	txHandler, okGet := txs[string(txHash)]
 	if !okGet {
@@ -106,7 +108,7 @@ func (tg *txsGrouper) prepareNormalTxForDB(
 		return nil, false
 	}
 
-	dbTx := tg.txBuilder.prepareTransaction(tx, txHash, mbHash, mb, header, mbStatus, txHandler.GetFee(), txHandler.GetGasUsed(), txHandler.GetInitialPaidFee())
+	dbTx := tg.txBuilder.prepareTransaction(tx, txHash, mbHash, mb, header, mbStatus, txHandler.GetFee(), txHandler.GetGasUsed(), txHandler.GetInitialPaidFee(), numOfShards)
 
 	return dbTx, true
 }
@@ -172,6 +174,7 @@ func (tg *txsGrouper) groupInvalidTxs(
 	header coreData.HeaderHandler,
 	txs map[string]coreData.TransactionHandlerWithGasUsedAndFee,
 	alteredAccounts data.AlteredAccountsHandler,
+	numOfShards uint32,
 ) (map[string]*data.Transaction, error) {
 	transactions := make(map[string]*data.Transaction)
 	mbHash, err := core.CalculateHash(tg.marshalizer, tg.hasher, mb)
@@ -181,7 +184,7 @@ func (tg *txsGrouper) groupInvalidTxs(
 
 	executedTxHashes := extractExecutedTxHashes(mbIndex, mb.TxHashes, header)
 	for _, txHash := range executedTxHashes {
-		invalidDBTx, ok := tg.prepareInvalidTxForDB(mbHash, mb, txHash, txs, header)
+		invalidDBTx, ok := tg.prepareInvalidTxForDB(mbHash, mb, txHash, txs, header, numOfShards)
 		if !ok {
 			continue
 		}
@@ -199,6 +202,7 @@ func (tg *txsGrouper) prepareInvalidTxForDB(
 	txHash []byte,
 	txs map[string]coreData.TransactionHandlerWithGasUsedAndFee,
 	header coreData.HeaderHandler,
+	numOfShards uint32,
 ) (*data.Transaction, bool) {
 	txHandler, okGet := txs[string(txHash)]
 	if !okGet {
@@ -210,7 +214,7 @@ func (tg *txsGrouper) prepareInvalidTxForDB(
 		return nil, false
 	}
 
-	dbTx := tg.txBuilder.prepareTransaction(tx, txHash, mbHash, mb, header, transaction.TxStatusInvalid.String(), txHandler.GetFee(), txHandler.GetGasUsed(), txHandler.GetInitialPaidFee())
+	dbTx := tg.txBuilder.prepareTransaction(tx, txHash, mbHash, mb, header, transaction.TxStatusInvalid.String(), txHandler.GetFee(), txHandler.GetGasUsed(), txHandler.GetInitialPaidFee(), numOfShards)
 
 	return dbTx, true
 }
