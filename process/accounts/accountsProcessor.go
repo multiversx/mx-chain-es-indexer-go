@@ -260,7 +260,7 @@ func (ap *accountsProcessor) getESDTInfo(accountESDT *data.AccountESDT) (*big.In
 	}
 
 	tokenKey := computeTokenKey(accountESDT.TokenIdentifier, accountESDT.NFTNonce)
-	valueBytes, err := accountESDT.Account.RetrieveValueFromDataTrieTracker(tokenKey)
+	valueBytes, err := accountESDT.Account.RetrieveValue(tokenKey)
 	if err != nil {
 		return nil, "", nil, err
 	}
@@ -321,7 +321,7 @@ func (ap *accountsProcessor) loadMetadataFromSystemAccount(tokenKey []byte) (*es
 		return nil, indexer.ErrCannotCastAccountHandlerToUserAccount
 	}
 
-	marshaledData, err := userAccount.RetrieveValueFromDataTrieTracker(tokenKey)
+	marshaledData, err := userAccount.RetrieveValue(tokenKey)
 	if err != nil {
 		return nil, err
 	}
