@@ -394,11 +394,12 @@ func (ei *elasticProcessor) SaveTransactions(
 	pool *outport.Pool,
 	coreAlteredAccounts map[string]*outport.AlteredAccount,
 	isImportDB bool,
+	numOfShards uint32,
 ) error {
 	headerTimestamp := header.GetTimeStamp()
 
-	preparedResults := ei.transactionsProc.PrepareTransactionsForDatabase(body, header, pool, isImportDB)
-	logsData := ei.logsAndEventsProc.ExtractDataFromLogs(pool.Logs, preparedResults, headerTimestamp)
+	preparedResults := ei.transactionsProc.PrepareTransactionsForDatabase(body, header, pool, isImportDB, numOfShards)
+	logsData := ei.logsAndEventsProc.ExtractDataFromLogs(pool.Logs, preparedResults, headerTimestamp, header.GetShardID(), numOfShards)
 
 	buffers := data.NewBufferSlice(ei.bulkRequestMaxSize)
 	err := ei.indexTransactions(preparedResults.Transactions, preparedResults.TxHashStatus, header, buffers)
@@ -549,7 +550,7 @@ func (ei *elasticProcessor) prepareAndIndexOperations(
 		return err
 	}
 
-	return ei.operationsProc.SerializeSCRs(processedSCRs, buffSlice, elasticIndexer.OperationsIndex)
+	return ei.operationsProc.SerializeSCRs(processedSCRs, buffSlice, elasticIndexer.OperationsIndex, header.GetShardID())
 }
 
 // SaveValidatorsRating will save validators rating

@@ -63,7 +63,7 @@ func TestDataDispatcher_StartIndexDataClose(t *testing.T) {
 
 	require.True(t, called)
 
-	dispatcher.Add(workItems2.NewItemAccounts(elasticProc, 0, nil))
+	dispatcher.Add(workItems2.NewItemAccounts(elasticProc, 0, nil, 0))
 	wg.Add(1)
 	dispatcher.Add(workItems2.NewItemRounds(elasticProc, []*data.RoundInfo{}))
 	dispatcher.Add(workItems2.NewItemRating(elasticProc, "", nil))

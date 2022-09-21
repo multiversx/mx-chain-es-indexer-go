@@ -12,7 +12,7 @@ import (
 func TestMiniblocksProcessor_SerializeBulkMiniBlocks(t *testing.T) {
 	t.Parallel()
 
-	mp, _ := NewMiniblocksProcessor(0, mock.HasherMock{}, &mock.MarshalizerMock{})
+	mp, _ := NewMiniblocksProcessor(mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	miniblocks := []*data.Miniblock{
 		{Hash: "h1", SenderShardID: 0, ReceiverShardID: 1},
@@ -20,7 +20,7 @@ func TestMiniblocksProcessor_SerializeBulkMiniBlocks(t *testing.T) {
 	}
 
 	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
-	mp.SerializeBulkMiniBlocks(miniblocks, nil, buffSlice, "miniblocks")
+	mp.SerializeBulkMiniBlocks(miniblocks, nil, buffSlice, "miniblocks", 0)
 
 	expectedBuff := `{ "index" : { "_index":"miniblocks", "_id" : "h1"} }
 {"senderShard":0,"receiverShard":1,"type":"","timestamp":0}
@@ -33,7 +33,7 @@ func TestMiniblocksProcessor_SerializeBulkMiniBlocks(t *testing.T) {
 func TestMiniblocksProcessor_SerializeBulkMiniBlocksInDB(t *testing.T) {
 	t.Parallel()
 
-	mp, _ := NewMiniblocksProcessor(0, mock.HasherMock{}, &mock.MarshalizerMock{})
+	mp, _ := NewMiniblocksProcessor(mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	miniblocks := []*data.Miniblock{
 		{Hash: "h1", SenderShardID: 0, ReceiverShardID: 1},
@@ -43,7 +43,7 @@ func TestMiniblocksProcessor_SerializeBulkMiniBlocksInDB(t *testing.T) {
 	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
 	mp.SerializeBulkMiniBlocks(miniblocks, map[string]bool{
 		"h1": true,
-	}, buffSlice, "miniblocks")
+	}, buffSlice, "miniblocks", 0)
 
 	expectedBuff := `{ "update" : {"_index":"miniblocks", "_id" : "h1" } }
 { "doc" : { "senderBlockHash" : "", "procTypeS": "" } }
@@ -54,7 +54,7 @@ func TestMiniblocksProcessor_SerializeBulkMiniBlocksInDB(t *testing.T) {
 }
 
 func TestSerializeMiniblock_CrossShardNormal(t *testing.T) {
-	mp, _ := NewMiniblocksProcessor(1, mock.HasherMock{}, &mock.MarshalizerMock{})
+	mp, _ := NewMiniblocksProcessor(mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	miniblocks := []*data.Miniblock{
 		{Hash: "h1", SenderShardID: 0, ReceiverShardID: 1, ReceiverBlockHash: "receiverBlock"},
@@ -63,7 +63,7 @@ func TestSerializeMiniblock_CrossShardNormal(t *testing.T) {
 	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
 	mp.SerializeBulkMiniBlocks(miniblocks, map[string]bool{
 		"h1": true,
-	}, buffSlice, "miniblocks")
+	}, buffSlice, "miniblocks", 1)
 
 	expectedBuff := `{ "update" : {"_index":"miniblocks", "_id" : "h1" } }
 { "doc" : { "receiverBlockHash" : "receiverBlock", "procTypeD": "" } }
@@ -72,7 +72,7 @@ func TestSerializeMiniblock_CrossShardNormal(t *testing.T) {
 }
 
 func TestSerializeMiniblock_IntraShardScheduled(t *testing.T) {
-	mp, _ := NewMiniblocksProcessor(1, mock.HasherMock{}, &mock.MarshalizerMock{})
+	mp, _ := NewMiniblocksProcessor(mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	miniblocks := []*data.Miniblock{
 		{Hash: "h1", SenderShardID: 1, ReceiverShardID: 1, SenderBlockHash: "senderBlock",
@@ -82,7 +82,7 @@ func TestSerializeMiniblock_IntraShardScheduled(t *testing.T) {
 	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
 	mp.SerializeBulkMiniBlocks(miniblocks, map[string]bool{
 		"h1": false,
-	}, buffSlice, "miniblocks")
+	}, buffSlice, "miniblocks", 1)
 
 	expectedBuff := `{ "index" : { "_index":"miniblocks", "_id" : "h1"} }
 {"senderShard":1,"receiverShard":1,"senderBlockHash":"senderBlock","type":"","procTypeS":"Scheduled","timestamp":0}
@@ -97,7 +97,7 @@ func TestSerializeMiniblock_IntraShardScheduled(t *testing.T) {
 	buffSlice = data.NewBufferSlice(data.DefaultMaxBulkSize)
 	mp.SerializeBulkMiniBlocks(miniblocks, map[string]bool{
 		"h1": true,
-	}, buffSlice, "miniblocks")
+	}, buffSlice, "miniblocks", 1)
 
 	expectedBuff = `{ "update" : {"_index":"miniblocks", "_id" : "h1" } }
 { "doc" : { "receiverBlockHash" : "receiverBlock", "procTypeD": "Processed" } }

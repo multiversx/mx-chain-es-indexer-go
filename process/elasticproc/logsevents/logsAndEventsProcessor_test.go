@@ -18,7 +18,6 @@ import (
 func createMockArgs() *ArgsLogsAndEventsProcessor {
 	balanceConverter, _ := converters.NewBalanceConverter(10)
 	return &ArgsLogsAndEventsProcessor{
-		ShardCoordinator: &mock.ShardCoordinatorMock{},
 		PubKeyConverter:  &mock.PubkeyConverterMock{},
 		Marshalizer:      &mock.MarshalizerMock{},
 		BalanceConverter: balanceConverter,
@@ -30,13 +29,8 @@ func TestNewLogsAndEventsProcessor(t *testing.T) {
 	t.Parallel()
 
 	args := createMockArgs()
-	args.ShardCoordinator = nil
-	_, err := NewLogsAndEventsProcessor(args)
-	require.Equal(t, elasticIndexer.ErrNilShardCoordinator, err)
-
-	args = createMockArgs()
 	args.PubKeyConverter = nil
-	_, err = NewLogsAndEventsProcessor(args)
+	_, err := NewLogsAndEventsProcessor(args)
 	require.Equal(t, elasticIndexer.ErrNilPubkeyConverter, err)
 
 	args = createMockArgs()
@@ -154,12 +148,9 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 	args := createMockArgs()
 	balanceConverter, _ := converters.NewBalanceConverter(10)
 	args.BalanceConverter = balanceConverter
-	args.ShardCoordinator = &mock.ShardCoordinatorMock{
-		SelfID: core.MetachainShardId,
-	}
 	proc, _ := NewLogsAndEventsProcessor(args)
 
-	resLogs := proc.ExtractDataFromLogs(logsAndEventsSlice, res, 1000)
+	resLogs := proc.ExtractDataFromLogs(logsAndEventsSlice, res, 1000, 0, 3)
 	require.NotNil(t, resLogs.Tokens)
 	require.True(t, res.Transactions[0].HasOperations)
 	require.True(t, res.ScResults[0].HasOperations)
@@ -235,7 +226,7 @@ func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 			Hash:           "747848617368",
 			OriginalTxHash: "orignalHash",
 		},
-	}}, 1234)
+	}}, 1234, 0, 3)
 
 	logsDB := proc.PrepareLogsForDB(logsAndEventsSlice, 1234)
 	require.Equal(t, &data.Logs{
@@ -289,12 +280,9 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsNFTBurn(t *testing.T) {
 	args := createMockArgs()
 	balanceConverter, _ := converters.NewBalanceConverter(10)
 	args.BalanceConverter = balanceConverter
-	args.ShardCoordinator = &mock.ShardCoordinatorMock{
-		SelfID: 0,
-	}
 	proc, _ := NewLogsAndEventsProcessor(args)
 
-	resLogs := proc.ExtractDataFromLogs(logsAndEventsSlice, res, 1000)
+	resLogs := proc.ExtractDataFromLogs(logsAndEventsSlice, res, 1000, 2, 3)
 	require.Equal(t, 1, resLogs.TokensSupply.Len())
 
 	tokensSupply := resLogs.TokensSupply.GetAll()

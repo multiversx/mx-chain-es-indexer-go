@@ -21,7 +21,7 @@ func TestItemAccounts_Save(t *testing.T) {
 			},
 		},
 		0,
-		make(map[string]*outport.AlteredAccount),
+		make(map[string]*outport.AlteredAccount), 0,
 	)
 	require.False(t, itemAccounts.IsInterfaceNil())
 
@@ -39,7 +39,7 @@ func TestItemAccounts_SaveAccountsShouldErr(t *testing.T) {
 			},
 		},
 		0,
-		make(map[string]*outport.AlteredAccount),
+		make(map[string]*outport.AlteredAccount), 0,
 	)
 	require.False(t, itemAccounts.IsInterfaceNil())
 

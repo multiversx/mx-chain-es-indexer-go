@@ -32,13 +32,13 @@ type ElasticProcessor interface {
 	RemoveHeader(header coreData.HeaderHandler) error
 	RemoveMiniblocks(header coreData.HeaderHandler, body *block.Body) error
 	RemoveTransactions(header coreData.HeaderHandler, body *block.Body) error
-	RemoveAccountsESDT(headerTimestamp uint64) error
+	RemoveAccountsESDT(headerTimestamp uint64, shardID uint32) error
 	SaveMiniblocks(header coreData.HeaderHandler, body *block.Body) error
-	SaveTransactions(body *block.Body, header coreData.HeaderHandler, pool *outport.Pool, coreAlteredAccounts map[string]*outport.AlteredAccount, isImportDB bool) error
+	SaveTransactions(body *block.Body, header coreData.HeaderHandler, pool *outport.Pool, coreAlteredAccounts map[string]*outport.AlteredAccount, isImportDB bool, numOfShards uint32) error
 	SaveValidatorsRating(index string, validatorsRatingInfo []*data.ValidatorRatingInfo) error
 	SaveRoundsInfo(infos []*data.RoundInfo) error
 	SaveShardValidatorsPubKeys(shardID, epoch uint32, shardValidatorsPubKeys [][]byte) error
-	SaveAccounts(blockTimestamp uint64, accounts []*data.Account) error
+	SaveAccounts(blockTimestamp uint64, accounts []*data.Account, shardID uint32) error
 	IsInterfaceNil() bool
 }
 
@@ -68,7 +68,7 @@ type Indexer interface {
 	SaveRoundsInfo(roundsInfos []*outport.RoundInfo) error
 	SaveValidatorsPubKeys(validatorsPubKeys map[uint32][][]byte, epoch uint32) error
 	SaveValidatorsRating(indexID string, infoRating []*outport.ValidatorRatingInfo) error
-	SaveAccounts(blockTimestamp uint64, acc map[string]*outport.AlteredAccount) error
+	SaveAccounts(blockTimestamp uint64, acc map[string]*outport.AlteredAccount, shardID uint32) error
 	FinalizedBlock(headerHash []byte) error
 	Close() error
 	IsInterfaceNil() bool

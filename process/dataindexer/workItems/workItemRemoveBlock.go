@@ -51,5 +51,5 @@ func (wirb *itemRemoveBlock) Save() error {
 		return err
 	}
 
-	return wirb.indexer.RemoveAccountsESDT(wirb.headerHandler.GetTimeStamp())
+	return wirb.indexer.RemoveAccountsESDT(wirb.headerHandler.GetTimeStamp(), wirb.headerHandler.GetShardID())
 }

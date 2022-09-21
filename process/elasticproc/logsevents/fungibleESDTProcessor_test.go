@@ -24,8 +24,10 @@ func TestProcessLogsAndEventsESDT_IntraShard(t *testing.T) {
 	altered := data.NewAlteredAccounts()
 
 	fungibleProc.processEvent(&argsProcessEvent{
-		event:    event,
-		accounts: altered,
+		event:       event,
+		accounts:    altered,
+		selfShardID: 2,
+		numOfShards: 3,
 	})
 
 	alteredAddrSender, ok := altered.Get("61646472")
@@ -46,7 +48,7 @@ func TestProcessLogsAndEventsESDT_IntraShard(t *testing.T) {
 func TestProcessLogsAndEventsESDT_CrossShardOnSource(t *testing.T) {
 	t.Parallel()
 
-	receiverAddr := []byte("receiver")
+	receiverAddr := []byte("a")
 	fungibleProc := newFungibleESDTProcessor(&mock.PubkeyConverterMock{})
 
 	event := &transaction.Event{
@@ -58,8 +60,10 @@ func TestProcessLogsAndEventsESDT_CrossShardOnSource(t *testing.T) {
 	altered := data.NewAlteredAccounts()
 
 	res := fungibleProc.processEvent(&argsProcessEvent{
-		event:    event,
-		accounts: altered,
+		event:       event,
+		accounts:    altered,
+		selfShardID: 2,
+		numOfShards: 3,
 	})
 	require.Equal(t, "my-token", res.identifier)
 	require.Equal(t, "100", res.value)
@@ -72,14 +76,14 @@ func TestProcessLogsAndEventsESDT_CrossShardOnSource(t *testing.T) {
 		TokenIdentifier: "my-token",
 	}, alteredAddrSender[0])
 
-	_, ok = altered.Get("7265636569766572")
+	_, ok = altered.Get("61")
 	require.False(t, ok)
 }
 
 func TestProcessLogsAndEventsESDT_CrossShardOnDestination(t *testing.T) {
 	t.Parallel()
 
-	senderAddr := []byte("addr")
+	senderAddr := []byte("a")
 	receiverAddr := []byte("receiver")
 	fungibleProc := newFungibleESDTProcessor(&mock.PubkeyConverterMock{})
 
@@ -92,8 +96,10 @@ func TestProcessLogsAndEventsESDT_CrossShardOnDestination(t *testing.T) {
 	altered := data.NewAlteredAccounts()
 
 	res := fungibleProc.processEvent(&argsProcessEvent{
-		event:    event,
-		accounts: altered,
+		event:       event,
+		accounts:    altered,
+		selfShardID: 2,
+		numOfShards: 3,
 	})
 	require.Equal(t, "my-token", res.identifier)
 	require.Equal(t, "100", res.value)
@@ -106,6 +112,6 @@ func TestProcessLogsAndEventsESDT_CrossShardOnDestination(t *testing.T) {
 		TokenIdentifier: "my-token",
 	}, alteredAddrSender[0])
 
-	_, ok = altered.Get("61646472")
+	_, ok = altered.Get("61")
 	require.False(t, ok)
 }

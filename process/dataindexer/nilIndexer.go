@@ -40,7 +40,7 @@ func (ni *NilIndexer) SaveValidatorsPubKeys(_ map[uint32][][]byte, _ uint32) err
 }
 
 // SaveAccounts returns nil
-func (ni *NilIndexer) SaveAccounts(_ uint64, _ map[string]*outport.AlteredAccount) error {
+func (ni *NilIndexer) SaveAccounts(_ uint64, _ map[string]*outport.AlteredAccount, _ uint32) error {
 	return nil
 }
 

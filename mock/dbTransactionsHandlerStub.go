@@ -20,7 +20,7 @@ func (tps *DBTransactionProcessorStub) SerializeTransactionsFeeData(_ map[string
 }
 
 // PrepareTransactionsForDatabase -
-func (tps *DBTransactionProcessorStub) PrepareTransactionsForDatabase(body *block.Body, header coreData.HeaderHandler, pool *outport.Pool, _ bool) *data.PreparedResults {
+func (tps *DBTransactionProcessorStub) PrepareTransactionsForDatabase(body *block.Body, header coreData.HeaderHandler, pool *outport.Pool, _ bool, _ uint32) *data.PreparedResults {
 	if tps.PrepareTransactionsForDatabaseCalled != nil {
 		return tps.PrepareTransactionsForDatabaseCalled(body, header, pool)
 	}

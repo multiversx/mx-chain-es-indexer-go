@@ -24,7 +24,7 @@ type saveBlockIndexer interface {
 		txsSize int,
 	) error
 	SaveMiniblocks(header coreData.HeaderHandler, body *block.Body) error
-	SaveTransactions(body *block.Body, header coreData.HeaderHandler, pool *outport.Pool, coreAlteredAccounts map[string]*outport.AlteredAccount, isImportDB bool) error
+	SaveTransactions(body *block.Body, header coreData.HeaderHandler, pool *outport.Pool, coreAlteredAccounts map[string]*outport.AlteredAccount, isImportDB bool, numOfShards uint32) error
 }
 
 type saveRatingIndexer interface {
@@ -35,7 +35,7 @@ type removeIndexer interface {
 	RemoveHeader(header coreData.HeaderHandler) error
 	RemoveMiniblocks(header coreData.HeaderHandler, body *block.Body) error
 	RemoveTransactions(header coreData.HeaderHandler, body *block.Body) error
-	RemoveAccountsESDT(headerTimestamp uint64) error
+	RemoveAccountsESDT(headerTimestamp uint64, shardID uint32) error
 }
 
 type saveRounds interface {
@@ -47,5 +47,5 @@ type saveValidatorsIndexer interface {
 }
 
 type saveAccountsIndexer interface {
-	SaveAccounts(blockTimestamp uint64, accounts []*data.Account) error
+	SaveAccounts(blockTimestamp uint64, accounts []*data.Account, shardID uint32) error
 }

@@ -31,16 +31,18 @@ func TestNftsProcessor_processLogAndEventsNFTs(t *testing.T) {
 		Topics:     [][]byte{[]byte("my-token"), big.NewInt(0).SetUint64(nonce).Bytes(), big.NewInt(1).Bytes(), esdtDataBytes},
 	}
 
-	nftsProc := newNFTsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{})
+	nftsProc := newNFTsProcessor(&mock.PubkeyConverterMock{}, &mock.MarshalizerMock{})
 
 	altered := data.NewAlteredAccounts()
 
 	tokensCreateInfo := data.NewTokensInfo()
 	res := nftsProc.processEvent(&argsProcessEvent{
-		event:     event,
-		accounts:  altered,
-		tokens:    tokensCreateInfo,
-		timestamp: 1000,
+		event:       event,
+		accounts:    altered,
+		tokens:      tokensCreateInfo,
+		timestamp:   1000,
+		selfShardID: 2,
+		numOfShards: 3,
 	})
 	require.Equal(t, "my-token-13", res.identifier)
 	require.Equal(t, "1", res.value)
@@ -72,7 +74,7 @@ func TestNftsProcessor_processLogAndEventsNFTs_TransferNFT(t *testing.T) {
 	t.Parallel()
 
 	nonce := uint64(19)
-	nftsProc := newNFTsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{})
+	nftsProc := newNFTsProcessor(&mock.PubkeyConverterMock{}, &mock.MarshalizerMock{})
 
 	events := &transaction.Event{
 		Address:    []byte("addr"),
@@ -83,9 +85,11 @@ func TestNftsProcessor_processLogAndEventsNFTs_TransferNFT(t *testing.T) {
 	altered := data.NewAlteredAccounts()
 
 	res := nftsProc.processEvent(&argsProcessEvent{
-		event:     events,
-		accounts:  altered,
-		timestamp: 10000,
+		event:       events,
+		accounts:    altered,
+		timestamp:   10000,
+		selfShardID: 2,
+		numOfShards: 3,
 	})
 	require.Equal(t, "my-token-13", res.identifier)
 	require.Equal(t, "1", res.value)
@@ -112,7 +116,7 @@ func TestNftsProcessor_processLogAndEventsNFTs_Wipe(t *testing.T) {
 	t.Parallel()
 
 	nonce := uint64(20)
-	nftsProc := newNFTsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{})
+	nftsProc := newNFTsProcessor(&mock.PubkeyConverterMock{}, &mock.MarshalizerMock{})
 
 	events := &transaction.Event{
 		Address:    []byte("addr"),
@@ -127,6 +131,8 @@ func TestNftsProcessor_processLogAndEventsNFTs_Wipe(t *testing.T) {
 		accounts:     altered,
 		timestamp:    10000,
 		tokensSupply: data.NewTokensInfo(),
+		numOfShards:  3,
+		selfShardID:  2,
 	})
 	require.Equal(t, "nft-0123-14", res.identifier)
 	require.Equal(t, "1", res.value)

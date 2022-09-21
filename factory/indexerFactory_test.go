@@ -26,7 +26,6 @@ func createMockIndexerFactoryArgs() *ArgsIndexerFactory {
 		ValidatorPubkeyConverter: &mock.PubkeyConverterMock{},
 		TemplatesPath:            "../testdata",
 		EnabledIndexes:           []string{"blocks", "transactions", "miniblocks", "validators", "round", "accounts", "rating"},
-		ShardCoordinator:         &mock.ShardCoordinatorMock{},
 	}
 }
 
@@ -89,15 +88,6 @@ func TestNewIndexerFactory(t *testing.T) {
 				return args
 			},
 			exError: dataindexer.ErrNilUrl,
-		},
-		{
-			name: "NilShardCoordinator",
-			argsFunc: func() *ArgsIndexerFactory {
-				args := createMockIndexerFactoryArgs()
-				args.ShardCoordinator = nil
-				return args
-			},
-			exError: dataindexer.ErrNilShardCoordinator,
 		},
 		{
 			name: "All arguments ok",

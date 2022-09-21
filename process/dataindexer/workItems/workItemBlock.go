@@ -87,7 +87,7 @@ func (wib *itemBlock) Save() error {
 			err, hex.EncodeToString(wib.argsSaveBlock.HeaderHash), wib.argsSaveBlock.Header.GetNonce())
 	}
 
-	err = wib.indexer.SaveTransactions(body, wib.argsSaveBlock.Header, wib.argsSaveBlock.TransactionsPool, wib.argsSaveBlock.AlteredAccounts, wib.argsSaveBlock.IsImportDB)
+	err = wib.indexer.SaveTransactions(body, wib.argsSaveBlock.Header, wib.argsSaveBlock.TransactionsPool, wib.argsSaveBlock.AlteredAccounts, wib.argsSaveBlock.IsImportDB, wib.argsSaveBlock.NumberOfShards)
 	if err != nil {
 		return fmt.Errorf("%w when saving transactions, block hash %s, nonce %d",
 			err, hex.EncodeToString(wib.argsSaveBlock.HeaderHash), wib.argsSaveBlock.Header.GetNonce())

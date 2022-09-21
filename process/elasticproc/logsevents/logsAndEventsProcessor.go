@@ -95,6 +95,8 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 	logsAndEvents []*coreData.LogData,
 	preparedResults *data.PreparedResults,
 	timestamp uint64,
+	shardID uint32,
+	numOfShards uint32,
 ) *data.PreparedLogsResults {
 	lep.logsData = newLogsData(timestamp, preparedResults.AlteredAccts, preparedResults.Transactions, preparedResults.ScResults)
 
@@ -104,7 +106,7 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 		}
 
 		events := txLog.LogHandler.GetLogEvents()
-		lep.processEvents(txLog.TxHash, txLog.LogHandler.GetAddress(), events)
+		lep.processEvents(txLog.TxHash, txLog.LogHandler.GetAddress(), events, shardID, numOfShards)
 	}
 
 	return &data.PreparedLogsResults{
@@ -118,17 +120,17 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 	}
 }
 
-func (lep *logsAndEventsProcessor) processEvents(logHash string, logAddress []byte, events []coreData.EventHandler) {
+func (lep *logsAndEventsProcessor) processEvents(logHash string, logAddress []byte, events []coreData.EventHandler, shardID uint32, numOfShards uint32) {
 	for _, event := range events {
 		if check.IfNil(event) {
 			continue
 		}
 
-		lep.processEvent(logHash, logAddress, event)
+		lep.processEvent(logHash, logAddress, event, shardID, numOfShards)
 	}
 }
 
-func (lep *logsAndEventsProcessor) processEvent(logHash string, logAddress []byte, event coreData.EventHandler) {
+func (lep *logsAndEventsProcessor) processEvent(logHash string, logAddress []byte, event coreData.EventHandler, shardID uint32, numOfShards uint32) {
 	logHashHexEncoded := hex.EncodeToString([]byte(logHash))
 	for _, proc := range lep.eventsProcessors {
 		res := proc.processEvent(&argsProcessEvent{
@@ -142,6 +144,8 @@ func (lep *logsAndEventsProcessor) processEvent(logHash string, logAddress []byt
 			scDeploys:               lep.logsData.scDeploys,
 			txs:                     lep.logsData.txsMap,
 			tokenRolesAndProperties: lep.logsData.tokenRolesAndProperties,
+			selfShardID:             shardID,
+			numOfShards:             numOfShards,
 		})
 		if res.tokenInfo != nil {
 			lep.logsData.tokensInfo = append(lep.logsData.tokensInfo, res.tokenInfo)

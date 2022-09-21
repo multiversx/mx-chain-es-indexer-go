@@ -428,7 +428,7 @@ func TestElasticseachSaveTransactions(t *testing.T) {
 
 	elasticDatabase := newElasticsearchProcessor(dbWriter, arguments)
 	pool := &outport.Pool{Txs: txPool}
-	err := elasticDatabase.SaveTransactions(body, header, pool, nil, false)
+	err := elasticDatabase.SaveTransactions(body, header, pool, nil, false, 3)
 	require.Equal(t, localErr, err)
 }
 
@@ -654,7 +654,7 @@ func TestElasticProcessor_SaveTransactionNoDataShouldNotDoRequest(t *testing.T) 
 	elasticSearchProc := newElasticsearchProcessor(dbWriter, arguments)
 	elasticSearchProc.enabledIndexes[dataindexer.ScResultsIndex] = struct{}{}
 
-	err := elasticSearchProc.SaveTransactions(&dataBlock.Body{}, &dataBlock.Header{}, &outport.Pool{}, nil, false)
+	err := elasticSearchProc.SaveTransactions(&dataBlock.Body{}, &dataBlock.Header{}, &outport.Pool{}, nil, false, 3)
 	require.Nil(t, err)
 	require.False(t, called)
 }
