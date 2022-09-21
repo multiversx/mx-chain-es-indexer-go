@@ -99,6 +99,7 @@ func TestIndexAccountsBalance(t *testing.T) {
 	header = &dataBlock.Header{
 		Round:     51,
 		TimeStamp: 5000,
+		ShardID:   2,
 	}
 
 	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, 3)
@@ -124,11 +125,10 @@ func TestIndexAccountsBalance(t *testing.T) {
 	}
 
 	coreAlteredAccounts[encodedAddr].Balance = "2000"
-
 	pool = &outport.Pool{
 		Txs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
 			"h1": outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
-				SndAddr: []byte("eeeebbbb"),
+				SndAddr: []byte(addr),
 			}, 0, big.NewInt(0)),
 		},
 		Logs: []*coreData.LogData{
@@ -150,8 +150,9 @@ func TestIndexAccountsBalance(t *testing.T) {
 	body = &dataBlock.Body{
 		MiniBlocks: []*dataBlock.MiniBlock{
 			{
-				Type:     dataBlock.TxBlock,
-				TxHashes: [][]byte{[]byte("h1")},
+				Type:          dataBlock.TxBlock,
+				TxHashes:      [][]byte{[]byte("h1")},
+				SenderShardID: 2,
 			},
 		},
 	}
