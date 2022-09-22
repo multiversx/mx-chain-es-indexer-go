@@ -22,7 +22,8 @@ type wsConn interface {
 }
 
 var (
-	log = logger.GetOrCreate("process/wsclient")
+	log           = logger.GetOrCreate("process/wsclient")
+	retryDuration = time.Second * 5
 )
 
 type client struct {
@@ -45,28 +46,21 @@ func (c *client) Start() {
 
 	log.Info("connecting to", "url", c.urlReceive)
 
-	wsConnection, _, err := websocket.DefaultDialer.Dial(c.urlReceive, nil)
-	if err != nil {
-		log.Error("dial", "error", err)
-	}
-
-	defer func() {
-		err = wsConnection.Close()
-		log.LogIfError(err)
-	}()
-
+	var wsConnection *websocket.Conn
 	done := make(chan struct{})
 	go func() {
 		defer close(done)
 		for {
-			var message []byte
-			_, message, err = wsConnection.ReadMessage()
+			var err error
+			wsConnection, err = c.openConnection()
 			if err != nil {
-				log.Error("error read message", "error", err)
-				return
+				log.Error(fmt.Sprintf("websocket error, retrying in %v...", retryDuration), "error", err.Error())
+				time.Sleep(retryDuration)
+				continue
 			}
 
-			c.verifyPayloadAndSendAckIfNeeded(message, wsConnection)
+			c.listeningOnWebSocket(wsConnection)
+			time.Sleep(retryDuration)
 		}
 	}()
 
@@ -80,10 +74,13 @@ func (c *client) Start() {
 		case <-timer.C:
 		case <-interrupt:
 			log.Info("interrupt")
+			if wsConnection == nil {
+				return
+			}
 
 			// Cleanly close the connection by sending a close message and then
 			// waiting (with timeout) for the server to close the connection.
-			err = wsConnection.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+			err := wsConnection.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 			if err != nil {
 				log.Error("write close", "error", err)
 				return
@@ -94,6 +91,33 @@ func (c *client) Start() {
 			}
 			return
 		}
+	}
+}
+
+func (c *client) openConnection() (*websocket.Conn, error) {
+	conn, _, err := websocket.DefaultDialer.Dial(c.urlReceive, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return conn, nil
+}
+
+func (c *client) listeningOnWebSocket(wsConnection *websocket.Conn) {
+	for {
+		_, message, err := wsConnection.ReadMessage()
+		if err == nil {
+			c.verifyPayloadAndSendAckIfNeeded(message, wsConnection)
+			continue
+		}
+
+		_, isConnectionClosed := err.(*websocket.CloseError)
+		if !isConnectionClosed {
+			log.Error("websocket error, retrying in %v...", "error", err.Error())
+		} else {
+			log.Error(fmt.Sprintf("websocket terminated by the server side, retrying in %v...", retryDuration), "error", err.Error())
+		}
+		return
 	}
 }
 
@@ -115,7 +139,6 @@ func (c *client) verifyPayloadAndSendAckIfNeeded(payload []byte, ackHandler wsCo
 		"counter", payloadData.Counter,
 		"operation type", payloadData.OperationType,
 		"message length", len(payloadData.Payload),
-		"data", payloadData.Payload,
 	)
 
 	function, ok := c.actions[payloadData.OperationType]
