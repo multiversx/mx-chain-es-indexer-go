@@ -12,8 +12,8 @@ type Config struct {
 			BulkRequestMaxSizeInBytes int    `toml:"bulk-request-max-size-in-bytes"`
 		} `toml:"elastic-cluster"`
 		WebSocket struct {
-			ServerURL           string `toml:"server-url"`
-			DataMarshallerTyper string `toml:"data-marshaller-type"`
+			ServerURL          string `toml:"server-url"`
+			DataMarshallerType string `toml:"data-marshaller-type"`
 		} `toml:"web-socket"`
 		AddressConverter struct {
 			Length int    `toml:"length"`
@@ -26,6 +26,9 @@ type Config struct {
 		Hasher struct {
 			Type string `toml:"type"`
 		} `toml:"hasher"`
+		Marshaller struct {
+			Type string `toml:"type"`
+		} `toml:"marshaller"`
 		Economics struct {
 			Denomination int `toml:"denomination"`
 		} `toml:"economics"`

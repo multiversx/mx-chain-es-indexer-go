@@ -16,7 +16,7 @@ type DataIndexer interface {
 	SaveRoundsInfo(roundsInfos []*outport.RoundInfo) error
 	SaveValidatorsPubKeys(validatorsPubKeys map[uint32][][]byte, epoch uint32) error
 	SaveValidatorsRating(indexID string, infoRating []*outport.ValidatorRatingInfo) error
-	SaveAccounts(blockTimestamp uint64, acc map[string]*outport.AlteredAccount) error
+	SaveAccounts(blockTimestamp uint64, acc map[string]*outport.AlteredAccount, shardID uint32) error
 	FinalizedBlock(headerHash []byte) error
 	Close() error
 	IsInterfaceNil() bool

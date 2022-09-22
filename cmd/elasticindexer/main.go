@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/config"
+	"github.com/ElrondNetwork/elastic-indexer-go/factory"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
@@ -69,6 +70,13 @@ func startIndexer(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
+
+	wsClient, err := factory.CreateWsIndexer(cfg)
+	if err != nil {
+		log.Error("cannot create ws indexer", "error", err)
+	}
+
+	wsClient.Start()
 
 	log.Info("closing indexer")
 	if !check.IfNil(fileLogging) {

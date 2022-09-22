@@ -15,8 +15,6 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type Handler func(marshalledData []byte) error
-
 type wsConn interface {
 	io.Closer
 	ReadMessage() (messageType int, p []byte, err error)
@@ -29,10 +27,10 @@ var (
 
 type client struct {
 	urlReceive string
-	actions    map[data.OperationType]Handler
+	actions    map[data.OperationType]func(marshalledData []byte) error
 }
 
-func NewWebSocketClient(urlReceive string, actions map[data.OperationType]Handler) (*client, error) {
+func NewWebSocketClient(urlReceive string, actions map[data.OperationType]func(marshalledData []byte) error) (*client, error) {
 	urlReceiveData := url.URL{Scheme: "ws", Host: fmt.Sprintf(urlReceive), Path: "/operations"}
 
 	return &client{
@@ -139,7 +137,7 @@ func (c *client) verifyPayloadAndSendAckIfNeeded(payload []byte, ackHandler wsCo
 	}
 }
 
-// Stop -
-func (c *client) Stop() {
-	// TODO implement
+func (c *client) Close() {
+	//TODO implement me
+	panic("implement me")
 }

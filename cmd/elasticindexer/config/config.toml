@@ -21,6 +21,8 @@
         type = "hex"
     [config.hasher]
         type = "blake2b"
+    [config.marshaller]
+        type = "gogo protobuf"
     [config.economics]
         denomination = 18
     [config.logs]

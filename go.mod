@@ -3,7 +3,7 @@ module github.com/ElrondNetwork/elastic-indexer-go
 go 1.17
 
 require (
-	github.com/ElrondNetwork/elrond-go-core v1.1.20-0.20220915145036-720d0233becd
+	github.com/ElrondNetwork/elrond-go-core v1.1.20-0.20220922073629-04049b54c374
 	github.com/ElrondNetwork/elrond-go-logger v1.0.8-0.20220901113442-d5ad00505a23
 	github.com/ElrondNetwork/elrond-vm-common v1.3.18-0.20220921081708-baae086376d6
 	github.com/elastic/go-elasticsearch/v7 v7.12.0
@@ -27,6 +27,7 @@ require (
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
+	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97 // indirect
 	golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1 // indirect
 	google.golang.org/protobuf v1.26.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect

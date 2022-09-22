@@ -87,7 +87,7 @@ func (i *indexer) saveAccounts(marshalledData []byte) error {
 		return err
 	}
 
-	return i.di.SaveAccounts(argsSaveAccounts.BlockTimestamp, argsSaveAccounts.Acc)
+	return i.di.SaveAccounts(argsSaveAccounts.BlockTimestamp, argsSaveAccounts.Acc, argsSaveAccounts.ShardID)
 }
 
 func (i *indexer) finalizedBlock(_ []byte) error {
