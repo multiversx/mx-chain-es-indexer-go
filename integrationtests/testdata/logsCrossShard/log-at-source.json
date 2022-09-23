@@ -1,0 +1,17 @@
+{
+  "address": "616464722d31",
+  "events": [
+    {
+      "identifier": "ESDTTransfer",
+      "address": "61646472",
+      "data": null,
+      "topics": [
+        "RVNEVC1hYmNk",
+        "",
+        "AQ=="
+      ],
+      "order": 0
+    }
+  ],
+  "timestamp": 5040
+}

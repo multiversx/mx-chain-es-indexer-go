@@ -23,9 +23,9 @@ func TestMiniblocksProcessor_SerializeBulkMiniBlocks(t *testing.T) {
 	mp.SerializeBulkMiniBlocks(miniblocks, nil, buffSlice, "miniblocks")
 
 	expectedBuff := `{ "index" : { "_index":"miniblocks", "_id" : "h1"} }
-{"senderShard":0,"receiverShard":1,"senderBlockHash":"","receiverBlockHash":"","type":"","timestamp":0}
+{"senderShard":0,"receiverShard":1,"type":"","timestamp":0}
 { "index" : { "_index":"miniblocks", "_id" : "h2"} }
-{"senderShard":0,"receiverShard":2,"senderBlockHash":"","receiverBlockHash":"","type":"","timestamp":0}
+{"senderShard":0,"receiverShard":2,"type":"","timestamp":0}
 `
 	require.Equal(t, expectedBuff, buffSlice.Buffers()[0].String())
 }
@@ -48,7 +48,7 @@ func TestMiniblocksProcessor_SerializeBulkMiniBlocksInDB(t *testing.T) {
 	expectedBuff := `{ "update" : {"_index":"miniblocks", "_id" : "h1" } }
 { "doc" : { "senderBlockHash" : "", "procTypeS": "" } }
 { "index" : { "_index":"miniblocks", "_id" : "h2"} }
-{"senderShard":0,"receiverShard":2,"senderBlockHash":"","receiverBlockHash":"","type":"","timestamp":0}
+{"senderShard":0,"receiverShard":2,"type":"","timestamp":0}
 `
 	require.Equal(t, expectedBuff, buffSlice.Buffers()[0].String())
 }
@@ -85,7 +85,7 @@ func TestSerializeMiniblock_IntraShardScheduled(t *testing.T) {
 	}, buffSlice, "miniblocks")
 
 	expectedBuff := `{ "index" : { "_index":"miniblocks", "_id" : "h1"} }
-{"senderShard":1,"receiverShard":1,"senderBlockHash":"senderBlock","receiverBlockHash":"","type":"","procTypeS":"Scheduled","timestamp":0}
+{"senderShard":1,"receiverShard":1,"senderBlockHash":"senderBlock","type":"","procTypeS":"Scheduled","timestamp":0}
 `
 	require.Equal(t, expectedBuff, buffSlice.Buffers()[0].String())
 

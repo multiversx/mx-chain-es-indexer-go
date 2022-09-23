@@ -44,6 +44,7 @@ func NewBlockProcessor(hasher hashing.Hasher, marshalizer marshal.Marshalizer) (
 
 // PrepareBlockForDB will prepare a database block and serialize it for database
 func (bp *blockProcessor) PrepareBlockForDB(
+	headerHash []byte,
 	header coreData.HeaderHandler,
 	signersIndexes []uint64,
 	body *block.Body,
@@ -58,7 +59,7 @@ func (bp *blockProcessor) PrepareBlockForDB(
 		return nil, indexer.ErrNilBlockBody
 	}
 
-	blockSizeInBytes, headerHash, err := bp.computeBlockSizeAndHeaderHash(header, body)
+	blockSizeInBytes, err := bp.computeBlockSize(header, body)
 	if err != nil {
 		return nil, err
 	}
@@ -108,6 +109,7 @@ func (bp *blockProcessor) PrepareBlockForDB(
 	}
 
 	bp.addEpochStartInfoForMeta(header, elasticBlock)
+	putMiniblocksDetailsInBlock(header, elasticBlock)
 
 	return elasticBlock, nil
 }
@@ -161,6 +163,47 @@ func (bp *blockProcessor) addEpochStartInfoForMeta(header coreData.HeaderHandler
 		PrevEpochStartRound:              metaHeaderEconomics.PrevEpochStartRound,
 		PrevEpochStartHash:               hex.EncodeToString(metaHeaderEconomics.PrevEpochStartHash),
 	}
+	if len(metaHeader.EpochStart.LastFinalizedHeaders) == 0 {
+		return
+	}
+
+	epochStartShardsData := metaHeader.EpochStart.LastFinalizedHeaders
+	block.EpochStartShardsData = make([]*data.EpochStartShardData, 0, len(metaHeader.EpochStart.LastFinalizedHeaders))
+	for _, epochStartShardData := range epochStartShardsData {
+		bp.addEpochStartShardDataForMeta(epochStartShardData, block)
+	}
+}
+
+func (bp *blockProcessor) addEpochStartShardDataForMeta(epochStartShardData nodeBlock.EpochStartShardData, block *data.Block) {
+	shardData := &data.EpochStartShardData{
+		ShardID:               epochStartShardData.ShardID,
+		Epoch:                 epochStartShardData.Epoch,
+		Round:                 epochStartShardData.Round,
+		Nonce:                 epochStartShardData.Nonce,
+		HeaderHash:            hex.EncodeToString(epochStartShardData.HeaderHash),
+		RootHash:              hex.EncodeToString(epochStartShardData.RootHash),
+		ScheduledRootHash:     hex.EncodeToString(epochStartShardData.ScheduledRootHash),
+		FirstPendingMetaBlock: hex.EncodeToString(epochStartShardData.FirstPendingMetaBlock),
+		LastFinishedMetaBlock: hex.EncodeToString(epochStartShardData.LastFinishedMetaBlock),
+	}
+
+	if len(epochStartShardData.PendingMiniBlockHeaders) == 0 {
+		block.EpochStartShardsData = append(block.EpochStartShardsData, shardData)
+		return
+	}
+
+	shardData.PendingMiniBlockHeaders = make([]*data.Miniblock, 0, len(epochStartShardData.PendingMiniBlockHeaders))
+	for _, pendingMb := range epochStartShardData.PendingMiniBlockHeaders {
+		shardData.PendingMiniBlockHeaders = append(shardData.PendingMiniBlockHeaders, &data.Miniblock{
+			Hash:            hex.EncodeToString(pendingMb.Hash),
+			SenderShardID:   pendingMb.SenderShardID,
+			ReceiverShardID: pendingMb.ReceiverShardID,
+			Type:            pendingMb.Type.String(),
+			Reserved:        pendingMb.Reserved,
+		})
+	}
+
+	block.EpochStartShardsData = append(block.EpochStartShardsData, shardData)
 }
 
 func (bp *blockProcessor) getEncodedMBSHashes(body *block.Body) []string {
@@ -180,21 +223,30 @@ func (bp *blockProcessor) getEncodedMBSHashes(body *block.Body) []string {
 	return miniblocksHashes
 }
 
-func (bp *blockProcessor) computeBlockSizeAndHeaderHash(header coreData.HeaderHandler, body *block.Body) (int, []byte, error) {
+func putMiniblocksDetailsInBlock(header coreData.HeaderHandler, block *data.Block) {
+	mbHeaders := header.GetMiniBlockHeaderHandlers()
+	for idx, mbHeader := range mbHeaders {
+		block.MiniBlocksDetails = append(block.MiniBlocksDetails, &data.MiniBlocksDetails{
+			IndexFirstProcessedTx: mbHeader.GetIndexOfFirstTxProcessed(),
+			IndexLastProcessedTx:  mbHeader.GetIndexOfLastTxProcessed(),
+			MBIndex:               idx,
+		})
+	}
+}
+
+func (bp *blockProcessor) computeBlockSize(header coreData.HeaderHandler, body *block.Body) (int, error) {
 	headerBytes, err := bp.marshalizer.Marshal(header)
 	if err != nil {
-		return 0, nil, err
+		return 0, err
 	}
 	bodyBytes, err := bp.marshalizer.Marshal(body)
 	if err != nil {
-		return 0, nil, err
+		return 0, err
 	}
 
 	blockSize := len(headerBytes) + len(bodyBytes)
 
-	headerHash := bp.hasher.Compute(string(headerBytes))
-
-	return blockSize, headerHash, nil
+	return blockSize, nil
 }
 
 func (bp *blockProcessor) getLeaderIndex(signersIndexes []uint64) uint64 {

@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"math/big"
 	"strconv"
+	"strings"
 	"testing"
 
 	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
@@ -50,7 +51,7 @@ func newElasticsearchProcessor(elasticsearchWriter DatabaseClientHandler, argume
 func createMockElasticProcessorArgs() *ArgElasticProcessor {
 	balanceConverter, _ := converters.NewBalanceConverter(10)
 
-	acp, _ := accounts.NewAccountsProcessor(&mock.MarshalizerMock{}, &mock.PubkeyConverterMock{}, &mock.AccountsStub{}, balanceConverter)
+	acp, _ := accounts.NewAccountsProcessor(&mock.MarshalizerMock{}, &mock.PubkeyConverterMock{}, &mock.AccountsStub{}, balanceConverter, 0)
 	bp, _ := block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 	mp, _ := miniblocks.NewMiniblocksProcessor(0, &mock.HasherMock{}, &mock.MarshalizerMock{}, false)
 	vp, _ := validators.NewValidatorsProcessor(mock.NewPubkeyConverterMock(32), 0)
@@ -266,7 +267,7 @@ func TestElasticProcessor_RemoveHeader(t *testing.T) {
 
 	args := createMockElasticProcessorArgs()
 	args.DBClient = &mock.DatabaseWriterStub{
-		DoBulkRemoveCalled: func(index string, hashes []string) error {
+		DoQueryRemoveCalled: func(index string, body *bytes.Buffer) error {
 			called = true
 			return nil
 		},
@@ -307,10 +308,11 @@ func TestElasticProcessor_RemoveMiniblocks(t *testing.T) {
 	mbHash3, _ := core.CalculateHash(&mock.MarshalizerMock{}, &mock.HasherMock{}, mb3)
 
 	args.DBClient = &mock.DatabaseWriterStub{
-		DoBulkRemoveCalled: func(index string, hashes []string) error {
+		DoQueryRemoveCalled: func(index string, body *bytes.Buffer) error {
 			called = true
-			require.Equal(t, hashes[0], hex.EncodeToString(mbHash2))
-			require.Equal(t, hashes[1], hex.EncodeToString(mbHash3))
+			bodyStr := body.String()
+			require.True(t, strings.Contains(bodyStr, hex.EncodeToString(mbHash2)))
+			require.True(t, strings.Contains(bodyStr, hex.EncodeToString(mbHash3)))
 			return nil
 		},
 	}
@@ -360,7 +362,7 @@ func TestElasticseachDatabaseSaveHeader_RequestError(t *testing.T) {
 	arguments.BlockProc, _ = block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 	elasticDatabase := newElasticsearchProcessor(dbWriter, arguments)
 
-	err := elasticDatabase.SaveHeader(header, signerIndexes, &dataBlock.Body{}, nil, indexer.HeaderGasConsumption{}, 1)
+	err := elasticDatabase.SaveHeader([]byte("hh"), header, signerIndexes, &dataBlock.Body{}, nil, indexer.HeaderGasConsumption{}, 1)
 	require.Equal(t, localErr, err)
 }
 
@@ -401,7 +403,7 @@ func TestElasticseachDatabaseSaveHeader_CheckRequestBody(t *testing.T) {
 
 	arguments.BlockProc, _ = block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 	elasticDatabase := newElasticsearchProcessor(dbWriter, arguments)
-	err := elasticDatabase.SaveHeader(header, signerIndexes, blockBody, nil, indexer.HeaderGasConsumption{}, 1)
+	err := elasticDatabase.SaveHeader([]byte("hh"), header, signerIndexes, blockBody, nil, indexer.HeaderGasConsumption{}, 1)
 	require.Nil(t, err)
 }
 
@@ -419,7 +421,7 @@ func TestElasticseachSaveTransactions(t *testing.T) {
 	txPool := newTestTxPool()
 
 	args := &transactions.ArgsTransactionProcessor{
-		AddressPubkeyConverter: &mock.PubkeyConverterMock{},
+		AddressPubkeyConverter: mock.NewPubkeyConverterMock(32),
 		TxFeeCalculator:        &mock.EconomicsHandlerStub{},
 		ShardCoordinator:       &mock.ShardCoordinatorMock{},
 		Hasher:                 &mock.HasherMock{},
@@ -562,16 +564,18 @@ func TestElasticProcessor_RemoveTransactions(t *testing.T) {
 	txsHashes := [][]byte{[]byte("txHas1"), []byte("txHash2")}
 	expectedHashes := []string{hex.EncodeToString(txsHashes[0]), hex.EncodeToString(txsHashes[1])}
 	dbWriter := &mock.DatabaseWriterStub{
-		DoBulkRemoveCalled: func(index string, hashes []string) error {
-			require.Equal(t, elasticIndexer.TransactionsIndex, index)
-			require.Equal(t, expectedHashes, expectedHashes)
+		DoQueryRemoveCalled: func(index string, body *bytes.Buffer) error {
+			bodyStr := body.String()
+			require.Contains(t, []string{elasticIndexer.TransactionsIndex, elasticIndexer.OperationsIndex}, index)
+			require.True(t, strings.Contains(bodyStr, expectedHashes[0]))
+			require.True(t, strings.Contains(bodyStr, expectedHashes[1]))
 			called = true
 			return nil
 		},
 	}
 
 	args := &transactions.ArgsTransactionProcessor{
-		AddressPubkeyConverter: &mock.PubkeyConverterMock{},
+		AddressPubkeyConverter: mock.NewPubkeyConverterMock(32),
 		TxFeeCalculator:        &mock.EconomicsHandlerStub{},
 		ShardCoordinator:       &mock.ShardCoordinatorMock{},
 		Hasher:                 &mock.HasherMock{},
@@ -626,7 +630,7 @@ func TestElasticProcessor_IndexEpochInfoData(t *testing.T) {
 	body := &dataBlock.Body{}
 	metaHeader := &dataBlock.MetaBlock{}
 
-	err = elasticSearchProc.SaveHeader(metaHeader, nil, body, nil, indexer.HeaderGasConsumption{}, 0)
+	err = elasticSearchProc.SaveHeader([]byte("hh"), metaHeader, nil, body, nil, indexer.HeaderGasConsumption{}, 0)
 	require.Nil(t, err)
 	require.True(t, called)
 }

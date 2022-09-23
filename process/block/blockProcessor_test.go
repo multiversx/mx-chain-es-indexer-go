@@ -60,6 +60,7 @@ func TestBlockProcessor_PrepareBlockForDBShouldWork(t *testing.T) {
 	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	dbBlock, err := bp.PrepareBlockForDB(
+		[]byte("hash"),
 		&dataBlock.Header{},
 		[]uint64{0, 1, 2},
 		&dataBlock.Body{
@@ -75,7 +76,7 @@ func TestBlockProcessor_PrepareBlockForDBShouldWork(t *testing.T) {
 	require.Nil(t, err)
 
 	expectedBlock := &data.Block{
-		Hash:                  "c7c81a1b22b67680f35837b474387ddfe10f67e104034c80f94ab9e5a0a089fb",
+		Hash:                  "68617368",
 		Validators:            []uint64{0x0, 0x1, 0x2},
 		EpochStartBlock:       false,
 		SearchOrder:           0x3fc,
@@ -93,7 +94,7 @@ func TestBlockProcessor_PrepareBlockForDBNilHeader(t *testing.T) {
 
 	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 
-	dbBlock, err := bp.PrepareBlockForDB(nil, nil, &dataBlock.Body{}, nil, coreIndexerData.HeaderGasConsumption{}, 0)
+	dbBlock, err := bp.PrepareBlockForDB([]byte("hash"), nil, nil, &dataBlock.Body{}, nil, coreIndexerData.HeaderGasConsumption{}, 0)
 	require.Equal(t, indexer.ErrNilHeaderHandler, err)
 	require.Nil(t, dbBlock)
 }
@@ -103,7 +104,7 @@ func TestBlockProcessor_PrepareBlockForDBNilBody(t *testing.T) {
 
 	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 
-	dbBlock, err := bp.PrepareBlockForDB(&dataBlock.MetaBlock{}, nil, nil, nil, coreIndexerData.HeaderGasConsumption{}, 0)
+	dbBlock, err := bp.PrepareBlockForDB([]byte("hash"), &dataBlock.MetaBlock{}, nil, nil, nil, coreIndexerData.HeaderGasConsumption{}, 0)
 	require.Equal(t, indexer.ErrNilBlockBody, err)
 	require.Nil(t, dbBlock)
 }
@@ -118,7 +119,7 @@ func TestBlockProcessor_PrepareBlockForDBMarshalFailHeader(t *testing.T) {
 		},
 	})
 
-	dbBlock, err := bp.PrepareBlockForDB(&dataBlock.MetaBlock{}, nil, &dataBlock.Body{}, nil, coreIndexerData.HeaderGasConsumption{}, 0)
+	dbBlock, err := bp.PrepareBlockForDB([]byte("hash"), &dataBlock.MetaBlock{}, nil, &dataBlock.Body{}, nil, coreIndexerData.HeaderGasConsumption{}, 0)
 	require.Equal(t, expectedErr, err)
 	require.Nil(t, dbBlock)
 }
@@ -140,7 +141,7 @@ func TestBlockProcessor_PrepareBlockForDBMarshalFailBlock(t *testing.T) {
 		},
 	})
 
-	dbBlock, err := bp.PrepareBlockForDB(&dataBlock.MetaBlock{}, nil, &dataBlock.Body{}, nil, coreIndexerData.HeaderGasConsumption{}, 0)
+	dbBlock, err := bp.PrepareBlockForDB([]byte("hash"), &dataBlock.MetaBlock{}, nil, &dataBlock.Body{}, nil, coreIndexerData.HeaderGasConsumption{}, 0)
 	require.Equal(t, expectedErr, err)
 	require.Nil(t, dbBlock)
 }
@@ -161,10 +162,29 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 
 	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 
-	dbBlock, err := bp.PrepareBlockForDB(&dataBlock.MetaBlock{
+	dbBlock, err := bp.PrepareBlockForDB([]byte("hash"), &dataBlock.MetaBlock{
 		TxCount: 1000,
 		EpochStart: dataBlock.EpochStart{
-			LastFinalizedHeaders: []dataBlock.EpochStartShardData{{}},
+			LastFinalizedHeaders: []dataBlock.EpochStartShardData{{
+				ShardID:               1,
+				Nonce:                 1234,
+				Round:                 1500,
+				Epoch:                 10,
+				HeaderHash:            []byte("hh"),
+				RootHash:              []byte("rh"),
+				ScheduledRootHash:     []byte("sch"),
+				FirstPendingMetaBlock: []byte("fpmb"),
+				LastFinishedMetaBlock: []byte("lfmb"),
+				PendingMiniBlockHeaders: []dataBlock.MiniBlockHeader{
+					{
+						Hash:            []byte("mbh"),
+						SenderShardID:   0,
+						ReceiverShardID: 1,
+						Type:            dataBlock.TxBlock,
+						Reserved:        []byte("rrr"),
+					},
+				},
+			}},
 			Economics: dataBlock.Economics{
 				TotalSupply:                      big.NewInt(100),
 				TotalToDistribute:                big.NewInt(55),
@@ -190,13 +210,13 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 		Nonce:                 0,
 		Round:                 0,
 		Epoch:                 0,
-		Hash:                  "ae3fe1896d1ecc5fa685a8042b7410378c4ea8451b451f8ade319d7c0b7976e6",
+		Hash:                  "68617368",
 		MiniBlocksHashes:      []string{},
 		NotarizedBlocksHashes: nil,
 		Proposer:              0,
 		Validators:            nil,
 		PubKeyBitmap:          "",
-		Size:                  388,
+		Size:                  623,
 		SizeTxs:               0,
 		Timestamp:             0,
 		StateRootHash:         "",
@@ -213,6 +233,40 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 			NodePrice:                        "10",
 			PrevEpochStartRound:              222,
 			PrevEpochStartHash:               "7072657645706f6368",
+		},
+		MiniBlocksDetails: []*data.MiniBlocksDetails{
+			{
+				IndexFirstProcessedTx: 0,
+				IndexLastProcessedTx:  49,
+				MBIndex:               0,
+			},
+			{
+				IndexFirstProcessedTx: 0,
+				IndexLastProcessedTx:  119,
+				MBIndex:               1,
+			},
+		},
+		EpochStartShardsData: []*data.EpochStartShardData{
+			{
+				ShardID:               1,
+				Epoch:                 10,
+				Round:                 1500,
+				Nonce:                 1234,
+				HeaderHash:            "6868",
+				RootHash:              "7268",
+				ScheduledRootHash:     "736368",
+				FirstPendingMetaBlock: "66706d62",
+				LastFinishedMetaBlock: "6c666d62",
+				PendingMiniBlockHeaders: []*data.Miniblock{
+					{
+						Hash:            "6d6268",
+						SenderShardID:   0,
+						ReceiverShardID: 1,
+						Type:            "TxBlock",
+						Reserved:        []byte("rrr"),
+					},
+				},
+			},
 		},
 		NotarizedTxsCount: 830,
 		TxCount:           170,

@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
-
 	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
+	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/collections"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/tokeninfo"
 	"github.com/ElrondNetwork/elrond-go-core/core"
@@ -32,6 +33,7 @@ var (
 		elasticIndexer.TransactionsIndex, elasticIndexer.BlockIndex, elasticIndexer.MiniblocksIndex, elasticIndexer.RatingIndex, elasticIndexer.RoundsIndex, elasticIndexer.ValidatorsIndex,
 		elasticIndexer.AccountsIndex, elasticIndexer.AccountsHistoryIndex, elasticIndexer.ReceiptsIndex, elasticIndexer.ScResultsIndex, elasticIndexer.AccountsESDTHistoryIndex, elasticIndexer.AccountsESDTIndex,
 		elasticIndexer.EpochInfoIndex, elasticIndexer.SCDeploysIndex, elasticIndexer.TokensIndex, elasticIndexer.TagsIndex, elasticIndexer.LogsIndex, elasticIndexer.DelegatorsIndex, elasticIndexer.OperationsIndex,
+		elasticIndexer.CollectionsIndex,
 	}
 )
 
@@ -245,6 +247,7 @@ func getTemplateByName(templateName string, templateList map[string]*bytes.Buffe
 
 // SaveHeader will prepare and save information about a header in elasticsearch server
 func (ei *elasticProcessor) SaveHeader(
+	headerHash []byte,
 	header coreData.HeaderHandler,
 	signersIndexes []uint64,
 	body *block.Body,
@@ -256,7 +259,7 @@ func (ei *elasticProcessor) SaveHeader(
 		return nil
 	}
 
-	elasticBlock, err := ei.blockProc.PrepareBlockForDB(header, signersIndexes, body, notarizedHeadersHashes, gasConsumptionData, txsSize)
+	elasticBlock, err := ei.blockProc.PrepareBlockForDB(headerHash, header, signersIndexes, body, notarizedHeadersHashes, gasConsumptionData, txsSize)
 	if err != nil {
 		return err
 	}
@@ -291,7 +294,10 @@ func (ei *elasticProcessor) RemoveHeader(header coreData.HeaderHandler) error {
 		return err
 	}
 
-	return ei.elasticClient.DoBulkRemove(elasticIndexer.BlockIndex, []string{hex.EncodeToString(headerHash)})
+	return ei.elasticClient.DoQueryRemove(
+		elasticIndexer.BlockIndex,
+		converters.PrepareHashesForQueryRemove([]string{hex.EncodeToString(headerHash)}),
+	)
 }
 
 // RemoveMiniblocks will remove all miniblocks that are in header from elasticsearch server
@@ -301,17 +307,55 @@ func (ei *elasticProcessor) RemoveMiniblocks(header coreData.HeaderHandler, body
 		return nil
 	}
 
-	return ei.elasticClient.DoBulkRemove(elasticIndexer.MiniblocksIndex, encodedMiniblocksHashes)
+	return ei.elasticClient.DoQueryRemove(
+		elasticIndexer.MiniblocksIndex,
+		converters.PrepareHashesForQueryRemove(encodedMiniblocksHashes),
+	)
 }
 
 // RemoveTransactions will remove transaction that are in miniblock from the elasticsearch server
 func (ei *elasticProcessor) RemoveTransactions(header coreData.HeaderHandler, body *block.Body) error {
-	encodedTxsHashes := ei.transactionsProc.GetRewardsTxsHashesHexEncoded(header, body)
-	if len(encodedTxsHashes) == 0 {
+	encodedTxsHashes, encodedScrsHashes := ei.transactionsProc.GetHexEncodedHashesForRemove(header, body)
+
+	err := ei.removeIfHashesNotEmpty(elasticIndexer.TransactionsIndex, encodedTxsHashes)
+	if err != nil {
+		return err
+	}
+
+	err = ei.removeIfHashesNotEmpty(elasticIndexer.ScResultsIndex, encodedScrsHashes)
+	if err != nil {
+		return err
+	}
+
+	return ei.removeIfHashesNotEmpty(elasticIndexer.OperationsIndex, append(encodedTxsHashes, encodedScrsHashes...))
+}
+
+func (ei *elasticProcessor) removeIfHashesNotEmpty(index string, hashes []string) error {
+	if len(hashes) == 0 {
 		return nil
 	}
 
-	return ei.elasticClient.DoBulkRemove(elasticIndexer.TransactionsIndex, encodedTxsHashes)
+	return ei.elasticClient.DoQueryRemove(
+		index,
+		converters.PrepareHashesForQueryRemove(hashes),
+	)
+}
+
+// RemoveAccountsESDT will remove data from accountsesdt index and accountsesdthistory
+func (ei *elasticProcessor) RemoveAccountsESDT(headerTimestamp uint64) error {
+	query := fmt.Sprintf(`{"query": {"bool": {"must": [{"match": {"shardID": {"query": %d,"operator": "AND"}}},{"match": {"timestamp": {"query": "%d","operator": "AND"}}}]}}}`, ei.selfShardID, headerTimestamp)
+	err := ei.elasticClient.DoQueryRemove(
+		elasticIndexer.AccountsESDTIndex,
+		bytes.NewBuffer([]byte(query)),
+	)
+	if err != nil {
+		return err
+	}
+
+	return ei.elasticClient.DoQueryRemove(
+		elasticIndexer.AccountsESDTHistoryIndex,
+		bytes.NewBuffer([]byte(query)),
+	)
 }
 
 // SaveMiniblocks will prepare and save information about miniblocks in elasticsearch server
@@ -362,7 +406,12 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
-	err = ei.indexTransactionsWithRefund(preparedResults.TxHashRefund, buffers)
+	err = ei.prepareAndIndexOperations(preparedResults.Transactions, preparedResults.TxHashStatus, header, preparedResults.ScResults, buffers)
+	if err != nil {
+		return err
+	}
+
+	err = ei.indexTransactionsAndOperationsWithRefund(preparedResults.TxHashRefund, buffers)
 	if err != nil {
 		return err
 	}
@@ -408,11 +457,6 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
-	err = ei.prepareAndIndexOperations(preparedResults.Transactions, preparedResults.TxHashStatus, header, preparedResults.ScResults, buffers)
-	if err != nil {
-		return err
-	}
-
 	err = ei.indexNFTBurnInfo(logsData.TokensSupply, buffers)
 	if err != nil {
 		return err
@@ -447,7 +491,7 @@ func (ei *elasticProcessor) prepareAndIndexDelegators(delegators map[string]*dat
 	return ei.logsAndEventsProc.SerializeDelegators(delegators, buffSlice, elasticIndexer.DelegatorsIndex)
 }
 
-func (ei *elasticProcessor) indexTransactionsWithRefund(txsHashRefund map[string]*data.RefundData, buffSlice *data.BufferSlice) error {
+func (ei *elasticProcessor) indexTransactionsAndOperationsWithRefund(txsHashRefund map[string]*data.RefundData, buffSlice *data.BufferSlice) error {
 	if len(txsHashRefund) == 0 {
 		return nil
 	}
@@ -472,7 +516,12 @@ func (ei *elasticProcessor) indexTransactionsWithRefund(txsHashRefund map[string
 		txsFromDB[txRes.ID] = &txRes.Source
 	}
 
-	return ei.transactionsProc.SerializeTransactionWithRefund(txsFromDB, txsHashRefund, buffSlice, elasticIndexer.TransactionsIndex)
+	err = ei.transactionsProc.SerializeTransactionWithRefund(txsFromDB, txsHashRefund, buffSlice, elasticIndexer.TransactionsIndex)
+	if err != nil {
+		return err
+	}
+
+	return ei.transactionsProc.SerializeTransactionWithRefund(txsFromDB, txsHashRefund, buffSlice, elasticIndexer.OperationsIndex)
 }
 
 func (ei *elasticProcessor) prepareAndIndexLogs(logsAndEvents []*coreData.LogData, timestamp uint64, buffSlice *data.BufferSlice) error {
@@ -594,6 +643,11 @@ func (ei *elasticProcessor) saveAccountsESDT(
 ) error {
 	accountsESDTMap, tokensData := ei.accountsProc.PrepareAccountsMapESDT(timestamp, wrappedAccounts, tagsCount)
 	err := ei.addTokenTypeAndCurrentOwnerInAccountsESDT(tokensData, accountsESDTMap)
+	if err != nil {
+		return err
+	}
+
+	err = collections.ExtractAndSerializeCollectionsData(accountsESDTMap, buffSlice, elasticIndexer.CollectionsIndex)
 	if err != nil {
 		return err
 	}

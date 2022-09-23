@@ -47,9 +47,11 @@ func CreateElasticProcessor(
 		AccountsDB:               accountsDB,
 		ShardCoordinator:         shardCoordinator,
 		TransactionFeeCalculator: feeProcessor,
-		EnabledIndexes:           []string{indexer.TransactionsIndex, indexer.LogsIndex, indexer.AccountsESDTIndex, indexer.ScResultsIndex, indexer.ReceiptsIndex, indexer.BlockIndex, indexer.AccountsIndex, indexer.TokensIndex, indexer.TagsIndex},
-		Denomination:             18,
-		IsInImportDBMode:         false,
+		EnabledIndexes: []string{indexer.TransactionsIndex, indexer.LogsIndex, indexer.AccountsESDTIndex, indexer.ScResultsIndex,
+			indexer.ReceiptsIndex, indexer.BlockIndex, indexer.AccountsIndex, indexer.TokensIndex, indexer.TagsIndex, indexer.CollectionsIndex,
+			indexer.OperationsIndex},
+		Denomination:     18,
+		IsInImportDBMode: false,
 	}
 
 	return factory.CreateElasticProcessor(args)

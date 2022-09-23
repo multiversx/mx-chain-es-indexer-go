@@ -22,6 +22,7 @@ type DispatcherHandler interface {
 // ElasticProcessor defines the interface for the elastic search indexer
 type ElasticProcessor interface {
 	SaveHeader(
+		headerHash []byte,
 		header coreData.HeaderHandler,
 		signersIndexes []uint64,
 		body *block.Body,
@@ -32,6 +33,7 @@ type ElasticProcessor interface {
 	RemoveHeader(header coreData.HeaderHandler) error
 	RemoveMiniblocks(header coreData.HeaderHandler, body *block.Body) error
 	RemoveTransactions(header coreData.HeaderHandler, body *block.Body) error
+	RemoveAccountsESDT(headerTimestamp uint64) error
 	SaveMiniblocks(header coreData.HeaderHandler, body *block.Body) error
 	SaveTransactions(body *block.Body, header coreData.HeaderHandler, pool *indexer.Pool) error
 	SaveValidatorsRating(index string, validatorsRatingInfo []*data.ValidatorRatingInfo) error
@@ -51,8 +53,11 @@ type FeesProcessorHandler interface {
 
 // ShardCoordinator defines what a shard state coordinator should hold
 type ShardCoordinator interface {
+	NumberOfShards() uint32
 	ComputeId(address []byte) uint32
 	SelfId() uint32
+	SameShard(firstAddress, secondAddress []byte) bool
+	CommunicationIdentifier(destShardID uint32) string
 	IsInterfaceNil() bool
 }
 

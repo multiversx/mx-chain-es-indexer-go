@@ -15,7 +15,7 @@ import (
 type DatabaseClientHandler interface {
 	DoRequest(req *esapi.IndexRequest) error
 	DoBulkRequest(buff *bytes.Buffer, index string) error
-	DoBulkRemove(index string, hashes []string) error
+	DoQueryRemove(index string, buff *bytes.Buffer) error
 	DoMultiGet(ids []string, index string, withSource bool, res interface{}) error
 	DoScrollRequest(index string, body []byte, withSource bool, handlerFunc func(responseBytes []byte) error) error
 	DoCountRequest(index string, body []byte) (uint64, error)
@@ -46,6 +46,7 @@ type DBAccountHandler interface {
 // DBBlockHandler defines the actions that a block handler should do
 type DBBlockHandler interface {
 	PrepareBlockForDB(
+		headerHash []byte,
 		header coreData.HeaderHandler,
 		signersIndexes []uint64,
 		body *block.Body,
@@ -66,7 +67,7 @@ type DBTransactionsHandler interface {
 		header coreData.HeaderHandler,
 		pool *indexer.Pool,
 	) *data.PreparedResults
-	GetRewardsTxsHashesHexEncoded(header coreData.HeaderHandler, body *block.Body) []string
+	GetHexEncodedHashesForRemove(header coreData.HeaderHandler, body *block.Body) ([]string, []string)
 
 	SerializeReceipts(receipts []*data.Receipt, buffSlice *data.BufferSlice, index string) error
 	SerializeTransactions(transactions []*data.Transaction, txHashStatus map[string]string, selfShardID uint32, buffSlice *data.BufferSlice, index string) error

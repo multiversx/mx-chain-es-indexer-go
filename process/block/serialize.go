@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/ElrondNetwork/elastic-indexer-go"
+	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
@@ -17,7 +18,7 @@ func (bp *blockProcessor) SerializeBlock(elasticBlock *data.Block, buffSlice *da
 		return indexer.ErrNilElasticBlock
 	}
 
-	meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s", "_id" : "%s" } }%s`, index, elasticBlock.Hash, "\n"))
+	meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(elasticBlock.Hash), "\n"))
 	serializedData, errMarshal := json.Marshal(elasticBlock)
 	if errMarshal != nil {
 		return errMarshal

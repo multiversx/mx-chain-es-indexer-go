@@ -73,6 +73,7 @@ func TestGetMoveBalanceTransaction(t *testing.T) {
 		GasPrice:             gasPrice,
 		GasLimit:             gasLimit,
 		GasUsed:              uint64(500),
+		InitialPaidFee:       "100",
 		Data:                 tx.Data,
 		Signature:            hex.EncodeToString(tx.Signature),
 		Timestamp:            time.Duration(header.GetTimeStamp()),
@@ -83,6 +84,7 @@ func TestGetMoveBalanceTransaction(t *testing.T) {
 		SenderUserName:       []byte("snd"),
 		Operation:            "transfer",
 		Version:              1,
+		Receivers:            []string{},
 	}
 
 	dbTx := cp.prepareTransaction(tx, txHash, mbHash, mb, header, status)

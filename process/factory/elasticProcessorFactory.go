@@ -61,6 +61,7 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (indexer.Elast
 		arguments.AddressPubkeyConverter,
 		arguments.AccountsDB,
 		balanceConverter,
+		arguments.ShardCoordinator.SelfId(),
 	)
 	if err != nil {
 		return nil, err

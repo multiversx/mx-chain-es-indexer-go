@@ -35,8 +35,8 @@ func TestLogsAndEventsProcessor_SerializeLogs(t *testing.T) {
 	err := (&logsAndEventsProcessor{}).SerializeLogs(logs, buffSlice, "logs")
 	require.Nil(t, err)
 
-	expectedRes := `{ "index" : {"_index":"logs", "_id" : "747848617368" } }
-{"address":"61646472657373","events":[{"address":"61646472","identifier":"ESDTNFTTransfer","topics":["bXktdG9rZW4=","AQ==","cmVjZWl2ZXI="],"data":"ZGF0YQ==","order":0}],"timestamp":1234}
+	expectedRes := `{ "update" : { "_index":"logs", "_id" : "747848617368" } }
+{"scripted_upsert": true, "script": {"source": "if ('create' == ctx.op) {ctx._source = params.log} else {if (ctx._source.containsKey('timestamp')) {if (ctx._source.timestamp <= params.log.timestamp) {ctx._source = params.log}} else {ctx._source = params.log}}","lang": "painless","params": { "log": {"address":"61646472657373","events":[{"address":"61646472","identifier":"ESDTNFTTransfer","topics":["bXktdG9rZW4=","AQ==","cmVjZWl2ZXI="],"data":"ZGF0YQ==","order":0}],"timestamp":1234} }},"upsert": {}}
 `
 	require.Equal(t, expectedRes, buffSlice.Buffers()[0].String())
 }
@@ -57,7 +57,7 @@ func TestLogsAndEventsProcessor_SerializeSCDeploys(t *testing.T) {
 	require.Nil(t, err)
 
 	expectedRes := `{ "update" : { "_index":"scdeploys", "_id" : "scAddr" } }
-{"script": {"source": "if (!ctx._source.containsKey('upgrades')) { ctx._source.upgrades = [ params.elem ]; } else {  ctx._source.upgrades.add(params.elem); }","lang": "painless","params": {"elem": {"upgradeTxHash":"hash","upgrader":"creator","timestamp":123}}},"upsert": {"deployTxHash":"hash","deployer":"creator","timestamp":123,"upgrades":[]}}
+{"script": {"source": "if (!ctx._source.containsKey('upgrades')) {ctx._source.upgrades = [params.elem];} else {ctx._source.upgrades.add(params.elem);}","lang": "painless","params": {"elem": {"upgradeTxHash":"hash","upgrader":"creator","timestamp":123}}},"upsert": {"deployTxHash":"hash","deployer":"creator","timestamp":123,"upgrades":[]}}
 `
 	require.Equal(t, expectedRes, buffSlice.Buffers()[0].String())
 }
@@ -104,9 +104,9 @@ func TestSerializeTokens(t *testing.T) {
 	require.Equal(t, 1, len(buffSlice.Buffers()))
 
 	expectedRes := `{ "update" : { "_index":"tokens", "_id" : "TKN-01234" } }
-{"script": {"source": "if (ctx._source.containsKey('roles')) {HashMap roles = ctx._source.roles; ctx._source = params.token; ctx._source.roles = roles}","lang": "painless","params": {"token": {"name":"TokenName","ticker":"TKN","token":"TKN-01234","issuer":"erd123","currentOwner":"erd123","type":"SemiFungibleESDT","timestamp":50000,"ownersHistory":[{"address":"erd123","timestamp":50000}]}}},"upsert": {"name":"TokenName","ticker":"TKN","token":"TKN-01234","issuer":"erd123","currentOwner":"erd123","type":"SemiFungibleESDT","timestamp":50000,"ownersHistory":[{"address":"erd123","timestamp":50000}]}}
+{"script": {"source": "if (ctx._source.containsKey('roles')) {HashMap roles = ctx._source.roles;ctx._source = params.token;ctx._source.roles = roles}","lang": "painless","params": {"token": {"name":"TokenName","ticker":"TKN","token":"TKN-01234","issuer":"erd123","currentOwner":"erd123","type":"SemiFungibleESDT","timestamp":50000,"ownersHistory":[{"address":"erd123","timestamp":50000}]}}},"upsert": {"name":"TokenName","ticker":"TKN","token":"TKN-01234","issuer":"erd123","currentOwner":"erd123","type":"SemiFungibleESDT","timestamp":50000,"ownersHistory":[{"address":"erd123","timestamp":50000}]}}
 { "update" : { "_index":"tokens", "_id" : "TKN2-51234" } }
-{"script": {"source": "if (!ctx._source.containsKey('ownersHistory')) { ctx._source.ownersHistory = [ params.elem ] } else { ctx._source.ownersHistory.add(params.elem) } ctx._source.currentOwner = params.owner ","lang": "painless","params": {"elem": {"address":"abde123456","timestamp":60000}, "owner": "abde123456"}},"upsert": {"name":"Token2","ticker":"TKN2","token":"TKN2-51234","issuer":"erd1231213123","currentOwner":"abde123456","type":"NonFungibleESDT","timestamp":60000,"ownersHistory":[{"address":"abde123456","timestamp":60000}]}}
+{"script": {"source": "if (!ctx._source.containsKey('ownersHistory')) {ctx._source.ownersHistory = [params.elem]} else {ctx._source.ownersHistory.add(params.elem)}ctx._source.currentOwner = params.owner","lang": "painless","params": {"elem": {"address":"abde123456","timestamp":60000}, "owner": "abde123456"}},"upsert": {"name":"Token2","ticker":"TKN2","token":"TKN2-51234","issuer":"erd1231213123","currentOwner":"abde123456","type":"NonFungibleESDT","timestamp":60000,"ownersHistory":[{"address":"abde123456","timestamp":60000}]}}
 `
 	require.Equal(t, expectedRes, buffSlice.Buffers()[0].String())
 }

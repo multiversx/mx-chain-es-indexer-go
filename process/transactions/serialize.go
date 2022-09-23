@@ -6,14 +6,17 @@ import (
 	"math/big"
 	"strings"
 
+	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
+	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 )
 
 // SerializeScResults will serialize the provided smart contract results in a way that Elastic Search expects a bulk request
 func (tdp *txsDatabaseProcessor) SerializeScResults(scResults []*data.ScResult, buffSlice *data.BufferSlice, index string) error {
 	for _, sc := range scResults {
-		meta := []byte(fmt.Sprintf(`{ "index" : { "_index": "%s", "_id" : "%s" } }%s`, index, sc.Hash, "\n"))
+		meta := []byte(fmt.Sprintf(`{ "index" : { "_index": "%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(sc.Hash), "\n"))
 		serializedData, errPrepareSc := json.Marshal(sc)
 		if errPrepareSc != nil {
 			return errPrepareSc
@@ -31,7 +34,7 @@ func (tdp *txsDatabaseProcessor) SerializeScResults(scResults []*data.ScResult, 
 // SerializeReceipts will serialize the receipts in a way that Elastic Search expects a bulk request
 func (tdp *txsDatabaseProcessor) SerializeReceipts(receipts []*data.Receipt, buffSlice *data.BufferSlice, index string) error {
 	for _, rec := range receipts {
-		meta := []byte(fmt.Sprintf(`{ "index" : { "_index": "%s", "_id" : "%s" } }%s`, index, rec.Hash, "\n"))
+		meta := []byte(fmt.Sprintf(`{ "index" : { "_index": "%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(rec.Hash), "\n"))
 		serializedData, errPrepareReceipt := json.Marshal(rec)
 		if errPrepareReceipt != nil {
 			return errPrepareReceipt
@@ -67,11 +70,16 @@ func (tdp *txsDatabaseProcessor) SerializeTransactionWithRefund(
 		if !ok {
 			continue
 		}
+
+		if index == elasticIndexer.OperationsIndex {
+			tx.Type = string(transaction.TxTypeNormal)
+		}
+
 		gasUsed, fee := tdp.txFeeCalculator.ComputeGasUsedAndFeeBasedOnRefundValue(tx, refundValueBig)
 		tx.GasUsed = gasUsed
 		tx.Fee = fee.String()
 
-		meta := []byte(fmt.Sprintf(`{ "index" : { "_index": "%s", "_id" : "%s" } }%s`, index, txHash, "\n"))
+		meta := []byte(fmt.Sprintf(`{ "index" : { "_index": "%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(txHash), "\n"))
 		serializedData, errPrepare := json.Marshal(tx)
 		if errPrepare != nil {
 			return errPrepare
@@ -86,7 +94,7 @@ func (tdp *txsDatabaseProcessor) SerializeTransactionWithRefund(
 	return nil
 }
 
-// SerializeTransactions will serialize the transactions in a way that Elastic Search expects a bulk request
+// SerializeTransactions will serialize the transactions in a way that Elasticsearch expects a bulk request
 func (tdp *txsDatabaseProcessor) SerializeTransactions(
 	transactions []*data.Transaction,
 	txHashStatus map[string]string,
@@ -126,7 +134,10 @@ func serializeTxHashStatus(buffSlice *data.BufferSlice, txHashStatus map[string]
 			return err
 		}
 
-		serializedData := []byte(fmt.Sprintf(`{"script": {"source": "ctx._source.status = params.status","lang": "painless","params": {"status": "%s"}},"upsert": %s }`, status, string(marshaledTx)))
+		codeToExecute := `
+			ctx._source.status = params.status
+`
+		serializedData := []byte(fmt.Sprintf(`{"script": {"source": "%s","lang": "painless","params": {"status": "%s"}},"upsert": %s }`, converters.FormatPainlessSource(codeToExecute), converters.JsonEscape(status), string(marshaledTx)))
 		err = buffSlice.PutData(metaData, serializedData)
 		if err != nil {
 			return err
@@ -141,7 +152,7 @@ func prepareSerializedDataForATransaction(
 	selfShardID uint32,
 	index string,
 ) ([]byte, []byte, error) {
-	metaData := []byte(fmt.Sprintf(`{"update":{ "_index":"%s", "_id":"%s"}}%s`, index, tx.Hash, "\n"))
+	metaData := []byte(fmt.Sprintf(`{"update":{ "_index":"%s", "_id":"%s"}}%s`, index, converters.JsonEscape(tx.Hash), "\n"))
 	marshaledTx, err := json.Marshal(tx)
 	if err != nil {
 		return nil, nil, err
@@ -166,19 +177,23 @@ func prepareSerializedDataForATransaction(
 	}
 
 	// transaction is intra-shard, invalid or cross-shard destination me
-	meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s", "_id" : "%s" } }%s`, index, tx.Hash, "\n"))
+	meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(tx.Hash), "\n"))
 
 	return meta, marshaledTx, nil
 }
 
 func prepareNFTESDTTransferOrMultiESDTTransfer(marshaledTx []byte) ([]byte, error) {
-	serializedData := []byte(fmt.Sprintf(`{"script":{"source":"`+
-		`def status = ctx._source.status;`+
-		`ctx._source = params.tx;`+
-		`ctx._source.status = status;`+
-		`","lang": "painless","params":`+
-		`{"tx": %s}},"upsert":%s}`,
-		string(marshaledTx), string(marshaledTx)))
+	codeToExecute := `
+		if ('create' == ctx.op) {
+			ctx._source = params.tx;
+		} else {
+			def status = ctx._source.status; 
+			ctx._source = params.tx;
+			ctx._source.status = status;
+		}
+`
+	serializedData := []byte(fmt.Sprintf(`{"scripted_upsert": true, "script":{"source":"%s","lang": "painless","params":{"tx": %s}},"upsert":{}}`,
+		converters.FormatPainlessSource(codeToExecute), string(marshaledTx)))
 
 	return serializedData, nil
 }

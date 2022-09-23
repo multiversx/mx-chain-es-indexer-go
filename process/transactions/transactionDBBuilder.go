@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ElrondNetwork/elastic-indexer-go"
+	indexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
@@ -13,6 +13,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/data/receipt"
 	"github.com/ElrondNetwork/elrond-go-core/data/rewardTx"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
+	datafield "github.com/ElrondNetwork/elrond-vm-common/parsers/dataField"
 )
 
 const emptyString = ""
@@ -48,6 +49,7 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 ) *data.Transaction {
 	gasUsed := dtb.txFeeCalculator.ComputeGasLimit(tx)
 	fee := dtb.txFeeCalculator.ComputeTxFeeBasedOnGasUsed(tx, gasUsed)
+	initialPaidFee := dtb.txFeeCalculator.ComputeTxFeeBasedOnGasUsed(tx, tx.GasLimit)
 
 	isScCall := core.IsSmartContractAddress(tx.RcvAddr)
 	res := dtb.dataFieldParser.Parse(tx.Data, tx.SndAddr, tx.RcvAddr)
@@ -69,6 +71,7 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		Timestamp:            time.Duration(header.GetTimeStamp()),
 		Status:               txStatus,
 		GasUsed:              gasUsed,
+		InitialPaidFee:       initialPaidFee.String(),
 		Fee:                  fee.String(),
 		ReceiverUserName:     tx.RcvUserName,
 		SenderUserName:       tx.SndUserName,
@@ -78,7 +81,7 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		Function:             res.Function,
 		ESDTValues:           res.ESDTValues,
 		Tokens:               res.Tokens,
-		Receivers:            res.Receivers,
+		Receivers:            datafield.EncodeBytesSlice(dtb.addressPubkeyConverter.Encode, res.Receivers),
 		ReceiversShardIDs:    res.ReceiversShardID,
 		IsRelayed:            res.IsRelayed,
 		Version:              tx.Version,

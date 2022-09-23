@@ -107,3 +107,36 @@ func TestNftsProcessor_processLogAndEventsNFTs_TransferNFT(t *testing.T) {
 		NFTNonce:        19,
 	}, alteredAddrReceiver[0])
 }
+
+func TestNftsProcessor_processLogAndEventsNFTs_Wipe(t *testing.T) {
+	t.Parallel()
+
+	nonce := uint64(20)
+	nftsProc := newNFTsProcessor(&mock.ShardCoordinatorMock{}, &mock.PubkeyConverterMock{}, &mock.MarshalizerMock{})
+
+	events := &transaction.Event{
+		Address:    []byte("addr"),
+		Identifier: []byte(core.BuiltInFunctionESDTWipe),
+		Topics:     [][]byte{[]byte("nft-0123"), big.NewInt(0).SetUint64(nonce).Bytes(), big.NewInt(1).Bytes(), []byte("receiver")},
+	}
+
+	altered := data.NewAlteredAccounts()
+
+	res := nftsProc.processEvent(&argsProcessEvent{
+		event:        events,
+		accounts:     altered,
+		timestamp:    10000,
+		tokensSupply: data.NewTokensInfo(),
+	})
+	require.Equal(t, "nft-0123-14", res.identifier)
+	require.Equal(t, "1", res.value)
+	require.Equal(t, true, res.processed)
+
+	alteredAddrSender, ok := altered.Get("61646472")
+	require.True(t, ok)
+	require.Equal(t, &data.AlteredAccount{
+		IsNFTOperation:  true,
+		TokenIdentifier: "nft-0123",
+		NFTNonce:        20,
+	}, alteredAddrSender[0])
+}

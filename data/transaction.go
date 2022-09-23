@@ -21,6 +21,7 @@ type Transaction struct {
 	GasLimit             uint64        `json:"gasLimit"`
 	GasUsed              uint64        `json:"gasUsed"`
 	Fee                  string        `json:"fee"`
+	InitialPaidFee       string        `json:"initialPaidFee,omitempty"`
 	Data                 []byte        `json:"data"`
 	Signature            string        `json:"signature"`
 	Timestamp            time.Duration `json:"timestamp"`
@@ -44,6 +45,7 @@ type Transaction struct {
 	ReceiverAddressBytes []byte        `json:"-"`
 	Hash                 string        `json:"-"`
 	BlockHash            string        `json:"-"`
+	HadRefund            bool          `json:"-"`
 }
 
 // GetGasLimit will return transaction gas limit
