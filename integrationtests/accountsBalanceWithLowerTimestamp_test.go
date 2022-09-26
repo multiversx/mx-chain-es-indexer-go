@@ -41,7 +41,7 @@ func TestIndexAccountsBalance(t *testing.T) {
 
 	addr := "aaaabbbb"
 	mockAccount := &mock.UserAccountStub{
-		RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
+		RetrieveValueCalled: func(key []byte) ([]byte, error) {
 			return json.Marshal(esdtToken)
 		},
 		AddressBytesCalled: func() []byte {
@@ -178,7 +178,7 @@ func TestIndexAccountsBalance(t *testing.T) {
 
 	esdtToken.Value = big.NewInt(0)
 	mockAccount = &mock.UserAccountStub{
-		RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
+		RetrieveValueCalled: func(key []byte) ([]byte, error) {
 			return json.Marshal(esdtToken)
 		},
 		AddressBytesCalled: func() []byte {

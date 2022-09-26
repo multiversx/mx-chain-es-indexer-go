@@ -42,7 +42,7 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 
 	addr := "test-address-balance-1"
 	mockAccount := &mock.UserAccountStub{
-		RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
+		RetrieveValueCalled: func(key []byte) ([]byte, error) {
 			return json.Marshal(esdtToken)
 		},
 		AddressBytesCalled: func() []byte {
@@ -119,7 +119,7 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 	}
 	addrReceiver := "new-address"
 	mockAccountReceiver := &mock.UserAccountStub{
-		RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
+		RetrieveValueCalled: func(key []byte) ([]byte, error) {
 			return json.Marshal(esdtToken)
 		},
 		AddressBytesCalled: func() []byte {
@@ -127,7 +127,7 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 		},
 	}
 	mockAccountSender := &mock.UserAccountStub{
-		RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
+		RetrieveValueCalled: func(key []byte) ([]byte, error) {
 			return []byte("{}"), nil
 		},
 		AddressBytesCalled: func() []byte {

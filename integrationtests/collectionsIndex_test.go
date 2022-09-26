@@ -77,7 +77,7 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 
 	addr := "aaaabbbbcccccccc"
 	mockAccount := &mock.UserAccountStub{
-		RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
+		RetrieveValueCalled: func(key []byte) ([]byte, error) {
 			return json.Marshal(esdtToken)
 		},
 		AddressBytesCalled: func() []byte {
@@ -168,7 +168,7 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 
 	addr = "aaaabbbbcccccccc"
 	mockAccount = &mock.UserAccountStub{
-		RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
+		RetrieveValueCalled: func(key []byte) ([]byte, error) {
 			return json.Marshal(esdtToken)
 		},
 		AddressBytesCalled: func() []byte {

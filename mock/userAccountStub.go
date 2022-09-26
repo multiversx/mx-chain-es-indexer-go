@@ -6,10 +6,10 @@ import (
 
 // UserAccountStub -
 type UserAccountStub struct {
-	GetBalanceCalled                       func() *big.Int
-	GetNonceCalled                         func() uint64
-	AddressBytesCalled                     func() []byte
-	RetrieveValueFromDataTrieTrackerCalled func(key []byte) ([]byte, error)
+	GetBalanceCalled    func() *big.Int
+	GetNonceCalled      func() uint64
+	AddressBytesCalled  func() []byte
+	RetrieveValueCalled func(key []byte) ([]byte, error)
 }
 
 // IncreaseNonce -
@@ -24,10 +24,10 @@ func (u *UserAccountStub) GetBalance() *big.Int {
 	return nil
 }
 
-// RetrieveValueFromDataTrieTracker -
-func (u *UserAccountStub) RetrieveValueFromDataTrieTracker(key []byte) ([]byte, error) {
-	if u.RetrieveValueFromDataTrieTrackerCalled != nil {
-		return u.RetrieveValueFromDataTrieTrackerCalled(key)
+// RetrieveValue -
+func (u *UserAccountStub) RetrieveValue(key []byte) ([]byte, error) {
+	if u.RetrieveValueCalled != nil {
+		return u.RetrieveValueCalled(key)
 	}
 
 	return nil, nil
