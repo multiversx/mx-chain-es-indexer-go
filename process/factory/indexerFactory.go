@@ -47,10 +47,6 @@ func NewIndexer(args *ArgsIndexerFactory) (dataindexer.Indexer, error) {
 		return nil, err
 	}
 
-	if !args.Enabled {
-		return dataindexer.NewNilIndexer(), nil
-	}
-
 	elasticProcessor, err := createElasticProcessor(args)
 	if err != nil {
 		return nil, err

@@ -1,10 +1,12 @@
 package wsindexer
 
 import (
-	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
 	"github.com/ElrondNetwork/elrond-go-core/websocketOutportDriver/data"
+	logger "github.com/ElrondNetwork/elrond-go-logger"
 )
+
+var log = logger.GetOrCreate("process/wsindexer")
 
 type indexer struct {
 	marshaller marshal.Marshalizer
@@ -31,8 +33,7 @@ func (i *indexer) GetFunctionsMap() map[data.OperationType]func(d []byte) error 
 }
 
 func (i *indexer) saveBlock(marshalledData []byte) error {
-	argsSaveBlock := &outport.ArgsSaveBlockData{}
-	err := i.marshaller.Unmarshal(argsSaveBlock, marshalledData)
+	argsSaveBlock, err := i.getArgsSaveBlock(marshalledData)
 	if err != nil {
 		return err
 	}
@@ -41,13 +42,12 @@ func (i *indexer) saveBlock(marshalledData []byte) error {
 }
 
 func (i *indexer) revertIndexedBlock(marshalledData []byte) error {
-	argsRevert := &data.ArgsRevertIndexedBlock{}
-	err := i.marshaller.Unmarshal(argsRevert, marshalledData)
+	header, body, err := i.getHeaderAndBody(marshalledData)
 	if err != nil {
 		return err
 	}
 
-	return i.di.RevertIndexedBlock(argsRevert.Header, argsRevert.Body)
+	return i.di.RevertIndexedBlock(header, body)
 }
 
 func (i *indexer) saveRounds(marshalledData []byte) error {
