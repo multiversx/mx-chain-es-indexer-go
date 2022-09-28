@@ -150,7 +150,7 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 	args.BalanceConverter = balanceConverter
 	proc, _ := NewLogsAndEventsProcessor(args)
 
-	resLogs := proc.ExtractDataFromLogs(logsAndEventsSlice, res, 1000, 0, 3)
+	resLogs := proc.ExtractDataFromLogs(logsAndEventsSlice, res, 1000, core.MetachainShardId, 3)
 	require.NotNil(t, resLogs.Tokens)
 	require.True(t, res.Transactions[0].HasOperations)
 	require.True(t, res.ScResults[0].HasOperations)

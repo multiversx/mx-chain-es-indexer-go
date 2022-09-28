@@ -8,6 +8,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/converters"
+	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/stretchr/testify/require"
 )
@@ -21,9 +22,10 @@ func TestDelegatorsProcessor_ProcessEvent(t *testing.T) {
 		Topics:     [][]byte{big.NewInt(1000).Bytes(), big.NewInt(1000000000).Bytes(), big.NewInt(10).Bytes(), big.NewInt(1000000000).Bytes()},
 	}
 	args := &argsProcessEvent{
-		timestamp:  1234,
-		event:      event,
-		logAddress: []byte("contract"),
+		timestamp:   1234,
+		event:       event,
+		logAddress:  []byte("contract"),
+		selfShardID: core.MetachainShardId,
 	}
 
 	balanceConverter, _ := converters.NewBalanceConverter(10)
@@ -48,9 +50,10 @@ func TestDelegatorProcessor_WithdrawWithDelete(t *testing.T) {
 		Topics:     [][]byte{big.NewInt(1000).Bytes(), big.NewInt(0).Bytes(), big.NewInt(10).Bytes(), big.NewInt(1000000000).Bytes(), []byte(strconv.FormatBool(true))},
 	}
 	args := &argsProcessEvent{
-		timestamp:  1234,
-		event:      event,
-		logAddress: []byte("contract"),
+		timestamp:   1234,
+		event:       event,
+		logAddress:  []byte("contract"),
+		selfShardID: core.MetachainShardId,
 	}
 
 	balanceConverter, _ := converters.NewBalanceConverter(10)
@@ -76,9 +79,10 @@ func TestDelegatorProcessor_ClaimRewardsWithDelete(t *testing.T) {
 		Topics:     [][]byte{big.NewInt(1000).Bytes(), []byte(strconv.FormatBool(true))},
 	}
 	args := &argsProcessEvent{
-		timestamp:  1234,
-		event:      event,
-		logAddress: []byte("contract"),
+		timestamp:   1234,
+		event:       event,
+		logAddress:  []byte("contract"),
+		selfShardID: core.MetachainShardId,
 	}
 
 	balanceConverter, _ := converters.NewBalanceConverter(10)
@@ -102,9 +106,10 @@ func TestDelegatorProcessor_ClaimRewardsNoDelete(t *testing.T) {
 		Topics:     [][]byte{big.NewInt(1000).Bytes(), []byte(strconv.FormatBool(false))},
 	}
 	args := &argsProcessEvent{
-		timestamp:  1234,
-		event:      event,
-		logAddress: []byte("contract"),
+		timestamp:   1234,
+		event:       event,
+		logAddress:  []byte("contract"),
+		selfShardID: core.MetachainShardId,
 	}
 
 	balanceConverter, _ := converters.NewBalanceConverter(10)

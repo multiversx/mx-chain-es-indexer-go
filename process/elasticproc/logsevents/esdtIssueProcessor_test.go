@@ -22,8 +22,9 @@ func TestIssueESDTProcessor(t *testing.T) {
 		Topics:     [][]byte{[]byte("MYTOKEN-abcd"), []byte("my-token"), []byte("MYTOKEN"), []byte(core.NonFungibleESDT)},
 	}
 	args := &argsProcessEvent{
-		timestamp: 1234,
-		event:     event,
+		timestamp:   1234,
+		event:       event,
+		selfShardID: core.MetachainShardId,
 	}
 
 	res := esdtIssueProc.processEvent(args)
@@ -57,8 +58,9 @@ func TestIssueESDTProcessor_TransferOwnership(t *testing.T) {
 		Topics:     [][]byte{[]byte("MYTOKEN-abcd"), []byte("my-token"), []byte("MYTOKEN"), []byte(core.NonFungibleESDT), []byte("newOwner")},
 	}
 	args := &argsProcessEvent{
-		timestamp: 1234,
-		event:     event,
+		timestamp:   1234,
+		event:       event,
+		selfShardID: core.MetachainShardId,
 	}
 
 	res := esdtIssueProc.processEvent(args)

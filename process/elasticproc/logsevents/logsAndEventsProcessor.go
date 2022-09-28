@@ -69,6 +69,8 @@ func createEventsProcessors(args *ArgsLogsAndEventsProcessor) []eventsProcessor 
 	informativeProc := newInformativeLogsProcessor()
 	updateNFTProc := newNFTsPropertiesProcessor(args.PubKeyConverter)
 	esdtPropProc := newEsdtPropertiesProcessor(args.PubKeyConverter)
+	esdtIssueProc := newESDTIssueProcessor(args.PubKeyConverter)
+	delegatorsProcessor := newDelegatorsProcessor(args.PubKeyConverter, args.BalanceConverter)
 
 	eventsProcs := []eventsProcessor{
 		fungibleProc,
@@ -77,15 +79,9 @@ func createEventsProcessors(args *ArgsLogsAndEventsProcessor) []eventsProcessor 
 		informativeProc,
 		updateNFTProc,
 		esdtPropProc,
+		esdtIssueProc,
+		delegatorsProcessor,
 	}
-
-	//if args.ShardCoordinator.SelfId() == core.MetachainShardId {
-	esdtIssueProc := newESDTIssueProcessor(args.PubKeyConverter)
-	eventsProcs = append(eventsProcs, esdtIssueProc)
-
-	delegatorsProcessor := newDelegatorsProcessor(args.PubKeyConverter, args.BalanceConverter)
-	eventsProcs = append(eventsProcs, delegatorsProcessor)
-	//}
 
 	return eventsProcs
 }
