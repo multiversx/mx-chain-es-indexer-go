@@ -1,6 +1,7 @@
 package wsindexer
 
 import (
+	"encoding/hex"
 	"errors"
 	"time"
 
@@ -80,8 +81,8 @@ func (i *indexer) getTxsPool(marshaledData []byte) (*outport.Pool, error) {
 		outport.FeeInfo
 	}
 	type logWrapped struct {
-		TxHash string
-		transaction.Log
+		TxHash     string
+		LogHandler *transaction.Log
 	}
 
 	type poolStruct struct {
@@ -104,39 +105,49 @@ func (i *indexer) getTxsPool(marshaledData []byte) (*outport.Pool, error) {
 
 	normalTxs := make(map[string]data.TransactionHandlerWithGasUsedAndFee, len(argSaveBlock.TransactionsPool.Txs))
 	for txHash, tx := range argSaveBlock.TransactionsPool.Txs {
-		normalTxs[txHash] = outport.NewTransactionHandlerWithGasAndFee(tx.TransactionHandler, tx.GasUsed, tx.Fee)
-		normalTxs[txHash].SetInitialPaidFee(tx.InitialPaidFee)
+		decoded := getDecodedHash(txHash)
+
+		normalTxs[decoded] = outport.NewTransactionHandlerWithGasAndFee(tx.TransactionHandler, tx.GasUsed, tx.Fee)
+		normalTxs[decoded].SetInitialPaidFee(tx.InitialPaidFee)
 	}
 
 	invalidTxs := make(map[string]data.TransactionHandlerWithGasUsedAndFee, len(argSaveBlock.TransactionsPool.Invalid))
 	for txHash, tx := range argSaveBlock.TransactionsPool.Invalid {
-		invalidTxs[txHash] = outport.NewTransactionHandlerWithGasAndFee(tx.TransactionHandler, tx.GasUsed, tx.Fee)
-		invalidTxs[txHash].SetInitialPaidFee(tx.InitialPaidFee)
+		decoded := getDecodedHash(txHash)
+
+		invalidTxs[decoded] = outport.NewTransactionHandlerWithGasAndFee(tx.TransactionHandler, tx.GasUsed, tx.Fee)
+		invalidTxs[decoded].SetInitialPaidFee(tx.InitialPaidFee)
 	}
 
 	scrs := make(map[string]data.TransactionHandlerWithGasUsedAndFee, len(argSaveBlock.TransactionsPool.Scrs))
 	for txHash, tx := range argSaveBlock.TransactionsPool.Scrs {
-		scrs[txHash] = outport.NewTransactionHandlerWithGasAndFee(tx.TransactionHandler, tx.GasUsed, tx.Fee)
-		scrs[txHash].SetInitialPaidFee(tx.InitialPaidFee)
+		decoded := getDecodedHash(txHash)
+
+		scrs[decoded] = outport.NewTransactionHandlerWithGasAndFee(tx.TransactionHandler, tx.GasUsed, tx.Fee)
+		scrs[decoded].SetInitialPaidFee(tx.InitialPaidFee)
 	}
 
 	receipts := make(map[string]data.TransactionHandlerWithGasUsedAndFee, len(argSaveBlock.TransactionsPool.Receipts))
 	for txHash, tx := range argSaveBlock.TransactionsPool.Receipts {
-		receipts[txHash] = outport.NewTransactionHandlerWithGasAndFee(tx.TransactionHandler, tx.GasUsed, tx.Fee)
-		receipts[txHash].SetInitialPaidFee(tx.InitialPaidFee)
+		decoded := getDecodedHash(txHash)
+
+		receipts[decoded] = outport.NewTransactionHandlerWithGasAndFee(tx.TransactionHandler, tx.GasUsed, tx.Fee)
+		receipts[decoded].SetInitialPaidFee(tx.InitialPaidFee)
 	}
 
 	rewards := make(map[string]data.TransactionHandlerWithGasUsedAndFee, len(argSaveBlock.TransactionsPool.Rewards))
 	for txHash, tx := range argSaveBlock.TransactionsPool.Rewards {
-		rewards[txHash] = outport.NewTransactionHandlerWithGasAndFee(tx.TransactionHandler, tx.GasUsed, tx.Fee)
-		rewards[txHash].SetInitialPaidFee(tx.InitialPaidFee)
+		decoded := getDecodedHash(txHash)
+
+		rewards[decoded] = outport.NewTransactionHandlerWithGasAndFee(tx.TransactionHandler, tx.GasUsed, tx.Fee)
+		rewards[decoded].SetInitialPaidFee(tx.InitialPaidFee)
 	}
 
 	logs := make([]*data.LogData, 0, len(argSaveBlock.TransactionsPool.Logs))
 	for _, txLog := range argSaveBlock.TransactionsPool.Logs {
 		logs = append(logs, &data.LogData{
-			LogHandler: txLog,
-			TxHash:     txLog.TxHash,
+			LogHandler: txLog.LogHandler,
+			TxHash:     getDecodedHash(txLog.TxHash),
 		})
 	}
 
@@ -148,6 +159,15 @@ func (i *indexer) getTxsPool(marshaledData []byte) (*outport.Pool, error) {
 		Receipts: receipts,
 		Logs:     logs,
 	}, nil
+}
+
+func getDecodedHash(hash string) string {
+	decoded, err := hex.DecodeString(hash)
+	if err != nil {
+		log.Warn("getDecodedHash.cannot decode hash", "error", err, "hash", hash)
+		return hash
+	}
+	return string(decoded)
 }
 
 func (i *indexer) getHeaderAndBody(marshaledData []byte) (data.HeaderHandler, data.BodyHandler, error) {
