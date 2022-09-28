@@ -113,9 +113,9 @@ func (c *client) listeningOnWebSocket(wsConnection *websocket.Conn) {
 
 		_, isConnectionClosed := err.(*websocket.CloseError)
 		if !isConnectionClosed {
-			log.Error("websocket error, retrying in %v...", "error", err.Error())
+			log.Warn("websocket error, retrying in %v...", "error", err.Error())
 		} else {
-			log.Error(fmt.Sprintf("websocket terminated by the server side, retrying in %v...", retryDuration), "error", err.Error())
+			log.Warn(fmt.Sprintf("websocket terminated by the server side, retrying in %v...", retryDuration), "error", err.Error())
 		}
 		return
 	}
