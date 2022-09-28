@@ -54,7 +54,7 @@ func (c *client) Start() {
 			var err error
 			wsConnection, err = c.openConnection()
 			if err != nil {
-				log.Error(fmt.Sprintf("websocket error, retrying in %v...", retryDuration), "error", err.Error())
+				log.Warn(fmt.Sprintf("websocket error, retrying in %v...", retryDuration), "error", err.Error())
 				time.Sleep(retryDuration)
 				continue
 			}
