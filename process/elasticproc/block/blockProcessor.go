@@ -128,6 +128,10 @@ func getTxsCount(header coreData.HeaderHandler) (numTxs, notarizedTxs uint32) {
 	notarizedTxs = metaHeader.TxCount
 	numTxs = 0
 	for _, mb := range metaHeader.MiniBlockHeaders {
+		if mb.Type == block.PeerBlock {
+			continue
+		}
+
 		numTxs += mb.TxCount
 	}
 
