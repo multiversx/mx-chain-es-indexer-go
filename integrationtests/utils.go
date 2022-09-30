@@ -19,6 +19,7 @@ func setLogLevelDebug() {
 	_ = logger.SetLogLevel("process:DEBUG")
 }
 
+//nolint
 func createESClient(url string) (elasticproc.DatabaseClientHandler, error) {
 	return client.NewElasticClient(elasticsearch.Config{
 		Addresses: []string{url},

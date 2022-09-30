@@ -34,7 +34,7 @@ func CreateWsIndexer(cfg config.Config, clusterCfg config.ClusterConfig) (wsinde
 		return nil, err
 	}
 
-	return wsclient.New(cfg.Config.WebSocket.ServerURL, indexer.GetFunctionsMap())
+	return wsclient.New(cfg.Config.WebSocket.ServerURL, indexer)
 }
 
 func createDataIndexer(cfg config.Config, clusterCfg config.ClusterConfig) (wsindexer.DataIndexer, error) {

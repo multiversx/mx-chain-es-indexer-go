@@ -4,16 +4,23 @@ import (
 	"fmt"
 	"io"
 	"net/url"
-	"os"
-	"os/signal"
+	"strings"
 	"time"
 
+	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	"github.com/ElrondNetwork/elrond-go-core/data/typeConverters/uint64ByteSlice"
 	"github.com/ElrondNetwork/elrond-go-core/websocketOutportDriver"
 	"github.com/ElrondNetwork/elrond-go-core/websocketOutportDriver/data"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/gorilla/websocket"
 )
+
+const closedConnection = "use of closed network connection"
+
+type operationsHandler interface {
+	GetOperationsMap() map[data.OperationType]func(marshalledData []byte) error
+	Close() error
+}
 
 type wsConn interface {
 	io.Closer
@@ -28,19 +35,22 @@ var (
 
 type client struct {
 	urlReceive               string
+	closeActions             func() error
 	actions                  map[data.OperationType]func(marshalledData []byte) error
 	uint64ByteSliceConverter websocketOutportDriver.Uint64ByteSliceConverter
+	wsConnection             wsConn
 }
 
 // New will create a new instance of web-sockets client
 func New(
 	urlReceive string,
-	actions map[data.OperationType]func(marshalledData []byte,
-	) error) (*client, error) {
-	urlReceiveData := url.URL{Scheme: "ws", Host: fmt.Sprintf(urlReceive), Path: "/operations"}
+	operationsHandler operationsHandler,
+) (*client, error) {
+	urlReceiveData := url.URL{Scheme: "ws", Host: fmt.Sprintf(urlReceive), Path: data.WSRoute}
 
 	return &client{
-		actions:                  actions,
+		actions:                  operationsHandler.GetOperationsMap(),
+		closeActions:             operationsHandler.Close,
 		urlReceive:               urlReceiveData.String(),
 		uint64ByteSliceConverter: uint64ByteSlice.NewBigEndianConverter(),
 	}, nil
@@ -48,87 +58,56 @@ func New(
 
 // Start will initialize the connection to the server and start to listen for messages
 func (c *client) Start() {
-	interrupt := make(chan os.Signal, 1)
-	signal.Notify(interrupt, os.Interrupt)
-
 	log.Info("connecting to", "url", c.urlReceive)
 
-	var wsConnection *websocket.Conn
-	done := make(chan struct{})
-	go func() {
-		defer close(done)
-		for {
-			var err error
-			wsConnection, err = c.openConnection()
-			if err != nil {
-				log.Warn(fmt.Sprintf("websocket error, retrying in %v...", retryDuration), "error", err.Error())
-				time.Sleep(retryDuration)
-				continue
-			}
-
-			c.listeningOnWebSocket(wsConnection)
+	for {
+		err := c.openConnection()
+		if err != nil {
+			log.Warn(fmt.Sprintf("c.openConnection(), retrying in %v...", retryDuration), "error", err.Error())
 			time.Sleep(retryDuration)
+			continue
 		}
-	}()
 
-	timer := time.NewTimer(time.Second)
-	defer timer.Stop()
-
-	for {
-		select {
-		case <-done:
-			return
-		case <-timer.C:
-		case <-interrupt:
-			log.Info("interrupt")
-			if wsConnection == nil {
-				return
-			}
-
-			// Cleanly close the connection by sending a close message and then
-			// waiting (with timeout) for the server to close the connection.
-			err := wsConnection.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
-			if err != nil {
-				log.Error("write close", "error", err)
-				return
-			}
-			select {
-			case <-done:
-			case <-time.After(time.Second):
-			}
+		closed := c.listeningOnWebSocket()
+		if closed {
 			return
 		}
 	}
 }
 
-func (c *client) openConnection() (*websocket.Conn, error) {
-	conn, _, err := websocket.DefaultDialer.Dial(c.urlReceive, nil)
+func (c *client) openConnection() error {
+	var err error
+	c.wsConnection, _, err = websocket.DefaultDialer.Dial(c.urlReceive, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return conn, nil
+	return nil
 }
 
-func (c *client) listeningOnWebSocket(wsConnection *websocket.Conn) {
+func (c *client) listeningOnWebSocket() (closed bool) {
 	for {
-		_, message, err := wsConnection.ReadMessage()
+		_, message, err := c.wsConnection.ReadMessage()
 		if err == nil {
-			c.verifyPayloadAndSendAckIfNeeded(message, wsConnection)
+			c.verifyPayloadAndSendAckIfNeeded(message)
 			continue
 		}
 
 		_, isConnectionClosed := err.(*websocket.CloseError)
 		if !isConnectionClosed {
-			log.Warn("websocket error, retrying in %v...", "error", err.Error())
+			if strings.Contains(err.Error(), closedConnection) {
+				return true
+			}
+			log.Warn("websocket error, retrying in ...", "error", err.Error())
 		} else {
 			log.Warn(fmt.Sprintf("websocket terminated by the server side, retrying in %v...", retryDuration), "error", err.Error())
 		}
 		return
 	}
+
 }
 
-func (c *client) verifyPayloadAndSendAckIfNeeded(payload []byte, ackHandler wsConn) {
+func (c *client) verifyPayloadAndSendAckIfNeeded(payload []byte) {
 	if len(payload) == 0 {
 		log.Error("empty payload")
 		return
@@ -159,14 +138,37 @@ func (c *client) verifyPayloadAndSendAckIfNeeded(payload []byte, ackHandler wsCo
 
 	if payloadData.WithAcknowledge {
 		counterBytes := c.uint64ByteSliceConverter.ToByteSlice(payloadData.Counter)
-		err = ackHandler.WriteMessage(websocket.BinaryMessage, counterBytes)
+		err = c.wsConnection.WriteMessage(websocket.BinaryMessage, counterBytes)
 		if err != nil {
 			log.Error("write acknowledge message", "error", err.Error())
 		}
 	}
 }
 
+func (c *client) closeWsConnection() {
+	log.Debug("closing ws connection...")
+	if check.IfNilReflect(c.wsConnection) {
+		return
+	}
+
+	//Cleanly close the connection by sending a close message and then
+	//waiting (with timeout) for the server to close the connection.
+	err := c.wsConnection.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+	if err != nil {
+		log.Error("cannot send close message", "error", err)
+	}
+	err = c.wsConnection.Close()
+	if err != nil {
+		log.Error("cannot close ws connection", "error", err)
+	}
+}
+
 func (c *client) Close() {
-	//TODO implement me
-	panic("implement me")
+	log.Info("closing all components...")
+	c.closeWsConnection()
+
+	err := c.closeActions()
+	if err != nil {
+		log.Error("cannot close the operations handler", "error", err)
+	}
 }

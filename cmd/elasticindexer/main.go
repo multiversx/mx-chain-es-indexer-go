@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/config"
@@ -81,15 +83,22 @@ func startIndexer(ctx *cli.Context) error {
 		log.Error("cannot create ws indexer", "error", err)
 	}
 
-	wsClient.Start()
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, syscall.SIGINT, syscall.SIGKILL)
 
-	log.Info("closing indexer")
-	if !check.IfNil(fileLogging) {
-		err = fileLogging.Close()
-		log.LogIfError(err)
+	go wsClient.Start()
+
+	select {
+	case <-interrupt:
+		wsClient.Close()
+		if !check.IfNil(fileLogging) {
+			err = fileLogging.Close()
+			log.LogIfError(err)
+		}
+
+		return nil
 	}
 
-	return nil
 }
 
 func loadMainConfig(filepath string) (config.Config, error) {

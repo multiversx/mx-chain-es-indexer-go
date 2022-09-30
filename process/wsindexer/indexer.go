@@ -35,7 +35,7 @@ func NewIndexer(marshaller marshal.Marshalizer, dataIndexer DataIndexer) (*index
 	}, nil
 }
 
-func (i *indexer) GetFunctionsMap() map[data.OperationType]func(d []byte) error {
+func (i *indexer) GetOperationsMap() map[data.OperationType]func(d []byte) error {
 	return map[data.OperationType]func(d []byte) error{
 		data.OperationSaveBlock:             i.saveBlock,
 		data.OperationRevertIndexedBlock:    i.revertIndexedBlock,

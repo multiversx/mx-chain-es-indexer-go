@@ -1,6 +1,8 @@
 package integrationtests
 
 const (
+	//nolint
 	testsNumOfShards = 3
-	esURL            = "http://localhost:9200"
+	//nolint
+	esURL = "http://localhost:9200"
 )
