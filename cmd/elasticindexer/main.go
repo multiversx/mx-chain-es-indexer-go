@@ -84,21 +84,17 @@ func startIndexer(ctx *cli.Context) error {
 	}
 
 	interrupt := make(chan os.Signal, 1)
-	signal.Notify(interrupt, syscall.SIGINT, syscall.SIGKILL)
+	signal.Notify(interrupt, syscall.SIGINT, syscall.SIGTERM)
 
 	go wsClient.Start()
 
-	select {
-	case <-interrupt:
-		wsClient.Close()
-		if !check.IfNil(fileLogging) {
-			err = fileLogging.Close()
-			log.LogIfError(err)
-		}
-
-		return nil
+	<-interrupt
+	wsClient.Close()
+	if !check.IfNil(fileLogging) {
+		err = fileLogging.Close()
+		log.LogIfError(err)
 	}
-
+	return nil
 }
 
 func loadMainConfig(filepath string) (config.Config, error) {

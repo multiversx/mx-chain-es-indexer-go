@@ -46,7 +46,7 @@ func New(
 	urlReceive string,
 	operationsHandler operationsHandler,
 ) (*client, error) {
-	urlReceiveData := url.URL{Scheme: "ws", Host: fmt.Sprintf(urlReceive), Path: data.WSRoute}
+	urlReceiveData := url.URL{Scheme: "ws", Host: urlReceive, Path: data.WSRoute}
 
 	return &client{
 		actions:                  operationsHandler.GetOperationsMap(),

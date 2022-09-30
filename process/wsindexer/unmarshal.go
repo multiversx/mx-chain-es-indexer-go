@@ -8,10 +8,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/outport"
-	"github.com/ElrondNetwork/elrond-go-core/data/receipt"
-	"github.com/ElrondNetwork/elrond-go-core/data/rewardTx"
-	"github.com/ElrondNetwork/elrond-go-core/data/smartContractResult"
-	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	outportData "github.com/ElrondNetwork/elrond-go-core/websocketOutportDriver/data"
 )
 
@@ -64,39 +60,7 @@ func (i *indexer) getArgsSaveBlock(marshaledData []byte) (*outport.ArgsSaveBlock
 }
 
 func (i *indexer) getTxsPool(marshaledData []byte) (*outport.Pool, error) {
-	type normalTxWrapped struct {
-		TransactionHandler *transaction.Transaction
-		outport.FeeInfo
-	}
-	type rewardsTxsWrapped struct {
-		TransactionHandler *rewardTx.RewardTx
-		outport.FeeInfo
-	}
-	type scrWrapped struct {
-		TransactionHandler *smartContractResult.SmartContractResult
-		outport.FeeInfo
-	}
-	type receiptWrapped struct {
-		TransactionHandler *receipt.Receipt
-		outport.FeeInfo
-	}
-	type logWrapped struct {
-		TxHash     string
-		LogHandler *transaction.Log
-	}
-
-	type poolStruct struct {
-		Txs      map[string]*normalTxWrapped
-		Invalid  map[string]*normalTxWrapped
-		Scrs     map[string]*scrWrapped
-		Rewards  map[string]*rewardsTxsWrapped
-		Receipts map[string]*receiptWrapped
-		Logs     []*logWrapped
-	}
-
-	argSaveBlock := struct {
-		TransactionsPool *poolStruct
-	}{}
+	argSaveBlock := argsSaveBlock{}
 
 	err := i.marshaller.Unmarshal(&argSaveBlock, marshaledData)
 	if err != nil {
