@@ -5,11 +5,13 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 )
 
+// WSClient defines what a websockets client should do
 type WSClient interface {
 	Start()
 	Close()
 }
 
+// DataIndexer dines what a data indexer should do
 type DataIndexer interface {
 	SaveBlock(args *outport.ArgsSaveBlockData) error
 	RevertIndexedBlock(header data.HeaderHandler, body data.BodyHandler) error

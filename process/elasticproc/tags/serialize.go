@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	converters2 "github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/converters"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/converters"
 )
 
 // Serialize will serialize tagsCount in a way that Elasticsearch expects a bulk request
@@ -16,14 +16,14 @@ func (tc *tagsCount) Serialize(buffSlice *data.BufferSlice, index string) error 
 		}
 
 		base64Tag := base64.StdEncoding.EncodeToString([]byte(tag))
-		meta := []byte(fmt.Sprintf(`{ "update" : {"_index":"%s", "_id" : "%s" } }%s`, index, converters2.JsonEscape(base64Tag), "\n"))
+		meta := []byte(fmt.Sprintf(`{ "update" : {"_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(base64Tag), "\n"))
 
 		codeToExecute := `
 			ctx._source.count += params.count; 
 			ctx._source.tag = params.tag
 `
 		serializedDataStr := fmt.Sprintf(`{"script": {"source": "%s","lang": "painless","params": {"count": %d, "tag": "%s"}},"upsert": {"count": %d, "tag":"%s"}}`,
-			converters2.FormatPainlessSource(codeToExecute), count, converters2.JsonEscape(tag), count, converters2.JsonEscape(tag),
+			converters.FormatPainlessSource(codeToExecute), count, converters.JsonEscape(tag), count, converters.JsonEscape(tag),
 		)
 
 		err := buffSlice.PutData(meta, []byte(serializedDataStr))

@@ -11,10 +11,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func createMockIndexerFactoryArgs() *ArgsIndexerFactory {
+func createMockIndexerFactoryArgs() ArgsIndexerFactory {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 
-	return &ArgsIndexerFactory{
+	return ArgsIndexerFactory{
 		Enabled:                  true,
 		IndexerCacheSize:         100,
 		Url:                      ts.URL,
@@ -32,12 +32,12 @@ func createMockIndexerFactoryArgs() *ArgsIndexerFactory {
 func TestNewIndexerFactory(t *testing.T) {
 	tests := []struct {
 		name     string
-		argsFunc func() *ArgsIndexerFactory
+		argsFunc func() ArgsIndexerFactory
 		exError  error
 	}{
 		{
 			name: "InvalidCacheSize",
-			argsFunc: func() *ArgsIndexerFactory {
+			argsFunc: func() ArgsIndexerFactory {
 				args := createMockIndexerFactoryArgs()
 				args.IndexerCacheSize = -1
 				return args
@@ -46,7 +46,7 @@ func TestNewIndexerFactory(t *testing.T) {
 		},
 		{
 			name: "NilAddressPubkeyConverter",
-			argsFunc: func() *ArgsIndexerFactory {
+			argsFunc: func() ArgsIndexerFactory {
 				args := createMockIndexerFactoryArgs()
 				args.AddressPubkeyConverter = nil
 				return args
@@ -55,7 +55,7 @@ func TestNewIndexerFactory(t *testing.T) {
 		},
 		{
 			name: "NilValidatorPubkeyConverter",
-			argsFunc: func() *ArgsIndexerFactory {
+			argsFunc: func() ArgsIndexerFactory {
 				args := createMockIndexerFactoryArgs()
 				args.ValidatorPubkeyConverter = nil
 				return args
@@ -64,7 +64,7 @@ func TestNewIndexerFactory(t *testing.T) {
 		},
 		{
 			name: "NilMarshalizer",
-			argsFunc: func() *ArgsIndexerFactory {
+			argsFunc: func() ArgsIndexerFactory {
 				args := createMockIndexerFactoryArgs()
 				args.Marshalizer = nil
 				return args
@@ -73,7 +73,7 @@ func TestNewIndexerFactory(t *testing.T) {
 		},
 		{
 			name: "NilHasher",
-			argsFunc: func() *ArgsIndexerFactory {
+			argsFunc: func() ArgsIndexerFactory {
 				args := createMockIndexerFactoryArgs()
 				args.Hasher = nil
 				return args
@@ -82,7 +82,7 @@ func TestNewIndexerFactory(t *testing.T) {
 		},
 		{
 			name: "EmptyUrl",
-			argsFunc: func() *ArgsIndexerFactory {
+			argsFunc: func() ArgsIndexerFactory {
 				args := createMockIndexerFactoryArgs()
 				args.Url = ""
 				return args
@@ -91,7 +91,7 @@ func TestNewIndexerFactory(t *testing.T) {
 		},
 		{
 			name: "All arguments ok",
-			argsFunc: func() *ArgsIndexerFactory {
+			argsFunc: func() ArgsIndexerFactory {
 				return createMockIndexerFactoryArgs()
 			},
 			exError: nil,

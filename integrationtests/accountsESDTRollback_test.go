@@ -79,7 +79,7 @@ func TestAccountsESDTDeleteOnRollback(t *testing.T) {
 		ShardID:   2,
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, 3)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testsNumOfShards)
 	require.Nil(t, err)
 
 	ids := []string{"6161616162626262-TOKEN-eeee-02"}

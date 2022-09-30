@@ -15,8 +15,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v7"
 )
 
-const esURL = "http://localhost:9200"
-
 func setLogLevelDebug() {
 	_ = logger.SetLogLevel("process:DEBUG")
 }

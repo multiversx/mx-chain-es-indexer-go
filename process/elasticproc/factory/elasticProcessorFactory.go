@@ -86,7 +86,7 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (dataindexer.E
 		return nil, err
 	}
 
-	argsLogsAndEventsProc := &logsevents.ArgsLogsAndEventsProcessor{
+	argsLogsAndEventsProc := logsevents.ArgsLogsAndEventsProcessor{
 		PubKeyConverter:  arguments.AddressPubkeyConverter,
 		Marshalizer:      arguments.Marshalizer,
 		BalanceConverter: balanceConverter,

@@ -55,7 +55,7 @@ func createMockElasticProcessorArgs() *ArgElasticProcessor {
 	bp, _ := block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 	mp, _ := miniblocks.NewMiniblocksProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 	vp, _ := validators.NewValidatorsProcessor(mock.NewPubkeyConverterMock(32), 0)
-	args := &logsevents.ArgsLogsAndEventsProcessor{
+	args := logsevents.ArgsLogsAndEventsProcessor{
 		PubKeyConverter:  &mock.PubkeyConverterMock{},
 		Marshalizer:      &mock.MarshalizerMock{},
 		BalanceConverter: balanceConverter,

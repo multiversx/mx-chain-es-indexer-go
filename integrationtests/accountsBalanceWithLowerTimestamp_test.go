@@ -79,7 +79,7 @@ func TestIndexAccountsBalance(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, 3)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testsNumOfShards)
 	require.Nil(t, err)
 
 	ids := []string{"6161616162626262"}
@@ -102,7 +102,7 @@ func TestIndexAccountsBalance(t *testing.T) {
 		ShardID:   2,
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, 3)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, testsNumOfShards)
 	require.Nil(t, err)
 
 	ids = []string{"6161616162626262"}
@@ -157,7 +157,7 @@ func TestIndexAccountsBalance(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, 3)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testsNumOfShards)
 	require.Nil(t, err)
 
 	ids = []string{"6161616162626262"}
@@ -189,7 +189,7 @@ func TestIndexAccountsBalance(t *testing.T) {
 	coreAlteredAccounts[encodedAddr].Tokens[0].Balance = "0"
 
 	pool.Txs = make(map[string]coreData.TransactionHandlerWithGasUsedAndFee)
-	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, 3)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testsNumOfShards)
 	require.Nil(t, err)
 
 	ids = []string{"6161616162626262"}

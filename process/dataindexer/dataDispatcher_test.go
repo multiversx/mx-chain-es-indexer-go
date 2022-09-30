@@ -11,7 +11,7 @@ import (
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
-	workItems2 "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer/workItems"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer/workItems"
 	"github.com/stretchr/testify/require"
 )
 
@@ -58,17 +58,17 @@ func TestDataDispatcher_StartIndexDataClose(t *testing.T) {
 			return nil
 		},
 	}
-	dispatcher.Add(workItems2.NewItemRounds(elasticProc, []*data.RoundInfo{}))
+	dispatcher.Add(workItems.NewItemRounds(elasticProc, []*data.RoundInfo{}))
 	wg.Wait()
 
 	require.True(t, called)
 
-	dispatcher.Add(workItems2.NewItemAccounts(elasticProc, 0, nil, 0))
+	dispatcher.Add(workItems.NewItemAccounts(elasticProc, 0, nil, 0))
 	wg.Add(1)
-	dispatcher.Add(workItems2.NewItemRounds(elasticProc, []*data.RoundInfo{}))
-	dispatcher.Add(workItems2.NewItemRating(elasticProc, "", nil))
+	dispatcher.Add(workItems.NewItemRounds(elasticProc, []*data.RoundInfo{}))
+	dispatcher.Add(workItems.NewItemRating(elasticProc, "", nil))
 	wg.Add(1)
-	dispatcher.Add(workItems2.NewItemRounds(elasticProc, []*data.RoundInfo{}))
+	dispatcher.Add(workItems.NewItemRounds(elasticProc, []*data.RoundInfo{}))
 	err = dispatcher.Close()
 	require.NoError(t, err)
 }
@@ -97,7 +97,7 @@ func TestDataDispatcher_Add(t *testing.T) {
 	}
 
 	start := time.Now()
-	dispatcher.Add(workItems2.NewItemRounds(elasticProc, []*data.RoundInfo{}))
+	dispatcher.Add(workItems.NewItemRounds(elasticProc, []*data.RoundInfo{}))
 	wg.Wait()
 
 	timePassed := time.Since(start)
@@ -133,7 +133,7 @@ func TestDataDispatcher_AddWithErrorShouldRetryTheReprocessing(t *testing.T) {
 	}
 
 	start := time.Now()
-	dispatcher.Add(workItems2.NewItemRounds(elasticProc, []*data.RoundInfo{}))
+	dispatcher.Add(workItems.NewItemRounds(elasticProc, []*data.RoundInfo{}))
 	wg.Wait()
 
 	timePassed := time.Since(start)
@@ -173,7 +173,7 @@ func TestDataDispatcher_Close(t *testing.T) {
 				if count == 105 {
 					w.Done()
 				}
-				dispatcher.Add(workItems2.NewItemRounds(elasticProc, []*data.RoundInfo{}))
+				dispatcher.Add(workItems.NewItemRounds(elasticProc, []*data.RoundInfo{}))
 				time.Sleep(50 * time.Millisecond)
 			}
 		}
@@ -204,6 +204,6 @@ func TestDataDispatcher_RecoverPanic(t *testing.T) {
 		},
 	}
 
-	dispatcher.Add(workItems2.NewItemRounds(elasticProc, []*data.RoundInfo{}))
+	dispatcher.Add(workItems.NewItemRounds(elasticProc, []*data.RoundInfo{}))
 	dispatcher.doDataDispatch(context.Background())
 }

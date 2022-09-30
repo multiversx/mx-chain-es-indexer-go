@@ -40,6 +40,7 @@ func main() {
 	app.Usage = "This tool will index data in an Elasticsearch database"
 	app.Flags = []cli.Flag{
 		configurationFile,
+		configurationPreferencesFile,
 		logLevel,
 		logSaveFile,
 	}
@@ -60,8 +61,12 @@ func main() {
 }
 
 func startIndexer(ctx *cli.Context) error {
-	configurationFileName := ctx.GlobalString(configurationFile.Name)
-	cfg, err := loadMainConfig(configurationFileName)
+	cfg, err := loadMainConfig(ctx.GlobalString(configurationFile.Name))
+	if err != nil {
+		return err
+	}
+
+	clusterCfg, err := loadClusterConfig(ctx.GlobalString(configurationPreferencesFile.Name))
 	if err != nil {
 		return err
 	}
@@ -71,7 +76,7 @@ func startIndexer(ctx *cli.Context) error {
 		return err
 	}
 
-	wsClient, err := factory.CreateWsIndexer(cfg)
+	wsClient, err := factory.CreateWsIndexer(cfg, clusterCfg)
 	if err != nil {
 		log.Error("cannot create ws indexer", "error", err)
 	}
@@ -87,16 +92,21 @@ func startIndexer(ctx *cli.Context) error {
 	return nil
 }
 
-func loadMainConfig(filepath string) (*config.Config, error) {
-	cfg := &config.Config{}
-	err := core.LoadTomlFile(cfg, filepath)
-	if err != nil {
-		return nil, err
-	}
-	return cfg, nil
+func loadMainConfig(filepath string) (config.Config, error) {
+	cfg := config.Config{}
+	err := core.LoadTomlFile(&cfg, filepath)
+
+	return cfg, err
 }
 
-func initializeLogger(ctx *cli.Context, cfg *config.Config) (file.FileLoggingHandler, error) {
+func loadClusterConfig(filepath string) (config.ClusterConfig, error) {
+	cfg := config.ClusterConfig{}
+	err := core.LoadTomlFile(&cfg, filepath)
+
+	return cfg, err
+}
+
+func initializeLogger(ctx *cli.Context, cfg config.Config) (file.FileLoggingHandler, error) {
 	logLevelFlagValue := ctx.GlobalString(logLevel.Name)
 	err := logger.SetLogLevel(logLevelFlagValue)
 	if err != nil {
@@ -127,6 +137,16 @@ func initializeLogger(ctx *cli.Context, cfg *config.Config) (file.FileLoggingHan
 		time.Second*time.Duration(cfg.Config.Logs.LogFileLifeSpanInSec),
 		uint64(cfg.Config.Logs.LogFileLifeSpanInMB),
 	)
+	if err != nil {
+		return nil, err
+	}
+
+	err = logger.RemoveLogObserver(os.Stdout)
+	if err != nil {
+		return nil, err
+	}
+
+	err = logger.AddLogObserver(os.Stdout, &logger.PlainFormatter{})
 	if err != nil {
 		return nil, err
 	}

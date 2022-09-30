@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	converters2 "github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/converters"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/converters"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/sharding"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
@@ -67,7 +67,7 @@ func (np *nftsProcessor) processEvent(args *argsProcessEvent) argOutputProcessEv
 	}
 
 	token := string(topics[0])
-	identifier := converters2.ComputeTokenIdentifier(token, nonceBig.Uint64())
+	identifier := converters.ComputeTokenIdentifier(token, nonceBig.Uint64())
 	valueBig := big.NewInt(0).SetBytes(topics[2])
 
 	if !np.shouldAddReceiverData(args) {
@@ -135,7 +135,7 @@ func (np *nftsProcessor) processNFTEventOnSender(
 	if eventIdentifier == core.BuiltInFunctionESDTNFTBurn || eventIdentifier == core.BuiltInFunctionESDTWipe {
 		tokensSupply.Add(&data.TokenInfo{
 			Token:      token,
-			Identifier: converters2.ComputeTokenIdentifier(token, nonceBig.Uint64()),
+			Identifier: converters.ComputeTokenIdentifier(token, nonceBig.Uint64()),
 			Timestamp:  time.Duration(timestamp),
 			Nonce:      nonceBig.Uint64(),
 		})
@@ -163,10 +163,10 @@ func (np *nftsProcessor) processNFTEventOnSender(
 		return
 	}
 
-	tokenMetaData := converters2.PrepareTokenMetaData(np.pubKeyConverter, esdtToken)
+	tokenMetaData := converters.PrepareTokenMetaData(np.pubKeyConverter, esdtToken)
 	tokensCreateInfo.Add(&data.TokenInfo{
 		Token:      token,
-		Identifier: converters2.ComputeTokenIdentifier(token, nonceBig.Uint64()),
+		Identifier: converters.ComputeTokenIdentifier(token, nonceBig.Uint64()),
 		Timestamp:  time.Duration(timestamp),
 		Data:       tokenMetaData,
 		Nonce:      nonceBig.Uint64(),

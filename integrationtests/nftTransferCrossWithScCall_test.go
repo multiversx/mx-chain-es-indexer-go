@@ -78,7 +78,7 @@ func TestNFTTransferCrossShardWithScCall(t *testing.T) {
 			string(scrHash2): outport.NewTransactionHandlerWithGasAndFee(scr2, 0, big.NewInt(0)),
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, nil, false, 3)
+	err = esProc.SaveTransactions(body, header, pool, nil, false, testsNumOfShards)
 	require.Nil(t, err)
 
 	ids := []string{hex.EncodeToString(txHash)}

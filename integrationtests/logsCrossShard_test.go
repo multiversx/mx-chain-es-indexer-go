@@ -50,7 +50,7 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, 3)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, testsNumOfShards)
 	require.Nil(t, err)
 
 	ids := []string{hex.EncodeToString([]byte("cross-log"))}
@@ -91,7 +91,7 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, 3)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, testsNumOfShards)
 	require.Nil(t, err)
 
 	err = esClient.DoMultiGet(ids, indexerdata.LogsIndex, true, genericResponse)
@@ -124,7 +124,7 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, 3)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, testsNumOfShards)
 	require.Nil(t, err)
 
 	err = esClient.DoMultiGet(ids, indexerdata.LogsIndex, true, genericResponse)

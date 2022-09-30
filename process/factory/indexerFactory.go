@@ -23,9 +23,8 @@ var log = logger.GetOrCreate("indexer/factory")
 // ArgsIndexerFactory holds all dependencies required by the data indexer factory in order to create
 // new instances
 type ArgsIndexerFactory struct {
-	Enabled   bool
-	UseKibana bool
-	// move this in ArgSaveBlock
+	Enabled                  bool
+	UseKibana                bool
 	IndexerCacheSize         int
 	Denomination             int
 	BulkRequestMaxSize       int
@@ -41,7 +40,7 @@ type ArgsIndexerFactory struct {
 }
 
 // NewIndexer will create a new instance of Indexer
-func NewIndexer(args *ArgsIndexerFactory) (dataindexer.Indexer, error) {
+func NewIndexer(args ArgsIndexerFactory) (dataindexer.Indexer, error) {
 	err := checkDataIndexerParams(args)
 	if err != nil {
 		return nil, err
@@ -75,7 +74,7 @@ func retryBackOff(attempt int) time.Duration {
 	return d
 }
 
-func createElasticProcessor(args *ArgsIndexerFactory) (dataindexer.ElasticProcessor, error) {
+func createElasticProcessor(args ArgsIndexerFactory) (dataindexer.ElasticProcessor, error) {
 	databaseClient, err := client.NewElasticClient(elasticsearch.Config{
 		Addresses:     []string{args.Url},
 		Username:      args.UserName,
@@ -103,7 +102,7 @@ func createElasticProcessor(args *ArgsIndexerFactory) (dataindexer.ElasticProces
 	return factory.CreateElasticProcessor(argsElasticProcFac)
 }
 
-func checkDataIndexerParams(arguments *ArgsIndexerFactory) error {
+func checkDataIndexerParams(arguments ArgsIndexerFactory) error {
 	if arguments.IndexerCacheSize < 0 {
 		return dataindexer.ErrNegativeCacheSize
 	}

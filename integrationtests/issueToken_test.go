@@ -49,7 +49,7 @@ func TestIssueTokenAndTransferOwnership(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, nil, false, 3)
+	err = esProc.SaveTransactions(body, header, pool, nil, false, testsNumOfShards)
 	require.Nil(t, err)
 
 	ids := []string{"SSSS-abcd"}
@@ -78,7 +78,7 @@ func TestIssueTokenAndTransferOwnership(t *testing.T) {
 	}
 
 	header.TimeStamp = 10000
-	err = esProc.SaveTransactions(body, header, pool, nil, false, 3)
+	err = esProc.SaveTransactions(body, header, pool, nil, false, testsNumOfShards)
 	require.Nil(t, err)
 
 	ids = []string{"SSSS-abcd"}

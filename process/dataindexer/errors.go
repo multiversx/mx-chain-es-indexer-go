@@ -23,9 +23,6 @@ var ErrNegativeCacheSize = errors.New("negative cache size")
 // ErrEmptyEnabledIndexes signals that an empty slice of enables indexes has been provided
 var ErrEmptyEnabledIndexes = errors.New("empty enabled indexes slice")
 
-// ErrNilShardCoordinator signals that a nil shard coordinator was provided
-var ErrNilShardCoordinator = errors.New("nil shard coordinator")
-
 // ErrCouldNotCreatePolicy signals that the index policy hasn't been created
 var ErrCouldNotCreatePolicy = errors.New("could not create policy")
 

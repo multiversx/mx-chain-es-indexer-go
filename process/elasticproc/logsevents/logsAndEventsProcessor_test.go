@@ -15,9 +15,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func createMockArgs() *ArgsLogsAndEventsProcessor {
+func createMockArgs() ArgsLogsAndEventsProcessor {
 	balanceConverter, _ := converters.NewBalanceConverter(10)
-	return &ArgsLogsAndEventsProcessor{
+	return ArgsLogsAndEventsProcessor{
 		PubKeyConverter:  &mock.PubkeyConverterMock{},
 		Marshalizer:      &mock.MarshalizerMock{},
 		BalanceConverter: balanceConverter,

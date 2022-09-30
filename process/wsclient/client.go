@@ -27,19 +27,26 @@ var (
 )
 
 type client struct {
-	urlReceive string
-	actions    map[data.OperationType]func(marshalledData []byte) error
+	urlReceive               string
+	actions                  map[data.OperationType]func(marshalledData []byte) error
+	uint64ByteSliceConverter websocketOutportDriver.Uint64ByteSliceConverter
 }
 
-func NewWebSocketClient(urlReceive string, actions map[data.OperationType]func(marshalledData []byte) error) (*client, error) {
+// New will create a new instance of web-sockets client
+func New(
+	urlReceive string,
+	actions map[data.OperationType]func(marshalledData []byte,
+	) error) (*client, error) {
 	urlReceiveData := url.URL{Scheme: "ws", Host: fmt.Sprintf(urlReceive), Path: "/operations"}
 
 	return &client{
-		actions:    actions,
-		urlReceive: urlReceiveData.String(),
+		actions:                  actions,
+		urlReceive:               urlReceiveData.String(),
+		uint64ByteSliceConverter: uint64ByteSlice.NewBigEndianConverter(),
 	}, nil
 }
 
+// Start will initialize the connection to the server and start to listen for messages
 func (c *client) Start() {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
@@ -122,13 +129,12 @@ func (c *client) listeningOnWebSocket(wsConnection *websocket.Conn) {
 }
 
 func (c *client) verifyPayloadAndSendAckIfNeeded(payload []byte, ackHandler wsConn) {
-	uint64ByteSliceConverter := uint64ByteSlice.NewBigEndianConverter()
 	if len(payload) == 0 {
 		log.Error("empty payload")
 		return
 	}
 
-	payloadParser, _ := websocketOutportDriver.NewWebSocketPayloadParser(uint64ByteSliceConverter)
+	payloadParser, _ := websocketOutportDriver.NewWebSocketPayloadParser(c.uint64ByteSliceConverter)
 	payloadData, err := payloadParser.ExtractPayloadData(payload)
 	if err != nil {
 		log.Error("error while extracting payload data: " + err.Error())
@@ -152,7 +158,7 @@ func (c *client) verifyPayloadAndSendAckIfNeeded(payload []byte, ackHandler wsCo
 	}
 
 	if payloadData.WithAcknowledge {
-		counterBytes := uint64ByteSliceConverter.ToByteSlice(payloadData.Counter)
+		counterBytes := c.uint64ByteSliceConverter.ToByteSlice(payloadData.Counter)
 		err = ackHandler.WriteMessage(websocket.BinaryMessage, counterBytes)
 		if err != nil {
 			log.Error("write acknowledge message", "error", err.Error())

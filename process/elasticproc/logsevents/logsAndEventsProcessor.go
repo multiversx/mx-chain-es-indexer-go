@@ -30,7 +30,7 @@ type logsAndEventsProcessor struct {
 }
 
 // NewLogsAndEventsProcessor will create a new instance for the logsAndEventsProcessor
-func NewLogsAndEventsProcessor(args *ArgsLogsAndEventsProcessor) (*logsAndEventsProcessor, error) {
+func NewLogsAndEventsProcessor(args ArgsLogsAndEventsProcessor) (*logsAndEventsProcessor, error) {
 	err := checkArgsLogsAndEventsProcessor(args)
 	if err != nil {
 		return nil, err
@@ -45,7 +45,7 @@ func NewLogsAndEventsProcessor(args *ArgsLogsAndEventsProcessor) (*logsAndEvents
 	}, nil
 }
 
-func checkArgsLogsAndEventsProcessor(args *ArgsLogsAndEventsProcessor) error {
+func checkArgsLogsAndEventsProcessor(args ArgsLogsAndEventsProcessor) error {
 	if check.IfNil(args.PubKeyConverter) {
 		return dataindexer.ErrNilPubkeyConverter
 	}
@@ -62,7 +62,7 @@ func checkArgsLogsAndEventsProcessor(args *ArgsLogsAndEventsProcessor) error {
 	return nil
 }
 
-func createEventsProcessors(args *ArgsLogsAndEventsProcessor) []eventsProcessor {
+func createEventsProcessors(args ArgsLogsAndEventsProcessor) []eventsProcessor {
 	nftsProc := newNFTsProcessor(args.PubKeyConverter, args.Marshalizer)
 	fungibleProc := newFungibleESDTProcessor(args.PubKeyConverter)
 	scDeploysProc := newSCDeploysProcessor(args.PubKeyConverter)

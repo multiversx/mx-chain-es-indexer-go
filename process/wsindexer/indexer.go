@@ -1,19 +1,34 @@
 package wsindexer
 
 import (
+	"errors"
+
+	"github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
+	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
 	"github.com/ElrondNetwork/elrond-go-core/websocketOutportDriver/data"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 )
 
-var log = logger.GetOrCreate("process/wsindexer")
+var (
+	log               = logger.GetOrCreate("process/wsindexer")
+	errNilDataIndexer = errors.New("nil data indexer")
+)
 
 type indexer struct {
 	marshaller marshal.Marshalizer
 	di         DataIndexer
 }
 
+// NewIndexer will create a new instance of *indexer
 func NewIndexer(marshaller marshal.Marshalizer, dataIndexer DataIndexer) (*indexer, error) {
+	if check.IfNil(marshaller) {
+		return nil, dataindexer.ErrNilMarshalizer
+	}
+	if check.IfNil(dataIndexer) {
+		return nil, errNilDataIndexer
+	}
+
 	return &indexer{
 		marshaller: marshaller,
 		di:         dataIndexer,

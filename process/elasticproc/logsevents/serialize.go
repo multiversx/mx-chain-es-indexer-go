@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	converters2 "github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/converters"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/tokeninfo"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 )
@@ -14,7 +14,7 @@ import (
 // SerializeLogs will serialize the provided logs in a way that Elasticsearch expects a bulk request
 func (*logsAndEventsProcessor) SerializeLogs(logs []*data.Logs, buffSlice *data.BufferSlice, index string) error {
 	for _, lg := range logs {
-		meta := []byte(fmt.Sprintf(`{ "update" : { "_index":"%s", "_id" : "%s" } }%s`, index, converters2.JsonEscape(lg.ID), "\n"))
+		meta := []byte(fmt.Sprintf(`{ "update" : { "_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(lg.ID), "\n"))
 		serializedData, errMarshal := json.Marshal(lg)
 		if errMarshal != nil {
 			return errMarshal
@@ -38,7 +38,7 @@ func (*logsAndEventsProcessor) SerializeLogs(logs []*data.Logs, buffSlice *data.
 			`"lang": "painless",`+
 			`"params": { "log": %s }},`+
 			`"upsert": {}}`,
-			converters2.FormatPainlessSource(codeToExecute), serializedData,
+			converters.FormatPainlessSource(codeToExecute), serializedData,
 		)
 
 		err := buffSlice.PutData(meta, []byte(serializedDataStr))
@@ -53,7 +53,7 @@ func (*logsAndEventsProcessor) SerializeLogs(logs []*data.Logs, buffSlice *data.
 // SerializeSCDeploys will serialize the provided smart contract deploys in a way that Elasticsearch expects a bulk request
 func (*logsAndEventsProcessor) SerializeSCDeploys(deploys map[string]*data.ScDeployInfo, buffSlice *data.BufferSlice, index string) error {
 	for scAddr, deployInfo := range deploys {
-		meta := []byte(fmt.Sprintf(`{ "update" : { "_index":"%s", "_id" : "%s" } }%s`, index, converters2.JsonEscape(scAddr), "\n"))
+		meta := []byte(fmt.Sprintf(`{ "update" : { "_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(scAddr), "\n"))
 
 		serializedData, err := serializeDeploy(deployInfo)
 		if err != nil {
@@ -98,7 +98,7 @@ func serializeDeploy(deployInfo *data.ScDeployInfo) ([]byte, error) {
 		`"lang": "painless",`+
 		`"params": {"elem": %s}},`+
 		`"upsert": %s}`,
-		converters2.FormatPainlessSource(codeToExecute), string(upgradeSerialized), string(serializedData))
+		converters.FormatPainlessSource(codeToExecute), string(upgradeSerialized), string(serializedData))
 
 	return []byte(serializedDataStr), nil
 }
@@ -117,7 +117,7 @@ func (*logsAndEventsProcessor) SerializeTokens(tokens []*data.TokenInfo, updateN
 		}
 	}
 
-	return converters2.PrepareNFTUpdateData(buffSlice, updateNFTData, false, index)
+	return converters.PrepareNFTUpdateData(buffSlice, updateNFTData, false, index)
 }
 
 func serializeToken(tokenData *data.TokenInfo, index string) ([]byte, []byte, error) {
@@ -125,7 +125,7 @@ func serializeToken(tokenData *data.TokenInfo, index string) ([]byte, []byte, er
 		return serializeTokenTransferOwnership(tokenData, index)
 	}
 
-	meta := []byte(fmt.Sprintf(`{ "update" : { "_index":"%s", "_id" : "%s" } }%s`, index, converters2.JsonEscape(tokenData.Token), "\n"))
+	meta := []byte(fmt.Sprintf(`{ "update" : { "_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(tokenData.Token), "\n"))
 	serializedTokenData, err := json.Marshal(tokenData)
 	if err != nil {
 		return nil, nil, err
@@ -143,13 +143,13 @@ func serializeToken(tokenData *data.TokenInfo, index string) ([]byte, []byte, er
 		`"lang": "painless",`+
 		`"params": {"token": %s}},`+
 		`"upsert": %s}`,
-		converters2.FormatPainlessSource(codeToExecute), string(serializedTokenData), string(serializedTokenData))
+		converters.FormatPainlessSource(codeToExecute), string(serializedTokenData), string(serializedTokenData))
 
 	return meta, []byte(serializedDataStr), nil
 }
 
 func serializeTokenTransferOwnership(tokenData *data.TokenInfo, index string) ([]byte, []byte, error) {
-	meta := []byte(fmt.Sprintf(`{ "update" : { "_index":"%s", "_id" : "%s" } }%s`, index, converters2.JsonEscape(tokenData.Token), "\n"))
+	meta := []byte(fmt.Sprintf(`{ "update" : { "_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(tokenData.Token), "\n"))
 	tokenDataSerialized, err := json.Marshal(tokenData)
 	if err != nil {
 		return nil, nil, err
@@ -178,7 +178,7 @@ func serializeTokenTransferOwnership(tokenData *data.TokenInfo, index string) ([
 		`"lang": "painless",`+
 		`"params": {"elem": %s, "owner": "%s"}},`+
 		`"upsert": %s}`,
-		converters2.FormatPainlessSource(codeToExecute), string(ownerDataSerialized), converters2.JsonEscape(tokenData.CurrentOwner), string(tokenDataSerialized))
+		converters.FormatPainlessSource(codeToExecute), string(ownerDataSerialized), converters.JsonEscape(tokenData.CurrentOwner), string(tokenDataSerialized))
 
 	return meta, []byte(serializedDataStr), nil
 }
@@ -203,11 +203,11 @@ func (lep *logsAndEventsProcessor) SerializeDelegators(delegators map[string]*da
 func (lep *logsAndEventsProcessor) prepareSerializedDelegator(delegator *data.Delegator, index string) ([]byte, []byte, error) {
 	id := lep.computeDelegatorID(delegator)
 	if delegator.ShouldDelete {
-		meta := []byte(fmt.Sprintf(`{ "delete" : { "_index": "%s", "_id" : "%s" } }%s`, index, converters2.JsonEscape(id), "\n"))
+		meta := []byte(fmt.Sprintf(`{ "delete" : { "_index": "%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(id), "\n"))
 		return meta, nil, nil
 	}
 
-	meta := []byte(fmt.Sprintf(`{ "index" : { "_index": "%s", "_id" : "%s" } }%s`, index, converters2.JsonEscape(id), "\n"))
+	meta := []byte(fmt.Sprintf(`{ "index" : { "_index": "%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(id), "\n"))
 	serializedData, errMarshal := json.Marshal(delegator)
 	if errMarshal != nil {
 		return nil, nil, errMarshal
@@ -231,7 +231,7 @@ func (lep *logsAndEventsProcessor) SerializeSupplyData(tokensSupply data.TokensH
 			continue
 		}
 
-		meta := []byte(fmt.Sprintf(`{ "delete" : { "_index": "%s", "_id" : "%s" } }%s`, index, converters2.JsonEscape(supplyData.Identifier), "\n"))
+		meta := []byte(fmt.Sprintf(`{ "delete" : { "_index": "%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(supplyData.Identifier), "\n"))
 		err := buffSlice.PutData(meta, nil)
 		if err != nil {
 			return err
@@ -267,7 +267,7 @@ func (lep *logsAndEventsProcessor) SerializeRolesData(
 }
 
 func serializeRoleData(buffSlice *data.BufferSlice, rd *tokeninfo.RoleData, role string, index string) error {
-	meta := []byte(fmt.Sprintf(`{ "update" : {"_index": "%s", "_id" : "%s" } }%s`, index, converters2.JsonEscape(rd.Token), "\n"))
+	meta := []byte(fmt.Sprintf(`{ "update" : {"_index": "%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(rd.Token), "\n"))
 	var serializedDataStr string
 	if rd.Set {
 		codeToExecute := `	
@@ -291,11 +291,11 @@ func serializeRoleData(buffSlice *data.BufferSlice, rd *tokeninfo.RoleData, role
 			`"lang": "painless",`+
 			`"params": { "role": "%s", "address": "%s"}},`+
 			`"upsert": { "roles": {"%s": ["%s"]}}}`,
-			converters2.FormatPainlessSource(codeToExecute),
-			converters2.JsonEscape(role),
-			converters2.JsonEscape(rd.Address),
-			converters2.JsonEscape(role),
-			converters2.JsonEscape(rd.Address),
+			converters.FormatPainlessSource(codeToExecute),
+			converters.JsonEscape(role),
+			converters.JsonEscape(rd.Address),
+			converters.JsonEscape(role),
+			converters.JsonEscape(rd.Address),
 		)
 	} else {
 		codeToExecute := `
@@ -310,9 +310,9 @@ func serializeRoleData(buffSlice *data.BufferSlice, rd *tokeninfo.RoleData, role
 			`"lang": "painless",`+
 			`"params": { "role": "%s", "address": "%s" }},`+
 			`"upsert": {} }`,
-			converters2.FormatPainlessSource(codeToExecute),
-			converters2.JsonEscape(role),
-			converters2.JsonEscape(rd.Address),
+			converters.FormatPainlessSource(codeToExecute),
+			converters.JsonEscape(role),
+			converters.JsonEscape(rd.Address),
 		)
 	}
 
@@ -320,7 +320,7 @@ func serializeRoleData(buffSlice *data.BufferSlice, rd *tokeninfo.RoleData, role
 }
 
 func serializePropertiesData(buffSlice *data.BufferSlice, index string, tokenProp *tokeninfo.PropertiesData) error {
-	meta := []byte(fmt.Sprintf(`{ "update" : {"_index": "%s", "_id" : "%s" } }%s`, index, converters2.JsonEscape(tokenProp.Token), "\n"))
+	meta := []byte(fmt.Sprintf(`{ "update" : {"_index": "%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(tokenProp.Token), "\n"))
 
 	propertiesBytes, err := json.Marshal(tokenProp.Properties)
 	if err != nil {
@@ -340,7 +340,7 @@ func serializePropertiesData(buffSlice *data.BufferSlice, index string, tokenPro
 		`"lang": "painless",`+
 		`"params": { "properties": %s}},`+
 		`"upsert": {}}}`,
-		converters2.FormatPainlessSource(codeToExecute), propertiesBytes)
+		converters.FormatPainlessSource(codeToExecute), propertiesBytes)
 
 	return buffSlice.PutData(meta, []byte(serializedDataStr))
 }

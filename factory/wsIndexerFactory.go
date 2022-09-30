@@ -13,8 +13,13 @@ import (
 
 var log = logger.GetOrCreate("factory")
 
-func CreateWsIndexer(cfg *config.Config) (wsindexer.WSClient, error) {
-	dataIndexer, err := createDataIndexer(cfg)
+const (
+	indexerCacheSize = 1
+)
+
+// CreateWsIndexer will create a new instance of wsindexer.WSClient
+func CreateWsIndexer(cfg config.Config, clusterCfg config.ClusterConfig) (wsindexer.WSClient, error) {
+	dataIndexer, err := createDataIndexer(cfg, clusterCfg)
 	if err != nil {
 		return nil, err
 	}
@@ -25,11 +30,14 @@ func CreateWsIndexer(cfg *config.Config) (wsindexer.WSClient, error) {
 	}
 
 	indexer, err := wsindexer.NewIndexer(wsMarshaller, dataIndexer)
+	if err != nil {
+		return nil, err
+	}
 
-	return wsclient.NewWebSocketClient(cfg.Config.WebSocket.ServerURL, indexer.GetFunctionsMap())
+	return wsclient.New(cfg.Config.WebSocket.ServerURL, indexer.GetFunctionsMap())
 }
 
-func createDataIndexer(cfg *config.Config) (wsindexer.DataIndexer, error) {
+func createDataIndexer(cfg config.Config, clusterCfg config.ClusterConfig) (wsindexer.DataIndexer, error) {
 	marshaller, err := factoryMarshaller.NewMarshalizer(cfg.Config.Marshaller.Type)
 	if err != nil {
 		return nil, err
@@ -47,15 +55,14 @@ func createDataIndexer(cfg *config.Config) (wsindexer.DataIndexer, error) {
 		return nil, err
 	}
 
-	return factory.NewIndexer(&factory.ArgsIndexerFactory{
-		UseKibana: cfg.Config.ElasticCluster.UseKibana,
-		// Todo check if this is needed
-		IndexerCacheSize:         1,
+	return factory.NewIndexer(factory.ArgsIndexerFactory{
+		UseKibana:                clusterCfg.ElasticCluster.UseKibana,
+		IndexerCacheSize:         indexerCacheSize,
 		Denomination:             cfg.Config.Economics.Denomination,
-		BulkRequestMaxSize:       cfg.Config.ElasticCluster.BulkRequestMaxSizeInBytes,
-		Url:                      cfg.Config.ElasticCluster.URL,
-		UserName:                 cfg.Config.ElasticCluster.UserName,
-		Password:                 cfg.Config.ElasticCluster.Password,
+		BulkRequestMaxSize:       clusterCfg.ElasticCluster.BulkRequestMaxSizeInBytes,
+		Url:                      clusterCfg.ElasticCluster.URL,
+		UserName:                 clusterCfg.ElasticCluster.UserName,
+		Password:                 clusterCfg.ElasticCluster.Password,
 		EnabledIndexes:           cfg.Config.EnabledIndices,
 		Marshalizer:              marshaller,
 		Hasher:                   hasher,

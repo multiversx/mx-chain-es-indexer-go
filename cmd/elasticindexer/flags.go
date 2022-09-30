@@ -11,6 +11,13 @@ var (
 		Usage: "The main configuration file to load",
 		Value: "./config/config.toml",
 	}
+	// configurationPreferencesFile defines a flag for the path to the preferences toml configuration file
+	configurationPreferencesFile = cli.StringFlag{
+		Name: "config-preferences",
+		Usage: "The [path] for the preferences configuration file. This TOML file contains " +
+			"preferences configurations, such as the node display name or the shard to start in when starting as observer",
+		Value: "./config/prefs.toml",
+	}
 	logLevel = cli.StringFlag{
 		Name: "log-level",
 		Usage: "This flag specifies the logger `level(s)`. It can contain multiple comma-separated value. For example" +
