@@ -11,6 +11,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/factory"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
+	"github.com/ElrondNetwork/elrond-go-core/core/closing"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-go-logger/file"
 	"github.com/urfave/cli"
@@ -90,7 +91,7 @@ func startIndexer(ctx *cli.Context) error {
 
 	<-interrupt
 	wsClient.Close()
-	if !check.IfNil(fileLogging) {
+	if !check.IfNilReflect(fileLogging) {
 		err = fileLogging.Close()
 		log.LogIfError(err)
 	}
@@ -111,7 +112,7 @@ func loadClusterConfig(filepath string) (config.ClusterConfig, error) {
 	return cfg, err
 }
 
-func initializeLogger(ctx *cli.Context, cfg config.Config) (file.FileLoggingHandler, error) {
+func initializeLogger(ctx *cli.Context, cfg config.Config) (closing.Closer, error) {
 	logLevelFlagValue := ctx.GlobalString(logLevel.Name)
 	err := logger.SetLogLevel(logLevelFlagValue)
 	if err != nil {
