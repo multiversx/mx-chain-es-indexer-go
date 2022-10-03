@@ -54,7 +54,7 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, testsNumOfShards)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, testNumOfShards)
 	require.Nil(t, err)
 
 	ids := []string{"SEMI-abcd"}
@@ -117,7 +117,7 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testsNumOfShards)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
 	require.Nil(t, err)
 
 	ids = []string{"6161616162626262-SEMI-abcd-02"}
@@ -190,7 +190,7 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testsNumOfShards)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
 	require.Nil(t, err)
 
 	ids := []string{"6161616162626262-TTTT-abcd-02"}
@@ -229,7 +229,7 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, testsNumOfShards)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, testNumOfShards)
 	require.Nil(t, err)
 
 	ids = []string{"TTTT-abcd"}

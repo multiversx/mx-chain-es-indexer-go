@@ -90,6 +90,7 @@ func startIndexer(ctx *cli.Context) error {
 	go wsClient.Start()
 
 	<-interrupt
+	log.Info("closing app at user's signal")
 	wsClient.Close()
 	if !check.IfNilReflect(fileLogging) {
 		err = fileLogging.Close()
@@ -147,15 +148,19 @@ func initializeLogger(ctx *cli.Context, cfg config.Config) (closing.Closer, erro
 		return nil, err
 	}
 
-	err = logger.RemoveLogObserver(os.Stdout)
-	if err != nil {
-		return nil, err
-	}
-
-	err = logger.AddLogObserver(os.Stdout, &logger.PlainFormatter{})
+	err = removeANSIColorsForLogger()
 	if err != nil {
 		return nil, err
 	}
 
 	return fileLogging, nil
+}
+
+func removeANSIColorsForLogger() error {
+	err := logger.RemoveLogObserver(os.Stdout)
+	if err != nil {
+		return err
+	}
+
+	return logger.AddLogObserver(os.Stdout, &logger.PlainFormatter{})
 }

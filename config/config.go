@@ -3,11 +3,6 @@ package config
 // Config will hold the whole config file's data
 type Config struct {
 	Config struct {
-		EnabledIndices []string `toml:"enabled-indices"`
-		WebSocket      struct {
-			ServerURL          string `toml:"server-url"`
-			DataMarshallerType string `toml:"data-marshaller-type"`
-		} `toml:"web-socket"`
 		AddressConverter struct {
 			Length int    `toml:"length"`
 			Type   string `toml:"type"`
@@ -36,11 +31,18 @@ type Config struct {
 
 // ClusterConfig will hold the config for the Elasticsearch cluster
 type ClusterConfig struct {
-	ElasticCluster struct {
-		UseKibana                 bool   `toml:"use-kibana"`
-		URL                       string `toml:"url"`
-		UserName                  string `toml:"username"`
-		Password                  string `toml:"password"`
-		BulkRequestMaxSizeInBytes int    `toml:"bulk-request-max-size-in-bytes"`
-	} `toml:"elastic-cluster"`
+	Config struct {
+		EnabledIndices []string `toml:"enabled-indices"`
+		WebSocket      struct {
+			ServerURL          string `toml:"server-url"`
+			DataMarshallerType string `toml:"data-marshaller-type"`
+		} `toml:"web-socket"`
+		ElasticCluster struct {
+			UseKibana                 bool   `toml:"use-kibana"`
+			URL                       string `toml:"url"`
+			UserName                  string `toml:"username"`
+			Password                  string `toml:"password"`
+			BulkRequestMaxSizeInBytes int    `toml:"bulk-request-max-size-in-bytes"`
+		} `toml:"elastic-cluster"`
+	} `toml:"config"`
 }

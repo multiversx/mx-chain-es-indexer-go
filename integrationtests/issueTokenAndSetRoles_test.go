@@ -54,7 +54,7 @@ func TestIssueTokenAndSetRole(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, testsNumOfShards)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, testNumOfShards)
 	require.Nil(t, err)
 
 	ids := []string{"TOK-abcd"}
@@ -83,7 +83,7 @@ func TestIssueTokenAndSetRole(t *testing.T) {
 	}
 
 	header.TimeStamp = 10000
-	err = esProc.SaveTransactions(body, header, pool, nil, false, testsNumOfShards)
+	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
 	require.Nil(t, err)
 
 	ids = []string{"TOK-abcd"}
@@ -116,7 +116,7 @@ func TestIssueTokenAndSetRole(t *testing.T) {
 	}
 
 	header.TimeStamp = 10000
-	err = esProc.SaveTransactions(body, header, pool, nil, false, testsNumOfShards)
+	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
 	require.Nil(t, err)
 
 	ids = []string{"TOK-abcd"}
@@ -145,7 +145,7 @@ func TestIssueTokenAndSetRole(t *testing.T) {
 	}
 
 	header.TimeStamp = 10000
-	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, testsNumOfShards)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, testNumOfShards)
 	require.Nil(t, err)
 
 	ids = []string{"TOK-abcd"}
@@ -191,7 +191,7 @@ func TestIssueSetRolesEventAndAfterTokenIssue(t *testing.T) {
 	}
 
 	header.TimeStamp = 10000
-	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, testsNumOfShards)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, testNumOfShards)
 	require.Nil(t, err)
 
 	ids := []string{"TTT-abcd"}
@@ -219,7 +219,7 @@ func TestIssueSetRolesEventAndAfterTokenIssue(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, testsNumOfShards)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, testNumOfShards)
 	require.Nil(t, err)
 
 	ids = []string{"TTT-abcd"}

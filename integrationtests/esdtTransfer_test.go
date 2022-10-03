@@ -94,7 +94,7 @@ func TestESDTTransferTooMuchGasProvided(t *testing.T) {
 			string(scrHash1): outport.NewTransactionHandlerWithGasAndFee(scr1, 0, big.NewInt(0)),
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, nil, false, testsNumOfShards)
+	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
 	require.Nil(t, err)
 
 	ids := []string{hex.EncodeToString(txHash)}

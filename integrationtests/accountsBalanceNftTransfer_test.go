@@ -68,7 +68,7 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testsNumOfShards)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
 	require.Nil(t, err)
 
 	ids := []string{"746573742d616464726573732d62616c616e63652d31-NFT-abcdef-718863"}
@@ -124,7 +124,7 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testsNumOfShards)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
 	require.Nil(t, err)
 
 	ids = []string{"746573742d616464726573732d62616c616e63652d31-NFT-abcdef-718863"}

@@ -5,7 +5,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 )
 
-// WSClient defines what a websockets client should do
+// WSClient defines what a websocket client should do
 type WSClient interface {
 	Start()
 	Close()

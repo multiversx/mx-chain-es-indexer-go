@@ -86,7 +86,7 @@ func TestCreateNFTWithTags(t *testing.T) {
 	}
 
 	body := &dataBlock.Body{}
-	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testsNumOfShards)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
 	require.Nil(t, err)
 
 	ids := []string{"6161616162626262-DESK-abcd-01"}
@@ -133,7 +133,7 @@ func TestCreateNFTWithTags(t *testing.T) {
 
 	coreAlteredAccounts[addrHex].Tokens[0].Nonce = 2
 	body = &dataBlock.Body{}
-	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testsNumOfShards)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
 	require.Nil(t, err)
 
 	genericResponse = &GenericResponse{}
@@ -181,7 +181,7 @@ func TestCreateNFTWithTags(t *testing.T) {
 	}
 
 	body = &dataBlock.Body{}
-	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testsNumOfShards)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
 	require.Nil(t, err)
 
 	ids = append(ids, "XFxcXFxcXFxcXFxcXFxcXFxcXA==", "JycnJw==", "PDw8Pj4+JiYmJiYmJiYmJiYmJiYm")

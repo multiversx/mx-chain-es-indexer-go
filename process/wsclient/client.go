@@ -41,7 +41,7 @@ type client struct {
 	wsConnection             wsConn
 }
 
-// New will create a new instance of web-sockets client
+// New will create a new instance of websocket client
 func New(
 	urlReceive string,
 	operationsHandler operationsHandler,
@@ -98,7 +98,7 @@ func (c *client) listeningOnWebSocket() (closed bool) {
 			if strings.Contains(err.Error(), closedConnection) {
 				return true
 			}
-			log.Warn("websocket error, retrying in ...", "error", err.Error())
+			log.Warn("c.listeningOnWebSocket()-> connection problem, retrying", "error", err.Error())
 		} else {
 			log.Warn(fmt.Sprintf("websocket terminated by the server side, retrying in %v...", retryDuration), "error", err.Error())
 		}

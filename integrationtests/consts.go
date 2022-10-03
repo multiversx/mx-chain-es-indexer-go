@@ -2,7 +2,7 @@ package integrationtests
 
 const (
 	//nolint
-	testsNumOfShards = 3
+	testNumOfShards = 3
 	//nolint
 	esURL = "http://localhost:9200"
 )

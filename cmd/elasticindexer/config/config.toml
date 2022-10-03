@@ -1,12 +1,4 @@
 [config]
-    enabled-indices =  [
-        "rating", "transactions", "blocks", "validators", "miniblocks", "rounds", "accounts", "accountshistory",
-        "receipts", "scresults", "accountsesdt", "accountsesdthistory", "epochinfo", "scdeploys", "tokens", "tags",
-        "logs", "delegators", "operations", "collections"
-    ]
-    [config.web-socket]
-        server-url = "localhost:22111"
-        data-marshaller-type = "json"
     [config.address-converter]
         length = 32
         type = "bech32"

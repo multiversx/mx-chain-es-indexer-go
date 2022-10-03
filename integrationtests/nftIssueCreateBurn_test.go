@@ -53,7 +53,7 @@ func TestIssueNFTCreateAndBurn(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, nil, false, testsNumOfShards)
+	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
 	require.Nil(t, err)
 
 	ids := []string{"NON-abcd"}
@@ -97,7 +97,7 @@ func TestIssueNFTCreateAndBurn(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, nil, false, testsNumOfShards)
+	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
 	require.Nil(t, err)
 
 	ids = []string{"NON-abcd-02"}
@@ -132,7 +132,7 @@ func TestIssueNFTCreateAndBurn(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, nil, false, testsNumOfShards)
+	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
 	require.Nil(t, err)
 
 	ids = []string{"NON-abcd-02"}

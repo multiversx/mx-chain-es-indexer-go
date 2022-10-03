@@ -53,7 +53,7 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, nil, false, testsNumOfShards)
+	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
 	require.Nil(t, err)
 
 	// ################ CREATE SEMI FUNGIBLE TOKEN 1 ##########################
@@ -129,7 +129,7 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testsNumOfShards)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
 	require.Nil(t, err)
 	ids := []string{"61616161626262626363636363636363"}
 	genericResponse := &GenericResponse{}
@@ -159,7 +159,7 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 	coreAlteredAccounts[addrHex].Tokens[0].Nonce = 22
 	coreAlteredAccounts[addrForLogHex].Tokens[0].Nonce = 22
 
-	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testsNumOfShards)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
 	require.Nil(t, err)
 	ids = []string{"61616161626262626363636363636363"}
 	genericResponse = &GenericResponse{}
@@ -208,7 +208,7 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testsNumOfShards)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
 	require.Nil(t, err)
 	ids = []string{"61616161626262626363636363636363"}
 	genericResponse = &GenericResponse{}

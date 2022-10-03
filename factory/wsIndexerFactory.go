@@ -24,7 +24,7 @@ func CreateWsIndexer(cfg config.Config, clusterCfg config.ClusterConfig) (wsinde
 		return nil, err
 	}
 
-	wsMarshaller, err := factoryMarshaller.NewMarshalizer(cfg.Config.WebSocket.DataMarshallerType)
+	wsMarshaller, err := factoryMarshaller.NewMarshalizer(clusterCfg.Config.WebSocket.DataMarshallerType)
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +34,7 @@ func CreateWsIndexer(cfg config.Config, clusterCfg config.ClusterConfig) (wsinde
 		return nil, err
 	}
 
-	return wsclient.New(cfg.Config.WebSocket.ServerURL, indexer)
+	return wsclient.New(clusterCfg.Config.WebSocket.ServerURL, indexer)
 }
 
 func createDataIndexer(cfg config.Config, clusterCfg config.ClusterConfig) (wsindexer.DataIndexer, error) {
@@ -56,14 +56,14 @@ func createDataIndexer(cfg config.Config, clusterCfg config.ClusterConfig) (wsin
 	}
 
 	return factory.NewIndexer(factory.ArgsIndexerFactory{
-		UseKibana:                clusterCfg.ElasticCluster.UseKibana,
+		UseKibana:                clusterCfg.Config.ElasticCluster.UseKibana,
 		IndexerCacheSize:         indexerCacheSize,
 		Denomination:             cfg.Config.Economics.Denomination,
-		BulkRequestMaxSize:       clusterCfg.ElasticCluster.BulkRequestMaxSizeInBytes,
-		Url:                      clusterCfg.ElasticCluster.URL,
-		UserName:                 clusterCfg.ElasticCluster.UserName,
-		Password:                 clusterCfg.ElasticCluster.Password,
-		EnabledIndexes:           cfg.Config.EnabledIndices,
+		BulkRequestMaxSize:       clusterCfg.Config.ElasticCluster.BulkRequestMaxSizeInBytes,
+		Url:                      clusterCfg.Config.ElasticCluster.URL,
+		UserName:                 clusterCfg.Config.ElasticCluster.UserName,
+		Password:                 clusterCfg.Config.ElasticCluster.Password,
+		EnabledIndexes:           clusterCfg.Config.EnabledIndices,
 		Marshalizer:              marshaller,
 		Hasher:                   hasher,
 		AddressPubkeyConverter:   addressPubkeyConverter,

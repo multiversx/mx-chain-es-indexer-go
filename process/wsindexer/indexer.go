@@ -35,6 +35,7 @@ func NewIndexer(marshaller marshal.Marshalizer, dataIndexer DataIndexer) (*index
 	}, nil
 }
 
+// GetOperationsMap returns the map with all the operations that will index data
 func (i *indexer) GetOperationsMap() map[data.OperationType]func(d []byte) error {
 	return map[data.OperationType]func(d []byte) error{
 		data.OperationSaveBlock:             i.saveBlock,
@@ -48,12 +49,12 @@ func (i *indexer) GetOperationsMap() map[data.OperationType]func(d []byte) error
 }
 
 func (i *indexer) saveBlock(marshalledData []byte) error {
-	argsSaveBlock, err := i.getArgsSaveBlock(marshalledData)
+	argsSaveBlockS, err := i.getArgsSaveBlock(marshalledData)
 	if err != nil {
 		return err
 	}
 
-	return i.di.SaveBlock(argsSaveBlock)
+	return i.di.SaveBlock(argsSaveBlockS)
 }
 
 func (i *indexer) revertIndexedBlock(marshalledData []byte) error {

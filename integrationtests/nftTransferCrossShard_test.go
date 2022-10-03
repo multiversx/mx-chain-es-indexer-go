@@ -80,7 +80,7 @@ func TestNFTTransferCrossShardWithSCCall(t *testing.T) {
 			string(scrHash1): outport.NewTransactionHandlerWithGasAndFee(scr1, 0, big.NewInt(0)),
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, nil, false, testsNumOfShards)
+	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
 	require.Nil(t, err)
 
 	ids := []string{hex.EncodeToString(txHash)}
@@ -120,7 +120,7 @@ func TestNFTTransferCrossShardWithSCCall(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(bodyDstShard, header, poolDstShard, nil, false, testsNumOfShards)
+	err = esProc.SaveTransactions(bodyDstShard, header, poolDstShard, nil, false, testNumOfShards)
 	require.Nil(t, err)
 
 	err = esClient.DoMultiGet(ids, indexerdata.TransactionsIndex, true, genericResponse)
@@ -214,7 +214,7 @@ func TestNFTTransferCrossShard(t *testing.T) {
 			string(scrHash2): outport.NewTransactionHandlerWithGasAndFee(scr2, 0, big.NewInt(0)),
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, nil, false, testsNumOfShards)
+	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
 	require.Nil(t, err)
 
 	ids := []string{hex.EncodeToString(txHash)}
@@ -252,7 +252,7 @@ func TestNFTTransferCrossShard(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(bodyDstShard, header, poolDstShard, nil, false, testsNumOfShards)
+	err = esProc.SaveTransactions(bodyDstShard, header, poolDstShard, nil, false, testNumOfShards)
 	require.Nil(t, err)
 
 	err = esClient.DoMultiGet(ids, indexerdata.TransactionsIndex, true, genericResponse)
@@ -318,7 +318,7 @@ func TestNFTTransferCrossShardImportDBScenarioFirstIndexDestinationAfterSource(t
 
 	ids := []string{hex.EncodeToString(txHash)}
 	genericResponse := &GenericResponse{}
-	err = esProc.SaveTransactions(bodyDstShard, header, poolDstShard, nil, false, testsNumOfShards)
+	err = esProc.SaveTransactions(bodyDstShard, header, poolDstShard, nil, false, testNumOfShards)
 	require.Nil(t, err)
 
 	err = esClient.DoMultiGet(ids, indexerdata.TransactionsIndex, true, genericResponse)
@@ -378,7 +378,7 @@ func TestNFTTransferCrossShardImportDBScenarioFirstIndexDestinationAfterSource(t
 			string(scrHash2): outport.NewTransactionHandlerWithGasAndFee(scr2, 0, big.NewInt(0)),
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, nil, false, testsNumOfShards)
+	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
 	require.Nil(t, err)
 
 	err = esClient.DoMultiGet(ids, indexerdata.TransactionsIndex, true, genericResponse)
