@@ -139,4 +139,12 @@ func TestNftsProcessor_processLogAndEventsNFTs_Wipe(t *testing.T) {
 		TokenIdentifier: "nft-0123",
 		NFTNonce:        20,
 	}, alteredAddrSender[0])
+
+	alteredAddrReceiver, ok := altered.Get("7265636569766572")
+	require.True(t, ok)
+	require.Equal(t, &data.AlteredAccount{
+		IsNFTOperation:  true,
+		TokenIdentifier: "nft-0123",
+		NFTNonce:        20,
+	}, alteredAddrReceiver[0])
 }

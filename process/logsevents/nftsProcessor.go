@@ -112,7 +112,7 @@ func (np *nftsProcessor) processEvent(args *argsProcessEvent) argOutputProcessEv
 func (np *nftsProcessor) shouldAddReceiverData(args *argsProcessEvent) bool {
 	eventIdentifier := string(args.event.GetIdentifier())
 	isWrongIdentifier := eventIdentifier != core.BuiltInFunctionESDTNFTTransfer &&
-		eventIdentifier != core.BuiltInFunctionMultiESDTNFTTransfer
+		eventIdentifier != core.BuiltInFunctionMultiESDTNFTTransfer && eventIdentifier != core.BuiltInFunctionESDTWipe
 
 	if isWrongIdentifier || len(args.event.GetTopics()) < numTopicsWithReceiverAddress {
 		return false
