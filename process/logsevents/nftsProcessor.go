@@ -94,6 +94,15 @@ func (np *nftsProcessor) processEvent(args *argsProcessEvent) argOutputProcessEv
 		}
 	}
 
+	if eventIdentifier == core.BuiltInFunctionESDTWipe {
+		args.tokensSupply.Add(&data.TokenInfo{
+			Token:      token,
+			Identifier: identifier,
+			Timestamp:  time.Duration(args.timestamp),
+			Nonce:      nonceBig.Uint64(),
+		})
+	}
+
 	args.accounts.Add(encodedReceiver, &data.AlteredAccount{
 		IsNFTOperation:  true,
 		TokenIdentifier: token,
