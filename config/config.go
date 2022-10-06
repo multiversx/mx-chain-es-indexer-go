@@ -1,0 +1,49 @@
+package config
+
+// Config will hold the whole config file's data
+type Config struct {
+	Config struct {
+		AvailableIndices []string `toml:"available-indices"`
+		AddressConverter struct {
+			Length int    `toml:"length"`
+			Type   string `toml:"type"`
+		} `toml:"address-converter"`
+		ValidatorKeysConverter struct {
+			Length int    `toml:"length"`
+			Type   string `toml:"type"`
+		} `toml:"validator-keys-converter"`
+		Hasher struct {
+			Type string `toml:"type"`
+		} `toml:"hasher"`
+		Marshaller struct {
+			Type string `toml:"type"`
+		} `toml:"marshaller"`
+		Economics struct {
+			Denomination int `toml:"denomination"`
+		} `toml:"economics"`
+		Logs struct {
+			LogFileLifeSpanInMB  int    `toml:"log-file-life-span-in-mb"`
+			LogFileLifeSpanInSec int    `toml:"log-file-life-span-in-sec"`
+			LogFilePrefix        string `toml:"log-file-prefix"`
+			LogsPath             string `toml:"logs-path"`
+		} `toml:"logs"`
+	} `toml:"config"`
+}
+
+// ClusterConfig will hold the config for the Elasticsearch cluster
+type ClusterConfig struct {
+	Config struct {
+		DisabledIndices []string `toml:"disabled-indices"`
+		WebSocket       struct {
+			ServerURL          string `toml:"server-url"`
+			DataMarshallerType string `toml:"data-marshaller-type"`
+		} `toml:"web-socket"`
+		ElasticCluster struct {
+			UseKibana                 bool   `toml:"use-kibana"`
+			URL                       string `toml:"url"`
+			UserName                  string `toml:"username"`
+			Password                  string `toml:"password"`
+			BulkRequestMaxSizeInBytes int    `toml:"bulk-request-max-size-in-bytes"`
+		} `toml:"elastic-cluster"`
+	} `toml:"config"`
+}

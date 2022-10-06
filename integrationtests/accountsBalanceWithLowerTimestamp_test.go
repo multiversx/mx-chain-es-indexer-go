@@ -7,8 +7,7 @@ import (
 	"math/big"
 	"testing"
 
-	indexerdata "github.com/ElrondNetwork/elastic-indexer-go"
-	"github.com/ElrondNetwork/elastic-indexer-go/mock"
+	indexerdata "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
@@ -25,10 +24,6 @@ func TestIndexAccountsBalance(t *testing.T) {
 	require.Nil(t, err)
 
 	// ################ UPDATE ACCOUNT-ESDT BALANCE ##########################
-	shardCoordinator := &mock.ShardCoordinatorMock{
-		SelfID: 0,
-	}
-
 	body := &dataBlock.Body{}
 
 	esdtToken := &esdt.ESDigitalToken{
@@ -57,12 +52,13 @@ func TestIndexAccountsBalance(t *testing.T) {
 		encodedAddr2: alteredAccount,
 	}
 
-	esProc, err := CreateElasticProcessor(esClient, shardCoordinator)
+	esProc, err := CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
 	header := &dataBlock.Header{
 		Round:     51,
 		TimeStamp: 5600,
+		ShardID:   2,
 	}
 
 	pool := &outport.Pool{
@@ -83,7 +79,7 @@ func TestIndexAccountsBalance(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
 	require.Nil(t, err)
 
 	ids := []string{"6161616162626262"}
@@ -103,9 +99,10 @@ func TestIndexAccountsBalance(t *testing.T) {
 	header = &dataBlock.Header{
 		Round:     51,
 		TimeStamp: 5000,
+		ShardID:   2,
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{})
+	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, testNumOfShards)
 	require.Nil(t, err)
 
 	ids = []string{"6161616162626262"}
@@ -124,14 +121,14 @@ func TestIndexAccountsBalance(t *testing.T) {
 	header = &dataBlock.Header{
 		Round:     51,
 		TimeStamp: 6000,
+		ShardID:   2,
 	}
 
 	coreAlteredAccounts[encodedAddr].Balance = "2000"
-
 	pool = &outport.Pool{
 		Txs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
 			"h1": outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
-				SndAddr: []byte("eeeebbbb"),
+				SndAddr: []byte(addr),
 			}, 0, big.NewInt(0)),
 		},
 		Logs: []*coreData.LogData{
@@ -153,13 +150,14 @@ func TestIndexAccountsBalance(t *testing.T) {
 	body = &dataBlock.Body{
 		MiniBlocks: []*dataBlock.MiniBlock{
 			{
-				Type:     dataBlock.TxBlock,
-				TxHashes: [][]byte{[]byte("h1")},
+				Type:          dataBlock.TxBlock,
+				TxHashes:      [][]byte{[]byte("h1")},
+				SenderShardID: 2,
 			},
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
 	require.Nil(t, err)
 
 	ids = []string{"6161616162626262"}
@@ -178,19 +176,20 @@ func TestIndexAccountsBalance(t *testing.T) {
 
 	esdtToken.Value = big.NewInt(0)
 	encodedAddr = hex.EncodeToString([]byte(addr))
-	esProc, err = CreateElasticProcessor(esClient, shardCoordinator)
+	esProc, err = CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
 	header = &dataBlock.Header{
 		Round:     51,
 		TimeStamp: 6001,
+		ShardID:   2,
 	}
 
 	coreAlteredAccounts[encodedAddr].Balance = "2000"
 	coreAlteredAccounts[encodedAddr].Tokens[0].Balance = "0"
 
 	pool.Txs = make(map[string]coreData.TransactionHandlerWithGasUsedAndFee)
-	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
 	require.Nil(t, err)
 
 	ids = []string{"6161616162626262"}

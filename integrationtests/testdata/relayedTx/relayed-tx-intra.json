@@ -22,7 +22,7 @@
     "ae49d2246cf8ee248dc8a09dfcf3aaa6ec244f0844e349b31a35d94219dbfab3"
   ],
   "receiversShardIDs": [
-    0
+    1
   ],
   "operation": "SaveKeyValue",
   "isRelayed": true

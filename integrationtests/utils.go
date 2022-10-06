@@ -5,23 +5,22 @@ import (
 	"io/ioutil"
 	"os"
 
-	indexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/client"
 	"github.com/ElrondNetwork/elastic-indexer-go/client/logging"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
-	"github.com/ElrondNetwork/elastic-indexer-go/process"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/factory"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/factory"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/elastic/go-elasticsearch/v7"
 )
-
-const esURL = "http://localhost:9200"
 
 func setLogLevelDebug() {
 	_ = logger.SetLogLevel("process:DEBUG")
 }
 
-func createESClient(url string) (process.DatabaseClientHandler, error) {
+//nolint
+func createESClient(url string) (elasticproc.DatabaseClientHandler, error) {
 	return client.NewElasticClient(elasticsearch.Config{
 		Addresses: []string{url},
 		Logger:    &logging.CustomLogger{},
@@ -30,21 +29,18 @@ func createESClient(url string) (process.DatabaseClientHandler, error) {
 
 // CreateElasticProcessor -
 func CreateElasticProcessor(
-	esClient process.DatabaseClientHandler,
-	shardCoordinator indexer.ShardCoordinator,
-) (indexer.ElasticProcessor, error) {
+	esClient elasticproc.DatabaseClientHandler,
+) (dataindexer.ElasticProcessor, error) {
 	args := factory.ArgElasticProcessorFactory{
 		Marshalizer:              &mock.MarshalizerMock{},
 		Hasher:                   &mock.HasherMock{},
 		AddressPubkeyConverter:   mock.NewPubkeyConverterMock(32),
 		ValidatorPubkeyConverter: mock.NewPubkeyConverterMock(32),
 		DBClient:                 esClient,
-		ShardCoordinator:         shardCoordinator,
-		EnabledIndexes: []string{indexer.TransactionsIndex, indexer.LogsIndex, indexer.AccountsESDTIndex, indexer.ScResultsIndex,
-			indexer.ReceiptsIndex, indexer.BlockIndex, indexer.AccountsIndex, indexer.TokensIndex, indexer.TagsIndex, indexer.CollectionsIndex,
-			indexer.OperationsIndex},
-		Denomination:     18,
-		IsInImportDBMode: false,
+		EnabledIndexes: []string{dataindexer.TransactionsIndex, dataindexer.LogsIndex, dataindexer.AccountsESDTIndex, dataindexer.ScResultsIndex,
+			dataindexer.ReceiptsIndex, dataindexer.BlockIndex, dataindexer.AccountsIndex, dataindexer.TokensIndex, dataindexer.TagsIndex, dataindexer.CollectionsIndex,
+			dataindexer.OperationsIndex},
+		Denomination: 18,
 	}
 
 	return factory.CreateElasticProcessor(args)

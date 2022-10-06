@@ -31,7 +31,7 @@ type ElasticProcessorStub struct {
 }
 
 // RemoveAccountsESDT -
-func (eim *ElasticProcessorStub) RemoveAccountsESDT(headerTimestamp uint64) error {
+func (eim *ElasticProcessorStub) RemoveAccountsESDT(headerTimestamp uint64, _ uint32) error {
 	if eim.RemoveAccountsESDTCalled != nil {
 		return eim.RemoveAccountsESDTCalled(headerTimestamp)
 	}
@@ -87,7 +87,7 @@ func (eim *ElasticProcessorStub) SaveMiniblocks(header coreData.HeaderHandler, b
 }
 
 // SaveTransactions -
-func (eim *ElasticProcessorStub) SaveTransactions(body *block.Body, header coreData.HeaderHandler, pool *outport.Pool, coreAlteredAccounts map[string]*outport.AlteredAccount) error {
+func (eim *ElasticProcessorStub) SaveTransactions(body *block.Body, header coreData.HeaderHandler, pool *outport.Pool, coreAlteredAccounts map[string]*outport.AlteredAccount, _ bool, _ uint32) error {
 	if eim.SaveTransactionsCalled != nil {
 		return eim.SaveTransactionsCalled(body, header, pool, coreAlteredAccounts)
 	}
@@ -119,7 +119,7 @@ func (eim *ElasticProcessorStub) SaveShardValidatorsPubKeys(shardID, epoch uint3
 }
 
 // SaveAccounts -
-func (eim *ElasticProcessorStub) SaveAccounts(timestamp uint64, acc []*data.Account) error {
+func (eim *ElasticProcessorStub) SaveAccounts(timestamp uint64, acc []*data.Account, _ uint32) error {
 	if eim.SaveAccountsCalled != nil {
 		return eim.SaveAccountsCalled(timestamp, acc)
 	}

@@ -5,5 +5,5 @@
   "timestamp": 6000,
   "token": "TTTT-abcd",
   "type": "FungibleESDT",
-  "shardID": 0
+  "shardID": 2
 }
