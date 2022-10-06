@@ -69,7 +69,7 @@ working_dir = str(Path.home()) + str(os.getenv('WORKING_DIRECTORY'))
 try:
     os.makedirs(working_dir)
 except FileExistsError:
-    print("working directory already exits")
+    print("working directory already exists")
     print("use `python3 clean.py` command first")
     sys.exit()
 
