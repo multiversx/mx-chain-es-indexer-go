@@ -1,4 +1,5 @@
 import os
+import sys
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -27,7 +28,14 @@ def start_observer(shard_id):
     os.chdir(current_directory)
 
 
+if not os.path.exists(working_dir):
+    print("working directory folder is missing...you should run first `python3 config.py` command")
+    sys.exit()
+
+print("staring observers and indexers....")
+
 start_observer(0)
 start_observer(1)
 start_observer(2)
 start_observer(4294967295)
+print("done")

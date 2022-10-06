@@ -1,9 +1,10 @@
 import os
+import toml
+import sys
+import shutil
 from pathlib import Path
 from git import Repo
-import shutil
 from dotenv import load_dotenv
-import toml
 
 load_dotenv()
 
@@ -69,6 +70,8 @@ try:
     os.makedirs(working_dir)
 except FileExistsError:
     print("working directory already exits")
+    print("use `python3 clean.py` command first")
+    sys.exit()
 
 # CLONE elrond-config
 print("cloning elrond-config....")
