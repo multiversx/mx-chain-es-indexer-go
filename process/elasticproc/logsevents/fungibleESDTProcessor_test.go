@@ -115,3 +115,41 @@ func TestProcessLogsAndEventsESDT_CrossShardOnDestination(t *testing.T) {
 	_, ok = altered.Get("61")
 	require.False(t, ok)
 }
+
+func TestNftsProcessor_processLogAndEventsFungibleESDT_Wipe(t *testing.T) {
+	t.Parallel()
+
+	nftsProc := newFungibleESDTProcessor(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{})
+
+	events := &transaction.Event{
+		Address:    []byte("addr"),
+		Identifier: []byte(core.BuiltInFunctionESDTWipe),
+		Topics:     [][]byte{[]byte("esdt-0123"), big.NewInt(0).SetUint64(0).Bytes(), big.NewInt(0).Bytes(), []byte("receiver")},
+	}
+
+	altered := data.NewAlteredAccounts()
+
+	res := nftsProc.processEvent(&argsProcessEvent{
+		event:        events,
+		accounts:     altered,
+		timestamp:    10000,
+		tokensSupply: data.NewTokensInfo(),
+	})
+	require.Equal(t, "esdt-0123", res.identifier)
+	require.Equal(t, "0", res.value)
+	require.Equal(t, true, res.processed)
+
+	alteredAddrSender, ok := altered.Get("61646472")
+	require.True(t, ok)
+	require.Equal(t, &data.AlteredAccount{
+		TokenIdentifier: "esdt-0123",
+		IsESDTOperation: true,
+	}, alteredAddrSender[0])
+
+	alteredAddrReceiver, ok := altered.Get("7265636569766572")
+	require.True(t, ok)
+	require.Equal(t, &data.AlteredAccount{
+		TokenIdentifier: "esdt-0123",
+		IsESDTOperation: true,
+	}, alteredAddrReceiver[0])
+}
