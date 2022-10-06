@@ -3,7 +3,7 @@ package config
 // Config will hold the whole config file's data
 type Config struct {
 	Config struct {
-		EnabledIndices   []string `toml:"enabled-indices"`
+		AvailableIndices []string `toml:"available-indices"`
 		AddressConverter struct {
 			Length int    `toml:"length"`
 			Type   string `toml:"type"`
@@ -33,7 +33,8 @@ type Config struct {
 // ClusterConfig will hold the config for the Elasticsearch cluster
 type ClusterConfig struct {
 	Config struct {
-		WebSocket struct {
+		DisabledIndices []string `toml:"disabled-indices"`
+		WebSocket       struct {
 			ServerURL          string `toml:"server-url"`
 			DataMarshallerType string `toml:"data-marshaller-type"`
 		} `toml:"web-socket"`

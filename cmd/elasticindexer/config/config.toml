@@ -1,5 +1,5 @@
 [config]
-    enabled-indices =  [
+    available-indices =  [
         "rating", "transactions", "blocks", "validators", "miniblocks", "rounds", "accounts", "accountshistory",
         "receipts", "scresults", "accountsesdt", "accountsesdthistory", "epochinfo", "scdeploys", "tokens", "tags",
         "logs", "delegators", "operations", "collections"

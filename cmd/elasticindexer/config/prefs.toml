@@ -1,4 +1,5 @@
 [config]
+    disabled-indices = []
     [config.web-socket]
         server-url = "localhost:22111"
         data-marshaller-type = "json"

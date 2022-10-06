@@ -63,10 +63,28 @@ func createDataIndexer(cfg config.Config, clusterCfg config.ClusterConfig) (wsin
 		Url:                      clusterCfg.Config.ElasticCluster.URL,
 		UserName:                 clusterCfg.Config.ElasticCluster.UserName,
 		Password:                 clusterCfg.Config.ElasticCluster.Password,
-		EnabledIndexes:           cfg.Config.EnabledIndices,
+		EnabledIndexes:           prepareIndices(cfg.Config.AvailableIndices, clusterCfg.Config.DisabledIndices),
 		Marshalizer:              marshaller,
 		Hasher:                   hasher,
 		AddressPubkeyConverter:   addressPubkeyConverter,
 		ValidatorPubkeyConverter: validatorPubkeyConverter,
 	})
+}
+
+func prepareIndices(availableIndices, disabledIndices []string) []string {
+	indices := make([]string, 0)
+
+	mapDisabledIndices := make(map[string]struct{})
+	for _, index := range disabledIndices {
+		mapDisabledIndices[index] = struct{}{}
+	}
+
+	for _, availableIndex := range availableIndices {
+		_, found := mapDisabledIndices[availableIndex]
+		if !found {
+			indices = append(indices, availableIndex)
+		}
+	}
+
+	return indices
 }
