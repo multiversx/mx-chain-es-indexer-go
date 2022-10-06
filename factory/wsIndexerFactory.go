@@ -80,10 +80,11 @@ func prepareIndices(availableIndices, disabledIndices []string) []string {
 	}
 
 	for _, availableIndex := range availableIndices {
-		_, found := mapDisabledIndices[availableIndex]
-		if !found {
-			indices = append(indices, availableIndex)
+		_, shouldSkip := mapDisabledIndices[availableIndex]
+		if shouldSkip {
+			continue
 		}
+		indices = append(indices, availableIndex)
 	}
 
 	return indices
