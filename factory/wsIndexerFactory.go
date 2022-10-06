@@ -63,7 +63,7 @@ func createDataIndexer(cfg config.Config, clusterCfg config.ClusterConfig) (wsin
 		Url:                      clusterCfg.Config.ElasticCluster.URL,
 		UserName:                 clusterCfg.Config.ElasticCluster.UserName,
 		Password:                 clusterCfg.Config.ElasticCluster.Password,
-		EnabledIndexes:           clusterCfg.Config.EnabledIndices,
+		EnabledIndexes:           cfg.Config.EnabledIndices,
 		Marshalizer:              marshaller,
 		Hasher:                   hasher,
 		AddressPubkeyConverter:   addressPubkeyConverter,

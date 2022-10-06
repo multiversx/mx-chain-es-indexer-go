@@ -30,4 +30,9 @@ var (
 		Name:  "log-save",
 		Usage: "Boolean option for enabling log saving. If set, it will automatically save all the logs into a file.",
 	}
+	// disableAnsiColor defines if the logger subsystem should prevent displaying ANSI colors
+	disableAnsiColor = cli.BoolFlag{
+		Name:  "disable-ansi-color",
+		Usage: "Boolean option for disabling ANSI colors in the logging system.",
+	}
 )

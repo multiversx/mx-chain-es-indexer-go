@@ -46,6 +46,7 @@ func main() {
 		configurationPreferencesFile,
 		logLevel,
 		logSaveFile,
+		disableAnsiColor,
 	}
 	app.Authors = []cli.Author{
 		{
@@ -148,7 +149,8 @@ func initializeLogger(ctx *cli.Context, cfg config.Config) (closing.Closer, erro
 		return nil, err
 	}
 
-	err = removeANSIColorsForLogger()
+	disableAnsi := ctx.GlobalBool(disableAnsiColor.Name)
+	err = removeANSIColorsForLoggerIfNeeded(disableAnsi)
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +158,11 @@ func initializeLogger(ctx *cli.Context, cfg config.Config) (closing.Closer, erro
 	return fileLogging, nil
 }
 
-func removeANSIColorsForLogger() error {
+func removeANSIColorsForLoggerIfNeeded(disableAnsi bool) error {
+	if !disableAnsi {
+		return nil
+	}
+
 	err := logger.RemoveLogObserver(os.Stdout)
 	if err != nil {
 		return err

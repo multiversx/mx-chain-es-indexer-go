@@ -310,7 +310,7 @@ func (ec *elasticClient) createPolicy(policyName string, policy *bytes.Buffer) e
 
 // CreateIndexTemplate creates an elasticsearch index template
 func (ec *elasticClient) createIndexTemplate(templateName string, template io.Reader) error {
-	res, err := ec.client.Indices.PutTemplate(templateName, template)
+	res, err := ec.client.Indices.PutTemplate(templateName, template, ec.client.Indices.PutTemplate.WithContext(context.Background()))
 	if err != nil {
 		return err
 	}
