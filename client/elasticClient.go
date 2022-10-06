@@ -156,7 +156,7 @@ func (ec *elasticClient) DoMultiGet(ids []string, index string, withSource bool,
 // DoQueryRemove will do a query remove to elasticsearch server
 func (ec *elasticClient) DoQueryRemove(index string, body *bytes.Buffer) error {
 	if err := ec.doRefresh(index); err != nil {
-		log.Warn("elasticClient.doRefresh", "cannot to refresh", err.Error())
+		log.Warn("elasticClient.doRefresh", "cannot do refresh", err.Error())
 	}
 
 	res, err := ec.client.DeleteByQuery(

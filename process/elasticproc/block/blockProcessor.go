@@ -109,6 +109,7 @@ func (bp *blockProcessor) PrepareBlockForDB(
 	}
 
 	bp.addEpochStartInfoForMeta(header, elasticBlock)
+	putMiniblocksDetailsInBlock(header, elasticBlock)
 
 	return elasticBlock, nil
 }
@@ -224,6 +225,17 @@ func (bp *blockProcessor) getEncodedMBSHashes(body *block.Body) []string {
 	}
 
 	return miniblocksHashes
+}
+
+func putMiniblocksDetailsInBlock(header coreData.HeaderHandler, block *data.Block) {
+	mbHeaders := header.GetMiniBlockHeaderHandlers()
+	for idx, mbHeader := range mbHeaders {
+		block.MiniBlocksDetails = append(block.MiniBlocksDetails, &data.MiniBlocksDetails{
+			IndexFirstProcessedTx: mbHeader.GetIndexOfFirstTxProcessed(),
+			IndexLastProcessedTx:  mbHeader.GetIndexOfLastTxProcessed(),
+			MBIndex:               idx,
+		})
+	}
 }
 
 func (bp *blockProcessor) computeBlockSize(header coreData.HeaderHandler, body *block.Body) (int, error) {

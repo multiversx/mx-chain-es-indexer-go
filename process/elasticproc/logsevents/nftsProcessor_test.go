@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"math/big"
 	"testing"
+	"time"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
@@ -126,11 +127,12 @@ func TestNftsProcessor_processLogAndEventsNFTs_Wipe(t *testing.T) {
 
 	altered := data.NewAlteredAccounts()
 
+	tokensSupply := data.NewTokensInfo()
 	res := nftsProc.processEvent(&argsProcessEvent{
 		event:        events,
 		accounts:     altered,
 		timestamp:    10000,
-		tokensSupply: data.NewTokensInfo(),
+		tokensSupply: tokensSupply,
 		numOfShards:  3,
 		selfShardID:  2,
 	})
@@ -145,4 +147,19 @@ func TestNftsProcessor_processLogAndEventsNFTs_Wipe(t *testing.T) {
 		TokenIdentifier: "nft-0123",
 		NFTNonce:        20,
 	}, alteredAddrSender[0])
+
+	alteredAddrReceiver, ok := altered.Get("7265636569766572")
+	require.True(t, ok)
+	require.Equal(t, &data.AlteredAccount{
+		IsNFTOperation:  true,
+		TokenIdentifier: "nft-0123",
+		NFTNonce:        20,
+	}, alteredAddrReceiver[0])
+
+	require.Equal(t, &data.TokenInfo{
+		Identifier: "nft-0123-14",
+		Token:      "nft-0123",
+		Nonce:      20,
+		Timestamp:  time.Duration(10000),
+	}, tokensSupply.GetAll()[0])
 }
