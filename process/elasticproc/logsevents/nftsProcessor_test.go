@@ -133,7 +133,6 @@ func TestNftsProcessor_processLogAndEventsNFTs_Wipe(t *testing.T) {
 		accounts:     altered,
 		timestamp:    10000,
 		tokensSupply: tokensSupply,
-		tokensSupply: data.NewTokensInfo(),
 		numOfShards:  3,
 		selfShardID:  2,
 	})

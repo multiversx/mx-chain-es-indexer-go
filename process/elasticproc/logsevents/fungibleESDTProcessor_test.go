@@ -119,7 +119,7 @@ func TestProcessLogsAndEventsESDT_CrossShardOnDestination(t *testing.T) {
 func TestNftsProcessor_processLogAndEventsFungibleESDT_Wipe(t *testing.T) {
 	t.Parallel()
 
-	nftsProc := newFungibleESDTProcessor(&mock.PubkeyConverterMock{}, &mock.ShardCoordinatorMock{})
+	nftsProc := newFungibleESDTProcessor(&mock.PubkeyConverterMock{})
 
 	events := &transaction.Event{
 		Address:    []byte("addr"),
@@ -134,6 +134,8 @@ func TestNftsProcessor_processLogAndEventsFungibleESDT_Wipe(t *testing.T) {
 		accounts:     altered,
 		timestamp:    10000,
 		tokensSupply: data.NewTokensInfo(),
+		selfShardID:  2,
+		numOfShards:  3,
 	})
 	require.Equal(t, "esdt-0123", res.identifier)
 	require.Equal(t, "0", res.value)
