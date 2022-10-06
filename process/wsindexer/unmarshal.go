@@ -5,10 +5,10 @@ import (
 	"errors"
 	"time"
 
+	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/outport"
-	outportData "github.com/ElrondNetwork/elrond-go-core/websocketOutportDriver/data"
 )
 
 func (i *indexer) getArgsSaveBlock(marshaledData []byte) (*outport.ArgsSaveBlockData, error) {
@@ -159,7 +159,7 @@ func (i *indexer) getBody(marshaledData []byte) (data.BodyHandler, error) {
 
 func (i *indexer) getHeader(marshaledData []byte) (data.HeaderHandler, error) {
 	headerTypeStruct := struct {
-		HeaderType outportData.HeaderType
+		HeaderType core.HeaderType
 	}{}
 
 	err := i.marshaller.Unmarshal(&headerTypeStruct, marshaledData)
@@ -168,19 +168,19 @@ func (i *indexer) getHeader(marshaledData []byte) (data.HeaderHandler, error) {
 	}
 
 	switch headerTypeStruct.HeaderType {
-	case outportData.MetaHeader:
+	case core.MetaHeader:
 		hStruct := struct {
 			H1 *block.Header `json:"Header"`
 		}{}
 		err = i.marshaller.Unmarshal(&hStruct, marshaledData)
 		return hStruct.H1, err
-	case outportData.ShardHeaderV1:
+	case core.ShardHeaderV1:
 		hStruct := struct {
 			H1 *block.MetaBlock `json:"Header"`
 		}{}
 		err = i.marshaller.Unmarshal(&hStruct, marshaledData)
 		return hStruct.H1, err
-	case outportData.ShardHeaderV2:
+	case core.ShardHeaderV2:
 		hStruct := struct {
 			H1 *block.HeaderV2 `json:"Header"`
 		}{}

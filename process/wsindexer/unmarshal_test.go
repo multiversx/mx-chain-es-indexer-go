@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
+	"github.com/ElrondNetwork/elrond-go-core/core"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/outport"
@@ -26,7 +27,7 @@ func TestGetHeaderAndBody(t *testing.T) {
 	di, _ := NewIndexer(marshaller, nilDataIndexer)
 
 	arg := &outportData.ArgsRevertIndexedBlock{
-		HeaderType: outportData.ShardHeaderV2,
+		HeaderType: core.ShardHeaderV2,
 		Header:     &block.HeaderV2{ScheduledRootHash: []byte("aaaaaa")},
 		Body:       &block.Body{MiniBlocks: []*block.MiniBlock{{}}},
 	}
@@ -83,7 +84,7 @@ func TestGetPool(t *testing.T) {
 	}
 
 	argsSaveBlock := &outportData.ArgsSaveBlock{
-		ArgsSaveBlockData: &outport.ArgsSaveBlockData{
+		ArgsSaveBlockData: outport.ArgsSaveBlockData{
 			TransactionsPool: pool,
 		},
 	}
