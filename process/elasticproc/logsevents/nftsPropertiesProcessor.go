@@ -74,7 +74,6 @@ func (npp *nftsPropertiesProc) processEvent(args *argsProcessEvent) argOutputPro
 
 	return argOutputProcessEvent{
 		processed:     true,
-		identifier:    identifier,
 		updatePropNFT: updateNFT,
 	}
 }

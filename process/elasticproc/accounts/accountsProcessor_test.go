@@ -65,7 +65,7 @@ func TestAccountsProcessor_GetAccountsWithNil(t *testing.T) {
 
 	ap, _ := NewAccountsProcessor(mock.NewPubkeyConverterMock(32), balanceConverter)
 
-	regularAccounts, esdtAccounts := ap.GetAccounts(nil, nil)
+	regularAccounts, esdtAccounts := ap.GetAccounts(nil)
 	require.Len(t, regularAccounts, 0)
 	require.Len(t, esdtAccounts, 0)
 }
@@ -195,13 +195,7 @@ func TestAccountsProcessor_GetAccountsEGLDAccounts(t *testing.T) {
 	ap, _ := NewAccountsProcessor(mock.NewPubkeyConverterMock(32), balanceConverter)
 	require.NotNil(t, ap)
 
-	alteredAccounts := data.NewAlteredAccounts()
-	alteredAccounts.Add(addr, &data.AlteredAccount{
-		IsESDTOperation: false,
-		TokenIdentifier: "",
-	})
-
-	accounts, esdtAccounts := ap.GetAccounts(alteredAccounts, alteredAccountsMap)
+	accounts, esdtAccounts := ap.GetAccounts(alteredAccountsMap)
 	require.Equal(t, 0, len(esdtAccounts))
 	require.Equal(t, []*data.Account{
 		{
@@ -217,6 +211,11 @@ func TestAccountsProcessor_GetAccountsESDTAccount(t *testing.T) {
 	acc := &outport.AlteredAccount{
 		Address: addr,
 		Balance: "1",
+		Tokens: []*outport.AccountTokenData{
+			{
+				Identifier: "token",
+			},
+		},
 	}
 	alteredAccountsMap := map[string]*outport.AlteredAccount{
 		addr: acc,
@@ -224,12 +223,7 @@ func TestAccountsProcessor_GetAccountsESDTAccount(t *testing.T) {
 	ap, _ := NewAccountsProcessor(mock.NewPubkeyConverterMock(32), balanceConverter)
 	require.NotNil(t, ap)
 
-	alteredAccounts := data.NewAlteredAccounts()
-	alteredAccounts.Add(addr, &data.AlteredAccount{
-		IsESDTOperation: true,
-		TokenIdentifier: "token",
-	})
-	accounts, esdtAccounts := ap.GetAccounts(alteredAccounts, alteredAccountsMap)
+	accounts, esdtAccounts := ap.GetAccounts(alteredAccountsMap)
 	require.Equal(t, 0, len(accounts))
 	require.Equal(t, []*data.AccountESDT{
 		{Account: acc, TokenIdentifier: "token"},
@@ -240,19 +234,20 @@ func TestAccountsProcessor_GetAccountsESDTAccountNewAccountShouldBeInRegularAcco
 	t.Parallel()
 
 	addr := "aaaabbbb"
-	acc := &outport.AlteredAccount{}
+	acc := &outport.AlteredAccount{
+		Tokens: []*outport.AccountTokenData{
+			{
+				Identifier: "token",
+			},
+		},
+	}
 	alteredAccountsMap := map[string]*outport.AlteredAccount{
 		addr: acc,
 	}
 	ap, _ := NewAccountsProcessor(mock.NewPubkeyConverterMock(32), balanceConverter)
 	require.NotNil(t, ap)
 
-	alteredAccounts := data.NewAlteredAccounts()
-	alteredAccounts.Add(addr, &data.AlteredAccount{
-		IsESDTOperation: true,
-		TokenIdentifier: "token",
-	})
-	accounts, esdtAccounts := ap.GetAccounts(alteredAccounts, alteredAccountsMap)
+	accounts, esdtAccounts := ap.GetAccounts(alteredAccountsMap)
 	require.Equal(t, 1, len(accounts))
 	require.Equal(t, []*data.AccountESDT{
 		{Account: acc, TokenIdentifier: "token"},

@@ -130,7 +130,6 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 		})
 	}
 
-	altered := data.NewAlteredAccounts()
 	res := &data.PreparedResults{
 		Transactions: []*data.Transaction{
 			{
@@ -142,7 +141,6 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 				Hash: "6832",
 			},
 		},
-		AlteredAccts: altered,
 	}
 
 	args := createMockArgs()
@@ -262,7 +260,6 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsNFTBurn(t *testing.T) {
 		TxHash: "h1",
 	}
 
-	altered := data.NewAlteredAccounts()
 	res := &data.PreparedResults{
 		Transactions: []*data.Transaction{
 			{
@@ -274,7 +271,6 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsNFTBurn(t *testing.T) {
 				Hash: "6832",
 			},
 		},
-		AlteredAccts: altered,
 	}
 
 	args := createMockArgs()

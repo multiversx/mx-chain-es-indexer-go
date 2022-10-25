@@ -637,7 +637,6 @@ func TestElasticProcessor_SaveTransactionNoDataShouldNotDoRequest(t *testing.T) 
 				Transactions: nil,
 				ScResults:    nil,
 				Receipts:     nil,
-				AlteredAccts: nil,
 			}
 		},
 		SerializeScResultsCalled: func(scrs []*data.ScResult, _ *data.BufferSlice, _ string) error {
@@ -681,9 +680,8 @@ func TestElasticProcessor_IndexAlteredAccounts(t *testing.T) {
 	elasticSearchProc.enabledIndexes[dataindexer.AccountsESDTHistoryIndex] = struct{}{}
 
 	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
-	alteredAccounts := data.NewAlteredAccounts()
 	tagsCount := tags.NewTagsCount()
-	err := elasticSearchProc.indexAlteredAccounts(100, alteredAccounts, nil, nil, buffSlice, tagsCount, 0)
+	err := elasticSearchProc.indexAlteredAccounts(100, nil, nil, buffSlice, tagsCount, 0)
 	require.Nil(t, err)
 	require.True(t, called)
 }

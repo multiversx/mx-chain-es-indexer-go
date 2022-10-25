@@ -30,7 +30,7 @@ type DatabaseClientHandler interface {
 
 // DBAccountHandler defines the actions that an accounts' handler should do
 type DBAccountHandler interface {
-	GetAccounts(alteredAccounts data.AlteredAccountsHandler, coreAlteredAccounts map[string]*outport.AlteredAccount) ([]*data.Account, []*data.AccountESDT)
+	GetAccounts(coreAlteredAccounts map[string]*outport.AlteredAccount) ([]*data.Account, []*data.AccountESDT)
 	PrepareRegularAccountsMap(timestamp uint64, accounts []*data.Account, shardID uint32) map[string]*data.AccountInfo
 	PrepareAccountsMapESDT(timestamp uint64, accounts []*data.AccountESDT, tagsCount data.CountTags, shardID uint32) (map[string]*data.AccountInfo, data.TokensHandler)
 	PrepareAccountsHistory(timestamp uint64, accounts map[string]*data.AccountInfo, shardID uint32) map[string]*data.AccountBalanceHistory

@@ -64,7 +64,6 @@ func checkArgsLogsAndEventsProcessor(args ArgsLogsAndEventsProcessor) error {
 
 func createEventsProcessors(args ArgsLogsAndEventsProcessor) []eventsProcessor {
 	nftsProc := newNFTsProcessor(args.PubKeyConverter, args.Marshalizer)
-	fungibleProc := newFungibleESDTProcessor(args.PubKeyConverter)
 	scDeploysProc := newSCDeploysProcessor(args.PubKeyConverter)
 	informativeProc := newInformativeLogsProcessor()
 	updateNFTProc := newNFTsPropertiesProcessor(args.PubKeyConverter)
@@ -73,14 +72,13 @@ func createEventsProcessors(args ArgsLogsAndEventsProcessor) []eventsProcessor {
 	delegatorsProcessor := newDelegatorsProcessor(args.PubKeyConverter, args.BalanceConverter)
 
 	eventsProcs := []eventsProcessor{
-		fungibleProc,
-		nftsProc,
 		scDeploysProc,
 		informativeProc,
 		updateNFTProc,
 		esdtPropProc,
 		esdtIssueProc,
 		delegatorsProcessor,
+		nftsProc,
 	}
 
 	return eventsProcs
@@ -94,7 +92,7 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 	shardID uint32,
 	numOfShards uint32,
 ) *data.PreparedLogsResults {
-	lep.logsData = newLogsData(timestamp, preparedResults.AlteredAccts, preparedResults.Transactions, preparedResults.ScResults)
+	lep.logsData = newLogsData(timestamp, preparedResults.Transactions, preparedResults.ScResults)
 
 	for _, txLog := range logsAndEvents {
 		if txLog == nil || check.IfNil(txLog.LogHandler) {
@@ -133,7 +131,6 @@ func (lep *logsAndEventsProcessor) processEvent(logHash string, logAddress []byt
 			event:                   event,
 			txHashHexEncoded:        logHashHexEncoded,
 			logAddress:              logAddress,
-			accounts:                lep.logsData.accounts,
 			tokens:                  lep.logsData.tokens,
 			tokensSupply:            lep.logsData.tokensSupply,
 			timestamp:               lep.logsData.timestamp,
@@ -153,18 +150,13 @@ func (lep *logsAndEventsProcessor) processEvent(logHash string, logAddress []byt
 			lep.logsData.nftsDataUpdates = append(lep.logsData.nftsDataUpdates, res.updatePropNFT)
 		}
 
-		isEmptyIdentifier := res.identifier == ""
-		if isEmptyIdentifier && res.processed {
-			return
-		}
-
 		tx, ok := lep.logsData.txsMap[logHashHexEncoded]
-		if ok && !isEmptyIdentifier {
+		if ok {
 			tx.HasOperations = true
 			continue
 		}
 		scr, ok := lep.logsData.scrsMap[logHashHexEncoded]
-		if ok && !isEmptyIdentifier {
+		if ok {
 			scr.HasOperations = true
 			return
 		}

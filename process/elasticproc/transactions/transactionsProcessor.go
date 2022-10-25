@@ -77,11 +77,9 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 			Transactions: []*data.Transaction{},
 			ScResults:    []*data.ScResult{},
 			Receipts:     []*data.Receipt{},
-			AlteredAccts: data.NewAlteredAccounts(),
 		}
 	}
 
-	alteredAccounts := data.NewAlteredAccounts()
 	normalTxs := make(map[string]*data.Transaction)
 	rewardsTxs := make(map[string]*data.Transaction)
 
@@ -92,21 +90,21 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 				continue
 			}
 
-			txs, errGroup := tdp.txsGrouper.groupNormalTxs(mbIndex, mb, header, pool.Txs, alteredAccounts, isImportDB, numOfShards)
+			txs, errGroup := tdp.txsGrouper.groupNormalTxs(mbIndex, mb, header, pool.Txs, isImportDB, numOfShards)
 			if errGroup != nil {
 				log.Warn("txsDatabaseProcessor.groupNormalTxs", "error", errGroup)
 				continue
 			}
 			mergeTxsMaps(normalTxs, txs)
 		case block.RewardsBlock:
-			txs, errGroup := tdp.txsGrouper.groupRewardsTxs(mbIndex, mb, header, pool.Rewards, alteredAccounts, isImportDB)
+			txs, errGroup := tdp.txsGrouper.groupRewardsTxs(mbIndex, mb, header, pool.Rewards, isImportDB)
 			if errGroup != nil {
 				log.Warn("txsDatabaseProcessor.groupRewardsTxs", "error", errGroup)
 				continue
 			}
 			mergeTxsMaps(rewardsTxs, txs)
 		case block.InvalidBlock:
-			txs, errGroup := tdp.txsGrouper.groupInvalidTxs(mbIndex, mb, header, pool.Invalid, alteredAccounts, numOfShards)
+			txs, errGroup := tdp.txsGrouper.groupInvalidTxs(mbIndex, mb, header, pool.Invalid, numOfShards)
 			if errGroup != nil {
 				log.Warn("txsDatabaseProcessor.groupInvalidTxs", "error", errGroup)
 				continue
@@ -121,8 +119,6 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 	dbReceipts := tdp.txsGrouper.groupReceipts(header, pool.Receipts)
 	dbSCResults := tdp.scrsProc.processSCRs(body, header, pool.Scrs, numOfShards)
 
-	tdp.scrsProc.addScrsReceiverToAlteredAccounts(alteredAccounts, dbSCResults, header.GetShardID(), numOfShards)
-
 	srcsNoTxInCurrentShard := tdp.scrsDataToTxs.attachSCRsToTransactionsAndReturnSCRsWithoutTx(normalTxs, dbSCResults)
 	tdp.scrsDataToTxs.processTransactionsAfterSCRsWereAttached(normalTxs)
 	txHashStatus, txHashFee := tdp.scrsDataToTxs.processSCRsWithoutTx(srcsNoTxInCurrentShard)
@@ -135,7 +131,6 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 		Transactions: txsSlice,
 		ScResults:    dbSCResults,
 		Receipts:     dbReceipts,
-		AlteredAccts: alteredAccounts,
 		TxHashStatus: txHashStatus,
 		TxHashFee:    txHashFee,
 	}

@@ -438,7 +438,7 @@ func (ei *elasticProcessor) SaveTransactions(
 	}
 
 	tagsCount := tags.NewTagsCount()
-	err = ei.indexAlteredAccounts(headerTimestamp, preparedResults.AlteredAccts, logsData.NFTsDataUpdates, coreAlteredAccounts, buffers, tagsCount, header.GetShardID())
+	err = ei.indexAlteredAccounts(headerTimestamp, logsData.NFTsDataUpdates, coreAlteredAccounts, buffers, tagsCount, header.GetShardID())
 	if err != nil {
 		return err
 	}
@@ -601,14 +601,13 @@ func (ei *elasticProcessor) SaveRoundsInfo(info []*data.RoundInfo) error {
 
 func (ei *elasticProcessor) indexAlteredAccounts(
 	timestamp uint64,
-	alteredAccounts data.AlteredAccountsHandler,
 	updatesNFTsData []*data.NFTDataUpdate,
 	coreAlteredAccounts map[string]*outport.AlteredAccount,
 	buffSlice *data.BufferSlice,
 	tagsCount data.CountTags,
 	shardID uint32,
 ) error {
-	regularAccountsToIndex, accountsToIndexESDT := ei.accountsProc.GetAccounts(alteredAccounts, coreAlteredAccounts)
+	regularAccountsToIndex, accountsToIndexESDT := ei.accountsProc.GetAccounts(coreAlteredAccounts)
 
 	err := ei.saveAccounts(timestamp, regularAccountsToIndex, buffSlice, shardID)
 	if err != nil {

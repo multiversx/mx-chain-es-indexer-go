@@ -11,7 +11,6 @@ type argsProcessEvent struct {
 	scDeploys               map[string]*data.ScDeployInfo
 	txs                     map[string]*data.Transaction
 	event                   coreData.EventHandler
-	accounts                data.AlteredAccountsHandler
 	tokens                  data.TokensHandler
 	tokensSupply            data.TokensHandler
 	tokenRolesAndProperties *tokeninfo.TokenRolesAndProperties
@@ -22,14 +21,10 @@ type argsProcessEvent struct {
 }
 
 type argOutputProcessEvent struct {
-	identifier      string
-	value           string
-	receiver        string
-	receiverShardID uint32
-	tokenInfo       *data.TokenInfo
-	delegator       *data.Delegator
-	processed       bool
-	updatePropNFT   *data.NFTDataUpdate
+	tokenInfo     *data.TokenInfo
+	delegator     *data.Delegator
+	processed     bool
+	updatePropNFT *data.NFTDataUpdate
 }
 
 type eventsProcessor interface {

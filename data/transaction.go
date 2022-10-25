@@ -1,7 +1,6 @@
 package data
 
 import (
-	"math/big"
 	"time"
 )
 
@@ -42,40 +41,9 @@ type Transaction struct {
 	IsRelayed            bool          `json:"isRelayed,omitempty"`
 	Version              uint32        `json:"version,omitempty"`
 	SmartContractResults []*ScResult   `json:"-"`
-	ReceiverAddressBytes []byte        `json:"-"`
 	Hash                 string        `json:"-"`
 	BlockHash            string        `json:"-"`
 	HadRefund            bool          `json:"-"`
-}
-
-// GetGasLimit will return transaction gas limit
-func (t *Transaction) GetGasLimit() uint64 {
-	return t.GasLimit
-}
-
-// GetGasPrice will return transaction gas price
-func (t *Transaction) GetGasPrice() uint64 {
-	return t.GasPrice
-}
-
-// GetData will return transaction data field
-func (t *Transaction) GetData() []byte {
-	return t.Data
-}
-
-// GetRcvAddr will return transaction receiver address
-func (t *Transaction) GetRcvAddr() []byte {
-	return t.ReceiverAddressBytes
-}
-
-// GetValue wil return transaction value
-func (t *Transaction) GetValue() *big.Int {
-	bigIntValue, ok := big.NewInt(0).SetString(t.Value, 10)
-	if !ok {
-		return big.NewInt(0)
-	}
-
-	return bigIntValue
 }
 
 // Receipt is a structure containing all the fields that need to be safe for a Receipt
@@ -93,7 +61,6 @@ type PreparedResults struct {
 	Transactions []*Transaction
 	ScResults    []*ScResult
 	Receipts     []*Receipt
-	AlteredAccts AlteredAccountsHandler
 	TxHashStatus map[string]string
 	TxHashFee    map[string]*FeeData
 }
