@@ -21,6 +21,7 @@ def start_observer(shard_id, working_dir):
 
     os.chdir(current_directory)
 
+
 def main():
     load_dotenv()
 
@@ -41,4 +42,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
