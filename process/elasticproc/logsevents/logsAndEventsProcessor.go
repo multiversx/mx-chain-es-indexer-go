@@ -158,7 +158,7 @@ func (lep *logsAndEventsProcessor) processEvent(logHash string, logAddress []byt
 		scr, ok := lep.logsData.scrsMap[logHashHexEncoded]
 		if ok {
 			scr.HasOperations = true
-			return
+			continue
 		}
 
 		if res.processed {
