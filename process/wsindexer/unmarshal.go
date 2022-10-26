@@ -170,13 +170,13 @@ func (i *indexer) getHeader(marshaledData []byte) (data.HeaderHandler, error) {
 	switch headerTypeStruct.HeaderType {
 	case core.MetaHeader:
 		hStruct := struct {
-			H1 *block.Header `json:"Header"`
+			H1 *block.MetaBlock `json:"Header"`
 		}{}
 		err = i.marshaller.Unmarshal(&hStruct, marshaledData)
 		return hStruct.H1, err
 	case core.ShardHeaderV1:
 		hStruct := struct {
-			H1 *block.MetaBlock `json:"Header"`
+			H1 *block.Header `json:"Header"`
 		}{}
 		err = i.marshaller.Unmarshal(&hStruct, marshaledData)
 		return hStruct.H1, err
