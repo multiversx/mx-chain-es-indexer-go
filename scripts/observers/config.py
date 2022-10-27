@@ -50,7 +50,7 @@ def update_toml_node(path, shard_id):
 
 
 def prepare_observer(shard_id, working_dir, config_folder):
-    observer_dir = str(os.getenv('OBSERVER_DIR'))
+    observer_dir = str(os.getenv('OBSERVER_DIR_PREFIX'))
     current_observer = observer_dir + str(shard_id)
     working_dir_observer = Path(working_dir / current_observer)
     os.mkdir(working_dir_observer)
@@ -80,7 +80,11 @@ def prepare_observer(shard_id, working_dir, config_folder):
 
 def main():
     load_dotenv()
-    working_dir = Path(Path.home() / os.getenv('WORKING_DIRECTORY'))
+    working_dir_var = os.getenv('WORKING_DIRECTORY')
+    if working_dir_var == "":
+        print("working directory folder name cannot be empty")
+        sys.exit()
+    working_dir = Path(Path.home() / working_dir_var)
 
     try:
         os.makedirs(working_dir)
