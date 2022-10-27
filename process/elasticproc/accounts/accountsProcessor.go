@@ -64,7 +64,7 @@ func splitAlteredAccounts(
 	accountsToIndexESDT := make([]*data.AccountESDT, 0)
 
 	//if the balance of the ESDT receiver is 0 the receiver is a new account most probably, and we should index it
-	ignoreAddress := !account.BalanceChange && notZeroBalance(account.Balance) && !account.IsSender
+	ignoreAddress := !account.BalanceChanged && notZeroBalance(account.Balance) && !account.IsSender
 	if !ignoreAddress {
 		regularAccountsToIndex = append(regularAccountsToIndex, &data.Account{
 			UserAccount: account,
