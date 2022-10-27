@@ -4,16 +4,16 @@ from utils import *
 
 def start_observer(shard_id, working_dir):
     current_observer = str(os.getenv('OBSERVER_DIR_PREFIX')) + str(shard_id)
-    working_dir_observer = Path(working_dir / current_observer)
+    working_dir_observer = working_dir / current_observer
 
     current_directory = os.getcwd()
     # start observer
-    os.chdir(Path(working_dir_observer / "node"))
+    os.chdir(working_dir_observer / "node")
     command = "./node" + " --log-level *:DEBUG --no-key --log-save"
     os.system("screen -d -m -S obs" + str(shard_id) + " " + command)
 
     # start indexer
-    os.chdir(Path(working_dir_observer / "indexer"))
+    os.chdir(working_dir_observer / "indexer")
     command = "./elasticindexer" + " --log-level *:DEBUG --log-save"
     os.system("screen -d -m -S indexer" + str(shard_id) + " " + command)
 

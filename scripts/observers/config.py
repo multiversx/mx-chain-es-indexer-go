@@ -9,7 +9,7 @@ from utils import *
 
 def update_toml_indexer(path, shard_id):
     # prefs.toml
-    path_prefs = Path(path / "prefs.toml")
+    path_prefs = path / "prefs.toml"
     prefs_data = toml.load(str(path_prefs))
     prefs_data['config']['web-socket']['server-url'] = str(shard_id)
     if shard_id != METACHAIN:
@@ -23,7 +23,7 @@ def update_toml_indexer(path, shard_id):
 
 def update_toml_node(path, shard_id):
     # prefs.toml
-    path_prefs = Path(path / "prefs.toml")
+    path_prefs = path / "prefs.toml"
     prefs_data = toml.load(str(path_prefs))
     prefs_data['Preferences']['DestinationShardAsObserver'] = str(shard_id)
     f = open(path_prefs, 'w')
@@ -31,7 +31,7 @@ def update_toml_node(path, shard_id):
     f.close()
 
     # external.toml
-    path_external = Path(path / "external.toml")
+    path_external = path / "external.toml"
     external_data = toml.load(str(path_external))
     external_data['WebSocketConnector']['Enabled'] = True
     if shard_id != METACHAIN:
@@ -46,25 +46,25 @@ def update_toml_node(path, shard_id):
 def prepare_observer(shard_id, working_dir, config_folder):
     observer_dir = str(os.getenv('OBSERVER_DIR_PREFIX'))
     current_observer = observer_dir + str(shard_id)
-    working_dir_observer = Path(working_dir / current_observer)
+    working_dir_observer = working_dir / current_observer
     os.mkdir(working_dir_observer)
-    os.mkdir(Path(working_dir_observer / "indexer"))
-    os.mkdir(Path(working_dir_observer / "node"))
+    os.mkdir(working_dir_observer / "indexer")
+    os.mkdir(working_dir_observer / "node")
 
-    node_config = Path(working_dir_observer / "node" / "config")
-    indexer_config = Path(working_dir_observer / "indexer" / "config")
+    node_config = working_dir_observer / "node" / "config"
+    indexer_config = working_dir_observer / "indexer" / "config"
 
     shutil.copytree(config_folder, node_config)
     shutil.copytree("../../cmd/elasticindexer/config", indexer_config)
-    shutil.copyfile("../../cmd/elasticindexer/elasticindexer", Path(working_dir_observer / "indexer/elasticindexer"))
+    shutil.copyfile("../../cmd/elasticindexer/elasticindexer", working_dir_observer / "indexer/elasticindexer")
 
     elastic_indexer_exec = Path(working_dir_observer / "indexer/elasticindexer")
     st = os.stat(elastic_indexer_exec)
     os.chmod(elastic_indexer_exec, st.st_mode | stat.S_IEXEC)
 
-    shutil.copyfile(Path(working_dir / "elrond-go/cmd/node/node"), Path(working_dir_observer / "node/node"))
+    shutil.copyfile(working_dir / "elrond-go/cmd/node/node", working_dir_observer / "node/node")
 
-    node_exec_path = Path(working_dir_observer / "node/node")
+    node_exec_path = working_dir_observer / "node/node"
     st = os.stat(node_exec_path)
     os.chmod(node_exec_path, st.st_mode | stat.S_IEXEC)
 
@@ -84,7 +84,7 @@ def main():
 
     # CLONE elrond-config
     print("cloning elrond-config....")
-    config_folder = Path(working_dir / "config")
+    config_folder = working_dir / "config"
     if not os.path.isdir(config_folder):
         Repo.clone_from(os.getenv('ELROND_CONFIG_URL'), config_folder)
 
@@ -93,7 +93,7 @@ def main():
 
     # CLONE elrond-go
     print("cloning elrond-go....")
-    elrond_go_folder = Path(working_dir / "elrond-go")
+    elrond_go_folder = working_dir / "elrond-go"
     if not os.path.isdir(elrond_go_folder):
         Repo.clone_from(os.getenv('ELROND_GO_URL'), elrond_go_folder)
 
@@ -102,7 +102,7 @@ def main():
 
     # build binary elrond-go
     print("building node...")
-    subprocess.check_call(["go", "build"], cwd=Path(elrond_go_folder / "cmd/node"))
+    subprocess.check_call(["go", "build"], cwd=elrond_go_folder / "cmd/node")
 
     # build binary indexer
     print("building indexer...")

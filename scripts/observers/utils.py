@@ -14,4 +14,4 @@ def get_working_dir():
         print("working directory folder name cannot be empty")
         sys.exit()
 
-    return Path(Path.home() / working_dir_var)
+    return Path.home() / working_dir_var
