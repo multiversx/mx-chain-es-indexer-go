@@ -125,7 +125,7 @@ func TestIndexAccountsBalance(t *testing.T) {
 	}
 
 	coreAlteredAccounts[encodedAddr].Balance = "2000"
-	coreAlteredAccounts[encodedAddr].BalanceChange = true
+	coreAlteredAccounts[encodedAddr].BalanceChanged = true
 	coreAlteredAccounts[encodedAddr].IsSender = true
 	pool = &outport.Pool{
 		Txs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
@@ -189,7 +189,7 @@ func TestIndexAccountsBalance(t *testing.T) {
 
 	coreAlteredAccounts[encodedAddr].Balance = "2000"
 	coreAlteredAccounts[encodedAddr].Tokens[0].Balance = "0"
-	coreAlteredAccounts[encodedAddr].BalanceChange = false
+	coreAlteredAccounts[encodedAddr].BalanceChanged = false
 	coreAlteredAccounts[encodedAddr].IsSender = false
 
 	pool.Txs = make(map[string]coreData.TransactionHandlerWithGasUsedAndFee)
