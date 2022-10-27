@@ -1,6 +1,6 @@
 import shutil
 from dotenv import load_dotenv
-from utils import get_working_dir
+from utils import *
 
 
 def main():

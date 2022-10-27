@@ -1,8 +1,5 @@
-import os
-import sys
-from pathlib import Path
 from dotenv import load_dotenv
-from utils import get_working_dir
+from utils import *
 
 
 def start_observer(shard_id, working_dir):
@@ -35,7 +32,7 @@ def main():
     start_observer(0, working_dir)
     start_observer(1, working_dir)
     start_observer(2, working_dir)
-    start_observer(4294967295, working_dir)
+    start_observer(METACHAIN, working_dir)
 
     print("done")
 

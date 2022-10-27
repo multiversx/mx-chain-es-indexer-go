@@ -1,17 +1,10 @@
-import os
 import stat
 import subprocess
 import toml
-import sys
 import shutil
-from pathlib import Path
 from git import Repo
 from dotenv import load_dotenv
-from utils import get_working_dir
-
-METACHAIN = 4294967295
-WS_PORT_BASE = 22111
-WS_METACHAIN_PORT = WS_PORT_BASE + 50
+from utils import *
 
 
 def update_toml_indexer(path, shard_id):
