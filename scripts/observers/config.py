@@ -1,7 +1,6 @@
 import os
 import stat
 import subprocess
-
 import toml
 import sys
 import shutil
@@ -11,37 +10,41 @@ from dotenv import load_dotenv
 
 METACHAIN = 4294967295
 WS_PORT_BASE = 22111
+WS_METACHAIN_PORT = WS_PORT_BASE + 50
 
 
 def update_toml_indexer(path, shard_id):
     # prefs.toml
-    prefs_data = toml.load(path + "/prefs.toml")
+    path_prefs = Path(path / "prefs.toml")
+    prefs_data = toml.load(str(path_prefs))
     prefs_data['config']['web-socket']['server-url'] = str(shard_id)
     if shard_id != METACHAIN:
         prefs_data['config']['web-socket']['server-url'] = "localhost:" + str(WS_PORT_BASE + shard_id)
     else:
-        prefs_data['config']['web-socket']['server-url'] = "localhost:" + str(WS_PORT_BASE + 10)
-    f = open(path + "/prefs.toml", 'w')
+        prefs_data['config']['web-socket']['server-url'] = "localhost:" + str(WS_METACHAIN_PORT)
+    f = open(path_prefs, 'w')
     toml.dump(prefs_data, f)
     f.close()
 
 
 def update_toml_node(path, shard_id):
     # prefs.toml
-    prefs_data = toml.load(path + "/prefs.toml")
+    path_prefs = Path(path / "prefs.toml")
+    prefs_data = toml.load(str(path_prefs))
     prefs_data['Preferences']['DestinationShardAsObserver'] = str(shard_id)
-    f = open(path + "/prefs.toml", 'w')
+    f = open(path_prefs, 'w')
     toml.dump(prefs_data, f)
     f.close()
 
     # external.toml
-    external_data = toml.load(path + "/external.toml")
+    path_external = Path(path / "external.toml")
+    external_data = toml.load(str(path_external))
     external_data['WebSocketConnector']['Enabled'] = True
     if shard_id != METACHAIN:
         external_data['WebSocketConnector']['URL'] = "localhost:" + str(WS_PORT_BASE + shard_id)
     else:
-        external_data['WebSocketConnector']['URL'] = "localhost:" + str(WS_PORT_BASE + 10)
-    f = open(path + "/external.toml", 'w')
+        external_data['WebSocketConnector']['URL'] = "localhost:" + str(WS_METACHAIN_PORT)
+    f = open(path_external, 'w')
     toml.dump(external_data, f)
     f.close()
 
@@ -71,8 +74,8 @@ def prepare_observer(shard_id, working_dir, config_folder):
     st = os.stat(node_exec_path)
     os.chmod(node_exec_path, st.st_mode | stat.S_IEXEC)
 
-    update_toml_node(str(node_config), shard_id)
-    update_toml_indexer(str(indexer_config), shard_id)
+    update_toml_node(node_config, shard_id)
+    update_toml_indexer(indexer_config, shard_id)
 
 
 def main():
