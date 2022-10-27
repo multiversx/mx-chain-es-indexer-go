@@ -2,6 +2,7 @@ import os
 import sys
 from pathlib import Path
 from dotenv import load_dotenv
+from utils import get_working_dir
 
 
 def start_observer(shard_id, working_dir):
@@ -24,8 +25,7 @@ def start_observer(shard_id, working_dir):
 
 def main():
     load_dotenv()
-
-    working_dir = Path(Path.home()) / os.getenv('WORKING_DIRECTORY')
+    working_dir = get_working_dir()
     if not os.path.exists(working_dir):
         print("working directory folder is missing...you should run first `python3 config.py` command")
         sys.exit()

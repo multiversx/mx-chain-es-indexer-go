@@ -7,6 +7,7 @@ import shutil
 from pathlib import Path
 from git import Repo
 from dotenv import load_dotenv
+from utils import get_working_dir
 
 METACHAIN = 4294967295
 WS_PORT_BASE = 22111
@@ -80,12 +81,7 @@ def prepare_observer(shard_id, working_dir, config_folder):
 
 def main():
     load_dotenv()
-    working_dir_var = os.getenv('WORKING_DIRECTORY')
-    if working_dir_var == "":
-        print("working directory folder name cannot be empty")
-        sys.exit()
-    working_dir = Path(Path.home() / working_dir_var)
-
+    working_dir = get_working_dir()
     try:
         os.makedirs(working_dir)
     except FileExistsError:
