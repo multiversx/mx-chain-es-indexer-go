@@ -4,7 +4,6 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
@@ -39,11 +38,9 @@ func TestGroupNormalTxs(t *testing.T) {
 			RcvAddr: []byte("receiver2"),
 		}, 0, big.NewInt(0)),
 	}
-	alteredAddresses := data.NewAlteredAccounts()
 
-	normalTxs, _ := grouper.groupNormalTxs(0, mb, header, txs, alteredAddresses, false, 3)
+	normalTxs, _ := grouper.groupNormalTxs(0, mb, header, txs, false, 3)
 	require.Len(t, normalTxs, 2)
-	require.Equal(t, 4, alteredAddresses.Len())
 }
 
 func TestGroupRewardsTxs(t *testing.T) {
@@ -68,11 +65,9 @@ func TestGroupRewardsTxs(t *testing.T) {
 			RcvAddr: []byte("receiver2"),
 		}, 0, big.NewInt(0)),
 	}
-	alteredAddresses := data.NewAlteredAccounts()
 
-	normalTxs, _ := grouper.groupRewardsTxs(0, mb, header, txs, alteredAddresses, false)
+	normalTxs, _ := grouper.groupRewardsTxs(0, mb, header, txs, false)
 	require.Len(t, normalTxs, 2)
-	require.Equal(t, 2, alteredAddresses.Len())
 }
 
 func TestGroupInvalidTxs(t *testing.T) {
@@ -99,11 +94,9 @@ func TestGroupInvalidTxs(t *testing.T) {
 			RcvAddr: []byte("receiver2"),
 		}, 0, big.NewInt(0)),
 	}
-	alteredAddresses := data.NewAlteredAccounts()
 
-	normalTxs, _ := grouper.groupInvalidTxs(0, mb, header, txs, alteredAddresses, 3)
+	normalTxs, _ := grouper.groupInvalidTxs(0, mb, header, txs, 3)
 	require.Len(t, normalTxs, 2)
-	require.Equal(t, 2, alteredAddresses.Len())
 }
 
 func TestGroupReceipts(t *testing.T) {

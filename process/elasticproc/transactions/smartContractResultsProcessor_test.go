@@ -71,25 +71,3 @@ func TestPrepareSmartContractResult(t *testing.T) {
 
 	require.Equal(t, expectedTx, scRes)
 }
-
-func TestAddScrsReceiverToAlteredAccounts_ShouldWork(t *testing.T) {
-	t.Parallel()
-
-	parser := createDataFieldParserMock()
-	scrsProc := newSmartContractResultsProcessor(&mock.PubkeyConverterMock{}, &mock.MarshalizerMock{}, &mock.HasherMock{}, parser)
-
-	alteredAddress := data.NewAlteredAccounts()
-	scrs := []*data.ScResult{
-		{
-			Sender:   "010101",
-			Receiver: "020202",
-			Data:     []byte("ESDTTransfer@544b4e2d626231323061@010f0cf064dd59200000"),
-			Value:    "1",
-		},
-	}
-	scrsProc.addScrsReceiverToAlteredAccounts(alteredAddress, scrs, 2, 3)
-	require.Equal(t, 1, alteredAddress.Len())
-
-	_, ok := alteredAddress.Get("020202")
-	require.True(t, ok)
-}

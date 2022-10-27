@@ -176,7 +176,8 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 			Address: addrHex,
 			Tokens: []*outport.AccountTokenData{
 				{
-					Identifier: "NFT-abcdef",
+					Identifier: "SSSS-dddd",
+					Nonce:      22,
 					Balance:    "0",
 					Properties: "ok",
 					MetaData: &esdt.MetaData{

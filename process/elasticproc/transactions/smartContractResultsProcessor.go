@@ -8,7 +8,6 @@ import (
 
 	indexerData "github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elrond-go-core/core"
-	"github.com/ElrondNetwork/elrond-go-core/core/sharding"
 	"github.com/ElrondNetwork/elrond-go-core/data"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
@@ -170,30 +169,5 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 		OriginalSender:     originalSenderAddr,
 		InitialTxFee:       initialTxFee.String(),
 		InitialTxGasUsed:   initialTxGasUsed,
-	}
-}
-
-func (proc *smartContractResultsProcessor) addScrsReceiverToAlteredAccounts(
-	alteredAccounts indexerData.AlteredAccountsHandler,
-	scrs []*indexerData.ScResult,
-	selfShardID uint32,
-	numOfShards uint32,
-) {
-	for _, scr := range scrs {
-		receiverAddr, _ := proc.pubKeyConverter.Decode(scr.Receiver)
-		if selfShardID != sharding.ComputeShardID(receiverAddr, numOfShards) {
-			continue
-		}
-
-		balanceNotChanged := scr.Value == emptyString || scr.Value == "0"
-		if balanceNotChanged {
-			// the smart contract results that don't alter the balance of the receiver address should be ignored
-			continue
-		}
-
-		alteredAccounts.Add(scr.Receiver, &indexerData.AlteredAccount{
-			IsSender:      false,
-			BalanceChange: true,
-		})
 	}
 }

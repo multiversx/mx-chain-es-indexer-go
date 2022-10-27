@@ -42,25 +42,13 @@ func NewAccountsProcessor(
 	}, nil
 }
 
-// TODO: refactor this as the altered accounts are already computed on the node. EN-12389
 // GetAccounts will get accounts for regular operations and esdt operations
-func (ap *accountsProcessor) GetAccounts(alteredAccounts data.AlteredAccountsHandler, coreAlteredAccounts map[string]*outport.AlteredAccount) ([]*data.Account, []*data.AccountESDT) {
+func (ap *accountsProcessor) GetAccounts(coreAlteredAccounts map[string]*outport.AlteredAccount) ([]*data.Account, []*data.AccountESDT) {
 	regularAccountsToIndex := make([]*data.Account, 0)
 	accountsToIndexESDT := make([]*data.AccountESDT, 0)
 
-	if check.IfNil(alteredAccounts) {
-		return regularAccountsToIndex, accountsToIndexESDT
-	}
-
-	allAlteredAccounts := alteredAccounts.GetAll()
-	for address, altered := range allAlteredAccounts {
-		alteredAccount := coreAlteredAccounts[address]
-		if alteredAccount == nil {
-			log.Warn("account not found in core altered accounts map", "address", address)
-			continue
-		}
-
-		regularAccounts, esdtAccounts := splitAlteredAccounts(alteredAccount, altered)
+	for _, alteredAccount := range coreAlteredAccounts {
+		regularAccounts, esdtAccounts := splitAlteredAccounts(alteredAccount)
 
 		regularAccountsToIndex = append(regularAccountsToIndex, regularAccounts...)
 		accountsToIndexESDT = append(accountsToIndexESDT, esdtAccounts...)
@@ -71,31 +59,26 @@ func (ap *accountsProcessor) GetAccounts(alteredAccounts data.AlteredAccountsHan
 
 func splitAlteredAccounts(
 	account *outport.AlteredAccount,
-	altered []*data.AlteredAccount,
 ) ([]*data.Account, []*data.AccountESDT) {
 	regularAccountsToIndex := make([]*data.Account, 0)
 	accountsToIndexESDT := make([]*data.AccountESDT, 0)
-	for _, info := range altered {
-		if info.IsESDTOperation || info.IsNFTOperation {
-			accountsToIndexESDT = append(accountsToIndexESDT, &data.AccountESDT{
-				Account:         account,
-				TokenIdentifier: info.TokenIdentifier,
-				IsSender:        info.IsSender,
-				IsNFTOperation:  info.IsNFTOperation,
-				NFTNonce:        info.NFTNonce,
-				IsNFTCreate:     info.IsNFTCreate,
-			})
-		}
 
-		// if the balance of the ESDT receiver is 0 the receiver is a new account most probably, and we should index it
-		ignoreReceiver := !info.BalanceChange && notZeroBalance(account.Balance) && !info.IsSender
-		if ignoreReceiver {
-			continue
-		}
-
+	//if the balance of the ESDT receiver is 0 the receiver is a new account most probably, and we should index it
+	ignoreAddress := !account.BalanceChanged && notZeroBalance(account.Balance) && !account.IsSender
+	if !ignoreAddress {
 		regularAccountsToIndex = append(regularAccountsToIndex, &data.Account{
 			UserAccount: account,
-			IsSender:    info.IsSender,
+			IsSender:    account.IsSender,
+		})
+	}
+
+	for _, info := range account.Tokens {
+		accountsToIndexESDT = append(accountsToIndexESDT, &data.AccountESDT{
+			Account:         account,
+			TokenIdentifier: info.Identifier,
+			IsSender:        account.IsSender,
+			NFTNonce:        info.Nonce,
+			IsNFTCreate:     info.IsNFTCreate,
 		})
 	}
 

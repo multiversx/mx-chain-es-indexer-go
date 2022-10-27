@@ -10,7 +10,6 @@ type logsData struct {
 	timestamp               uint64
 	tokens                  data.TokensHandler
 	tokensSupply            data.TokensHandler
-	accounts                data.AlteredAccountsHandler
 	txsMap                  map[string]*data.Transaction
 	scrsMap                 map[string]*data.ScResult
 	scDeploys               map[string]*data.ScDeployInfo
@@ -22,7 +21,6 @@ type logsData struct {
 
 func newLogsData(
 	timestamp uint64,
-	accounts data.AlteredAccountsHandler,
 	txs []*data.Transaction,
 	scrs []*data.ScResult,
 ) *logsData {
@@ -32,7 +30,6 @@ func newLogsData(
 	ld.scrsMap = converters.ConvertScrsSliceIntoMap(scrs)
 	ld.tokens = data.NewTokensInfo()
 	ld.tokensSupply = data.NewTokensInfo()
-	ld.accounts = accounts
 	ld.timestamp = timestamp
 	ld.scDeploys = make(map[string]*data.ScDeployInfo)
 	ld.tokensInfo = make([]*data.TokenInfo, 0)

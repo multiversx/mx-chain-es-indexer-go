@@ -1,8 +1,6 @@
 package transactions
 
 import (
-	"encoding/hex"
-	"fmt"
 	"math/big"
 	"testing"
 
@@ -28,39 +26,6 @@ func createMockArgsTxsDBProc() *ArgsTransactionProcessor {
 		Marshalizer:            &mock.MarshalizerMock{},
 	}
 	return args
-}
-
-func TestAddToAlteredAddresses(t *testing.T) {
-	t.Parallel()
-
-	sender := "senderAddress"
-	receiver := "receiverAddress"
-	tx := &data.Transaction{
-		Sender:   sender,
-		Receiver: receiver,
-		Data:     []byte("ESDTTransfer@31323334352d373066366534@174876e800"),
-	}
-	alteredAddress := data.NewAlteredAccounts()
-	selfShardID := uint32(0)
-	mb := &block.MiniBlock{}
-
-	grouper := txsGrouper{
-		txBuilder: &dbTransactionBuilder{},
-	}
-	grouper.addToAlteredAddresses(tx, alteredAddress, mb, selfShardID, false)
-
-	alteredAccounts, ok := alteredAddress.Get(receiver)
-	require.True(t, ok)
-	require.Equal(t, &data.AlteredAccount{
-		BalanceChange: true,
-	}, alteredAccounts[0])
-
-	alteredAccounts, ok = alteredAddress.Get(sender)
-	require.True(t, ok)
-	require.Equal(t, &data.AlteredAccount{
-		BalanceChange: true,
-		IsSender:      true,
-	}, alteredAccounts[0])
 }
 
 func TestIsSCRForSenderWithGasUsed(t *testing.T) {
@@ -287,129 +252,6 @@ func TestSetTransactionSearchOrder(t *testing.T) {
 	transactions = txDbProc.setTransactionSearchOrder(txPool)
 	assert.True(t, txPoolHasSearchOrder(transactions, 0))
 	assert.True(t, txPoolHasSearchOrder(transactions, 1))
-}
-
-func TestAlteredAddresses(t *testing.T) {
-	expectedAlteredAccounts := make(map[string]struct{})
-	// addresses marked with a comment should be added to the altered addresses map
-
-	// normal txs
-	address1 := []byte("address1") // should be added
-	address2 := []byte("address2")
-	expectedAlteredAccounts[hex.EncodeToString(address1)] = struct{}{}
-	tx1 := outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
-		SndAddr: address1,
-		RcvAddr: address2,
-	}, 0, big.NewInt(0))
-	tx1Hash := []byte("tx1Hash")
-
-	address3 := []byte("address3")
-	address4 := []byte("address4") // should be added
-	expectedAlteredAccounts[hex.EncodeToString(address4)] = struct{}{}
-	tx2 := outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
-		SndAddr: address3,
-		RcvAddr: address4,
-	}, 0, big.NewInt(0))
-	tx2Hash := []byte("tx2hash")
-
-	txMiniBlock1 := &block.MiniBlock{
-		Type:            block.TxBlock,
-		TxHashes:        [][]byte{tx1Hash},
-		SenderShardID:   0,
-		ReceiverShardID: 1,
-	}
-	txMiniBlock2 := &block.MiniBlock{
-		Type:            block.TxBlock,
-		TxHashes:        [][]byte{tx2Hash},
-		SenderShardID:   1,
-		ReceiverShardID: 0,
-	}
-
-	// reward txs
-	address5 := []byte("address5") // should be added
-	expectedAlteredAccounts[hex.EncodeToString(address5)] = struct{}{}
-	rwdTx1 := &rewardTx.RewardTx{
-		RcvAddr: address5,
-	}
-	rwdTx1Hash := []byte("rwdTx1")
-
-	address6 := []byte("address6")
-	rwdTx2 := &rewardTx.RewardTx{
-		RcvAddr: address6,
-	}
-	rwdTx2Hash := []byte("rwdTx2")
-
-	rewTxMiniBlock1 := &block.MiniBlock{
-		Type:            block.RewardsBlock,
-		TxHashes:        [][]byte{rwdTx1Hash},
-		SenderShardID:   core.MetachainShardId,
-		ReceiverShardID: 0,
-	}
-	rewTxMiniBlock2 := &block.MiniBlock{
-		Type:            block.RewardsBlock,
-		TxHashes:        [][]byte{rwdTx2Hash},
-		SenderShardID:   core.MetachainShardId,
-		ReceiverShardID: 1,
-	}
-
-	// smart contract results
-	address7 := []byte("address7") // should be added
-	address8 := []byte("address8")
-	expectedAlteredAccounts[hex.EncodeToString(address7)] = struct{}{}
-	scr1 := outport.NewTransactionHandlerWithGasAndFee(&smartContractResult.SmartContractResult{
-		RcvAddr: address7,
-		SndAddr: address8,
-	}, 0, big.NewInt(0))
-	scr1Hash := []byte("scr1Hash")
-
-	address9 := []byte("address9") // should be added
-	address10 := []byte("address10")
-	expectedAlteredAccounts[hex.EncodeToString(address9)] = struct{}{}
-	scr2 := outport.NewTransactionHandlerWithGasAndFee(&smartContractResult.SmartContractResult{
-		RcvAddr: address9,
-		SndAddr: address10,
-	}, 0, big.NewInt(0))
-	scr2Hash := []byte("scr2Hash")
-
-	scrMiniBlock1 := &block.MiniBlock{
-		Type:            block.SmartContractResultBlock,
-		TxHashes:        [][]byte{scr1Hash, scr2Hash},
-		SenderShardID:   1,
-		ReceiverShardID: 0,
-	}
-
-	body := &block.Body{
-		MiniBlocks: []*block.MiniBlock{txMiniBlock1, txMiniBlock2, rewTxMiniBlock1, rewTxMiniBlock2, scrMiniBlock1},
-	}
-
-	hdr := &block.Header{}
-
-	pool := &outport.Pool{
-		Txs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
-			string(tx1Hash): tx1,
-			string(tx2Hash): tx2,
-		},
-		Scrs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
-			string(scr1Hash): scr1,
-			string(scr2Hash): scr2,
-		},
-		Rewards: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
-			string(rwdTx1Hash): outport.NewTransactionHandlerWithGasAndFee(rwdTx1, 0, big.NewInt(0)),
-			string(rwdTx2Hash): outport.NewTransactionHandlerWithGasAndFee(rwdTx2, 0, big.NewInt(0)),
-		},
-	}
-
-	args := createMockArgsTxsDBProc()
-	txDbProc, _ := NewTransactionsProcessor(args)
-
-	results := txDbProc.PrepareTransactionsForDatabase(body, hdr, pool, false, 3)
-
-	for addrActual := range results.AlteredAccts.GetAll() {
-		_, found := expectedAlteredAccounts[addrActual]
-		if !found {
-			assert.Fail(t, fmt.Sprintf("address %s not found", addrActual))
-		}
-	}
 }
 
 func txPoolHasSearchOrder(txPool map[string]*data.Transaction, searchOrder uint32) bool {
@@ -733,9 +575,6 @@ func TestTxsDatabaseProcessor_IssueESDTTx(t *testing.T) {
 	res := txDbProc.PrepareTransactionsForDatabase(body, header, pool, false, 3)
 	require.Equal(t, "success", res.Transactions[0].Status)
 	require.Equal(t, 2, len(res.ScResults))
-
-	_, ok := res.AlteredAccts.Get("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u")
-	require.True(t, ok)
 
 	// transaction fail
 	pool = &outport.Pool{

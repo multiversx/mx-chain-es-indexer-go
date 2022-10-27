@@ -112,6 +112,13 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 	coreAlteredAccounts = map[string]*outport.AlteredAccount{
 		addrHex: {
 			Address: addrHex,
+			Tokens: []*outport.AccountTokenData{
+				{
+					Identifier: "NFT-abcdef",
+					Nonce:      7440483,
+					Balance:    "0",
+				},
+			},
 		},
 		addrReceiverHex: {
 			Address: addrReceiverHex,

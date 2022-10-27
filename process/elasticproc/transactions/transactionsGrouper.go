@@ -39,7 +39,6 @@ func (tg *txsGrouper) groupNormalTxs(
 	mb *block.MiniBlock,
 	header coreData.HeaderHandler,
 	txs map[string]coreData.TransactionHandlerWithGasUsedAndFee,
-	alteredAccounts data.AlteredAccountsHandler,
 	isImportDB bool,
 	numOfShards uint32,
 ) (map[string]*data.Transaction, error) {
@@ -59,7 +58,6 @@ func (tg *txsGrouper) groupNormalTxs(
 			continue
 		}
 
-		tg.addToAlteredAddresses(dbTx, alteredAccounts, mb, selfShardID, false)
 		if tg.shouldIndex(mb.ReceiverShardID, isImportDB, selfShardID) {
 			transactions[string(txHash)] = dbTx
 		}
@@ -118,7 +116,6 @@ func (tg *txsGrouper) groupRewardsTxs(
 	mb *block.MiniBlock,
 	header coreData.HeaderHandler,
 	txs map[string]coreData.TransactionHandlerWithGasUsedAndFee,
-	alteredAccounts data.AlteredAccountsHandler,
 	isImportDB bool,
 ) (map[string]*data.Transaction, error) {
 	rewardsTxs := make(map[string]*data.Transaction)
@@ -136,7 +133,6 @@ func (tg *txsGrouper) groupRewardsTxs(
 			continue
 		}
 
-		tg.addToAlteredAddresses(rewardDBTx, alteredAccounts, mb, selfShardID, true)
 		if tg.shouldIndex(mb.ReceiverShardID, isImportDB, selfShardID) {
 			rewardsTxs[string(txHash)] = rewardDBTx
 		}
@@ -173,7 +169,6 @@ func (tg *txsGrouper) groupInvalidTxs(
 	mb *block.MiniBlock,
 	header coreData.HeaderHandler,
 	txs map[string]coreData.TransactionHandlerWithGasUsedAndFee,
-	alteredAccounts data.AlteredAccountsHandler,
 	numOfShards uint32,
 ) (map[string]*data.Transaction, error) {
 	transactions := make(map[string]*data.Transaction)
@@ -189,7 +184,6 @@ func (tg *txsGrouper) groupInvalidTxs(
 			continue
 		}
 
-		tg.addToAlteredAddresses(invalidDBTx, alteredAccounts, mb, header.GetShardID(), false)
 		transactions[string(txHash)] = invalidDBTx
 	}
 
@@ -257,31 +251,4 @@ func convertMapTxsToSlice(txs map[string]*data.Transaction) []*data.Transaction 
 		i++
 	}
 	return transactions
-}
-
-func (tg *txsGrouper) addToAlteredAddresses(
-	tx *data.Transaction,
-	alteredAccounts data.AlteredAccountsHandler,
-	miniBlock *block.MiniBlock,
-	selfShardID uint32,
-	isRewardTx bool,
-) {
-	if selfShardID == miniBlock.SenderShardID && !isRewardTx {
-		alteredAccounts.Add(tx.Sender, &data.AlteredAccount{
-			IsSender:      true,
-			BalanceChange: true,
-		})
-	}
-
-	ignoreTransactionReceiver := tx.Status == transaction.TxStatusInvalid.String() || tx.Sender == tx.Receiver
-	if ignoreTransactionReceiver {
-		return
-	}
-
-	if selfShardID == miniBlock.ReceiverShardID || miniBlock.ReceiverShardID == core.AllShardId {
-		alteredAccounts.Add(tx.Receiver, &data.AlteredAccount{
-			IsSender:      false,
-			BalanceChange: true,
-		})
-	}
 }

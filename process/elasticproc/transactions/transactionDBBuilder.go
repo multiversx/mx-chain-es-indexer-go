@@ -16,8 +16,6 @@ import (
 	datafield "github.com/ElrondNetwork/elrond-vm-common/parsers/dataField"
 )
 
-const emptyString = ""
-
 type dbTransactionBuilder struct {
 	addressPubkeyConverter core.PubkeyConverter
 	dataFieldParser        DataFieldParser
@@ -49,36 +47,35 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 	res := dtb.dataFieldParser.Parse(tx.Data, tx.SndAddr, tx.RcvAddr, numOfShards)
 
 	return &data.Transaction{
-		Hash:                 hex.EncodeToString(txHash),
-		MBHash:               hex.EncodeToString(mbHash),
-		Nonce:                tx.Nonce,
-		Round:                header.GetRound(),
-		Value:                tx.Value.String(),
-		Receiver:             dtb.addressPubkeyConverter.Encode(tx.RcvAddr),
-		Sender:               dtb.addressPubkeyConverter.Encode(tx.SndAddr),
-		ReceiverShard:        mb.ReceiverShardID,
-		SenderShard:          mb.SenderShardID,
-		GasPrice:             tx.GasPrice,
-		GasLimit:             tx.GasLimit,
-		Data:                 tx.Data,
-		Signature:            hex.EncodeToString(tx.Signature),
-		Timestamp:            time.Duration(header.GetTimeStamp()),
-		Status:               txStatus,
-		GasUsed:              gasUsed,
-		InitialPaidFee:       initialPaidFee.String(),
-		Fee:                  fee.String(),
-		ReceiverUserName:     tx.RcvUserName,
-		SenderUserName:       tx.SndUserName,
-		ReceiverAddressBytes: tx.RcvAddr,
-		IsScCall:             isScCall,
-		Operation:            res.Operation,
-		Function:             res.Function,
-		ESDTValues:           res.ESDTValues,
-		Tokens:               res.Tokens,
-		Receivers:            datafield.EncodeBytesSlice(dtb.addressPubkeyConverter.Encode, res.Receivers),
-		ReceiversShardIDs:    res.ReceiversShardID,
-		IsRelayed:            res.IsRelayed,
-		Version:              tx.Version,
+		Hash:              hex.EncodeToString(txHash),
+		MBHash:            hex.EncodeToString(mbHash),
+		Nonce:             tx.Nonce,
+		Round:             header.GetRound(),
+		Value:             tx.Value.String(),
+		Receiver:          dtb.addressPubkeyConverter.Encode(tx.RcvAddr),
+		Sender:            dtb.addressPubkeyConverter.Encode(tx.SndAddr),
+		ReceiverShard:     mb.ReceiverShardID,
+		SenderShard:       mb.SenderShardID,
+		GasPrice:          tx.GasPrice,
+		GasLimit:          tx.GasLimit,
+		Data:              tx.Data,
+		Signature:         hex.EncodeToString(tx.Signature),
+		Timestamp:         time.Duration(header.GetTimeStamp()),
+		Status:            txStatus,
+		GasUsed:           gasUsed,
+		InitialPaidFee:    initialPaidFee.String(),
+		Fee:               fee.String(),
+		ReceiverUserName:  tx.RcvUserName,
+		SenderUserName:    tx.SndUserName,
+		IsScCall:          isScCall,
+		Operation:         res.Operation,
+		Function:          res.Function,
+		ESDTValues:        res.ESDTValues,
+		Tokens:            res.Tokens,
+		Receivers:         datafield.EncodeBytesSlice(dtb.addressPubkeyConverter.Encode, res.Receivers),
+		ReceiversShardIDs: res.ReceiversShardID,
+		IsRelayed:         res.IsRelayed,
+		Version:           tx.Version,
 	}
 }
 
