@@ -9,7 +9,7 @@ type UserAccountStub struct {
 	GetBalanceCalled    func() *big.Int
 	GetNonceCalled      func() uint64
 	AddressBytesCalled  func() []byte
-	RetrieveValueCalled func(key []byte) ([]byte, error)
+	RetrieveValueCalled func(key []byte) ([]byte, uint32, error)
 }
 
 // IncreaseNonce -
@@ -25,12 +25,12 @@ func (u *UserAccountStub) GetBalance() *big.Int {
 }
 
 // RetrieveValue -
-func (u *UserAccountStub) RetrieveValue(key []byte) ([]byte, error) {
+func (u *UserAccountStub) RetrieveValue(key []byte) ([]byte, uint32, error) {
 	if u.RetrieveValueCalled != nil {
 		return u.RetrieveValueCalled(key)
 	}
 
-	return nil, nil
+	return nil, 0, nil
 }
 
 // AddressBytes -
