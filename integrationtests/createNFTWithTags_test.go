@@ -72,11 +72,13 @@ func TestCreateNFTWithTags(t *testing.T) {
 			Balance: "0",
 			Tokens: []*outport.AccountTokenData{
 				{
-					IsNFTCreate: true,
-					Identifier:  "DESK-abcd",
-					Nonce:       1,
-					Balance:     "1000",
-					Properties:  "ok",
+					AdditionalData: &outport.AdditionalAccountTokenData{
+						IsNFTCreate: true,
+					},
+					Identifier: "DESK-abcd",
+					Nonce:      1,
+					Balance:    "1000",
+					Properties: "ok",
 					MetaData: &esdt.MetaData{
 						Creator:    []byte("creator"),
 						Attributes: []byte("tags:hello,something,do,music,art,gallery;metadata:QmZ2QqaGq4bqsEzs5JLTjRmmvR2GAR4qXJZBN8ibfDdaud"),

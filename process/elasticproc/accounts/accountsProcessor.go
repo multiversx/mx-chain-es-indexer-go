@@ -63,23 +63,35 @@ func splitAlteredAccounts(
 	regularAccountsToIndex := make([]*data.Account, 0)
 	accountsToIndexESDT := make([]*data.AccountESDT, 0)
 
+	isSender, balanceChanged := false, false
+	if account.AdditionalData != nil {
+		isSender, balanceChanged = account.AdditionalData.IsSender, account.AdditionalData.BalanceChanged
+	} else {
+		log.Debug("accountsProcessor.splitAlteredAccounts - nil additional data")
+	}
+
 	//if the balance of the ESDT receiver is 0 the receiver is a new account most probably, and we should index it
-	ignoreAddress := !account.BalanceChanged && notZeroBalance(account.Balance) && !account.IsSender
+	ignoreAddress := !balanceChanged && notZeroBalance(account.Balance) && !isSender
 	if !ignoreAddress {
 		regularAccountsToIndex = append(regularAccountsToIndex, &data.Account{
 			UserAccount: account,
-			IsSender:    account.IsSender,
+			IsSender:    isSender,
 		})
 	}
 
 	for _, info := range account.Tokens {
-		accountsToIndexESDT = append(accountsToIndexESDT, &data.AccountESDT{
+		accountESDT := &data.AccountESDT{
 			Account:         account,
 			TokenIdentifier: info.Identifier,
-			IsSender:        account.IsSender,
 			NFTNonce:        info.Nonce,
-			IsNFTCreate:     info.IsNFTCreate,
-		})
+			IsSender:        isSender,
+		}
+		if info.AdditionalData != nil {
+			accountESDT.IsNFTCreate = info.AdditionalData.IsNFTCreate
+		}
+
+		accountsToIndexESDT = append(accountsToIndexESDT, accountESDT)
+
 	}
 
 	return regularAccountsToIndex, accountsToIndexESDT

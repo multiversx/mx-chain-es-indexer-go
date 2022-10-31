@@ -125,8 +125,10 @@ func TestIndexAccountsBalance(t *testing.T) {
 	}
 
 	coreAlteredAccounts[encodedAddr].Balance = "2000"
-	coreAlteredAccounts[encodedAddr].BalanceChanged = true
-	coreAlteredAccounts[encodedAddr].IsSender = true
+	coreAlteredAccounts[encodedAddr].AdditionalData = &outport.AdditionalAccountData{
+		IsSender:       true,
+		BalanceChanged: true,
+	}
 	pool = &outport.Pool{
 		Txs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
 			"h1": outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
@@ -189,8 +191,10 @@ func TestIndexAccountsBalance(t *testing.T) {
 
 	coreAlteredAccounts[encodedAddr].Balance = "2000"
 	coreAlteredAccounts[encodedAddr].Tokens[0].Balance = "0"
-	coreAlteredAccounts[encodedAddr].BalanceChanged = false
-	coreAlteredAccounts[encodedAddr].IsSender = false
+	coreAlteredAccounts[encodedAddr].AdditionalData = &outport.AdditionalAccountData{
+		IsSender:       false,
+		BalanceChanged: false,
+	}
 
 	pool.Txs = make(map[string]coreData.TransactionHandlerWithGasUsedAndFee)
 	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
