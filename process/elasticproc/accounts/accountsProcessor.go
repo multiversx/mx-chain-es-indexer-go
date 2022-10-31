@@ -66,6 +66,8 @@ func splitAlteredAccounts(
 	isSender, balanceChanged := false, false
 	if account.AdditionalData != nil {
 		isSender, balanceChanged = account.AdditionalData.IsSender, account.AdditionalData.BalanceChanged
+	} else {
+		log.Debug("accountsProcessor.splitAlteredAccounts", "nil additional data")
 	}
 
 	//if the balance of the ESDT receiver is 0 the receiver is a new account most probably, and we should index it
