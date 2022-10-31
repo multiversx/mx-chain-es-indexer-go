@@ -82,9 +82,9 @@ func splitAlteredAccounts(
 			Account:         account,
 			TokenIdentifier: info.Identifier,
 			NFTNonce:        info.Nonce,
+			IsSender:        isSender,
 		}
 		if info.AdditionalData != nil {
-			accountESDT.IsSender = account.AdditionalData.IsSender
 			accountESDT.IsNFTCreate = info.AdditionalData.IsNFTCreate
 		}
 
