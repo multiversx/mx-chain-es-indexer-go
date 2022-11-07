@@ -104,8 +104,8 @@ func TestGetESDTInfo_CannotRetriveValueShoudError(t *testing.T) {
 	localErr := errors.New("local error")
 	wrapAccount := &data.AccountESDT{
 		Account: &mock.UserAccountStub{
-			RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
-				return nil, localErr
+			RetrieveValueCalled: func(_ []byte) ([]byte, uint32, error) {
+				return nil, 0, localErr
 			},
 		},
 		TokenIdentifier: "token",
@@ -128,8 +128,9 @@ func TestGetESDTInfo(t *testing.T) {
 	tokenIdentifier := "token-001"
 	wrapAccount := &data.AccountESDT{
 		Account: &mock.UserAccountStub{
-			RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
-				return json.Marshal(esdtToken)
+			RetrieveValueCalled: func(_ []byte) ([]byte, uint32, error) {
+				serializedEsdtToken, err := json.Marshal(esdtToken)
+				return serializedEsdtToken, 0, err
 			},
 		},
 		TokenIdentifier: tokenIdentifier,
@@ -155,9 +156,10 @@ func TestGetESDTInfoNFT(t *testing.T) {
 	tokenIdentifier := "token-001"
 	wrapAccount := &data.AccountESDT{
 		Account: &mock.UserAccountStub{
-			RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
+			RetrieveValueCalled: func(key []byte) ([]byte, uint32, error) {
 				assert.Equal(t, append([]byte("ELRONDesdttoken-001"), 0xa), key)
-				return json.Marshal(esdtToken)
+				serializedEsdtToken, err := json.Marshal(esdtToken)
+				return serializedEsdtToken, 0, err
 			},
 		},
 		TokenIdentifier: tokenIdentifier,
@@ -193,9 +195,10 @@ func TestGetESDTInfoNFTWithMetaData(t *testing.T) {
 	tokenIdentifier := "token-001"
 	wrapAccount := &data.AccountESDT{
 		Account: &mock.UserAccountStub{
-			RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
+			RetrieveValueCalled: func(key []byte) ([]byte, uint32, error) {
 				assert.Equal(t, append([]byte("ELRONDesdttoken-001"), 0xa), key)
-				return json.Marshal(esdtToken)
+				serializedEsdtToken, err := json.Marshal(esdtToken)
+				return serializedEsdtToken, 0, err
 			},
 		},
 		TokenIdentifier: tokenIdentifier,
@@ -358,8 +361,9 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 
 	addr := "aaaabbbb"
 	mockAccount := &mock.UserAccountStub{
-		RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
-			return json.Marshal(esdtToken)
+		RetrieveValueCalled: func(_ []byte) ([]byte, uint32, error) {
+			serializedEsdtToken, err := json.Marshal(esdtToken)
+			return serializedEsdtToken, 0, err
 		},
 		AddressBytesCalled: func() []byte {
 			return []byte(addr)
@@ -504,11 +508,12 @@ func TestGetESDTInfoNFTAndMetadataFromSystemAccount(t *testing.T) {
 	ap, _ := NewAccountsProcessor(&mock.MarshalizerMock{}, mock.NewPubkeyConverterMock(32), &mock.AccountsStub{
 		LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
 			return &mock.UserAccountStub{
-				RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
+				RetrieveValueCalled: func(_ []byte) ([]byte, uint32, error) {
 					esdtToken.TokenMetaData = &esdt.MetaData{
 						Name: []byte("myName"),
 					}
-					return json.Marshal(esdtToken)
+					serializedEsdtToken, err := json.Marshal(esdtToken)
+					return serializedEsdtToken, 0, err
 				},
 			}, nil
 		},
@@ -518,9 +523,9 @@ func TestGetESDTInfoNFTAndMetadataFromSystemAccount(t *testing.T) {
 	tokenIdentifier := "token-001"
 	wrapAccount := &data.AccountESDT{
 		Account: &mock.UserAccountStub{
-			RetrieveValueFromDataTrieTrackerCalled: func(key []byte) ([]byte, error) {
+			RetrieveValueCalled: func(key []byte) ([]byte, uint32, error) {
 				assert.Equal(t, append([]byte("ELRONDesdttoken-001"), 0xa), key)
-				return marshaledESDTData, nil
+				return marshaledESDTData, 0, nil
 			},
 		},
 		TokenIdentifier: tokenIdentifier,

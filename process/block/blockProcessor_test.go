@@ -234,6 +234,18 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 			PrevEpochStartRound:              222,
 			PrevEpochStartHash:               "7072657645706f6368",
 		},
+		MiniBlocksDetails: []*data.MiniBlocksDetails{
+			{
+				IndexFirstProcessedTx: 0,
+				IndexLastProcessedTx:  49,
+				MBIndex:               0,
+			},
+			{
+				IndexFirstProcessedTx: 0,
+				IndexLastProcessedTx:  119,
+				MBIndex:               1,
+			},
+		},
 		EpochStartShardsData: []*data.EpochStartShardData{
 			{
 				ShardID:               1,
