@@ -73,8 +73,8 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 					Balance:    "1000",
 					Nonce:      2,
 					Properties: "ok",
-					MetaData: &esdt.MetaData{
-						Creator: []byte("creator"),
+					MetaData: &outport.TokenMetaData{
+						Creator: "creator",
 					},
 				},
 			},
@@ -88,8 +88,8 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 					Balance:    "1000",
 					Nonce:      2,
 					Properties: "ok",
-					MetaData: &esdt.MetaData{
-						Creator: []byte("creator"),
+					MetaData: &outport.TokenMetaData{
+						Creator: "creator",
 					},
 				},
 			},
@@ -180,8 +180,8 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 					Nonce:      22,
 					Balance:    "0",
 					Properties: "ok",
-					MetaData: &esdt.MetaData{
-						Creator: []byte("creator"),
+					MetaData: &outport.TokenMetaData{
+						Creator: "creator",
 					},
 				},
 			},

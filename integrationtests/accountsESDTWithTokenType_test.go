@@ -76,8 +76,8 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 					Balance:    "1000",
 					Nonce:      2,
 					Properties: "ok",
-					MetaData: &esdt.MetaData{
-						Creator: []byte("creator"),
+					MetaData: &outport.TokenMetaData{
+						Creator: "creator",
 					},
 				},
 			},
@@ -149,8 +149,8 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 					Nonce:      2,
 					Balance:    "1000",
 					Properties: "ok",
-					MetaData: &esdt.MetaData{
-						Creator: []byte("creator"),
+					MetaData: &outport.TokenMetaData{
+						Creator: "creator",
 					},
 				},
 			},

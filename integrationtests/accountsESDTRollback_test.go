@@ -40,8 +40,8 @@ func TestAccountsESDTDeleteOnRollback(t *testing.T) {
 					Identifier: "TOKEN-eeee",
 					Nonce:      2,
 					Balance:    "1000",
-					MetaData: &esdt.MetaData{
-						Creator: []byte("creator"),
+					MetaData: &outport.TokenMetaData{
+						Creator: "creator",
 					},
 					Properties: "ok",
 				},
