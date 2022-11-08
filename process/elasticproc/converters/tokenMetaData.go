@@ -7,9 +7,7 @@ import (
 	"strings"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elrond-go-core/core"
-	"github.com/ElrondNetwork/elrond-go-core/core/check"
-	"github.com/ElrondNetwork/elrond-go-core/data/esdt"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 )
 
 const (
@@ -22,31 +20,22 @@ const (
 )
 
 // PrepareTokenMetaData will prepare the token metadata in a friendly format for database
-func PrepareTokenMetaData(pubKeyConverter core.PubkeyConverter, esdtInfo *esdt.ESDigitalToken) *data.TokenMetaData {
-	if check.IfNil(pubKeyConverter) {
+func PrepareTokenMetaData(tokenMetadata *outport.TokenMetaData) *data.TokenMetaData {
+	if tokenMetadata == nil {
 		return nil
-	}
-
-	if esdtInfo == nil || esdtInfo.TokenMetaData == nil {
-		return nil
-	}
-
-	creatorStr := ""
-	if esdtInfo.TokenMetaData.Creator != nil {
-		creatorStr = pubKeyConverter.Encode(esdtInfo.TokenMetaData.Creator)
 	}
 
 	return &data.TokenMetaData{
-		Name:               string(esdtInfo.TokenMetaData.Name),
-		Creator:            creatorStr,
-		Royalties:          esdtInfo.TokenMetaData.Royalties,
-		Hash:               esdtInfo.TokenMetaData.Hash,
-		URIs:               esdtInfo.TokenMetaData.URIs,
-		Attributes:         esdtInfo.TokenMetaData.Attributes,
-		Tags:               ExtractTagsFromAttributes(esdtInfo.TokenMetaData.Attributes),
-		MetaData:           ExtractMetaDataFromAttributes(esdtInfo.TokenMetaData.Attributes),
-		NonEmptyURIs:       nonEmptyURIs(esdtInfo.TokenMetaData.URIs),
-		WhiteListedStorage: whiteListedStorage(esdtInfo.TokenMetaData.URIs),
+		Name:               tokenMetadata.Name,
+		Creator:            tokenMetadata.Creator,
+		Royalties:          tokenMetadata.Royalties,
+		Hash:               tokenMetadata.Hash,
+		URIs:               tokenMetadata.URIs,
+		Attributes:         tokenMetadata.Attributes,
+		Tags:               ExtractTagsFromAttributes(tokenMetadata.Attributes),
+		MetaData:           ExtractMetaDataFromAttributes(tokenMetadata.Attributes),
+		NonEmptyURIs:       nonEmptyURIs(tokenMetadata.URIs),
+		WhiteListedStorage: whiteListedStorage(tokenMetadata.URIs),
 	}
 }
 

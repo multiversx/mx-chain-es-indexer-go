@@ -14,7 +14,6 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/tags"
 	"github.com/ElrondNetwork/elrond-go-core/core"
-	"github.com/ElrondNetwork/elrond-go-core/data/esdt"
 	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/stretchr/testify/require"
 )
@@ -146,7 +145,7 @@ func TestGetESDTInfoNFTWithMetaData(t *testing.T) {
 	require.NotNil(t, ap)
 
 	nftName := "Test-nft"
-	creator := []byte("010101")
+	creator := "010101"
 
 	tokenIdentifier := "token-001"
 	wrapAccount := &data.AccountESDT{
@@ -160,9 +159,9 @@ func TestGetESDTInfoNFTWithMetaData(t *testing.T) {
 					Balance:    "1",
 					Properties: "ok",
 					Nonce:      10,
-					MetaData: &esdt.MetaData{
+					MetaData: &outport.TokenMetaData{
 						Nonce:     10,
-						Name:      []byte(nftName),
+						Name:      nftName,
 						Creator:   creator,
 						Royalties: 2,
 					},
@@ -179,7 +178,7 @@ func TestGetESDTInfoNFTWithMetaData(t *testing.T) {
 	require.Equal(t, hex.EncodeToString([]byte("ok")), prop)
 	require.Equal(t, &data.TokenMetaData{
 		Name:      nftName,
-		Creator:   pubKeyConverter.Encode(creator),
+		Creator:   creator,
 		Royalties: 2,
 	}, metaData)
 }
@@ -305,8 +304,8 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 				Identifier: "token",
 				Nonce:      15,
 				Properties: "ok",
-				MetaData: &esdt.MetaData{
-					Creator: []byte("creator"),
+				MetaData: &outport.TokenMetaData{
+					Creator: "creator",
 				},
 			},
 			{
@@ -314,8 +313,8 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 				Identifier: "token",
 				Nonce:      16,
 				Properties: "ok",
-				MetaData: &esdt.MetaData{
-					Creator: []byte("creator"),
+				MetaData: &outport.TokenMetaData{
+					Creator: "creator",
 				},
 			},
 		},
@@ -341,7 +340,7 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 		Properties:      hex.EncodeToString([]byte("ok")),
 		TokenNonce:      15,
 		Data: &data.TokenMetaData{
-			Creator: "63726561746f72",
+			Creator: "creator",
 		},
 		Timestamp: time.Duration(123),
 	}, res[hex.EncodeToString([]byte(addr))+"-token-15"])
@@ -355,7 +354,7 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 		Properties:      hex.EncodeToString([]byte("ok")),
 		TokenNonce:      16,
 		Data: &data.TokenMetaData{
-			Creator: "63726561746f72",
+			Creator: "creator",
 		},
 		Timestamp: time.Duration(123),
 	}, res[hex.EncodeToString([]byte(addr))+"-token-16"])
@@ -433,7 +432,7 @@ func TestAccountsProcessor_PutTokenMedataDataInTokens(t *testing.T) {
 
 		ap, _ := NewAccountsProcessor(mock.NewPubkeyConverterMock(32), balanceConverter)
 
-		metadata0, metadata1 := &esdt.MetaData{Creator: []byte("creator 0")}, &esdt.MetaData{Creator: []byte("creator 1")}
+		metadata0, metadata1 := &outport.TokenMetaData{Creator: "creator 0"}, &outport.TokenMetaData{Creator: "creator 1"}
 		tokensInfo := []*data.TokenInfo{
 			{
 				Nonce:      5,
@@ -465,7 +464,7 @@ func TestAccountsProcessor_PutTokenMedataDataInTokens(t *testing.T) {
 		}
 
 		ap.PutTokenMedataDataInTokens(tokensInfo, alteredAccounts)
-		require.Equal(t, hex.EncodeToString(metadata0.Creator), tokensInfo[0].Data.Creator)
-		require.Equal(t, hex.EncodeToString(metadata1.Creator), tokensInfo[1].Data.Creator)
+		require.Equal(t, metadata0.Creator, tokensInfo[0].Data.Creator)
+		require.Equal(t, metadata1.Creator, tokensInfo[1].Data.Creator)
 	})
 }

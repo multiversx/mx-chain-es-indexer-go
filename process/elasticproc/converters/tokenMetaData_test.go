@@ -4,20 +4,18 @@ import (
 	"testing"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/mock"
-	"github.com/ElrondNetwork/elrond-go-core/data/esdt"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/stretchr/testify/require"
 )
 
 func TestPrepareTokenMetaData(t *testing.T) {
 	t.Parallel()
 
-	require.Nil(t, PrepareTokenMetaData(nil, nil))
-	require.Nil(t, PrepareTokenMetaData(&mock.PubkeyConverterMock{}, nil))
+	require.Nil(t, PrepareTokenMetaData(nil))
 
 	expectedTokenMetaData := &data.TokenMetaData{
 		Name:               "token",
-		Creator:            "63726561746f72",
+		Creator:            "creator",
 		Royalties:          0,
 		Hash:               []byte("hash"),
 		URIs:               [][]byte{[]byte("https://ipfs.io/ipfs/something"), []byte("uri")},
@@ -28,16 +26,14 @@ func TestPrepareTokenMetaData(t *testing.T) {
 		WhiteListedStorage: true,
 	}
 
-	result := PrepareTokenMetaData(&mock.PubkeyConverterMock{}, &esdt.ESDigitalToken{
-		TokenMetaData: &esdt.MetaData{
-			Nonce:      2,
-			Name:       []byte("token"),
-			Creator:    []byte("creator"),
-			Royalties:  0,
-			Hash:       []byte("hash"),
-			URIs:       [][]byte{[]byte(ipfsURL + "something"), []byte("uri")},
-			Attributes: []byte("tags:test,free,fun;description:This is a test description for an awesome nft;metadata:metadata-test"),
-		},
+	result := PrepareTokenMetaData(&outport.TokenMetaData{
+		Nonce:      2,
+		Name:       "token",
+		Creator:    "creator",
+		Royalties:  0,
+		Hash:       []byte("hash"),
+		URIs:       [][]byte{[]byte(ipfsURL + "something"), []byte("uri")},
+		Attributes: []byte("tags:test,free,fun;description:This is a test description for an awesome nft;metadata:metadata-test"),
 	})
 
 	require.Equal(t, expectedTokenMetaData, result)
