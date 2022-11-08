@@ -10,6 +10,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/core/sharding"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/esdt"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 )
@@ -143,7 +144,7 @@ func (np *nftsProcessor) processNFTEventOnSender(
 		return
 	}
 
-	tokenMetaData := converters.PrepareTokenMetaData(np.pubKeyConverter, esdtToken)
+	tokenMetaData := converters.PrepareTokenMetaData(np.convertMetaData(esdtToken.TokenMetaData))
 	tokensCreateInfo.Add(&data.TokenInfo{
 		Token:      token,
 		Identifier: converters.ComputeTokenIdentifier(token, nonceBig.Uint64()),
@@ -151,4 +152,20 @@ func (np *nftsProcessor) processNFTEventOnSender(
 		Data:       tokenMetaData,
 		Nonce:      nonceBig.Uint64(),
 	})
+}
+
+func (np *nftsProcessor) convertMetaData(metaData *esdt.MetaData) *outport.TokenMetaData {
+	if metaData == nil {
+		return nil
+	}
+
+	return &outport.TokenMetaData{
+		Nonce:      metaData.Nonce,
+		Name:       string(metaData.Name),
+		Creator:    np.pubKeyConverter.Encode(metaData.Creator),
+		Royalties:  metaData.Royalties,
+		Hash:       metaData.Hash,
+		URIs:       metaData.URIs,
+		Attributes: metaData.Attributes,
+	}
 }

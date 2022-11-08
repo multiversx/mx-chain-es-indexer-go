@@ -11,7 +11,6 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/converters"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
-	"github.com/ElrondNetwork/elrond-go-core/data/esdt"
 	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 )
@@ -235,25 +234,21 @@ func (ap *accountsProcessor) getESDTInfo(accountESDT *data.AccountESDT) (*big.In
 		return big.NewInt(0), "", nil, nil
 	}
 
-	esdtToken := &esdt.ESDigitalToken{}
+	accountTokenData := &outport.AccountTokenData{}
 	for _, tokenData := range accountESDT.Account.Tokens {
 		if tokenData.Identifier == accountESDT.TokenIdentifier && tokenData.Nonce == accountESDT.NFTNonce {
-			value, _ := big.NewInt(0).SetString(tokenData.Balance, 10)
-			esdtToken = &esdt.ESDigitalToken{
-				Value:         value,
-				Properties:    []byte(tokenData.Properties),
-				TokenMetaData: tokenData.MetaData,
-			}
+			accountTokenData = tokenData
 		}
 	}
 
-	if esdtToken.Value == nil {
+	value, _ := big.NewInt(0).SetString(accountTokenData.Balance, 10)
+	if value == nil {
 		return big.NewInt(0), "", nil, nil
 	}
 
-	tokenMetaData := converters.PrepareTokenMetaData(ap.addressPubkeyConverter, esdtToken)
+	tokenMetaData := converters.PrepareTokenMetaData(accountTokenData.MetaData)
 
-	return esdtToken.Value, hex.EncodeToString(esdtToken.Properties), tokenMetaData, nil
+	return value, hex.EncodeToString([]byte(accountTokenData.Properties)), tokenMetaData, nil
 }
 
 // PutTokenMedataDataInTokens will put the TokenMedata in provided tokens data
@@ -272,14 +267,14 @@ func (ap *accountsProcessor) PutTokenMedataDataInTokens(tokensData []*data.Token
 			continue
 		}
 
-		tokenData.Data = converters.PrepareTokenMetaData(ap.addressPubkeyConverter, &esdt.ESDigitalToken{TokenMetaData: metadata})
+		tokenData.Data = converters.PrepareTokenMetaData(metadata)
 	}
 }
 
 func (ap *accountsProcessor) loadMetadataForToken(
 	tokenData *data.TokenInfo,
 	coreAlteredAccounts map[string]*outport.AlteredAccount,
-) (*esdt.MetaData, error) {
+) (*outport.TokenMetaData, error) {
 	for _, account := range coreAlteredAccounts {
 		for _, token := range account.Tokens {
 			if tokenData.Token == token.Identifier && tokenData.Nonce == token.Nonce {
