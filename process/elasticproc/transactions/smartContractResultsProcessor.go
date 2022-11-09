@@ -45,18 +45,22 @@ func (proc *smartContractResultsProcessor) processSCRs(
 	numOfShards uint32,
 ) []*indexerData.ScResult {
 	allSCRs := make([]*indexerData.ScResult, 0, len(txsHandler))
+
+	// we need this map because proc.processSCRsFromMiniblock removes items
+	// from the map in order to remain with the smart contract results that have no transaction on the current shard
+	workingSCRSMap := copySCRSMap(txsHandler)
 	for _, mb := range body.MiniBlocks {
 		if mb.Type != block.SmartContractResultBlock {
 			continue
 		}
 
-		indexerSCRs := proc.processSCRsFromMiniblock(header, mb, txsHandler, numOfShards)
+		indexerSCRs := proc.processSCRsFromMiniblock(header, mb, workingSCRSMap, numOfShards)
 
 		allSCRs = append(allSCRs, indexerSCRs...)
 	}
 
 	selfShardID := header.GetShardID()
-	for scrHash, noMBScr := range txsHandler {
+	for scrHash, noMBScr := range workingSCRSMap {
 		scr, ok := noMBScr.GetTxHandler().(*smartContractResult.SmartContractResult)
 		if !ok {
 			continue
@@ -170,4 +174,12 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 		InitialTxFee:       initialTxFee.String(),
 		InitialTxGasUsed:   initialTxGasUsed,
 	}
+}
+
+func copySCRSMap(initial map[string]data.TransactionHandlerWithGasUsedAndFee) map[string]data.TransactionHandlerWithGasUsedAndFee {
+	newMap := make(map[string]data.TransactionHandlerWithGasUsedAndFee)
+	for key, value := range initial {
+		newMap[key] = value
+	}
+	return newMap
 }
