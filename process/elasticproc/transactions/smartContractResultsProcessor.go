@@ -46,8 +46,7 @@ func (proc *smartContractResultsProcessor) processSCRs(
 ) []*indexerData.ScResult {
 	allSCRs := make([]*indexerData.ScResult, 0, len(txsHandler))
 
-	// we need this map because proc.processSCRsFromMiniblock removes items
-	// from the map in order to remain with the smart contract results that have no transaction on the current shard
+	// a copy of the SCRS map is needed because proc.processSCRsFromMiniblock would remove items from the original map
 	workingSCRSMap := copySCRSMap(txsHandler)
 	for _, mb := range body.MiniBlocks {
 		if mb.Type != block.SmartContractResultBlock {
