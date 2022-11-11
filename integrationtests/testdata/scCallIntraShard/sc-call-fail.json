@@ -1,0 +1,22 @@
+{
+  "miniBlockHash": "5d04f80b044352bfbbde123702323eae07fdd8ca77f24f256079006058b6e7b4",
+  "nonce": 46,
+  "round": 50,
+  "value": "5000000000000000000",
+  "receiver": "6572643171717171717171717171717171717170717171717171717171717171717171717171717171717171717171717166686c6c6c6c73637274353672",
+  "sender": "65726431757265376561323437636c6a3679716a673830756e7a36787a6a686c6a327a776d3467746736737564636d747364326377337873373468617376",
+  "receiverShard": 0,
+  "senderShard": 0,
+  "gasPrice": 1000000000,
+  "gasLimit": 12000000,
+  "gasUsed": 12000000,
+  "fee": "181380000000000",
+  "initialPaidFee": "181380000000000",
+  "data": "ZGVsZWdhdGU=",
+  "signature": "",
+  "timestamp": 5040,
+  "status": "fail",
+  "searchOrder": 0,
+  "hasScResults": true,
+  "operation": "transfer"
+}

@@ -3,19 +3,18 @@
 package integrationtests
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"math/big"
 	"testing"
 
-	indexerdata "github.com/ElrondNetwork/elastic-indexer-go"
-	"github.com/ElrondNetwork/elastic-indexer-go/mock"
+	indexerdata "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/esdt"
-	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 	"github.com/stretchr/testify/require"
 )
 
@@ -25,15 +24,6 @@ func TestAccountsESDTDeleteOnRollback(t *testing.T) {
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	feeComputer := &mock.EconomicsHandlerMock{}
-
-	shardCoordinator := &mock.ShardCoordinatorMock{
-		SelfID: 1,
-		ComputeIdCalled: func(address []byte) uint32 {
-			return 1
-		},
-	}
-
 	esdtToken := &esdt.ESDigitalToken{
 		Value:      big.NewInt(1000),
 		Properties: []byte("ok"),
@@ -41,28 +31,30 @@ func TestAccountsESDTDeleteOnRollback(t *testing.T) {
 			Creator: []byte("creator"),
 		},
 	}
-	addr := "aaaabbbb"
-	mockAccount := &mock.UserAccountStub{
-		RetrieveValueCalled: func(key []byte) ([]byte, uint32, error) {
-			serializedEsdtToken, err := json.Marshal(esdtToken)
-			return serializedEsdtToken, 0, err
-		},
-		AddressBytesCalled: func() []byte {
-			return []byte(addr)
-		},
-	}
-	accounts := &mock.AccountsStub{
-		LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
-			return mockAccount, nil
+	addr := hex.EncodeToString([]byte("aaaabbbb"))
+	coreAlteredAccounts := map[string]*outport.AlteredAccount{
+		addr: {
+			Address: addr,
+			Tokens: []*outport.AccountTokenData{
+				{
+					Identifier: "TOKEN-eeee",
+					Nonce:      2,
+					Balance:    "1000",
+					MetaData: &outport.TokenMetaData{
+						Creator: "creator",
+					},
+					Properties: "ok",
+				},
+			},
 		},
 	}
 
-	esProc, err := CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
 	// CREATE SEMI-FUNGIBLE TOKEN
 	esdtDataBytes, _ := json.Marshal(esdtToken)
-	pool := &indexer.Pool{
+	pool := &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				TxHash: "h1",
@@ -84,9 +76,10 @@ func TestAccountsESDTDeleteOnRollback(t *testing.T) {
 	header := &dataBlock.Header{
 		Round:     50,
 		TimeStamp: 5040,
+		ShardID:   2,
 	}
 
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
 	require.Nil(t, err)
 
 	ids := []string{"6161616162626262-TOKEN-eeee-02"}
@@ -96,7 +89,7 @@ func TestAccountsESDTDeleteOnRollback(t *testing.T) {
 	require.JSONEq(t, readExpectedResult("./testdata/accountsESDTRollback/account-after-create.json"), string(genericResponse.Docs[0].Source))
 
 	// DO ROLLBACK
-	err = esProc.RemoveAccountsESDT(5040)
+	err = esProc.RemoveAccountsESDT(5040, 2)
 	require.Nil(t, err)
 
 	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse)

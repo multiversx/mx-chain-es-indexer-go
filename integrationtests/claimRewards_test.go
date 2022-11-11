@@ -7,12 +7,11 @@ import (
 	"math/big"
 	"testing"
 
-	indexerdata "github.com/ElrondNetwork/elastic-indexer-go"
-	"github.com/ElrondNetwork/elastic-indexer-go/mock"
+	indexerdata "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-go-core/data/smartContractResult"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/stretchr/testify/require"
@@ -24,19 +23,14 @@ func TestTransactionWithClaimRewardsGasRefund(t *testing.T) {
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	accounts := &mock.AccountsStub{}
-	feeComputer := &mock.EconomicsHandlerMock{}
-	shardCoordinator := &mock.ShardCoordinatorMock{
-		SelfID: core.MetachainShardId,
-	}
-
-	esProc, err := CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
 	txHash := []byte("claimRewards")
 	header := &dataBlock.Header{
 		Round:     50,
 		TimeStamp: 5040,
+		ShardID:   core.MetachainShardId,
 	}
 
 	scrHash1 := []byte("scrRefundGasReward")
@@ -91,13 +85,16 @@ func TestTransactionWithClaimRewardsGasRefund(t *testing.T) {
 		Value:    big.NewInt(0),
 	}
 
-	pool := &indexer.Pool{
-		Txs: map[string]coreData.TransactionHandler{
-			string(txHash): tx1,
+	tx := outport.NewTransactionHandlerWithGasAndFee(tx1, 1068000, big.NewInt(78000000000000))
+	tx.SetInitialPaidFee(big.NewInt(127320000000000))
+
+	pool := &outport.Pool{
+		Txs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
+			string(txHash): tx,
 		},
-		Scrs: map[string]coreData.TransactionHandler{
-			string(scrHash2): scr2,
-			string(scrHash1): scr1,
+		Scrs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
+			string(scrHash2): outport.NewTransactionHandlerWithGasAndFee(scr2, 0, big.NewInt(0)),
+			string(scrHash1): outport.NewTransactionHandlerWithGasAndFee(scr1, 0, big.NewInt(0)),
 		},
 		Logs: []*coreData.LogData{
 			{
@@ -115,7 +112,7 @@ func TestTransactionWithClaimRewardsGasRefund(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
 	require.Nil(t, err)
 
 	ids := []string{hex.EncodeToString(txHash)}

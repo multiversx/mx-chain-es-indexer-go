@@ -3,19 +3,18 @@
 package integrationtests
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"math/big"
 	"testing"
 
-	indexerdata "github.com/ElrondNetwork/elastic-indexer-go"
-	"github.com/ElrondNetwork/elastic-indexer-go/mock"
+	indexerdata "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/esdt"
-	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 	"github.com/stretchr/testify/require"
 )
 
@@ -26,22 +25,17 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 	require.Nil(t, err)
 
 	// ################ ISSUE NON FUNGIBLE TOKEN ##########################
-	shardCoordinator := &mock.ShardCoordinatorMock{
-		SelfID: core.MetachainShardId,
-	}
-
-	accounts := &mock.AccountsStub{}
-	feeComputer := &mock.EconomicsHandlerMock{}
-	esProc, err := CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
 	body := &dataBlock.Body{}
 	header := &dataBlock.Header{
 		Round:     50,
 		TimeStamp: 5040,
+		ShardID:   core.MetachainShardId,
 	}
 
-	pool := &indexer.Pool{
+	pool := &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				TxHash: "h1",
@@ -59,43 +53,55 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
 	require.Nil(t, err)
 
 	// ################ CREATE SEMI FUNGIBLE TOKEN 1 ##########################
-	shardCoordinator = &mock.ShardCoordinatorMock{
-		SelfID: 0,
-	}
-
-	esdtToken := &esdt.ESDigitalToken{
-		Value:      big.NewInt(1000),
-		Properties: []byte("ok"),
-		TokenMetaData: &esdt.MetaData{
-			Creator: []byte("creator"),
-		},
-	}
-
 	addr := "aaaabbbbcccccccc"
-	mockAccount := &mock.UserAccountStub{
-		RetrieveValueCalled: func(key []byte) ([]byte, uint32, error) {
-			serializedEsdtToken, err := json.Marshal(esdtToken)
-			return serializedEsdtToken, 0, err
+	addrHex := hex.EncodeToString([]byte(addr))
+
+	addrForLog := "aaaabbbb"
+	addrForLogHex := hex.EncodeToString([]byte(addrForLog))
+
+	coreAlteredAccounts := map[string]*outport.AlteredAccount{
+		addrHex: {
+			Address: addrHex,
+			Balance: "0",
+			Tokens: []*outport.AccountTokenData{
+				{
+					Identifier: "SSSS-dddd",
+					Balance:    "1000",
+					Nonce:      2,
+					Properties: "ok",
+					MetaData: &outport.TokenMetaData{
+						Creator: "creator",
+					},
+				},
+			},
 		},
-		AddressBytesCalled: func() []byte {
-			return []byte(addr)
+		addrForLogHex: {
+			Address: addrForLogHex,
+			Balance: "0",
+			Tokens: []*outport.AccountTokenData{
+				{
+					Identifier: "SSSS-dddd",
+					Balance:    "1000",
+					Nonce:      2,
+					Properties: "ok",
+					MetaData: &outport.TokenMetaData{
+						Creator: "creator",
+					},
+				},
+			},
 		},
 	}
-	accounts = &mock.AccountsStub{
-		LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
-			return mockAccount, nil
-		},
-	}
-	esProc, err = CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	esProc, err = CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
 	header = &dataBlock.Header{
 		Round:     51,
 		TimeStamp: 5600,
+		ShardID:   1,
 	}
 
 	esdtData := &esdt.ESDigitalToken{
@@ -105,14 +111,14 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 	}
 	esdtDataBytes, _ := json.Marshal(esdtData)
 
-	pool = &indexer.Pool{
+	pool = &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				TxHash: "h1",
 				LogHandler: &transaction.Log{
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("aaaabbbb"),
+							Address:    []byte(addr),
 							Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
 							Topics:     [][]byte{[]byte("SSSS-dddd"), big.NewInt(2).Bytes(), big.NewInt(1).Bytes(), esdtDataBytes},
 						},
@@ -123,7 +129,7 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
 	require.Nil(t, err)
 	ids := []string{"61616161626262626363636363636363"}
 	genericResponse := &GenericResponse{}
@@ -132,14 +138,14 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 	require.JSONEq(t, readExpectedResult("./testdata/collectionsIndex/collections-1.json"), string(genericResponse.Docs[0].Source))
 
 	// ################ CREATE SEMI FUNGIBLE TOKEN 2 ##########################
-	pool = &indexer.Pool{
+	pool = &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				TxHash: "h1",
 				LogHandler: &transaction.Log{
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("aaaabbbb"),
+							Address:    []byte(addr),
 							Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
 							Topics:     [][]byte{[]byte("SSSS-dddd"), big.NewInt(22).Bytes(), big.NewInt(1).Bytes(), esdtDataBytes},
 						},
@@ -150,7 +156,10 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool)
+	coreAlteredAccounts[addrHex].Tokens[0].Nonce = 22
+	coreAlteredAccounts[addrForLogHex].Tokens[0].Nonce = 22
+
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
 	require.Nil(t, err)
 	ids = []string{"61616161626262626363636363636363"}
 	genericResponse = &GenericResponse{}
@@ -159,33 +168,30 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 	require.JSONEq(t, readExpectedResult("./testdata/collectionsIndex/collections-2.json"), string(genericResponse.Docs[0].Source))
 
 	// ################ TRANSFER SEMI FUNGIBLE TOKEN 2 ##########################
-	esdtToken = &esdt.ESDigitalToken{
-		Value:      big.NewInt(0),
-		Properties: []byte("ok"),
-		TokenMetaData: &esdt.MetaData{
-			Creator: []byte("creator"),
-		},
-	}
 
 	addr = "aaaabbbbcccccccc"
-	mockAccount = &mock.UserAccountStub{
-		RetrieveValueCalled: func(key []byte) ([]byte, uint32, error) {
-			serializedEsdtToken, err := json.Marshal(esdtToken)
-			return serializedEsdtToken, 0, err
-		},
-		AddressBytesCalled: func() []byte {
-			return []byte(addr)
+	addrHex = hex.EncodeToString([]byte(addr))
+	coreAlteredAccounts = map[string]*outport.AlteredAccount{
+		addrHex: {
+			Address: addrHex,
+			Tokens: []*outport.AccountTokenData{
+				{
+					Identifier: "SSSS-dddd",
+					Nonce:      22,
+					Balance:    "0",
+					Properties: "ok",
+					MetaData: &outport.TokenMetaData{
+						Creator: "creator",
+					},
+				},
+			},
 		},
 	}
-	accounts = &mock.AccountsStub{
-		LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
-			return mockAccount, nil
-		},
-	}
-	esProc, err = CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+
+	esProc, err = CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
-	pool = &indexer.Pool{
+	pool = &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				TxHash: "h1",
@@ -203,7 +209,7 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
 	require.Nil(t, err)
 	ids = []string{"61616161626262626363636363636363"}
 	genericResponse = &GenericResponse{}

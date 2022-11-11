@@ -4,7 +4,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	"github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 )
 
 // ElasticProcessorStub -
@@ -15,14 +15,14 @@ type ElasticProcessorStub struct {
 		signersIndexes []uint64,
 		body *block.Body,
 		notarizedHeadersHashes []string,
-		gasConsumptionData indexer.HeaderGasConsumption,
+		gasConsumptionData outport.HeaderGasConsumption,
 		txsSize int,
 	) error
 	RemoveHeaderCalled               func(header coreData.HeaderHandler) error
 	RemoveMiniblocksCalled           func(header coreData.HeaderHandler, body *block.Body) error
 	RemoveTransactionsCalled         func(header coreData.HeaderHandler, body *block.Body) error
 	SaveMiniblocksCalled             func(header coreData.HeaderHandler, body *block.Body) error
-	SaveTransactionsCalled           func(body *block.Body, header coreData.HeaderHandler, pool *indexer.Pool) error
+	SaveTransactionsCalled           func(body *block.Body, header coreData.HeaderHandler, pool *outport.Pool, coreAlteredAccounts map[string]*outport.AlteredAccount) error
 	SaveValidatorsRatingCalled       func(index string, validatorsRatingInfo []*data.ValidatorRatingInfo) error
 	SaveRoundsInfoCalled             func(infos []*data.RoundInfo) error
 	SaveShardValidatorsPubKeysCalled func(shardID, epoch uint32, shardValidatorsPubKeys [][]byte) error
@@ -31,7 +31,7 @@ type ElasticProcessorStub struct {
 }
 
 // RemoveAccountsESDT -
-func (eim *ElasticProcessorStub) RemoveAccountsESDT(headerTimestamp uint64) error {
+func (eim *ElasticProcessorStub) RemoveAccountsESDT(headerTimestamp uint64, _ uint32) error {
 	if eim.RemoveAccountsESDTCalled != nil {
 		return eim.RemoveAccountsESDTCalled(headerTimestamp)
 	}
@@ -46,7 +46,7 @@ func (eim *ElasticProcessorStub) SaveHeader(
 	signersIndexes []uint64,
 	body *block.Body,
 	notarizedHeadersHashes []string,
-	gasConsumptionData indexer.HeaderGasConsumption,
+	gasConsumptionData outport.HeaderGasConsumption,
 	txsSize int) error {
 	if eim.SaveHeaderCalled != nil {
 		return eim.SaveHeaderCalled(headerHash, header, signersIndexes, body, notarizedHeadersHashes, gasConsumptionData, txsSize)
@@ -87,9 +87,9 @@ func (eim *ElasticProcessorStub) SaveMiniblocks(header coreData.HeaderHandler, b
 }
 
 // SaveTransactions -
-func (eim *ElasticProcessorStub) SaveTransactions(body *block.Body, header coreData.HeaderHandler, pool *indexer.Pool) error {
+func (eim *ElasticProcessorStub) SaveTransactions(body *block.Body, header coreData.HeaderHandler, pool *outport.Pool, coreAlteredAccounts map[string]*outport.AlteredAccount, _ bool, _ uint32) error {
 	if eim.SaveTransactionsCalled != nil {
-		return eim.SaveTransactionsCalled(body, header, pool)
+		return eim.SaveTransactionsCalled(body, header, pool, coreAlteredAccounts)
 	}
 	return nil
 }
@@ -119,7 +119,7 @@ func (eim *ElasticProcessorStub) SaveShardValidatorsPubKeys(shardID, epoch uint3
 }
 
 // SaveAccounts -
-func (eim *ElasticProcessorStub) SaveAccounts(timestamp uint64, acc []*data.Account) error {
+func (eim *ElasticProcessorStub) SaveAccounts(timestamp uint64, acc []*data.Account, _ uint32) error {
 	if eim.SaveAccountsCalled != nil {
 		return eim.SaveAccountsCalled(timestamp, acc)
 	}

@@ -3,20 +3,16 @@
 package integrationtests
 
 import (
-	"bytes"
-	"encoding/json"
+	"encoding/hex"
 	"math/big"
 	"testing"
 
-	indexerdata "github.com/ElrondNetwork/elastic-indexer-go"
-	"github.com/ElrondNetwork/elastic-indexer-go/mock"
+	indexerdata "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-go-core/data/esdt"
-	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 	"github.com/stretchr/testify/require"
 )
 
@@ -26,44 +22,22 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	accounts := &mock.AccountsStub{}
-	feeComputer := &mock.EconomicsHandlerMock{}
-
 	// ################ CREATE NFT ##########################
-	shardCoordinator := &mock.ShardCoordinatorMock{
-		SelfID: 0,
-	}
-
 	body := &dataBlock.Body{}
 
-	esdtToken := &esdt.ESDigitalToken{
-		Value: big.NewInt(1000),
-	}
-
 	addr := "test-address-balance-1"
-	mockAccount := &mock.UserAccountStub{
-		RetrieveValueCalled: func(key []byte) ([]byte, uint32, error) {
-			serializedEsdtToken, err := json.Marshal(esdtToken)
-			return serializedEsdtToken, 0, err
-		},
-		AddressBytesCalled: func() []byte {
-			return []byte(addr)
-		},
-	}
-	accounts = &mock.AccountsStub{
-		LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
-			return mockAccount, nil
-		},
-	}
-	esProc, err := CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	addrHex := hex.EncodeToString([]byte(addr))
+
+	esProc, err := CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
 	header := &dataBlock.Header{
 		Round:     51,
 		TimeStamp: 5600,
+		ShardID:   1,
 	}
 
-	pool := &indexer.Pool{
+	pool := &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				TxHash: "h1",
@@ -81,7 +55,20 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool)
+	coreAlteredAccounts := map[string]*outport.AlteredAccount{
+		addrHex: {
+			Address: addrHex,
+			Tokens: []*outport.AccountTokenData{
+				{
+					Identifier: "NFT-abcdef",
+					Nonce:      7440483,
+					Balance:    "1000",
+				},
+			},
+		},
+	}
+
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
 	require.Nil(t, err)
 
 	ids := []string{"746573742d616464726573732d62616c616e63652d31-NFT-abcdef-718863"}
@@ -95,9 +82,10 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 	header = &dataBlock.Header{
 		Round:     51,
 		TimeStamp: 5600,
+		ShardID:   1,
 	}
 
-	pool = &indexer.Pool{
+	pool = &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				TxHash: "h1",
@@ -115,39 +103,35 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 		},
 	}
 
-	esdtToken = &esdt.ESDigitalToken{
-		Value: big.NewInt(1000),
-	}
 	addrReceiver := "new-address"
-	mockAccountReceiver := &mock.UserAccountStub{
-		RetrieveValueCalled: func(key []byte) ([]byte, uint32, error) {
-			serializedEsdtToken, err := json.Marshal(esdtToken)
-			return serializedEsdtToken, 0, err
-		},
-		AddressBytesCalled: func() []byte {
-			return []byte(addrReceiver)
-		},
-	}
-	mockAccountSender := &mock.UserAccountStub{
-		RetrieveValueCalled: func(key []byte) ([]byte, uint32, error) {
-			return []byte("{}"), 0, nil
-		},
-		AddressBytesCalled: func() []byte {
-			return []byte(addr)
-		},
-	}
-	accounts = &mock.AccountsStub{
-		LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
-			if bytes.Equal(container, []byte(addr)) {
-				return mockAccountSender, nil
-			}
-			return mockAccountReceiver, nil
-		},
-	}
-	esProc, err = CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	addrReceiverHex := hex.EncodeToString([]byte(addrReceiver))
+
+	esProc, err = CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
-	err = esProc.SaveTransactions(body, header, pool)
+	coreAlteredAccounts = map[string]*outport.AlteredAccount{
+		addrHex: {
+			Address: addrHex,
+			Tokens: []*outport.AccountTokenData{
+				{
+					Identifier: "NFT-abcdef",
+					Nonce:      7440483,
+					Balance:    "0",
+				},
+			},
+		},
+		addrReceiverHex: {
+			Address: addrReceiverHex,
+			Tokens: []*outport.AccountTokenData{
+				{
+					Identifier: "NFT-abcdef",
+					Nonce:      7440483,
+					Balance:    "1000",
+				},
+			},
+		},
+	}
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
 	require.Nil(t, err)
 
 	ids = []string{"746573742d616464726573732d62616c616e63652d31-NFT-abcdef-718863"}

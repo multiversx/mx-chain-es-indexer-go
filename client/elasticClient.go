@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
@@ -41,7 +41,7 @@ type elasticClient struct {
 // NewElasticClient will create a new instance of elasticClient
 func NewElasticClient(cfg elasticsearch.Config) (*elasticClient, error) {
 	if len(cfg.Addresses) == 0 {
-		return nil, indexer.ErrNoElasticUrlProvided
+		return nil, dataindexer.ErrNoElasticUrlProvided
 	}
 
 	es, err := elasticsearch.NewClient(cfg)
@@ -125,7 +125,7 @@ func (ec *elasticClient) DoBulkRequest(buff *bytes.Buffer, index string) error {
 	return elasticBulkRequestResponseHandler(res)
 }
 
-// DoMultiGet wil do a multi get request to elaticsearch server
+// DoMultiGet wil do a multi get request to Elasticsearch server
 func (ec *elasticClient) DoMultiGet(ids []string, index string, withSource bool, resBody interface{}) error {
 	obj := getDocumentsByIDsQuery(ids, withSource)
 	body, err := encode(obj)
@@ -302,7 +302,7 @@ func (ec *elasticClient) createPolicy(policyName string, policy *bytes.Buffer) e
 
 	errStr := fmt.Sprintf("%v", existsRes.Error)
 	if existsRes.Status == http.StatusConflict && !strings.Contains(errStr, errPolicyAlreadyExists) {
-		return indexer.ErrCouldNotCreatePolicy
+		return dataindexer.ErrCouldNotCreatePolicy
 	}
 
 	return nil
@@ -310,7 +310,7 @@ func (ec *elasticClient) createPolicy(policyName string, policy *bytes.Buffer) e
 
 // CreateIndexTemplate creates an elasticsearch index template
 func (ec *elasticClient) createIndexTemplate(templateName string, template io.Reader) error {
-	res, err := ec.client.Indices.PutTemplate(templateName, template)
+	res, err := ec.client.Indices.PutTemplate(templateName, template, ec.client.Indices.PutTemplate.WithContext(context.Background()))
 	if err != nil {
 		return err
 	}

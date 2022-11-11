@@ -7,12 +7,12 @@
 	"tokenNonce": 2,
 	"properties": "6f6b",
 	"data": {
-		"creator": "63726561746f72",
+		"creator": "creator",
 		"nonEmptyURIs": false,
 		"whiteListedStorage": false
 	},
 	"timestamp": 5600,
 	"type": "SemiFungibleESDT",
 	"currentOwner":"61646472",
-	"shardID": 0
+	"shardID": 2
 }

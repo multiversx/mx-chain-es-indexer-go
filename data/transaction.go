@@ -1,7 +1,6 @@
 package data
 
 import (
-	"math/big"
 	"time"
 )
 
@@ -42,43 +41,12 @@ type Transaction struct {
 	IsRelayed            bool          `json:"isRelayed,omitempty"`
 	Version              uint32        `json:"version,omitempty"`
 	SmartContractResults []*ScResult   `json:"-"`
-	ReceiverAddressBytes []byte        `json:"-"`
 	Hash                 string        `json:"-"`
 	BlockHash            string        `json:"-"`
 	HadRefund            bool          `json:"-"`
 }
 
-// GetGasLimit will return transaction gas limit
-func (t *Transaction) GetGasLimit() uint64 {
-	return t.GasLimit
-}
-
-// GetGasPrice will return transaction gas price
-func (t *Transaction) GetGasPrice() uint64 {
-	return t.GasPrice
-}
-
-// GetData will return transaction data field
-func (t *Transaction) GetData() []byte {
-	return t.Data
-}
-
-// GetRcvAddr will return transaction receiver address
-func (t *Transaction) GetRcvAddr() []byte {
-	return t.ReceiverAddressBytes
-}
-
-// GetValue wil return transaction value
-func (t *Transaction) GetValue() *big.Int {
-	bigIntValue, ok := big.NewInt(0).SetString(t.Value, 10)
-	if !ok {
-		return big.NewInt(0)
-	}
-
-	return bigIntValue
-}
-
-// Receipt is a structure containing all the fields that need to be save for a Receipt
+// Receipt is a structure containing all the fields that need to be safe for a Receipt
 type Receipt struct {
 	Hash      string        `json:"-"`
 	Value     string        `json:"value"`
@@ -93,9 +61,8 @@ type PreparedResults struct {
 	Transactions []*Transaction
 	ScResults    []*ScResult
 	Receipts     []*Receipt
-	AlteredAccts AlteredAccountsHandler
 	TxHashStatus map[string]string
-	TxHashRefund map[string]*RefundData
+	TxHashFee    map[string]*FeeData
 }
 
 // ResponseTransactions is the structure for the transactions response
@@ -110,8 +77,9 @@ type ResponseTransactionDB struct {
 	Source Transaction `json:"_source"`
 }
 
-// RefundData is the structure that contains data about a refund
-type RefundData struct {
-	Value    string
+// FeeData is the structure that contains data about transaction fee and gas used
+type FeeData struct {
+	Fee      string
+	GasUsed  uint64
 	Receiver string
 }

@@ -6,12 +6,11 @@ import (
 	"math/big"
 	"testing"
 
-	indexerdata "github.com/ElrondNetwork/elastic-indexer-go"
-	"github.com/ElrondNetwork/elastic-indexer-go/mock"
+	indexerdata "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/stretchr/testify/require"
 )
@@ -22,22 +21,17 @@ func TestIssueTokenAndTransferOwnership(t *testing.T) {
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	accounts := &mock.AccountsStub{}
-	feeComputer := &mock.EconomicsHandlerMock{}
-	shardCoordinator := &mock.ShardCoordinatorMock{
-		SelfID: core.MetachainShardId,
-	}
-
-	esProc, err := CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
 	body := &dataBlock.Body{}
 	header := &dataBlock.Header{
 		Round:     50,
 		TimeStamp: 5040,
+		ShardID:   core.MetachainShardId,
 	}
 
-	pool := &indexer.Pool{
+	pool := &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				TxHash: "h1",
@@ -55,7 +49,7 @@ func TestIssueTokenAndTransferOwnership(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
 	require.Nil(t, err)
 
 	ids := []string{"SSSS-abcd"}
@@ -65,7 +59,7 @@ func TestIssueTokenAndTransferOwnership(t *testing.T) {
 	require.JSONEq(t, readExpectedResult("./testdata/issueToken/token-semi.json"), string(genericResponse.Docs[0].Source))
 
 	// transfer ownership
-	pool = &indexer.Pool{
+	pool = &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				TxHash: "h1",
@@ -84,7 +78,7 @@ func TestIssueTokenAndTransferOwnership(t *testing.T) {
 	}
 
 	header.TimeStamp = 10000
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
 	require.Nil(t, err)
 
 	ids = []string{"SSSS-abcd"}

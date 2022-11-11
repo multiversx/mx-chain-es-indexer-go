@@ -29,4 +29,6 @@ jobs:
               dep ensure
           fi
       - name: Build
-        run: go build
+        run: |
+          cd cmd/elasticindexer 
+          go build

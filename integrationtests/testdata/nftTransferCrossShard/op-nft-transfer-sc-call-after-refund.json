@@ -28,7 +28,7 @@
     "00000000000000000500f1c8f2fdc58a63c6b201fc2ed629962d3dfa33fe7ceb"
   ],
   "receiversShardIDs": [
-    0
+    1
   ],
   "operation": "ESDTNFTTransfer",
   "type": "normal",
