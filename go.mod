@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/ElrondNetwork/elrond-go-core v1.1.24
 	github.com/ElrondNetwork/elrond-go-logger v1.0.8
-	github.com/ElrondNetwork/elrond-vm-common v1.3.25
+	github.com/ElrondNetwork/elrond-vm-common v1.3.26
 	github.com/elastic/go-elasticsearch/v7 v7.12.0
 	github.com/gorilla/websocket v1.5.0
 	github.com/stretchr/testify v1.7.0

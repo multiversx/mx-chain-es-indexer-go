@@ -7,8 +7,8 @@ github.com/ElrondNetwork/elrond-go-logger v1.0.7/go.mod h1:cBfgx0ST/CJx8jrxJSC5a
 github.com/ElrondNetwork/elrond-go-logger v1.0.8 h1:e8SkdCNI+eRq0jpsziwn063RGUuaHjQhO4Ayg5hiTuM=
 github.com/ElrondNetwork/elrond-go-logger v1.0.8/go.mod h1:86lz/Y9D1sMAZiukCYxCsETLl1zuI23qj37ct3KUT6A=
 github.com/ElrondNetwork/elrond-vm-common v1.1.0/go.mod h1:w3i6f8uiuRkE68Ie/gebRcLgTuHqvruJSYrFyZWuLrE=
-github.com/ElrondNetwork/elrond-vm-common v1.3.25 h1:Q8VpD8vfgWS2odnwiTULz1beeUd6pLsSL3s+uKKV/3M=
-github.com/ElrondNetwork/elrond-vm-common v1.3.25/go.mod h1:PaQtmmGpxi3flbCAyvY6LdTVPe+I1JyfpZZp+EKGtUc=
+github.com/ElrondNetwork/elrond-vm-common v1.3.26 h1:R5h9kZ2BJ3F3GmGySmLvHwWLdd2xYWELIHQxSzK7QYs=
+github.com/ElrondNetwork/elrond-vm-common v1.3.26/go.mod h1:PaQtmmGpxi3flbCAyvY6LdTVPe+I1JyfpZZp+EKGtUc=
 github.com/StackExchange/wmi v0.0.0-20180116203802-5d049714c4a6/go.mod h1:3eOhrUMpNV+6aFIbp5/iudMxNCF27Vw2OZgy4xEx0Fg=
 github.com/aead/siphash v1.0.1/go.mod h1:Nywa3cDsYNNK3gaciGTWPwHt0wlpNV15vwmswBAUSII=
 github.com/btcsuite/btcd v0.20.1-beta/go.mod h1:wVuoA8VJLEcwgqHBwHmzLRazpKxTv13Px/pDuV7OomQ=
