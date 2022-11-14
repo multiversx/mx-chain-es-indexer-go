@@ -16,14 +16,14 @@ import (
 	"github.com/elastic/go-elasticsearch/v7"
 )
 
-func setLogLevelDebug() {
-	_ = logger.SetLogLevel("process:DEBUG")
-}
-
 var (
 	log                = logger.GetOrCreate("integration-tests")
 	pubKeyConverter, _ = pubkeyConverter.NewBech32PubkeyConverter(32, log)
 )
+
+func setLogLevelDebug() {
+	_ = logger.SetLogLevel("process:DEBUG")
+}
 
 //nolint
 func createESClient(url string) (elasticproc.DatabaseClientHandler, error) {
