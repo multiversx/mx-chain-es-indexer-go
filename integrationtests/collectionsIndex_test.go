@@ -3,7 +3,6 @@
 package integrationtests
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"math/big"
 	"testing"
@@ -35,6 +34,7 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 		ShardID:   core.MetachainShardId,
 	}
 
+	address1 := "erd1v7e552pz9py4hv6raan0c4jflez3e6csdmzcgrncg0qrnk4tywvsqx0h5j"
 	pool := &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
@@ -42,7 +42,7 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 				LogHandler: &transaction.Log{
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("addr"),
+							Address:    decodeAddress(address1),
 							Identifier: []byte("issueSemiFungible"),
 							Topics:     [][]byte{[]byte("SSSS-dddd"), []byte("SEMI-semi"), []byte("SSS"), []byte(core.SemiFungibleESDT)},
 						},
@@ -57,15 +57,12 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 	require.Nil(t, err)
 
 	// ################ CREATE SEMI FUNGIBLE TOKEN 1 ##########################
-	addr := "aaaabbbbcccccccc"
-	addrHex := hex.EncodeToString([]byte(addr))
-
-	addrForLog := "aaaabbbb"
-	addrForLogHex := hex.EncodeToString([]byte(addrForLog))
+	address2 := "erd1acjlnuhkd8773sqhmw85r0ur4lcyuqgm0n69h9ttxh0gwxtuuzxq4lckh6"
+	address3 := "erd1emv0ffwkrq6wdszxrg2ktjxhtnqt8gsqp93v8pnl8qca5ewn4deshd8s5z"
 
 	coreAlteredAccounts := map[string]*outport.AlteredAccount{
-		addrHex: {
-			Address: addrHex,
+		address2: {
+			Address: address2,
 			Balance: "0",
 			Tokens: []*outport.AccountTokenData{
 				{
@@ -79,8 +76,8 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 				},
 			},
 		},
-		addrForLogHex: {
-			Address: addrForLogHex,
+		address3: {
+			Address: address3,
 			Balance: "0",
 			Tokens: []*outport.AccountTokenData{
 				{
@@ -118,7 +115,7 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 				LogHandler: &transaction.Log{
 					Events: []*transaction.Event{
 						{
-							Address:    []byte(addr),
+							Address:    decodeAddress(address2),
 							Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
 							Topics:     [][]byte{[]byte("SSSS-dddd"), big.NewInt(2).Bytes(), big.NewInt(1).Bytes(), esdtDataBytes},
 						},
@@ -131,7 +128,7 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 
 	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
 	require.Nil(t, err)
-	ids := []string{"61616161626262626363636363636363"}
+	ids := []string{address2}
 	genericResponse := &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.CollectionsIndex, true, genericResponse)
 	require.Nil(t, err)
@@ -145,7 +142,7 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 				LogHandler: &transaction.Log{
 					Events: []*transaction.Event{
 						{
-							Address:    []byte(addr),
+							Address:    decodeAddress(address2),
 							Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
 							Topics:     [][]byte{[]byte("SSSS-dddd"), big.NewInt(22).Bytes(), big.NewInt(1).Bytes(), esdtDataBytes},
 						},
@@ -156,12 +153,12 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 		},
 	}
 
-	coreAlteredAccounts[addrHex].Tokens[0].Nonce = 22
-	coreAlteredAccounts[addrForLogHex].Tokens[0].Nonce = 22
+	coreAlteredAccounts[address2].Tokens[0].Nonce = 22
+	coreAlteredAccounts[address2].Tokens[0].Nonce = 22
 
 	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
 	require.Nil(t, err)
-	ids = []string{"61616161626262626363636363636363"}
+	ids = []string{address2}
 	genericResponse = &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.CollectionsIndex, true, genericResponse)
 	require.Nil(t, err)
@@ -169,11 +166,9 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 
 	// ################ TRANSFER SEMI FUNGIBLE TOKEN 2 ##########################
 
-	addr = "aaaabbbbcccccccc"
-	addrHex = hex.EncodeToString([]byte(addr))
 	coreAlteredAccounts = map[string]*outport.AlteredAccount{
-		addrHex: {
-			Address: addrHex,
+		address2: {
+			Address: address2,
 			Tokens: []*outport.AccountTokenData{
 				{
 					Identifier: "SSSS-dddd",
@@ -198,7 +193,7 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 				LogHandler: &transaction.Log{
 					Events: []*transaction.Event{
 						{
-							Address:    []byte(addr),
+							Address:    decodeAddress(address2),
 							Identifier: []byte(core.BuiltInFunctionESDTNFTTransfer),
 							Topics:     [][]byte{[]byte("SSSS-dddd"), big.NewInt(22).Bytes(), big.NewInt(1).Bytes(), []byte("746573742d616464726573732d62616c616e63652d31")},
 						},
@@ -211,7 +206,7 @@ func TestCollectionsIndexInsertAndDelete(t *testing.T) {
 
 	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
 	require.Nil(t, err)
-	ids = []string{"61616161626262626363636363636363"}
+	ids = []string{address2}
 	genericResponse = &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.CollectionsIndex, true, genericResponse)
 	require.Nil(t, err)
