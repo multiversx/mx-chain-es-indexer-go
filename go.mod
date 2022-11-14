@@ -10,7 +10,7 @@ require (
 	github.com/gorilla/websocket v1.5.0
 	github.com/stretchr/testify v1.7.0
 	github.com/tidwall/gjson v1.14.0
-	github.com/urfave/cli v1.22.9
+	github.com/urfave/cli v1.22.10
 )
 
 require (
