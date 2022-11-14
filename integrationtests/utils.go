@@ -33,6 +33,7 @@ func createESClient(url string) (elasticproc.DatabaseClientHandler, error) {
 	})
 }
 
+//nolint
 func decodeAddress(address string) []byte {
 	decoded, err := pubKeyConverter.Decode(address)
 	log.LogIfError(err, "cannot decode address")
