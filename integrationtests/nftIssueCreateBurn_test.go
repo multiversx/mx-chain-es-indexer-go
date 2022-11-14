@@ -35,6 +35,7 @@ func TestIssueNFTCreateAndBurn(t *testing.T) {
 		ShardID:   core.MetachainShardId,
 	}
 
+	address1 := "erd1ju8pkvg57cwdmjsjx58jlmnuf4l9yspstrhr9tgsrt98n9edpm2qtlgy99"
 	pool := &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
@@ -42,7 +43,7 @@ func TestIssueNFTCreateAndBurn(t *testing.T) {
 				LogHandler: &transaction.Log{
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("addr"),
+							Address:    decodeAddress(address1),
 							Identifier: []byte("issueNonFungible"),
 							Topics:     [][]byte{[]byte("NON-abcd"), []byte("NON-token"), []byte("NON"), []byte(core.NonFungibleESDT)},
 						},
@@ -69,12 +70,12 @@ func TestIssueNFTCreateAndBurn(t *testing.T) {
 	header = &dataBlock.Header{
 		Round:     51,
 		TimeStamp: 5600,
-		ShardID:   2,
+		ShardID:   0,
 	}
 
 	esdtData := &esdt.ESDigitalToken{
 		TokenMetaData: &esdt.MetaData{
-			Creator: []byte("creator"),
+			Creator: decodeAddress(address1),
 		},
 	}
 	esdtDataBytes, _ := json.Marshal(esdtData)
@@ -84,9 +85,10 @@ func TestIssueNFTCreateAndBurn(t *testing.T) {
 			{
 				TxHash: "h1",
 				LogHandler: &transaction.Log{
+					Address: decodeAddress(address1),
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("addr"),
+							Address:    decodeAddress(address1),
 							Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
 							Topics:     [][]byte{[]byte("NON-abcd"), big.NewInt(2).Bytes(), big.NewInt(1).Bytes(), esdtDataBytes},
 						},
@@ -111,7 +113,7 @@ func TestIssueNFTCreateAndBurn(t *testing.T) {
 	header = &dataBlock.Header{
 		Round:     52,
 		TimeStamp: 5666,
-		ShardID:   2,
+		ShardID:   0,
 	}
 
 	pool = &outport.Pool{
@@ -121,9 +123,9 @@ func TestIssueNFTCreateAndBurn(t *testing.T) {
 				LogHandler: &transaction.Log{
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("addr"),
+							Address:    decodeAddress(address1),
 							Identifier: []byte(core.BuiltInFunctionESDTNFTBurn),
-							Topics:     [][]byte{[]byte("NON-abcd"), big.NewInt(2).Bytes(), big.NewInt(1).Bytes(), []byte("adr")},
+							Topics:     [][]byte{[]byte("NON-abcd"), big.NewInt(2).Bytes(), big.NewInt(1).Bytes(), decodeAddress(address1)},
 						},
 						nil,
 					},

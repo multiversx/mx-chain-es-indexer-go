@@ -2,7 +2,7 @@
   "receiversShardIDs": [
     2
   ],
-  "receiver": "65726431757265376561323437636c6a3679716a673830756e7a36787a6a686c6a327a776d3467746736737564636d747364326377337873373468617376",
+  "receiver": "erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv",
   "data": "RVNEVE5GVFRyYW5zZmVyQDQzNGY0YzRjNDU0MzU0NDk0ZjRlMmQzMjM2NjMzMTM4MzhAMDFAMDFAMDAwMDAwMDAwMDAwMDAwMDA1MDBhN2EwMjc3MWFhMDcwOTBlNjA3ZjAyYjI1ZjRkNmQyNDFiZmYzMmI5OTBhMg==",
   "signature": "",
   "fee": "238820000000000",
@@ -15,9 +15,9 @@
   "miniBlockHash": "db7161a83f08489cba131e55f042536ee49116b622e33e70335a13e51a6c268c",
   "round": 50,
   "hasScResults": true,
-  "sender": "65726431757265376561323437636c6a3679716a673830756e7a36787a6a686c6a327a776d3467746736737564636d747364326377337873373468617376",
+  "sender": "erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv",
   "receivers": [
-    "00000000000000000500a7a02771aa07090e607f02b25f4d6d241bff32b990a2"
+    "erd1qqqqqqqqqqqqqpgq57szwud2quysucrlq2e97ntdysdl7v4ejz3qn3njq4"
   ],
   "receiverShard": 0,
   "senderShard": 0,

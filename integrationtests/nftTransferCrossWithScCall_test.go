@@ -48,11 +48,13 @@ func TestNFTTransferCrossShardWithScCall(t *testing.T) {
 		},
 	}
 
+	address1 := "erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv"
+	address2 := "erd1qqqqqqqqqqqqqpgq57szwud2quysucrlq2e97ntdysdl7v4ejz3qn3njq4"
 	scr2 := &smartContractResult.SmartContractResult{
 		Nonce:          0,
 		GasPrice:       1000000000,
-		SndAddr:        []byte("erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv"),
-		RcvAddr:        []byte("erd1qqqqqqqqqqqqqpgq57szwud2quysucrlq2e97ntdysdl7v4ejz3qn3njq4"),
+		SndAddr:        decodeAddress(address1),
+		RcvAddr:        decodeAddress(address2),
 		Data:           []byte("ESDTNFTTransfer@4d45584641524d2d636362323532@078b@0347543e5b59c9be8670@000000000000000005005754e4f6ba0b94efd71a0e4dd4814ee24e5f75297ceb@636c61696d52657761726473"),
 		PrevTxHash:     txHash,
 		OriginalTxHash: txHash,
@@ -60,16 +62,15 @@ func TestNFTTransferCrossShardWithScCall(t *testing.T) {
 
 	tx := outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
 		Nonce:    79,
-		SndAddr:  []byte("erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv"),
-		RcvAddr:  []byte("erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv"),
+		SndAddr:  decodeAddress(address1),
+		RcvAddr:  decodeAddress(address1),
 		GasLimit: 5000000,
 		GasPrice: 1000000000,
-		Data:     []byte("ESDTNFTTransfer@4d45584641524d2d636362323532@078b@0347543e5b59c9be8670@0801120b000347543e5b59c9be86702266088b0f1a20000000000000000005005754e4f6ba0b94efd71a0e4dd4814ee24e5f75297ceb32003a3d0000000701b6408636587c0000000000000410000000000000041001000000000a0347543e5b59c9be8670000000000000000a0347543e5b59c9be8670@636c61696d52657761726473"),
+		Data:     []byte("ESDTNFTTransfer@4d45584641524d2d636362323532@078b@0347543e5b59c9be8670@00000000000000000500a7a02771aa07090e607f02b25f4d6d241bff32b990a2@636c61696d52657761726473"),
 		Value:    big.NewInt(0),
 	}, 5000000, big.NewInt(595490000000000))
 	tx.SetInitialPaidFee(big.NewInt(595490000000000))
 
-	// refundValueBig, _ := big.NewInt(0).SetString("40365000000000", 10)
 	pool := &outport.Pool{
 		Txs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
 			string(txHash): tx,
