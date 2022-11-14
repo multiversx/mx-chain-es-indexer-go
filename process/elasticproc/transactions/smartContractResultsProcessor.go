@@ -14,7 +14,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/data/smartContractResult"
 	"github.com/ElrondNetwork/elrond-go-core/hashing"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
-	datafield "github.com/ElrondNetwork/elrond-vm-common/parsers/dataField"
 )
 
 type smartContractResultsProcessor struct {
@@ -126,7 +125,7 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 
 	relayerAddr := ""
 	if len(scr.RelayerAddr) > 0 {
-		relayerAddr = proc.pubKeyConverter.Encode(scr.RelayerAddr)
+		relayerAddr, _ = proc.pubKeyConverter.Encode(scr.RelayerAddr)
 	}
 
 	relayedValue := ""
@@ -135,10 +134,14 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 	}
 	originalSenderAddr := ""
 	if scr.OriginalSender != nil {
-		originalSenderAddr = proc.pubKeyConverter.Encode(scr.OriginalSender)
+		originalSenderAddr, _ = proc.pubKeyConverter.Encode(scr.OriginalSender)
 	}
 
 	res := proc.dataFieldParser.Parse(scr.Data, scr.SndAddr, scr.RcvAddr, numOfShards)
+
+	senderAddr, _ := proc.pubKeyConverter.Encode(scr.SndAddr)
+	receiverAddr, _ := proc.pubKeyConverter.Encode(scr.RcvAddr)
+	receiversAddr, _ := proc.pubKeyConverter.EncodeSlice(res.Receivers)
 
 	return &indexerData.ScResult{
 		Hash:               hex.EncodeToString(scrHash),
@@ -147,8 +150,8 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 		GasLimit:           scr.GasLimit,
 		GasPrice:           scr.GasPrice,
 		Value:              scr.Value.String(),
-		Sender:             proc.pubKeyConverter.Encode(scr.SndAddr),
-		Receiver:           proc.pubKeyConverter.Encode(scr.RcvAddr),
+		Sender:             senderAddr,
+		Receiver:           receiverAddr,
 		RelayerAddr:        relayerAddr,
 		RelayedValue:       relayedValue,
 		Code:               string(scr.Code),
@@ -166,7 +169,7 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 		Function:           res.Function,
 		ESDTValues:         res.ESDTValues,
 		Tokens:             res.Tokens,
-		Receivers:          datafield.EncodeBytesSlice(proc.pubKeyConverter.Encode, res.Receivers),
+		Receivers:          receiversAddr,
 		ReceiversShardIDs:  res.ReceiversShardID,
 		IsRelayed:          res.IsRelayed,
 		OriginalSender:     originalSenderAddr,

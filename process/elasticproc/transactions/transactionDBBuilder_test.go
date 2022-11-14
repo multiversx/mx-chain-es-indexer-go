@@ -50,14 +50,19 @@ func TestGetMoveBalanceTransaction(t *testing.T) {
 		SndUserName: []byte("snd"),
 	}
 
+	senderAddr, err := cp.addressPubkeyConverter.Encode(tx.RcvAddr)
+	require.Nil(t, err)
+	receiverAddr, err := cp.addressPubkeyConverter.Encode(tx.SndAddr)
+	require.Nil(t, err)
+
 	expectedTx := &data.Transaction{
 		Hash:             hex.EncodeToString(txHash),
 		MBHash:           hex.EncodeToString(mbHash),
 		Nonce:            tx.Nonce,
 		Round:            header.Round,
 		Value:            tx.Value.String(),
-		Receiver:         cp.addressPubkeyConverter.Encode(tx.RcvAddr),
-		Sender:           cp.addressPubkeyConverter.Encode(tx.SndAddr),
+		Receiver:         senderAddr,
+		Sender:           receiverAddr,
 		ReceiverShard:    mb.ReceiverShardID,
 		SenderShard:      mb.SenderShardID,
 		GasPrice:         gasPrice,

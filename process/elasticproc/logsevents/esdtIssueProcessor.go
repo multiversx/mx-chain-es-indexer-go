@@ -75,7 +75,7 @@ func (eip *esdtIssueProcessor) processEvent(args *argsProcessEvent) argOutputPro
 		numDecimals = big.NewInt(0).SetBytes(topics[4]).Uint64()
 	}
 
-	encodedAddr := eip.pubkeyConverter.Encode(args.event.GetAddress())
+	encodedAddr, _ := eip.pubkeyConverter.Encode(args.event.GetAddress())
 
 	tokenInfo := &data.TokenInfo{
 		Token:        string(topics[0]),
@@ -96,7 +96,7 @@ func (eip *esdtIssueProcessor) processEvent(args *argsProcessEvent) argOutputPro
 	}
 
 	if identifierStr == transferOwnershipFunc && len(topics) >= numIssueLogTopics+1 {
-		newOwner := eip.pubkeyConverter.Encode(topics[4])
+		newOwner, _ := eip.pubkeyConverter.Encode(topics[4])
 		tokenInfo.TransferOwnership = true
 		tokenInfo.CurrentOwner = newOwner
 		tokenInfo.OwnersHistory[0].Address = newOwner

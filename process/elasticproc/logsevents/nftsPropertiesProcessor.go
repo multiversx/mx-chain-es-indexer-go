@@ -44,7 +44,7 @@ func (npp *nftsPropertiesProc) processEvent(args *argsProcessEvent) argOutputPro
 		}
 	}
 
-	callerAddress := npp.pubKeyConverter.Encode(args.event.GetAddress())
+	callerAddress, _ := npp.pubKeyConverter.Encode(args.event.GetAddress())
 	if callerAddress == "" {
 		return argOutputProcessEvent{
 			processed: true,

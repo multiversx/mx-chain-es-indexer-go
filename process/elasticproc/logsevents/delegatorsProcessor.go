@@ -75,13 +75,15 @@ func (dp *delegatorsProc) processEvent(args *argsProcessEvent) argOutputProcessE
 	// topics[4] = true - if the delegator was deleted in case of withdrawal OR the contract address in case of delegate operations from staking v3.5 (makeNewContractFromValidatorData, mergeValidatorToDelegationSameOwner or mergeValidatorToDelegationWithWhitelist)
 	activeStake := big.NewInt(0).SetBytes(topics[1])
 
-	contractAddr := dp.pubkeyConverter.Encode(args.logAddress)
+	contractAddr, _ := dp.pubkeyConverter.Encode(args.logAddress)
 	if len(topics) >= minNumTopicsDelegators+1 && eventIdentifierStr == delegateFunc {
-		contractAddr = dp.pubkeyConverter.Encode(topics[4])
+		contractAddr, _ = dp.pubkeyConverter.Encode(topics[4])
 	}
 
+	encodedAddr, _ := dp.pubkeyConverter.Encode(args.event.GetAddress())
+
 	delegator := &data.Delegator{
-		Address:        dp.pubkeyConverter.Encode(args.event.GetAddress()),
+		Address:        encodedAddr,
 		Contract:       contractAddr,
 		ActiveStake:    activeStake.String(),
 		ActiveStakeNum: dp.balanceConverter.ComputeBalanceAsFloat(activeStake),
@@ -113,9 +115,12 @@ func (dp *delegatorsProc) getDelegatorFromClaimRewardsEvent(args *argsProcessEve
 		return nil
 	}
 
+	encodedAddr, _ := dp.pubkeyConverter.Encode(args.event.GetAddress())
+	encodedContractAddr, _ := dp.pubkeyConverter.Encode(args.logAddress)
+
 	return &data.Delegator{
-		Address:      dp.pubkeyConverter.Encode(args.event.GetAddress()),
-		Contract:     dp.pubkeyConverter.Encode(args.logAddress),
+		Address:      encodedAddr,
+		Contract:     encodedContractAddr,
 		ShouldDelete: shouldDelete,
 	}
 }

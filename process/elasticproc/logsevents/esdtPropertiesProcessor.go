@@ -68,7 +68,7 @@ func (epp *esdtPropertiesProc) processEvent(args *argsProcessEvent) argOutputPro
 	}
 
 	shouldAddRole := identifier == core.BuiltInFunctionSetESDTRole
-	addrBech := epp.pubKeyConverter.Encode(args.event.GetAddress())
+	addrBech, _ := epp.pubKeyConverter.Encode(args.event.GetAddress())
 	for _, roleBytes := range rolesBytes {
 		args.tokenRolesAndProperties.AddRole(string(topics[tokenTopicsIndex]), addrBech, string(roleBytes), shouldAddRole)
 	}
@@ -81,7 +81,7 @@ func (epp *esdtPropertiesProc) processEvent(args *argsProcessEvent) argOutputPro
 func (epp *esdtPropertiesProc) extractDataNFTCreateRoleTransfer(args *argsProcessEvent) argOutputProcessEvent {
 	topics := args.event.GetTopics()
 
-	addrBech := epp.pubKeyConverter.Encode(args.event.GetAddress())
+	addrBech, _ := epp.pubKeyConverter.Encode(args.event.GetAddress())
 	shouldAddCreateRole := bytesToBool(topics[3])
 	args.tokenRolesAndProperties.AddRole(string(topics[tokenTopicsIndex]), addrBech, core.ESDTRoleNFTCreate, shouldAddCreateRole)
 

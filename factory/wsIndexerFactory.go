@@ -46,7 +46,7 @@ func createDataIndexer(cfg config.Config, clusterCfg config.ClusterConfig) (wsin
 	if err != nil {
 		return nil, err
 	}
-	addressPubkeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(cfg.Config.AddressConverter.Length, log)
+	addressPubkeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(cfg.Config.AddressConverter.Length, "erd")
 	if err != nil {
 		return nil, err
 	}

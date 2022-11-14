@@ -159,10 +159,12 @@ func (np *nftsProcessor) convertMetaData(metaData *esdt.MetaData) *outport.Token
 		return nil
 	}
 
+	encodedCreatorAddr, _ := np.pubKeyConverter.Encode(metaData.Creator)
+
 	return &outport.TokenMetaData{
 		Nonce:      metaData.Nonce,
 		Name:       string(metaData.Name),
-		Creator:    np.pubKeyConverter.Encode(metaData.Creator),
+		Creator:    encodedCreatorAddr,
 		Royalties:  metaData.Royalties,
 		Hash:       metaData.Hash,
 		URIs:       metaData.URIs,
