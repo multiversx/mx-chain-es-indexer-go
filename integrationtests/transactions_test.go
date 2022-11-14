@@ -41,8 +41,8 @@ func TestElasticIndexerSaveTransactions(t *testing.T) {
 	}
 	tx := outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
 		Nonce:    1,
-		SndAddr:  []byte("sender"),
-		RcvAddr:  []byte("receiver"),
+		SndAddr:  decodeAddress("erd1w7jyzuj6cv4ngw8luhlkakatjpmjh3ql95lmxphd3vssc4vpymks6k5th7"),
+		RcvAddr:  decodeAddress("erd1ahmy0yjhjg87n755yv99nzla22zzwfud55sa69gk3anyxyyucq9q2hgxww"),
 		GasLimit: 70000,
 		GasPrice: 1000000000,
 		Data:     []byte("transfer"),

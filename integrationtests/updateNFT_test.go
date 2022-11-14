@@ -36,18 +36,19 @@ func TestNFTUpdateMetadata(t *testing.T) {
 	header := &dataBlock.Header{
 		Round:     50,
 		TimeStamp: 5040,
-		ShardID:   2,
+		ShardID:   1,
 	}
 	body := &dataBlock.Body{}
 
 	// CREATE NFT data
+	address := "erd1w7jyzuj6cv4ngw8luhlkakatjpmjh3ql95lmxphd3vssc4vpymks6k5th7"
 	pool := &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				LogHandler: &transaction.Log{
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("addr"),
+							Address:    decodeAddress(address),
 							Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
 							Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(1).Bytes(), marshalizedCreate},
 						},
@@ -74,7 +75,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 				LogHandler: &transaction.Log{
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("addr"),
+							Address:    decodeAddress(address),
 							Identifier: []byte(core.BuiltInFunctionESDTNFTAddURI),
 							Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("uri1"), []byte("uri2")},
 						},
@@ -95,7 +96,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 				LogHandler: &transaction.Log{
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("addr"),
+							Address:    decodeAddress(address),
 							Identifier: []byte(core.BuiltInFunctionESDTNFTAddURI),
 							Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("uri1"), []byte("uri2")},
 						},
@@ -122,7 +123,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 				LogHandler: &transaction.Log{
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("addr"),
+							Address:    decodeAddress(address),
 							Identifier: []byte(core.BuiltInFunctionESDTNFTUpdateAttributes),
 							Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("tags:test,free,fun;description:This is a test description for an awesome nft;metadata:metadata-test")},
 						},
@@ -150,7 +151,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 				LogHandler: &transaction.Log{
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("addr"),
+							Address:    decodeAddress(address),
 							Identifier: []byte(core.BuiltInFunctionESDTNFTUpdateAttributes),
 							Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("something")},
 						},
