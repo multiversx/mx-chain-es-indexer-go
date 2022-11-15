@@ -31,15 +31,18 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 	}
 	body := &dataBlock.Body{}
 
+	address1 := "erd1ju8pkvg57cwdmjsjx58jlmnuf4l9yspstrhr9tgsrt98n9edpm2qtlgy99"
+	address2 := "erd1w7jyzuj6cv4ngw8luhlkakatjpmjh3ql95lmxphd3vssc4vpymks6k5th7"
+
 	// INDEX ON SOURCE
 	pool := &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				LogHandler: &transaction.Log{
-					Address: []byte("addr-1"),
+					Address: decodeAddress(address1),
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("addr"),
+							Address:    decodeAddress(address1),
 							Identifier: []byte(core.BuiltInFunctionESDTTransfer),
 							Topics:     [][]byte{[]byte("ESDT-abcd"), big.NewInt(0).Bytes(), big.NewInt(1).Bytes()},
 						},
@@ -71,16 +74,16 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 		Logs: []*coreData.LogData{
 			{
 				LogHandler: &transaction.Log{
-					Address: []byte("addr-1"),
+					Address: decodeAddress(address1),
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("addr"),
+							Address:    decodeAddress(address1),
 							Identifier: []byte(core.BuiltInFunctionESDTTransfer),
 							Topics:     [][]byte{[]byte("ESDT-abcd"), big.NewInt(0).Bytes(), big.NewInt(1).Bytes()},
 						},
 						{
 
-							Address:    []byte("addr-3"),
+							Address:    decodeAddress(address2),
 							Identifier: []byte("do-something"),
 							Topics:     [][]byte{[]byte("topic1"), []byte("topic2")},
 						},
@@ -110,10 +113,10 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 		Logs: []*coreData.LogData{
 			{
 				LogHandler: &transaction.Log{
-					Address: []byte("addr-1"),
+					Address: decodeAddress(address1),
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("addr"),
+							Address:    decodeAddress(address1),
 							Identifier: []byte(core.BuiltInFunctionESDTTransfer),
 							Topics:     [][]byte{[]byte("ESDT-abcd"), big.NewInt(0).Bytes(), big.NewInt(1).Bytes()},
 						},

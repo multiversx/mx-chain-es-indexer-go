@@ -3,8 +3,8 @@
 package integrationtests
 
 import (
-	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"math/big"
 	"testing"
 	"time"
@@ -36,6 +36,7 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 		TimeStamp: 5040,
 	}
 
+	address := "erd1sqy2ywvswp09ef7qwjhv8zwr9kzz3xas6y2ye5nuryaz0wcnfzzsnq0am3"
 	pool := &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
@@ -43,7 +44,7 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 				LogHandler: &transaction.Log{
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("addr"),
+							Address:    decodeAddress(address),
 							Identifier: []byte("issueSemiFungible"),
 							Topics:     [][]byte{[]byte("SEMI-abcd"), []byte("SEMI-token"), []byte("SEM"), []byte(core.SemiFungibleESDT)},
 						},
@@ -64,11 +65,9 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 	require.JSONEq(t, readExpectedResult("./testdata/accountsESDTWithTokenType/token-after-issue.json"), string(genericResponse.Docs[0].Source))
 
 	// ################ CREATE SEMI FUNGIBLE TOKEN ##########################
-	addr := "aaaabbbb"
-	encodedAddr := hex.EncodeToString([]byte(addr))
 	coreAlteredAccounts := map[string]*outport.AlteredAccount{
-		encodedAddr: {
-			Address: encodedAddr,
+		address: {
+			Address: address,
 			Balance: "1000",
 			Tokens: []*outport.AccountTokenData{
 				{
@@ -106,7 +105,7 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 				LogHandler: &transaction.Log{
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("aaaabbbb"),
+							Address:    decodeAddress(address),
 							Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
 							Topics:     [][]byte{[]byte("SEMI-abcd"), big.NewInt(2).Bytes(), big.NewInt(1).Bytes(), esdtDataBytes},
 						},
@@ -120,7 +119,7 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
 	require.Nil(t, err)
 
-	ids = []string{"6161616162626262-SEMI-abcd-02"}
+	ids = []string{fmt.Sprintf("%s-SEMI-abcd-02", address)}
 	genericResponse = &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse)
 	require.Nil(t, err)
@@ -137,11 +136,10 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 	// ################ CREATE SEMI FUNGIBLE TOKEN #########################
 	body := &dataBlock.Body{}
 
-	addr := "aaaabbbb"
-	encodedAddr := hex.EncodeToString([]byte(addr))
+	address := "erd1l29zsl2dqq988kvr2y0xlfv9ydgnvhzkatfd8ccalpag265pje8qn8lslf"
 	coreAlteredAccounts := map[string]*outport.AlteredAccount{
-		encodedAddr: {
-			Address: encodedAddr,
+		address: {
+			Address: address,
 			Balance: "1000",
 			Tokens: []*outport.AccountTokenData{
 				{
@@ -150,7 +148,7 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 					Balance:    "1000",
 					Properties: "ok",
 					MetaData: &outport.TokenMetaData{
-						Creator: "creator",
+						Creator: "erd1l29zsl2dqq988kvr2y0xlfv9ydgnvhzkatfd8ccalpag265pje8qn8lslf",
 					},
 				},
 			},
@@ -167,7 +165,7 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 
 	esdtData := &esdt.ESDigitalToken{
 		TokenMetaData: &esdt.MetaData{
-			Creator: []byte("creator"),
+			Creator: decodeAddress(address),
 		},
 	}
 	esdtDataBytes, _ := json.Marshal(esdtData)
@@ -179,7 +177,7 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 				LogHandler: &transaction.Log{
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("aaaabbbb"),
+							Address:    decodeAddress(address),
 							Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
 							Topics:     [][]byte{[]byte("TTTT-abcd"), big.NewInt(2).Bytes(), big.NewInt(1).Bytes(), esdtDataBytes},
 						},
@@ -193,7 +191,7 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
 	require.Nil(t, err)
 
-	ids := []string{"6161616162626262-TTTT-abcd-02"}
+	ids := []string{fmt.Sprintf("%s-TTTT-abcd-02", address)}
 	genericResponse := &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse)
 	require.Nil(t, err)
@@ -218,7 +216,7 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 				LogHandler: &transaction.Log{
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("addr"),
+							Address:    decodeAddress(address),
 							Identifier: []byte("issueSemiFungible"),
 							Topics:     [][]byte{[]byte("TTTT-abcd"), []byte("TTTT-token"), []byte("SEM"), []byte(core.SemiFungibleESDT)},
 						},
@@ -238,7 +236,7 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/accountsESDTWithTokenType/semi-fungible-token.json"), string(genericResponse.Docs[0].Source))
 
-	ids = []string{"6161616162626262-TTTT-abcd-02"}
+	ids = []string{fmt.Sprintf("%s-TTTT-abcd-02", address)}
 	genericResponse = &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse)
 	require.Nil(t, err)

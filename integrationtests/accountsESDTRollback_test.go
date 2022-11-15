@@ -3,8 +3,8 @@
 package integrationtests
 
 import (
-	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"math/big"
 	"testing"
 
@@ -31,7 +31,7 @@ func TestAccountsESDTDeleteOnRollback(t *testing.T) {
 			Creator: []byte("creator"),
 		},
 	}
-	addr := hex.EncodeToString([]byte("aaaabbbb"))
+	addr := "erd1sqy2ywvswp09ef7qwjhv8zwr9kzz3xas6y2ye5nuryaz0wcnfzzsnq0am3"
 	coreAlteredAccounts := map[string]*outport.AlteredAccount{
 		addr: {
 			Address: addr,
@@ -61,7 +61,7 @@ func TestAccountsESDTDeleteOnRollback(t *testing.T) {
 				LogHandler: &transaction.Log{
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("aaaabbbb"),
+							Address:    decodeAddress(addr),
 							Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
 							Topics:     [][]byte{[]byte("TOKEN-eeee"), big.NewInt(2).Bytes(), big.NewInt(1).Bytes(), esdtDataBytes},
 						},
@@ -82,7 +82,7 @@ func TestAccountsESDTDeleteOnRollback(t *testing.T) {
 	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
 	require.Nil(t, err)
 
-	ids := []string{"6161616162626262-TOKEN-eeee-02"}
+	ids := []string{fmt.Sprintf("%s-TOKEN-eeee-02", addr)}
 	genericResponse := &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse)
 	require.Nil(t, err)

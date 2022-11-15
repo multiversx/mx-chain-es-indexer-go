@@ -42,11 +42,13 @@ func TestTransactionWithSCCallFail(t *testing.T) {
 		},
 	}
 
+	address1 := "erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv"
+	address2 := "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqfhllllscrt56r"
 	refundValueBig, _ := big.NewInt(0).SetString("5000000000000000000", 10)
 	tx := outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
 		Nonce:    46,
-		SndAddr:  []byte("erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv"),
-		RcvAddr:  []byte("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqfhllllscrt56r"),
+		SndAddr:  decodeAddress(address1),
+		RcvAddr:  decodeAddress(address2),
 		GasLimit: 12000000,
 		GasPrice: 1000000000,
 		Data:     []byte("delegate"),
@@ -63,8 +65,8 @@ func TestTransactionWithSCCallFail(t *testing.T) {
 				Nonce:          46,
 				Value:          refundValueBig,
 				GasPrice:       0,
-				SndAddr:        []byte("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqfhllllscrt56r"),
-				RcvAddr:        []byte("erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv"),
+				SndAddr:        decodeAddress(address2),
+				RcvAddr:        decodeAddress(address1),
 				Data:           []byte("@75736572206572726f72"),
 				PrevTxHash:     txHash,
 				OriginalTxHash: txHash,
@@ -112,10 +114,12 @@ func TestTransactionWithScCallSuccess(t *testing.T) {
 		},
 	}
 
+	address1 := "erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv"
+	address2 := "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqfhllllscrt56r"
 	tx := outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
 		Nonce:    101,
-		SndAddr:  []byte("erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv"),
-		RcvAddr:  []byte("erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt"),
+		SndAddr:  decodeAddress(address1),
+		RcvAddr:  decodeAddress(address2),
 		GasLimit: 250000000,
 		GasPrice: 1000000000,
 		Data:     []byte("claimRewards"),
@@ -133,8 +137,8 @@ func TestTransactionWithScCallSuccess(t *testing.T) {
 				Nonce:          102,
 				Value:          refundValueBig,
 				GasPrice:       1000000000,
-				SndAddr:        []byte("erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt"),
-				RcvAddr:        []byte("erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv"),
+				SndAddr:        decodeAddress(address2),
+				RcvAddr:        decodeAddress(address1),
 				Data:           []byte("@6f6b"),
 				PrevTxHash:     txHash,
 				OriginalTxHash: txHash,

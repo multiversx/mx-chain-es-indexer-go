@@ -5,9 +5,9 @@
   "nonce": 2,
   "timestamp": 5600,
   "data": {
-    "creator": "63726561746f72",
+    "creator": "erd1ju8pkvg57cwdmjsjx58jlmnuf4l9yspstrhr9tgsrt98n9edpm2qtlgy99",
     "nonEmptyURIs": false,
     "whiteListedStorage": false
   },
-  "currentOwner":"61646472"
+  "currentOwner":"erd1ju8pkvg57cwdmjsjx58jlmnuf4l9yspstrhr9tgsrt98n9edpm2qtlgy99"
 }

@@ -1,5 +1,5 @@
 {
-	"address": "6161616162626262",
+	"address": "erd1sqy2ywvswp09ef7qwjhv8zwr9kzz3xas6y2ye5nuryaz0wcnfzzsnq0am3",
 	"balance": "1000",
 	"balanceNum": 1e-15,
 	"token": "SEMI-abcd",
@@ -13,6 +13,6 @@
 	},
 	"timestamp": 5600,
 	"type": "SemiFungibleESDT",
-	"currentOwner":"61646472",
+	"currentOwner":"erd1sqy2ywvswp09ef7qwjhv8zwr9kzz3xas6y2ye5nuryaz0wcnfzzsnq0am3",
 	"shardID": 2
 }

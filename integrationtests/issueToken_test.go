@@ -31,6 +31,8 @@ func TestIssueTokenAndTransferOwnership(t *testing.T) {
 		ShardID:   core.MetachainShardId,
 	}
 
+	address1 := "erd1v7e552pz9py4hv6raan0c4jflez3e6csdmzcgrncg0qrnk4tywvsqx0h5j"
+	address2 := "erd1acjlnuhkd8773sqhmw85r0ur4lcyuqgm0n69h9ttxh0gwxtuuzxq4lckh6"
 	pool := &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
@@ -38,7 +40,7 @@ func TestIssueTokenAndTransferOwnership(t *testing.T) {
 				LogHandler: &transaction.Log{
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("addr"),
+							Address:    decodeAddress(address1),
 							Identifier: []byte("issueSemiFungible"),
 							Topics:     [][]byte{[]byte("SSSS-abcd"), []byte("semi-token"), []byte("SSSS"), []byte(core.SemiFungibleESDT), big.NewInt(18).Bytes()},
 						},
@@ -66,9 +68,9 @@ func TestIssueTokenAndTransferOwnership(t *testing.T) {
 				LogHandler: &transaction.Log{
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("addr"),
+							Address:    decodeAddress(address1),
 							Identifier: []byte("transferOwnership"),
-							Topics:     [][]byte{[]byte("SSSS-abcd"), []byte("semi-token"), []byte("SSSS"), []byte(core.SemiFungibleESDT), []byte("new-address")},
+							Topics:     [][]byte{[]byte("SSSS-abcd"), []byte("semi-token"), []byte("SSSS"), []byte(core.SemiFungibleESDT), decodeAddress(address2)},
 						},
 						nil,
 					},
