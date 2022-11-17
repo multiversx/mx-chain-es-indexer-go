@@ -3,8 +3,8 @@
   "nonce": 101,
   "round": 50,
   "value": "0",
-  "receiver": "65726431717171717171717171717171717067717877616b7432673775396174736e723033677163676d68637633387074376d6b64393471367368757774",
-  "sender": "65726431757265376561323437636c6a3679716a673830756e7a36787a6a686c6a327a776d3467746736737564636d747364326377337873373468617376",
+  "receiver": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqfhllllscrt56r",
+  "sender": "erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv",
   "receiverShard": 0,
   "senderShard": 0,
   "gasPrice": 1000000000,
@@ -18,5 +18,7 @@
   "status": "success",
   "searchOrder": 0,
   "hasScResults": true,
-  "operation": "transfer"
+  "operation": "transfer",
+  "isScCall": true,
+  "function": "claimRewards"
 }

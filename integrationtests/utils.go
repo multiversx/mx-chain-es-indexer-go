@@ -11,8 +11,14 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/factory"
+	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/elastic/go-elasticsearch/v7"
+)
+
+var (
+	log                = logger.GetOrCreate("integration-tests")
+	pubKeyConverter, _ = pubkeyConverter.NewBech32PubkeyConverter(32, "erd")
 )
 
 func setLogLevelDebug() {
@@ -27,6 +33,14 @@ func createESClient(url string) (elasticproc.DatabaseClientHandler, error) {
 	})
 }
 
+//nolint
+func decodeAddress(address string) []byte {
+	decoded, err := pubKeyConverter.Decode(address)
+	log.LogIfError(err, "address", address)
+
+	return decoded
+}
+
 // CreateElasticProcessor -
 func CreateElasticProcessor(
 	esClient elasticproc.DatabaseClientHandler,
@@ -34,7 +48,7 @@ func CreateElasticProcessor(
 	args := factory.ArgElasticProcessorFactory{
 		Marshalizer:              &mock.MarshalizerMock{},
 		Hasher:                   &mock.HasherMock{},
-		AddressPubkeyConverter:   mock.NewPubkeyConverterMock(32),
+		AddressPubkeyConverter:   pubKeyConverter,
 		ValidatorPubkeyConverter: mock.NewPubkeyConverterMock(32),
 		DBClient:                 esClient,
 		EnabledIndexes: []string{dataindexer.TransactionsIndex, dataindexer.LogsIndex, dataindexer.AccountsESDTIndex, dataindexer.ScResultsIndex,

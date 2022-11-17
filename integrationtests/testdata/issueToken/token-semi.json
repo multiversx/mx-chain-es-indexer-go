@@ -2,13 +2,13 @@
   "name": "semi-token",
   "ticker": "SSSS",
   "token": "SSSS-abcd",
-  "issuer": "61646472",
-  "currentOwner": "61646472",
+  "issuer": "erd1v7e552pz9py4hv6raan0c4jflez3e6csdmzcgrncg0qrnk4tywvsqx0h5j",
+  "currentOwner": "erd1v7e552pz9py4hv6raan0c4jflez3e6csdmzcgrncg0qrnk4tywvsqx0h5j",
   "type": "SemiFungibleESDT",
   "timestamp": 5040,
   "ownersHistory": [
     {
-      "address": "61646472",
+      "address": "erd1v7e552pz9py4hv6raan0c4jflez3e6csdmzcgrncg0qrnk4tywvsqx0h5j",
       "timestamp": 5040
     }
   ],

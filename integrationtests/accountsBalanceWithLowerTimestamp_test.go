@@ -3,7 +3,7 @@
 package integrationtests
 
 import (
-	"encoding/hex"
+	"fmt"
 	"math/big"
 	"testing"
 
@@ -30,13 +30,11 @@ func TestIndexAccountsBalance(t *testing.T) {
 		Value: big.NewInt(1000),
 	}
 
-	addr := "aaaabbbb"
-	addr2 := "eeeebbbb"
-	encodedAddr := hex.EncodeToString([]byte(addr))
-	encodedAddr2 := hex.EncodeToString([]byte(addr2))
+	addr := "erd17umc0uvel62ng30k5uprqcxh3ue33hq608njejaqljuqzqlxtzuqeuzlcv"
+	addr2 := "erd1m2pyjudsqt8gn0tnsstht35gfqcfx8ku5utz07mf2r6pq3sfxjzszhcx6w"
 
 	alteredAccount := &outport.AlteredAccount{
-		Address: encodedAddr,
+		Address: addr,
 		Balance: "0",
 		Tokens: []*outport.AccountTokenData{
 			{
@@ -48,8 +46,8 @@ func TestIndexAccountsBalance(t *testing.T) {
 	}
 
 	coreAlteredAccounts := map[string]*outport.AlteredAccount{
-		encodedAddr:  alteredAccount,
-		encodedAddr2: alteredAccount,
+		addr:  alteredAccount,
+		addr2: alteredAccount,
 	}
 
 	esProc, err := CreateElasticProcessor(esClient)
@@ -82,13 +80,13 @@ func TestIndexAccountsBalance(t *testing.T) {
 	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
 	require.Nil(t, err)
 
-	ids := []string{"6161616162626262"}
+	ids := []string{addr}
 	genericResponse := &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.AccountsIndex, true, genericResponse)
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/accountsBalanceWithLowerTimestamp/account-balance-first-update.json"), string(genericResponse.Docs[0].Source))
 
-	ids = []string{"6161616162626262-TTTT-abcd-00"}
+	ids = []string{fmt.Sprintf("%s-TTTT-abcd-00", addr)}
 	genericResponse = &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse)
 	require.Nil(t, err)
@@ -105,13 +103,13 @@ func TestIndexAccountsBalance(t *testing.T) {
 	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, testNumOfShards)
 	require.Nil(t, err)
 
-	ids = []string{"6161616162626262"}
+	ids = []string{addr}
 	genericResponse = &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.AccountsIndex, true, genericResponse)
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/accountsBalanceWithLowerTimestamp/account-balance-first-update.json"), string(genericResponse.Docs[0].Source))
 
-	ids = []string{"6161616162626262-TTTT-abcd-00"}
+	ids = []string{fmt.Sprintf("%s-TTTT-abcd-00", addr)}
 	genericResponse = &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse)
 	require.Nil(t, err)
@@ -124,8 +122,8 @@ func TestIndexAccountsBalance(t *testing.T) {
 		ShardID:   2,
 	}
 
-	coreAlteredAccounts[encodedAddr].Balance = "2000"
-	coreAlteredAccounts[encodedAddr].AdditionalData = &outport.AdditionalAccountData{
+	coreAlteredAccounts[addr].Balance = "2000"
+	coreAlteredAccounts[addr].AdditionalData = &outport.AdditionalAccountData{
 		IsSender:       true,
 		BalanceChanged: true,
 	}
@@ -141,7 +139,7 @@ func TestIndexAccountsBalance(t *testing.T) {
 				LogHandler: &transaction.Log{
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("eeeebbbb"),
+							Address:    decodeAddress(addr2),
 							Identifier: []byte(core.BuiltInFunctionESDTTransfer),
 							Topics:     [][]byte{[]byte("TTTT-abcd"), nil, big.NewInt(1).Bytes()},
 						},
@@ -164,13 +162,13 @@ func TestIndexAccountsBalance(t *testing.T) {
 	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
 	require.Nil(t, err)
 
-	ids = []string{"6161616162626262"}
+	ids = []string{addr}
 	genericResponse = &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.AccountsIndex, true, genericResponse)
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/accountsBalanceWithLowerTimestamp/account-balance-second-update.json"), string(genericResponse.Docs[0].Source))
 
-	ids = []string{"6161616162626262-TTTT-abcd-00"}
+	ids = []string{fmt.Sprintf("%s-TTTT-abcd-00", addr)}
 	genericResponse = &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse)
 	require.Nil(t, err)
@@ -179,7 +177,6 @@ func TestIndexAccountsBalance(t *testing.T) {
 	//////////////////////// DELETE ESDT BALANCE LOWER TIMESTAMP ////////////////
 
 	esdtToken.Value = big.NewInt(0)
-	encodedAddr = hex.EncodeToString([]byte(addr))
 	esProc, err = CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
@@ -189,9 +186,9 @@ func TestIndexAccountsBalance(t *testing.T) {
 		ShardID:   2,
 	}
 
-	coreAlteredAccounts[encodedAddr].Balance = "2000"
-	coreAlteredAccounts[encodedAddr].Tokens[0].Balance = "0"
-	coreAlteredAccounts[encodedAddr].AdditionalData = &outport.AdditionalAccountData{
+	coreAlteredAccounts[addr].Balance = "2000"
+	coreAlteredAccounts[addr].Tokens[0].Balance = "0"
+	coreAlteredAccounts[addr].AdditionalData = &outport.AdditionalAccountData{
 		IsSender:       false,
 		BalanceChanged: false,
 	}
@@ -200,13 +197,13 @@ func TestIndexAccountsBalance(t *testing.T) {
 	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
 	require.Nil(t, err)
 
-	ids = []string{"6161616162626262"}
+	ids = []string{addr}
 	genericResponse = &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.AccountsIndex, true, genericResponse)
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/accountsBalanceWithLowerTimestamp/account-balance-second-update.json"), string(genericResponse.Docs[0].Source))
 
-	ids = []string{"6161616162626262-TTTT-abcd-00"}
+	ids = []string{fmt.Sprintf("%s-TTTT-abcd-00", addr)}
 	genericResponse = &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse)
 	require.Nil(t, err)

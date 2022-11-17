@@ -31,6 +31,8 @@ func TestIssueTokenAndSetRole(t *testing.T) {
 		ShardID:   core.MetachainShardId,
 	}
 
+	address1 := "erd1k04pxr6c0gvlcx4rd5fje0a4uy33axqxwz0fpcrgtfdy3nrqauqqgvxprv"
+	address2 := "erd1suhxyflu4w4pqdxmushpxzc6a3qszr89m8uswzqcvyh0mh9mzxwqdwkm0x"
 	pool := &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
@@ -38,12 +40,12 @@ func TestIssueTokenAndSetRole(t *testing.T) {
 				LogHandler: &transaction.Log{
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("addr"),
+							Address:    decodeAddress(address1),
 							Identifier: []byte("issueSemiFungible"),
 							Topics:     [][]byte{[]byte("TOK-abcd"), []byte("semi-token"), []byte("SEMI"), []byte(core.SemiFungibleESDT)},
 						},
 						{
-							Address:    []byte("addr"),
+							Address:    decodeAddress(address1),
 							Identifier: []byte("upgradeProperties"),
 							Topics:     [][]byte{[]byte("TOK-abcd"), big.NewInt(0).Bytes(), []byte("canUpgrade"), []byte("true")},
 						},
@@ -71,7 +73,7 @@ func TestIssueTokenAndSetRole(t *testing.T) {
 				LogHandler: &transaction.Log{
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("my-address"),
+							Address:    decodeAddress(address1),
 							Identifier: []byte(core.BuiltInFunctionSetESDTRole),
 							Topics:     [][]byte{[]byte("TOK-abcd"), big.NewInt(0).Bytes(), big.NewInt(0).Bytes(), []byte(core.ESDTRoleNFTCreate), []byte(core.ESDTRoleNFTBurn)},
 						},
@@ -100,12 +102,12 @@ func TestIssueTokenAndSetRole(t *testing.T) {
 				LogHandler: &transaction.Log{
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("my-address"),
+							Address:    decodeAddress(address1),
 							Identifier: []byte(core.BuiltInFunctionESDTNFTCreateRoleTransfer),
 							Topics:     [][]byte{[]byte("TOK-abcd"), big.NewInt(0).Bytes(), big.NewInt(0).Bytes(), []byte("false")},
 						},
 						{
-							Address:    []byte("new-address"),
+							Address:    decodeAddress(address2),
 							Identifier: []byte(core.BuiltInFunctionESDTNFTCreateRoleTransfer),
 							Topics:     [][]byte{[]byte("TOK-abcd"), big.NewInt(0).Bytes(), big.NewInt(0).Bytes(), []byte("true")},
 						},
@@ -133,7 +135,7 @@ func TestIssueTokenAndSetRole(t *testing.T) {
 				LogHandler: &transaction.Log{
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("my-address"),
+							Address:    decodeAddress(address1),
 							Identifier: []byte(core.BuiltInFunctionUnSetESDTRole),
 							Topics:     [][]byte{[]byte("TOK-abcd"), big.NewInt(0).Bytes(), big.NewInt(0).Bytes(), []byte(core.ESDTRoleNFTBurn)},
 						},
@@ -171,6 +173,7 @@ func TestIssueSetRolesEventAndAfterTokenIssue(t *testing.T) {
 		ShardID:   core.MetachainShardId,
 	}
 
+	address1 := "erd1k04pxr6c0gvlcx4rd5fje0a4uy33axqxwz0fpcrgtfdy3nrqauqqgvxprv"
 	// SET ROLES
 	pool := &outport.Pool{
 		Logs: []*coreData.LogData{
@@ -179,7 +182,7 @@ func TestIssueSetRolesEventAndAfterTokenIssue(t *testing.T) {
 				LogHandler: &transaction.Log{
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("my-address"),
+							Address:    decodeAddress(address1),
 							Identifier: []byte(core.BuiltInFunctionSetESDTRole),
 							Topics:     [][]byte{[]byte("TTT-abcd"), big.NewInt(0).Bytes(), big.NewInt(0).Bytes(), []byte(core.ESDTRoleNFTCreate), []byte(core.ESDTRoleNFTBurn)},
 						},
@@ -208,7 +211,7 @@ func TestIssueSetRolesEventAndAfterTokenIssue(t *testing.T) {
 				LogHandler: &transaction.Log{
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("addr"),
+							Address:    decodeAddress(address1),
 							Identifier: []byte("issueSemiFungible"),
 							Topics:     [][]byte{[]byte("TTT-abcd"), []byte("semi-token"), []byte("SEMI"), []byte(core.SemiFungibleESDT)},
 						},

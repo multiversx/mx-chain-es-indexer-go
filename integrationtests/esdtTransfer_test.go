@@ -49,10 +49,12 @@ func TestESDTTransferTooMuchGasProvided(t *testing.T) {
 		},
 	}
 
+	address1 := "erd1ef6470tjdtlgpa9f6g3ae4nsedmjg0gv6w73v32xtvhkfff993hq750xl9"
+	address2 := "erd13u7zyekzvdvzek8768r5gau9p6677ufppsjuklu9e6t7yx7rhg4s68e2ze"
 	txESDT := &transaction.Transaction{
 		Nonce:    6,
-		SndAddr:  []byte("erd1ef6470tjdtlgpa9f6g3ae4nsedmjg0gv6w73v32xtvhkfff993hq750xl9"),
-		RcvAddr:  []byte("erd13u7zyekzvdvzek8768r5gau9p6677ufppsjuklu9e6t7yx7rhg4s68e2ze"),
+		SndAddr:  decodeAddress(address1),
+		RcvAddr:  decodeAddress(address2),
 		GasLimit: 104011,
 		GasPrice: 1000000000,
 		Data:     []byte("ESDTTransfer@54474e2d383862383366@0a"),
@@ -63,8 +65,8 @@ func TestESDTTransferTooMuchGasProvided(t *testing.T) {
 	scr1 := &smartContractResult.SmartContractResult{
 		Nonce:          7,
 		GasPrice:       1000000000,
-		SndAddr:        []byte("erd13u7zyekzvdvzek8768r5gau9p6677ufppsjuklu9e6t7yx7rhg4s68e2ze"),
-		RcvAddr:        []byte("erd1ef6470tjdtlgpa9f6g3ae4nsedmjg0gv6w73v32xtvhkfff993hq750xl9"),
+		SndAddr:        decodeAddress(address2),
+		RcvAddr:        decodeAddress(address1),
 		Data:           []byte("@6f6b"),
 		PrevTxHash:     txHash,
 		OriginalTxHash: txHash,
@@ -74,8 +76,8 @@ func TestESDTTransferTooMuchGasProvided(t *testing.T) {
 	scr2 := &smartContractResult.SmartContractResult{
 		Nonce:          7,
 		GasPrice:       1000000000,
-		SndAddr:        []byte("erd13u7zyekzvdvzek8768r5gau9p6677ufppsjuklu9e6t7yx7rhg4s68e2ze"),
-		RcvAddr:        []byte("erd1ef6470tjdtlgpa9f6g3ae4nsedmjg0gv6w73v32xtvhkfff993hq750xl9"),
+		SndAddr:        decodeAddress(address2),
+		RcvAddr:        decodeAddress(address1),
 		Data:           []byte("@6f6b"),
 		PrevTxHash:     txHash,
 		OriginalTxHash: txHash,

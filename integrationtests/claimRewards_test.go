@@ -51,12 +51,15 @@ func TestTransactionWithClaimRewardsGasRefund(t *testing.T) {
 		},
 	}
 
+	addressSender := "erd14wnzmpwhcm9up7lsrujcf7jne2lgnydcpkfwk0etlnndn5dcacksplnun7"
+	addressReceiver := "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l"
+
 	refundValue, _ := big.NewInt(0).SetString("49320000000000", 10)
 	scr1 := &smartContractResult.SmartContractResult{
 		Nonce:          618,
 		GasPrice:       1000000000,
-		SndAddr:        []byte("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqq8hlllls7a6h81"),
-		RcvAddr:        []byte("erd13tfnxanefpjltv9kesf6e6f4n4muvkdqrk0we52nelsjw3lf2t5q8l45u1"),
+		SndAddr:        decodeAddress(addressReceiver),
+		RcvAddr:        decodeAddress(addressSender),
 		Data:           []byte("@6f6b"),
 		PrevTxHash:     txHash,
 		OriginalTxHash: txHash,
@@ -68,8 +71,8 @@ func TestTransactionWithClaimRewardsGasRefund(t *testing.T) {
 	scr2 := &smartContractResult.SmartContractResult{
 		Nonce:          0,
 		GasPrice:       1000000000,
-		SndAddr:        []byte("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqq8hlllls7a6h81"),
-		RcvAddr:        []byte("erd13tfnxanefpjltv9kesf6e6f4n4muvkdqrk0we52nelsjw3lf2t5q8l45u1"),
+		SndAddr:        decodeAddress(addressReceiver),
+		RcvAddr:        decodeAddress(addressSender),
 		PrevTxHash:     txHash,
 		OriginalTxHash: txHash,
 		Value:          rewards,
@@ -77,8 +80,8 @@ func TestTransactionWithClaimRewardsGasRefund(t *testing.T) {
 
 	tx1 := &transaction.Transaction{
 		Nonce:    617,
-		SndAddr:  []byte("erd13tfnxanefpjltv9kesf6e6f4n4muvkdqrk0we52nelsjw3lf2t5q8l45u1"),
-		RcvAddr:  []byte("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqq8hlllls7a6h81"),
+		SndAddr:  decodeAddress(addressSender),
+		RcvAddr:  decodeAddress(addressReceiver),
 		GasLimit: 6000000,
 		GasPrice: 1000000000,
 		Data:     []byte("claimRewards"),
@@ -102,7 +105,7 @@ func TestTransactionWithClaimRewardsGasRefund(t *testing.T) {
 				LogHandler: &transaction.Log{
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("addr"),
+							Address:    decodeAddress(addressSender),
 							Identifier: []byte("writeLog"),
 							Topics:     [][]byte{[]byte("something")},
 						},

@@ -3,7 +3,7 @@
 package integrationtests
 
 import (
-	"encoding/hex"
+	"fmt"
 	"math/big"
 	"testing"
 
@@ -25,8 +25,7 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 	// ################ CREATE NFT ##########################
 	body := &dataBlock.Body{}
 
-	addr := "test-address-balance-1"
-	addrHex := hex.EncodeToString([]byte(addr))
+	addr := "erd1wdylghcn2uu393t703vufwa3ycdqfachgqyanha2xm2aqmsa5kfqg8qgrl"
 
 	esProc, err := CreateElasticProcessor(esClient)
 	require.Nil(t, err)
@@ -44,7 +43,7 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 				LogHandler: &transaction.Log{
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("test-address-balance-1"),
+							Address:    decodeAddress(addr),
 							Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
 							Topics:     [][]byte{[]byte("NFT-abcdef"), big.NewInt(7440483).Bytes(), big.NewInt(1).Bytes()},
 						},
@@ -56,8 +55,8 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 	}
 
 	coreAlteredAccounts := map[string]*outport.AlteredAccount{
-		addrHex: {
-			Address: addrHex,
+		addr: {
+			Address: addr,
 			Tokens: []*outport.AccountTokenData{
 				{
 					Identifier: "NFT-abcdef",
@@ -71,7 +70,7 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
 	require.Nil(t, err)
 
-	ids := []string{"746573742d616464726573732d62616c616e63652d31-NFT-abcdef-718863"}
+	ids := []string{fmt.Sprintf("%s-NFT-abcdef-718863", addr)}
 	genericResponse := &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse)
 	require.Nil(t, err)
@@ -79,6 +78,7 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 
 	// ################ TRANSFER NFT ##########################
 
+	addrReceiver := "erd1caejdhq28fc03wddsf2lqs90jlwqlzesxjlyd0k2zeekxckpp6qsxty5x2"
 	header = &dataBlock.Header{
 		Round:     51,
 		TimeStamp: 5600,
@@ -94,7 +94,7 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 						{
 							Address:    []byte("test-address-balance-1"),
 							Identifier: []byte(core.BuiltInFunctionESDTNFTTransfer),
-							Topics:     [][]byte{[]byte("NFT-abcdef"), big.NewInt(7440483).Bytes(), big.NewInt(1).Bytes(), []byte("new-address")},
+							Topics:     [][]byte{[]byte("NFT-abcdef"), big.NewInt(7440483).Bytes(), big.NewInt(1).Bytes(), decodeAddress(addrReceiver)},
 						},
 						nil,
 					},
@@ -103,15 +103,12 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 		},
 	}
 
-	addrReceiver := "new-address"
-	addrReceiverHex := hex.EncodeToString([]byte(addrReceiver))
-
 	esProc, err = CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
 	coreAlteredAccounts = map[string]*outport.AlteredAccount{
-		addrHex: {
-			Address: addrHex,
+		addr: {
+			Address: addr,
 			Tokens: []*outport.AccountTokenData{
 				{
 					Identifier: "NFT-abcdef",
@@ -120,8 +117,8 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 				},
 			},
 		},
-		addrReceiverHex: {
-			Address: addrReceiverHex,
+		addrReceiver: {
+			Address: addrReceiver,
 			Tokens: []*outport.AccountTokenData{
 				{
 					Identifier: "NFT-abcdef",
@@ -134,13 +131,13 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
 	require.Nil(t, err)
 
-	ids = []string{"746573742d616464726573732d62616c616e63652d31-NFT-abcdef-718863"}
+	ids = []string{fmt.Sprintf("%s-NFT-abcdef-718863", addr)}
 	genericResponse = &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse)
 	require.Nil(t, err)
 	require.False(t, genericResponse.Docs[0].Found)
 
-	ids = []string{"6e65772d61646472657373-NFT-abcdef-718863"}
+	ids = []string{fmt.Sprintf("%s-NFT-abcdef-718863", addrReceiver)}
 	genericResponse = &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse)
 	require.Nil(t, err)
