@@ -12,3 +12,8 @@
         blockchain-start-time = 1596117600 # mainnet start time ( for testnet will be a different start time)
         indices-with-timestamp = ["receipts", "transactions", "blocks", "miniblocks", "rounds",  "accountshistory", "scresults", "accountsesdt", "accountsesdthistory", "scdeploys", "tokens", "accounts", "logs", "operations"]
         indices-no-timestamp = ["rating", "validators", "epochinfo", "tags", "delegators"]
+    [logs]
+        log-file-life-span-in-mb = 1024 # 1GB
+        log-file-life-span-in-sec = 432000 # 5 days
+        log-file-prefix = "checker"
+        logs-path = "logs"

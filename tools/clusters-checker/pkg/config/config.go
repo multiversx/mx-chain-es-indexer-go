@@ -17,4 +17,10 @@ type Config struct {
 		IndicesWithTimestamp []string `toml:"indices-with-timestamp"`
 		IndicesNoTimestamp   []string `toml:"indices-no-timestamp"`
 	} `toml:"compare"`
+	Logs struct {
+		LogFileLifeSpanInMB  int    `toml:"log-file-life-span-in-mb"`
+		LogFileLifeSpanInSec int    `toml:"log-file-life-span-in-sec"`
+		LogFilePrefix        string `toml:"log-file-prefix"`
+		LogsPath             string `toml:"logs-path"`
+	} `toml:"logs"`
 }
