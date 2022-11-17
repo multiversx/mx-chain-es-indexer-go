@@ -15,6 +15,7 @@ var log = logger.GetOrCreate("factory")
 
 const (
 	indexerCacheSize = 1
+	addressPrefix    = "erd"
 )
 
 // CreateWsIndexer will create a new instance of wsindexer.WSClient
@@ -46,7 +47,7 @@ func createDataIndexer(cfg config.Config, clusterCfg config.ClusterConfig) (wsin
 	if err != nil {
 		return nil, err
 	}
-	addressPubkeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(cfg.Config.AddressConverter.Length, "erd")
+	addressPubkeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(cfg.Config.AddressConverter.Length, addressPrefix)
 	if err != nil {
 		return nil, err
 	}

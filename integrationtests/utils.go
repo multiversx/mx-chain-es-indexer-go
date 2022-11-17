@@ -18,7 +18,7 @@ import (
 
 var (
 	log                = logger.GetOrCreate("integration-tests")
-	pubKeyConverter, _ = pubkeyConverter.NewBech32PubkeyConverter(32, "erd")
+	pubKeyConverter, _ = pubkeyConverter.NewBech32PubkeyConverter(32, addressPrefix)
 )
 
 func setLogLevelDebug() {
