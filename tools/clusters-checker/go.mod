@@ -3,7 +3,7 @@ module github.com/ElrondNetwork/elastic-indexer-go/tools/clusters-checker
 go 1.17
 
 require (
-	github.com/ElrondNetwork/elrond-go-logger v1.0.7
+	github.com/ElrondNetwork/elrond-go-logger v1.0.9
 	github.com/elastic/go-elasticsearch/v7 v7.12.0
 	github.com/pelletier/go-toml v1.9.3
 	github.com/tidwall/gjson v1.14.0

@@ -36,6 +36,10 @@ var (
 		Name:  "check-no-timestamp",
 		Usage: "If set, the checker wil verify the indices from list with no timestamp",
 	}
+	checkOnlyIds = cli.BoolFlag{
+		Name:  "only-ids",
+		Usage: "If set, the checker wil verify only the ids",
+	}
 )
 
 const helpTemplate = `NAME:
@@ -61,7 +65,7 @@ func main() {
 	app.Version = "v1.0.0"
 	app.Usage = "Clusters checker"
 	app.Flags = []cli.Flag{
-		configPath, checkCounts, checkNoTimestamp, checkWithTimestamp,
+		configPath, checkCounts, checkNoTimestamp, checkWithTimestamp, checkOnlyIds,
 	}
 	app.Authors = []cli.Author{
 		{
@@ -90,9 +94,10 @@ func checkClusters(ctx *cli.Context) {
 		return
 	}
 
+	checkOnlyIDs := ctx.Bool(checkOnlyIds.Name)
 	checkCountsFlag := ctx.Bool(checkCounts.Name)
 	if checkCountsFlag {
-		clusterChecker, errC := checkers.CreateClusterChecker(cfg, 0, "instance_0")
+		clusterChecker, errC := checkers.CreateClusterChecker(cfg, &checkers.Interval{}, "instance_0", checkOnlyIDs)
 		if errC != nil {
 			log.Error("cannot create cluster checker", "error", errC.Error())
 			return
@@ -109,7 +114,7 @@ func checkClusters(ctx *cli.Context) {
 
 	checkIndicesNoTimestampFlag := ctx.Bool(checkNoTimestamp.Name)
 	if checkIndicesNoTimestampFlag {
-		clusterChecker, errC := checkers.CreateClusterChecker(cfg, 0, "instance_0")
+		clusterChecker, errC := checkers.CreateClusterChecker(cfg, &checkers.Interval{}, "instance_0", checkOnlyIDs)
 		if errC != nil {
 			log.Error("cannot create cluster checker", "error", errC.Error())
 			return
@@ -126,16 +131,16 @@ func checkClusters(ctx *cli.Context) {
 
 	checkWithTimestampFlag := ctx.Bool(checkWithTimestamp.Name)
 	if checkWithTimestampFlag {
-		checkClustersIndexesWithInterval(cfg)
+		checkClustersIndexesWithInterval(cfg, checkOnlyIDs)
 		return
 	}
 
 	log.Error("no flag has been provided")
 }
 
-func checkClustersIndexesWithInterval(cfg *config.Config) {
+func checkClustersIndexesWithInterval(cfg *config.Config, checkOnlyIDs bool) {
 	wg := sync.WaitGroup{}
-	ccs, err := checkers.CreateMultipleCheckers(cfg)
+	ccs, err := checkers.CreateMultipleCheckers(cfg, checkOnlyIDs)
 	if err != nil {
 		log.Error("cannot create cluster checker", "error", err.Error())
 	}

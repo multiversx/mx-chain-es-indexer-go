@@ -10,3 +10,8 @@ type generalElasticResponse struct {
 		} `json:"hits"`
 	} `json:"hits"`
 }
+
+type Interval struct {
+	start int64
+	stop  int64
+}
