@@ -8,7 +8,6 @@ import (
 	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elastic-indexer-go/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/collections"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/tags"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/tokeninfo"
 	"github.com/ElrondNetwork/elrond-go-core/core"
@@ -34,7 +33,6 @@ var (
 		elasticIndexer.TransactionsIndex, elasticIndexer.BlockIndex, elasticIndexer.MiniblocksIndex, elasticIndexer.RatingIndex, elasticIndexer.RoundsIndex, elasticIndexer.ValidatorsIndex,
 		elasticIndexer.AccountsIndex, elasticIndexer.AccountsHistoryIndex, elasticIndexer.ReceiptsIndex, elasticIndexer.ScResultsIndex, elasticIndexer.AccountsESDTHistoryIndex, elasticIndexer.AccountsESDTIndex,
 		elasticIndexer.EpochInfoIndex, elasticIndexer.SCDeploysIndex, elasticIndexer.TokensIndex, elasticIndexer.TagsIndex, elasticIndexer.LogsIndex, elasticIndexer.DelegatorsIndex, elasticIndexer.OperationsIndex,
-		elasticIndexer.CollectionsIndex,
 	}
 )
 
@@ -644,11 +642,6 @@ func (ei *elasticProcessor) saveAccountsESDT(
 ) error {
 	accountsESDTMap, tokensData := ei.accountsProc.PrepareAccountsMapESDT(timestamp, wrappedAccounts, tagsCount)
 	err := ei.addTokenTypeAndCurrentOwnerInAccountsESDT(tokensData, accountsESDTMap)
-	if err != nil {
-		return err
-	}
-
-	err = collections.ExtractAndSerializeCollectionsData(accountsESDTMap, buffSlice, elasticIndexer.CollectionsIndex)
 	if err != nil {
 		return err
 	}
