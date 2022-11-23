@@ -477,11 +477,17 @@ func (ei *elasticProcessor) SaveTransactions(
 }
 
 func (ei *elasticProcessor) prepareAndIndexRolesData(tokenRolesAndProperties *tokeninfo.TokenRolesAndProperties, buffSlice *data.BufferSlice) error {
-	if !ei.isIndexEnabled(elasticIndexer.TokensIndex) {
+	if ei.isIndexEnabled(elasticIndexer.TokensIndex) {
+		err := ei.logsAndEventsProc.SerializeRolesData(tokenRolesAndProperties, buffSlice, elasticIndexer.TokensIndex)
+		if err != nil {
+			return err
+		}
+	}
+	if !ei.isIndexEnabled(elasticIndexer.ESDTsIndex) {
 		return nil
 	}
 
-	return ei.logsAndEventsProc.SerializeRolesData(tokenRolesAndProperties, buffSlice, elasticIndexer.TokensIndex)
+	return ei.logsAndEventsProc.SerializeRolesData(tokenRolesAndProperties, buffSlice, elasticIndexer.ESDTsIndex)
 }
 
 func (ei *elasticProcessor) prepareAndIndexDelegators(delegators map[string]*data.Delegator, buffSlice *data.BufferSlice) error {

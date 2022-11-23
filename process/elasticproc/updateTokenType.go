@@ -11,6 +11,13 @@ import (
 )
 
 func (ei *elasticProcessor) indexTokens(tokensData []*data.TokenInfo, updateNFTData []*data.NFTDataUpdate, buffSlice *data.BufferSlice) error {
+	if ei.isIndexEnabled(elasticIndexer.ESDTsIndex) {
+		err := ei.logsAndEventsProc.SerializeTokens(tokensData, updateNFTData, buffSlice, elasticIndexer.ESDTsIndex)
+		if err != nil {
+			return err
+		}
+	}
+
 	if !ei.isIndexEnabled(elasticIndexer.TokensIndex) {
 		return nil
 	}
