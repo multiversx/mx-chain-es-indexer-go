@@ -112,7 +112,33 @@
           }
         },
         "roles": {
-          "type": "nested"
+          "type": "nested",
+          "properties": {
+            "ESDTRoleLocalBurn": {
+              "type": "keyword"
+            },
+            "ESDTRoleLocalMint": {
+              "type": "keyword"
+            },
+            "ESDTRoleNFTAddQuantity": {
+              "type": "keyword"
+            },
+            "ESDTRoleNFTAddURI": {
+              "type": "keyword"
+            },
+            "ESDTRoleNFTBurn": {
+              "type": "keyword"
+            },
+            "ESDTRoleNFTCreate": {
+              "type": "keyword"
+            },
+            "ESDTRoleNFTUpdateAttributes": {
+              "type": "keyword"
+            },
+            "ESDTTransferRole": {
+              "type": "keyword"
+            }
+          }
         },
         "ticker": {
           "type": "keyword"

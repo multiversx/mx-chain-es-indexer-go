@@ -119,6 +119,32 @@ var ESDTs = Object{
 			},
 			"roles": Object{
 				"type": "nested",
+				"properties": Object{
+					"ESDTRoleLocalBurn": Object{
+						"type": "keyword",
+					},
+					"ESDTRoleLocalMint": Object{
+						"type": "keyword",
+					},
+					"ESDTRoleNFTAddQuantity": Object{
+						"type": "keyword",
+					},
+					"ESDTRoleNFTAddURI": Object{
+						"type": "keyword",
+					},
+					"ESDTRoleNFTBurn": Object{
+						"type": "keyword",
+					},
+					"ESDTRoleNFTCreate": Object{
+						"type": "keyword",
+					},
+					"ESDTRoleNFTUpdateAttributes": Object{
+						"type": "keyword",
+					},
+					"ESDTTransferRole": Object{
+						"type": "keyword",
+					},
+				},
 			},
 		},
 	},
