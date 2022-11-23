@@ -1,0 +1,133 @@
+{
+  "esdts-000001": {
+    "mappings": {
+      "properties": {
+        "currentOwner": {
+          "type": "keyword"
+        },
+        "data": {
+          "type": "nested",
+          "properties": {
+            "attributes": {
+              "type": "keyword",
+              "index": false
+            },
+            "creator": {
+              "type": "keyword"
+            },
+            "metadata": {
+              "type": "keyword",
+              "index": false
+            },
+            "name": {
+              "type": "keyword",
+              "index": false
+            },
+            "ownersHistory": {
+              "type": "nested",
+              "properties": {
+                "address": {
+                  "type": "keyword"
+                },
+                "timestamp": {
+                  "type": "date",
+                  "index": false,
+                  "format": "epoch_second"
+                }
+              }
+            },
+            "tags": {
+              "type": "keyword",
+              "index": false
+            }
+          }
+        },
+        "issuer": {
+          "type": "keyword"
+        },
+        "name": {
+          "type": "keyword"
+        },
+        "numDecimals": {
+          "type": "long"
+        },
+        "ownersHistory": {
+          "properties": {
+            "address": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "timestamp": {
+              "type": "long"
+            }
+          }
+        },
+        "properties": {
+          "properties": {
+            "canAddSpecialRoles": {
+              "type": "boolean",
+              "index": false
+            },
+            "canBurn": {
+              "type": "boolean",
+              "index": false
+            },
+            "canChangeOwner": {
+              "type": "boolean",
+              "index": false
+            },
+            "canCreateMultiShard": {
+              "type": "boolean",
+              "index": false
+            },
+            "canFreeze": {
+              "type": "boolean",
+              "index": false
+            },
+            "canMint": {
+              "type": "boolean",
+              "index": false
+            },
+            "canPause": {
+              "type": "boolean",
+              "index": false
+            },
+            "canTransferNFTCreateRole": {
+              "type": "boolean",
+              "index": false
+            },
+            "canUpgrade": {
+              "type": "boolean",
+              "index": false
+            },
+            "canWipe": {
+              "type": "boolean",
+              "index": false
+            }
+          }
+        },
+        "roles": {
+          "type": "nested"
+        },
+        "ticker": {
+          "type": "keyword"
+        },
+        "timestamp": {
+          "type": "date",
+          "format": "epoch_second"
+        },
+        "token": {
+          "type": "keyword"
+        },
+        "type": {
+          "type": "keyword"
+        }
+      }
+    }
+  }
+}

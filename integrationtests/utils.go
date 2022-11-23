@@ -2,8 +2,12 @@ package integrationtests
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
+	"net/http"
+	"net/url"
 	"os"
+	"path"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/client"
 	"github.com/ElrondNetwork/elastic-indexer-go/client/logging"
@@ -74,4 +78,24 @@ func getElementFromSlice(path string, index int) string {
 	res, _ := json.Marshal(slice[index]["_source"])
 
 	return string(res)
+}
+
+func getIndexMappings(index string) (string, error) {
+	u, _ := url.Parse(esURL)
+	u.Path = path.Join(u.Path, index, "_mappings")
+	res, err := http.Get(u.String())
+	if err != nil {
+		return "", err
+	}
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return "", err
+	}
+
+	if res.StatusCode >= 400 {
+		return "", fmt.Errorf("%s", string(body))
+	}
+
+	return string(body), nil
 }
