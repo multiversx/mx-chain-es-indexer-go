@@ -53,7 +53,7 @@ func CreateElasticProcessor(
 		DBClient:                 esClient,
 		EnabledIndexes: []string{dataindexer.TransactionsIndex, dataindexer.LogsIndex, dataindexer.AccountsESDTIndex, dataindexer.ScResultsIndex,
 			dataindexer.ReceiptsIndex, dataindexer.BlockIndex, dataindexer.AccountsIndex, dataindexer.TokensIndex, dataindexer.TagsIndex, dataindexer.CollectionsIndex,
-			dataindexer.OperationsIndex},
+			dataindexer.OperationsIndex, dataindexer.ESDTsIndex},
 		Denomination: 18,
 	}
 
