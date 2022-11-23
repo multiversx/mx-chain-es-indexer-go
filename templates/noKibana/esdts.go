@@ -36,40 +36,16 @@ var ESDTs = Object{
 				"type":   "date",
 				"format": "epoch_second",
 			},
-			"data": Object{
+			"ownersHistory": Object{
 				"type": "nested",
 				"properties": Object{
-					"name": Object{
-						"index": "false",
-						"type":  "keyword",
+					"timestamp": Object{
+						"index":  "false",
+						"type":   "date",
+						"format": "epoch_second",
 					},
-					"creator": Object{
+					"address": Object{
 						"type": "keyword",
-					},
-					"tags": Object{
-						"index": "false",
-						"type":  "keyword",
-					},
-					"attributes": Object{
-						"index": "false",
-						"type":  "keyword",
-					},
-					"metadata": Object{
-						"index": "false",
-						"type":  "keyword",
-					},
-					"ownersHistory": Object{
-						"type": "nested",
-						"properties": Object{
-							"timestamp": Object{
-								"index":  "false",
-								"type":   "date",
-								"format": "epoch_second",
-							},
-							"address": Object{
-								"type": "keyword",
-							},
-						},
 					},
 				},
 			},

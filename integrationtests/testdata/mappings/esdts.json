@@ -5,43 +5,6 @@
         "currentOwner": {
           "type": "keyword"
         },
-        "data": {
-          "type": "nested",
-          "properties": {
-            "attributes": {
-              "type": "keyword",
-              "index": false
-            },
-            "creator": {
-              "type": "keyword"
-            },
-            "metadata": {
-              "type": "keyword",
-              "index": false
-            },
-            "name": {
-              "type": "keyword",
-              "index": false
-            },
-            "ownersHistory": {
-              "type": "nested",
-              "properties": {
-                "address": {
-                  "type": "keyword"
-                },
-                "timestamp": {
-                  "type": "date",
-                  "index": false,
-                  "format": "epoch_second"
-                }
-              }
-            },
-            "tags": {
-              "type": "keyword",
-              "index": false
-            }
-          }
-        },
         "issuer": {
           "type": "keyword"
         },
@@ -52,18 +15,15 @@
           "type": "long"
         },
         "ownersHistory": {
+          "type": "nested",
           "properties": {
             "address": {
-              "type": "text",
-              "fields": {
-                "keyword": {
-                  "type": "keyword",
-                  "ignore_above": 256
-                }
-              }
+              "type": "keyword"
             },
             "timestamp": {
-              "type": "long"
+              "type": "date",
+              "format": "epoch_second",
+              "index": false
             }
           }
         },
