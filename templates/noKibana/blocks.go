@@ -35,7 +35,6 @@ var Blocks = Object{
 			},
 			"epochStartInfo": Object{
 				"index": "false",
-				"type":  "object",
 				"properties": Object{
 					"nodePrice": Object{
 						"index": "false",
@@ -73,7 +72,6 @@ var Blocks = Object{
 			},
 			"epochStartShardsData": Object{
 				"index": "false",
-				"type":  "object",
 				"properties": Object{
 					"epoch": Object{
 						"index": "false",
@@ -97,7 +95,6 @@ var Blocks = Object{
 					},
 					"pendingMiniBlockHeaders": Object{
 						"index": "false",
-						"type":  "object",
 						"properties": Object{
 							"hash": Object{
 								"index": "false",
@@ -154,7 +151,6 @@ var Blocks = Object{
 			},
 			"miniBlocksDetails": Object{
 				"index": "false",
-				"type":  "object",
 				"properties": Object{
 					"firstProcessedTx": Object{
 						"index": "false",
@@ -198,7 +194,6 @@ var Blocks = Object{
 			},
 			"scheduledData": Object{
 				"index": "false",
-				"type":  "object",
 				"properties": Object{
 					"accumulatedFees": Object{
 						"index": "false",
