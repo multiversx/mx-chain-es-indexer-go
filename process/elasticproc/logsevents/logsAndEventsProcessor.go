@@ -199,7 +199,7 @@ func (lep *logsAndEventsProcessor) prepareLogsForDB(
 
 	events := logHandler.GetLogEvents()
 
-	encodedAddr, _ := lep.pubKeyConverter.Encode(logHandler.GetAddress())
+	encodedAddr := lep.pubKeyConverter.SilentEncode(logHandler.GetAddress(), log)
 
 	logsDB := &data.Logs{
 		ID:             encodedID,
@@ -214,7 +214,7 @@ func (lep *logsAndEventsProcessor) prepareLogsForDB(
 			continue
 		}
 
-		encodedAddress, _ := lep.pubKeyConverter.Encode(event.GetAddress())
+		encodedAddress := lep.pubKeyConverter.SilentEncode(event.GetAddress(), log)
 
 		logsDB.Events = append(logsDB.Events, &data.Event{
 			Address:    encodedAddress,

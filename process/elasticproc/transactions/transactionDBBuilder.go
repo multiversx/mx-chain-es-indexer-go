@@ -45,8 +45,8 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 	isScCall := core.IsSmartContractAddress(tx.RcvAddr)
 	res := dtb.dataFieldParser.Parse(tx.Data, tx.SndAddr, tx.RcvAddr, numOfShards)
 
-	receiverAddr, _ := dtb.addressPubkeyConverter.Encode(tx.RcvAddr)
-	senderAddr, _ := dtb.addressPubkeyConverter.Encode(tx.SndAddr)
+	receiverAddr := dtb.addressPubkeyConverter.SilentEncode(tx.RcvAddr, log)
+	senderAddr := dtb.addressPubkeyConverter.SilentEncode(tx.SndAddr, log)
 	receiversAddr, _ := dtb.addressPubkeyConverter.EncodeSlice(res.Receivers)
 
 	return &data.Transaction{
@@ -90,7 +90,7 @@ func (dtb *dbTransactionBuilder) prepareRewardTransaction(
 	header coreData.HeaderHandler,
 	txStatus string,
 ) *data.Transaction {
-	receiverAddr, _ := dtb.addressPubkeyConverter.Encode(rTx.RcvAddr)
+	receiverAddr := dtb.addressPubkeyConverter.SilentEncode(rTx.RcvAddr, log)
 
 	return &data.Transaction{
 		Hash:          hex.EncodeToString(txHash),
@@ -117,7 +117,7 @@ func (dtb *dbTransactionBuilder) prepareReceipt(
 	rec *receipt.Receipt,
 	header coreData.HeaderHandler,
 ) *data.Receipt {
-	senderAddr, _ := dtb.addressPubkeyConverter.Encode(rec.SndAddr)
+	senderAddr := dtb.addressPubkeyConverter.SilentEncode(rec.SndAddr, log)
 
 	return &data.Receipt{
 		Hash:      hex.EncodeToString([]byte(recHash)),

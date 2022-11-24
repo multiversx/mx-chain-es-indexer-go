@@ -8,10 +8,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
 	factoryHasher "github.com/ElrondNetwork/elrond-go-core/hashing/factory"
 	factoryMarshaller "github.com/ElrondNetwork/elrond-go-core/marshal/factory"
-	logger "github.com/ElrondNetwork/elrond-go-logger"
 )
-
-var log = logger.GetOrCreate("factory")
 
 const (
 	indexerCacheSize = 1

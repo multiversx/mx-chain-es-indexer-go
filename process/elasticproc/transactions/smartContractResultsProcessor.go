@@ -125,7 +125,7 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 
 	relayerAddr := ""
 	if len(scr.RelayerAddr) > 0 {
-		relayerAddr, _ = proc.pubKeyConverter.Encode(scr.RelayerAddr)
+		relayerAddr = proc.pubKeyConverter.SilentEncode(scr.RelayerAddr, log)
 	}
 
 	relayedValue := ""
@@ -134,13 +134,13 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 	}
 	originalSenderAddr := ""
 	if scr.OriginalSender != nil {
-		originalSenderAddr, _ = proc.pubKeyConverter.Encode(scr.OriginalSender)
+		originalSenderAddr = proc.pubKeyConverter.SilentEncode(scr.OriginalSender, log)
 	}
 
 	res := proc.dataFieldParser.Parse(scr.Data, scr.SndAddr, scr.RcvAddr, numOfShards)
 
-	senderAddr, _ := proc.pubKeyConverter.Encode(scr.SndAddr)
-	receiverAddr, _ := proc.pubKeyConverter.Encode(scr.RcvAddr)
+	senderAddr := proc.pubKeyConverter.SilentEncode(scr.SndAddr, log)
+	receiverAddr := proc.pubKeyConverter.SilentEncode(scr.RcvAddr, log)
 	receiversAddr, _ := proc.pubKeyConverter.EncodeSlice(res.Receivers)
 
 	return &indexerData.ScResult{

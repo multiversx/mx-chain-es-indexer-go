@@ -31,6 +31,7 @@ func (vp *validatorsProcessor) PrepareValidatorsPublicKeys(shardValidatorsPubKey
 	}
 
 	for _, validatorPk := range shardValidatorsPubKeys {
+		// it will never throw an error here
 		strValidatorPk, _ := vp.validatorPubkeyConverter.Encode(validatorPk)
 
 		validatorsPubKeys.PublicKeys = append(validatorsPubKeys.PublicKeys, strValidatorPk)
