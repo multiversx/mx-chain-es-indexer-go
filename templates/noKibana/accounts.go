@@ -27,7 +27,7 @@ var Accounts = Object{
 			},
 			"nonce": Object{
 				"index": "false",
-				"type":  "unsigned_long",
+				"type":  "long",
 			},
 			"address": Object{
 				"type": "keyword",
