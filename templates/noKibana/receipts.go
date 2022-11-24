@@ -17,12 +17,23 @@ var Receipts = Object{
 			},
 		},
 	},
-	"mappings": Object{
-		"properties": Object{
-			"timestamp": Object{
-				"type":   "date",
-				"format": "epoch_second",
-			},
+	"properties": Object{
+		"data": Object{
+			"type": "keyword",
+		},
+		"sender": Object{
+			"type": "keyword",
+		},
+		"timestamp": Object{
+			"type":   "date",
+			"format": "epoch_second",
+		},
+		"txHash": Object{
+			"type": "keyword",
+		},
+		"value": Object{
+			"index": "false",
+			"type":  "keyword",
 		},
 	},
 }
