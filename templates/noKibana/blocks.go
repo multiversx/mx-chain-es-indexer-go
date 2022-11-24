@@ -19,27 +19,242 @@ var Blocks = Object{
 	},
 	"mappings": Object{
 		"properties": Object{
+			"accumulatedFees": Object{
+				"index": "false",
+				"type":  "keyword",
+			},
+			"developerFees": Object{
+				"index": "false",
+				"type":  "keyword",
+			},
+			"epoch": Object{
+				"type": "long",
+			},
+			"epochStartBlock": Object{
+				"type": "boolean",
+			},
+			"epochStartInfo": Object{
+				"index": "false",
+				"type":  "object",
+				"properties": Object{
+					"nodePrice": Object{
+						"index": "false",
+						"type":  "keyword",
+					},
+					"prevEpochStartHash": Object{
+						"index": "false",
+						"type":  "keyword",
+					},
+					"prevEpochStartRound": Object{
+						"index": "false",
+						"type":  "long",
+					},
+					"rewardsForProtocolSustainability": Object{
+						"index": "false",
+						"type":  "keyword",
+					},
+					"rewardsPerBlock": Object{
+						"index": "false",
+						"type":  "keyword",
+					},
+					"totalNewlyMinted": Object{
+						"index": "false",
+						"type":  "keyword",
+					},
+					"totalSupply": Object{
+						"index": "false",
+						"type":  "keyword",
+					},
+					"totalToDistribute": Object{
+						"index": "false",
+						"type":  "keyword",
+					},
+				},
+			},
+			"epochStartShardsData": Object{
+				"index": "false",
+				"type":  "object",
+				"properties": Object{
+					"epoch": Object{
+						"index": "false",
+						"type":  "long",
+					},
+					"firstPendingMetaBlock": Object{
+						"index": "false",
+						"type":  "keyword",
+					},
+					"headerHash": Object{
+						"index": "false",
+						"type":  "keyword",
+					},
+					"lastFinishedMetaBlock": Object{
+						"index": "false",
+						"type":  "keyword",
+					},
+					"nonce": Object{
+						"index": "false",
+						"type":  "long",
+					},
+					"pendingMiniBlockHeaders": Object{
+						"index": "false",
+						"type":  "object",
+						"properties": Object{
+							"hash": Object{
+								"index": "false",
+								"type":  "keyword",
+							},
+							"receiverShard": Object{
+								"index": "false",
+								"type":  "long",
+							},
+							"senderShard": Object{
+								"index": "false",
+								"type":  "long",
+							},
+							"timestamp": Object{
+								"index":  "false",
+								"type":   "date",
+								"format": "epoch_second",
+							},
+							"type": Object{
+								"index": "false",
+								"type":  "keyword",
+							},
+						},
+					},
+					"rootHash": Object{
+						"index": "false",
+						"type":  "keyword",
+					},
+					"round": Object{
+						"index": "false",
+						"type":  "long",
+					},
+					"scheduledRootHash": Object{
+						"index": "false",
+						"type":  "keyword",
+					},
+					"shardID": Object{
+						"index": "false",
+						"type":  "long",
+					},
+				},
+			},
+			"gasPenalized": Object{
+				"type": "long",
+			},
+			"gasProvided": Object{
+				"type": "long",
+			},
+			"gasRefunded": Object{
+				"type": "long",
+			},
+			"maxGasLimit": Object{
+				"type": "long",
+			},
+			"miniBlocksDetails": Object{
+				"index": "false",
+				"type":  "object",
+				"properties": Object{
+					"firstProcessedTx": Object{
+						"index": "false",
+						"type":  "long",
+					},
+					"lastProcessedTx": Object{
+						"index": "false",
+						"type":  "long",
+					},
+					"mbIndex": Object{
+						"index": "false",
+						"type":  "long",
+					},
+				},
+			},
+			"miniBlocksHashes": Object{
+				"type": "keyword",
+			},
 			"nonce": Object{
-				"type": "double",
+				"type": "long",
+			},
+			"notarizedBlocksHashes": Object{
+				"type": "keyword",
+			},
+			"notarizedTxsCount": Object{
+				"index": "false",
+				"type":  "long",
+			},
+			"prevHash": Object{
+				"type": "keyword",
+			},
+			"proposer": Object{
+				"type": "long",
+			},
+			"pubKeyBitmap": Object{
+				"index": "false",
+				"type":  "keyword",
+			},
+			"round": Object{
+				"type": "long",
+			},
+			"scheduledData": Object{
+				"index": "false",
+				"type":  "object",
+				"properties": Object{
+					"accumulatedFees": Object{
+						"index": "false",
+						"type":  "keyword",
+					},
+					"developerFees": Object{
+						"index": "false",
+						"type":  "keyword",
+					},
+					"gasProvided": Object{
+						"index": "false",
+						"type":  "long",
+					},
+					"gasRefunded": Object{
+						"index": "false",
+						"type":  "long",
+					},
+					"penalized": Object{
+						"index": "false",
+						"type":  "long",
+					},
+					"rootHash": Object{
+						"index": "false",
+						"type":  "keyword",
+					},
+				},
+			},
+			"searchOrder": Object{
+				"index": "false",
+				"type":  "long",
+			},
+			"shardId": Object{
+				"type": "long",
+			},
+			"size": Object{
+				"index": "false",
+				"type":  "long",
+			},
+			"sizeTxs": Object{
+				"index": "false",
+				"type":  "long",
+			},
+			"stateRootHash": Object{
+				"type": "keyword",
 			},
 			"timestamp": Object{
 				"type":   "date",
 				"format": "epoch_second",
 			},
-			"searchOrder": Object{
-				"type": "double",
+			"txCount": Object{
+				"index": "false",
+				"type":  "long",
 			},
-			"gasProvided": Object{
-				"type": "double",
-			},
-			"gasRefunded": Object{
-				"type": "double",
-			},
-			"gasPenalized": Object{
-				"type": "double",
-			},
-			"maxGasLimit": Object{
-				"type": "double",
+			"validators": Object{
+				"index": "false",
+				"type":  "long",
 			},
 		},
 	},
