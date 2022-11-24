@@ -217,8 +217,7 @@ var Blocks = Object{
 				},
 			},
 			"searchOrder": Object{
-				"index": "false",
-				"type":  "long",
+				"type": "long",
 			},
 			"shardId": Object{
 				"type": "long",
