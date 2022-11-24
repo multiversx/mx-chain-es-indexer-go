@@ -11,35 +11,75 @@ var AccountsESDT = Object{
 	},
 	"mappings": Object{
 		"properties": Object{
+			"address": Object{
+				"type": "keyword",
+			},
+			"balance": Object{
+				"type": "keyword",
+			},
 			"balanceNum": Object{
 				"type": "double",
+			},
+			"currentOwner": Object{
+				"type": "keyword",
 			},
 			"data": Object{
 				"type": "nested",
 				"properties": Object{
-					"name": Object{
-						"type": "text",
+					"attributes": Object{
+						"index": "false",
+						"type":  "keyword",
 					},
 					"creator": Object{
-						"type": "text",
+						"type": "keyword",
+					},
+					"hash": Object{
+						"index": "false",
+						"type":  "keyword",
+					},
+					"metadata": Object{
+						"index": "false",
+						"type":  "keyword",
+					},
+					"name": Object{
+						"type": "keyword",
+					},
+					"nonEmptyURIs": Object{
+						"type": "boolean",
+					},
+					"royalties": Object{
+						"index": "false",
+						"type":  "long",
 					},
 					"tags": Object{
 						"type": "text",
 					},
-					"attributes": Object{
-						"type": "text",
-					},
-					"metadata": Object{
+					"uris": Object{
 						"type": "text",
 					},
 				},
 			},
-			"tokenNonce": Object{
-				"type": "double",
+			"identifier": Object{
+				"type": "keyword",
+			},
+			"properties": Object{
+				"type": "keyword",
+			},
+			"shardID": Object{
+				"type": "long",
 			},
 			"timestamp": Object{
 				"type":   "date",
 				"format": "epoch_second",
+			},
+			"token": Object{
+				"type": "keyword",
+			},
+			"tokenNonce": Object{
+				"type": "unsigned_long",
+			},
+			"type": Object{
+				"type": "keyword",
 			},
 		},
 	},

@@ -26,16 +26,24 @@ var Accounts = Object{
 				"type": "double",
 			},
 			"nonce": Object{
-				"type": "double",
+				"index": "false",
+				"type":  "unsigned_long",
 			},
 			"address": Object{
-				"type": "text",
+				"type": "keyword",
 			},
 			"balance": Object{
-				"type": "text",
+				"type": "keyword",
 			},
 			"totalBalanceWithStake": Object{
-				"type": "text",
+				"type": "keyword",
+			},
+			"shardID": Object{
+				"type": "long",
+			},
+			"timestamp": Object{
+				"type":   "date",
+				"format": "epoch_second",
 			},
 		},
 	},
