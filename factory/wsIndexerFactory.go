@@ -11,8 +11,7 @@ import (
 )
 
 const (
-	indexerCacheSize     = 1
-	defaultAddressPrefix = "erd"
+	indexerCacheSize = 1
 )
 
 // CreateWsIndexer will create a new instance of wsindexer.WSClient
@@ -44,7 +43,7 @@ func createDataIndexer(cfg config.Config, clusterCfg config.ClusterConfig) (wsin
 	if err != nil {
 		return nil, err
 	}
-	addressPubkeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(cfg.Config.AddressConverter.Length, defaultAddressPrefix)
+	addressPubkeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(cfg.Config.AddressConverter.Length, cfg.Config.AddressConverter.Prefix)
 	if err != nil {
 		return nil, err
 	}

@@ -7,6 +7,7 @@ type Config struct {
 		AddressConverter struct {
 			Length int    `toml:"length"`
 			Type   string `toml:"type"`
+			Prefix string `toml:"prefix"`
 		} `toml:"address-converter"`
 		ValidatorKeysConverter struct {
 			Length int    `toml:"length"`
