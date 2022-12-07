@@ -51,7 +51,7 @@ func TestPrepareSmartContractResult(t *testing.T) {
 	scRes := scrsProc.prepareSmartContractResult([]byte(scHash), mbHash, smartContractRes, header, 0, 1, big.NewInt(0), 0, 3)
 	senderAddr, err := pubKeyConverter.Encode(sndAddr)
 	require.Nil(t, err)
-	receiverAddr, _ := pubKeyConverter.Encode(rcvAddr)
+	receiverAddr, err := pubKeyConverter.Encode(rcvAddr)
 	require.Nil(t, err)
 	expectedTx := &data.ScResult{
 		Nonce:              nonce,
