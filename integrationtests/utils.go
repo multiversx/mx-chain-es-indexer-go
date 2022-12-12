@@ -52,7 +52,7 @@ func CreateElasticProcessor(
 		ValidatorPubkeyConverter: mock.NewPubkeyConverterMock(32),
 		DBClient:                 esClient,
 		EnabledIndexes: []string{dataindexer.TransactionsIndex, dataindexer.LogsIndex, dataindexer.AccountsESDTIndex, dataindexer.ScResultsIndex,
-			dataindexer.ReceiptsIndex, dataindexer.BlockIndex, dataindexer.AccountsIndex, dataindexer.TokensIndex, dataindexer.TagsIndex, dataindexer.CollectionsIndex,
+			dataindexer.ReceiptsIndex, dataindexer.BlockIndex, dataindexer.AccountsIndex, dataindexer.TokensIndex, dataindexer.TagsIndex,
 			dataindexer.OperationsIndex},
 		Denomination: 18,
 	}
