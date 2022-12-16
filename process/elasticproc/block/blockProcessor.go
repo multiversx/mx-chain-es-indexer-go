@@ -232,14 +232,18 @@ func putMiniblocksDetailsInBlock(header coreData.HeaderHandler, block *data.Bloc
 	mbHeaders := header.GetMiniBlockHeaderHandlers()
 
 	for idx, mbHeader := range mbHeaders {
+		mbType := nodeBlock.Type(mbHeader.GetTypeInt32())
+		if mbType == nodeBlock.PeerBlock {
+			continue
+		}
+
 		txsHashes := body.MiniBlocks[idx].TxHashes
-		mbType := mbHeader.GetTypeInt32()
 		block.MiniBlocksDetails = append(block.MiniBlocksDetails, &data.MiniBlocksDetails{
 			IndexFirstProcessedTx:    mbHeader.GetIndexOfFirstTxProcessed(),
 			IndexLastProcessedTx:     mbHeader.GetIndexOfLastTxProcessed(),
 			MBIndex:                  idx,
 			ProcessingType:           nodeBlock.ProcessingType(mbHeader.GetProcessingType()).String(),
-			Type:                     nodeBlock.Type(mbType).String(),
+			Type:                     mbType.String(),
 			SenderShardID:            mbHeader.GetSenderShardID(),
 			ReceiverShardID:          mbHeader.GetReceiverShardID(),
 			TxsHashes:                hexEncodeSlice(txsHashes),
@@ -248,7 +252,7 @@ func putMiniblocksDetailsInBlock(header coreData.HeaderHandler, block *data.Bloc
 	}
 }
 
-func extractExecutionOrderIndicesFromPool(mbType int32, txsHashes [][]byte, pool *outport.Pool) []int {
+func extractExecutionOrderIndicesFromPool(mbType nodeBlock.Type, txsHashes [][]byte, pool *outport.Pool) []int {
 	txsMap := getTxsMap(mbType, pool)
 	executionOrderTxsIndices := make([]int, len(txsHashes))
 	for idx, txHash := range txsHashes {
@@ -313,8 +317,8 @@ func (bp *blockProcessor) ComputeHeaderHash(header coreData.HeaderHandler) ([]by
 	return core.CalculateHash(bp.marshalizer, bp.hasher, header)
 }
 
-func getTxsMap(mbType int32, pool *outport.Pool) map[string]coreData.TransactionHandlerWithGasUsedAndFee {
-	switch nodeBlock.Type(mbType) {
+func getTxsMap(mbType nodeBlock.Type, pool *outport.Pool) map[string]coreData.TransactionHandlerWithGasUsedAndFee {
+	switch mbType {
 	case nodeBlock.TxBlock:
 		return pool.Txs
 	case nodeBlock.InvalidBlock:
