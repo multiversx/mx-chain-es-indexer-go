@@ -250,12 +250,13 @@ func (ei *elasticProcessor) SaveHeader(
 	notarizedHeadersHashes []string,
 	gasConsumptionData outport.HeaderGasConsumption,
 	txsSize int,
+	pool *outport.Pool,
 ) error {
 	if !ei.isIndexEnabled(elasticIndexer.BlockIndex) {
 		return nil
 	}
 
-	elasticBlock, err := ei.blockProc.PrepareBlockForDB(headerHash, header, signersIndexes, body, notarizedHeadersHashes, gasConsumptionData, txsSize)
+	elasticBlock, err := ei.blockProc.PrepareBlockForDB(headerHash, header, signersIndexes, body, notarizedHeadersHashes, gasConsumptionData, txsSize, pool)
 	if err != nil {
 		return err
 	}
