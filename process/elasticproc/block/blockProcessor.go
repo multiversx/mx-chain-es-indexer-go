@@ -20,6 +20,8 @@ import (
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 )
 
+const notExecutedInCurrentBlock = -1
+
 var log = logger.GetOrCreate("indexer/process/block")
 
 type blockProcessor struct {
@@ -247,22 +249,31 @@ func putMiniblocksDetailsInBlock(header coreData.HeaderHandler, block *data.Bloc
 			SenderShardID:            mbHeader.GetSenderShardID(),
 			ReceiverShardID:          mbHeader.GetReceiverShardID(),
 			TxsHashes:                hexEncodeSlice(txsHashes),
-			ExecutionOrderTxsIndices: extractExecutionOrderIndicesFromPool(mbType, txsHashes, pool),
+			ExecutionOrderTxsIndices: extractExecutionOrderIndicesFromPool(mbHeader, txsHashes, pool),
 		})
 	}
 }
 
-func extractExecutionOrderIndicesFromPool(mbType nodeBlock.Type, txsHashes [][]byte, pool *outport.Pool) []int {
-	txsMap := getTxsMap(mbType, pool)
+func extractExecutionOrderIndicesFromPool(mbHeader coreData.MiniBlockHeaderHandler, txsHashes [][]byte, pool *outport.Pool) []int {
+	txsMap := getTxsMap(nodeBlock.Type(mbHeader.GetTypeInt32()), pool)
 	executionOrderTxsIndices := make([]int, len(txsHashes))
+	indexOfFirstProcessed, indexOfLastProcessed := mbHeader.GetIndexOfFirstTxProcessed(), mbHeader.GetIndexOfLastTxProcessed()
 	for idx, txHash := range txsHashes {
 		tx, found := txsMap[string(txHash)]
 		if !found {
 			log.Warn("blockProcessor.extractExecutionOrderIndicesFromPool cannot find tx in pool", "txHash", hex.EncodeToString(txHash))
 			continue
 		}
+
+		isExecutedInCurrentBlock := int32(idx) >= indexOfFirstProcessed && int32(idx) <= indexOfLastProcessed
+		if !isExecutedInCurrentBlock {
+			executionOrderTxsIndices[idx] = notExecutedInCurrentBlock
+			continue
+		}
+
 		executionOrderTxsIndices[idx] = tx.GetExecutionOrder()
 	}
+
 	return executionOrderTxsIndices
 }
 

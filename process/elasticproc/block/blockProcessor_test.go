@@ -292,15 +292,23 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 func TestBlockProcessor_PrepareBlockForDBMiniBlocksDetails(t *testing.T) {
 	t.Parallel()
 
+	gogoMarshaller := &marshal.GogoProtoMarshalizer{}
 	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 
-	txHash, invalidTxHash, rewardsTxHash, scrHash := "tx", "invalid", "reward", "scr"
+	mbhr := &dataBlock.MiniBlockHeaderReserved{
+		IndexOfFirstTxProcessed: 0,
+		IndexOfLastTxProcessed:  0,
+	}
+	mbhrBytes, _ := gogoMarshaller.Marshal(mbhr)
+
+	txHash, notExecutedTxHash, invalidTxHash, rewardsTxHash, scrHash := "tx", "notExecuted", "invalid", "reward", "scr"
 	dbBlock, err := bp.PrepareBlockForDB([]byte("hash"), &dataBlock.Header{
-		TxCount: 4,
+		TxCount: 5,
 		MiniBlockHeaders: []dataBlock.MiniBlockHeader{
 			{
-				TxCount: 1,
-				Type:    dataBlock.TxBlock,
+				TxCount:  1,
+				Type:     dataBlock.TxBlock,
+				Reserved: mbhrBytes,
 			},
 			{
 				TxCount: 1,
@@ -319,7 +327,7 @@ func TestBlockProcessor_PrepareBlockForDBMiniBlocksDetails(t *testing.T) {
 		MiniBlocks: []*dataBlock.MiniBlock{
 			{
 				Type:     dataBlock.TxBlock,
-				TxHashes: [][]byte{[]byte(txHash)},
+				TxHashes: [][]byte{[]byte(txHash), []byte(notExecutedTxHash)},
 			},
 			{
 				Type:     dataBlock.RewardsBlock,
@@ -338,6 +346,9 @@ func TestBlockProcessor_PrepareBlockForDBMiniBlocksDetails(t *testing.T) {
 		Txs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
 			txHash: &outport.TransactionHandlerWithGasAndFee{
 				ExecutionOrder: 2,
+			},
+			notExecutedTxHash: &outport.TransactionHandlerWithGasAndFee{
+				ExecutionOrder: 0,
 			},
 		},
 		Rewards: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
@@ -359,13 +370,13 @@ func TestBlockProcessor_PrepareBlockForDBMiniBlocksDetails(t *testing.T) {
 
 	require.Equal(t, &data.Block{
 		Hash:            "68617368",
-		Size:            int64(289),
+		Size:            int64(308),
 		AccumulatedFees: "0",
 		DeveloperFees:   "0",
-		TxCount:         uint32(4),
+		TxCount:         uint32(5),
 		SearchOrder:     uint64(1020),
 		MiniBlocksHashes: []string{
-			"053c84b97d2a302bc9311ea3fae87234a728df41c0815404f0cf269b8ff5a59d",
+			"a0b43cf86fd05da82124088b2b492e73bb8881acddef2b29e0a1cde62cc5bb4c",
 			"c067de5b3c0031a14578699b1c3cdb9a19039e4a7b3fae6a94932ad3f70cf375",
 			"758f925b254ea0a6ad1bcbe3ddfcc73418ed4c8712506aafddc4da703295ad63",
 			"28a96506c2999838923f5310b3bb1d6849b5a259b429790d9eeb21c2a1402f82",
@@ -377,8 +388,8 @@ func TestBlockProcessor_PrepareBlockForDBMiniBlocksDetails(t *testing.T) {
 				MBIndex:                  0,
 				Type:                     dataBlock.TxBlock.String(),
 				ProcessingType:           dataBlock.Normal.String(),
-				ExecutionOrderTxsIndices: []int{2},
-				TxsHashes:                []string{"7478"},
+				ExecutionOrderTxsIndices: []int{2, notExecutedInCurrentBlock},
+				TxsHashes:                []string{"7478", "6e6f744578656375746564"},
 			},
 			{
 				IndexFirstProcessedTx:    0,
