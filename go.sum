@@ -1,7 +1,7 @@
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/ElrondNetwork/elrond-go-core v1.1.26/go.mod h1:N/RI++YU2M6OlnD1GSZepc1wPhI84ykRDQ1IyD3B0wk=
-github.com/ElrondNetwork/elrond-go-core v1.1.27-0.20221215101151-0e69a10c3cb5 h1:G3hGxdf54hfAKbY0IeyHs3eITMdbEa0h0csvvjHK2/o=
-github.com/ElrondNetwork/elrond-go-core v1.1.27-0.20221215101151-0e69a10c3cb5/go.mod h1:N/RI++YU2M6OlnD1GSZepc1wPhI84ykRDQ1IyD3B0wk=
+github.com/ElrondNetwork/elrond-go-core v1.1.28 h1:EgDAG2+cWSnekEWkf9WCsRAkh6pQlcQoGCSxzrkOE14=
+github.com/ElrondNetwork/elrond-go-core v1.1.28/go.mod h1:N/RI++YU2M6OlnD1GSZepc1wPhI84ykRDQ1IyD3B0wk=
 github.com/ElrondNetwork/elrond-go-logger v1.0.10 h1:2xQOWZErcHW5sl9qSRO+7mGNw+QhFhqiUlLLtOgvuuk=
 github.com/ElrondNetwork/elrond-go-logger v1.0.10/go.mod h1:+rMODFw4yQptTi5WuLUBzvl/AE26V+2YJtc52wX30Eg=
 github.com/ElrondNetwork/elrond-vm-common v1.3.27 h1:8LYa2ZCPYUXeb7USIWPHUnQnELtSyDKxmSr4QBiAYJg=

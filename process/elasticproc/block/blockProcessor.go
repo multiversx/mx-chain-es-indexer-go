@@ -20,7 +20,10 @@ import (
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 )
 
-const notExecutedInCurrentBlock = -1
+const (
+	notExecutedInCurrentBlock = -1
+	notFound                  = -2
+)
 
 var log = logger.GetOrCreate("indexer/process/block")
 
@@ -259,15 +262,16 @@ func extractExecutionOrderIndicesFromPool(mbHeader coreData.MiniBlockHeaderHandl
 	executionOrderTxsIndices := make([]int, len(txsHashes))
 	indexOfFirstProcessed, indexOfLastProcessed := mbHeader.GetIndexOfFirstTxProcessed(), mbHeader.GetIndexOfLastTxProcessed()
 	for idx, txHash := range txsHashes {
-		tx, found := txsMap[string(txHash)]
-		if !found {
-			log.Warn("blockProcessor.extractExecutionOrderIndicesFromPool cannot find tx in pool", "txHash", hex.EncodeToString(txHash))
-			continue
-		}
-
 		isExecutedInCurrentBlock := int32(idx) >= indexOfFirstProcessed && int32(idx) <= indexOfLastProcessed
 		if !isExecutedInCurrentBlock {
 			executionOrderTxsIndices[idx] = notExecutedInCurrentBlock
+			continue
+		}
+
+		tx, found := txsMap[string(txHash)]
+		if !found {
+			log.Warn("blockProcessor.extractExecutionOrderIndicesFromPool cannot find tx in pool", "txHash", hex.EncodeToString(txHash))
+			executionOrderTxsIndices[idx] = notFound
 			continue
 		}
 

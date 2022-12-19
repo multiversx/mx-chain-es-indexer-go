@@ -297,11 +297,11 @@ func TestBlockProcessor_PrepareBlockForDBMiniBlocksDetails(t *testing.T) {
 
 	mbhr := &dataBlock.MiniBlockHeaderReserved{
 		IndexOfFirstTxProcessed: 0,
-		IndexOfLastTxProcessed:  0,
+		IndexOfLastTxProcessed:  1,
 	}
 	mbhrBytes, _ := gogoMarshaller.Marshal(mbhr)
 
-	txHash, notExecutedTxHash, invalidTxHash, rewardsTxHash, scrHash := "tx", "notExecuted", "invalid", "reward", "scr"
+	txHash, notExecutedTxHash, notFoundTxHash, invalidTxHash, rewardsTxHash, scrHash := "tx", "notExecuted", "notFound", "invalid", "reward", "scr"
 	dbBlock, err := bp.PrepareBlockForDB([]byte("hash"), &dataBlock.Header{
 		TxCount: 5,
 		MiniBlockHeaders: []dataBlock.MiniBlockHeader{
@@ -327,7 +327,7 @@ func TestBlockProcessor_PrepareBlockForDBMiniBlocksDetails(t *testing.T) {
 		MiniBlocks: []*dataBlock.MiniBlock{
 			{
 				Type:     dataBlock.TxBlock,
-				TxHashes: [][]byte{[]byte(txHash), []byte(notExecutedTxHash)},
+				TxHashes: [][]byte{[]byte(txHash), []byte(notFoundTxHash), []byte(notExecutedTxHash)},
 			},
 			{
 				Type:     dataBlock.RewardsBlock,
@@ -370,13 +370,13 @@ func TestBlockProcessor_PrepareBlockForDBMiniBlocksDetails(t *testing.T) {
 
 	require.Equal(t, &data.Block{
 		Hash:            "68617368",
-		Size:            int64(308),
+		Size:            int64(341),
 		AccumulatedFees: "0",
 		DeveloperFees:   "0",
 		TxCount:         uint32(5),
 		SearchOrder:     uint64(1020),
 		MiniBlocksHashes: []string{
-			"a0b43cf86fd05da82124088b2b492e73bb8881acddef2b29e0a1cde62cc5bb4c",
+			"ee29d9b4a5017b7351974110d6a3f28ce6612476582f16b7849e3e87c647fc2d",
 			"c067de5b3c0031a14578699b1c3cdb9a19039e4a7b3fae6a94932ad3f70cf375",
 			"758f925b254ea0a6ad1bcbe3ddfcc73418ed4c8712506aafddc4da703295ad63",
 			"28a96506c2999838923f5310b3bb1d6849b5a259b429790d9eeb21c2a1402f82",
@@ -384,12 +384,12 @@ func TestBlockProcessor_PrepareBlockForDBMiniBlocksDetails(t *testing.T) {
 		MiniBlocksDetails: []*data.MiniBlocksDetails{
 			{
 				IndexFirstProcessedTx:    0,
-				IndexLastProcessedTx:     0,
+				IndexLastProcessedTx:     1,
 				MBIndex:                  0,
 				Type:                     dataBlock.TxBlock.String(),
 				ProcessingType:           dataBlock.Normal.String(),
-				ExecutionOrderTxsIndices: []int{2, notExecutedInCurrentBlock},
-				TxsHashes:                []string{"7478", "6e6f744578656375746564"},
+				ExecutionOrderTxsIndices: []int{2, notFound, notExecutedInCurrentBlock},
+				TxsHashes:                []string{"7478", "6e6f74466f756e64", "6e6f744578656375746564"},
 			},
 			{
 				IndexFirstProcessedTx:    0,
