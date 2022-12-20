@@ -37,7 +37,8 @@ var SCResults = Object{
 				"type": "keyword",
 			},
 			"gasLimit": Object{
-				"type": "long",
+				"index": "false",
+				"type":  "long",
 			},
 			"gasPrice": Object{
 				"index": "false",

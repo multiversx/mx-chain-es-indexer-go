@@ -45,10 +45,12 @@ var Operations = Object{
 				"type": "keyword",
 			},
 			"gasLimit": Object{
-				"type": "long",
+				"index": "false",
+				"type":  "long",
 			},
 			"gasPrice": Object{
-				"type": "long",
+				"index": "false",
+				"type":  "long",
 			},
 			"gasUsed": Object{
 				"index": "false",

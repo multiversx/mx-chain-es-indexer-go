@@ -34,10 +34,11 @@ var Transactions = Object{
 			},
 			"gasLimit": Object{
 				"index": "false",
-				"type":  "double",
+				"type":  "long",
 			},
 			"gasPrice": Object{
-				"type": "double",
+				"index": "false",
+				"type":  "long",
 			},
 			"gasUsed": Object{
 				"index": "false",
