@@ -7,8 +7,6 @@ github.com/ElrondNetwork/elrond-go-core v1.1.14 h1:JKpeI+1US4FuE8NwN3dqe0HUTYKLQ
 github.com/ElrondNetwork/elrond-go-core v1.1.14/go.mod h1:Yz8JK5sGBctw7+gU8j2mZHbzQ09Ek4XHJ4Uinq1N6nM=
 github.com/ElrondNetwork/elrond-go-logger v1.0.4/go.mod h1:e5D+c97lKUfFdAzFX7rrI2Igl/z4Y0RkKYKWyzprTGk=
 github.com/ElrondNetwork/elrond-go-logger v1.0.5/go.mod h1:cBfgx0ST/CJx8jrxJSC5aiSrvkGzcnF7sK06RD8mFxQ=
-github.com/ElrondNetwork/elrond-go-logger v1.0.7 h1:Ldl1rVS0RGKc1IsW8jIaGCb6Zwei04gsMvyjL05X6mE=
-github.com/ElrondNetwork/elrond-go-logger v1.0.7/go.mod h1:cBfgx0ST/CJx8jrxJSC5aiSrvkGzcnF7sK06RD8mFxQ=
 github.com/ElrondNetwork/elrond-go-logger v1.0.9 h1:RByDnVHgSN4zy3bwmvQarsnCd/gDmZ+zwVI+b6i4Plc=
 github.com/ElrondNetwork/elrond-go-logger v1.0.9/go.mod h1:86lz/Y9D1sMAZiukCYxCsETLl1zuI23qj37ct3KUT6A=
 github.com/ElrondNetwork/elrond-vm-common v1.1.0/go.mod h1:w3i6f8uiuRkE68Ie/gebRcLgTuHqvruJSYrFyZWuLrE=
