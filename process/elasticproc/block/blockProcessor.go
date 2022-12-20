@@ -260,9 +260,9 @@ func putMiniblocksDetailsInBlock(header coreData.HeaderHandler, block *data.Bloc
 func extractExecutionOrderIndicesFromPool(mbHeader coreData.MiniBlockHeaderHandler, txsHashes [][]byte, pool *outport.Pool) []int {
 	txsMap := getTxsMap(nodeBlock.Type(mbHeader.GetTypeInt32()), pool)
 	executionOrderTxsIndices := make([]int, len(txsHashes))
-	indexOfFirstProcessed, indexOfLastProcessed := mbHeader.GetIndexOfFirstTxProcessed(), mbHeader.GetIndexOfLastTxProcessed()
+	indexOfFirstTxProcessed, indexOfLastTxProcessed := mbHeader.GetIndexOfFirstTxProcessed(), mbHeader.GetIndexOfLastTxProcessed()
 	for idx, txHash := range txsHashes {
-		isExecutedInCurrentBlock := int32(idx) >= indexOfFirstProcessed && int32(idx) <= indexOfLastProcessed
+		isExecutedInCurrentBlock := int32(idx) >= indexOfFirstTxProcessed && int32(idx) <= indexOfLastTxProcessed
 		if !isExecutedInCurrentBlock {
 			executionOrderTxsIndices[idx] = notExecutedInCurrentBlock
 			continue
@@ -343,7 +343,7 @@ func getTxsMap(mbType nodeBlock.Type, pool *outport.Pool) map[string]coreData.Tr
 	case nodeBlock.SmartContractResultBlock:
 		return pool.Scrs
 	default:
-		return map[string]coreData.TransactionHandlerWithGasUsedAndFee{}
+		return make(map[string]coreData.TransactionHandlerWithGasUsedAndFee)
 	}
 }
 
