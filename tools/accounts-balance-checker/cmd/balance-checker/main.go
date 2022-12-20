@@ -5,11 +5,20 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"time"
 
 	"github.com/ElrondNetwork/elastic-indexer-go/tools/accounts-balance-checker/pkg/check"
 	"github.com/ElrondNetwork/elastic-indexer-go/tools/accounts-balance-checker/pkg/config"
+	checkNil "github.com/ElrondNetwork/elrond-go-core/core/check"
+	"github.com/ElrondNetwork/elrond-go-core/core/closing"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
+	"github.com/ElrondNetwork/elrond-go-logger/file"
 	"github.com/urfave/cli"
+)
+
+const (
+	defaultLogsPath           = "logs"
+	logsFileLifeSpamInSeconds = 432000
 )
 
 var (
@@ -33,8 +42,21 @@ var (
 	}
 
 	logLevel = cli.StringFlag{
-		Name:  "log-level",
-		Value: "*:INFO",
+		Name: "log-level",
+		Usage: "This flag specifies the logger `level(s)`. It can contain multiple comma-separated value. For example" +
+			", if set to *:INFO the logs for all packages will have the INFO level. However, if set to *:INFO,api:DEBUG" +
+			" the logs for all packages will have the INFO level, excepting the api package which will receive a DEBUG" +
+			" log level.",
+		Value: "*:" + logger.LogInfo.String(),
+	}
+	logSaveFile = cli.BoolFlag{
+		Name:  "log-save",
+		Usage: "Boolean option for enabling log saving. If set, it will automatically save all the logs into a file.",
+	}
+	// disableAnsiColor defines if the logger subsystem should prevent displaying ANSI colors
+	disableAnsiColor = cli.BoolFlag{
+		Name:  "disable-ansi-color",
+		Usage: "Boolean option for disabling ANSI colors in the logging system.",
 	}
 )
 
@@ -49,6 +71,8 @@ func main() {
 		checkBalanceESDT,
 		logLevel,
 		repairFlag,
+		logSaveFile,
+		disableAnsiColor,
 	}
 	app.Authors = []cli.Author{
 		{
@@ -66,7 +90,11 @@ func main() {
 }
 
 func startCheck(ctx *cli.Context) {
-	setLogLevelDebug(ctx)
+	fileLogging, err := initializeLogger(ctx)
+	if err != nil {
+		log.Error("cannot initialize logger", "error", err)
+		return
+	}
 
 	cfg, err := readConfig(ctx)
 	if err != nil {
@@ -106,6 +134,11 @@ func startCheck(ctx *cli.Context) {
 		log.Error("no flag has been provided")
 	}
 
+	if checkNil.IfNilReflect(fileLogging) {
+		err = fileLogging.Close()
+		log.LogIfError(err)
+	}
+
 	return
 }
 
@@ -123,19 +156,59 @@ func readConfig(ctx *cli.Context) (*config.Config, error) {
 	return cfg, nil
 }
 
-func setLogLevelDebug(ctx *cli.Context) {
-	err := logger.SetLogLevel(ctx.String(logLevel.Name))
+func initializeLogger(ctx *cli.Context) (closing.Closer, error) {
+	logLevelFlagValue := ctx.GlobalString(logLevel.Name)
+	err := logger.SetLogLevel(logLevelFlagValue)
 	if err != nil {
-		fmt.Println("main logger.SetLogLevel error: ", err.Error())
+		return nil, err
 	}
 
-	err = logger.RemoveLogObserver(os.Stdout)
-	if err != nil {
-		fmt.Println("main logger.RemoveLogObserver error: ", err.Error())
+	withLogFile := ctx.GlobalBool(logSaveFile.Name)
+	if !withLogFile {
+		return nil, nil
 	}
 
-	err = logger.AddLogObserver(os.Stdout, &logger.PlainFormatter{})
+	workingDir, err := os.Getwd()
 	if err != nil {
-		fmt.Println("main logger.AddLogObserver error: ", err.Error())
+		log.LogIfError(err)
+		workingDir = ""
 	}
+
+	fileLogging, err := file.NewFileLogging(file.ArgsFileLogging{
+		WorkingDir:      workingDir,
+		DefaultLogsPath: defaultLogsPath,
+		LogFilePrefix:   "",
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w creating a log file", err)
+	}
+
+	err = fileLogging.ChangeFileLifeSpan(
+		time.Second*time.Duration(logsFileLifeSpamInSeconds),
+		uint64(1024),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	disableAnsi := ctx.GlobalBool(disableAnsiColor.Name)
+	err = removeANSIColorsForLoggerIfNeeded(disableAnsi)
+	if err != nil {
+		return nil, err
+	}
+
+	return fileLogging, nil
+}
+
+func removeANSIColorsForLoggerIfNeeded(disableAnsi bool) error {
+	if !disableAnsi {
+		return nil
+	}
+
+	err := logger.RemoveLogObserver(os.Stdout)
+	if err != nil {
+		return err
+	}
+
+	return logger.AddLogObserver(os.Stdout, &logger.PlainFormatter{})
 }
