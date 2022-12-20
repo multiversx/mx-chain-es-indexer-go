@@ -37,4 +37,6 @@ type ScResult struct {
 	CanBeIgnored       bool          `json:"canBeIgnored,omitempty"`
 	OriginalSender     string        `json:"originalSender,omitempty"`
 	SenderAddressBytes []byte        `json:"-"`
+	InitialTxGasUsed   uint64        `json:"-"`
+	InitialTxFee       string        `json:"-"`
 }

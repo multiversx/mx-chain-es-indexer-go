@@ -5,18 +5,17 @@ package integrationtests
 import (
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"math/big"
 	"testing"
 
-	indexerdata "github.com/ElrondNetwork/elastic-indexer-go"
-	"github.com/ElrondNetwork/elastic-indexer-go/mock"
+	indexerdata "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/esdt"
-	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 	"github.com/stretchr/testify/require"
 )
 
@@ -35,45 +34,27 @@ func TestCreateNFTWithTags(t *testing.T) {
 		},
 	}
 
-	feeComputer := &mock.EconomicsHandlerMock{}
-	shardCoordinator := &mock.ShardCoordinatorMock{
-		SelfID: 0,
-	}
-
 	header := &dataBlock.Header{
 		Round:     51,
 		TimeStamp: 5600,
+		ShardID:   2,
 	}
 
-	addr := "aaaabbbb"
-	mockAccount := &mock.UserAccountStub{
-		RetrieveValueCalled: func(key []byte) ([]byte, uint32, error) {
-			serializedEsdtToken, err := json.Marshal(esdtToken)
-			return serializedEsdtToken, 0, err
-		},
-		AddressBytesCalled: func() []byte {
-			return []byte(addr)
-		},
-	}
-	accounts := &mock.AccountsStub{
-		LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
-			return mockAccount, nil
-		},
-	}
-	esProc, err := CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
 	esdtDataBytes, _ := json.Marshal(esdtToken)
 
 	// CREATE A FIRST NFT WITH THE TAGS
-	pool := &indexer.Pool{
+	address1 := "erd1v7e552pz9py4hv6raan0c4jflez3e6csdmzcgrncg0qrnk4tywvsqx0h5j"
+	pool := &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				TxHash: "h1",
 				LogHandler: &transaction.Log{
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("aaaabbbb"),
+							Address:    decodeAddress(address1),
 							Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
 							Topics:     [][]byte{[]byte("DESK-abcd"), big.NewInt(1).Bytes(), big.NewInt(1).Bytes(), esdtDataBytes},
 						},
@@ -84,11 +65,33 @@ func TestCreateNFTWithTags(t *testing.T) {
 		},
 	}
 
+	coreAlteredAccounts := map[string]*outport.AlteredAccount{
+		address1: {
+			Address: address1,
+			Balance: "0",
+			Tokens: []*outport.AccountTokenData{
+				{
+					AdditionalData: &outport.AdditionalAccountTokenData{
+						IsNFTCreate: true,
+					},
+					Identifier: "DESK-abcd",
+					Nonce:      1,
+					Balance:    "1000",
+					Properties: "ok",
+					MetaData: &outport.TokenMetaData{
+						Creator:    "creator",
+						Attributes: []byte("tags:hello,something,do,music,art,gallery;metadata:QmZ2QqaGq4bqsEzs5JLTjRmmvR2GAR4qXJZBN8ibfDdaud"),
+					},
+				},
+			},
+		},
+	}
+
 	body := &dataBlock.Body{}
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
 	require.Nil(t, err)
 
-	ids := []string{"6161616162626262-DESK-abcd-01"}
+	ids := []string{fmt.Sprintf("%s-DESK-abcd-01", address1)}
 	genericResponse := &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse)
 	require.Nil(t, err)
@@ -112,14 +115,14 @@ func TestCreateNFTWithTags(t *testing.T) {
 	require.Equal(t, len(ids), tagsChecked)
 
 	// CREATE A SECOND NFT WITH THE SAME TAGS
-	pool = &indexer.Pool{
+	pool = &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				TxHash: "h1",
 				LogHandler: &transaction.Log{
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("aaaabbbb"),
+							Address:    decodeAddress(address1),
 							Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
 							Topics:     [][]byte{[]byte("DESK-abcd"), big.NewInt(2).Bytes(), big.NewInt(1).Bytes(), esdtDataBytes},
 						},
@@ -130,8 +133,9 @@ func TestCreateNFTWithTags(t *testing.T) {
 		},
 	}
 
+	coreAlteredAccounts[address1].Tokens[0].Nonce = 2
 	body = &dataBlock.Body{}
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
 	require.Nil(t, err)
 
 	genericResponse = &GenericResponse{}
@@ -154,39 +158,20 @@ func TestCreateNFTWithTags(t *testing.T) {
 	hexEncodedAttributes := "746167733a5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c2c3c3c3c3e3e3e2626262626262626262626262626262c272727273b6d657461646174613a516d533757525566464464516458654c513637516942394a33663746654d69343554526d6f79415741563568345a"
 	attributes, _ := hex.DecodeString(hexEncodedAttributes)
 
-	esdtToken = &esdt.ESDigitalToken{
-		Value:      big.NewInt(1000),
-		Properties: []byte("ok"),
-		TokenMetaData: &esdt.MetaData{
-			Creator:    []byte("creator"),
-			Attributes: attributes,
-		},
-	}
-	mockAccount = &mock.UserAccountStub{
-		RetrieveValueCalled: func(key []byte) ([]byte, uint32, error) {
-			serializedEsdtToken, err := json.Marshal(esdtToken)
-			return serializedEsdtToken, 0, err
-		},
-		AddressBytesCalled: func() []byte {
-			return []byte(addr)
-		},
-	}
-	accounts = &mock.AccountsStub{
-		LoadAccountCalled: func(container []byte) (vmcommon.AccountHandler, error) {
-			return mockAccount, nil
-		},
-	}
-	esProc, err = CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	coreAlteredAccounts[address1].Tokens[0].Nonce = 3
+	coreAlteredAccounts[address1].Tokens[0].MetaData.Attributes = attributes
+
+	esProc, err = CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
-	pool = &indexer.Pool{
+	pool = &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				TxHash: "h1",
 				LogHandler: &transaction.Log{
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("aaaabbbb"),
+							Address:    decodeAddress(address1),
 							Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
 							Topics:     [][]byte{[]byte("DESK-abcd"), big.NewInt(3).Bytes(), big.NewInt(1).Bytes(), esdtDataBytes},
 						},
@@ -198,7 +183,7 @@ func TestCreateNFTWithTags(t *testing.T) {
 	}
 
 	body = &dataBlock.Body{}
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
 	require.Nil(t, err)
 
 	ids = append(ids, "XFxcXFxcXFxcXFxcXFxcXFxcXA==", "JycnJw==", "PDw8Pj4+JiYmJiYmJiYmJiYmJiYm")

@@ -7,16 +7,13 @@ import (
 	"math/big"
 	"testing"
 
-	indexerData "github.com/ElrondNetwork/elastic-indexer-go"
-	"github.com/ElrondNetwork/elastic-indexer-go/mock"
+	indexerData "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/stretchr/testify/require"
 )
-
-const moveBalanceTransaction = `{"initialPaidFee":"62080000000000","miniBlockHash":"24c374c9405540e88a36959ea83eede6ad50f6872f82d2e2a2280975615e1811","nonce":1,"round":50,"value":"1234","receiver":"7265636569766572","sender":"73656e646572","receiverShard":0,"senderShard":0,"gasPrice":1000000000,"gasLimit":70000,"gasUsed":62000,"fee":"62000000000000","data":"dHJhbnNmZXI=","signature":"","timestamp":5040,"status":"success","searchOrder":0,"operation":"transfer"}`
 
 func TestElasticIndexerSaveTransactions(t *testing.T) {
 	setLogLevelDebug()
@@ -24,11 +21,7 @@ func TestElasticIndexerSaveTransactions(t *testing.T) {
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	accounts := &mock.AccountsStub{}
-	feeComputer := &mock.EconomicsHandlerMock{}
-	shardCoordinator := &mock.ShardCoordinatorMock{}
-
-	esProc, err := CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
 	txHash := []byte("hash")
@@ -46,20 +39,22 @@ func TestElasticIndexerSaveTransactions(t *testing.T) {
 			},
 		},
 	}
-	pool := &indexer.Pool{
-		Txs: map[string]coreData.TransactionHandler{
-			string(txHash): &transaction.Transaction{
-				Nonce:    1,
-				SndAddr:  []byte("sender"),
-				RcvAddr:  []byte("receiver"),
-				GasLimit: 70000,
-				GasPrice: 1000000000,
-				Data:     []byte("transfer"),
-				Value:    big.NewInt(1234),
-			},
+	tx := outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
+		Nonce:    1,
+		SndAddr:  decodeAddress("erd1w7jyzuj6cv4ngw8luhlkakatjpmjh3ql95lmxphd3vssc4vpymks6k5th7"),
+		RcvAddr:  decodeAddress("erd1ahmy0yjhjg87n755yv99nzla22zzwfud55sa69gk3anyxyyucq9q2hgxww"),
+		GasLimit: 70000,
+		GasPrice: 1000000000,
+		Data:     []byte("transfer"),
+		Value:    big.NewInt(1234),
+	}, 62000, big.NewInt(62000000000000))
+	tx.SetInitialPaidFee(big.NewInt(62080000000000))
+	pool := &outport.Pool{
+		Txs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
+			string(txHash): tx,
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
 	require.Nil(t, err)
 
 	ids := []string{hex.EncodeToString(txHash)}
@@ -67,5 +62,8 @@ func TestElasticIndexerSaveTransactions(t *testing.T) {
 	err = esClient.DoMultiGet(ids, indexerData.TransactionsIndex, true, genericResponse)
 	require.Nil(t, err)
 
-	compareTxs(t, []byte(moveBalanceTransaction), genericResponse.Docs[0].Source)
+	require.JSONEq(t,
+		readExpectedResult("./testdata/transactions/move-balance.json"),
+		string(genericResponse.Docs[0].Source),
+	)
 }

@@ -1,9 +1,9 @@
 {
-  "address": "616464722d31",
+  "address": "erd1ju8pkvg57cwdmjsjx58jlmnuf4l9yspstrhr9tgsrt98n9edpm2qtlgy99",
   "events": [
     {
       "identifier": "ESDTTransfer",
-      "address": "61646472",
+      "address": "erd1ju8pkvg57cwdmjsjx58jlmnuf4l9yspstrhr9tgsrt98n9edpm2qtlgy99",
       "data": null,
       "topics": [
         "RVNEVC1hYmNk",

@@ -2,19 +2,19 @@
   "name": "semi-token",
   "ticker": "SEMI",
   "token": "TOK-abcd",
-  "issuer": "61646472",
-  "currentOwner": "61646472",
+  "issuer": "erd1k04pxr6c0gvlcx4rd5fje0a4uy33axqxwz0fpcrgtfdy3nrqauqqgvxprv",
+  "currentOwner": "erd1k04pxr6c0gvlcx4rd5fje0a4uy33axqxwz0fpcrgtfdy3nrqauqqgvxprv",
   "type": "SemiFungibleESDT",
   "timestamp": 5040,
   "ownersHistory": [
     {
-      "address": "61646472",
+      "address": "erd1k04pxr6c0gvlcx4rd5fje0a4uy33axqxwz0fpcrgtfdy3nrqauqqgvxprv",
       "timestamp": 5040
     }
   ],
   "roles": {
     "ESDTRoleNFTCreate": [
-      "6e65772d61646472657373"
+      "erd1suhxyflu4w4pqdxmushpxzc6a3qszr89m8uswzqcvyh0mh9mzxwqdwkm0x"
     ],
     "ESDTRoleNFTBurn": []
   },

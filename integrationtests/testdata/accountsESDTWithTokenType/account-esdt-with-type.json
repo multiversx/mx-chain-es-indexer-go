@@ -1,5 +1,5 @@
 {
-  "address": "6161616162626262",
+  "address": "erd1l29zsl2dqq988kvr2y0xlfv9ydgnvhzkatfd8ccalpag265pje8qn8lslf",
   "balance": "1000",
   "balanceNum": 1.0E-15,
   "token": "TTTT-abcd",
@@ -7,11 +7,11 @@
   "tokenNonce": 2,
   "properties": "6f6b",
   "data": {
-    "creator": "63726561746f72",
+    "creator": "erd1l29zsl2dqq988kvr2y0xlfv9ydgnvhzkatfd8ccalpag265pje8qn8lslf",
     "nonEmptyURIs": false,
     "whiteListedStorage": false
   },
   "timestamp": 5600,
   "type": "SemiFungibleESDT",
-  "shardID": 0
+  "shardID": 2
 }

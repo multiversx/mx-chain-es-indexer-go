@@ -2,6 +2,7 @@ package mock
 
 import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 )
 
 // DBAccountsHandlerStub -
@@ -11,22 +12,22 @@ type DBAccountsHandlerStub struct {
 }
 
 // GetAccounts -
-func (dba *DBAccountsHandlerStub) GetAccounts(_ data.AlteredAccountsHandler) ([]*data.Account, []*data.AccountESDT) {
+func (dba *DBAccountsHandlerStub) GetAccounts(_ map[string]*outport.AlteredAccount) ([]*data.Account, []*data.AccountESDT) {
 	return nil, nil
 }
 
 // PrepareRegularAccountsMap -
-func (dba *DBAccountsHandlerStub) PrepareRegularAccountsMap(_ uint64, _ []*data.Account) map[string]*data.AccountInfo {
+func (dba *DBAccountsHandlerStub) PrepareRegularAccountsMap(_ uint64, _ []*data.Account, _ uint32) map[string]*data.AccountInfo {
 	return nil
 }
 
 // PrepareAccountsMapESDT -
-func (dba *DBAccountsHandlerStub) PrepareAccountsMapESDT(_ uint64, _ []*data.AccountESDT, _ data.CountTags) (map[string]*data.AccountInfo, data.TokensHandler) {
+func (dba *DBAccountsHandlerStub) PrepareAccountsMapESDT(_ uint64, _ []*data.AccountESDT, _ data.CountTags, _ uint32) (map[string]*data.AccountInfo, data.TokensHandler) {
 	return nil, nil
 }
 
 // PrepareAccountsHistory -
-func (dba *DBAccountsHandlerStub) PrepareAccountsHistory(timestamp uint64, accounts map[string]*data.AccountInfo) map[string]*data.AccountBalanceHistory {
+func (dba *DBAccountsHandlerStub) PrepareAccountsHistory(timestamp uint64, accounts map[string]*data.AccountInfo, _ uint32) map[string]*data.AccountBalanceHistory {
 	if dba.PrepareAccountsHistoryCalled != nil {
 		return dba.PrepareAccountsHistoryCalled(timestamp, accounts)
 	}
@@ -58,7 +59,7 @@ func (dba *DBAccountsHandlerStub) SerializeNFTCreateInfo(_ []*data.TokenInfo, _ 
 }
 
 // PutTokenMedataDataInTokens -
-func (dba *DBAccountsHandlerStub) PutTokenMedataDataInTokens(_ []*data.TokenInfo) {
+func (dba *DBAccountsHandlerStub) PutTokenMedataDataInTokens(_ []*data.TokenInfo, _ map[string]*outport.AlteredAccount) {
 }
 
 // SerializeTypeForProvidedIDs -

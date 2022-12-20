@@ -1,6 +1,8 @@
 package mock
 
-import "github.com/ElrondNetwork/elastic-indexer-go/workItems"
+import (
+	"github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer/workItems"
+)
 
 // DispatcherMock -
 type DispatcherMock struct {

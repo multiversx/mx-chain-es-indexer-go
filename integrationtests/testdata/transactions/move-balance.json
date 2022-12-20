@@ -1,0 +1,21 @@
+{
+  "miniBlockHash": "24c374c9405540e88a36959ea83eede6ad50f6872f82d2e2a2280975615e1811",
+  "nonce": 1,
+  "round": 50,
+  "value": "1234",
+  "receiver": "erd1ahmy0yjhjg87n755yv99nzla22zzwfud55sa69gk3anyxyyucq9q2hgxww",
+  "sender": "erd1w7jyzuj6cv4ngw8luhlkakatjpmjh3ql95lmxphd3vssc4vpymks6k5th7",
+  "receiverShard": 0,
+  "senderShard": 0,
+  "gasPrice": 1000000000,
+  "gasLimit": 70000,
+  "gasUsed": 62000,
+  "fee": "62000000000000",
+  "initialPaidFee": "62080000000000",
+  "data": "dHJhbnNmZXI=",
+  "signature": "",
+  "timestamp": 5040,
+  "status": "success",
+  "searchOrder": 0,
+  "operation": "transfer"
+}

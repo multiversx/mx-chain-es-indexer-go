@@ -1,14 +1,14 @@
 {
   "identifier": "TOKEN-eeee-02",
-  "address": "6161616162626262",
+  "address": "erd1sqy2ywvswp09ef7qwjhv8zwr9kzz3xas6y2ye5nuryaz0wcnfzzsnq0am3",
   "balance": "1000",
   "balanceNum": 1.0E-15,
   "data": {
-    "creator": "63726561746f72",
+    "creator": "creator",
     "whiteListedStorage": false,
     "nonEmptyURIs": false
   },
-  "shardID": 1,
+  "shardID": 2,
   "tokenNonce": 2,
   "properties": "6f6b",
   "token": "TOKEN-eeee",

@@ -3,8 +3,8 @@
   "nonce": 79,
   "round": 50,
   "value": "0",
-  "receiver": "657264316566397878336b336d3839617a6634633478633938777063646e78356830636e787936656d34377236646334616c756430757771783234663530",
-  "sender": "657264316566397878336b336d3839617a6634633478633938777063646e78356830636e787936656d34377236646334616c756430757771783234663530",
+  "receiver": "erd1ef9xx3k3m89azf4c4xc98wpcdnx5h0cnxy6em47r6dc4alud0uwqx24f50",
+  "sender": "erd1ef9xx3k3m89azf4c4xc98wpcdnx5h0cnxy6em47r6dc4alud0uwqx24f50",
   "receiverShard": 0,
   "senderShard": 0,
   "gasPrice": 1000000000,
@@ -25,10 +25,10 @@
     "2049781565634260759982"
   ],
   "receivers": [
-    "00000000000000000500f1c8f2fdc58a63c6b201fc2ed629962d3dfa33fe7ceb"
+    "erd1qqqqqqqqqqqqqpgq78y09lw93f3udvsplshdv2vk957l5vl70n4splrad2"
   ],
   "receiversShardIDs": [
-    0
+    1
   ],
   "operation": "ESDTNFTTransfer",
   "function": "compoundRewardsProxy"
