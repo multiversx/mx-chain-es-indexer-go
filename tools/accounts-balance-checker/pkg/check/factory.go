@@ -48,5 +48,5 @@ func CreateBalanceChecker(cfg *config.Config, repair bool) (*balanceChecker, err
 		return nil, err
 	}
 
-	return NewBalanceChecker(esClient, restClient, pubKeyConverter, balanceToFloat, repair, cfg.Proxy.MaxNumberOfRequestsInParallel)
+	return NewBalanceChecker(esClient, restClient, pubKeyConverter, balanceToFloat, repair, cfg.Proxy.MaxNumberOfParallelRequests)
 }

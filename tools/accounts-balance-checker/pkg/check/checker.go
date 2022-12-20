@@ -22,11 +22,11 @@ const (
 var log = logger.GetOrCreate("checker")
 
 type balanceChecker struct {
-	balanceToFloat                indexer.BalanceConverter
-	pubKeyConverter               core.PubkeyConverter
-	esClient                      ESClientHandler
-	restClient                    RestClientHandler
-	maxNumberOfRequestsInParallel int
+	balanceToFloat              indexer.BalanceConverter
+	pubKeyConverter             core.PubkeyConverter
+	esClient                    ESClientHandler
+	restClient                  RestClientHandler
+	maxNumberOfParallelRequests int
 
 	doRepair bool
 }
@@ -54,12 +54,12 @@ func NewBalanceChecker(
 	}
 
 	return &balanceChecker{
-		esClient:                      esClient,
-		restClient:                    restClient,
-		pubKeyConverter:               pubKeyConverter,
-		balanceToFloat:                balanceToFloat,
-		doRepair:                      repair,
-		maxNumberOfRequestsInParallel: maxNumberOfRequestsInParallel,
+		esClient:                    esClient,
+		restClient:                  restClient,
+		pubKeyConverter:             pubKeyConverter,
+		balanceToFloat:              balanceToFloat,
+		doRepair:                    repair,
+		maxNumberOfParallelRequests: maxNumberOfRequestsInParallel,
 	}, nil
 }
 
@@ -84,7 +84,7 @@ func (bc *balanceChecker) handlerFuncScrollAccountEGLD(responseBytes []byte) err
 
 	defer utils.LogExecutionTime(log, time.Now(), fmt.Sprintf("checked bulk of accounts %d", countCheck))
 
-	maxGoroutines := bc.maxNumberOfRequestsInParallel
+	maxGoroutines := bc.maxNumberOfParallelRequests
 	done := make(chan struct{}, maxGoroutines)
 	for _, acct := range accountsRes.Hits.Hits {
 		done <- struct{}{}
@@ -112,7 +112,7 @@ func (bc *balanceChecker) checkBalance(acct indexerData.AccountInfo, done chan s
 	if gatewayBalance != acct.Balance {
 		newBalance, err := bc.getBalanceFromES(acct.Address)
 		if err != nil {
-			log.Error("something when wrong", "address", acct.Address, "error", err)
+			log.Error("something went wrong", "address", acct.Address, "error", err)
 			return
 		}
 		if newBalance != gatewayBalance {

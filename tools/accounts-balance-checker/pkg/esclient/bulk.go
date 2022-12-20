@@ -46,12 +46,12 @@ func (ec *esClient) DoBulkRequest(buff *bytes.Buffer, index string) error {
 type bulkRequestResponse struct {
 	Errors bool `json:"errors"`
 	Items  []struct {
-		ItemIndex  *Item `json:"index"`
-		ItemUpdate *Item `json:"update"`
+		ItemIndex  *item `json:"index"`
+		ItemUpdate *item `json:"update"`
 	} `json:"items"`
 }
 
-type Item struct {
+type item struct {
 	Index  string `json:"_index"`
 	ID     string `json:"_id"`
 	Status int    `json:"status"`
@@ -75,13 +75,13 @@ func extractErrorFromResponseBytes(responseBytes []byte) error {
 
 	count := 0
 	errorsString := ""
-	for _, item := range bulkResponse.Items {
-		var selectedItem Item
+	for _, i := range bulkResponse.Items {
+		var selectedItem item
 		switch {
-		case item.ItemIndex != nil:
-			selectedItem = *item.ItemIndex
-		case item.ItemUpdate != nil:
-			selectedItem = *item.ItemUpdate
+		case i.ItemIndex != nil:
+			selectedItem = *i.ItemIndex
+		case i.ItemUpdate != nil:
+			selectedItem = *i.ItemUpdate
 		}
 
 		log.Debug("worked on", "index", selectedItem.Index,

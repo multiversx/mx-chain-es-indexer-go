@@ -25,6 +25,7 @@ type BulkRequestResponse struct {
 	} `json:"items"`
 }
 
+// ResponseAccounts holds the accounts response from Elasticsearch
 type ResponseAccounts struct {
 	Hits struct {
 		Hits []struct {
@@ -43,6 +44,7 @@ type AccountResponse struct {
 	Code  string `json:"code"`
 }
 
+// BalancesESDTResponse holds  the account esdt balances endpoint response
 type BalancesESDTResponse struct {
 	Data struct {
 		ESDTS     map[string]*esdtNFTTokenData `json:"esdts"`

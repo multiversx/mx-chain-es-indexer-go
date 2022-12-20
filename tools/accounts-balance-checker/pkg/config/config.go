@@ -7,7 +7,7 @@ type Config struct {
 		Password string `json:"password"`
 	}
 	Proxy struct {
-		URL                           string `json:"url"`
-		MaxNumberOfRequestsInParallel int    `json:"parallel-requests"`
+		URL                         string `json:"url"`
+		MaxNumberOfParallelRequests int    `json:"parallel-requests"`
 	} `json:"proxy"`
 }

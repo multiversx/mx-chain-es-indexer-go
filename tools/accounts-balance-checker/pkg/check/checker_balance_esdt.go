@@ -33,7 +33,7 @@ func (bc *balanceChecker) CheckESDTBalances() error {
 
 	log.Info("total accounts with ESDT tokens ", "count", len(balancesFromEs))
 
-	maxGoroutines := bc.maxNumberOfRequestsInParallel
+	maxGoroutines := bc.maxNumberOfParallelRequests
 	done, wg := make(chan struct{}, maxGoroutines), &sync.WaitGroup{}
 	for addr, tokenBalanceMap := range balancesFromEs {
 		done <- struct{}{}
@@ -256,9 +256,6 @@ func (bc *balanceChecker) getAccountsByQuery(query string) (balancesESDT, error)
 	if err != nil {
 		return nil, err
 	}
-
-	//file, _ := json.MarshalIndent(&balances, "", " ")
-	//_ = ioutil.WriteFile("accounts-esdt.json", file, 0644)
 
 	return balances, nil
 }

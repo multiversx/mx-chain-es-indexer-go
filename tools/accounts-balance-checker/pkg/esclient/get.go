@@ -10,6 +10,7 @@ import (
 
 var countGet = 0
 
+// DoGetRequest will do a get request
 func (ec *esClient) DoGetRequest(buff *bytes.Buffer, index string, response interface{}, size int) error {
 	countGet++
 	res, err := ec.client.Search(

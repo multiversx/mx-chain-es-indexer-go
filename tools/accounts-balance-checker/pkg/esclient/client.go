@@ -90,7 +90,6 @@ func (ec *esClient) iterateScroll(
 			return err
 		}
 	}
-
 }
 
 func (ec *esClient) getScrollResponse(scrollID string) ([]byte, error) {
