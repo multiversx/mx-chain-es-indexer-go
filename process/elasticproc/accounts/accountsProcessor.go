@@ -128,6 +128,16 @@ func (ap *accountsProcessor) PrepareRegularAccountsMap(timestamp uint64, account
 			TotalBalanceWithStakeNum: balanceAsFloat,
 			Timestamp:                time.Duration(timestamp),
 			ShardID:                  shardID,
+
+			UserName: userAccount.UserAccount.UserName,
+			Owner:    userAccount.UserAccount.CurrentOwner,
+		}
+
+		developerRewards := userAccount.UserAccount.DeveloperRewards
+		if developerRewards != "" {
+			acc.DeveloperRewards = developerRewards
+			developerRewardsBig, _ := big.NewInt(0).SetString(developerRewards, 10)
+			acc.DeveloperRewardsNum = ap.balanceConverter.ComputeBalanceAsFloat(developerRewardsBig)
 		}
 
 		accountsMap[address] = acc

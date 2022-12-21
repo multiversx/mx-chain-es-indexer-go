@@ -18,6 +18,10 @@ type AccountInfo struct {
 	Properties               string         `json:"properties,omitempty"`
 	TotalBalanceWithStake    string         `json:"totalBalanceWithStake,omitempty"`
 	TotalBalanceWithStakeNum float64        `json:"totalBalanceWithStakeNum,omitempty"`
+	Owner                    string         `json:"owner,omitempty"`
+	UserName                 string         `json:"userName,omitempty"`
+	DeveloperRewards         string         `json:"developerRewards,omitempty"`
+	DeveloperRewardsNum      float64        `json:"developerRewardsNum,omitempty"`
 	Data                     *TokenMetaData `json:"data,omitempty"`
 	Timestamp                time.Duration  `json:"timestamp,omitempty"`
 	Type                     string         `json:"type,omitempty"`
