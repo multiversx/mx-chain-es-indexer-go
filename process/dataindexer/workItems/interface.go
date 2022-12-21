@@ -22,6 +22,7 @@ type saveBlockIndexer interface {
 		notarizedHeadersHashes []string,
 		gasConsumptionData outport.HeaderGasConsumption,
 		txsSize int,
+		pool *outport.Pool,
 	) error
 	SaveMiniblocks(header coreData.HeaderHandler, body *block.Body) error
 	SaveTransactions(body *block.Body, header coreData.HeaderHandler, pool *outport.Pool, coreAlteredAccounts map[string]*outport.AlteredAccount, isImportDB bool, numOfShards uint32) error

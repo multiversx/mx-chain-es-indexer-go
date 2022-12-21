@@ -10,6 +10,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/mock"
 	indexer "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	"github.com/ElrondNetwork/elrond-go-core/core"
+	coreData "github.com/ElrondNetwork/elrond-go-core/data"
 	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
 	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-go-core/hashing"
@@ -72,7 +73,7 @@ func TestBlockProcessor_PrepareBlockForDBShouldWork(t *testing.T) {
 					ReceiverShardID: 2,
 				},
 			},
-		}, nil, outport.HeaderGasConsumption{}, 0)
+		}, nil, outport.HeaderGasConsumption{}, 0, &outport.Pool{})
 	require.Nil(t, err)
 
 	expectedBlock := &data.Block{
@@ -94,7 +95,7 @@ func TestBlockProcessor_PrepareBlockForDBNilHeader(t *testing.T) {
 
 	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 
-	dbBlock, err := bp.PrepareBlockForDB([]byte("hash"), nil, nil, &dataBlock.Body{}, nil, outport.HeaderGasConsumption{}, 0)
+	dbBlock, err := bp.PrepareBlockForDB([]byte("hash"), nil, nil, &dataBlock.Body{}, nil, outport.HeaderGasConsumption{}, 0, &outport.Pool{})
 	require.Equal(t, indexer.ErrNilHeaderHandler, err)
 	require.Nil(t, dbBlock)
 }
@@ -104,7 +105,7 @@ func TestBlockProcessor_PrepareBlockForDBNilBody(t *testing.T) {
 
 	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 
-	dbBlock, err := bp.PrepareBlockForDB([]byte("hash"), &dataBlock.MetaBlock{}, nil, nil, nil, outport.HeaderGasConsumption{}, 0)
+	dbBlock, err := bp.PrepareBlockForDB([]byte("hash"), &dataBlock.MetaBlock{}, nil, nil, nil, outport.HeaderGasConsumption{}, 0, &outport.Pool{})
 	require.Equal(t, indexer.ErrNilBlockBody, err)
 	require.Nil(t, dbBlock)
 }
@@ -119,7 +120,7 @@ func TestBlockProcessor_PrepareBlockForDBMarshalFailHeader(t *testing.T) {
 		},
 	})
 
-	dbBlock, err := bp.PrepareBlockForDB([]byte("hash"), &dataBlock.MetaBlock{}, nil, &dataBlock.Body{}, nil, outport.HeaderGasConsumption{}, 0)
+	dbBlock, err := bp.PrepareBlockForDB([]byte("hash"), &dataBlock.MetaBlock{}, nil, &dataBlock.Body{}, nil, outport.HeaderGasConsumption{}, 0, &outport.Pool{})
 	require.Equal(t, expectedErr, err)
 	require.Nil(t, dbBlock)
 }
@@ -141,7 +142,7 @@ func TestBlockProcessor_PrepareBlockForDBMarshalFailBlock(t *testing.T) {
 		},
 	})
 
-	dbBlock, err := bp.PrepareBlockForDB([]byte("hash"), &dataBlock.MetaBlock{}, nil, &dataBlock.Body{}, nil, outport.HeaderGasConsumption{}, 0)
+	dbBlock, err := bp.PrepareBlockForDB([]byte("hash"), &dataBlock.MetaBlock{}, nil, &dataBlock.Body{}, nil, outport.HeaderGasConsumption{}, 0, &outport.Pool{})
 	require.Equal(t, expectedErr, err)
 	require.Nil(t, dbBlock)
 }
@@ -204,19 +205,24 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 				TxCount: 120,
 			},
 		},
-	}, nil, &dataBlock.Body{}, nil, outport.HeaderGasConsumption{}, 0)
+	}, nil, &dataBlock.Body{
+		MiniBlocks: []*dataBlock.MiniBlock{
+			{},
+			{},
+		},
+	}, nil, outport.HeaderGasConsumption{}, 0, &outport.Pool{})
 	require.Equal(t, nil, err)
 	require.Equal(t, &data.Block{
 		Nonce:                 0,
 		Round:                 0,
 		Epoch:                 0,
 		Hash:                  "68617368",
-		MiniBlocksHashes:      []string{},
+		MiniBlocksHashes:      []string{"44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a", "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"},
 		NotarizedBlocksHashes: nil,
 		Proposer:              0,
 		Validators:            nil,
 		PubKeyBitmap:          "",
-		Size:                  623,
+		Size:                  643,
 		SizeTxs:               0,
 		Timestamp:             0,
 		StateRootHash:         "",
@@ -236,14 +242,22 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 		},
 		MiniBlocksDetails: []*data.MiniBlocksDetails{
 			{
-				IndexFirstProcessedTx: 0,
-				IndexLastProcessedTx:  49,
-				MBIndex:               0,
+				IndexFirstProcessedTx:    0,
+				IndexLastProcessedTx:     49,
+				MBIndex:                  0,
+				Type:                     dataBlock.TxBlock.String(),
+				ProcessingType:           dataBlock.Normal.String(),
+				ExecutionOrderTxsIndices: []int{},
+				TxsHashes:                []string{},
 			},
 			{
-				IndexFirstProcessedTx: 0,
-				IndexLastProcessedTx:  119,
-				MBIndex:               1,
+				IndexFirstProcessedTx:    0,
+				IndexLastProcessedTx:     119,
+				MBIndex:                  1,
+				Type:                     dataBlock.TxBlock.String(),
+				ProcessingType:           dataBlock.Normal.String(),
+				ExecutionOrderTxsIndices: []int{},
+				TxsHashes:                []string{},
 			},
 		},
 		EpochStartShardsData: []*data.EpochStartShardData{
@@ -272,5 +286,134 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 		TxCount:           170,
 		AccumulatedFees:   "0",
 		DeveloperFees:     "0",
+	}, dbBlock)
+}
+
+func TestBlockProcessor_PrepareBlockForDBMiniBlocksDetails(t *testing.T) {
+	t.Parallel()
+
+	gogoMarshaller := &marshal.GogoProtoMarshalizer{}
+	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
+
+	mbhr := &dataBlock.MiniBlockHeaderReserved{
+		IndexOfFirstTxProcessed: 0,
+		IndexOfLastTxProcessed:  1,
+	}
+	mbhrBytes, _ := gogoMarshaller.Marshal(mbhr)
+
+	txHash, notExecutedTxHash, notFoundTxHash, invalidTxHash, rewardsTxHash, scrHash := "tx", "notExecuted", "notFound", "invalid", "reward", "scr"
+	dbBlock, err := bp.PrepareBlockForDB([]byte("hash"), &dataBlock.Header{
+		TxCount: 5,
+		MiniBlockHeaders: []dataBlock.MiniBlockHeader{
+			{
+				TxCount:  1,
+				Type:     dataBlock.TxBlock,
+				Reserved: mbhrBytes,
+			},
+			{
+				TxCount: 1,
+				Type:    dataBlock.RewardsBlock,
+			},
+			{
+				TxCount: 1,
+				Type:    dataBlock.InvalidBlock,
+			},
+			{
+				TxCount: 1,
+				Type:    dataBlock.SmartContractResultBlock,
+			},
+		},
+	}, nil, &dataBlock.Body{
+		MiniBlocks: []*dataBlock.MiniBlock{
+			{
+				Type:     dataBlock.TxBlock,
+				TxHashes: [][]byte{[]byte(txHash), []byte(notFoundTxHash), []byte(notExecutedTxHash)},
+			},
+			{
+				Type:     dataBlock.RewardsBlock,
+				TxHashes: [][]byte{[]byte(rewardsTxHash)},
+			},
+			{
+				Type:     dataBlock.InvalidBlock,
+				TxHashes: [][]byte{[]byte(invalidTxHash)},
+			},
+			{
+				Type:     dataBlock.SmartContractResultBlock,
+				TxHashes: [][]byte{[]byte(scrHash)},
+			},
+		},
+	}, nil, outport.HeaderGasConsumption{}, 0, &outport.Pool{
+		Txs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
+			txHash: &outport.TransactionHandlerWithGasAndFee{
+				ExecutionOrder: 2,
+			},
+			notExecutedTxHash: &outport.TransactionHandlerWithGasAndFee{
+				ExecutionOrder: 0,
+			},
+		},
+		Rewards: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
+			rewardsTxHash: &outport.TransactionHandlerWithGasAndFee{
+				ExecutionOrder: 3,
+			},
+		},
+		Invalid: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
+			invalidTxHash: &outport.TransactionHandlerWithGasAndFee{
+				ExecutionOrder: 1,
+			}},
+		Scrs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
+			scrHash: &outport.TransactionHandlerWithGasAndFee{
+				ExecutionOrder: 0,
+			},
+		},
+	})
+	require.Nil(t, err)
+
+	require.Equal(t, &data.Block{
+		Hash:            "68617368",
+		Size:            int64(341),
+		AccumulatedFees: "0",
+		DeveloperFees:   "0",
+		TxCount:         uint32(5),
+		SearchOrder:     uint64(1020),
+		MiniBlocksHashes: []string{
+			"ee29d9b4a5017b7351974110d6a3f28ce6612476582f16b7849e3e87c647fc2d",
+			"c067de5b3c0031a14578699b1c3cdb9a19039e4a7b3fae6a94932ad3f70cf375",
+			"758f925b254ea0a6ad1bcbe3ddfcc73418ed4c8712506aafddc4da703295ad63",
+			"28a96506c2999838923f5310b3bb1d6849b5a259b429790d9eeb21c2a1402f82",
+		},
+		MiniBlocksDetails: []*data.MiniBlocksDetails{
+			{
+				IndexFirstProcessedTx:    0,
+				IndexLastProcessedTx:     1,
+				MBIndex:                  0,
+				Type:                     dataBlock.TxBlock.String(),
+				ProcessingType:           dataBlock.Normal.String(),
+				ExecutionOrderTxsIndices: []int{2, notFound, notExecutedInCurrentBlock},
+				TxsHashes:                []string{"7478", "6e6f74466f756e64", "6e6f744578656375746564"},
+			},
+			{
+				IndexFirstProcessedTx:    0,
+				IndexLastProcessedTx:     0,
+				MBIndex:                  1,
+				Type:                     dataBlock.RewardsBlock.String(),
+				ProcessingType:           dataBlock.Normal.String(),
+				ExecutionOrderTxsIndices: []int{3},
+				TxsHashes:                []string{"726577617264"},
+			},
+			{IndexFirstProcessedTx: 0,
+				IndexLastProcessedTx:     0,
+				MBIndex:                  2,
+				Type:                     dataBlock.InvalidBlock.String(),
+				ProcessingType:           dataBlock.Normal.String(),
+				ExecutionOrderTxsIndices: []int{1},
+				TxsHashes:                []string{"696e76616c6964"}},
+			{IndexFirstProcessedTx: 0,
+				IndexLastProcessedTx:     0,
+				MBIndex:                  3,
+				Type:                     dataBlock.SmartContractResultBlock.String(),
+				ProcessingType:           dataBlock.Normal.String(),
+				ExecutionOrderTxsIndices: []int{0},
+				TxsHashes:                []string{"736372"}},
+		},
 	}, dbBlock)
 }
