@@ -53,6 +53,7 @@ type DBBlockHandler interface {
 		notarizedHeadersHashes []string,
 		gasConsumptionData outport.HeaderGasConsumption,
 		sizeTxs int,
+		pool *outport.Pool,
 	) (*data.Block, error)
 	ComputeHeaderHash(header coreData.HeaderHandler) ([]byte, error)
 

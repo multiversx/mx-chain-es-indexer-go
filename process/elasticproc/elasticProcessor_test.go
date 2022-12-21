@@ -360,7 +360,7 @@ func TestElasticseachDatabaseSaveHeader_RequestError(t *testing.T) {
 	arguments.BlockProc, _ = block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 	elasticDatabase := newElasticsearchProcessor(dbWriter, arguments)
 
-	err := elasticDatabase.SaveHeader([]byte("hh"), header, signerIndexes, &dataBlock.Body{}, nil, outport.HeaderGasConsumption{}, 1)
+	err := elasticDatabase.SaveHeader([]byte("hh"), header, signerIndexes, &dataBlock.Body{}, nil, outport.HeaderGasConsumption{}, 1, &outport.Pool{})
 	require.Equal(t, localErr, err)
 }
 
@@ -401,7 +401,7 @@ func TestElasticseachDatabaseSaveHeader_CheckRequestBody(t *testing.T) {
 
 	arguments.BlockProc, _ = block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 	elasticDatabase := newElasticsearchProcessor(dbWriter, arguments)
-	err := elasticDatabase.SaveHeader([]byte("hh"), header, signerIndexes, blockBody, nil, outport.HeaderGasConsumption{}, 1)
+	err := elasticDatabase.SaveHeader([]byte("hh"), header, signerIndexes, blockBody, nil, outport.HeaderGasConsumption{}, 1, &outport.Pool{})
 	require.Nil(t, err)
 }
 
@@ -623,7 +623,7 @@ func TestElasticProcessor_IndexEpochInfoData(t *testing.T) {
 	body := &dataBlock.Body{}
 	metaHeader := &dataBlock.MetaBlock{}
 
-	err = elasticSearchProc.SaveHeader([]byte("hh"), metaHeader, nil, body, nil, outport.HeaderGasConsumption{}, 0)
+	err = elasticSearchProc.SaveHeader([]byte("hh"), metaHeader, nil, body, nil, outport.HeaderGasConsumption{}, 0, &outport.Pool{})
 	require.Nil(t, err)
 	require.True(t, called)
 }
