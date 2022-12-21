@@ -17,6 +17,7 @@ type ElasticProcessorStub struct {
 		notarizedHeadersHashes []string,
 		gasConsumptionData outport.HeaderGasConsumption,
 		txsSize int,
+		pool *outport.Pool,
 	) error
 	RemoveHeaderCalled               func(header coreData.HeaderHandler) error
 	RemoveMiniblocksCalled           func(header coreData.HeaderHandler, body *block.Body) error
@@ -47,9 +48,10 @@ func (eim *ElasticProcessorStub) SaveHeader(
 	body *block.Body,
 	notarizedHeadersHashes []string,
 	gasConsumptionData outport.HeaderGasConsumption,
-	txsSize int) error {
+	txsSize int,
+	pool *outport.Pool) error {
 	if eim.SaveHeaderCalled != nil {
-		return eim.SaveHeaderCalled(headerHash, header, signersIndexes, body, notarizedHeadersHashes, gasConsumptionData, txsSize)
+		return eim.SaveHeaderCalled(headerHash, header, signersIndexes, body, notarizedHeadersHashes, gasConsumptionData, txsSize, pool)
 	}
 	return nil
 }

@@ -41,9 +41,15 @@ type Block struct {
 
 // MiniBlocksDetails is a structure that hold information about mini-blocks execution details
 type MiniBlocksDetails struct {
-	IndexFirstProcessedTx int32 `json:"firstProcessedTx"`
-	IndexLastProcessedTx  int32 `json:"lastProcessedTx"`
-	MBIndex               int   `json:"mbIndex"`
+	IndexFirstProcessedTx    int32    `json:"firstProcessedTx"`
+	IndexLastProcessedTx     int32    `json:"lastProcessedTx"`
+	SenderShardID            uint32   `json:"senderShard"`
+	ReceiverShardID          uint32   `json:"receiverShard"`
+	MBIndex                  int      `json:"mbIndex"`
+	Type                     string   `json:"type"`
+	ProcessingType           string   `json:"procType,omitempty"`
+	TxsHashes                []string `json:"txsHashes,omitempty"`
+	ExecutionOrderTxsIndices []int    `json:"executionOrderTxsIndices,omitempty"`
 }
 
 // ScheduledData is a structure that hold information about scheduled events
