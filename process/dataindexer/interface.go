@@ -28,6 +28,7 @@ type ElasticProcessor interface {
 		notarizedHeadersHashes []string,
 		gasConsumptionData outport.HeaderGasConsumption,
 		txsSize int,
+		pool *outport.Pool,
 	) error
 	RemoveHeader(header coreData.HeaderHandler) error
 	RemoveMiniblocks(header coreData.HeaderHandler, body *block.Body) error

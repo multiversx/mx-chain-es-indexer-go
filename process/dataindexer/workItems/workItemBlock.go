@@ -71,7 +71,9 @@ func (wib *itemBlock) Save() error {
 		body,
 		wib.argsSaveBlock.NotarizedHeadersHashes,
 		wib.argsSaveBlock.HeaderGasConsumption,
-		txsSizeInBytes)
+		txsSizeInBytes,
+		wib.argsSaveBlock.TransactionsPool,
+	)
 	if err != nil {
 		return fmt.Errorf("%w when saving header block, hash %s, nonce %d",
 			err, hex.EncodeToString(wib.argsSaveBlock.HeaderHash), wib.argsSaveBlock.Header.GetNonce())
