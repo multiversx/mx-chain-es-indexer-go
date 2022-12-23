@@ -50,7 +50,7 @@ func TestMultiTransferCrossShardAndScCallErrorSignaledBySC(t *testing.T) {
 	address1 := "erd1ju8pkvg57cwdmjsjx58jlmnuf4l9yspstrhr9tgsrt98n9edpm2qtlgy99"
 	address2 := "erd1qqqqqqqqqqqqqpgqa0fsfshnff4n76jhcye6k7uvd7qacsq42jpsp6shh2"
 
-	// PROCESS transaction on shard 0
+	// process transaction on shard 0
 	scr1 := &smartContractResult.SmartContractResult{
 		Nonce:          0,
 		GasPrice:       1000000000,
@@ -93,7 +93,7 @@ func TestMultiTransferCrossShardAndScCallErrorSignaledBySC(t *testing.T) {
 		string(genericResponse.Docs[0].Source),
 	)
 
-	// PROCESS SCR on shard 1
+	// process SCR on shard 1
 	header = &dataBlock.Header{
 		Round:     52,
 		TimeStamp: 5050,
