@@ -128,12 +128,9 @@ func (ap *accountsProcessor) PrepareRegularAccountsMap(timestamp uint64, account
 			TotalBalanceWithStakeNum: balanceAsFloat,
 			Timestamp:                time.Duration(timestamp),
 			ShardID:                  shardID,
-
-			UserName: userAccount.UserAccount.UserName,
-			Owner:    userAccount.UserAccount.CurrentOwner,
 		}
 
-		ap.addDeveloperRewardsInAccountInfo(userAccount.UserAccount.DeveloperRewards, acc)
+		ap.addAdditionalDataInAccount(userAccount.UserAccount.AdditionalData, acc)
 
 		accountsMap[address] = acc
 	}
@@ -141,18 +138,25 @@ func (ap *accountsProcessor) PrepareRegularAccountsMap(timestamp uint64, account
 	return accountsMap
 }
 
-func (ap *accountsProcessor) addDeveloperRewardsInAccountInfo(developerRewards string, account *data.AccountInfo) {
-	if developerRewards == "" {
+func (ap *accountsProcessor) addAdditionalDataInAccount(additionalData *outport.AdditionalAccountData, account *data.AccountInfo) {
+	if additionalData == nil {
 		return
 	}
 
-	developerRewardsBig, ok := big.NewInt(0).SetString(developerRewards, 10)
+	account.UserName = additionalData.UserName
+	account.CurrentOwner = additionalData.CurrentOwner
+
+	if additionalData.DeveloperRewards == "" {
+		return
+	}
+
+	developerRewardsBig, ok := big.NewInt(0).SetString(additionalData.DeveloperRewards, 10)
 	if !ok {
 		log.Warn("ap.addDeveloperRewardsInAccountInfo cannot convert developer rewards in number", "address", account.Address)
 		return
 	}
 
-	account.DeveloperRewards = developerRewards
+	account.DeveloperRewards = additionalData.DeveloperRewards
 	account.DeveloperRewardsNum = ap.balanceConverter.ComputeBalanceAsFloat(developerRewardsBig)
 }
 

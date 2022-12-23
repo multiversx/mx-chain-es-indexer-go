@@ -469,25 +469,31 @@ func TestAccountsProcessor_PutTokenMedataDataInTokens(t *testing.T) {
 	})
 }
 
-func TestAddDeveloperRewardsInAccountInfo(t *testing.T) {
+func TestAddAdditionalDataIntoAccounts(t *testing.T) {
 	t.Parallel()
 
 	ap, _ := NewAccountsProcessor(mock.NewPubkeyConverterMock(32), balanceConverter)
 
 	account := &data.AccountInfo{}
-	ap.addDeveloperRewardsInAccountInfo("10000", account)
+	ap.addAdditionalDataInAccount(&outport.AdditionalAccountData{
+		DeveloperRewards: "10000",
+	}, account)
 	require.Equal(t, "10000", account.DeveloperRewards)
 	require.Equal(t, 0.000001, account.DeveloperRewardsNum)
 
 	account = &data.AccountInfo{}
-	ap.addDeveloperRewardsInAccountInfo("", account)
+	ap.addAdditionalDataInAccount(&outport.AdditionalAccountData{
+		DeveloperRewards: "",
+	}, account)
 	require.Equal(t, "", account.DeveloperRewards)
 	require.Equal(t, float64(0), account.DeveloperRewardsNum)
 
 	account = &data.AccountInfo{
 		Address: "addr",
 	}
-	ap.addDeveloperRewardsInAccountInfo("wrong", account)
+	ap.addAdditionalDataInAccount(&outport.AdditionalAccountData{
+		DeveloperRewards: "wrong",
+	}, account)
 	require.Equal(t, "", account.DeveloperRewards)
 	require.Equal(t, float64(0), account.DeveloperRewardsNum)
 }
