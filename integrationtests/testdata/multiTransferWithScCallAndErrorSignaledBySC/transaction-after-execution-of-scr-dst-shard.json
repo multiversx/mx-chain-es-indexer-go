@@ -1,0 +1,39 @@
+{
+  "receiversShardIDs": [
+    1,
+    1
+  ],
+  "data": "TXVsdGlFU0RUTkZUVHJhbnNmZXJAMDAwMDAwMDAwMDAwMDAwMDA1MDA1ZWJlYjM1MTVjYjQyMDU2YTgxZDQyYWRhZjc1NmEzZjYzYTM2MGJmYjA1NUAwMkA1NzQ1NDc0YzQ0MmQ2MjY0MzQ2NDM3MzlAQDM4ZTYyMDQ2ZmIxYTAwMDBANTg0ZDQ1NTgyZDY2NjQ2MTMzMzUzNUAwN0AwNDg5MDdlNTgyODRjMjhlODk4ZTI5QDYxNjQ2NDRjNjk3MTc1Njk2NDY5NzQ3OTUwNzI2Zjc4NzlAMDAwMDAwMDAwMDAwMDAwMDA1MDBlYmQzMDRjMmYzNGE2YjNmNmE1N2MxMzNhYjdiOGM2ZjgxZGM0MDE1NTQ4M0AzOGQ3OGY1OTU3ODVjMDAwQDA0ODdkZWFjMzEzYzZmNmIxMTE5MDY=",
+  "signature": "",
+  "fee": "1904415000000000",
+  "esdtValues": [
+    "4100000000000000000",
+    "5482813151746926867746345"
+  ],
+  "initialPaidFee": "1904415000000000",
+  "gasLimit": 150000000,
+  "gasUsed": 150000000,
+  "miniBlockHash": "2ea5bfe2968c98f3fcb059c6dcb3b0b42863ebe957748649f566db12548d2091",
+  "receivers": [
+    "erd1qqqqqqqqqqqqqpgqt6ltx52ukss9d2qag2k67at28a36xc9lkp2sr06394",
+    "erd1qqqqqqqqqqqqqpgqt6ltx52ukss9d2qag2k67at28a36xc9lkp2sr06394"
+  ],
+  "function": "addLiquidityProxy",
+  "senderShard": 0,
+  "tokens": [
+    "WEGLD-bd4d79",
+    "XMEX-fda355-07"
+  ],
+  "value": "0",
+  "gasPrice": 1000000000,
+  "timestamp": 5040,
+  "receiver": "erd1ju8pkvg57cwdmjsjx58jlmnuf4l9yspstrhr9tgsrt98n9edpm2qtlgy99",
+  "nonce": 79,
+  "round": 50,
+  "hasScResults": true,
+  "sender": "erd1ju8pkvg57cwdmjsjx58jlmnuf4l9yspstrhr9tgsrt98n9edpm2qtlgy99",
+  "receiverShard": 0,
+  "operation": "MultiESDTNFTTransfer",
+  "status": "fail",
+  "searchOrder": 0
+}
