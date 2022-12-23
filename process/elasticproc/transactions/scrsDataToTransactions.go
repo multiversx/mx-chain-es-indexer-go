@@ -12,8 +12,6 @@ import (
 
 const (
 	minNumOfArgumentsNFTTransferORMultiTransfer = 4
-	firstReturnCodeForError                     = 1
-	lastReturnCodeForError                      = 11
 )
 
 type scrsDataToTransactions struct {
@@ -148,7 +146,7 @@ func (st *scrsDataToTransactions) processSCRsWithoutTx(scrs []*data.ScResult) (m
 			}
 		}
 
-		if !isESDTNFTTransferOrMultiTransferWithError(string(scr.Data)) {
+		if !st.isESDTNFTTransferOrMultiTransferWithError(string(scr.Data)) {
 			continue
 		}
 
@@ -158,7 +156,7 @@ func (st *scrsDataToTransactions) processSCRsWithoutTx(scrs []*data.ScResult) (m
 	return txHashStatus, txHashRefund
 }
 
-func isESDTNFTTransferOrMultiTransferWithError(scrData string) bool {
+func (st *scrsDataToTransactions) isESDTNFTTransferOrMultiTransferWithError(scrData string) bool {
 	splitData := strings.Split(scrData, data.AtSeparator)
 	isMultiTransferOrNFTTransfer := splitData[0] == core.BuiltInFunctionESDTNFTTransfer || splitData[0] == core.BuiltInFunctionMultiESDTNFTTransfer
 	if !isMultiTransferOrNFTTransfer || len(splitData) < minNumOfArgumentsNFTTransferORMultiTransfer {
@@ -166,9 +164,8 @@ func isESDTNFTTransferOrMultiTransferWithError(scrData string) bool {
 	}
 
 	latestArgumentFromDataField := splitData[len(splitData)-1]
-	for retCode := firstReturnCodeForError; retCode <= lastReturnCodeForError; retCode++ {
-		retCodeString := vmcommon.ReturnCode(retCode).String()
-		isWithError := latestArgumentFromDataField == hex.EncodeToString([]byte(retCodeString))
+	for _, retCode := range st.retCodes {
+		isWithError := latestArgumentFromDataField == hex.EncodeToString([]byte(retCode))
 		if isWithError {
 			return true
 		}
