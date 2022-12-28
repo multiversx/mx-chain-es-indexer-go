@@ -146,6 +146,10 @@ func (ap *accountsProcessor) addAdditionalDataInAccount(additionalData *outport.
 	account.UserName = additionalData.UserName
 	account.CurrentOwner = additionalData.CurrentOwner
 
+	ap.addDeveloperRewardsInAccount(additionalData, account)
+}
+
+func (ap *accountsProcessor) addDeveloperRewardsInAccount(additionalData *outport.AdditionalAccountData, account *data.AccountInfo) {
 	if additionalData.DeveloperRewards == "" {
 		return
 	}
