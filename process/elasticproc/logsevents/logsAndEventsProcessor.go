@@ -101,6 +101,18 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 
 		events := txLog.LogHandler.GetLogEvents()
 		lep.processEvents(txLog.TxHash, txLog.LogHandler.GetAddress(), events, shardID, numOfShards)
+
+		txHashHexEncoded := hex.EncodeToString([]byte(txLog.TxHash))
+		tx, ok := lep.logsData.txsMap[txHashHexEncoded]
+		if ok {
+			tx.HasLogs = true
+			continue
+		}
+		scr, ok := lep.logsData.scrsMap[txHashHexEncoded]
+		if ok {
+			scr.HasLogs = true
+			continue
+		}
 	}
 
 	return &data.PreparedLogsResults{

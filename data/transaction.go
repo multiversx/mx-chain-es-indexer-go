@@ -31,6 +31,7 @@ type Transaction struct {
 	HasSCR               bool          `json:"hasScResults,omitempty"`
 	IsScCall             bool          `json:"isScCall,omitempty"`
 	HasOperations        bool          `json:"hasOperations,omitempty"`
+	HasLogs              bool          `json:"hasLogs,omitempty"`
 	Tokens               []string      `json:"tokens,omitempty"`
 	ESDTValues           []string      `json:"esdtValues,omitempty"`
 	Receivers            []string      `json:"receivers,omitempty"`
