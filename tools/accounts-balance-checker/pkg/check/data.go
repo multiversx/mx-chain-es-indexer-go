@@ -44,7 +44,7 @@ type AccountResponse struct {
 	Code  string `json:"code"`
 }
 
-// BalancesESDTResponse holds  the account esdt balances endpoint response
+// BalancesESDTResponse holds the account esdt balances endpoint response
 type BalancesESDTResponse struct {
 	Data struct {
 		ESDTS     map[string]*esdtNFTTokenData `json:"esdts"`

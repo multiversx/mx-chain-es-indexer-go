@@ -19,6 +19,7 @@ import (
 const (
 	defaultLogsPath           = "logs"
 	logsFileLifeSpamInSeconds = 432000
+	logsFileMaxSizeInMbs      = 1024
 )
 
 var (
@@ -53,10 +54,10 @@ var (
 		Name:  "log-save",
 		Usage: "Boolean option for enabling log saving. If set, it will automatically save all the logs into a file.",
 	}
-	// disableAnsiColor defines if the logger subsystem should prevent displaying ANSI colors
-	disableAnsiColor = cli.BoolFlag{
-		Name:  "disable-ansi-color",
-		Usage: "Boolean option for disabling ANSI colors in the logging system.",
+	// enableAnsiColor defines if the logger subsystem should displaying ANSI colors
+	enableAnsiColor = cli.BoolFlag{
+		Name:  "enable-ansi-color",
+		Usage: "Boolean option for enable ANSI colors in the logging system.",
 	}
 )
 
@@ -72,7 +73,7 @@ func main() {
 		logLevel,
 		repairFlag,
 		logSaveFile,
-		disableAnsiColor,
+		enableAnsiColor,
 	}
 	app.Authors = []cli.Author{
 		{
@@ -185,14 +186,14 @@ func initializeLogger(ctx *cli.Context) (closing.Closer, error) {
 
 	err = fileLogging.ChangeFileLifeSpan(
 		time.Second*time.Duration(logsFileLifeSpamInSeconds),
-		uint64(1024),
+		uint64(logsFileMaxSizeInMbs),
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	disableAnsi := ctx.GlobalBool(disableAnsiColor.Name)
-	err = removeANSIColorsForLoggerIfNeeded(disableAnsi)
+	enableAnsi := ctx.GlobalBool(enableAnsiColor.Name)
+	err = removeANSIColorsForLoggerIfNeeded(enableAnsi)
 	if err != nil {
 		return nil, err
 	}
@@ -200,8 +201,8 @@ func initializeLogger(ctx *cli.Context) (closing.Closer, error) {
 	return fileLogging, nil
 }
 
-func removeANSIColorsForLoggerIfNeeded(disableAnsi bool) error {
-	if !disableAnsi {
+func removeANSIColorsForLoggerIfNeeded(enableAnsi bool) error {
+	if enableAnsi {
 		return nil
 	}
 
