@@ -1,0 +1,11 @@
+{
+  "elasticsearch": {
+    "url": "",
+    "username": "",
+    "password": ""
+  },
+  "proxy": {
+    "url": "",
+    "parallel-requests": 40
+  }
+}
