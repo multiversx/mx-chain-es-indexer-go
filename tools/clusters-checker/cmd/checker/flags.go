@@ -44,7 +44,7 @@ var (
 	}
 	// enableAnsiColor defines if the logger subsystem should displaying ANSI colors
 	enableAnsiColor = cli.BoolFlag{
-		Name:  "disable-ansi-color",
+		Name:  "enable-ansi-color",
 		Usage: "Boolean option for enabling ANSI colors in the logging system.",
 	}
 )
