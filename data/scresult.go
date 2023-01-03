@@ -36,6 +36,7 @@ type ScResult struct {
 	IsRelayed          bool          `json:"isRelayed,omitempty"`
 	CanBeIgnored       bool          `json:"canBeIgnored,omitempty"`
 	OriginalSender     string        `json:"originalSender,omitempty"`
+	HasLogs            bool          `json:"hasLogs,omitempty"`
 	SenderAddressBytes []byte        `json:"-"`
 	InitialTxGasUsed   uint64        `json:"-"`
 	InitialTxFee       string        `json:"-"`
