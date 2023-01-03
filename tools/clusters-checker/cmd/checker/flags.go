@@ -16,19 +16,19 @@ var (
 	}
 	checkCounts = cli.BoolFlag{
 		Name:  "check-counts",
-		Usage: "If set, the checker wil verify the counts between clusters",
+		Usage: "If set, the checker will verify the counts between clusters",
 	}
 	checkWithTimestamp = cli.BoolFlag{
 		Name:  "check-with-timestamp",
-		Usage: "If set, the checker wil verify all the indices from list with timestamp",
+		Usage: "If set, the checker will verify all the indices from list with timestamp",
 	}
 	checkNoTimestamp = cli.BoolFlag{
 		Name:  "check-no-timestamp",
-		Usage: "If set, the checker wil verify the indices from list with no timestamp",
+		Usage: "If set, the checker will verify the indices from list with no timestamp",
 	}
 	checkOnlyIds = cli.BoolFlag{
 		Name:  "only-ids",
-		Usage: "If set, the checker wil verify only the ids",
+		Usage: "If set, the checker will verify only the ids",
 	}
 	logLevel = cli.StringFlag{
 		Name: "log-level",

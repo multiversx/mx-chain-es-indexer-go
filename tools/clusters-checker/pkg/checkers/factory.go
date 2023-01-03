@@ -48,6 +48,7 @@ func CreateClusterChecker(cfg *config.Config, interval *Interval, logPrefix stri
 	}, nil
 }
 
+// CreateMultipleCheckers will create multiple instances of clusterChecker structure
 func CreateMultipleCheckers(cfg *config.Config, onlyIDs bool) ([]*clusterChecker, error) {
 	currentTimestampUnix := time.Now().Unix()
 	intervals, err := computeIntervals(cfg.Compare.BlockchainStartTime, currentTimestampUnix, int64(cfg.Compare.NumParallelReads))
