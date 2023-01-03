@@ -130,10 +130,38 @@ func (ap *accountsProcessor) PrepareRegularAccountsMap(timestamp uint64, account
 			ShardID:                  shardID,
 		}
 
+		ap.addAdditionalDataInAccount(userAccount.UserAccount.AdditionalData, acc)
+
 		accountsMap[address] = acc
 	}
 
 	return accountsMap
+}
+
+func (ap *accountsProcessor) addAdditionalDataInAccount(additionalData *outport.AdditionalAccountData, account *data.AccountInfo) {
+	if additionalData == nil {
+		return
+	}
+
+	account.UserName = additionalData.UserName
+	account.CurrentOwner = additionalData.CurrentOwner
+
+	ap.addDeveloperRewardsInAccount(additionalData, account)
+}
+
+func (ap *accountsProcessor) addDeveloperRewardsInAccount(additionalData *outport.AdditionalAccountData, account *data.AccountInfo) {
+	if additionalData.DeveloperRewards == "" {
+		return
+	}
+
+	developerRewardsBig, ok := big.NewInt(0).SetString(additionalData.DeveloperRewards, 10)
+	if !ok {
+		log.Warn("ap.addDeveloperRewardsInAccountInfo cannot convert developer rewards in number", "address", account.Address)
+		return
+	}
+
+	account.DeveloperRewards = additionalData.DeveloperRewards
+	account.DeveloperRewardsNum = ap.balanceConverter.ComputeBalanceAsFloat(developerRewardsBig)
 }
 
 // PrepareAccountsMapESDT will prepare a map of accounts with ESDT tokens
