@@ -25,10 +25,10 @@ var SCResults = Object{
 			},
 			"code": Object{
 				"index": "false",
-				"type":  "keyword",
+				"type":  "text",
 			},
 			"data": Object{
-				"type": "keyword",
+				"type": "text",
 			},
 			"esdtValues": Object{
 				"type": "keyword",

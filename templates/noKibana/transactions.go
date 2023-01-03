@@ -20,7 +20,7 @@ var Transactions = Object{
 	"mappings": Object{
 		"properties": Object{
 			"data": Object{
-				"type": "keyword",
+				"type": "text",
 			},
 			"esdtValues": Object{
 				"type": "keyword",

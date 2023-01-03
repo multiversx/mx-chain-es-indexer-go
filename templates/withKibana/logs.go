@@ -22,7 +22,7 @@ var Logs = Object{
 					},
 					"data": Object{
 						"index": "false",
-						"type":  "keyword",
+						"type":  "text",
 					},
 					"identifier": Object{
 						"type": "keyword",
