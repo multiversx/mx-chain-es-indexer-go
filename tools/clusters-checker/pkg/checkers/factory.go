@@ -83,10 +83,9 @@ func computeIntervals(startTime, endTime int64, numIntervals int64) ([]*Interval
 	}
 
 	difference := endTime - startTime
-
 	step := difference / numIntervals
 
-	intervals := make([]*Interval, 0)
+	intervals := make([]*Interval, 0, numIntervals)
 	for idx := int64(0); idx < numIntervals; idx++ {
 		start := startTime + idx*step
 		stop := startTime + (idx+1)*step

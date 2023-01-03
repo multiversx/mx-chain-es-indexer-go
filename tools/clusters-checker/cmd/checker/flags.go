@@ -27,7 +27,7 @@ var (
 		Usage: "If set, the checker will verify the indices from list with no timestamp",
 	}
 	checkOnlyIds = cli.BoolFlag{
-		Name:  "only-ids",
+		Name:  "check-only-ids",
 		Usage: "If set, the checker will verify only the ids",
 	}
 	logLevel = cli.StringFlag{
@@ -42,9 +42,9 @@ var (
 		Name:  "log-save",
 		Usage: "Boolean option for enabling log saving. If set, it will automatically save all the logs into a file.",
 	}
-	// disableAnsiColor defines if the logger subsystem should prevent displaying ANSI colors
-	disableAnsiColor = cli.BoolFlag{
+	// enableAnsiColor defines if the logger subsystem should displaying ANSI colors
+	enableAnsiColor = cli.BoolFlag{
 		Name:  "disable-ansi-color",
-		Usage: "Boolean option for disabling ANSI colors in the logging system.",
+		Usage: "Boolean option for enabling ANSI colors in the logging system.",
 	}
 )

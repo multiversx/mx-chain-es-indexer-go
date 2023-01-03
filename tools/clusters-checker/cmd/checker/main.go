@@ -43,7 +43,14 @@ func main() {
 	app.Version = "v1.0.0"
 	app.Usage = "Clusters checker"
 	app.Flags = []cli.Flag{
-		configPath, checkCounts, checkNoTimestamp, checkWithTimestamp, checkOnlyIds, logLevel, logSaveFile, disableAnsiColor,
+		configPath,
+		checkCounts,
+		checkNoTimestamp,
+		checkWithTimestamp,
+		checkOnlyIds,
+		logLevel,
+		logSaveFile,
+		enableAnsiColor,
 	}
 	app.Authors = []cli.Author{
 		{
@@ -120,8 +127,7 @@ func checkClusters(ctx *cli.Context) {
 	}
 
 	if !check.IfNilReflect(fileLogging) {
-		err = fileLogging.Close()
-		log.LogIfError(err)
+		log.LogIfError(fileLogging.Close())
 	}
 
 	log.Error("no flag has been provided")
@@ -203,8 +209,8 @@ func initializeLogger(ctx *cli.Context, cfg config.Config) (closing.Closer, erro
 		return nil, err
 	}
 
-	disableAnsi := ctx.GlobalBool(disableAnsiColor.Name)
-	err = removeANSIColorsForLoggerIfNeeded(disableAnsi)
+	enableAnsi := ctx.GlobalBool(enableAnsiColor.Name)
+	err = removeANSIColorsForLoggerIfNeeded(enableAnsi)
 	if err != nil {
 		return nil, err
 	}
@@ -212,8 +218,8 @@ func initializeLogger(ctx *cli.Context, cfg config.Config) (closing.Closer, erro
 	return fileLogging, nil
 }
 
-func removeANSIColorsForLoggerIfNeeded(disableAnsi bool) error {
-	if !disableAnsi {
+func removeANSIColorsForLoggerIfNeeded(enableAnsi bool) error {
+	if enableAnsi {
 		return nil
 	}
 
