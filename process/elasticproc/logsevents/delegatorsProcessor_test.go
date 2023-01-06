@@ -119,3 +119,51 @@ func TestDelegatorProcessor_ClaimRewardsNoDelete(t *testing.T) {
 	require.True(t, res.processed)
 	require.Nil(t, res.delegator)
 }
+
+func TestDelegatorsProcessor_WithdrawalShouldWorkWith5Topics(t *testing.T) {
+	t.Parallel()
+
+	event := &transaction.Event{
+		Address:    []byte("addr"),
+		Identifier: []byte(withdrawFunc),
+		Topics:     [][]byte{big.NewInt(1000).Bytes(), big.NewInt(0).Bytes(), big.NewInt(10).Bytes(), big.NewInt(1000000000).Bytes(), []byte(strconv.FormatBool(true))},
+	}
+	args := &argsProcessEvent{
+		timestamp:   1234,
+		event:       event,
+		logAddress:  []byte("contract"),
+		selfShardID: core.MetachainShardId,
+	}
+
+	balanceConverter, _ := converters.NewBalanceConverter(10)
+	delegatorsProcessor := newDelegatorsProcessor(&mock.PubkeyConverterMock{}, balanceConverter)
+
+	res := delegatorsProcessor.processEvent(args)
+	require.True(t, res.processed)
+	require.True(t, res.delegator.ShouldDelete)
+	require.Equal(t, 0, len(res.delegator.WithdrawFundIDs))
+}
+
+func TestDelegatorsProcessor_WithdrawalShouldWorkWith(t *testing.T) {
+	t.Parallel()
+
+	event := &transaction.Event{
+		Address:    []byte("addr"),
+		Identifier: []byte(withdrawFunc),
+		Topics:     [][]byte{big.NewInt(1000).Bytes(), big.NewInt(0).Bytes(), big.NewInt(10).Bytes(), big.NewInt(1000000000).Bytes(), []byte(strconv.FormatBool(true)), []byte("id1"), []byte("id2")},
+	}
+	args := &argsProcessEvent{
+		timestamp:   1234,
+		event:       event,
+		logAddress:  []byte("contract"),
+		selfShardID: core.MetachainShardId,
+	}
+
+	balanceConverter, _ := converters.NewBalanceConverter(10)
+	delegatorsProcessor := newDelegatorsProcessor(&mock.PubkeyConverterMock{}, balanceConverter)
+
+	res := delegatorsProcessor.processEvent(args)
+	require.True(t, res.processed)
+	require.True(t, res.delegator.ShouldDelete)
+	require.Equal(t, []string{"696431", "696432"}, res.delegator.WithdrawFundIDs)
+}
