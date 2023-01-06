@@ -38,6 +38,7 @@ func TestDelegatorsProcessor_ProcessEvent(t *testing.T) {
 		Contract:       "636f6e7472616374",
 		ActiveStakeNum: 0.1,
 		ActiveStake:    "1000000000",
+		Timestamp:      1234,
 	}, res.delegator)
 }
 
@@ -47,7 +48,7 @@ func TestDelegatorProcessor_WithdrawWithDelete(t *testing.T) {
 	event := &transaction.Event{
 		Address:    []byte("addr"),
 		Identifier: []byte(withdrawFunc),
-		Topics:     [][]byte{big.NewInt(1000).Bytes(), big.NewInt(0).Bytes(), big.NewInt(10).Bytes(), big.NewInt(1000000000).Bytes(), []byte(strconv.FormatBool(true))},
+		Topics:     [][]byte{big.NewInt(1000).Bytes(), big.NewInt(0).Bytes(), big.NewInt(10).Bytes(), big.NewInt(1000000000).Bytes(), []byte(strconv.FormatBool(true)), []byte("a")},
 	}
 	args := &argsProcessEvent{
 		timestamp:   1234,
@@ -62,11 +63,13 @@ func TestDelegatorProcessor_WithdrawWithDelete(t *testing.T) {
 	res := delegatorsProcessor.processEvent(args)
 	require.True(t, res.processed)
 	require.Equal(t, &data.Delegator{
-		Address:        "61646472",
-		Contract:       "636f6e7472616374",
-		ActiveStakeNum: 0,
-		ActiveStake:    "0",
-		ShouldDelete:   true,
+		Address:         "61646472",
+		Contract:        "636f6e7472616374",
+		ActiveStakeNum:  0,
+		ActiveStake:     "0",
+		ShouldDelete:    true,
+		Timestamp:       1234,
+		WithdrawFundIDs: []string{"61"},
 	}, res.delegator)
 }
 
