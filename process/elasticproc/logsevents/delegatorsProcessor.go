@@ -90,6 +90,7 @@ func (dp *delegatorsProc) processEvent(args *argsProcessEvent) argOutputProcessE
 		Contract:       contractAddr,
 		ActiveStake:    activeStake.String(),
 		ActiveStakeNum: dp.balanceConverter.ComputeBalanceAsFloat(activeStake),
+		Timestamp:      time.Duration(args.timestamp),
 	}
 
 	if eventIdentifierStr == withdrawFunc && len(topics) >= minNumTopicsDelegators+1 {
@@ -100,13 +101,14 @@ func (dp *delegatorsProc) processEvent(args *argsProcessEvent) argOutputProcessE
 			delegator.WithdrawFundIDs = append(delegator.WithdrawFundIDs, hex.EncodeToString(id))
 		}
 	}
-	if eventIdentifierStr == unDelegateFunc && len(topics) >= minNumTopicsDelegators+2 {
+	if eventIdentifierStr == unDelegateFunc && len(topics) >= minNumTopicsDelegators+1 {
 		unDelegateValue := big.NewInt(0).SetBytes(topics[0])
 
 		delegator.UnDelegateInfo = &data.UnDelegate{
 			Timestamp: time.Duration(args.timestamp),
 			Value:     unDelegateValue.String(),
-			ID:        hex.EncodeToString(topics[5]),
+			ValueNum:  dp.balanceConverter.ComputeBalanceAsFloat(unDelegateValue),
+			ID:        hex.EncodeToString(topics[4]),
 		}
 	}
 

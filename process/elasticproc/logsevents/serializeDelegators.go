@@ -44,8 +44,8 @@ func (lep *logsAndEventsProcessor) prepareSerializedDelegator(delegator *data.De
 		return meta, serializedData, err
 	}
 	if delegator.WithdrawFundIDs != nil {
-		serializedData := prepareSerializedDataForWithdrawal(delegator, delegatorSerialized)
-		return meta, serializedData, nil
+		serializedData, err := prepareSerializedDataForWithdrawal(delegator, delegatorSerialized)
+		return meta, serializedData, err
 	}
 
 	return meta, prepareSerializedDataForDelegator(delegatorSerialized), nil
@@ -58,6 +58,7 @@ func prepareSerializedDataForDelegator(delegatorSerialized []byte) []byte {
 		} else {
 			ctx._source.activeStake = params.delegator.activeStake;
 			ctx._source.activeStakeNum = params.delegator.activeStakeNum;
+			ctx._source.timestamp = params.delegator.timestamp;
 		}
 `
 	serializedDataStr := fmt.Sprintf(`{"scripted_upsert": true, "script": {`+
@@ -81,14 +82,15 @@ func prepareSerializedDataForUnDelegate(delegator *data.Delegator, delegatorSeri
 		if ('create' == ctx.op) {
 			ctx._source = params.delegator
 		} else {
-			if (!ctx._source.containsKey('unDelegateInfo'))  
-				ctx._source.unDelegateInfo = [params.unDelegate]
+			if (!ctx._source.containsKey('unDelegateInfo')) {
+				ctx._source.unDelegateInfo = [params.unDelegate];
 			} else {
-				ctx._source.unDelegateInfo.add(params.unDelegate)
+				ctx._source.unDelegateInfo.add(params.unDelegate);
 			}
 
 			ctx._source.activeStake = params.delegator.activeStake;
 			ctx._source.activeStakeNum = params.delegator.activeStakeNum;
+			ctx._source.timestamp = params.delegator.timestamp;
 		}
 `
 	serializedDataStr := fmt.Sprintf(`{"scripted_upsert": true, "script": {`+
@@ -102,12 +104,17 @@ func prepareSerializedDataForUnDelegate(delegator *data.Delegator, delegatorSeri
 	return []byte(serializedDataStr), nil
 }
 
-func prepareSerializedDataForWithdrawal(delegator *data.Delegator, delegatorSerialized []byte) []byte {
+func prepareSerializedDataForWithdrawal(delegator *data.Delegator, delegatorSerialized []byte) ([]byte, error) {
+	withdrawFundIDsSerialized, err := json.Marshal(delegator.WithdrawFundIDs)
+	if err != nil {
+		return nil, err
+	}
+
 	codeToExecute := `
 		if ('create' == ctx.op) {
 			ctx._source = params.delegator
 		} else {
-			if (!ctx._source.containsKey('unDelegateInfo'))  
+			if (!ctx._source.containsKey('unDelegateInfo')) {
 				return
 			} else {
 				for (int i = 0; i < ctx._source.unDelegateInfo.length; i++) {
@@ -117,10 +124,12 @@ func prepareSerializedDataForWithdrawal(delegator *data.Delegator, delegatorSeri
 					}
 				  }
 				}
+				if (ctx._source.unDelegateInfo.length == 0) {ctx._source.remove('unDelegateInfo')}
 			}
 
 			ctx._source.activeStake = params.delegator.activeStake;
 			ctx._source.activeStakeNum = params.delegator.activeStakeNum;
+			ctx._source.timestamp = params.delegator.timestamp;
 		}
 `
 	serializedDataStr := fmt.Sprintf(`{"scripted_upsert": true, "script": {`+
@@ -128,10 +137,10 @@ func prepareSerializedDataForWithdrawal(delegator *data.Delegator, delegatorSeri
 		`"lang": "painless",`+
 		`"params": { "delegator": %s, "withdrawIds": %s }},`+
 		`"upsert": {}}`,
-		converters.FormatPainlessSource(codeToExecute), string(delegatorSerialized), delegator.WithdrawFundIDs,
+		converters.FormatPainlessSource(codeToExecute), string(delegatorSerialized), string(withdrawFundIDsSerialized),
 	)
 
-	return []byte(serializedDataStr)
+	return []byte(serializedDataStr), nil
 }
 
 func (lep *logsAndEventsProcessor) computeDelegatorID(delegator *data.Delegator) string {
