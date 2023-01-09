@@ -94,7 +94,7 @@ var Operations = Object{
 				"type": "keyword",
 			},
 			"receiverShard": Object{
-				"type": "keyword",
+				"type": "long",
 			},
 			"receivers": Object{
 				"type": "keyword",
