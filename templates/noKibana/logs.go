@@ -28,7 +28,7 @@ var Logs = Object{
 						"type": "keyword",
 					},
 					"topics": Object{
-						"type": "keyword",
+						"type": "text",
 					},
 				},
 			},
