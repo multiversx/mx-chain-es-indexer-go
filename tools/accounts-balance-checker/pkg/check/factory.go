@@ -7,7 +7,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/multiversx/mx-chain-core-go/core/pubkeyConverter"
 	"github.com/multiversx/mx-chain-es-indexer-go/client/logging"
-	"github.com/multiversx/mx-chain-es-indexer-go/converters"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
 	"github.com/multiversx/mx-chain-es-indexer-go/tools/accounts-balance-checker/pkg/config"
 	"github.com/multiversx/mx-chain-es-indexer-go/tools/accounts-balance-checker/pkg/esclient"
 	"github.com/multiversx/mx-chain-es-indexer-go/tools/accounts-balance-checker/pkg/rest"

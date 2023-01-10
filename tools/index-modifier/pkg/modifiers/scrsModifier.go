@@ -7,7 +7,7 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
-	"github.com/multiversx/mx-chain-es-indexer-go/process/transactions"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/transactions"
 )
 
 type responseSCRsBulk struct {
@@ -45,7 +45,7 @@ func (sm *scrsModifier) Modify(responseBody []byte) ([]*bytes.Buffer, error) {
 		return nil, err
 	}
 
-	buffSlice := data.NewBufferSlice()
+	buffSlice := data.NewBufferSlice(0)
 	for _, hit := range responseSCRs.Hits.Hits {
 		if shouldIgnoreSCR(hit.Source) {
 			continue
@@ -110,7 +110,7 @@ func (sm *scrsModifier) prepareSCRForIndexing(scr *data.ScResult) error {
 		return err
 	}
 
-	res := sm.operationDataParser.Parse(scr.Data, sndAddr, rcvAddr)
+	res := sm.operationDataParser.Parse(scr.Data, sndAddr, rcvAddr, 3)
 
 	// TODO uncomment this when create index `operations`
 	//scr.Type = string(transaction.TxTypeUnsigned)
@@ -120,7 +120,6 @@ func (sm *scrsModifier) prepareSCRForIndexing(scr *data.ScResult) error {
 	scr.Function = res.Function
 	scr.ESDTValues = res.ESDTValues
 	scr.Tokens = res.Tokens
-	scr.Receivers = res.Receivers
 	scr.ReceiversShardIDs = res.ReceiversShardID
 
 	return nil

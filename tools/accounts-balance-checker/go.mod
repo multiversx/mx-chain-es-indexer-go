@@ -1,20 +1,17 @@
-module github.com/ElrondNetwork/elastic-indexer-go/tools/accounts-balance-checker
+module github.com/multiversx/mx-chain-es-indexer-go/tools/accounts-balance-checker
 
 go 1.17
 
 require (
-	github.com/ElrondNetwork/elastic-indexer-go v1.2.25
 	github.com/elastic/go-elasticsearch/v7 v7.12.0
 	github.com/multiversx/mx-chain-core-go v1.1.30
+	github.com/multiversx/mx-chain-es-indexer-go v1.3.7-0.20230110115720-a54a2d8aa20d
 	github.com/multiversx/mx-chain-logger-go v1.0.11
 	github.com/tidwall/gjson v1.14.1
 	github.com/urfave/cli v1.22.9
 )
 
 require (
-	github.com/ElrondNetwork/elrond-go-core v1.1.14 // indirect
-	github.com/ElrondNetwork/elrond-go-logger v1.0.5 // indirect
-	github.com/ElrondNetwork/elrond-vm-common v1.2.9 // indirect
 	github.com/btcsuite/btcd/btcutil v1.1.3 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.0-20190314233015-f79a8a8ca69d // indirect
 	github.com/denisbrodbeck/machineid v1.0.1 // indirect

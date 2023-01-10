@@ -8,8 +8,8 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	indexer "github.com/multiversx/mx-chain-es-indexer-go/"
 	indexerData "github.com/multiversx/mx-chain-es-indexer-go/data"
+	indexer "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/multiversx/mx-chain-es-indexer-go/tools/accounts-balance-checker/pkg/utils"
 	logger "github.com/multiversx/mx-chain-logger-go"
 )
