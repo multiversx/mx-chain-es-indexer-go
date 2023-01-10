@@ -62,6 +62,9 @@ var Operations = Object{
 			"hasScResults": Object{
 				"type": "boolean",
 			},
+			"hasLogs": Object{
+				"type": "boolean",
+			},
 			"initialPaidFee": Object{
 				"index": "false",
 				"type":  "keyword",
