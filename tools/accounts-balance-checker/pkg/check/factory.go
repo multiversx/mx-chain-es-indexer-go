@@ -4,13 +4,13 @@ import (
 	"math"
 	"time"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/client/logging"
-	"github.com/ElrondNetwork/elastic-indexer-go/converters"
-	"github.com/ElrondNetwork/elastic-indexer-go/tools/accounts-balance-checker/pkg/config"
-	"github.com/ElrondNetwork/elastic-indexer-go/tools/accounts-balance-checker/pkg/esclient"
-	"github.com/ElrondNetwork/elastic-indexer-go/tools/accounts-balance-checker/pkg/rest"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/multiversx/mx-chain-core-go/core/pubkeyConverter"
+	"github.com/multiversx/mx-chain-es-indexer-go/client/logging"
+	"github.com/multiversx/mx-chain-es-indexer-go/converters"
+	"github.com/multiversx/mx-chain-es-indexer-go/tools/accounts-balance-checker/pkg/config"
+	"github.com/multiversx/mx-chain-es-indexer-go/tools/accounts-balance-checker/pkg/esclient"
+	"github.com/multiversx/mx-chain-es-indexer-go/tools/accounts-balance-checker/pkg/rest"
 )
 
 // CreateBalanceChecker will create a new instance of balanceChecker

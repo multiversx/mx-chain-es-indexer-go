@@ -4,9 +4,9 @@ import (
 	"encoding/hex"
 	"strings"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 )
 

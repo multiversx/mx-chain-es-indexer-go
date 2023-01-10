@@ -1,10 +1,10 @@
 package mock
 
 import (
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
 )
 
 // DBTransactionProcessorStub -

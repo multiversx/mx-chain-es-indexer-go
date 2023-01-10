@@ -1,7 +1,7 @@
 package noKibana
 
 import (
-	"github.com/ElrondNetwork/elastic-indexer-go/templates"
+	"github.com/multiversx/mx-chain-es-indexer-go/templates"
 )
 
 type Array = templates.Array

@@ -7,11 +7,11 @@ import (
 	"math/big"
 	"testing"
 
-	indexerData "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
 	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	indexerData "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/stretchr/testify/require"
 )
 

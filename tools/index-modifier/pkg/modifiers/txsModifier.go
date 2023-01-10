@@ -5,13 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/transactions"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/transactions/datafield"
-	"github.com/ElrondNetwork/elastic-indexer-go/tools/index-modifier/pkg/modifiers/utils"
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/pubkeyConverter"
 	factoryMarshalizer "github.com/multiversx/mx-chain-core-go/marshal/factory"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/transactions"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/transactions/datafield"
+	"github.com/multiversx/mx-chain-es-indexer-go/tools/index-modifier/pkg/modifiers/utils"
 	logger "github.com/multiversx/mx-chain-logger-go"
 )
 

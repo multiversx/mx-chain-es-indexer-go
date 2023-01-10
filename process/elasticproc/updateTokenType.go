@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
+	elasticIndexer "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 )
 
 func (ei *elasticProcessor) indexTokens(tokensData []*data.TokenInfo, updateNFTData []*data.NFTDataUpdate, buffSlice *data.BufferSlice) error {

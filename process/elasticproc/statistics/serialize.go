@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	logger "github.com/multiversx/mx-chain-logger-go"
 )
 

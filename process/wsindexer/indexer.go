@@ -3,10 +3,10 @@ package wsindexer
 import (
 	"errors"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	"github.com/multiversx/mx-chain-core-go/websocketOutportDriver/data"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	logger "github.com/multiversx/mx-chain-logger-go"
 )
 

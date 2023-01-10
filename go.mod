@@ -1,4 +1,4 @@
-module github.com/ElrondNetwork/elastic-indexer-go
+module github.com/multiversx/mx-chain-es-indexer-go
 
 go 1.17
 

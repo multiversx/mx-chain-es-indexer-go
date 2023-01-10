@@ -1,21 +1,21 @@
 package factory
 
 import (
-	"github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/accounts"
-	blockProc "github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/block"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/converters"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/logsevents"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/miniblocks"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/operations"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/statistics"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/templatesAndPolicies"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/transactions"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/validators"
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/accounts"
+	blockProc "github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/block"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/logsevents"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/miniblocks"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/operations"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/statistics"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/templatesAndPolicies"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/transactions"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/validators"
 )
 
 // ArgElasticProcessorFactory is struct that is used to store all components that are needed to create an elastic processor factory

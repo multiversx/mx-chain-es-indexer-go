@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
 )
 
 // SerializeValidatorsPubKeys will serialize validators public keys

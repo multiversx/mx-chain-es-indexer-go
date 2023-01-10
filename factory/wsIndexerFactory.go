@@ -1,13 +1,13 @@
 package factory
 
 import (
-	"github.com/ElrondNetwork/elastic-indexer-go/config"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/factory"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/wsclient"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/wsindexer"
 	"github.com/multiversx/mx-chain-core-go/core/pubkeyConverter"
 	factoryHasher "github.com/multiversx/mx-chain-core-go/hashing/factory"
 	factoryMarshaller "github.com/multiversx/mx-chain-core-go/marshal/factory"
+	"github.com/multiversx/mx-chain-es-indexer-go/config"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/factory"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/wsclient"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/wsindexer"
 	logger "github.com/multiversx/mx-chain-logger-go"
 )
 

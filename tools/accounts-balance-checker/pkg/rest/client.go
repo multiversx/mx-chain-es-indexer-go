@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/tools/accounts-balance-checker/pkg/utils"
+	"github.com/multiversx/mx-chain-es-indexer-go/tools/accounts-balance-checker/pkg/utils"
 	logger "github.com/multiversx/mx-chain-logger-go"
 )
 

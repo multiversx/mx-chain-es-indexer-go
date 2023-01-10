@@ -3,8 +3,8 @@ package templatesAndPolicies
 import (
 	"bytes"
 
-	indexer "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
-	"github.com/ElrondNetwork/elastic-indexer-go/templates/withKibana"
+	indexer "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
+	"github.com/multiversx/mx-chain-es-indexer-go/templates/withKibana"
 )
 
 type templatesAndPolicyReaderWithKibana struct{}

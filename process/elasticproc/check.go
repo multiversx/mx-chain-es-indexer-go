@@ -1,8 +1,8 @@
 package elasticproc
 
 import (
-	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	"github.com/multiversx/mx-chain-core-go/core/check"
+	elasticIndexer "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 )
 
 func checkArguments(arguments *ArgElasticProcessor) error {

@@ -4,8 +4,8 @@ import (
 	"math"
 	"math/big"
 
-	indexer "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	"github.com/multiversx/mx-chain-core-go/core"
+	indexer "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 )
 
 const (

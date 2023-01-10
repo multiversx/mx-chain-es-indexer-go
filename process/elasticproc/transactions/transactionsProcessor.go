@@ -3,7 +3,6 @@ package transactions
 import (
 	"encoding/hex"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
@@ -11,6 +10,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	datafield "github.com/multiversx/mx-chain-vm-common-go/parsers/dataField"
 )

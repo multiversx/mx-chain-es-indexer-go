@@ -6,13 +6,13 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
+	elasticIndexer "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 )
 

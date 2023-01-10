@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"time"
 
-	indexerData "github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
@@ -14,6 +13,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+	indexerData "github.com/multiversx/mx-chain-es-indexer-go/data"
 	datafield "github.com/multiversx/mx-chain-vm-common-go/parsers/dataField"
 )
 

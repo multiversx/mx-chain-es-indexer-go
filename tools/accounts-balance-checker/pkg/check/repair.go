@@ -2,9 +2,10 @@ package check
 
 import (
 	"fmt"
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"math/big"
 	"strings"
+
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
 )
 
 func (bc *balanceChecker) deleteExtraBalance(addr, identifier string, timestamp uint64, index string) error {
