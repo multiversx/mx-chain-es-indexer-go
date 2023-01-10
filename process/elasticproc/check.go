@@ -2,7 +2,7 @@ package elasticproc
 
 import (
 	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
-	"github.com/ElrondNetwork/elrond-go-core/core/check"
+	"github.com/multiversx/mx-chain-core-go/core/check"
 )
 
 func checkArguments(arguments *ArgElasticProcessor) error {

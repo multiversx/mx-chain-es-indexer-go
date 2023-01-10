@@ -5,10 +5,10 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/process/factory"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/wsclient"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/wsindexer"
-	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
-	factoryHasher "github.com/ElrondNetwork/elrond-go-core/hashing/factory"
-	factoryMarshaller "github.com/ElrondNetwork/elrond-go-core/marshal/factory"
-	logger "github.com/ElrondNetwork/elrond-go-logger"
+	"github.com/multiversx/mx-chain-core-go/core/pubkeyConverter"
+	factoryHasher "github.com/multiversx/mx-chain-core-go/hashing/factory"
+	factoryMarshaller "github.com/multiversx/mx-chain-core-go/marshal/factory"
+	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 var log = logger.GetOrCreate("factory")

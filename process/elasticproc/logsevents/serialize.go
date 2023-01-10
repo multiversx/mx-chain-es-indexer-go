@@ -8,7 +8,7 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/converters"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/tokeninfo"
-	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/multiversx/mx-chain-core-go/core"
 )
 
 // SerializeLogs will serialize the provided logs in a way that Elasticsearch expects a bulk request

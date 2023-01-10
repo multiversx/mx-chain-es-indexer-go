@@ -1,8 +1,8 @@
 package dataindexer
 
 import (
-	"github.com/ElrondNetwork/elrond-go-core/data"
-	"github.com/ElrondNetwork/elrond-go-core/data/outport"
+	"github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
 )
 
 // NilIndexer will be used when an Indexer is required, but another one isn't necessary or available

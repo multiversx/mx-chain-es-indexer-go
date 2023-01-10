@@ -10,8 +10,8 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/client"
 	"github.com/ElrondNetwork/elastic-indexer-go/client/logging"
 	"github.com/ElrondNetwork/elastic-indexer-go/tools/indexes-creator/reader"
-	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/elastic/go-elasticsearch/v7"
+	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/pelletier/go-toml"
 	"github.com/urfave/cli"
 )

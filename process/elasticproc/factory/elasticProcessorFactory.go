@@ -13,9 +13,9 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/templatesAndPolicies"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/transactions"
 	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/validators"
-	"github.com/ElrondNetwork/elrond-go-core/core"
-	"github.com/ElrondNetwork/elrond-go-core/hashing"
-	"github.com/ElrondNetwork/elrond-go-core/marshal"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/hashing"
+	"github.com/multiversx/mx-chain-core-go/marshal"
 )
 
 // ArgElasticProcessorFactory is struct that is used to store all components that are needed to create an elastic processor factory

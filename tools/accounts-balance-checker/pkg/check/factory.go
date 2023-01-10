@@ -9,8 +9,8 @@ import (
 	"github.com/ElrondNetwork/elastic-indexer-go/tools/accounts-balance-checker/pkg/config"
 	"github.com/ElrondNetwork/elastic-indexer-go/tools/accounts-balance-checker/pkg/esclient"
 	"github.com/ElrondNetwork/elastic-indexer-go/tools/accounts-balance-checker/pkg/rest"
-	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
 	"github.com/elastic/go-elasticsearch/v7"
+	"github.com/multiversx/mx-chain-core-go/core/pubkeyConverter"
 )
 
 // CreateBalanceChecker will create a new instance of balanceChecker

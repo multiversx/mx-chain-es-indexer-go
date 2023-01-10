@@ -3,7 +3,7 @@ package data
 import (
 	"time"
 
-	"github.com/ElrondNetwork/elrond-go-core/data/outport"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
 )
 
 // AccountInfo holds (serializable) data about an account
