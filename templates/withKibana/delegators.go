@@ -12,8 +12,17 @@ var Delegators = Object{
 
 	"mappings": Object{
 		"properties": Object{
+			"activeStake": Object{
+				"type": "keyword",
+			},
 			"activeStakeNum": Object{
 				"type": "double",
+			},
+			"address": Object{
+				"type": "keyword",
+			},
+			"contract": Object{
+				"type": "keyword",
 			},
 		},
 	},
