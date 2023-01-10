@@ -24,6 +24,32 @@ var Delegators = Object{
 			"contract": Object{
 				"type": "keyword",
 			},
+			"timestamp": Object{
+				"index":  "false",
+				"type":   "date",
+				"format": "epoch_second",
+			},
+			"unDelegateInfo": Object{
+				"properties": Object{
+					"id": Object{
+						"index": "false",
+						"type":  "keyword",
+					},
+					"value": Object{
+						"index": "false",
+						"type":  "keyword",
+					},
+					"valueNum": Object{
+						"index": "false",
+						"type":  "double",
+					},
+					"timestamp": Object{
+						"index":  "false",
+						"type":   "date",
+						"format": "epoch_second",
+					},
+				},
+			},
 		},
 	},
 }
