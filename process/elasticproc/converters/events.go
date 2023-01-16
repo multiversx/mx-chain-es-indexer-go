@@ -1,6 +1,6 @@
 package converters
 
-import "github.com/ElrondNetwork/elastic-indexer-go/data"
+import "github.com/multiversx/mx-chain-es-indexer-go/data"
 
 // ConvertTxsSliceIntoMap will convert the slice of the provided transactions into a map where the key represents the hash of the transaction and the value is the transaction
 func ConvertTxsSliceIntoMap(txs []*data.Transaction) map[string]*data.Transaction {

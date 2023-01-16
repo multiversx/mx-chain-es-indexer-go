@@ -3,7 +3,7 @@ package factory
 import (
 	"testing"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/mock"
+	"github.com/multiversx/mx-chain-es-indexer-go/mock"
 	"github.com/stretchr/testify/require"
 )
 

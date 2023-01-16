@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/tools/clusters-checker/pkg/client"
-	"github.com/ElrondNetwork/elastic-indexer-go/tools/clusters-checker/pkg/config"
 	"github.com/elastic/go-elasticsearch/v7"
+	"github.com/multiversx/mx-chain-es-indexer-go/tools/clusters-checker/pkg/client"
+	"github.com/multiversx/mx-chain-es-indexer-go/tools/clusters-checker/pkg/config"
 )
 
 // CreateClusterChecker will create a new instance of clusterChecker structure

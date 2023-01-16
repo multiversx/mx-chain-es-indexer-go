@@ -7,8 +7,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/client/logging"
 	"github.com/elastic/go-elasticsearch/v7"
+	"github.com/multiversx/mx-chain-es-indexer-go/client/logging"
 	"github.com/stretchr/testify/require"
 )
 

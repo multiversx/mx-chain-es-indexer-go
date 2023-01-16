@@ -1,10 +1,10 @@
 package workItems
 
 import (
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	coreData "github.com/ElrondNetwork/elrond-go-core/data"
-	"github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-go-core/data/outport"
+	coreData "github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
 )
 
 // WorkItemHandler defines the interface for item that needs to be saved in elasticsearch database
