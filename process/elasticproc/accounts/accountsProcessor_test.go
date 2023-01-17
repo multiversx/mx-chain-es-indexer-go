@@ -103,7 +103,7 @@ func TestGetESDTInfo(t *testing.T) {
 	balance, prop, _, err := ap.getESDTInfo(wrapAccount)
 	require.Nil(t, err)
 	require.Equal(t, big.NewInt(1000), balance)
-	require.Equal(t, hex.EncodeToString([]byte("ok")), prop)
+	require.Equal(t, "ok", prop)
 }
 
 func TestGetESDTInfoNFT(t *testing.T) {
@@ -134,7 +134,7 @@ func TestGetESDTInfoNFT(t *testing.T) {
 	balance, prop, _, err := ap.getESDTInfo(wrapAccount)
 	require.Nil(t, err)
 	require.Equal(t, big.NewInt(1), balance)
-	require.Equal(t, hex.EncodeToString([]byte("ok")), prop)
+	require.Equal(t, "ok", prop)
 }
 
 func TestGetESDTInfoNFTWithMetaData(t *testing.T) {
@@ -175,7 +175,7 @@ func TestGetESDTInfoNFTWithMetaData(t *testing.T) {
 	balance, prop, metaData, err := ap.getESDTInfo(wrapAccount)
 	require.Nil(t, err)
 	require.Equal(t, big.NewInt(1), balance)
-	require.Equal(t, hex.EncodeToString([]byte("ok")), prop)
+	require.Equal(t, "ok", prop)
 	require.Equal(t, &data.TokenMetaData{
 		Name:      nftName,
 		Creator:   creator,
@@ -337,7 +337,7 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 		BalanceNum:      balanceConverter.ComputeBalanceAsFloat(big.NewInt(1000)),
 		TokenName:       "token",
 		TokenIdentifier: "token-0f",
-		Properties:      hex.EncodeToString([]byte("ok")),
+		Properties:      "ok",
 		TokenNonce:      15,
 		Data: &data.TokenMetaData{
 			Creator: "creator",
@@ -351,7 +351,7 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 		BalanceNum:      balanceConverter.ComputeBalanceAsFloat(big.NewInt(1000)),
 		TokenName:       "token",
 		TokenIdentifier: "token-10",
-		Properties:      hex.EncodeToString([]byte("ok")),
+		Properties:      "ok",
 		TokenNonce:      16,
 		Data: &data.TokenMetaData{
 			Creator: "creator",
