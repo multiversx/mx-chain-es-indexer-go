@@ -5,7 +5,7 @@
 	"token": "TTTT-abcd",
 	"identifier": "TTTT-abcd-02",
 	"tokenNonce": 2,
-	"properties": "6f6b",
+	"properties": "ok",
 	"data": {
 		"creator": "erd1l29zsl2dqq988kvr2y0xlfv9ydgnvhzkatfd8ccalpag265pje8qn8lslf",
 		"nonEmptyURIs": false,

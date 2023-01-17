@@ -5,7 +5,7 @@
 	"token": "SEMI-abcd",
 	"identifier": "SEMI-abcd-02",
 	"tokenNonce": 2,
-	"properties": "6f6b",
+	"properties": "ok",
 	"data": {
 		"creator": "creator",
 		"nonEmptyURIs": false,
