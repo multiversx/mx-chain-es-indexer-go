@@ -12,6 +12,8 @@ type NFTDataUpdate struct {
 	URIsToAdd     [][]byte
 	NewAttributes []byte
 	Address       string
+	Freeze        bool
+	UnFreeze      bool
 }
 
 // ResponseTokens is the structure for the tokens response

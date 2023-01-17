@@ -73,8 +73,12 @@ func PrepareNFTUpdateData(buffSlice *data.BufferSlice, updateNFTData []*data.NFT
 		}
 
 		metaData := []byte(fmt.Sprintf(`{"update":{ "_index":"%s","_id":"%s"}}%s`, index, id, "\n"))
-		base64Attr := base64.StdEncoding.EncodeToString(nftUpdate.NewAttributes)
+		freezeOrUnfreezeTokenIndex := (nftUpdate.Freeze || nftUpdate.UnFreeze) && !accountESDT
+		if freezeOrUnfreezeTokenIndex {
+			return buffSlice.PutData(metaData, prepareSerializeDataForFreezeAndUnFreeze(nftUpdate))
+		}
 
+		base64Attr := base64.StdEncoding.EncodeToString(nftUpdate.NewAttributes)
 		newTags := ExtractTagsFromAttributes(nftUpdate.NewAttributes)
 		newMetadata := ExtractMetaDataFromAttributes(nftUpdate.NewAttributes)
 
@@ -144,4 +148,17 @@ func PrepareNFTUpdateData(buffSlice *data.BufferSlice, updateNFTData []*data.NFT
 	}
 
 	return nil
+}
+
+func prepareSerializeDataForFreezeAndUnFreeze(nftUpdateData *data.NFTDataUpdate) []byte {
+	frozen := nftUpdateData.Freeze
+
+	codeToExecute := `
+			ctx._source.frozen = params.frozen
+`
+	serializedData := []byte(fmt.Sprintf(`{"script": {"source": "%s","lang": "painless","params": {"frozen": %t}}, "upsert": {}}`,
+		FormatPainlessSource(codeToExecute), frozen),
+	)
+
+	return serializedData
 }

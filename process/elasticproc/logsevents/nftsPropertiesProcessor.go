@@ -21,6 +21,8 @@ func newNFTsPropertiesProcessor(pubKeyConverter core.PubkeyConverter) *nftsPrope
 		propertiesChangeOperations: map[string]struct{}{
 			core.BuiltInFunctionESDTNFTAddURI:           {},
 			core.BuiltInFunctionESDTNFTUpdateAttributes: {},
+			core.BuiltInFunctionESDTFreeze:              {},
+			core.BuiltInFunctionESDTUnFreeze:            {},
 		},
 	}
 }
@@ -70,6 +72,10 @@ func (npp *nftsPropertiesProc) processEvent(args *argsProcessEvent) argOutputPro
 		updateNFT.NewAttributes = topics[3]
 	case core.BuiltInFunctionESDTNFTAddURI:
 		updateNFT.URIsToAdd = topics[3:]
+	case core.BuiltInFunctionESDTFreeze:
+		updateNFT.Freeze = true
+	case core.BuiltInFunctionESDTUnFreeze:
+		updateNFT.UnFreeze = true
 	}
 
 	return argOutputProcessEvent{

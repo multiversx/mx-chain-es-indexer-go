@@ -497,3 +497,29 @@ func TestAddAdditionalDataIntoAccounts(t *testing.T) {
 	require.Equal(t, "", account.DeveloperRewards)
 	require.Equal(t, float64(0), account.DeveloperRewardsNum)
 }
+
+func TestIsFrozen(t *testing.T) {
+	t.Parallel()
+
+	require := require.New(t)
+
+	// Test with valid input
+	validHex := "01"
+	result := isFrozen(validHex)
+	require.True(result)
+
+	// Test with invalid input
+	invalidHex := "invalid"
+	result = isFrozen(invalidHex)
+	require.False(result)
+
+	// Test with empty input
+	emptyHex := ""
+	result = isFrozen(emptyHex)
+	require.False(result)
+
+	// Test with valid input that returns true
+	validHex = "03"
+	result = isFrozen(validHex)
+	require.True(result)
+}

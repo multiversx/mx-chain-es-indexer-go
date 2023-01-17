@@ -57,3 +57,39 @@ func TestProcessNFTProperties_AddUris(t *testing.T) {
 		Address:    "61646472",
 	}, res.updatePropNFT)
 }
+
+func TestProcessNFTProperties_FreezeAndUnFreeze(t *testing.T) {
+	t.Parallel()
+
+	// freeze
+	event := &transaction.Event{
+		Address:    []byte("addr"),
+		Identifier: []byte("ESDTFreeze"),
+		Topics:     [][]byte{[]byte("TOUC-aaaa"), big.NewInt(1).Bytes(), nil, []byte("something")},
+	}
+	args := &argsProcessEvent{
+		timestamp: 1234,
+		event:     event,
+	}
+
+	nftsPropertiesP := newNFTsPropertiesProcessor(&mock.PubkeyConverterMock{})
+
+	res := nftsPropertiesP.processEvent(args)
+	require.True(t, res.processed)
+	require.True(t, res.updatePropNFT.Freeze)
+
+	// unFreeze
+	event = &transaction.Event{
+		Address:    []byte("addr"),
+		Identifier: []byte("ESDTUnFreeze"),
+		Topics:     [][]byte{[]byte("TOUC-aaaa"), big.NewInt(1).Bytes(), nil, []byte("something")},
+	}
+	args = &argsProcessEvent{
+		timestamp: 1234,
+		event:     event,
+	}
+
+	res = nftsPropertiesP.processEvent(args)
+	require.True(t, res.processed)
+	require.True(t, res.updatePropNFT.UnFreeze)
+}
