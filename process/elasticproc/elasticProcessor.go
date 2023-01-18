@@ -324,7 +324,12 @@ func (ei *elasticProcessor) RemoveTransactions(header coreData.HeaderHandler, bo
 		return err
 	}
 
-	return ei.removeIfHashesNotEmpty(elasticIndexer.OperationsIndex, append(encodedTxsHashes, encodedScrsHashes...))
+	err = ei.removeIfHashesNotEmpty(elasticIndexer.OperationsIndex, append(encodedTxsHashes, encodedScrsHashes...))
+	if err != nil {
+		return err
+	}
+
+	return ei.removeIfHashesNotEmpty(elasticIndexer.LogsIndex, append(encodedTxsHashes, encodedScrsHashes...))
 }
 
 func (ei *elasticProcessor) removeIfHashesNotEmpty(index string, hashes []string) error {

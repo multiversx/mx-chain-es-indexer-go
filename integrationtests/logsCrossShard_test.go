@@ -34,6 +34,8 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 	address1 := "erd1ju8pkvg57cwdmjsjx58jlmnuf4l9yspstrhr9tgsrt98n9edpm2qtlgy99"
 	address2 := "erd1w7jyzuj6cv4ngw8luhlkakatjpmjh3ql95lmxphd3vssc4vpymks6k5th7"
 
+	logID := hex.EncodeToString([]byte("cross-log"))
+
 	// INDEX ON SOURCE
 	pool := &outport.Pool{
 		Logs: []*coreData.LogData{
@@ -56,7 +58,7 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, testNumOfShards)
 	require.Nil(t, err)
 
-	ids := []string{hex.EncodeToString([]byte("cross-log"))}
+	ids := []string{logID}
 	genericResponse := &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.LogsIndex, true, genericResponse)
 	require.Nil(t, err)
@@ -136,4 +138,28 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 		readExpectedResult("./testdata/logsCrossShard/log-at-destination.json"),
 		string(genericResponse.Docs[0].Source),
 	)
+
+	// do rollback
+	header = &dataBlock.Header{
+		Round:     50,
+		TimeStamp: 6040,
+		MiniBlockHeaders: []dataBlock.MiniBlockHeader{
+			{},
+		},
+	}
+	body = &dataBlock.Body{
+		MiniBlocks: []*dataBlock.MiniBlock{
+			{
+				TxHashes: [][]byte{[]byte("cross-log")},
+			},
+		},
+	}
+
+	err = esProc.RemoveTransactions(header, body)
+	require.Nil(t, err)
+
+	err = esClient.DoMultiGet(ids, indexerdata.LogsIndex, true, genericResponse)
+	require.Nil(t, err)
+
+	require.False(t, genericResponse.Docs[0].Found)
 }
