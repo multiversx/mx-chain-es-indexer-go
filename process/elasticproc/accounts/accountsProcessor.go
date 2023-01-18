@@ -318,7 +318,7 @@ func (ap *accountsProcessor) loadMetadataForToken(
 func isFrozen(properties string) bool {
 	decoded, err := hex.DecodeString(properties)
 	if err != nil {
-		log.Warn("isFrozen() cannot decode token properties", "error", err)
+		log.Debug("isFrozen() cannot decode token properties", "error", err)
 		return false
 	}
 	if len(decoded) == 0 {

@@ -28,10 +28,11 @@ stop() {
 delete() {
    for str in ${INDICES_LIST[@]}; do
       curl -XDELETE http://localhost:9200/$str-000001
-      echo \n
+      echo
    done
 
   curl -XDELETE http://localhost:9200/_template/*
+  echo
 }
 
 
