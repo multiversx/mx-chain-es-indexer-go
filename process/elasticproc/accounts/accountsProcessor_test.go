@@ -303,7 +303,7 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 				Balance:    "1000",
 				Identifier: "token",
 				Nonce:      15,
-				Properties: "6f6b",
+				Properties: "3032",
 				MetaData: &outport.TokenMetaData{
 					Creator: "creator",
 				},
@@ -312,7 +312,7 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 				Balance:    "1000",
 				Identifier: "token",
 				Nonce:      16,
-				Properties: "6f6b",
+				Properties: "3032",
 				MetaData: &outport.TokenMetaData{
 					Creator: "creator",
 				},
@@ -337,7 +337,7 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 		BalanceNum:      balanceConverter.ComputeBalanceAsFloat(big.NewInt(1000)),
 		TokenName:       "token",
 		TokenIdentifier: "token-0f",
-		Properties:      "6f6b",
+		Properties:      "3032",
 		TokenNonce:      15,
 		Data: &data.TokenMetaData{
 			Creator: "creator",
@@ -351,7 +351,7 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 		BalanceNum:      balanceConverter.ComputeBalanceAsFloat(big.NewInt(1000)),
 		TokenName:       "token",
 		TokenIdentifier: "token-10",
-		Properties:      "6f6b",
+		Properties:      "3032",
 		TokenNonce:      16,
 		Data: &data.TokenMetaData{
 			Creator: "creator",
