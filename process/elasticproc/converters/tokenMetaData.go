@@ -65,19 +65,19 @@ func whiteListedStorage(uris [][]byte) bool {
 }
 
 // PrepareNFTUpdateData will prepare nfts update data
-func PrepareNFTUpdateData(buffSlice *data.BufferSlice, updateNFTData []*data.NFTDataUpdate, accountESDT bool, index string) error {
+func PrepareNFTUpdateData(buffSlice *data.BufferSlice, updateNFTData []*data.NFTDataUpdate, isAccountsESDTIndex bool, index string) error {
 	for _, nftUpdate := range updateNFTData {
 		id := nftUpdate.Identifier
-		if accountESDT {
+		if isAccountsESDTIndex {
 			id = fmt.Sprintf("%s-%s", nftUpdate.Address, nftUpdate.Identifier)
 		}
 
 		metaData := []byte(fmt.Sprintf(`{"update":{ "_index":"%s","_id":"%s"}}%s`, index, id, "\n"))
-		freezeOrUnfreezeTokenIndex := (nftUpdate.Freeze || nftUpdate.UnFreeze) && !accountESDT
+		freezeOrUnfreezeTokenIndex := (nftUpdate.Freeze || nftUpdate.UnFreeze) && !isAccountsESDTIndex
 		if freezeOrUnfreezeTokenIndex {
 			return buffSlice.PutData(metaData, prepareSerializeDataForFreezeAndUnFreeze(nftUpdate))
 		}
-		pauseOrUnPauseTokenIndex := (nftUpdate.Pause || nftUpdate.UnPause) && !accountESDT
+		pauseOrUnPauseTokenIndex := (nftUpdate.Pause || nftUpdate.UnPause) && !isAccountsESDTIndex
 		if pauseOrUnPauseTokenIndex {
 			return buffSlice.PutData(metaData, prepareSerializedDataForPauseAndUnPause(nftUpdate))
 		}

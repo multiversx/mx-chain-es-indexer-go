@@ -95,9 +95,15 @@ func (npp *nftsPropertiesProc) processPauseAndUnPauseEvent(eventIdentifier strin
 
 	switch eventIdentifier {
 	case core.BuiltInFunctionESDTPause:
-		updateNFT = &data.NFTDataUpdate{Identifier: token, Pause: true}
+		updateNFT = &data.NFTDataUpdate{
+			Identifier: token,
+			Pause:      true,
+		}
 	case core.BuiltInFunctionESDTUnPause:
-		updateNFT = &data.NFTDataUpdate{Identifier: token, UnPause: true}
+		updateNFT = &data.NFTDataUpdate{
+			Identifier: token,
+			UnPause:    true,
+		}
 	}
 
 	return argOutputProcessEvent{

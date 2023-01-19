@@ -94,7 +94,7 @@ func TestGetESDTInfo(t *testing.T) {
 				{
 					Identifier: tokenIdentifier,
 					Balance:    "1000",
-					Properties: "ok",
+					Properties: "6f6b",
 				},
 			},
 		},
@@ -103,7 +103,7 @@ func TestGetESDTInfo(t *testing.T) {
 	balance, prop, _, err := ap.getESDTInfo(wrapAccount)
 	require.Nil(t, err)
 	require.Equal(t, big.NewInt(1000), balance)
-	require.Equal(t, "ok", prop)
+	require.Equal(t, "6f6b", prop)
 }
 
 func TestGetESDTInfoNFT(t *testing.T) {
@@ -123,7 +123,7 @@ func TestGetESDTInfoNFT(t *testing.T) {
 					Identifier: tokenIdentifier,
 					Balance:    "1",
 					Nonce:      10,
-					Properties: "ok",
+					Properties: "6f6b",
 				},
 			},
 		},
@@ -134,7 +134,7 @@ func TestGetESDTInfoNFT(t *testing.T) {
 	balance, prop, _, err := ap.getESDTInfo(wrapAccount)
 	require.Nil(t, err)
 	require.Equal(t, big.NewInt(1), balance)
-	require.Equal(t, "ok", prop)
+	require.Equal(t, "6f6b", prop)
 }
 
 func TestGetESDTInfoNFTWithMetaData(t *testing.T) {
@@ -157,7 +157,7 @@ func TestGetESDTInfoNFTWithMetaData(t *testing.T) {
 				{
 					Identifier: tokenIdentifier,
 					Balance:    "1",
-					Properties: "ok",
+					Properties: "6f6b",
 					Nonce:      10,
 					MetaData: &outport.TokenMetaData{
 						Nonce:     10,
@@ -175,7 +175,7 @@ func TestGetESDTInfoNFTWithMetaData(t *testing.T) {
 	balance, prop, metaData, err := ap.getESDTInfo(wrapAccount)
 	require.Nil(t, err)
 	require.Equal(t, big.NewInt(1), balance)
-	require.Equal(t, "ok", prop)
+	require.Equal(t, "6f6b", prop)
 	require.Equal(t, &data.TokenMetaData{
 		Name:      nftName,
 		Creator:   creator,
@@ -303,7 +303,7 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 				Balance:    "1000",
 				Identifier: "token",
 				Nonce:      15,
-				Properties: "ok",
+				Properties: "6f6b",
 				MetaData: &outport.TokenMetaData{
 					Creator: "creator",
 				},
@@ -312,7 +312,7 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 				Balance:    "1000",
 				Identifier: "token",
 				Nonce:      16,
-				Properties: "ok",
+				Properties: "6f6b",
 				MetaData: &outport.TokenMetaData{
 					Creator: "creator",
 				},
@@ -337,7 +337,7 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 		BalanceNum:      balanceConverter.ComputeBalanceAsFloat(big.NewInt(1000)),
 		TokenName:       "token",
 		TokenIdentifier: "token-0f",
-		Properties:      "ok",
+		Properties:      "6f6b",
 		TokenNonce:      15,
 		Data: &data.TokenMetaData{
 			Creator: "creator",
@@ -351,7 +351,7 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 		BalanceNum:      balanceConverter.ComputeBalanceAsFloat(big.NewInt(1000)),
 		TokenName:       "token",
 		TokenIdentifier: "token-10",
-		Properties:      "ok",
+		Properties:      "6f6b",
 		TokenNonce:      16,
 		Data: &data.TokenMetaData{
 			Creator: "creator",
@@ -503,23 +503,22 @@ func TestIsFrozen(t *testing.T) {
 
 	require := require.New(t)
 
-	// Test with valid input
-	validHex := "01"
-	result := isFrozen(validHex)
+	properties := []byte{1}
+	result := isFrozen(hex.EncodeToString(properties))
 	require.True(result)
 
-	// Test with invalid input
-	invalidHex := "invalid"
-	result = isFrozen(invalidHex)
+	result = isFrozen("invalid")
 	require.False(result)
 
-	// Test with empty input
 	emptyHex := ""
 	result = isFrozen(emptyHex)
 	require.False(result)
 
-	// Test with valid input that returns true
-	validHex = "03"
-	result = isFrozen(validHex)
+	properties = []byte{3}
+	result = isFrozen(hex.EncodeToString(properties))
 	require.True(result)
+
+	properties = []byte{4}
+	result = isFrozen(hex.EncodeToString(properties))
+	require.False(result)
 }

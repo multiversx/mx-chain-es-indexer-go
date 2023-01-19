@@ -36,7 +36,7 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 
 	logID := hex.EncodeToString([]byte("cross-log"))
 
-	// INDEX ON SOURCE
+	// index on source
 	pool := &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
@@ -106,7 +106,7 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 		string(genericResponse.Docs[0].Source),
 	)
 
-	// INDEX ON SOURCE AGAIN SHOULD NOT CHANGE
+	// index on source again should not change the log
 	header = &dataBlock.Header{
 		Round:     50,
 		TimeStamp: 5000,

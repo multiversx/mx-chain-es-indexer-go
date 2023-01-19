@@ -26,7 +26,7 @@ func TestAccountsESDTDeleteOnRollback(t *testing.T) {
 
 	esdtToken := &esdt.ESDigitalToken{
 		Value:      big.NewInt(1000),
-		Properties: []byte("ok"),
+		Properties: []byte("3032"),
 		TokenMetaData: &esdt.MetaData{
 			Creator: []byte("creator"),
 		},
@@ -43,7 +43,7 @@ func TestAccountsESDTDeleteOnRollback(t *testing.T) {
 					MetaData: &outport.TokenMetaData{
 						Creator: "creator",
 					},
-					Properties: "ok",
+					Properties: "3032",
 				},
 			},
 		},

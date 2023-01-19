@@ -74,7 +74,7 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 					Identifier: "SEMI-abcd",
 					Balance:    "1000",
 					Nonce:      2,
-					Properties: "ok",
+					Properties: "3032",
 					MetaData: &outport.TokenMetaData{
 						Creator: "creator",
 					},
@@ -146,7 +146,7 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 					Identifier: "TTTT-abcd",
 					Nonce:      2,
 					Balance:    "1000",
-					Properties: "ok",
+					Properties: "3032",
 					MetaData: &outport.TokenMetaData{
 						Creator: "erd1l29zsl2dqq988kvr2y0xlfv9ydgnvhzkatfd8ccalpag265pje8qn8lslf",
 					},
