@@ -83,9 +83,61 @@ func TestIssueTokenAndTransferOwnership(t *testing.T) {
 	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
 	require.Nil(t, err)
 
-	ids = []string{"SSSS-abcd"}
-	genericResponse = &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse)
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/issueToken/token-semi-after-transfer-ownership.json"), string(genericResponse.Docs[0].Source))
+
+	// do pause
+	pool = &outport.Pool{
+		Logs: []*coreData.LogData{
+			{
+				TxHash: "h1",
+				LogHandler: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address1),
+							Identifier: []byte("ESDTPause"),
+							Topics:     [][]byte{[]byte("SSSS-abcd")},
+						},
+						nil,
+					},
+				},
+			},
+		},
+	}
+
+	header.TimeStamp = 10000
+	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
+	require.Nil(t, err)
+
+	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse)
+	require.Nil(t, err)
+	require.JSONEq(t, readExpectedResult("./testdata/issueToken/token-semi-after-pause.json"), string(genericResponse.Docs[0].Source))
+
+	// do unPause
+	pool = &outport.Pool{
+		Logs: []*coreData.LogData{
+			{
+				TxHash: "h1",
+				LogHandler: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address1),
+							Identifier: []byte("ESDTUnPause"),
+							Topics:     [][]byte{[]byte("SSSS-abcd")},
+						},
+						nil,
+					},
+				},
+			},
+		},
+	}
+
+	header.TimeStamp = 10000
+	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
+	require.Nil(t, err)
+
+	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse)
+	require.Nil(t, err)
+	require.JSONEq(t, readExpectedResult("./testdata/issueToken/token-semi-after-un-pause.json"), string(genericResponse.Docs[0].Source))
 }
