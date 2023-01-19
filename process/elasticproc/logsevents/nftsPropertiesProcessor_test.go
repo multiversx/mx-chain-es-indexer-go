@@ -4,6 +4,7 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/mock"
@@ -92,4 +93,27 @@ func TestProcessNFTProperties_FreezeAndUnFreeze(t *testing.T) {
 	res = nftsPropertiesP.processEvent(args)
 	require.True(t, res.processed)
 	require.True(t, res.updatePropNFT.UnFreeze)
+}
+
+func TestProcessPauseAndUnPauseEvent(t *testing.T) {
+	npp := &nftsPropertiesProc{}
+
+	// test pause event
+	result := npp.processPauseAndUnPauseEvent(core.BuiltInFunctionESDTPause, "token1")
+	require.True(t, result.processed, "Expected processed to be true")
+	require.Equal(t, "token1", result.updatePropNFT.Identifier, "Expected identifier to be token1")
+	require.True(t, result.updatePropNFT.Pause, "Expected pause to be true")
+	require.False(t, result.updatePropNFT.UnPause, "Expected unpause to be false")
+
+	// test unpause event
+	result = npp.processPauseAndUnPauseEvent(core.BuiltInFunctionESDTUnPause, "token2")
+	require.True(t, result.processed, "Expected processed to be true")
+	require.Equal(t, "token2", result.updatePropNFT.Identifier, "Expected identifier to be token2")
+	require.False(t, result.updatePropNFT.Pause, "Expected pause to be false")
+	require.True(t, result.updatePropNFT.UnPause, "Expected unpause to be true")
+
+	// test wrong event
+	result = npp.processPauseAndUnPauseEvent("wrong", "token2")
+	require.Nil(t, result.updatePropNFT, "Expected updatePropNFT to be nil")
+	require.True(t, result.processed, "Expected processed to be true")
 }

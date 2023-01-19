@@ -14,6 +14,8 @@ type NFTDataUpdate struct {
 	Address       string
 	Freeze        bool
 	UnFreeze      bool
+	Pause         bool
+	UnPause       bool
 }
 
 // ResponseTokens is the structure for the tokens response

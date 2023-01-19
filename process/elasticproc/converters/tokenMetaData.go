@@ -77,6 +77,10 @@ func PrepareNFTUpdateData(buffSlice *data.BufferSlice, updateNFTData []*data.NFT
 		if freezeOrUnfreezeTokenIndex {
 			return buffSlice.PutData(metaData, prepareSerializeDataForFreezeAndUnFreeze(nftUpdate))
 		}
+		pauseOrUnPauseTokenIndex := (nftUpdate.Pause || nftUpdate.UnPause) && !accountESDT
+		if pauseOrUnPauseTokenIndex {
+			return buffSlice.PutData(metaData, prepareSerializedDataForPauseAndUnPause(nftUpdate))
+		}
 
 		base64Attr := base64.StdEncoding.EncodeToString(nftUpdate.NewAttributes)
 		newTags := ExtractTagsFromAttributes(nftUpdate.NewAttributes)
@@ -152,12 +156,23 @@ func PrepareNFTUpdateData(buffSlice *data.BufferSlice, updateNFTData []*data.NFT
 
 func prepareSerializeDataForFreezeAndUnFreeze(nftUpdateData *data.NFTDataUpdate) []byte {
 	frozen := nftUpdateData.Freeze
-
 	codeToExecute := `
 			ctx._source.frozen = params.frozen
 `
 	serializedData := []byte(fmt.Sprintf(`{"script": {"source": "%s","lang": "painless","params": {"frozen": %t}}, "upsert": {}}`,
 		FormatPainlessSource(codeToExecute), frozen),
+	)
+
+	return serializedData
+}
+
+func prepareSerializedDataForPauseAndUnPause(nftUpdateData *data.NFTDataUpdate) []byte {
+	paused := nftUpdateData.Pause
+	codeToExecute := `
+			ctx._source.paused = params.paused
+`
+	serializedData := []byte(fmt.Sprintf(`{"script": {"source": "%s","lang": "painless","params": {"paused": %t}}, "upsert": {}}`,
+		FormatPainlessSource(codeToExecute), paused),
 	)
 
 	return serializedData
