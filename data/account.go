@@ -16,6 +16,7 @@ type AccountInfo struct {
 	TokenIdentifier          string         `json:"identifier,omitempty"`
 	TokenNonce               uint64         `json:"tokenNonce,omitempty"`
 	Properties               string         `json:"properties,omitempty"`
+	Frozen                   bool           `json:"frozen,omitempty"`
 	TotalBalanceWithStake    string         `json:"totalBalanceWithStake,omitempty"`
 	TotalBalanceWithStakeNum float64        `json:"totalBalanceWithStakeNum,omitempty"`
 	Owner                    string         `json:"owner,omitempty"`

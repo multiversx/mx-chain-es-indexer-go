@@ -170,4 +170,56 @@ func TestNFTUpdateMetadata(t *testing.T) {
 	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse)
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/updateNFT/token-after-update-attributes-second.json"), string(genericResponse.Docs[0].Source))
+
+	// Freeze nft
+	pool = &outport.Pool{
+		Logs: []*coreData.LogData{
+			{
+				LogHandler: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address),
+							Identifier: []byte(core.BuiltInFunctionESDTFreeze),
+							Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("something")},
+						},
+						nil,
+					},
+				},
+				TxHash: "h1",
+			},
+		},
+	}
+	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
+	require.Nil(t, err)
+	ids = []string{"NFT-abcd-0e"}
+	genericResponse = &GenericResponse{}
+	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse)
+	require.Nil(t, err)
+	require.JSONEq(t, readExpectedResult("./testdata/updateNFT/token-after-freeze.json"), string(genericResponse.Docs[0].Source))
+
+	// UnFreeze nft
+	pool = &outport.Pool{
+		Logs: []*coreData.LogData{
+			{
+				LogHandler: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address),
+							Identifier: []byte(core.BuiltInFunctionESDTUnFreeze),
+							Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("something")},
+						},
+						nil,
+					},
+				},
+				TxHash: "h1",
+			},
+		},
+	}
+	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
+	require.Nil(t, err)
+	ids = []string{"NFT-abcd-0e"}
+	genericResponse = &GenericResponse{}
+	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse)
+	require.Nil(t, err)
+	require.JSONEq(t, readExpectedResult("./testdata/updateNFT/token-after-un-freeze.json"), string(genericResponse.Docs[0].Source))
 }

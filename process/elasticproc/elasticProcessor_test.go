@@ -561,7 +561,7 @@ func TestElasticProcessor_RemoveTransactions(t *testing.T) {
 	dbWriter := &mock.DatabaseWriterStub{
 		DoQueryRemoveCalled: func(index string, body *bytes.Buffer) error {
 			bodyStr := body.String()
-			require.Contains(t, []string{dataindexer.TransactionsIndex, dataindexer.OperationsIndex}, index)
+			require.Contains(t, []string{dataindexer.TransactionsIndex, dataindexer.OperationsIndex, dataindexer.LogsIndex}, index)
 			require.True(t, strings.Contains(bodyStr, expectedHashes[0]))
 			require.True(t, strings.Contains(bodyStr, expectedHashes[1]))
 			called = true

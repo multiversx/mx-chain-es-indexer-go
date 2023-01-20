@@ -21,6 +21,10 @@ func newNFTsPropertiesProcessor(pubKeyConverter core.PubkeyConverter) *nftsPrope
 		propertiesChangeOperations: map[string]struct{}{
 			core.BuiltInFunctionESDTNFTAddURI:           {},
 			core.BuiltInFunctionESDTNFTUpdateAttributes: {},
+			core.BuiltInFunctionESDTFreeze:              {},
+			core.BuiltInFunctionESDTUnFreeze:            {},
+			core.BuiltInFunctionESDTPause:               {},
+			core.BuiltInFunctionESDTUnPause:             {},
 		},
 	}
 }
@@ -32,20 +36,24 @@ func (npp *nftsPropertiesProc) processEvent(args *argsProcessEvent) argOutputPro
 		return argOutputProcessEvent{}
 	}
 
-	// topics contains:
-	// [0] --> token identifier
-	// [1] --> nonce of the NFT (bytes)
-	// [2] --> value
-	// [3:] --> modified data
-	topics := args.event.GetTopics()
-	if len(topics) < minTopicsUpdate {
+	callerAddress := npp.pubKeyConverter.Encode(args.event.GetAddress())
+	if callerAddress == "" {
 		return argOutputProcessEvent{
 			processed: true,
 		}
 	}
 
-	callerAddress := npp.pubKeyConverter.Encode(args.event.GetAddress())
-	if callerAddress == "" {
+	topics := args.event.GetTopics()
+	if len(topics) == 1 {
+		return npp.processPauseAndUnPauseEvent(eventIdentifier, string(topics[0]))
+	}
+
+	// topics contains:
+	// [0] --> token identifier
+	// [1] --> nonce of the NFT (bytes)
+	// [2] --> value
+	// [3:] --> modified data
+	if len(topics) < minTopicsUpdate {
 		return argOutputProcessEvent{
 			processed: true,
 		}
@@ -70,6 +78,32 @@ func (npp *nftsPropertiesProc) processEvent(args *argsProcessEvent) argOutputPro
 		updateNFT.NewAttributes = topics[3]
 	case core.BuiltInFunctionESDTNFTAddURI:
 		updateNFT.URIsToAdd = topics[3:]
+	case core.BuiltInFunctionESDTFreeze:
+		updateNFT.Freeze = true
+	case core.BuiltInFunctionESDTUnFreeze:
+		updateNFT.UnFreeze = true
+	}
+
+	return argOutputProcessEvent{
+		processed:     true,
+		updatePropNFT: updateNFT,
+	}
+}
+
+func (npp *nftsPropertiesProc) processPauseAndUnPauseEvent(eventIdentifier string, token string) argOutputProcessEvent {
+	var updateNFT *data.NFTDataUpdate
+
+	switch eventIdentifier {
+	case core.BuiltInFunctionESDTPause:
+		updateNFT = &data.NFTDataUpdate{
+			Identifier: token,
+			Pause:      true,
+		}
+	case core.BuiltInFunctionESDTUnPause:
+		updateNFT = &data.NFTDataUpdate{
+			Identifier: token,
+			UnPause:    true,
+		}
 	}
 
 	return argOutputProcessEvent{

@@ -1,0 +1,33 @@
+{
+  "name": "semi-token",
+  "ticker": "SSSS",
+  "token": "SSSS-abcd",
+  "issuer": "erd1v7e552pz9py4hv6raan0c4jflez3e6csdmzcgrncg0qrnk4tywvsqx0h5j",
+  "currentOwner": "erd1acjlnuhkd8773sqhmw85r0ur4lcyuqgm0n69h9ttxh0gwxtuuzxq4lckh6",
+  "type": "SemiFungibleESDT",
+  "timestamp": 5040,
+  "ownersHistory": [
+    {
+      "address": "erd1v7e552pz9py4hv6raan0c4jflez3e6csdmzcgrncg0qrnk4tywvsqx0h5j",
+      "timestamp": 5040
+    },
+    {
+      "address": "erd1acjlnuhkd8773sqhmw85r0ur4lcyuqgm0n69h9ttxh0gwxtuuzxq4lckh6",
+      "timestamp": 10000
+    }
+  ],
+  "properties": {
+    "canMint": false,
+    "canBurn": false,
+    "canUpgrade": false,
+    "canTransferNFTCreateRole": false,
+    "canAddSpecialRoles": false,
+    "canPause": false,
+    "canFreeze": false,
+    "canWipe": false,
+    "canChangeOwner": false,
+    "canCreateMultiShard": false
+  },
+  "numDecimals": 18,
+  "paused": false
+}
