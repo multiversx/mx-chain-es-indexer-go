@@ -25,7 +25,11 @@ func TestDelegateUnDelegateAndWithdraw(t *testing.T) {
 	esProc, err := CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
-	body := &dataBlock.Body{}
+	body := &dataBlock.Body{
+		MiniBlocks: []*dataBlock.MiniBlock{
+			{},
+		},
+	}
 	header := &dataBlock.Header{
 		Round:     50,
 		TimeStamp: 5040,
