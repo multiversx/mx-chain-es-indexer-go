@@ -44,7 +44,7 @@ func (lep *logsAndEventsProcessor) PrepareDelegatorsQueryInCaseOfRevert(timestam
 	{
 	  "query": {
 		"match": {
-		  "timestamp": %d
+		  "timestamp": "%d"
 		}
 	  },
 	  "script": {
