@@ -6,13 +6,13 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/converters"
-	"github.com/ElrondNetwork/elrond-go-core/core"
-	"github.com/ElrondNetwork/elrond-go-core/core/check"
-	"github.com/ElrondNetwork/elrond-go-core/data/outport"
-	logger "github.com/ElrondNetwork/elrond-go-logger"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
+	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 var log = logger.GetOrCreate("indexer/process/accounts")
@@ -201,6 +201,7 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(
 			Balance:         balance.String(),
 			BalanceNum:      ap.balanceConverter.ComputeESDTBalanceAsFloat(balance),
 			Properties:      properties,
+			Frozen:          isFrozen(properties),
 			IsSender:        accountESDT.IsSender,
 			IsSmartContract: core.IsSmartContractAddress(addressBytes),
 			Data:            tokenMetaData,
@@ -276,7 +277,7 @@ func (ap *accountsProcessor) getESDTInfo(accountESDT *data.AccountESDT) (*big.In
 
 	tokenMetaData := converters.PrepareTokenMetaData(accountTokenData.MetaData)
 
-	return value, hex.EncodeToString([]byte(accountTokenData.Properties)), tokenMetaData, nil
+	return value, accountTokenData.Properties, tokenMetaData, nil
 }
 
 // PutTokenMedataDataInTokens will put the TokenMedata in provided tokens data
@@ -312,4 +313,17 @@ func (ap *accountsProcessor) loadMetadataForToken(
 	}
 
 	return nil, fmt.Errorf("%w for identifier %s and nonce %d", errTokenNotFound, tokenData.Identifier, tokenData.Nonce)
+}
+
+func isFrozen(properties string) bool {
+	decoded, err := hex.DecodeString(properties)
+	if err != nil {
+		log.Debug("isFrozen() cannot decode token properties", "error", err)
+		return false
+	}
+	if len(decoded) == 0 {
+		return false
+	}
+
+	return (decoded[0] & 1) != 0
 }

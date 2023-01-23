@@ -1,7 +1,7 @@
 package withKibana
 
 import (
-	"github.com/ElrondNetwork/elastic-indexer-go/templates"
+	"github.com/multiversx/mx-chain-es-indexer-go/templates"
 )
 
 type Object = templates.Object

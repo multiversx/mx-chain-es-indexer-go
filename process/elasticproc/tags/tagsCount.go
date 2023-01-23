@@ -1,6 +1,6 @@
 package tags
 
-import "github.com/ElrondNetwork/elastic-indexer-go/data"
+import "github.com/multiversx/mx-chain-es-indexer-go/data"
 
 type tagsCount struct {
 	tags map[string]int

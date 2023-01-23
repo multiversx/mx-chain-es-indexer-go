@@ -3,7 +3,7 @@ package operations
 import (
 	"testing"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/stretchr/testify/require"
 )
 

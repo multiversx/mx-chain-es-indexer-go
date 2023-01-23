@@ -7,10 +7,10 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/client/logging"
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	indexer "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	"github.com/elastic/go-elasticsearch/v7"
+	"github.com/multiversx/mx-chain-es-indexer-go/client/logging"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
+	indexer "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/stretchr/testify/require"
 )
 
