@@ -147,7 +147,7 @@ func TestDelegatorsProcessor_WithdrawalShouldWorkWith5Topics(t *testing.T) {
 	require.Equal(t, 0, len(res.delegator.WithdrawFundIDs))
 }
 
-func TestDelegatorsProcessor_WithdrawalShouldWorkWith(t *testing.T) {
+func TestDelegatorsProcessor_WithdrawalShouldWorkWithNewTopics(t *testing.T) {
 	t.Parallel()
 
 	event := &transaction.Event{

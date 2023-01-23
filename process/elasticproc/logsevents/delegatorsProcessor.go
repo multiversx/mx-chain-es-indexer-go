@@ -96,7 +96,7 @@ func (dp *delegatorsProc) processEvent(args *argsProcessEvent) argOutputProcessE
 	if eventIdentifierStr == withdrawFunc && len(topics) >= minNumTopicsDelegators+1 {
 		delegator.ShouldDelete = bytesToBool(topics[4])
 		withdrawFundIds := topics[5:]
-		delegator.WithdrawFundIDs = make([]string, 0)
+		delegator.WithdrawFundIDs = make([]string, 0, len(withdrawFundIds))
 		for _, id := range withdrawFundIds {
 			delegator.WithdrawFundIDs = append(delegator.WithdrawFundIDs, hex.EncodeToString(id))
 		}

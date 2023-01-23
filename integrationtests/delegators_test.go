@@ -5,6 +5,7 @@ package integrationtests
 import (
 	"math/big"
 	"testing"
+	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
@@ -122,6 +123,17 @@ func TestDelegateUnDelegateAndWithdraw(t *testing.T) {
 	err = esClient.DoMultiGet(ids, indexerdata.DelegatorsIndex, true, genericResponse)
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/delegators/delegator-after-un-delegate-2.json"), string(genericResponse.Docs[0].Source))
+	time.Sleep(time.Second)
+
+	// revert unDelegate 2
+	header.TimeStamp = 5060
+	err = esProc.RemoveTransactions(header, body)
+	require.Nil(t, err)
+
+	time.Sleep(time.Second)
+	err = esClient.DoMultiGet(ids, indexerdata.DelegatorsIndex, true, genericResponse)
+	require.Nil(t, err)
+	require.JSONEq(t, readExpectedResult("./testdata/delegators/delegator-after-revert.json"), string(genericResponse.Docs[0].Source))
 
 	// withdraw
 	withdrawValue, _ := big.NewInt(0).SetString("725500000000000000000", 10)

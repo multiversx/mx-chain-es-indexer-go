@@ -25,7 +25,6 @@ var Delegators = Object{
 				"type": "keyword",
 			},
 			"timestamp": Object{
-				"index":  "false",
 				"type":   "date",
 				"format": "epoch_second",
 			},

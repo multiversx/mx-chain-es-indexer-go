@@ -328,6 +328,24 @@ func (ec *elasticClient) createAlias(alias string, index string) error {
 	return parseResponse(res, nil, elasticDefaultErrorResponseHandler)
 }
 
+// UpdateByQuery will update all the documents that match the provided query from the provided index
+func (ec *elasticClient) UpdateByQuery(index string, buff *bytes.Buffer) error {
+	reader := bytes.NewReader(buff.Bytes())
+
+	res, err := ec.client.UpdateByQuery(
+		[]string{index},
+		ec.client.UpdateByQuery.WithBody(reader),
+	)
+	if err != nil {
+		return err
+	}
+	if res.IsError() {
+		return fmt.Errorf("%s", res.String())
+	}
+
+	return parseResponse(res, nil, elasticDefaultErrorResponseHandler)
+}
+
 // IsInterfaceNil returns true if there is no value under the interface
 func (ec *elasticClient) IsInterfaceNil() bool {
 	return ec == nil

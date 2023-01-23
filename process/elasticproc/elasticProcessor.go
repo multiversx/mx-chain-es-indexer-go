@@ -329,7 +329,23 @@ func (ei *elasticProcessor) RemoveTransactions(header coreData.HeaderHandler, bo
 		return err
 	}
 
-	return ei.removeIfHashesNotEmpty(elasticIndexer.LogsIndex, append(encodedTxsHashes, encodedScrsHashes...))
+	err = ei.removeIfHashesNotEmpty(elasticIndexer.LogsIndex, append(encodedTxsHashes, encodedScrsHashes...))
+	if err != nil {
+		return err
+	}
+
+	return ei.updateDelegatorsInCaseOfRevert(header, body)
+}
+
+func (ei *elasticProcessor) updateDelegatorsInCaseOfRevert(header coreData.HeaderHandler, body *block.Body) error {
+	// delegators index should be updated in case of revert only if the observer is in Metachain and the reverted block has miniblocks
+	shouldNotUpdate := header.GetShardID() != core.MetachainShardId || len(body.MiniBlocks) == 0
+	if shouldNotUpdate {
+		return nil
+	}
+
+	delegatorsQuery := ei.logsAndEventsProc.PrepareDelegatorsQueryInCaseOfRevert(header.GetTimeStamp())
+	return ei.elasticClient.UpdateByQuery(elasticIndexer.DelegatorsIndex, delegatorsQuery)
 }
 
 func (ei *elasticProcessor) removeIfHashesNotEmpty(index string, hashes []string) error {

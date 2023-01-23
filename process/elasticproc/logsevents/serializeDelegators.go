@@ -1,6 +1,7 @@
 package logsevents
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -24,6 +25,36 @@ func (lep *logsAndEventsProcessor) SerializeDelegators(delegators map[string]*da
 	}
 
 	return nil
+}
+
+// PrepareDelegatorsQueryInCaseOfRevert will prepare the delegators query in case of revert
+func (lep *logsAndEventsProcessor) PrepareDelegatorsQueryInCaseOfRevert(timestamp uint64) *bytes.Buffer {
+	codeToExecute := `
+	if ( !ctx._source.containsKey('unDelegateInfo') ) { return } 
+	if ( ctx._source.unDelegateInfo.length == 0 ) { return }
+
+	Iterator itr = ctx._source.unDelegateInfo.iterator();
+	while (itr.hasNext()) {
+		HashMap unDelegate = itr.next(); 
+		if (unDelegate.timestamp == params.timestamp) { itr.remove(); } 
+	}
+`
+
+	query := fmt.Sprintf(`
+	{
+	  "query": {
+		"match": {
+		  "timestamp": %d
+		}
+	  },
+	  "script": {
+		"source": "%s",
+		"lang": "painless",
+		"params": {"timestamp": %d}
+	  }
+	}`, timestamp, converters.FormatPainlessSource(codeToExecute), timestamp)
+
+	return bytes.NewBuffer([]byte(query))
 }
 
 func (lep *logsAndEventsProcessor) prepareSerializedDelegator(delegator *data.Delegator, index string) ([]byte, []byte, error) {
@@ -117,12 +148,14 @@ func prepareSerializedDataForWithdrawal(delegator *data.Delegator, delegatorSeri
 			if (!ctx._source.containsKey('unDelegateInfo')) {
 				return
 			} else {
-				for (int i = 0; i < ctx._source.unDelegateInfo.length; i++) {
-				  for (int j = 0; j < params.withdrawIds.length; j++) {
-				    if 	(ctx._source.unDelegateInfo[i].id == params.withdrawIds[j]) {
-						ctx._source.unDelegateInfo.remove(i);
+				Iterator itr = ctx._source.unDelegateInfo.iterator();
+				while (itr.hasNext()) {
+					HashMap unDelegate = itr.next();
+					for (int j = 0; j < params.withdrawIds.length; j++) {
+					  if (unDelegate.id == params.withdrawIds[j]) {
+						itr.remove();
+					  }
 					}
-				  }
 				}
 				if (ctx._source.unDelegateInfo.length == 0) {ctx._source.remove('unDelegateInfo')}
 			}
