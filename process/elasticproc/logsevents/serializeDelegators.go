@@ -32,12 +32,7 @@ func (lep *logsAndEventsProcessor) PrepareDelegatorsQueryInCaseOfRevert(timestam
 	codeToExecute := `
 	if ( !ctx._source.containsKey('unDelegateInfo') ) { return } 
 	if ( ctx._source.unDelegateInfo.length == 0 ) { return }
-
-	Iterator itr = ctx._source.unDelegateInfo.iterator();
-	while (itr.hasNext()) {
-		HashMap unDelegate = itr.next(); 
-		if (unDelegate.timestamp == params.timestamp) { itr.remove(); } 
-	}
+	ctx._source.unDelegateInfo.removeIf(info -> info.timestamp.equals(params.timestamp));
 `
 
 	query := fmt.Sprintf(`

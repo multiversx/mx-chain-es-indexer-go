@@ -339,8 +339,10 @@ func (ei *elasticProcessor) RemoveTransactions(header coreData.HeaderHandler, bo
 
 func (ei *elasticProcessor) updateDelegatorsInCaseOfRevert(header coreData.HeaderHandler, body *block.Body) error {
 	// delegators index should be updated in case of revert only if the observer is in Metachain and the reverted block has miniblocks
-	shouldNotUpdate := header.GetShardID() != core.MetachainShardId || len(body.MiniBlocks) == 0
-	if shouldNotUpdate {
+	isMeta := header.GetShardID() == core.MetachainShardId
+	hasMiniblocks := len(body.MiniBlocks) > 0
+	shouldUpdate := isMeta && hasMiniblocks
+	if !shouldUpdate {
 		return nil
 	}
 
