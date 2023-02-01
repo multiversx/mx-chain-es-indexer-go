@@ -19,6 +19,7 @@ type DatabaseClientHandler interface {
 	DoMultiGet(ids []string, index string, withSource bool, res interface{}) error
 	DoScrollRequest(index string, body []byte, withSource bool, handlerFunc func(responseBytes []byte) error) error
 	DoCountRequest(index string, body []byte) (uint64, error)
+	UpdateByQuery(index string, buff *bytes.Buffer) error
 
 	CheckAndCreateIndex(index string) error
 	CheckAndCreateAlias(alias string, index string) error
@@ -119,6 +120,7 @@ type DBLogsAndEventsHandler interface {
 		buffSlice *data.BufferSlice,
 		index string,
 	) error
+	PrepareDelegatorsQueryInCaseOfRevert(timestamp uint64) *bytes.Buffer
 }
 
 // OperationsHandler defines the actions that an operations' handler should do

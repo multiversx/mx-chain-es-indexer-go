@@ -1,8 +1,10 @@
 package logsevents
 
 import (
+	"encoding/hex"
 	"math/big"
 	"strconv"
+	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
@@ -72,7 +74,10 @@ func (dp *delegatorsProc) processEvent(args *argsProcessEvent) argOutputProcessE
 	// topics[1] = active stake
 	// topics[2] = num contract users
 	// topics[3] = total contract active stake
-	// topics[4] = true - if the delegator was deleted in case of withdrawal OR the contract address in case of delegate operations from staking v3.5 (makeNewContractFromValidatorData, mergeValidatorToDelegationSameOwner or mergeValidatorToDelegationWithWhitelist)
+	// topics[4] = true - if the delegator was deleted in case of withdrawal
+	//             the contract address in case of delegate operations from staking v3.5 (makeNewContractFromValidatorData, mergeValidatorToDelegationSameOwner or mergeValidatorToDelegationWithWhitelist)
+	//			   unDelegate fund key in case of unDelegate operation
+	// topics[5:] = unDelegate fund keys in case of withdrawal
 	activeStake := big.NewInt(0).SetBytes(topics[1])
 
 	contractAddr := dp.pubkeyConverter.Encode(args.logAddress)
@@ -85,10 +90,26 @@ func (dp *delegatorsProc) processEvent(args *argsProcessEvent) argOutputProcessE
 		Contract:       contractAddr,
 		ActiveStake:    activeStake.String(),
 		ActiveStakeNum: dp.balanceConverter.ComputeBalanceAsFloat(activeStake),
+		Timestamp:      time.Duration(args.timestamp),
 	}
 
 	if eventIdentifierStr == withdrawFunc && len(topics) >= minNumTopicsDelegators+1 {
 		delegator.ShouldDelete = bytesToBool(topics[4])
+		withdrawFundIds := topics[5:]
+		delegator.WithdrawFundIDs = make([]string, 0, len(withdrawFundIds))
+		for _, id := range withdrawFundIds {
+			delegator.WithdrawFundIDs = append(delegator.WithdrawFundIDs, hex.EncodeToString(id))
+		}
+	}
+	if eventIdentifierStr == unDelegateFunc && len(topics) >= minNumTopicsDelegators+1 {
+		unDelegateValue := big.NewInt(0).SetBytes(topics[0])
+
+		delegator.UnDelegateInfo = &data.UnDelegate{
+			Timestamp: time.Duration(args.timestamp),
+			Value:     unDelegateValue.String(),
+			ValueNum:  dp.balanceConverter.ComputeBalanceAsFloat(unDelegateValue),
+			ID:        hex.EncodeToString(topics[4]),
+		}
 	}
 
 	return argOutputProcessEvent{

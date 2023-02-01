@@ -45,6 +45,18 @@ var Accounts = Object{
 				"type":   "date",
 				"format": "epoch_second",
 			},
+			"userName": Object{
+				"type": "keyword",
+			},
+			"owner": Object{
+				"type": "keyword",
+			},
+			"developerRewards": Object{
+				"type": "keyword",
+			},
+			"developerRewardsNum": Object{
+				"type": "double",
+			},
 		},
 	},
 }
