@@ -53,7 +53,7 @@ func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txsDatabaseProce
 	txBuilder := newTransactionDBBuilder(args.AddressPubkeyConverter, operationsDataParser, args.BalanceConverter)
 	txsDBGrouper := newTxsGrouper(txBuilder, args.Hasher, args.Marshalizer)
 	scrProc := newSmartContractResultsProcessor(args.AddressPubkeyConverter, args.Marshalizer, args.Hasher, operationsDataParser, args.BalanceConverter)
-	scrsDataToTxs := newScrsDataToTransactions()
+	scrsDataToTxs := newScrsDataToTransactions(args.BalanceConverter)
 
 	return &txsDatabaseProcessor{
 		txBuilder:     txBuilder,

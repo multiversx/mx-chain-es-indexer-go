@@ -133,6 +133,7 @@ func TestTxsDatabaseProcessor_SerializeTransactionWithRefund(t *testing.T) {
 
 	txHashRefund := map[string]*data.FeeData{
 		"txHash": {
+			FeeNum:   5e-15,
 			Fee:      "100000",
 			GasUsed:  5000,
 			Receiver: "sender",
@@ -144,7 +145,7 @@ func TestTxsDatabaseProcessor_SerializeTransactionWithRefund(t *testing.T) {
 	require.Nil(t, err)
 
 	expectedBuff := `{"update":{ "_index":"transactions","_id":"txHash"}}
-{"scripted_upsert": true, "script": {"source": "if ('create' == ctx.op) {ctx.op = 'noop'} else {ctx._source.fee = params.fee;ctx._source.gasUsed = params.gasUsed;}","lang": "painless","params": {"fee": "100000", "gasUsed": 5000}},"upsert": {}}
+{"scripted_upsert": true, "script": {"source": "if ('create' == ctx.op) {ctx.op = 'noop'} else {ctx._source.fee = params.fee;ctx._source.feeNum = params.feeNum;ctx._source.gasUsed = params.gasUsed;}","lang": "painless","params": {"fee": "100000", "gasUsed": 5000, "feeNum": 5e-15}},"upsert": {}}
 `
 	require.Equal(t, expectedBuff, buffSlice.Buffers()[0].String())
 }

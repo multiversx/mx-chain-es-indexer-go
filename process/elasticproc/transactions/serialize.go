@@ -55,6 +55,7 @@ func (tdp *txsDatabaseProcessor) SerializeTransactionsFeeData(txHashRefund map[s
 				ctx.op = 'noop'
 			} else {
 				ctx._source.fee = params.fee;
+				ctx._source.feeNum = params.feeNum;
 				ctx._source.gasUsed = params.gasUsed;
 			}
 `
@@ -62,9 +63,9 @@ func (tdp *txsDatabaseProcessor) SerializeTransactionsFeeData(txHashRefund map[s
 		serializedDataStr := fmt.Sprintf(`{"scripted_upsert": true, "script": {`+
 			`"source": "%s",`+
 			`"lang": "painless",`+
-			`"params": {"fee": "%s", "gasUsed": %d}},`+
+			`"params": {"fee": "%s", "gasUsed": %d, "feeNum": %g}},`+
 			`"upsert": {}}`,
-			converters.FormatPainlessSource(codeToExecute), feeData.Fee, feeData.GasUsed,
+			converters.FormatPainlessSource(codeToExecute), feeData.Fee, feeData.GasUsed, feeData.FeeNum,
 		)
 
 		err := buffSlice.PutData(meta, []byte(serializedDataStr))
