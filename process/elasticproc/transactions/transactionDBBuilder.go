@@ -14,21 +14,25 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/rewardTx"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	datafield "github.com/multiversx/mx-chain-vm-common-go/parsers/dataField"
 )
 
 type dbTransactionBuilder struct {
 	addressPubkeyConverter core.PubkeyConverter
 	dataFieldParser        DataFieldParser
+	balanceConverter       dataindexer.BalanceConverter
 }
 
 func newTransactionDBBuilder(
 	addressPubkeyConverter core.PubkeyConverter,
 	dataFieldParser DataFieldParser,
+	balanceConverter dataindexer.BalanceConverter,
 ) *dbTransactionBuilder {
 	return &dbTransactionBuilder{
 		addressPubkeyConverter: addressPubkeyConverter,
 		dataFieldParser:        dataFieldParser,
+		balanceConverter:       balanceConverter,
 	}
 }
 
@@ -58,6 +62,7 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		Nonce:             tx.Nonce,
 		Round:             header.GetRound(),
 		Value:             tx.Value.String(),
+		ValueNum:          dtb.balanceConverter.ComputeESDTBalanceAsFloat(tx.Value),
 		Receiver:          dtb.addressPubkeyConverter.Encode(tx.RcvAddr),
 		Sender:            dtb.addressPubkeyConverter.Encode(tx.SndAddr),
 		ReceiverShard:     receiverShardID,
@@ -71,12 +76,14 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		GasUsed:           gasUsed,
 		InitialPaidFee:    initialPaidFee.String(),
 		Fee:               fee.String(),
+		FeeNum:            dtb.balanceConverter.ComputeESDTBalanceAsFloat(fee),
 		ReceiverUserName:  tx.RcvUserName,
 		SenderUserName:    tx.SndUserName,
 		IsScCall:          isScCall,
 		Operation:         res.Operation,
 		Function:          res.Function,
 		ESDTValues:        res.ESDTValues,
+		ESDTValuesNum:     dtb.balanceConverter.ComputeSliceOfStringsAsFloat(res.ESDTValues),
 		Tokens:            res.Tokens,
 		Receivers:         datafield.EncodeBytesSlice(dtb.addressPubkeyConverter.Encode, res.Receivers),
 		ReceiversShardIDs: res.ReceiversShardID,
@@ -99,6 +106,7 @@ func (dtb *dbTransactionBuilder) prepareRewardTransaction(
 		Nonce:         0,
 		Round:         rTx.Round,
 		Value:         rTx.Value.String(),
+		ValueNum:      dtb.balanceConverter.ComputeESDTBalanceAsFloat(rTx.Value),
 		Receiver:      dtb.addressPubkeyConverter.Encode(rTx.RcvAddr),
 		Sender:        fmt.Sprintf("%d", core.MetachainShardId),
 		ReceiverShard: mb.ReceiverShardID,

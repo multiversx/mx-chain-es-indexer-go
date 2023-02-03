@@ -80,5 +80,6 @@ type Indexer interface {
 type BalanceConverter interface {
 	ComputeBalanceAsFloat(balance *big.Int) float64
 	ComputeESDTBalanceAsFloat(balance *big.Int) float64
+	ComputeSliceOfStringsAsFloat(values []string) []float64
 	IsInterfaceNil() bool
 }

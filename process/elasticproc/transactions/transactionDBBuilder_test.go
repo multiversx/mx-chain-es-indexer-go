@@ -13,13 +13,16 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/mock"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
 	"github.com/stretchr/testify/require"
 )
 
 func createCommonProcessor() dbTransactionBuilder {
+	ap, _ := converters.NewBalanceConverter(18)
 	return dbTransactionBuilder{
 		addressPubkeyConverter: mock.NewPubkeyConverterMock(32),
 		dataFieldParser:        createDataFieldParserMock(),
+		balanceConverter:       ap,
 	}
 }
 
@@ -56,6 +59,7 @@ func TestGetMoveBalanceTransaction(t *testing.T) {
 		Nonce:            tx.Nonce,
 		Round:            header.Round,
 		Value:            tx.Value.String(),
+		ValueNum:         1e-15,
 		Receiver:         cp.addressPubkeyConverter.Encode(tx.RcvAddr),
 		Sender:           cp.addressPubkeyConverter.Encode(tx.SndAddr),
 		ReceiverShard:    mb.ReceiverShardID,
@@ -69,8 +73,10 @@ func TestGetMoveBalanceTransaction(t *testing.T) {
 		Timestamp:        time.Duration(header.GetTimeStamp()),
 		Status:           status,
 		Fee:              "100",
+		FeeNum:           1e-16,
 		ReceiverUserName: []byte("rcv"),
 		SenderUserName:   []byte("snd"),
+		ESDTValuesNum:    []float64{},
 		Operation:        "transfer",
 		Version:          1,
 		Receivers:        []string{},
@@ -143,6 +149,7 @@ func TestGetMoveBalanceTransactionInvalid(t *testing.T) {
 		Nonce:            tx.Nonce,
 		Round:            header.Round,
 		Value:            tx.Value.String(),
+		ValueNum:         1e-15,
 		Receiver:         cp.addressPubkeyConverter.Encode(tx.RcvAddr),
 		Sender:           cp.addressPubkeyConverter.Encode(tx.SndAddr),
 		ReceiverShard:    uint32(2),
@@ -156,11 +163,13 @@ func TestGetMoveBalanceTransactionInvalid(t *testing.T) {
 		Timestamp:        time.Duration(header.GetTimeStamp()),
 		Status:           status,
 		Fee:              "100",
+		FeeNum:           1e-16,
 		ReceiverUserName: []byte("rcv"),
 		SenderUserName:   []byte("snd"),
 		Operation:        "transfer",
 		Version:          1,
 		Receivers:        []string{},
+		ESDTValuesNum:    []float64{},
 	}
 
 	dbTx := cp.prepareTransaction(tx, txHash, mbHash, mb, header, status, big.NewInt(100), 500, big.NewInt(100), 3)

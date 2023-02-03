@@ -10,6 +10,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/mock"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
 	datafield "github.com/multiversx/mx-chain-vm-common-go/parsers/dataField"
 	"github.com/stretchr/testify/require"
 )
@@ -29,7 +30,8 @@ func TestPrepareSmartContractResult(t *testing.T) {
 
 	parser := createDataFieldParserMock()
 	pubKeyConverter := &mock.PubkeyConverterMock{}
-	scrsProc := newSmartContractResultsProcessor(pubKeyConverter, &mock.MarshalizerMock{}, &mock.HasherMock{}, parser)
+	ap, _ := converters.NewBalanceConverter(18)
+	scrsProc := newSmartContractResultsProcessor(pubKeyConverter, &mock.MarshalizerMock{}, &mock.HasherMock{}, parser, ap)
 
 	nonce := uint64(10)
 	txHash := []byte("txHash")
@@ -66,6 +68,7 @@ func TestPrepareSmartContractResult(t *testing.T) {
 		Operation:          "transfer",
 		SenderAddressBytes: sndAddr,
 		Receivers:          []string{},
+		ESDTValuesNum:      []float64{},
 		InitialTxFee:       "0",
 	}
 

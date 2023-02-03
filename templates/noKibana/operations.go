@@ -37,9 +37,15 @@ var Operations = Object{
 			"esdtValues": Object{
 				"type": "keyword",
 			},
+			"esdtValuesNum": Object{
+				"type": "double",
+			},
 			"fee": Object{
 				"index": "false",
 				"type":  "keyword",
+			},
+			"feeNum": Object{
+				"type": "double",
 			},
 			"function": Object{
 				"type": "keyword",
@@ -149,6 +155,9 @@ var Operations = Object{
 			},
 			"value": Object{
 				"type": "keyword",
+			},
+			"valueNum": Object{
+				"type": "double",
 			},
 			"version": Object{
 				"type": "long",

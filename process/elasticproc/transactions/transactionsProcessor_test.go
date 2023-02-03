@@ -15,15 +15,18 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/mock"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func createMockArgsTxsDBProc() *ArgsTransactionProcessor {
+	ap, _ := converters.NewBalanceConverter(18)
 	args := &ArgsTransactionProcessor{
 		AddressPubkeyConverter: mock.NewPubkeyConverterMock(10),
 		Hasher:                 &mock.HasherMock{},
 		Marshalizer:            &mock.MarshalizerMock{},
+		BalanceConverter:       ap,
 	}
 	return args
 }
