@@ -51,7 +51,7 @@ func (bc *balanceConverter) ComputeSliceOfStringsAsFloat(values []string) []floa
 	for _, value := range values {
 		valueBig, ok := big.NewInt(0).SetString(value, 10)
 		if !ok {
-			log.Warn("bc.ComputeSliceOfStringsAsFloat cannot convert value type string to float", "value", valueBig.String())
+			log.Warn("bc.ComputeSliceOfStringsAsFloat cannot convert value type string to float", "value", value)
 			floatValues = append(floatValues, 0)
 			continue
 		}

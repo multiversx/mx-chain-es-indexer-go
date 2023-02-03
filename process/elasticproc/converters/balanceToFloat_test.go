@@ -63,6 +63,19 @@ func TestComputeBalanceToFloat18Decimals(t *testing.T) {
 	require.Equal(t, 1e-15, ap.ComputeESDTBalanceAsFloat(big.NewInt(1000)))
 }
 
+func TestComputeBalanceToFloatSliceOfValues(t *testing.T) {
+	t.Parallel()
+
+	ap, _ := NewBalanceConverter(18)
+	require.NotNil(t, ap)
+
+	values := []string{"1000000000000000000", "200000000000000000", "100", "2000"}
+	require.Equal(t, []float64{1, 0.2, 1e-16, 2e-15}, ap.ComputeSliceOfStringsAsFloat(values))
+
+	valuesWrong := []string{"wrong"}
+	require.Equal(t, []float64{0}, ap.ComputeSliceOfStringsAsFloat(valuesWrong))
+}
+
 func TestBigIntToString(t *testing.T) {
 	t.Parallel()
 
