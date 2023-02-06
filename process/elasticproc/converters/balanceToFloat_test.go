@@ -71,7 +71,7 @@ func TestComputeBalanceToFloatSliceOfValues(t *testing.T) {
 	require.NotNil(t, ap)
 
 	values := []string{"1000000000000000000", "200000000000000000", "100", "2000", "0"}
-	require.Equal(t, []float64{1, 0.2, 1e-16, 2e-15, float64(0)}, ap.ComputeSliceOfStringsAsFloat(values))
+	require.Equal(t, []float64{1, 0.2, 1e-16, 2e-15, 0}, ap.ComputeSliceOfStringsAsFloat(values))
 
 	valuesWrong := []string{"wrong"}
 	require.Equal(t, []float64{0}, ap.ComputeSliceOfStringsAsFloat(valuesWrong))
