@@ -6,9 +6,13 @@
   "data": "RVNEVE5GVFRyYW5zZmVyQDUzNmY2ZDY1NzQ2ODY5NmU2NzJkNjE2MjYzNjQ2NTY2QDAxQDAxQDAwMDAwMDAwMDAwMDAwMDAwNTAwYTdhMDI3NzFhYTA3MDkwZTYwN2YwMmIyNWY0ZDZkMjQxYmZmMzJiOTkwYTI=",
   "signature": "",
   "fee": "235850000000000",
+  "feeNum": 0.00023585,
   "initialPaidFee": "276215000000000",
   "esdtValues": [
     "1"
+  ],
+  "esdtValuesNum": [
+    1e-18
   ],
   "nonce": 79,
   "gasLimit": 5000000,
@@ -26,6 +30,7 @@
     "Something-abcdef-01"
   ],
   "value": "0",
+  "valueNum": 0,
   "operation": "ESDTNFTTransfer",
   "gasPrice": 1000000000,
   "timestamp": 5040,

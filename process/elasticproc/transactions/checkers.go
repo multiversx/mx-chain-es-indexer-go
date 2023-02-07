@@ -33,6 +33,9 @@ func checkTxsProcessorArg(args *ArgsTransactionProcessor) error {
 	if check.IfNil(args.AddressPubkeyConverter) {
 		return elasticIndexer.ErrNilPubkeyConverter
 	}
+	if check.IfNil(args.BalanceConverter) {
+		return elasticIndexer.ErrNilBalanceConverter
+	}
 
 	return nil
 }

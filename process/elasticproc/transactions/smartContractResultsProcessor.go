@@ -14,14 +14,16 @@ import (
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	indexerData "github.com/multiversx/mx-chain-es-indexer-go/data"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	datafield "github.com/multiversx/mx-chain-vm-common-go/parsers/dataField"
 )
 
 type smartContractResultsProcessor struct {
-	pubKeyConverter core.PubkeyConverter
-	hasher          hashing.Hasher
-	marshalizer     marshal.Marshalizer
-	dataFieldParser DataFieldParser
+	pubKeyConverter  core.PubkeyConverter
+	hasher           hashing.Hasher
+	marshalizer      marshal.Marshalizer
+	dataFieldParser  DataFieldParser
+	balanceConverter dataindexer.BalanceConverter
 }
 
 func newSmartContractResultsProcessor(
@@ -29,12 +31,14 @@ func newSmartContractResultsProcessor(
 	marshalzier marshal.Marshalizer,
 	hasher hashing.Hasher,
 	dataFieldParser DataFieldParser,
+	balanceConverter dataindexer.BalanceConverter,
 ) *smartContractResultsProcessor {
 	return &smartContractResultsProcessor{
-		pubKeyConverter: pubKeyConverter,
-		marshalizer:     marshalzier,
-		hasher:          hasher,
-		dataFieldParser: dataFieldParser,
+		pubKeyConverter:  pubKeyConverter,
+		marshalizer:      marshalzier,
+		hasher:           hasher,
+		dataFieldParser:  dataFieldParser,
+		balanceConverter: balanceConverter,
 	}
 }
 
@@ -147,6 +151,7 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 		GasLimit:           scr.GasLimit,
 		GasPrice:           scr.GasPrice,
 		Value:              scr.Value.String(),
+		ValueNum:           proc.balanceConverter.ComputeESDTBalanceAsFloat(scr.Value),
 		Sender:             proc.pubKeyConverter.Encode(scr.SndAddr),
 		Receiver:           proc.pubKeyConverter.Encode(scr.RcvAddr),
 		RelayerAddr:        relayerAddr,
@@ -165,6 +170,7 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 		Operation:          res.Operation,
 		Function:           res.Function,
 		ESDTValues:         res.ESDTValues,
+		ESDTValuesNum:      proc.balanceConverter.ComputeSliceOfStringsAsFloat(res.ESDTValues),
 		Tokens:             res.Tokens,
 		Receivers:          datafield.EncodeBytesSlice(proc.pubKeyConverter.Encode, res.Receivers),
 		ReceiversShardIDs:  res.ReceiversShardID,

@@ -51,6 +51,32 @@ func TestComputeBalanceAsFloat(t *testing.T) {
 	}
 }
 
+func TestComputeBalanceToFloat18Decimals(t *testing.T) {
+	t.Parallel()
+
+	ap, _ := NewBalanceConverter(18)
+	require.NotNil(t, ap)
+
+	require.Equal(t, 1e-18, ap.ComputeESDTBalanceAsFloat(big.NewInt(1)))
+	require.Equal(t, 1e-17, ap.ComputeESDTBalanceAsFloat(big.NewInt(10)))
+	require.Equal(t, 1e-16, ap.ComputeESDTBalanceAsFloat(big.NewInt(100)))
+	require.Equal(t, 1e-15, ap.ComputeESDTBalanceAsFloat(big.NewInt(1000)))
+	require.Equal(t, float64(0), ap.ComputeESDTBalanceAsFloat(big.NewInt(0)))
+}
+
+func TestComputeBalanceToFloatSliceOfValues(t *testing.T) {
+	t.Parallel()
+
+	ap, _ := NewBalanceConverter(18)
+	require.NotNil(t, ap)
+
+	values := []string{"1000000000000000000", "200000000000000000", "100", "2000", "0"}
+	require.Equal(t, []float64{1, 0.2, 1e-16, 2e-15, 0}, ap.ComputeSliceOfStringsAsFloat(values))
+
+	valuesWrong := []string{"wrong"}
+	require.Equal(t, []float64{0}, ap.ComputeSliceOfStringsAsFloat(valuesWrong))
+}
+
 func TestBigIntToString(t *testing.T) {
 	t.Parallel()
 

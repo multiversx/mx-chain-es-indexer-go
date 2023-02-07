@@ -6,8 +6,12 @@
   "data": "RVNEVE5GVFRyYW5zZmVyQDRjNGI0NjQxNTI0ZDJkMzM2NjM0NjYzOTYyQDAxNjUzNEA2ZjFlNmYwMWJjNzYyN2Y1YWVAMDAwMDAwMDAwMDAwMDAwMDA1MDBmMWM4ZjJmZGM1OGE2M2M2YjIwMWZjMmVkNjI5OTYyZDNkZmEzM2ZlN2NlYkA2MzZmNmQ3MDZmNzU2ZTY0NTI2NTc3NjE3MjY0NzM1MDcyNmY3ODc5QDAwMDAwMDAwMDAwMDAwMDAwNTAwNGY3OWVjNDRiYjEzMzcyYjVhYzlkOTk2ZDc0OTEyMGY0NzY0Mjc2MjdjZWI=",
   "signature": "",
   "fee": "1904415000000000",
+  "feeNum": 0.001904415,
   "esdtValues": [
     "2049781565634260759982"
+  ],
+  "esdtValuesNum": [
+    2049.781565634261
   ],
   "nonce": 79,
   "gasLimit": 150000000,
@@ -26,6 +30,7 @@
     "LKFARM-3f4f9b-016534"
   ],
   "value": "0",
+  "valueNum": 0,
   "operation": "ESDTNFTTransfer",
   "gasPrice": 1000000000,
   "timestamp": 5040,

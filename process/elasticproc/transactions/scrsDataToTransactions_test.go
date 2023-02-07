@@ -5,13 +5,15 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
 	"github.com/stretchr/testify/require"
 )
 
 func TestAttachSCRsToTransactionsAndReturnSCRsWithoutTx(t *testing.T) {
 	t.Parallel()
 
-	scrsDataToTxs := newScrsDataToTransactions()
+	bc, _ := converters.NewBalanceConverter(18)
+	scrsDataToTxs := newScrsDataToTransactions(bc)
 
 	txHash1 := []byte("txHash1")
 	txHash2 := []byte("txHash2")
@@ -58,7 +60,8 @@ func TestAttachSCRsToTransactionsAndReturnSCRsWithoutTx(t *testing.T) {
 func TestProcessTransactionsAfterSCRsWereAttached(t *testing.T) {
 	t.Parallel()
 
-	scrsDataToTxs := newScrsDataToTransactions()
+	bc, _ := converters.NewBalanceConverter(18)
+	scrsDataToTxs := newScrsDataToTransactions(bc)
 
 	txHash1 := []byte("txHash1")
 	txHash2 := []byte("txHash2")
@@ -93,7 +96,8 @@ func TestProcessTransactionsAfterSCRsWereAttached(t *testing.T) {
 func TestIsESDTNFTTransferWithUserError(t *testing.T) {
 	t.Parallel()
 
-	scrsDataToTxs := newScrsDataToTransactions()
+	bc, _ := converters.NewBalanceConverter(18)
+	scrsDataToTxs := newScrsDataToTransactions(bc)
 
 	require.False(t, scrsDataToTxs.isESDTNFTTransferOrMultiTransferWithError("ESDTNFTTransfer@45474c444d4558462d333766616239@06f5@045d2bd2629df0d2ea@0801120a00045d2bd2629df0d2ea226408f50d1a2000000000000000000500e809539d1d8febc54df4e6fe826fdc8ab6c88cf07ceb32003a3b00000007401c82df9c05a80000000000000407000000000000040f010000000009045d2bd2629df0d2ea0000000000000009045d2bd2629df0d2ea@636c61696d52657761726473"))
 	require.False(t, scrsDataToTxs.isESDTNFTTransferOrMultiTransferWithError("ESDTTransfer@4d45582d623662623764@74b7e37e3c2efe5f11@"))

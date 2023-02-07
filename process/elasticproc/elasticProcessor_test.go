@@ -418,10 +418,12 @@ func TestElasticseachSaveTransactions(t *testing.T) {
 	header := &dataBlock.Header{Nonce: 1, TxCount: 2}
 	txPool := newTestTxPool()
 
+	bc, _ := converters.NewBalanceConverter(18)
 	args := &transactions.ArgsTransactionProcessor{
 		AddressPubkeyConverter: mock.NewPubkeyConverterMock(32),
 		Hasher:                 &mock.HasherMock{},
 		Marshalizer:            &mock.MarshalizerMock{},
+		BalanceConverter:       bc,
 	}
 	txDbProc, _ := transactions.NewTransactionsProcessor(args)
 	arguments.TransactionsProc = txDbProc

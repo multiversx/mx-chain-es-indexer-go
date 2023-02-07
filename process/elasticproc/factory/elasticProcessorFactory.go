@@ -80,6 +80,7 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (dataindexer.E
 		AddressPubkeyConverter: arguments.AddressPubkeyConverter,
 		Hasher:                 arguments.Hasher,
 		Marshalizer:            arguments.Marshalizer,
+		BalanceConverter:       balanceConverter,
 	}
 	txsProc, err := transactions.NewTransactionsProcessor(argsTxsProc)
 	if err != nil {

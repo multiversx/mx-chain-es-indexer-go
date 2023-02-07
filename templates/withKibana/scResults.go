@@ -33,6 +33,9 @@ var SCResults = Object{
 			"esdtValues": Object{
 				"type": "keyword",
 			},
+			"esdtValuesNum": Object{
+				"type": "double",
+			},
 			"function": Object{
 				"type": "keyword",
 			},
@@ -102,6 +105,9 @@ var SCResults = Object{
 			},
 			"value": Object{
 				"type": "keyword",
+			},
+			"valueNum": Object{
+				"type": "double",
 			},
 		},
 	},

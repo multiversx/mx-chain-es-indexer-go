@@ -2,11 +2,13 @@ package transactions
 
 import (
 	"encoding/hex"
+	"math/big"
 	"strings"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 )
 
@@ -15,10 +17,11 @@ const (
 )
 
 type scrsDataToTransactions struct {
-	retCodes []string
+	retCodes         []string
+	balanceConverter dataindexer.BalanceConverter
 }
 
-func newScrsDataToTransactions() *scrsDataToTransactions {
+func newScrsDataToTransactions(balanceConverter dataindexer.BalanceConverter) *scrsDataToTransactions {
 	return &scrsDataToTransactions{
 		retCodes: []string{
 			vmcommon.FunctionNotFound.String(),
@@ -33,6 +36,7 @@ func newScrsDataToTransactions() *scrsDataToTransactions {
 			vmcommon.ExecutionFailed.String(),
 			vmcommon.UpgradeFailed.String(),
 		},
+		balanceConverter: balanceConverter,
 	}
 }
 
@@ -139,7 +143,14 @@ func (st *scrsDataToTransactions) processSCRsWithoutTx(scrs []*data.ScResult) (m
 	txHashRefund := make(map[string]*data.FeeData)
 	for _, scr := range scrs {
 		if scr.InitialTxGasUsed != 0 {
+			var feeNum float64
+			initialTxFeeBig, ok := big.NewInt(0).SetString(scr.InitialTxFee, 10)
+			if ok {
+				feeNum = st.balanceConverter.ComputeESDTBalanceAsFloat(initialTxFeeBig)
+			}
+
 			txHashRefund[scr.OriginalTxHash] = &data.FeeData{
+				FeeNum:   feeNum,
 				Fee:      scr.InitialTxFee,
 				GasUsed:  scr.InitialTxGasUsed,
 				Receiver: scr.Receiver,
