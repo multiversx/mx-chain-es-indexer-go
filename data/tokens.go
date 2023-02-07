@@ -44,7 +44,7 @@ type TokenInfo struct {
 	Token             string           `json:"token,omitempty"`
 	Issuer            string           `json:"issuer,omitempty"`
 	CurrentOwner      string           `json:"currentOwner,omitempty"`
-	NumDecimals       uint64           `json:"numDecimals,omitempty"`
+	NumDecimals       uint64           `json:"numDecimals"`
 	Type              string           `json:"type,omitempty"`
 	Nonce             uint64           `json:"nonce,omitempty"`
 	Timestamp         time.Duration    `json:"timestamp,omitempty"`

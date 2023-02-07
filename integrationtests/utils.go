@@ -2,8 +2,12 @@ package integrationtests
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
+	"net/http"
+	"net/url"
 	"os"
+	"path"
 
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/multiversx/mx-chain-core-go/core/pubkeyConverter"
@@ -53,7 +57,7 @@ func CreateElasticProcessor(
 		DBClient:                 esClient,
 		EnabledIndexes: []string{dataindexer.TransactionsIndex, dataindexer.LogsIndex, dataindexer.AccountsESDTIndex, dataindexer.ScResultsIndex,
 			dataindexer.ReceiptsIndex, dataindexer.BlockIndex, dataindexer.AccountsIndex, dataindexer.TokensIndex, dataindexer.TagsIndex,
-			dataindexer.OperationsIndex, dataindexer.DelegatorsIndex},
+			dataindexer.OperationsIndex, dataindexer.DelegatorsIndex, dataindexer.ESDTsIndex},
 		Denomination: 18,
 	}
 
@@ -74,4 +78,25 @@ func getElementFromSlice(path string, index int) string {
 	res, _ := json.Marshal(slice[index]["_source"])
 
 	return string(res)
+}
+
+//nolint
+func getIndexMappings(index string) (string, error) {
+	u, _ := url.Parse(esURL)
+	u.Path = path.Join(u.Path, index, "_mappings")
+	res, err := http.Get(u.String())
+	if err != nil {
+		return "", err
+	}
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return "", err
+	}
+
+	if res.StatusCode >= 400 {
+		return "", fmt.Errorf("%s", string(body))
+	}
+
+	return string(body), nil
 }

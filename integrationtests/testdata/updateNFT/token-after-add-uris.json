@@ -12,5 +12,6 @@
     ],
     "nonEmptyURIs": true,
     "whiteListedStorage": false
-  }
+  },
+  "numDecimals": 0
 }

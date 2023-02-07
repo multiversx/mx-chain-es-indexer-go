@@ -60,6 +60,10 @@ func TestIssueTokenAndTransferOwnership(t *testing.T) {
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/issueToken/token-semi.json"), string(genericResponse.Docs[0].Source))
 
+	err = esClient.DoMultiGet(ids, indexerdata.ESDTsIndex, true, genericResponse)
+	require.Nil(t, err)
+	require.JSONEq(t, readExpectedResult("./testdata/issueToken/token-semi.json"), string(genericResponse.Docs[0].Source))
+
 	// transfer ownership
 	pool = &outport.Pool{
 		Logs: []*coreData.LogData{
@@ -84,6 +88,10 @@ func TestIssueTokenAndTransferOwnership(t *testing.T) {
 	require.Nil(t, err)
 
 	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse)
+	require.Nil(t, err)
+	require.JSONEq(t, readExpectedResult("./testdata/issueToken/token-semi-after-transfer-ownership.json"), string(genericResponse.Docs[0].Source))
+
+	err = esClient.DoMultiGet(ids, indexerdata.ESDTsIndex, true, genericResponse)
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/issueToken/token-semi-after-transfer-ownership.json"), string(genericResponse.Docs[0].Source))
 
