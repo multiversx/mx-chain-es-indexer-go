@@ -43,7 +43,7 @@ const (
 	DelegatorsIndex = "delegators"
 	// OperationsIndex is the Elasticsearch index for transactions and smart contract results
 	OperationsIndex = "operations"
-	// ESDTsIndex is the Elasticsearch index for esdts tokens
+	// ESDTsIndex is the Elasticsearch index for esdt tokens
 	ESDTsIndex = "esdts"
 
 	// TransactionsPolicy is the Elasticsearch policy for the transactions
