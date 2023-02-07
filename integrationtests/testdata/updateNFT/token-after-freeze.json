@@ -14,5 +14,6 @@
     "whiteListedStorage": false,
     "attributes": "c29tZXRoaW5n"
   },
-  "frozen": true
+  "frozen": true,
+  "numDecimals": 0
 }
