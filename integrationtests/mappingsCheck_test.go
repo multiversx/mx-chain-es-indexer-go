@@ -1,9 +1,11 @@
+//go:build integrationtests
+
 package integrationtests
 
 import (
 	"testing"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/stretchr/testify/require"
 )
 
