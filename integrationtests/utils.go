@@ -80,6 +80,7 @@ func getElementFromSlice(path string, index int) string {
 	return string(res)
 }
 
+//nolint
 func getIndexMappings(index string) (string, error) {
 	u, _ := url.Parse(esURL)
 	u.Path = path.Join(u.Path, index, "_mappings")
