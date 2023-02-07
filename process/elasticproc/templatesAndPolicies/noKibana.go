@@ -3,8 +3,8 @@ package templatesAndPolicies
 import (
 	"bytes"
 
-	indexer "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
-	"github.com/ElrondNetwork/elastic-indexer-go/templates/noKibana"
+	indexer "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
+	"github.com/multiversx/mx-chain-es-indexer-go/templates/noKibana"
 )
 
 type templatesAndPolicyReaderNoKibana struct{}
@@ -39,7 +39,6 @@ func (tr *templatesAndPolicyReaderNoKibana) GetElasticTemplatesAndPolicies() (ma
 	indexTemplates[indexer.LogsIndex] = noKibana.Logs.ToBuffer()
 	indexTemplates[indexer.DelegatorsIndex] = noKibana.Delegators.ToBuffer()
 	indexTemplates[indexer.OperationsIndex] = noKibana.Operations.ToBuffer()
-	indexTemplates[indexer.CollectionsIndex] = noKibana.Collections.ToBuffer()
 	indexTemplates[indexer.ESDTsIndex] = noKibana.ESDTs.ToBuffer()
 
 	return indexTemplates, indexPolicies, nil

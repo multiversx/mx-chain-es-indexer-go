@@ -1,7 +1,7 @@
 package workItems
 
 import (
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
 )
 
 type itemRounds struct {

@@ -6,28 +6,33 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elrond-go-core/core"
-	coreData "github.com/ElrondNetwork/elrond-go-core/data"
-	"github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-go-core/data/receipt"
-	"github.com/ElrondNetwork/elrond-go-core/data/rewardTx"
-	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	datafield "github.com/ElrondNetwork/elrond-vm-common/parsers/dataField"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/core/sharding"
+	coreData "github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/receipt"
+	"github.com/multiversx/mx-chain-core-go/data/rewardTx"
+	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
+	datafield "github.com/multiversx/mx-chain-vm-common-go/parsers/dataField"
 )
 
 type dbTransactionBuilder struct {
 	addressPubkeyConverter core.PubkeyConverter
 	dataFieldParser        DataFieldParser
+	balanceConverter       dataindexer.BalanceConverter
 }
 
 func newTransactionDBBuilder(
 	addressPubkeyConverter core.PubkeyConverter,
 	dataFieldParser DataFieldParser,
+	balanceConverter dataindexer.BalanceConverter,
 ) *dbTransactionBuilder {
 	return &dbTransactionBuilder{
 		addressPubkeyConverter: addressPubkeyConverter,
 		dataFieldParser:        dataFieldParser,
+		balanceConverter:       balanceConverter,
 	}
 }
 
@@ -46,15 +51,21 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 	isScCall := core.IsSmartContractAddress(tx.RcvAddr)
 	res := dtb.dataFieldParser.Parse(tx.Data, tx.SndAddr, tx.RcvAddr, numOfShards)
 
+	receiverShardID := mb.ReceiverShardID
+	if mb.Type == block.InvalidBlock {
+		receiverShardID = sharding.ComputeShardID(tx.RcvAddr, numOfShards)
+	}
+
 	return &data.Transaction{
 		Hash:              hex.EncodeToString(txHash),
 		MBHash:            hex.EncodeToString(mbHash),
 		Nonce:             tx.Nonce,
 		Round:             header.GetRound(),
 		Value:             tx.Value.String(),
+		ValueNum:          dtb.balanceConverter.ComputeESDTBalanceAsFloat(tx.Value),
 		Receiver:          dtb.addressPubkeyConverter.Encode(tx.RcvAddr),
 		Sender:            dtb.addressPubkeyConverter.Encode(tx.SndAddr),
-		ReceiverShard:     mb.ReceiverShardID,
+		ReceiverShard:     receiverShardID,
 		SenderShard:       mb.SenderShardID,
 		GasPrice:          tx.GasPrice,
 		GasLimit:          tx.GasLimit,
@@ -65,12 +76,14 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		GasUsed:           gasUsed,
 		InitialPaidFee:    initialPaidFee.String(),
 		Fee:               fee.String(),
+		FeeNum:            dtb.balanceConverter.ComputeESDTBalanceAsFloat(fee),
 		ReceiverUserName:  tx.RcvUserName,
 		SenderUserName:    tx.SndUserName,
 		IsScCall:          isScCall,
 		Operation:         res.Operation,
 		Function:          res.Function,
 		ESDTValues:        res.ESDTValues,
+		ESDTValuesNum:     dtb.balanceConverter.ComputeSliceOfStringsAsFloat(res.ESDTValues),
 		Tokens:            res.Tokens,
 		Receivers:         datafield.EncodeBytesSlice(dtb.addressPubkeyConverter.Encode, res.Receivers),
 		ReceiversShardIDs: res.ReceiversShardID,
@@ -93,6 +106,7 @@ func (dtb *dbTransactionBuilder) prepareRewardTransaction(
 		Nonce:         0,
 		Round:         rTx.Round,
 		Value:         rTx.Value.String(),
+		ValueNum:      dtb.balanceConverter.ComputeESDTBalanceAsFloat(rTx.Value),
 		Receiver:      dtb.addressPubkeyConverter.Encode(rTx.RcvAddr),
 		Sender:        fmt.Sprintf("%d", core.MetachainShardId),
 		ReceiverShard: mb.ReceiverShardID,

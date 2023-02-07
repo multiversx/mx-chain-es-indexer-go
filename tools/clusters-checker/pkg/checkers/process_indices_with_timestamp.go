@@ -3,7 +3,7 @@ package checkers
 import (
 	"encoding/json"
 
-	logger "github.com/ElrondNetwork/elrond-go-logger"
+	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 const (
@@ -26,6 +26,7 @@ type clusterChecker struct {
 	startTimestamp, stopTimestamp int
 
 	logPrefix string
+	onlyIDs   bool
 }
 
 func (cc *clusterChecker) CompareIndicesWithTimestamp() error {
@@ -137,6 +138,9 @@ func (cc *clusterChecker) compareResults(index string, respSource, respDestinati
 		}
 
 		delete(mapDestination, id)
+		if cc.onlyIDs {
+			continue
+		}
 
 		equal, err := areEqualJSON(rawDataSource, rawDataDestination)
 		if err != nil {
@@ -171,6 +175,10 @@ func (cc *clusterChecker) checkMaps(index string, finish bool) {
 
 		delete(cc.missingFromSource, id)
 		delete(cc.missingFromDestination, id)
+
+		if cc.onlyIDs {
+			continue
+		}
 
 		equal, err := areEqualJSON(rawDataSource, rawDataDestination)
 		if err != nil {

@@ -8,11 +8,11 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
-	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
+	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 // TODO add more unit tests
@@ -323,6 +323,24 @@ func (ec *elasticClient) createAlias(alias string, index string) error {
 	res, err := ec.client.Indices.PutAlias([]string{index}, alias)
 	if err != nil {
 		return err
+	}
+
+	return parseResponse(res, nil, elasticDefaultErrorResponseHandler)
+}
+
+// UpdateByQuery will update all the documents that match the provided query from the provided index
+func (ec *elasticClient) UpdateByQuery(index string, buff *bytes.Buffer) error {
+	reader := bytes.NewReader(buff.Bytes())
+
+	res, err := ec.client.UpdateByQuery(
+		[]string{index},
+		ec.client.UpdateByQuery.WithBody(reader),
+	)
+	if err != nil {
+		return err
+	}
+	if res.IsError() {
+		return fmt.Errorf("%s", res.String())
 	}
 
 	return parseResponse(res, nil, elasticDefaultErrorResponseHandler)

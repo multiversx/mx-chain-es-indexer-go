@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/mock"
-	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
+	"github.com/multiversx/mx-chain-es-indexer-go/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -133,8 +133,8 @@ func TestLogsAndEventsProcessor_SerializeDelegators(t *testing.T) {
 	err := logsProc.SerializeDelegators(delegators, buffSlice, "delegators")
 	require.Nil(t, err)
 
-	expectedRes := `{ "index" : { "_index": "delegators", "_id" : "/GeogJjDjtpxnceK9t6+BVBYWuuJHbjmsWK0/1BlH9c=" } }
-{"address":"addr1","contract":"contract1","activeStake":"100000000000000","activeStakeNum":0.1}
+	expectedRes := `{ "update" : { "_index":"delegators", "_id" : "/GeogJjDjtpxnceK9t6+BVBYWuuJHbjmsWK0/1BlH9c=" } }
+{"scripted_upsert": true, "script": {"source": "if ('create' == ctx.op) {ctx._source = params.delegator} else {ctx._source.activeStake = params.delegator.activeStake;ctx._source.activeStakeNum = params.delegator.activeStakeNum;ctx._source.timestamp = params.delegator.timestamp;}","lang": "painless","params": { "delegator": {"address":"addr1","contract":"contract1","timestamp":0,"activeStake":"100000000000000","activeStakeNum":0.1} }},"upsert": {}}
 `
 	require.Equal(t, expectedRes, buffSlice.Buffers()[0].String())
 }

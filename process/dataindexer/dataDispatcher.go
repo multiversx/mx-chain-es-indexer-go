@@ -7,10 +7,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer/workItems"
-	"github.com/ElrondNetwork/elrond-go-core/core/atomic"
-	"github.com/ElrondNetwork/elrond-go-core/core/check"
-	logger "github.com/ElrondNetwork/elrond-go-logger"
+	"github.com/multiversx/mx-chain-core-go/core/atomic"
+	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer/workItems"
+	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 var log = logger.GetOrCreate("indexer")

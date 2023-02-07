@@ -3,6 +3,7 @@
   "nonce": 79,
   "round": 50,
   "value": "0",
+  "valueNum": 0,
   "receiver": "erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv",
   "sender": "erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv",
   "receiverShard": 0,
@@ -11,6 +12,7 @@
   "gasLimit": 5000000,
   "gasUsed": 5000000,
   "fee": "595490000000000",
+  "feeNum": 0.00059549,
   "initialPaidFee": "595490000000000",
   "data": "RVNEVE5GVFRyYW5zZmVyQDRkNDU1ODQ2NDE1MjRkMmQ2MzYzNjIzMjM1MzJAMDc4YkAwMzQ3NTQzZTViNTljOWJlODY3MEAwMDAwMDAwMDAwMDAwMDAwMDUwMGE3YTAyNzcxYWEwNzA5MGU2MDdmMDJiMjVmNGQ2ZDI0MWJmZjMyYjk5MGEyQDYzNmM2MTY5NmQ1MjY1Nzc2MTcyNjQ3Mw==",
   "signature": "",
@@ -23,6 +25,9 @@
   ],
   "esdtValues": [
     "15482888667631250736752"
+  ],
+  "esdtValuesNum": [
+    15482.88866763125
   ],
   "receivers": [
     "erd1qqqqqqqqqqqqqpgq57szwud2quysucrlq2e97ntdysdl7v4ejz3qn3njq4"

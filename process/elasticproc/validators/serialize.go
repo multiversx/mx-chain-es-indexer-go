@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
 )
 
 // SerializeValidatorsPubKeys will serialize validators public keys
@@ -33,7 +33,7 @@ func (vp *validatorsProcessor) SerializeValidatorsRating(
 ) ([]*bytes.Buffer, error) {
 	buffSlice := data.NewBufferSlice(vp.bulkSizeMaxSize)
 
-	// inside elrond-go, the index is "shardID_epoch" so in order to keep backwards compatibility some adjustments have to be made.
+	// inside mx-chain-go, the index is "shardID_epoch" so in order to keep backwards compatibility some adjustments have to be made.
 	// shardID from index name has to be removed because it is sufficient to have document id = blsKey_epoch
 	indexWithoutShardID := removeShardIDFromIndex(index)
 	for _, valRatingInfo := range validatorsRatingInfo {

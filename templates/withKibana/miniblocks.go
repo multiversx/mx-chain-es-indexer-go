@@ -8,6 +8,38 @@ var Miniblocks = Object{
 	"settings": Object{
 		"number_of_shards":   3,
 		"number_of_replicas": 0,
-		"opendistro.index_state_management.rollover_alias": "miniblocks",
+	},
+	"mappings": Object{
+		"properties": Object{
+			"procTypeD": Object{
+				"type": "keyword",
+			},
+			"procTypeS": Object{
+				"type": "keyword",
+			},
+			"receiverBlockHash": Object{
+				"type": "keyword",
+			},
+			"receiverShard": Object{
+				"type": "long",
+			},
+			"reserved": Object{
+				"index": "false",
+				"type":  "keyword",
+			},
+			"senderBlockHash": Object{
+				"type": "keyword",
+			},
+			"senderShard": Object{
+				"type": "long",
+			},
+			"timestamp": Object{
+				"type":   "date",
+				"format": "epoch_second",
+			},
+			"type": Object{
+				"type": "keyword",
+			},
+		},
 	},
 }

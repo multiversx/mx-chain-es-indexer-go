@@ -12,21 +12,28 @@ var Logs = Object{
 	"mappings": Object{
 		"properties": Object{
 			"address": Object{
-				"type": "text",
+				"type": "keyword",
 			},
 			"events": Object{
 				"type": "nested",
 				"properties": Object{
 					"address": Object{
-						"type": "text",
+						"type": "keyword",
+					},
+					"data": Object{
+						"index": "false",
+						"type":  "text",
+					},
+					"identifier": Object{
+						"type": "keyword",
 					},
 					"topics": Object{
 						"type": "text",
 					},
-					"data": Object{
-						"type": "text",
-					},
 				},
+			},
+			"originalTxHash": Object{
+				"type": "keyword",
 			},
 			"timestamp": Object{
 				"type":   "date",

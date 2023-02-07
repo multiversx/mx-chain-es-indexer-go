@@ -6,10 +6,10 @@ import (
 	"math"
 	"time"
 
-	indexerClient "github.com/ElrondNetwork/elastic-indexer-go/client"
-	"github.com/ElrondNetwork/elastic-indexer-go/tools/index-modifier/pkg/client"
-	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/elastic/go-elasticsearch/v7"
+	indexerClient "github.com/multiversx/mx-chain-es-indexer-go/client"
+	"github.com/multiversx/mx-chain-es-indexer-go/tools/index-modifier/pkg/client"
+	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 const (

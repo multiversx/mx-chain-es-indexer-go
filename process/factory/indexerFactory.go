@@ -6,16 +6,16 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/client"
-	"github.com/ElrondNetwork/elastic-indexer-go/client/logging"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/factory"
-	"github.com/ElrondNetwork/elrond-go-core/core"
-	"github.com/ElrondNetwork/elrond-go-core/core/check"
-	"github.com/ElrondNetwork/elrond-go-core/hashing"
-	"github.com/ElrondNetwork/elrond-go-core/marshal"
-	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/elastic/go-elasticsearch/v7"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-core-go/hashing"
+	"github.com/multiversx/mx-chain-core-go/marshal"
+	"github.com/multiversx/mx-chain-es-indexer-go/client"
+	"github.com/multiversx/mx-chain-es-indexer-go/client/logging"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/factory"
+	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 var log = logger.GetOrCreate("indexer/factory")

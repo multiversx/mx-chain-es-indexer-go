@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ElrondNetwork/elrond-go-core/core/check"
-	"github.com/ElrondNetwork/elrond-go-core/data"
-	"github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-go-core/data/outport"
-	"github.com/ElrondNetwork/elrond-go-core/marshal"
-	logger "github.com/ElrondNetwork/elrond-go-logger"
+	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
+	"github.com/multiversx/mx-chain-core-go/marshal"
+	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 // ErrBodyTypeAssertion signals that body type assertion failed
@@ -71,7 +71,9 @@ func (wib *itemBlock) Save() error {
 		body,
 		wib.argsSaveBlock.NotarizedHeadersHashes,
 		wib.argsSaveBlock.HeaderGasConsumption,
-		txsSizeInBytes)
+		txsSizeInBytes,
+		wib.argsSaveBlock.TransactionsPool,
+	)
 	if err != nil {
 		return fmt.Errorf("%w when saving header block, hash %s, nonce %d",
 			err, hex.EncodeToString(wib.argsSaveBlock.HeaderHash), wib.argsSaveBlock.Header.GetNonce())

@@ -8,9 +8,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/mock"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
+	"github.com/multiversx/mx-chain-es-indexer-go/mock"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

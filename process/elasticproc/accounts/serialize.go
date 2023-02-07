@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/converters"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
 )
 
 // SerializeNFTCreateInfo will serialize the provided nft create information in a way that Elasticsearch expects a bulk request

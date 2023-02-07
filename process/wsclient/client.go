@@ -7,12 +7,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ElrondNetwork/elrond-go-core/core/check"
-	"github.com/ElrondNetwork/elrond-go-core/data/typeConverters/uint64ByteSlice"
-	"github.com/ElrondNetwork/elrond-go-core/websocketOutportDriver"
-	"github.com/ElrondNetwork/elrond-go-core/websocketOutportDriver/data"
-	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/gorilla/websocket"
+	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-core-go/data/typeConverters/uint64ByteSlice"
+	"github.com/multiversx/mx-chain-core-go/websocketOutportDriver"
+	"github.com/multiversx/mx-chain-core-go/websocketOutportDriver/data"
+	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 const closedConnection = "use of closed network connection"

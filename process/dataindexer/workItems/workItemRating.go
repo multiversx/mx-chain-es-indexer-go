@@ -1,6 +1,6 @@
 package workItems
 
-import "github.com/ElrondNetwork/elastic-indexer-go/data"
+import "github.com/multiversx/mx-chain-es-indexer-go/data"
 
 type itemRating struct {
 	indexer    saveRatingIndexer

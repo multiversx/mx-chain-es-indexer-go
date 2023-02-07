@@ -1,7 +1,7 @@
 package noKibana
 
 import (
-	"github.com/ElrondNetwork/elastic-indexer-go/templates"
+	"github.com/multiversx/mx-chain-es-indexer-go/templates"
 )
 
 type Array = templates.Array
@@ -26,16 +26,36 @@ var Accounts = Object{
 				"type": "double",
 			},
 			"nonce": Object{
-				"type": "double",
+				"index": "false",
+				"type":  "long",
 			},
 			"address": Object{
-				"type": "text",
+				"type": "keyword",
 			},
 			"balance": Object{
-				"type": "text",
+				"type": "keyword",
 			},
 			"totalBalanceWithStake": Object{
-				"type": "text",
+				"type": "keyword",
+			},
+			"shardID": Object{
+				"type": "long",
+			},
+			"timestamp": Object{
+				"type":   "date",
+				"format": "epoch_second",
+			},
+			"userName": Object{
+				"type": "keyword",
+			},
+			"owner": Object{
+				"type": "keyword",
+			},
+			"developerRewards": Object{
+				"type": "keyword",
+			},
+			"developerRewardsNum": Object{
+				"type": "double",
 			},
 		},
 	},

@@ -11,6 +11,12 @@ var SCDeploys = Object{
 	},
 	"mappings": Object{
 		"properties": Object{
+			"deployTxHash": Object{
+				"type": "keyword",
+			},
+			"deployer": Object{
+				"type": "keyword",
+			},
 			"timestamp": Object{
 				"type":   "date",
 				"format": "epoch_second",
@@ -21,6 +27,12 @@ var SCDeploys = Object{
 					"timestamp": Object{
 						"type":   "date",
 						"format": "epoch_second",
+					},
+					"upgradeTxHash": Object{
+						"type": "keyword",
+					},
+					"upgrader": Object{
+						"type": "keyword",
 					},
 				},
 			},

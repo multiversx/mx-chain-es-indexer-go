@@ -2,12 +2,14 @@ package transactions
 
 import (
 	"encoding/hex"
+	"math/big"
 	"strings"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elrond-go-core/core"
-	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 )
 
 const (
@@ -15,10 +17,11 @@ const (
 )
 
 type scrsDataToTransactions struct {
-	retCodes []string
+	retCodes         []string
+	balanceConverter dataindexer.BalanceConverter
 }
 
-func newScrsDataToTransactions() *scrsDataToTransactions {
+func newScrsDataToTransactions(balanceConverter dataindexer.BalanceConverter) *scrsDataToTransactions {
 	return &scrsDataToTransactions{
 		retCodes: []string{
 			vmcommon.FunctionNotFound.String(),
@@ -33,6 +36,7 @@ func newScrsDataToTransactions() *scrsDataToTransactions {
 			vmcommon.ExecutionFailed.String(),
 			vmcommon.UpgradeFailed.String(),
 		},
+		balanceConverter: balanceConverter,
 	}
 }
 
@@ -139,14 +143,21 @@ func (st *scrsDataToTransactions) processSCRsWithoutTx(scrs []*data.ScResult) (m
 	txHashRefund := make(map[string]*data.FeeData)
 	for _, scr := range scrs {
 		if scr.InitialTxGasUsed != 0 {
+			var feeNum float64
+			initialTxFeeBig, ok := big.NewInt(0).SetString(scr.InitialTxFee, 10)
+			if ok {
+				feeNum = st.balanceConverter.ComputeESDTBalanceAsFloat(initialTxFeeBig)
+			}
+
 			txHashRefund[scr.OriginalTxHash] = &data.FeeData{
+				FeeNum:   feeNum,
 				Fee:      scr.InitialTxFee,
 				GasUsed:  scr.InitialTxGasUsed,
 				Receiver: scr.Receiver,
 			}
 		}
 
-		if !isESDTNFTTransferWithUserError(string(scr.Data)) {
+		if !st.isESDTNFTTransferOrMultiTransferWithError(string(scr.Data)) {
 			continue
 		}
 
@@ -156,14 +167,20 @@ func (st *scrsDataToTransactions) processSCRsWithoutTx(scrs []*data.ScResult) (m
 	return txHashStatus, txHashRefund
 }
 
-func isESDTNFTTransferWithUserError(scrData string) bool {
+func (st *scrsDataToTransactions) isESDTNFTTransferOrMultiTransferWithError(scrData string) bool {
 	splitData := strings.Split(scrData, data.AtSeparator)
 	isMultiTransferOrNFTTransfer := splitData[0] == core.BuiltInFunctionESDTNFTTransfer || splitData[0] == core.BuiltInFunctionMultiESDTNFTTransfer
 	if !isMultiTransferOrNFTTransfer || len(splitData) < minNumOfArgumentsNFTTransferORMultiTransfer {
 		return false
 	}
 
-	isUserErr := splitData[len(splitData)-1] == hex.EncodeToString([]byte(vmcommon.UserError.String()))
+	latestArgumentFromDataField := splitData[len(splitData)-1]
+	for _, retCode := range st.retCodes {
+		isWithError := latestArgumentFromDataField == hex.EncodeToString([]byte(retCode))
+		if isWithError {
+			return true
+		}
+	}
 
-	return isUserErr
+	return false
 }
