@@ -2,13 +2,13 @@
   "name": "NON-token",
   "ticker": "NON",
   "token": "NON-abcd",
-  "issuer": "61646472",
-  "currentOwner": "61646472",
+  "issuer": "erd1ju8pkvg57cwdmjsjx58jlmnuf4l9yspstrhr9tgsrt98n9edpm2qtlgy99",
+  "currentOwner": "erd1ju8pkvg57cwdmjsjx58jlmnuf4l9yspstrhr9tgsrt98n9edpm2qtlgy99",
   "type": "NonFungibleESDT",
   "timestamp": 5040,
   "ownersHistory": [
     {
-      "address": "61646472",
+      "address": "erd1ju8pkvg57cwdmjsjx58jlmnuf4l9yspstrhr9tgsrt98n9edpm2qtlgy99",
       "timestamp": 5040
     }
   ],
@@ -23,5 +23,6 @@
     "canWipe": false,
     "canChangeOwner": false,
     "canCreateMultiShard": false
-  }
+  },
+  "numDecimals": 0
 }

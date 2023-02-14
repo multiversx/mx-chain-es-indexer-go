@@ -1,0 +1,12 @@
+[config]
+    disabled-indices = []
+    [config.web-socket]
+        server-url = "localhost:22111"
+        data-marshaller-type = "json"
+
+    [config.elastic-cluster]
+        use-kibana = false
+        url = "http://localhost:9200"
+        username = ""
+        password = ""
+        bulk-request-max-size-in-bytes = 4194304 # 4MB

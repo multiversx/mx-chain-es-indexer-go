@@ -1,0 +1,15 @@
+{
+  "address": "erd1v7e552pz9py4hv6raan0c4jflez3e6csdmzcgrncg0qrnk4tywvsqx0h5j",
+  "contract": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqhllllsajxzat",
+  "activeStake": "124500000000000000000",
+  "activeStakeNum": 124.5,
+  "timestamp": 5060,
+  "unDelegateInfo": [
+    {
+      "valueNum": 50,
+      "id": "31",
+      "value": "50000000000000000000",
+      "timestamp": 5050
+    }
+  ]
+}

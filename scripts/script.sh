@@ -1,5 +1,7 @@
 IMAGE_NAME=elastic-container
 DEFAULT_ES_VERSION=7.16.2
+INDICES_LIST=("rating" "transactions" "blocks" "validators" "miniblocks" "rounds" "accounts" "accountshistory" "receipts" "scresults" "accountsesdt" "accountsesdthistory" "epochinfo" "scdeploys" "tokens" "tags" "logs" "delegators" "operations", "esdts")
+
 
 start() {
   ES_VERSION=$1
@@ -24,9 +26,13 @@ stop() {
 }
 
 delete() {
-  curl -XDELETE http://localhost:9200/_all
+   for str in ${INDICES_LIST[@]}; do
+      curl -XDELETE http://localhost:9200/$str-000001
+      echo
+   done
 
   curl -XDELETE http://localhost:9200/_template/*
+  echo
 }
 
 

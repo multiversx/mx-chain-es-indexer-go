@@ -2,13 +2,13 @@
   "name": "SEMI-token",
   "ticker": "SEM",
   "token": "SEMI-abcd",
-  "issuer": "61646472",
-  "currentOwner": "61646472",
+  "issuer": "erd1sqy2ywvswp09ef7qwjhv8zwr9kzz3xas6y2ye5nuryaz0wcnfzzsnq0am3",
+  "currentOwner": "erd1sqy2ywvswp09ef7qwjhv8zwr9kzz3xas6y2ye5nuryaz0wcnfzzsnq0am3",
   "type": "SemiFungibleESDT",
   "timestamp": 5040,
   "ownersHistory": [
     {
-      "address": "61646472",
+      "address": "erd1sqy2ywvswp09ef7qwjhv8zwr9kzz3xas6y2ye5nuryaz0wcnfzzsnq0am3",
       "timestamp": 5040
     }
   ],
@@ -23,5 +23,6 @@
     "canWipe": false,
     "canChangeOwner": false,
     "canCreateMultiShard": false
-  }
+  },
+  "numDecimals": 0
 }

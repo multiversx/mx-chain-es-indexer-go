@@ -18,7 +18,7 @@ type BulkRequestResponse struct {
 	} `json:"items"`
 }
 
-// Item defines the structure of a item from a bulk response
+// Item defines the structure of an item from a bulk response
 type Item struct {
 	Index  string `json:"_index"`
 	ID     string `json:"_id"`

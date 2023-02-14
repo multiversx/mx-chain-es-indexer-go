@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"io/ioutil"
 	"net/http"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
+	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/tidwall/gjson"
 )
 

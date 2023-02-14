@@ -12,12 +12,8 @@ var Rating = Object{
 
 	"mappings": Object{
 		"properties": Object{
-			"validatorsRating": Object{
-				"properties": Object{
-					"rating": Object{
-						"type": "float",
-					},
-				},
+			"rating": Object{
+				"type": "double",
 			},
 		},
 	},

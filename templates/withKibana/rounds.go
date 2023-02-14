@@ -20,6 +20,21 @@ var Rounds = Object{
 	},
 	"mappings": Object{
 		"properties": Object{
+			"blockWasProposed": Object{
+				"type": "boolean",
+			},
+			"epoch": Object{
+				"type": "long",
+			},
+			"round": Object{
+				"type": "long",
+			},
+			"shardId": Object{
+				"type": "long",
+			},
+			"signersIndexes": Object{
+				"type": "long",
+			},
 			"timestamp": Object{
 				"type":   "date",
 				"format": "epoch_second",

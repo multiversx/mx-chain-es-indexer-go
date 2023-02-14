@@ -7,13 +7,12 @@ import (
 	"math/big"
 	"testing"
 
-	indexerdata "github.com/ElrondNetwork/elastic-indexer-go"
-	"github.com/ElrondNetwork/elastic-indexer-go/mock"
-	"github.com/ElrondNetwork/elrond-go-core/core"
-	coreData "github.com/ElrondNetwork/elrond-go-core/data"
-	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
-	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
+	"github.com/multiversx/mx-chain-core-go/core"
+	coreData "github.com/multiversx/mx-chain-core-go/data"
+	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
+	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	indexerdata "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/stretchr/testify/require"
 )
 
@@ -23,11 +22,7 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	accounts := &mock.AccountsStub{}
-	feeComputer := &mock.EconomicsHandlerMock{}
-	shardCoordinator := &mock.ShardCoordinatorMock{}
-
-	esProc, err := CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
 	header := &dataBlock.Header{
@@ -36,15 +31,20 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 	}
 	body := &dataBlock.Body{}
 
-	// INDEX ON SOURCE
-	pool := &indexer.Pool{
+	address1 := "erd1ju8pkvg57cwdmjsjx58jlmnuf4l9yspstrhr9tgsrt98n9edpm2qtlgy99"
+	address2 := "erd1w7jyzuj6cv4ngw8luhlkakatjpmjh3ql95lmxphd3vssc4vpymks6k5th7"
+
+	logID := hex.EncodeToString([]byte("cross-log"))
+
+	// index on source
+	pool := &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				LogHandler: &transaction.Log{
-					Address: []byte("addr-1"),
+					Address: decodeAddress(address1),
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("addr"),
+							Address:    decodeAddress(address1),
 							Identifier: []byte(core.BuiltInFunctionESDTTransfer),
 							Topics:     [][]byte{[]byte("ESDT-abcd"), big.NewInt(0).Bytes(), big.NewInt(1).Bytes()},
 						},
@@ -55,10 +55,10 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, testNumOfShards)
 	require.Nil(t, err)
 
-	ids := []string{hex.EncodeToString([]byte("cross-log"))}
+	ids := []string{logID}
 	genericResponse := &GenericResponse{}
 	err = esClient.DoMultiGet(ids, indexerdata.LogsIndex, true, genericResponse)
 	require.Nil(t, err)
@@ -72,20 +72,20 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 		Round:     50,
 		TimeStamp: 6040,
 	}
-	pool = &indexer.Pool{
+	pool = &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				LogHandler: &transaction.Log{
-					Address: []byte("addr-1"),
+					Address: decodeAddress(address1),
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("addr"),
+							Address:    decodeAddress(address1),
 							Identifier: []byte(core.BuiltInFunctionESDTTransfer),
 							Topics:     [][]byte{[]byte("ESDT-abcd"), big.NewInt(0).Bytes(), big.NewInt(1).Bytes()},
 						},
 						{
 
-							Address:    []byte("addr-3"),
+							Address:    decodeAddress(address2),
 							Identifier: []byte("do-something"),
 							Topics:     [][]byte{[]byte("topic1"), []byte("topic2")},
 						},
@@ -96,7 +96,7 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, testNumOfShards)
 	require.Nil(t, err)
 
 	err = esClient.DoMultiGet(ids, indexerdata.LogsIndex, true, genericResponse)
@@ -106,19 +106,19 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 		string(genericResponse.Docs[0].Source),
 	)
 
-	// INDEX ON SOURCE AGAIN SHOULD NOT CHANGE
+	// index on source again should not change the log
 	header = &dataBlock.Header{
 		Round:     50,
 		TimeStamp: 5000,
 	}
-	pool = &indexer.Pool{
+	pool = &outport.Pool{
 		Logs: []*coreData.LogData{
 			{
 				LogHandler: &transaction.Log{
-					Address: []byte("addr-1"),
+					Address: decodeAddress(address1),
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("addr"),
+							Address:    decodeAddress(address1),
 							Identifier: []byte(core.BuiltInFunctionESDTTransfer),
 							Topics:     [][]byte{[]byte("ESDT-abcd"), big.NewInt(0).Bytes(), big.NewInt(1).Bytes()},
 						},
@@ -129,7 +129,7 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, testNumOfShards)
 	require.Nil(t, err)
 
 	err = esClient.DoMultiGet(ids, indexerdata.LogsIndex, true, genericResponse)
@@ -138,4 +138,28 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 		readExpectedResult("./testdata/logsCrossShard/log-at-destination.json"),
 		string(genericResponse.Docs[0].Source),
 	)
+
+	// do rollback
+	header = &dataBlock.Header{
+		Round:     50,
+		TimeStamp: 6040,
+		MiniBlockHeaders: []dataBlock.MiniBlockHeader{
+			{},
+		},
+	}
+	body = &dataBlock.Body{
+		MiniBlocks: []*dataBlock.MiniBlock{
+			{
+				TxHashes: [][]byte{[]byte("cross-log")},
+			},
+		},
+	}
+
+	err = esProc.RemoveTransactions(header, body)
+	require.Nil(t, err)
+
+	err = esClient.DoMultiGet(ids, indexerdata.LogsIndex, true, genericResponse)
+	require.Nil(t, err)
+
+	require.False(t, genericResponse.Docs[0].Found)
 }

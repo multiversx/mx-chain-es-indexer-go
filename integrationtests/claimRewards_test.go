@@ -7,14 +7,13 @@ import (
 	"math/big"
 	"testing"
 
-	indexerdata "github.com/ElrondNetwork/elastic-indexer-go"
-	"github.com/ElrondNetwork/elastic-indexer-go/mock"
-	"github.com/ElrondNetwork/elrond-go-core/core"
-	coreData "github.com/ElrondNetwork/elrond-go-core/data"
-	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-go-core/data/indexer"
-	"github.com/ElrondNetwork/elrond-go-core/data/smartContractResult"
-	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
+	"github.com/multiversx/mx-chain-core-go/core"
+	coreData "github.com/multiversx/mx-chain-core-go/data"
+	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
+	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
+	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	indexerdata "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/stretchr/testify/require"
 )
 
@@ -24,19 +23,14 @@ func TestTransactionWithClaimRewardsGasRefund(t *testing.T) {
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	accounts := &mock.AccountsStub{}
-	feeComputer := &mock.EconomicsHandlerMock{}
-	shardCoordinator := &mock.ShardCoordinatorMock{
-		SelfID: core.MetachainShardId,
-	}
-
-	esProc, err := CreateElasticProcessor(esClient, accounts, shardCoordinator, feeComputer)
+	esProc, err := CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
 	txHash := []byte("claimRewards")
 	header := &dataBlock.Header{
 		Round:     50,
 		TimeStamp: 5040,
+		ShardID:   core.MetachainShardId,
 	}
 
 	scrHash1 := []byte("scrRefundGasReward")
@@ -57,12 +51,15 @@ func TestTransactionWithClaimRewardsGasRefund(t *testing.T) {
 		},
 	}
 
+	addressSender := "erd14wnzmpwhcm9up7lsrujcf7jne2lgnydcpkfwk0etlnndn5dcacksplnun7"
+	addressReceiver := "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l"
+
 	refundValue, _ := big.NewInt(0).SetString("49320000000000", 10)
 	scr1 := &smartContractResult.SmartContractResult{
 		Nonce:          618,
 		GasPrice:       1000000000,
-		SndAddr:        []byte("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqq8hlllls7a6h81"),
-		RcvAddr:        []byte("erd13tfnxanefpjltv9kesf6e6f4n4muvkdqrk0we52nelsjw3lf2t5q8l45u1"),
+		SndAddr:        decodeAddress(addressReceiver),
+		RcvAddr:        decodeAddress(addressSender),
 		Data:           []byte("@6f6b"),
 		PrevTxHash:     txHash,
 		OriginalTxHash: txHash,
@@ -74,8 +71,8 @@ func TestTransactionWithClaimRewardsGasRefund(t *testing.T) {
 	scr2 := &smartContractResult.SmartContractResult{
 		Nonce:          0,
 		GasPrice:       1000000000,
-		SndAddr:        []byte("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqq8hlllls7a6h81"),
-		RcvAddr:        []byte("erd13tfnxanefpjltv9kesf6e6f4n4muvkdqrk0we52nelsjw3lf2t5q8l45u1"),
+		SndAddr:        decodeAddress(addressReceiver),
+		RcvAddr:        decodeAddress(addressSender),
 		PrevTxHash:     txHash,
 		OriginalTxHash: txHash,
 		Value:          rewards,
@@ -83,21 +80,24 @@ func TestTransactionWithClaimRewardsGasRefund(t *testing.T) {
 
 	tx1 := &transaction.Transaction{
 		Nonce:    617,
-		SndAddr:  []byte("erd13tfnxanefpjltv9kesf6e6f4n4muvkdqrk0we52nelsjw3lf2t5q8l45u1"),
-		RcvAddr:  []byte("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqq8hlllls7a6h81"),
+		SndAddr:  decodeAddress(addressSender),
+		RcvAddr:  decodeAddress(addressReceiver),
 		GasLimit: 6000000,
 		GasPrice: 1000000000,
 		Data:     []byte("claimRewards"),
 		Value:    big.NewInt(0),
 	}
 
-	pool := &indexer.Pool{
-		Txs: map[string]coreData.TransactionHandler{
-			string(txHash): tx1,
+	tx := outport.NewTransactionHandlerWithGasAndFee(tx1, 1068000, big.NewInt(78000000000000))
+	tx.SetInitialPaidFee(big.NewInt(127320000000000))
+
+	pool := &outport.Pool{
+		Txs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
+			string(txHash): tx,
 		},
-		Scrs: map[string]coreData.TransactionHandler{
-			string(scrHash2): scr2,
-			string(scrHash1): scr1,
+		Scrs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
+			string(scrHash2): outport.NewTransactionHandlerWithGasAndFee(scr2, 0, big.NewInt(0)),
+			string(scrHash1): outport.NewTransactionHandlerWithGasAndFee(scr1, 0, big.NewInt(0)),
 		},
 		Logs: []*coreData.LogData{
 			{
@@ -105,7 +105,7 @@ func TestTransactionWithClaimRewardsGasRefund(t *testing.T) {
 				LogHandler: &transaction.Log{
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("addr"),
+							Address:    decodeAddress(addressSender),
 							Identifier: []byte("writeLog"),
 							Topics:     [][]byte{[]byte("something")},
 						},
@@ -115,7 +115,7 @@ func TestTransactionWithClaimRewardsGasRefund(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool)
+	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
 	require.Nil(t, err)
 
 	ids := []string{hex.EncodeToString(txHash)}

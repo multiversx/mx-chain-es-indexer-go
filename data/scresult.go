@@ -10,6 +10,7 @@ type ScResult struct {
 	GasLimit           uint64        `json:"gasLimit"`
 	GasPrice           uint64        `json:"gasPrice"`
 	Value              string        `json:"value"`
+	ValueNum           float64       `json:"valueNum"`
 	Sender             string        `json:"sender"`
 	Receiver           string        `json:"receiver"`
 	SenderShard        uint32        `json:"senderShard"`
@@ -29,6 +30,7 @@ type ScResult struct {
 	Status             string        `json:"status,omitempty"`
 	Tokens             []string      `json:"tokens,omitempty"`
 	ESDTValues         []string      `json:"esdtValues,omitempty"`
+	ESDTValuesNum      []float64     `json:"esdtValuesNum,omitempty"`
 	Receivers          []string      `json:"receivers,omitempty"`
 	ReceiversShardIDs  []uint32      `json:"receiversShardIDs,omitempty"`
 	Operation          string        `json:"operation,omitempty"`
@@ -36,5 +38,8 @@ type ScResult struct {
 	IsRelayed          bool          `json:"isRelayed,omitempty"`
 	CanBeIgnored       bool          `json:"canBeIgnored,omitempty"`
 	OriginalSender     string        `json:"originalSender,omitempty"`
+	HasLogs            bool          `json:"hasLogs,omitempty"`
 	SenderAddressBytes []byte        `json:"-"`
+	InitialTxGasUsed   uint64        `json:"-"`
+	InitialTxFee       string        `json:"-"`
 }

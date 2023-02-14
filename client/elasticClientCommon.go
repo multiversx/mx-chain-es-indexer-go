@@ -10,9 +10,9 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/ElrondNetwork/elastic-indexer-go"
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 )
 
 func exists(res *esapi.Response, err error) bool {
@@ -67,7 +67,7 @@ func elasticDefaultErrorResponseHandler(res *esapi.Response) error {
 		isBackOffError := strings.Contains(string(bodyBytes), fmt.Sprintf("%d", http.StatusForbidden)) ||
 			strings.Contains(string(bodyBytes), fmt.Sprintf("%d", http.StatusTooManyRequests))
 		if isBackOffError {
-			errToReturn = indexer.ErrBackOff
+			errToReturn = dataindexer.ErrBackOff
 		}
 
 		return fmt.Errorf("%w, cannot unmarshal elastic response body to map[string]interface{}, "+
@@ -213,7 +213,7 @@ func kibanaResponseErrorHandler(res *esapi.Response) error {
 	log.Warn("elasticClient.parseResponse",
 		"error returned by elastic API", errorRes.Error,
 		"code", res.StatusCode)
-	return indexer.ErrBackOff
+	return dataindexer.ErrBackOff
 }
 
 func newRequest(method, path string, body *bytes.Buffer) *http.Request {
@@ -263,7 +263,7 @@ func parseResponse(res *esapi.Response, dest interface{}, errorHandler responseE
 	if err != nil {
 		log.Warn("elasticClient.parseResponse",
 			"could not load response body:", err.Error())
-		return indexer.ErrBackOff
+		return dataindexer.ErrBackOff
 	}
 
 	return nil

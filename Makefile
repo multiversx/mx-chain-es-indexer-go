@@ -7,10 +7,10 @@ test:
 
 integration-tests:
 	@echo " > Running integration tests"
-	cd scripts && ./script.sh start ${ES_VERSION}
+	cd scripts && /bin/bash script.sh start ${ES_VERSION}
 	go test -v ./integrationtests -tags integrationtests
-	cd scripts && ./script.sh delete
-	cd scripts && ./script.sh stop
+	cd scripts && /bin/bash script.sh delete
+	cd scripts && /bin/bash script.sh stop
 
 long-tests:
 	@-$(MAKE) delete-cluster-data
@@ -24,11 +24,11 @@ stop-cluster:
 	docker-compose down
 
 delete-cluster-data:
-	cd scripts && ./script.sh delete
+	cd scripts && /bin/bash script.sh delete
 
 integration-tests-open-search:
 	@echo " > Running integration tests open search"
-	cd scripts && ./script.sh start_open_search ${OPEN_VERSION}
+	cd scripts && /bin/bash script.sh start_open_search ${OPEN_VERSION}
 	go test -v ./integrationtests -tags integrationtests
-	cd scripts && ./script.sh delete
-	cd scripts && ./script.sh stop_open_search
+	cd scripts && /bin/bash script.sh delete
+	cd scripts && /bin/bash script.sh stop_open_search

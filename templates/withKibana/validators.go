@@ -8,6 +8,12 @@ var Validators = Object{
 	"settings": Object{
 		"number_of_shards":   1,
 		"number_of_replicas": 0,
-		"opendistro.index_state_management.rollover_alias": "validators",
+	},
+	"mappings": Object{
+		"properties": Object{
+			"publicKeys": Object{
+				"type": "keyword",
+			},
+		},
 	},
 }

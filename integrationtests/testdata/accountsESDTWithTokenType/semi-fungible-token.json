@@ -2,13 +2,13 @@
   "name": "TTTT-token",
   "ticker": "SEM",
   "token": "TTTT-abcd",
-  "issuer": "61646472",
-  "currentOwner": "61646472",
+  "issuer": "erd1l29zsl2dqq988kvr2y0xlfv9ydgnvhzkatfd8ccalpag265pje8qn8lslf",
+  "currentOwner": "erd1l29zsl2dqq988kvr2y0xlfv9ydgnvhzkatfd8ccalpag265pje8qn8lslf",
   "type": "SemiFungibleESDT",
   "timestamp": 5040,
   "ownersHistory": [
     {
-      "address": "61646472",
+      "address": "erd1l29zsl2dqq988kvr2y0xlfv9ydgnvhzkatfd8ccalpag265pje8qn8lslf",
       "timestamp": 5040
     }
   ],
@@ -23,5 +23,6 @@
     "canWipe": false,
     "canChangeOwner": false,
     "canCreateMultiShard": false
-  }
+  },
+  "numDecimals": 0
 }

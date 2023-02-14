@@ -1,10 +1,10 @@
 {
   "identifier": "NFT-abcdef-718863",
-  "address": "6e65772d61646472657373",
+  "address": "erd1caejdhq28fc03wddsf2lqs90jlwqlzesxjlyd0k2zeekxckpp6qsxty5x2",
   "balance": "1000",
   "balanceNum": 1e-15,
   "tokenNonce": 7440483,
   "token": "NFT-abcdef",
   "timestamp": 5600,
-  "shardID": 0
+  "shardID": 1
 }
