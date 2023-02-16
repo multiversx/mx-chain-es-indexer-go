@@ -64,6 +64,7 @@ func TestGetMoveBalanceTransaction(t *testing.T) {
 		Nonce:            tx.Nonce,
 		Round:            header.Round,
 		Value:            tx.Value.String(),
+		ValueNum:         1e-15,
 		Receiver:         senderAddr,
 		Sender:           receiverAddr,
 		ReceiverShard:    mb.ReceiverShardID,

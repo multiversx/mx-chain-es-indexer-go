@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/core/sharding"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/receipt"
@@ -53,6 +54,11 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 	senderAddr := dtb.addressPubkeyConverter.SilentEncode(tx.SndAddr, log)
 	receiversAddr, _ := dtb.addressPubkeyConverter.EncodeSlice(res.Receivers)
 
+	receiverShardID := mb.ReceiverShardID
+	if mb.Type == block.InvalidBlock {
+		receiverShardID = sharding.ComputeShardID(tx.RcvAddr, numOfShards)
+	}
+
 	return &data.Transaction{
 		Hash:              hex.EncodeToString(txHash),
 		MBHash:            hex.EncodeToString(mbHash),
@@ -61,7 +67,8 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		Value:             tx.Value.String(),
 		Receiver:          receiverAddr,
 		Sender:            senderAddr,
-		ReceiverShard:     mb.ReceiverShardID,
+		ValueNum:          dtb.balanceConverter.ComputeESDTBalanceAsFloat(tx.Value),
+		ReceiverShard:     receiverShardID,
 		SenderShard:       mb.SenderShardID,
 		GasPrice:          tx.GasPrice,
 		GasLimit:          tx.GasLimit,
