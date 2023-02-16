@@ -37,7 +37,7 @@ func (npp *nftsPropertiesProc) processEvent(args *argsProcessEvent) argOutputPro
 		return argOutputProcessEvent{}
 	}
 
-	callerAddress := npp.pubKeyConverter.Encode(args.event.GetAddress())
+	callerAddress := npp.pubKeyConverter.SilentEncode(args.event.GetAddress(), log)
 	if callerAddress == "" {
 		return argOutputProcessEvent{
 			processed: true,
@@ -60,7 +60,7 @@ func (npp *nftsPropertiesProc) processEvent(args *argsProcessEvent) argOutputPro
 		}
 	}
 
-	callerAddress := npp.pubKeyConverter.SilentEncode(args.event.GetAddress(), log)
+	callerAddress = npp.pubKeyConverter.SilentEncode(args.event.GetAddress(), log)
 	if callerAddress == "" {
 		return argOutputProcessEvent{
 			processed: true,

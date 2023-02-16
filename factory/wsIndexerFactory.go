@@ -8,7 +8,6 @@ import (
 	"github.com/multiversx/mx-chain-es-indexer-go/process/factory"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/wsclient"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/wsindexer"
-	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 const (

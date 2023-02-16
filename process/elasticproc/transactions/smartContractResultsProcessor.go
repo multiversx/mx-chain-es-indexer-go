@@ -15,7 +15,6 @@ import (
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	indexerData "github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
-	datafield "github.com/multiversx/mx-chain-vm-common-go/parsers/dataField"
 )
 
 type smartContractResultsProcessor struct {
