@@ -108,6 +108,7 @@ func (ei *elasticProcessor) init(useKibana bool, indexTemplates, _ map[string]*b
 		return err
 	}
 
+	//nolint
 	if useKibana {
 		// TODO: Re-activate after we think of a solid way to handle forks+rotating indexes
 		// err = ei.createIndexPolicies(indexPolicies)

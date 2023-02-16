@@ -30,6 +30,7 @@ func newNFTsPropertiesProcessor(pubKeyConverter core.PubkeyConverter) *nftsPrope
 }
 
 func (npp *nftsPropertiesProc) processEvent(args *argsProcessEvent) argOutputProcessEvent {
+	//nolint
 	eventIdentifier := string(args.event.GetIdentifier())
 	_, ok := npp.propertiesChangeOperations[eventIdentifier]
 	if !ok {

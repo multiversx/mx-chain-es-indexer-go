@@ -25,6 +25,7 @@ var (
 	pubKeyConverter, _ = pubkeyConverter.NewBech32PubkeyConverter(32, log)
 )
 
+//nolint
 func setLogLevelDebug() {
 	_ = logger.SetLogLevel("process:DEBUG")
 }
@@ -64,6 +65,7 @@ func CreateElasticProcessor(
 	return factory.CreateElasticProcessor(args)
 }
 
+//nolint
 func readExpectedResult(path string) string {
 	jsonFile, _ := os.Open(path)
 	byteValue, _ := ioutil.ReadAll(jsonFile)
@@ -71,6 +73,7 @@ func readExpectedResult(path string) string {
 	return string(byteValue)
 }
 
+//nolint
 func getElementFromSlice(path string, index int) string {
 	fileBytes := readExpectedResult(path)
 	slice := make([]map[string]interface{}, 0)
