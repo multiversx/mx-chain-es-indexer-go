@@ -5,13 +5,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/mock"
-	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/converters"
-	"github.com/ElrondNetwork/elrond-go-core/core"
-	coreData "github.com/ElrondNetwork/elrond-go-core/data"
-	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
+	"github.com/multiversx/mx-chain-core-go/core"
+	coreData "github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
+	"github.com/multiversx/mx-chain-es-indexer-go/mock"
+	elasticIndexer "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
 	"github.com/stretchr/testify/require"
 )
 
@@ -152,6 +152,8 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 	require.NotNil(t, resLogs.Tokens)
 	require.True(t, res.Transactions[0].HasOperations)
 	require.True(t, res.ScResults[0].HasOperations)
+	require.True(t, res.Transactions[0].HasLogs)
+	require.True(t, res.ScResults[0].HasLogs)
 
 	require.Equal(t, &data.ScDeployInfo{
 		TxHash:    "6833",
@@ -181,12 +183,14 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 		Contract:       "636f6e7472616374",
 		ActiveStakeNum: 0.1,
 		ActiveStake:    "1000000000",
+		Timestamp:      time.Duration(1000),
 	}, resLogs.Delegators["61646472636f6e7472616374"])
 	require.Equal(t, &data.Delegator{
 		Address:        "61646472",
 		Contract:       "636f6e74726163742d7365636f6e64",
 		ActiveStakeNum: 0.1,
 		ActiveStake:    "1000000000",
+		Timestamp:      time.Duration(1000),
 	}, resLogs.Delegators["61646472636f6e74726163742d7365636f6e64"])
 }
 

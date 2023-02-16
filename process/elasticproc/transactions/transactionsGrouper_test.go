@@ -4,13 +4,14 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/mock"
-	coreData "github.com/ElrondNetwork/elrond-go-core/data"
-	"github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-go-core/data/outport"
-	"github.com/ElrondNetwork/elrond-go-core/data/receipt"
-	"github.com/ElrondNetwork/elrond-go-core/data/rewardTx"
-	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
+	coreData "github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
+	"github.com/multiversx/mx-chain-core-go/data/receipt"
+	"github.com/multiversx/mx-chain-core-go/data/rewardTx"
+	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	"github.com/multiversx/mx-chain-es-indexer-go/mock"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
 	"github.com/stretchr/testify/require"
 )
 
@@ -18,7 +19,8 @@ func TestGroupNormalTxs(t *testing.T) {
 	t.Parallel()
 
 	parser := createDataFieldParserMock()
-	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, parser)
+	ap, _ := converters.NewBalanceConverter(18)
+	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, parser, ap)
 	grouper := newTxsGrouper(txBuilder, &mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	txHash1 := []byte("txHash1")
@@ -47,7 +49,8 @@ func TestGroupRewardsTxs(t *testing.T) {
 	t.Parallel()
 
 	parser := createDataFieldParserMock()
-	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, parser)
+	ap, _ := converters.NewBalanceConverter(18)
+	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, parser, ap)
 	grouper := newTxsGrouper(txBuilder, &mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	txHash1 := []byte("txHash1")
@@ -74,7 +77,8 @@ func TestGroupInvalidTxs(t *testing.T) {
 	t.Parallel()
 
 	parser := createDataFieldParserMock()
-	txBuilder := newTransactionDBBuilder(mock.NewPubkeyConverterMock(32), parser)
+	ap, _ := converters.NewBalanceConverter(18)
+	txBuilder := newTransactionDBBuilder(mock.NewPubkeyConverterMock(32), parser, ap)
 	grouper := newTxsGrouper(txBuilder, &mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	txHash1 := []byte("txHash1")
@@ -103,7 +107,8 @@ func TestGroupReceipts(t *testing.T) {
 	t.Parallel()
 
 	parser := createDataFieldParserMock()
-	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, parser)
+	ap, _ := converters.NewBalanceConverter(18)
+	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, parser, ap)
 	grouper := newTxsGrouper(txBuilder, &mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	txHash1 := []byte("txHash1")

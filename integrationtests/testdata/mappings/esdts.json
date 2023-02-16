@@ -1,0 +1,122 @@
+{
+  "esdts-000001": {
+    "mappings": {
+      "properties": {
+        "currentOwner": {
+          "type": "keyword"
+        },
+        "issuer": {
+          "type": "keyword"
+        },
+        "name": {
+          "type": "keyword"
+        },
+        "numDecimals": {
+          "type": "long"
+        },
+        "paused": {
+          "type": "boolean"
+        },
+        "ownersHistory": {
+          "type": "nested",
+          "properties": {
+            "address": {
+              "type": "keyword"
+            },
+            "timestamp": {
+              "type": "date",
+              "format": "epoch_second",
+              "index": false
+            }
+          }
+        },
+        "properties": {
+          "properties": {
+            "canAddSpecialRoles": {
+              "type": "boolean",
+              "index": false
+            },
+            "canBurn": {
+              "type": "boolean",
+              "index": false
+            },
+            "canChangeOwner": {
+              "type": "boolean",
+              "index": false
+            },
+            "canCreateMultiShard": {
+              "type": "boolean",
+              "index": false
+            },
+            "canFreeze": {
+              "type": "boolean",
+              "index": false
+            },
+            "canMint": {
+              "type": "boolean",
+              "index": false
+            },
+            "canPause": {
+              "type": "boolean",
+              "index": false
+            },
+            "canTransferNFTCreateRole": {
+              "type": "boolean",
+              "index": false
+            },
+            "canUpgrade": {
+              "type": "boolean",
+              "index": false
+            },
+            "canWipe": {
+              "type": "boolean",
+              "index": false
+            }
+          }
+        },
+        "roles": {
+          "type": "nested",
+          "properties": {
+            "ESDTRoleLocalBurn": {
+              "type": "keyword"
+            },
+            "ESDTRoleLocalMint": {
+              "type": "keyword"
+            },
+            "ESDTRoleNFTAddQuantity": {
+              "type": "keyword"
+            },
+            "ESDTRoleNFTAddURI": {
+              "type": "keyword"
+            },
+            "ESDTRoleNFTBurn": {
+              "type": "keyword"
+            },
+            "ESDTRoleNFTCreate": {
+              "type": "keyword"
+            },
+            "ESDTRoleNFTUpdateAttributes": {
+              "type": "keyword"
+            },
+            "ESDTTransferRole": {
+              "type": "keyword"
+            }
+          }
+        },
+        "ticker": {
+          "type": "keyword"
+        },
+        "timestamp": {
+          "type": "date",
+          "format": "epoch_second"
+        },
+        "token": {
+          "type": "keyword"
+        },
+        "type": {
+          "type": "keyword"
+        }
+      }
+    }
+  }
+}

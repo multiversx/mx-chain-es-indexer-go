@@ -2,16 +2,18 @@ package checkers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
+	"time"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/tools/clusters-checker/pkg/client"
-	"github.com/ElrondNetwork/elastic-indexer-go/tools/clusters-checker/pkg/config"
 	"github.com/elastic/go-elasticsearch/v7"
+	"github.com/multiversx/mx-chain-es-indexer-go/tools/clusters-checker/pkg/client"
+	"github.com/multiversx/mx-chain-es-indexer-go/tools/clusters-checker/pkg/config"
 )
 
 // CreateClusterChecker will create a new instance of clusterChecker structure
-func CreateClusterChecker(cfg *config.Config, timestampIndex int, logPrefix string) (*clusterChecker, error) {
+func CreateClusterChecker(cfg *config.Config, interval *Interval, logPrefix string, onlyIDs bool) (*clusterChecker, error) {
 	clientSource, err := client.NewElasticClient(elasticsearch.Config{
 		Addresses: []string{cfg.SourceCluster.URL},
 		Username:  cfg.SourceCluster.User,
@@ -39,24 +41,64 @@ func CreateClusterChecker(cfg *config.Config, timestampIndex int, logPrefix stri
 		missingFromSource:      map[string]json.RawMessage{},
 		missingFromDestination: map[string]json.RawMessage{},
 
-		startTimestamp: cfg.Compare.IntervalSettings[timestampIndex].Start,
-		stopTimestamp:  cfg.Compare.IntervalSettings[timestampIndex].Stop,
+		startTimestamp: int(interval.start),
+		stopTimestamp:  int(interval.stop),
 		logPrefix:      logPrefix,
+		onlyIDs:        onlyIDs,
 	}, nil
 }
 
-func CreateMultipleCheckers(cfg *config.Config) ([]*clusterChecker, error) {
-	checkers := make([]*clusterChecker, 0, len(cfg.Compare.IntervalSettings))
+// CreateMultipleCheckers will create multiple instances of clusterChecker structure
+func CreateMultipleCheckers(cfg *config.Config, onlyIDs bool) ([]*clusterChecker, error) {
+	currentTimestampUnix := time.Now().Unix()
+	intervals, err := computeIntervals(cfg.Compare.BlockchainStartTime, currentTimestampUnix, int64(cfg.Compare.NumParallelReads))
+	if err != nil {
+		return nil, err
+	}
 
-	for idx := 0; idx < len(cfg.Compare.IntervalSettings); idx++ {
+	checkers := make([]*clusterChecker, 0, cfg.Compare.NumParallelReads)
+
+	for idx := 0; idx < cfg.Compare.NumParallelReads; idx++ {
 		logPrefix := "instance_" + strconv.FormatUint(uint64(idx), 10)
-		cc, err := CreateClusterChecker(cfg, idx, logPrefix)
-		if err != nil {
-			return nil, err
+		cc, errC := CreateClusterChecker(cfg, intervals[idx], logPrefix, onlyIDs)
+		if errC != nil {
+			return nil, errC
 		}
 
 		checkers = append(checkers, cc)
 	}
 
 	return checkers, nil
+}
+
+func computeIntervals(startTime, endTime int64, numIntervals int64) ([]*Interval, error) {
+	if startTime > endTime {
+		return nil, errors.New("blockchain start time is greater than current timestamp")
+	}
+	if numIntervals < 2 {
+		return []*Interval{{
+			start: startTime,
+			stop:  endTime,
+		}}, nil
+	}
+
+	difference := endTime - startTime
+	step := difference / numIntervals
+
+	intervals := make([]*Interval, 0, numIntervals)
+	for idx := int64(0); idx < numIntervals; idx++ {
+		start := startTime + idx*step
+		stop := startTime + (idx+1)*step
+
+		if idx == numIntervals-1 {
+			stop = endTime
+		}
+
+		intervals = append(intervals, &Interval{
+			start: start,
+			stop:  stop,
+		})
+	}
+
+	return intervals, nil
 }

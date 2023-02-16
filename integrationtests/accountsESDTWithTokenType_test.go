@@ -9,13 +9,13 @@ import (
 	"testing"
 	"time"
 
-	indexerdata "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
-	"github.com/ElrondNetwork/elrond-go-core/core"
-	coreData "github.com/ElrondNetwork/elrond-go-core/data"
-	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-go-core/data/esdt"
-	"github.com/ElrondNetwork/elrond-go-core/data/outport"
-	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
+	"github.com/multiversx/mx-chain-core-go/core"
+	coreData "github.com/multiversx/mx-chain-core-go/data"
+	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/esdt"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
+	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	indexerdata "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/stretchr/testify/require"
 )
 
@@ -74,7 +74,7 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 					Identifier: "SEMI-abcd",
 					Balance:    "1000",
 					Nonce:      2,
-					Properties: "ok",
+					Properties: "3032",
 					MetaData: &outport.TokenMetaData{
 						Creator: "creator",
 					},
@@ -146,7 +146,7 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 					Identifier: "TTTT-abcd",
 					Nonce:      2,
 					Balance:    "1000",
-					Properties: "ok",
+					Properties: "3032",
 					MetaData: &outport.TokenMetaData{
 						Creator: "erd1l29zsl2dqq988kvr2y0xlfv9ydgnvhzkatfd8ccalpag265pje8qn8lslf",
 					},

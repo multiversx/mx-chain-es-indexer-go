@@ -11,12 +11,33 @@ var AccountsESDTHistory = Object{
 	},
 	"mappings": Object{
 		"properties": Object{
+			"address": Object{
+				"type": "keyword",
+			},
+			"balance": Object{
+				"type": "keyword",
+			},
+			"identifier": Object{
+				"type": "keyword",
+			},
+			"isSender": Object{
+				"type": "boolean",
+			},
+			"isSmartContract": Object{
+				"type": "boolean",
+			},
+			"shardID": Object{
+				"type": "long",
+			},
 			"timestamp": Object{
 				"type":   "date",
 				"format": "epoch_second",
 			},
+			"token": Object{
+				"type": "keyword",
+			},
 			"tokenNonce": Object{
-				"type": "double",
+				"type": "long",
 			},
 		},
 	},

@@ -3,9 +3,9 @@ package accounts
 import (
 	"testing"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/converters"
-	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
 	"github.com/stretchr/testify/require"
 )
 
@@ -29,7 +29,7 @@ func TestSerializeNFTCreateInfo(t *testing.T) {
 	require.Equal(t, 1, len(buffSlice.Buffers()))
 
 	expectedRes := `{ "index" : { "_index":"tokens", "_id" : "my-token-001-0f" } }
-{"identifier":"my-token-001-0f","token":"my-token-0001","type":"NonFungibleESDT","data":{"creator":"010102","nonEmptyURIs":false,"whiteListedStorage":false}}
+{"identifier":"my-token-001-0f","token":"my-token-0001","numDecimals":0,"type":"NonFungibleESDT","data":{"creator":"010102","nonEmptyURIs":false,"whiteListedStorage":false}}
 `
 	require.Equal(t, expectedRes, buffSlice.Buffers()[0].String())
 }

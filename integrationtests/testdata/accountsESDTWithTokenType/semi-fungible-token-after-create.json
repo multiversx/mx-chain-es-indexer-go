@@ -8,5 +8,6 @@
     "nonEmptyURIs": false,
     "whiteListedStorage": false
   },
-  "type": "SemiFungibleESDT"
+  "type": "SemiFungibleESDT",
+  "numDecimals": 0
 }

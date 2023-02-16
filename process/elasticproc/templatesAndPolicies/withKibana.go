@@ -3,8 +3,8 @@ package templatesAndPolicies
 import (
 	"bytes"
 
-	indexer "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
-	"github.com/ElrondNetwork/elastic-indexer-go/templates/withKibana"
+	indexer "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
+	"github.com/multiversx/mx-chain-es-indexer-go/templates/withKibana"
 )
 
 type templatesAndPolicyReaderWithKibana struct{}
@@ -45,7 +45,7 @@ func getTemplatesKibana() map[string]*bytes.Buffer {
 	indexTemplates[indexer.LogsIndex] = withKibana.Logs.ToBuffer()
 	indexTemplates[indexer.DelegatorsIndex] = withKibana.Delegators.ToBuffer()
 	indexTemplates[indexer.OperationsIndex] = withKibana.Operations.ToBuffer()
-	indexTemplates[indexer.CollectionsIndex] = withKibana.Collections.ToBuffer()
+	indexTemplates[indexer.ESDTsIndex] = withKibana.ESDTs.ToBuffer()
 
 	return indexTemplates
 }

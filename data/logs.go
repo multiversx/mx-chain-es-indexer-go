@@ -3,7 +3,7 @@ package data
 import (
 	"time"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/tokeninfo"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/tokeninfo"
 )
 
 // Logs holds all the fields needed for a logs structure

@@ -4,14 +4,16 @@ import (
 	"encoding/hex"
 	"testing"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
 	"github.com/stretchr/testify/require"
 )
 
 func TestAttachSCRsToTransactionsAndReturnSCRsWithoutTx(t *testing.T) {
 	t.Parallel()
 
-	scrsDataToTxs := newScrsDataToTransactions()
+	bc, _ := converters.NewBalanceConverter(18)
+	scrsDataToTxs := newScrsDataToTransactions(bc)
 
 	txHash1 := []byte("txHash1")
 	txHash2 := []byte("txHash2")
@@ -58,7 +60,8 @@ func TestAttachSCRsToTransactionsAndReturnSCRsWithoutTx(t *testing.T) {
 func TestProcessTransactionsAfterSCRsWereAttached(t *testing.T) {
 	t.Parallel()
 
-	scrsDataToTxs := newScrsDataToTransactions()
+	bc, _ := converters.NewBalanceConverter(18)
+	scrsDataToTxs := newScrsDataToTransactions(bc)
 
 	txHash1 := []byte("txHash1")
 	txHash2 := []byte("txHash2")
@@ -93,7 +96,11 @@ func TestProcessTransactionsAfterSCRsWereAttached(t *testing.T) {
 func TestIsESDTNFTTransferWithUserError(t *testing.T) {
 	t.Parallel()
 
-	require.False(t, isESDTNFTTransferWithUserError("ESDTNFTTransfer@45474c444d4558462d333766616239@06f5@045d2bd2629df0d2ea@0801120a00045d2bd2629df0d2ea226408f50d1a2000000000000000000500e809539d1d8febc54df4e6fe826fdc8ab6c88cf07ceb32003a3b00000007401c82df9c05a80000000000000407000000000000040f010000000009045d2bd2629df0d2ea0000000000000009045d2bd2629df0d2ea@636c61696d52657761726473"))
-	require.False(t, isESDTNFTTransferWithUserError("ESDTTransfer@4d45582d623662623764@74b7e37e3c2efe5f11@"))
-	require.False(t, isESDTNFTTransferWithUserError("ESDTNFTTransfer@45474c444d4558462d333766616239@070f@045d2bd2629df0d2ea@0801120a00045d2bd2629df0d2ea2264088f0e1a2000000000000000000500e809539d1d8febc54df4e6fe826fdc8ab6c88cf07ceb32003a3b000000074034d62af2b6930000000000000407000000000000040f010000000009045d2bd2629df0d2ea0000000000000009045d2bd2629df0d2ea@"))
+	bc, _ := converters.NewBalanceConverter(18)
+	scrsDataToTxs := newScrsDataToTransactions(bc)
+
+	require.False(t, scrsDataToTxs.isESDTNFTTransferOrMultiTransferWithError("ESDTNFTTransfer@45474c444d4558462d333766616239@06f5@045d2bd2629df0d2ea@0801120a00045d2bd2629df0d2ea226408f50d1a2000000000000000000500e809539d1d8febc54df4e6fe826fdc8ab6c88cf07ceb32003a3b00000007401c82df9c05a80000000000000407000000000000040f010000000009045d2bd2629df0d2ea0000000000000009045d2bd2629df0d2ea@636c61696d52657761726473"))
+	require.False(t, scrsDataToTxs.isESDTNFTTransferOrMultiTransferWithError("ESDTTransfer@4d45582d623662623764@74b7e37e3c2efe5f11@"))
+	require.False(t, scrsDataToTxs.isESDTNFTTransferOrMultiTransferWithError("ESDTNFTTransfer@45474c444d4558462d333766616239@070f@045d2bd2629df0d2ea@0801120a00045d2bd2629df0d2ea2264088f0e1a2000000000000000000500e809539d1d8febc54df4e6fe826fdc8ab6c88cf07ceb32003a3b000000074034d62af2b6930000000000000407000000000000040f010000000009045d2bd2629df0d2ea0000000000000009045d2bd2629df0d2ea@"))
+	require.True(t, scrsDataToTxs.isESDTNFTTransferOrMultiTransferWithError("MultiESDTNFTTransfer@02@5745474c442d626434643739@00@38e62046fb1a0000@584d45582d666461333535@07@0801120c00048907e58284c28e898e2922520807120a4d45582d3435356335371a20000000000000000005007afb2c871d1647372fd53a9eb3e53e5a8ec9251cb05532003a1e0000000a4d45582d343535633537000000000000000000000000000008e8@657865637574696f6e206661696c6564"))
 }

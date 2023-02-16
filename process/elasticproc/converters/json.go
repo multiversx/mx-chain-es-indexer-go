@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	logger "github.com/ElrondNetwork/elrond-go-logger"
+	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 const defaultStr = "default"

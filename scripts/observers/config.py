@@ -62,7 +62,7 @@ def prepare_observer(shard_id, working_dir, config_folder):
     st = os.stat(elastic_indexer_exec)
     os.chmod(elastic_indexer_exec, st.st_mode | stat.S_IEXEC)
 
-    shutil.copyfile(working_dir / "elrond-go/cmd/node/node", working_dir_observer / "node/node")
+    shutil.copyfile(working_dir / "mx-chain-go/cmd/node/node", working_dir_observer / "node/node")
 
     node_exec_path = working_dir_observer / "node/node"
     st = os.stat(node_exec_path)
@@ -82,27 +82,27 @@ def main():
         print("use `python3 clean.py` command first")
         sys.exit()
 
-    # CLONE elrond-config
-    print("cloning elrond-config....")
+    # CLONE config
+    print("cloning config....")
     config_folder = working_dir / "config"
     if not os.path.isdir(config_folder):
-        Repo.clone_from(os.getenv('ELROND_CONFIG_URL'), config_folder)
+        Repo.clone_from(os.getenv('NODE_CONFIG_URL'), config_folder)
 
     repo_cfg = Repo(config_folder)
-    repo_cfg.git.checkout(os.getenv('ELROND_CONFIG_BRANCH'))
+    repo_cfg.git.checkout(os.getenv('NODE_CONFIG_BRANCH'))
 
-    # CLONE elrond-go
-    print("cloning elrond-go....")
-    elrond_go_folder = working_dir / "elrond-go"
-    if not os.path.isdir(elrond_go_folder):
-        Repo.clone_from(os.getenv('ELROND_GO_URL'), elrond_go_folder)
+    # CLONE mx-chain-go
+    print("cloning mx-chain-go....")
+    mx_chain_go_folder = working_dir / "mx-chain-go"
+    if not os.path.isdir(mx_chain_go_folder):
+        Repo.clone_from(os.getenv('NODE_GO_URL'), mx_chain_go_folder)
 
-    repo_elrond_go = Repo(elrond_go_folder)
-    repo_elrond_go.git.checkout(os.getenv('ELROND_GO_BRANCH'))
+    repo_mx_chain_go = Repo(mx_chain_go_folder)
+    repo_mx_chain_go.git.checkout(os.getenv('NODE_GO_BRANCH'))
 
-    # build binary elrond-go
+    # build binary mx-chain-go
     print("building node...")
-    subprocess.check_call(["go", "build"], cwd=elrond_go_folder / "cmd/node")
+    subprocess.check_call(["go", "build"], cwd=mx_chain_go_folder / "cmd/node")
 
     # build binary indexer
     print("building indexer...")

@@ -13,5 +13,6 @@
     "nonEmptyURIs": true,
     "whiteListedStorage": false,
     "attributes": "c29tZXRoaW5n"
-  }
+  },
+  "numDecimals": 0
 }

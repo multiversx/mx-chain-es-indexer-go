@@ -12,25 +12,25 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/mock"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/accounts"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/block"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/converters"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/logsevents"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/miniblocks"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/operations"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/statistics"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/tags"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/transactions"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/validators"
-	"github.com/ElrondNetwork/elrond-go-core/core"
-	coreData "github.com/ElrondNetwork/elrond-go-core/data"
-	dataBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-go-core/data/outport"
-	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
+	"github.com/multiversx/mx-chain-core-go/core"
+	coreData "github.com/multiversx/mx-chain-core-go/data"
+	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
+	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
+	"github.com/multiversx/mx-chain-es-indexer-go/mock"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/accounts"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/block"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/logsevents"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/miniblocks"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/operations"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/statistics"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/tags"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/transactions"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/validators"
 	"github.com/stretchr/testify/require"
 )
 
@@ -360,7 +360,7 @@ func TestElasticseachDatabaseSaveHeader_RequestError(t *testing.T) {
 	arguments.BlockProc, _ = block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 	elasticDatabase := newElasticsearchProcessor(dbWriter, arguments)
 
-	err := elasticDatabase.SaveHeader([]byte("hh"), header, signerIndexes, &dataBlock.Body{}, nil, outport.HeaderGasConsumption{}, 1)
+	err := elasticDatabase.SaveHeader([]byte("hh"), header, signerIndexes, &dataBlock.Body{}, nil, outport.HeaderGasConsumption{}, 1, &outport.Pool{})
 	require.Equal(t, localErr, err)
 }
 
@@ -401,7 +401,7 @@ func TestElasticseachDatabaseSaveHeader_CheckRequestBody(t *testing.T) {
 
 	arguments.BlockProc, _ = block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 	elasticDatabase := newElasticsearchProcessor(dbWriter, arguments)
-	err := elasticDatabase.SaveHeader([]byte("hh"), header, signerIndexes, blockBody, nil, outport.HeaderGasConsumption{}, 1)
+	err := elasticDatabase.SaveHeader([]byte("hh"), header, signerIndexes, blockBody, nil, outport.HeaderGasConsumption{}, 1, &outport.Pool{})
 	require.Nil(t, err)
 }
 
@@ -418,10 +418,12 @@ func TestElasticseachSaveTransactions(t *testing.T) {
 	header := &dataBlock.Header{Nonce: 1, TxCount: 2}
 	txPool := newTestTxPool()
 
+	bc, _ := converters.NewBalanceConverter(18)
 	args := &transactions.ArgsTransactionProcessor{
 		AddressPubkeyConverter: mock.NewPubkeyConverterMock(32),
 		Hasher:                 &mock.HasherMock{},
 		Marshalizer:            &mock.MarshalizerMock{},
+		BalanceConverter:       bc,
 	}
 	txDbProc, _ := transactions.NewTransactionsProcessor(args)
 	arguments.TransactionsProc = txDbProc
@@ -561,7 +563,7 @@ func TestElasticProcessor_RemoveTransactions(t *testing.T) {
 	dbWriter := &mock.DatabaseWriterStub{
 		DoQueryRemoveCalled: func(index string, body *bytes.Buffer) error {
 			bodyStr := body.String()
-			require.Contains(t, []string{dataindexer.TransactionsIndex, dataindexer.OperationsIndex}, index)
+			require.Contains(t, []string{dataindexer.TransactionsIndex, dataindexer.OperationsIndex, dataindexer.LogsIndex}, index)
 			require.True(t, strings.Contains(bodyStr, expectedHashes[0]))
 			require.True(t, strings.Contains(bodyStr, expectedHashes[1]))
 			called = true
@@ -623,7 +625,7 @@ func TestElasticProcessor_IndexEpochInfoData(t *testing.T) {
 	body := &dataBlock.Body{}
 	metaHeader := &dataBlock.MetaBlock{}
 
-	err = elasticSearchProc.SaveHeader([]byte("hh"), metaHeader, nil, body, nil, outport.HeaderGasConsumption{}, 0)
+	err = elasticSearchProc.SaveHeader([]byte("hh"), metaHeader, nil, body, nil, outport.HeaderGasConsumption{}, 0, &outport.Pool{})
 	require.Nil(t, err)
 	require.True(t, called)
 }

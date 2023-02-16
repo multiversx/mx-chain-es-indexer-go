@@ -6,14 +6,14 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
-	"github.com/ElrondNetwork/elrond-go-core/core"
-	"github.com/ElrondNetwork/elrond-go-core/core/check"
-	coreData "github.com/ElrondNetwork/elrond-go-core/data"
-	"github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-go-core/data/outport"
-	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/core/check"
+	coreData "github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
+	elasticIndexer "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 )
 
 const (
@@ -32,6 +32,9 @@ func checkTxsProcessorArg(args *ArgsTransactionProcessor) error {
 	}
 	if check.IfNil(args.AddressPubkeyConverter) {
 		return elasticIndexer.ErrNilPubkeyConverter
+	}
+	if check.IfNil(args.BalanceConverter) {
+		return elasticIndexer.ErrNilBalanceConverter
 	}
 
 	return nil
