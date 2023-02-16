@@ -6,18 +6,23 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	indexer "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/converters"
-	"github.com/ElrondNetwork/elrond-go-core/core"
-	"github.com/ElrondNetwork/elrond-go-core/core/check"
-	coreData "github.com/ElrondNetwork/elrond-go-core/data"
-	"github.com/ElrondNetwork/elrond-go-core/data/block"
-	nodeBlock "github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-go-core/data/outport"
-	"github.com/ElrondNetwork/elrond-go-core/hashing"
-	"github.com/ElrondNetwork/elrond-go-core/marshal"
-	logger "github.com/ElrondNetwork/elrond-go-logger"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/core/check"
+	coreData "github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/block"
+	nodeBlock "github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
+	"github.com/multiversx/mx-chain-core-go/hashing"
+	"github.com/multiversx/mx-chain-core-go/marshal"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
+	indexer "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
+	logger "github.com/multiversx/mx-chain-logger-go"
+)
+
+const (
+	notExecutedInCurrentBlock = -1
+	notFound                  = -2
 )
 
 var log = logger.GetOrCreate("indexer/process/block")
@@ -51,6 +56,7 @@ func (bp *blockProcessor) PrepareBlockForDB(
 	notarizedHeadersHashes []string,
 	gasConsumptionData outport.HeaderGasConsumption,
 	sizeTxs int,
+	pool *outport.Pool,
 ) (*data.Block, error) {
 	if check.IfNil(header) {
 		return nil, indexer.ErrNilHeaderHandler
@@ -109,7 +115,7 @@ func (bp *blockProcessor) PrepareBlockForDB(
 	}
 
 	bp.addEpochStartInfoForMeta(header, elasticBlock)
-	putMiniblocksDetailsInBlock(header, elasticBlock)
+	putMiniblocksDetailsInBlock(header, elasticBlock, pool, body)
 
 	return elasticBlock, nil
 }
@@ -227,15 +233,52 @@ func (bp *blockProcessor) getEncodedMBSHashes(body *block.Body) []string {
 	return miniblocksHashes
 }
 
-func putMiniblocksDetailsInBlock(header coreData.HeaderHandler, block *data.Block) {
+func putMiniblocksDetailsInBlock(header coreData.HeaderHandler, block *data.Block, pool *outport.Pool, body *block.Body) {
 	mbHeaders := header.GetMiniBlockHeaderHandlers()
+
 	for idx, mbHeader := range mbHeaders {
+		mbType := nodeBlock.Type(mbHeader.GetTypeInt32())
+		if mbType == nodeBlock.PeerBlock {
+			continue
+		}
+
+		txsHashes := body.MiniBlocks[idx].TxHashes
 		block.MiniBlocksDetails = append(block.MiniBlocksDetails, &data.MiniBlocksDetails{
-			IndexFirstProcessedTx: mbHeader.GetIndexOfFirstTxProcessed(),
-			IndexLastProcessedTx:  mbHeader.GetIndexOfLastTxProcessed(),
-			MBIndex:               idx,
+			IndexFirstProcessedTx:    mbHeader.GetIndexOfFirstTxProcessed(),
+			IndexLastProcessedTx:     mbHeader.GetIndexOfLastTxProcessed(),
+			MBIndex:                  idx,
+			ProcessingType:           nodeBlock.ProcessingType(mbHeader.GetProcessingType()).String(),
+			Type:                     mbType.String(),
+			SenderShardID:            mbHeader.GetSenderShardID(),
+			ReceiverShardID:          mbHeader.GetReceiverShardID(),
+			TxsHashes:                hexEncodeSlice(txsHashes),
+			ExecutionOrderTxsIndices: extractExecutionOrderIndicesFromPool(mbHeader, txsHashes, pool),
 		})
 	}
+}
+
+func extractExecutionOrderIndicesFromPool(mbHeader coreData.MiniBlockHeaderHandler, txsHashes [][]byte, pool *outport.Pool) []int {
+	txsMap := getTxsMap(nodeBlock.Type(mbHeader.GetTypeInt32()), pool)
+	executionOrderTxsIndices := make([]int, len(txsHashes))
+	indexOfFirstTxProcessed, indexOfLastTxProcessed := mbHeader.GetIndexOfFirstTxProcessed(), mbHeader.GetIndexOfLastTxProcessed()
+	for idx, txHash := range txsHashes {
+		isExecutedInCurrentBlock := int32(idx) >= indexOfFirstTxProcessed && int32(idx) <= indexOfLastTxProcessed
+		if !isExecutedInCurrentBlock {
+			executionOrderTxsIndices[idx] = notExecutedInCurrentBlock
+			continue
+		}
+
+		tx, found := txsMap[string(txHash)]
+		if !found {
+			log.Warn("blockProcessor.extractExecutionOrderIndicesFromPool cannot find tx in pool", "txHash", hex.EncodeToString(txHash))
+			executionOrderTxsIndices[idx] = notFound
+			continue
+		}
+
+		executionOrderTxsIndices[idx] = tx.GetExecutionOrder()
+	}
+
+	return executionOrderTxsIndices
 }
 
 func (bp *blockProcessor) computeBlockSize(header coreData.HeaderHandler, body *block.Body) (int, error) {
@@ -287,4 +330,27 @@ func createShardIdentifier(shardID uint32) uint32 {
 // ComputeHeaderHash will compute the hash of a provided header
 func (bp *blockProcessor) ComputeHeaderHash(header coreData.HeaderHandler) ([]byte, error) {
 	return core.CalculateHash(bp.marshalizer, bp.hasher, header)
+}
+
+func getTxsMap(mbType nodeBlock.Type, pool *outport.Pool) map[string]coreData.TransactionHandlerWithGasUsedAndFee {
+	switch mbType {
+	case nodeBlock.TxBlock:
+		return pool.Txs
+	case nodeBlock.InvalidBlock:
+		return pool.Invalid
+	case nodeBlock.RewardsBlock:
+		return pool.Rewards
+	case nodeBlock.SmartContractResultBlock:
+		return pool.Scrs
+	default:
+		return make(map[string]coreData.TransactionHandlerWithGasUsedAndFee)
+	}
+}
+
+func hexEncodeSlice(slice [][]byte) []string {
+	res := make([]string, 0, len(slice))
+	for _, s := range slice {
+		res = append(res, hex.EncodeToString(s))
+	}
+	return res
 }

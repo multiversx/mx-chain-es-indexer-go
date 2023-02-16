@@ -2,18 +2,22 @@ package integrationtests
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
+	"net/http"
+	"net/url"
 	"os"
+	"path"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/client"
-	"github.com/ElrondNetwork/elastic-indexer-go/client/logging"
-	"github.com/ElrondNetwork/elastic-indexer-go/mock"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/factory"
-	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
-	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/elastic/go-elasticsearch/v7"
+	"github.com/multiversx/mx-chain-core-go/core/pubkeyConverter"
+	"github.com/multiversx/mx-chain-es-indexer-go/client"
+	"github.com/multiversx/mx-chain-es-indexer-go/client/logging"
+	"github.com/multiversx/mx-chain-es-indexer-go/mock"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/factory"
+	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 var (
@@ -21,6 +25,7 @@ var (
 	pubKeyConverter, _ = pubkeyConverter.NewBech32PubkeyConverter(32, addressPrefix)
 )
 
+//nolint
 func setLogLevelDebug() {
 	_ = logger.SetLogLevel("process:DEBUG")
 }
@@ -52,14 +57,15 @@ func CreateElasticProcessor(
 		ValidatorPubkeyConverter: mock.NewPubkeyConverterMock(32),
 		DBClient:                 esClient,
 		EnabledIndexes: []string{dataindexer.TransactionsIndex, dataindexer.LogsIndex, dataindexer.AccountsESDTIndex, dataindexer.ScResultsIndex,
-			dataindexer.ReceiptsIndex, dataindexer.BlockIndex, dataindexer.AccountsIndex, dataindexer.TokensIndex, dataindexer.TagsIndex, dataindexer.CollectionsIndex,
-			dataindexer.OperationsIndex},
+			dataindexer.ReceiptsIndex, dataindexer.BlockIndex, dataindexer.AccountsIndex, dataindexer.TokensIndex, dataindexer.TagsIndex,
+			dataindexer.OperationsIndex, dataindexer.DelegatorsIndex, dataindexer.ESDTsIndex},
 		Denomination: 18,
 	}
 
 	return factory.CreateElasticProcessor(args)
 }
 
+//nolint
 func readExpectedResult(path string) string {
 	jsonFile, _ := os.Open(path)
 	byteValue, _ := ioutil.ReadAll(jsonFile)
@@ -67,6 +73,7 @@ func readExpectedResult(path string) string {
 	return string(byteValue)
 }
 
+//nolint
 func getElementFromSlice(path string, index int) string {
 	fileBytes := readExpectedResult(path)
 	slice := make([]map[string]interface{}, 0)
@@ -74,4 +81,25 @@ func getElementFromSlice(path string, index int) string {
 	res, _ := json.Marshal(slice[index]["_source"])
 
 	return string(res)
+}
+
+//nolint
+func getIndexMappings(index string) (string, error) {
+	u, _ := url.Parse(esURL)
+	u.Path = path.Join(u.Path, index, "_mappings")
+	res, err := http.Get(u.String())
+	if err != nil {
+		return "", err
+	}
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return "", err
+	}
+
+	if res.StatusCode >= 400 {
+		return "", fmt.Errorf("%s", string(body))
+	}
+
+	return string(body), nil
 }

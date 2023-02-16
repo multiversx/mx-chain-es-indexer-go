@@ -3,12 +3,12 @@ package elasticproc
 import (
 	"bytes"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/tokeninfo"
-	coreData "github.com/ElrondNetwork/elrond-go-core/data"
-	"github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
+	coreData "github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/tokeninfo"
 )
 
 // DatabaseClientHandler defines the actions that a component that handles requests should do
@@ -19,6 +19,7 @@ type DatabaseClientHandler interface {
 	DoMultiGet(ids []string, index string, withSource bool, res interface{}) error
 	DoScrollRequest(index string, body []byte, withSource bool, handlerFunc func(responseBytes []byte) error) error
 	DoCountRequest(index string, body []byte) (uint64, error)
+	UpdateByQuery(index string, buff *bytes.Buffer) error
 
 	CheckAndCreateIndex(index string) error
 	CheckAndCreateAlias(alias string, index string) error
@@ -53,6 +54,7 @@ type DBBlockHandler interface {
 		notarizedHeadersHashes []string,
 		gasConsumptionData outport.HeaderGasConsumption,
 		sizeTxs int,
+		pool *outport.Pool,
 	) (*data.Block, error)
 	ComputeHeaderHash(header coreData.HeaderHandler) ([]byte, error)
 
@@ -118,6 +120,7 @@ type DBLogsAndEventsHandler interface {
 		buffSlice *data.BufferSlice,
 		index string,
 	) error
+	PrepareDelegatorsQueryInCaseOfRevert(timestamp uint64) *bytes.Buffer
 }
 
 // OperationsHandler defines the actions that an operations' handler should do

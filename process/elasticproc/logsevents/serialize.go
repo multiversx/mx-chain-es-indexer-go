@@ -1,14 +1,13 @@
 package logsevents
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/converters"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/tokeninfo"
-	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/tokeninfo"
 )
 
 // SerializeLogs will serialize the provided logs in a way that Elasticsearch expects a bulk request
@@ -181,47 +180,6 @@ func serializeTokenTransferOwnership(tokenData *data.TokenInfo, index string) ([
 		converters.FormatPainlessSource(codeToExecute), string(ownerDataSerialized), converters.JsonEscape(tokenData.CurrentOwner), string(tokenDataSerialized))
 
 	return meta, []byte(serializedDataStr), nil
-}
-
-// SerializeDelegators will serialize the provided delegators in a way that Elasticsearch expects a bulk request
-func (lep *logsAndEventsProcessor) SerializeDelegators(delegators map[string]*data.Delegator, buffSlice *data.BufferSlice, index string) error {
-	for _, delegator := range delegators {
-		meta, serializedData, err := lep.prepareSerializedDelegator(delegator, index)
-		if err != nil {
-			return err
-		}
-
-		err = buffSlice.PutData(meta, serializedData)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (lep *logsAndEventsProcessor) prepareSerializedDelegator(delegator *data.Delegator, index string) ([]byte, []byte, error) {
-	id := lep.computeDelegatorID(delegator)
-	if delegator.ShouldDelete {
-		meta := []byte(fmt.Sprintf(`{ "delete" : { "_index": "%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(id), "\n"))
-		return meta, nil, nil
-	}
-
-	meta := []byte(fmt.Sprintf(`{ "index" : { "_index": "%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(id), "\n"))
-	serializedData, errMarshal := json.Marshal(delegator)
-	if errMarshal != nil {
-		return nil, nil, errMarshal
-	}
-
-	return meta, serializedData, nil
-}
-
-func (lep *logsAndEventsProcessor) computeDelegatorID(delegator *data.Delegator) string {
-	delegatorContract := delegator.Address + delegator.Contract
-
-	hashBytes := lep.hasher.Compute(delegatorContract)
-
-	return base64.StdEncoding.EncodeToString(hashBytes)
 }
 
 // SerializeSupplyData will serialize the provided supply data

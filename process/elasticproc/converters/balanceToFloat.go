@@ -4,8 +4,8 @@ import (
 	"math"
 	"math/big"
 
-	indexer "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
-	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/multiversx/mx-chain-core-go/core"
+	indexer "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 )
 
 const (
@@ -42,6 +42,24 @@ func (bc *balanceConverter) ComputeBalanceAsFloat(balance *big.Int) float64 {
 // ComputeESDTBalanceAsFloat will compute ESDT balance as float
 func (bc *balanceConverter) ComputeESDTBalanceAsFloat(balance *big.Int) float64 {
 	return bc.computeBalanceAsFloat(balance, bc.balancePrecisionESDT)
+}
+
+// ComputeSliceOfStringsAsFloat will compute the provided slice of string values in float values
+func (bc *balanceConverter) ComputeSliceOfStringsAsFloat(values []string) []float64 {
+	floatValues := make([]float64, 0, len(values))
+
+	for _, value := range values {
+		valueBig, ok := big.NewInt(0).SetString(value, 10)
+		if !ok {
+			log.Warn("bc.ComputeSliceOfStringsAsFloat cannot convert value type string to float", "value", value)
+			floatValues = append(floatValues, 0)
+			continue
+		}
+
+		floatValues = append(floatValues, bc.ComputeESDTBalanceAsFloat(valueBig))
+	}
+
+	return floatValues
 }
 
 func (bc *balanceConverter) computeBalanceAsFloat(balance *big.Int, balancePrecision float64) float64 {

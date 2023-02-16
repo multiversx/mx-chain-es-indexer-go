@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/converters"
-	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
 )
 
 // SerializeScResults will serialize the provided smart contract results in a way that ElasticSearch expects a bulk request
@@ -55,6 +55,7 @@ func (tdp *txsDatabaseProcessor) SerializeTransactionsFeeData(txHashRefund map[s
 				ctx.op = 'noop'
 			} else {
 				ctx._source.fee = params.fee;
+				ctx._source.feeNum = params.feeNum;
 				ctx._source.gasUsed = params.gasUsed;
 			}
 `
@@ -62,9 +63,9 @@ func (tdp *txsDatabaseProcessor) SerializeTransactionsFeeData(txHashRefund map[s
 		serializedDataStr := fmt.Sprintf(`{"scripted_upsert": true, "script": {`+
 			`"source": "%s",`+
 			`"lang": "painless",`+
-			`"params": {"fee": "%s", "gasUsed": %d}},`+
+			`"params": {"fee": "%s", "gasUsed": %d, "feeNum": %g}},`+
 			`"upsert": {}}`,
-			converters.FormatPainlessSource(codeToExecute), feeData.Fee, feeData.GasUsed,
+			converters.FormatPainlessSource(codeToExecute), feeData.Fee, feeData.GasUsed, feeData.FeeNum,
 		)
 
 		err := buffSlice.PutData(meta, []byte(serializedDataStr))

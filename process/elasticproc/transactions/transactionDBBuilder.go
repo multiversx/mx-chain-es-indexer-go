@@ -6,27 +6,33 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elrond-go-core/core"
-	coreData "github.com/ElrondNetwork/elrond-go-core/data"
-	"github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-go-core/data/receipt"
-	"github.com/ElrondNetwork/elrond-go-core/data/rewardTx"
-	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/core/sharding"
+	coreData "github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/receipt"
+	"github.com/multiversx/mx-chain-core-go/data/rewardTx"
+	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
+	datafield "github.com/multiversx/mx-chain-vm-common-go/parsers/dataField"
 )
 
 type dbTransactionBuilder struct {
 	addressPubkeyConverter core.PubkeyConverter
 	dataFieldParser        DataFieldParser
+	balanceConverter       dataindexer.BalanceConverter
 }
 
 func newTransactionDBBuilder(
 	addressPubkeyConverter core.PubkeyConverter,
 	dataFieldParser DataFieldParser,
+	balanceConverter dataindexer.BalanceConverter,
 ) *dbTransactionBuilder {
 	return &dbTransactionBuilder{
 		addressPubkeyConverter: addressPubkeyConverter,
 		dataFieldParser:        dataFieldParser,
+		balanceConverter:       balanceConverter,
 	}
 }
 
@@ -68,12 +74,14 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		GasUsed:           gasUsed,
 		InitialPaidFee:    initialPaidFee.String(),
 		Fee:               fee.String(),
+		FeeNum:            dtb.balanceConverter.ComputeESDTBalanceAsFloat(fee),
 		ReceiverUserName:  tx.RcvUserName,
 		SenderUserName:    tx.SndUserName,
 		IsScCall:          isScCall,
 		Operation:         res.Operation,
 		Function:          res.Function,
 		ESDTValues:        res.ESDTValues,
+		ESDTValuesNum:     dtb.balanceConverter.ComputeSliceOfStringsAsFloat(res.ESDTValues),
 		Tokens:            res.Tokens,
 		Receivers:         receiversAddr,
 		ReceiversShardIDs: res.ReceiversShardID,

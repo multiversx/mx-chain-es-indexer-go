@@ -5,14 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/transactions"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/transactions/datafield"
-	"github.com/ElrondNetwork/elastic-indexer-go/tools/index-modifier/pkg/modifiers/utils"
-	"github.com/ElrondNetwork/elrond-go-core/core"
-	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
-	factoryMarshalizer "github.com/ElrondNetwork/elrond-go-core/marshal/factory"
-	logger "github.com/ElrondNetwork/elrond-go-logger"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/core/pubkeyConverter"
+	factoryMarshalizer "github.com/multiversx/mx-chain-core-go/marshal/factory"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/transactions"
+	logger "github.com/multiversx/mx-chain-logger-go"
+	datafield "github.com/multiversx/mx-chain-vm-common-go/parsers/dataField"
 )
 
 var log = logger.GetOrCreate("index-modifier/pkg/alterindex")
@@ -44,17 +43,14 @@ func NewTxsModifier() (*txsModifier, error) {
 	}, nil
 }
 
-func createOperationParser(pubkeyConverter core.PubkeyConverter) (transactions.DataFieldParser, error) {
-	shardCoordinator, err := utils.NewMultiShardCoordinator(3, 0)
+func createOperationParser() (transactions.DataFieldParser, error) {
+	marshalizer, err := factoryMarshalizer.NewMarshalizer(factoryMarshalizer.GogoProtobuf)
 	if err != nil {
 		return nil, err
 	}
-	marshalizer, err := factoryMarshalizer.NewMarshalizer(factoryMarshalizer.GogoProtobuf)
 
 	arguments := &datafield.ArgsOperationDataFieldParser{
-		PubKeyConverter:  pubkeyConverter,
-		Marshalizer:      marshalizer,
-		ShardCoordinator: shardCoordinator,
+		Marshalizer: marshalizer,
 	}
 
 	return datafield.NewOperationDataFieldParser(arguments)
@@ -66,7 +62,7 @@ func createPubKeyConverterAndParser() (core.PubkeyConverter, transactions.DataFi
 		return nil, nil, err
 	}
 
-	parser, err := createOperationParser(pubKeyConverter)
+	parser, err := createOperationParser()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -82,7 +78,7 @@ func (tm *txsModifier) Modify(responseBody []byte) ([]*bytes.Buffer, error) {
 		return nil, err
 	}
 
-	buffSlice := data.NewBufferSlice()
+	buffSlice := data.NewBufferSlice(0)
 	for _, hit := range responseTxs.Hits.Hits {
 		if shouldIgnoreTx(hit.Source) {
 			continue
@@ -153,7 +149,7 @@ func (tm *txsModifier) prepareTxForIndexing(tx *data.Transaction) error {
 		return err
 	}
 
-	res := tm.operationDataParser.Parse(tx.Data, sndAddr, rcvAddr)
+	res := tm.operationDataParser.Parse(tx.Data, sndAddr, rcvAddr, 3)
 
 	// TODO uncomment this when create index `operations`
 	// tx.Type = string(transaction.TxTypeNormal)
@@ -162,7 +158,6 @@ func (tm *txsModifier) prepareTxForIndexing(tx *data.Transaction) error {
 	tx.Function = res.Function
 	tx.ESDTValues = res.ESDTValues
 	tx.Tokens = res.Tokens
-	tx.Receivers = res.Receivers
 	tx.ReceiversShardIDs = res.ReceiversShardID
 
 	return nil

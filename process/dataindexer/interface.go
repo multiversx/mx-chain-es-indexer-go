@@ -3,11 +3,11 @@ package dataindexer
 import (
 	"math/big"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer/workItems"
-	coreData "github.com/ElrondNetwork/elrond-go-core/data"
-	"github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-go-core/data/outport"
+	coreData "github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer/workItems"
 )
 
 // DispatcherHandler defines the interface for the dispatcher that will manage when items are saved in elasticsearch database
@@ -28,6 +28,7 @@ type ElasticProcessor interface {
 		notarizedHeadersHashes []string,
 		gasConsumptionData outport.HeaderGasConsumption,
 		txsSize int,
+		pool *outport.Pool,
 	) error
 	RemoveHeader(header coreData.HeaderHandler) error
 	RemoveMiniblocks(header coreData.HeaderHandler, body *block.Body) error
@@ -79,5 +80,6 @@ type Indexer interface {
 type BalanceConverter interface {
 	ComputeBalanceAsFloat(balance *big.Int) float64
 	ComputeESDTBalanceAsFloat(balance *big.Int) float64
+	ComputeSliceOfStringsAsFloat(values []string) []float64
 	IsInterfaceNil() bool
 }

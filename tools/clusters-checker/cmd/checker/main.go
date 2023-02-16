@@ -1,42 +1,24 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
 	"sync"
+	"time"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/tools/clusters-checker/pkg/checkers"
-	"github.com/ElrondNetwork/elastic-indexer-go/tools/clusters-checker/pkg/config"
-	logger "github.com/ElrondNetwork/elrond-go-logger"
+	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-core-go/core/closing"
+	"github.com/multiversx/mx-chain-es-indexer-go/tools/clusters-checker/pkg/checkers"
+	"github.com/multiversx/mx-chain-es-indexer-go/tools/clusters-checker/pkg/config"
+	logger "github.com/multiversx/mx-chain-logger-go"
+	"github.com/multiversx/mx-chain-logger-go/file"
 	"github.com/pelletier/go-toml"
 	"github.com/urfave/cli"
 )
 
 const configFileName = "config.toml"
-
-var (
-	log = logger.GetOrCreate("main")
-
-	// defines the path to the config folder
-	configPath = cli.StringFlag{
-		Name:  "config-path",
-		Usage: "The path to the config folder",
-		Value: "./",
-	}
-	checkCounts = cli.BoolFlag{
-		Name:  "check-counts",
-		Usage: "If set, the checker wil verify the counts between clusters",
-	}
-	checkWithTimestamp = cli.BoolFlag{
-		Name:  "check-with-timestamp",
-		Usage: "If set, the checker wil verify all the indices from list with timestamp",
-	}
-	checkNoTimestamp = cli.BoolFlag{
-		Name:  "check-no-timestamp",
-		Usage: "If set, the checker wil verify the indices from list with no timestamp",
-	}
-)
 
 const helpTemplate = `NAME:
    {{.Name}} - {{.Usage}}
@@ -61,12 +43,19 @@ func main() {
 	app.Version = "v1.0.0"
 	app.Usage = "Clusters checker"
 	app.Flags = []cli.Flag{
-		configPath, checkCounts, checkNoTimestamp, checkWithTimestamp,
+		configPath,
+		checkCounts,
+		checkNoTimestamp,
+		checkWithTimestamp,
+		checkOnlyIds,
+		logLevel,
+		logSaveFile,
+		enableAnsiColor,
 	}
 	app.Authors = []cli.Author{
 		{
-			Name:  "The Elrond Team",
-			Email: "contact@elrond.com",
+			Name:  "The MultiversX Team",
+			Email: "contact@multiversx.com",
 		},
 	}
 
@@ -90,9 +79,16 @@ func checkClusters(ctx *cli.Context) {
 		return
 	}
 
+	fileLogging, err := initializeLogger(ctx, *cfg)
+	if err != nil {
+		log.Error("cannot initialize logger", "error", err.Error())
+		return
+	}
+
+	checkOnlyIDs := ctx.Bool(checkOnlyIds.Name)
 	checkCountsFlag := ctx.Bool(checkCounts.Name)
 	if checkCountsFlag {
-		clusterChecker, errC := checkers.CreateClusterChecker(cfg, 0, "instance_0")
+		clusterChecker, errC := checkers.CreateClusterChecker(cfg, &checkers.Interval{}, "instance_0", checkOnlyIDs)
 		if errC != nil {
 			log.Error("cannot create cluster checker", "error", errC.Error())
 			return
@@ -109,7 +105,7 @@ func checkClusters(ctx *cli.Context) {
 
 	checkIndicesNoTimestampFlag := ctx.Bool(checkNoTimestamp.Name)
 	if checkIndicesNoTimestampFlag {
-		clusterChecker, errC := checkers.CreateClusterChecker(cfg, 0, "instance_0")
+		clusterChecker, errC := checkers.CreateClusterChecker(cfg, &checkers.Interval{}, "instance_0", checkOnlyIDs)
 		if errC != nil {
 			log.Error("cannot create cluster checker", "error", errC.Error())
 			return
@@ -126,16 +122,20 @@ func checkClusters(ctx *cli.Context) {
 
 	checkWithTimestampFlag := ctx.Bool(checkWithTimestamp.Name)
 	if checkWithTimestampFlag {
-		checkClustersIndexesWithInterval(cfg)
+		checkClustersIndexesWithInterval(cfg, checkOnlyIDs)
 		return
+	}
+
+	if !check.IfNilReflect(fileLogging) {
+		log.LogIfError(fileLogging.Close())
 	}
 
 	log.Error("no flag has been provided")
 }
 
-func checkClustersIndexesWithInterval(cfg *config.Config) {
+func checkClustersIndexesWithInterval(cfg *config.Config, checkOnlyIDs bool) {
 	wg := sync.WaitGroup{}
-	ccs, err := checkers.CreateMultipleCheckers(cfg)
+	ccs, err := checkers.CreateMultipleCheckers(cfg, checkOnlyIDs)
 	if err != nil {
 		log.Error("cannot create cluster checker", "error", err.Error())
 	}
@@ -172,4 +172,61 @@ func loadConfigFile(pathStr string) (*config.Config, error) {
 
 func loadBytesFromFile(file string) ([]byte, error) {
 	return ioutil.ReadFile(file)
+}
+
+func initializeLogger(ctx *cli.Context, cfg config.Config) (closing.Closer, error) {
+	logLevelFlagValue := ctx.GlobalString(logLevel.Name)
+	err := logger.SetLogLevel(logLevelFlagValue)
+	if err != nil {
+		return nil, err
+	}
+
+	withLogFile := ctx.GlobalBool(logSaveFile.Name)
+	if !withLogFile {
+		return nil, nil
+	}
+
+	workingDir, err := os.Getwd()
+	if err != nil {
+		log.LogIfError(err)
+		workingDir = ""
+	}
+
+	fileLogging, err := file.NewFileLogging(file.ArgsFileLogging{
+		WorkingDir:      workingDir,
+		DefaultLogsPath: cfg.Logs.LogsPath,
+		LogFilePrefix:   cfg.Logs.LogFilePrefix,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w creating a log file", err)
+	}
+
+	err = fileLogging.ChangeFileLifeSpan(
+		time.Second*time.Duration(cfg.Logs.LogFileLifeSpanInSec),
+		uint64(cfg.Logs.LogFileLifeSpanInMB),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	enableAnsi := ctx.GlobalBool(enableAnsiColor.Name)
+	err = removeANSIColorsForLoggerIfNeeded(enableAnsi)
+	if err != nil {
+		return nil, err
+	}
+
+	return fileLogging, nil
+}
+
+func removeANSIColorsForLoggerIfNeeded(enableAnsi bool) error {
+	if enableAnsi {
+		return nil
+	}
+
+	err := logger.RemoveLogObserver(os.Stdout)
+	if err != nil {
+		return err
+	}
+
+	return logger.AddLogObserver(os.Stdout, &logger.PlainFormatter{})
 }

@@ -6,21 +6,24 @@ import (
 	"strconv"
 	"time"
 
-	indexerData "github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elrond-go-core/core"
-	"github.com/ElrondNetwork/elrond-go-core/data"
-	coreData "github.com/ElrondNetwork/elrond-go-core/data"
-	"github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-go-core/data/smartContractResult"
-	"github.com/ElrondNetwork/elrond-go-core/hashing"
-	"github.com/ElrondNetwork/elrond-go-core/marshal"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/data"
+	coreData "github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
+	"github.com/multiversx/mx-chain-core-go/hashing"
+	"github.com/multiversx/mx-chain-core-go/marshal"
+	indexerData "github.com/multiversx/mx-chain-es-indexer-go/data"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
+	datafield "github.com/multiversx/mx-chain-vm-common-go/parsers/dataField"
 )
 
 type smartContractResultsProcessor struct {
-	pubKeyConverter core.PubkeyConverter
-	hasher          hashing.Hasher
-	marshalizer     marshal.Marshalizer
-	dataFieldParser DataFieldParser
+	pubKeyConverter  core.PubkeyConverter
+	hasher           hashing.Hasher
+	marshalizer      marshal.Marshalizer
+	dataFieldParser  DataFieldParser
+	balanceConverter dataindexer.BalanceConverter
 }
 
 func newSmartContractResultsProcessor(
@@ -28,12 +31,14 @@ func newSmartContractResultsProcessor(
 	marshalzier marshal.Marshalizer,
 	hasher hashing.Hasher,
 	dataFieldParser DataFieldParser,
+	balanceConverter dataindexer.BalanceConverter,
 ) *smartContractResultsProcessor {
 	return &smartContractResultsProcessor{
-		pubKeyConverter: pubKeyConverter,
-		marshalizer:     marshalzier,
-		hasher:          hasher,
-		dataFieldParser: dataFieldParser,
+		pubKeyConverter:  pubKeyConverter,
+		marshalizer:      marshalzier,
+		hasher:           hasher,
+		dataFieldParser:  dataFieldParser,
+		balanceConverter: balanceConverter,
 	}
 }
 
@@ -168,6 +173,7 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 		Operation:          res.Operation,
 		Function:           res.Function,
 		ESDTValues:         res.ESDTValues,
+		ESDTValuesNum:      proc.balanceConverter.ComputeSliceOfStringsAsFloat(res.ESDTValues),
 		Tokens:             res.Tokens,
 		Receivers:          receiversAddr,
 		ReceiversShardIDs:  res.ReceiversShardID,

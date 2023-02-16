@@ -12,6 +12,7 @@ type Transaction struct {
 	Nonce                uint64        `json:"nonce"`
 	Round                uint64        `json:"round"`
 	Value                string        `json:"value"`
+	ValueNum             float64       `json:"valueNum"`
 	Receiver             string        `json:"receiver"`
 	Sender               string        `json:"sender"`
 	ReceiverShard        uint32        `json:"receiverShard"`
@@ -20,6 +21,7 @@ type Transaction struct {
 	GasLimit             uint64        `json:"gasLimit"`
 	GasUsed              uint64        `json:"gasUsed"`
 	Fee                  string        `json:"fee"`
+	FeeNum               float64       `json:"feeNum"`
 	InitialPaidFee       string        `json:"initialPaidFee,omitempty"`
 	Data                 []byte        `json:"data"`
 	Signature            string        `json:"signature"`
@@ -31,8 +33,10 @@ type Transaction struct {
 	HasSCR               bool          `json:"hasScResults,omitempty"`
 	IsScCall             bool          `json:"isScCall,omitempty"`
 	HasOperations        bool          `json:"hasOperations,omitempty"`
+	HasLogs              bool          `json:"hasLogs,omitempty"`
 	Tokens               []string      `json:"tokens,omitempty"`
 	ESDTValues           []string      `json:"esdtValues,omitempty"`
+	ESDTValuesNum        []float64     `json:"esdtValuesNum,omitempty"`
 	Receivers            []string      `json:"receivers,omitempty"`
 	ReceiversShardIDs    []uint32      `json:"receiversShardIDs,omitempty"`
 	Type                 string        `json:"type,omitempty"`
@@ -79,6 +83,7 @@ type ResponseTransactionDB struct {
 
 // FeeData is the structure that contains data about transaction fee and gas used
 type FeeData struct {
+	FeeNum   float64
 	Fee      string
 	GasUsed  uint64
 	Receiver string

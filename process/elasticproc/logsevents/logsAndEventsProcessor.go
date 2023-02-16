@@ -4,13 +4,13 @@ import (
 	"encoding/hex"
 	"time"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
-	"github.com/ElrondNetwork/elrond-go-core/core"
-	"github.com/ElrondNetwork/elrond-go-core/core/check"
-	coreData "github.com/ElrondNetwork/elrond-go-core/data"
-	"github.com/ElrondNetwork/elrond-go-core/hashing"
-	"github.com/ElrondNetwork/elrond-go-core/marshal"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/core/check"
+	coreData "github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/hashing"
+	"github.com/multiversx/mx-chain-core-go/marshal"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 )
 
 // ArgsLogsAndEventsProcessor  holds all dependencies required to create new instances of logsAndEventsProcessor
@@ -101,6 +101,18 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 
 		events := txLog.LogHandler.GetLogEvents()
 		lep.processEvents(txLog.TxHash, txLog.LogHandler.GetAddress(), events, shardID, numOfShards)
+
+		txHashHexEncoded := hex.EncodeToString([]byte(txLog.TxHash))
+		tx, ok := lep.logsData.txsMap[txHashHexEncoded]
+		if ok {
+			tx.HasLogs = true
+			continue
+		}
+		scr, ok := lep.logsData.scrsMap[txHashHexEncoded]
+		if ok {
+			scr.HasLogs = true
+			continue
+		}
 	}
 
 	return &data.PreparedLogsResults{

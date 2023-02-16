@@ -10,3 +10,9 @@ type generalElasticResponse struct {
 		} `json:"hits"`
 	} `json:"hits"`
 }
+
+// Interval defines the structure for a search interval
+type Interval struct {
+	start int64
+	stop  int64
+}

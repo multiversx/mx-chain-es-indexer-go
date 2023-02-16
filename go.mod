@@ -1,13 +1,13 @@
-module github.com/ElrondNetwork/elastic-indexer-go
+module github.com/multiversx/mx-chain-es-indexer-go
 
 go 1.17
 
 require (
-	github.com/ElrondNetwork/elrond-go-core v1.1.27
-	github.com/ElrondNetwork/elrond-go-logger v1.0.9
-	github.com/ElrondNetwork/elrond-vm-common v1.3.29
 	github.com/elastic/go-elasticsearch/v7 v7.12.0
 	github.com/gorilla/websocket v1.5.0
+	github.com/multiversx/mx-chain-core-go v1.1.30
+	github.com/multiversx/mx-chain-logger-go v1.0.11
+	github.com/multiversx/mx-chain-vm-common-go v1.3.34
 	github.com/stretchr/testify v1.7.0
 	github.com/tidwall/gjson v1.14.0
 	github.com/urfave/cli v1.22.10

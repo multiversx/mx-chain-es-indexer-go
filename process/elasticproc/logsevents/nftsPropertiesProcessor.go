@@ -3,9 +3,9 @@ package logsevents
 import (
 	"math/big"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/converters"
-	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
 )
 
 const minTopicsUpdate = 4
@@ -21,15 +21,32 @@ func newNFTsPropertiesProcessor(pubKeyConverter core.PubkeyConverter) *nftsPrope
 		propertiesChangeOperations: map[string]struct{}{
 			core.BuiltInFunctionESDTNFTAddURI:           {},
 			core.BuiltInFunctionESDTNFTUpdateAttributes: {},
+			core.BuiltInFunctionESDTFreeze:              {},
+			core.BuiltInFunctionESDTUnFreeze:            {},
+			core.BuiltInFunctionESDTPause:               {},
+			core.BuiltInFunctionESDTUnPause:             {},
 		},
 	}
 }
 
 func (npp *nftsPropertiesProc) processEvent(args *argsProcessEvent) argOutputProcessEvent {
+	//nolint
 	eventIdentifier := string(args.event.GetIdentifier())
 	_, ok := npp.propertiesChangeOperations[eventIdentifier]
 	if !ok {
 		return argOutputProcessEvent{}
+	}
+
+	callerAddress := npp.pubKeyConverter.Encode(args.event.GetAddress())
+	if callerAddress == "" {
+		return argOutputProcessEvent{
+			processed: true,
+		}
+	}
+
+	topics := args.event.GetTopics()
+	if len(topics) == 1 {
+		return npp.processPauseAndUnPauseEvent(eventIdentifier, string(topics[0]))
 	}
 
 	// topics contains:
@@ -37,7 +54,6 @@ func (npp *nftsPropertiesProc) processEvent(args *argsProcessEvent) argOutputPro
 	// [1] --> nonce of the NFT (bytes)
 	// [2] --> value
 	// [3:] --> modified data
-	topics := args.event.GetTopics()
 	if len(topics) < minTopicsUpdate {
 		return argOutputProcessEvent{
 			processed: true,
@@ -70,6 +86,32 @@ func (npp *nftsPropertiesProc) processEvent(args *argsProcessEvent) argOutputPro
 		updateNFT.NewAttributes = topics[3]
 	case core.BuiltInFunctionESDTNFTAddURI:
 		updateNFT.URIsToAdd = topics[3:]
+	case core.BuiltInFunctionESDTFreeze:
+		updateNFT.Freeze = true
+	case core.BuiltInFunctionESDTUnFreeze:
+		updateNFT.UnFreeze = true
+	}
+
+	return argOutputProcessEvent{
+		processed:     true,
+		updatePropNFT: updateNFT,
+	}
+}
+
+func (npp *nftsPropertiesProc) processPauseAndUnPauseEvent(eventIdentifier string, token string) argOutputProcessEvent {
+	var updateNFT *data.NFTDataUpdate
+
+	switch eventIdentifier {
+	case core.BuiltInFunctionESDTPause:
+		updateNFT = &data.NFTDataUpdate{
+			Identifier: token,
+			Pause:      true,
+		}
+	case core.BuiltInFunctionESDTUnPause:
+		updateNFT = &data.NFTDataUpdate{
+			Identifier: token,
+			UnPause:    true,
+		}
 	}
 
 	return argOutputProcessEvent{

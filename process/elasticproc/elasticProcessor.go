@@ -5,19 +5,18 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/collections"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/converters"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/tags"
-	"github.com/ElrondNetwork/elastic-indexer-go/process/elasticproc/tokeninfo"
-	"github.com/ElrondNetwork/elrond-go-core/core"
-	"github.com/ElrondNetwork/elrond-go-core/core/check"
-	coreData "github.com/ElrondNetwork/elrond-go-core/data"
-	"github.com/ElrondNetwork/elrond-go-core/data/block"
-	"github.com/ElrondNetwork/elrond-go-core/data/outport"
-	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/core/check"
+	coreData "github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
+	elasticIndexer "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/tags"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/tokeninfo"
+	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 const (
@@ -34,7 +33,7 @@ var (
 		elasticIndexer.TransactionsIndex, elasticIndexer.BlockIndex, elasticIndexer.MiniblocksIndex, elasticIndexer.RatingIndex, elasticIndexer.RoundsIndex, elasticIndexer.ValidatorsIndex,
 		elasticIndexer.AccountsIndex, elasticIndexer.AccountsHistoryIndex, elasticIndexer.ReceiptsIndex, elasticIndexer.ScResultsIndex, elasticIndexer.AccountsESDTHistoryIndex, elasticIndexer.AccountsESDTIndex,
 		elasticIndexer.EpochInfoIndex, elasticIndexer.SCDeploysIndex, elasticIndexer.TokensIndex, elasticIndexer.TagsIndex, elasticIndexer.LogsIndex, elasticIndexer.DelegatorsIndex, elasticIndexer.OperationsIndex,
-		elasticIndexer.CollectionsIndex,
+		elasticIndexer.ESDTsIndex,
 	}
 )
 
@@ -109,6 +108,7 @@ func (ei *elasticProcessor) init(useKibana bool, indexTemplates, _ map[string]*b
 		return err
 	}
 
+	//nolint
 	if useKibana {
 		// TODO: Re-activate after we think of a solid way to handle forks+rotating indexes
 		// err = ei.createIndexPolicies(indexPolicies)
@@ -252,12 +252,13 @@ func (ei *elasticProcessor) SaveHeader(
 	notarizedHeadersHashes []string,
 	gasConsumptionData outport.HeaderGasConsumption,
 	txsSize int,
+	pool *outport.Pool,
 ) error {
 	if !ei.isIndexEnabled(elasticIndexer.BlockIndex) {
 		return nil
 	}
 
-	elasticBlock, err := ei.blockProc.PrepareBlockForDB(headerHash, header, signersIndexes, body, notarizedHeadersHashes, gasConsumptionData, txsSize)
+	elasticBlock, err := ei.blockProc.PrepareBlockForDB(headerHash, header, signersIndexes, body, notarizedHeadersHashes, gasConsumptionData, txsSize, pool)
 	if err != nil {
 		return err
 	}
@@ -325,7 +326,30 @@ func (ei *elasticProcessor) RemoveTransactions(header coreData.HeaderHandler, bo
 		return err
 	}
 
-	return ei.removeIfHashesNotEmpty(elasticIndexer.OperationsIndex, append(encodedTxsHashes, encodedScrsHashes...))
+	err = ei.removeIfHashesNotEmpty(elasticIndexer.OperationsIndex, append(encodedTxsHashes, encodedScrsHashes...))
+	if err != nil {
+		return err
+	}
+
+	err = ei.removeIfHashesNotEmpty(elasticIndexer.LogsIndex, append(encodedTxsHashes, encodedScrsHashes...))
+	if err != nil {
+		return err
+	}
+
+	return ei.updateDelegatorsInCaseOfRevert(header, body)
+}
+
+func (ei *elasticProcessor) updateDelegatorsInCaseOfRevert(header coreData.HeaderHandler, body *block.Body) error {
+	// delegators index should be updated in case of revert only if the observer is in Metachain and the reverted block has miniblocks
+	isMeta := header.GetShardID() == core.MetachainShardId
+	hasMiniblocks := len(body.MiniBlocks) > 0
+	shouldUpdate := isMeta && hasMiniblocks
+	if !shouldUpdate {
+		return nil
+	}
+
+	delegatorsQuery := ei.logsAndEventsProc.PrepareDelegatorsQueryInCaseOfRevert(header.GetTimeStamp())
+	return ei.elasticClient.UpdateByQuery(elasticIndexer.DelegatorsIndex, delegatorsQuery)
 }
 
 func (ei *elasticProcessor) removeIfHashesNotEmpty(index string, hashes []string) error {
@@ -463,7 +487,11 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
-	err = ei.prepareAndIndexRolesData(logsData.TokenRolesAndProperties, buffers)
+	err = ei.prepareAndIndexRolesData(logsData.TokenRolesAndProperties, buffers, elasticIndexer.TokensIndex)
+	if err != nil {
+		return err
+	}
+	err = ei.prepareAndIndexRolesData(logsData.TokenRolesAndProperties, buffers, elasticIndexer.ESDTsIndex)
 	if err != nil {
 		return err
 	}
@@ -476,12 +504,12 @@ func (ei *elasticProcessor) SaveTransactions(
 	return ei.doBulkRequests("", buffers.Buffers())
 }
 
-func (ei *elasticProcessor) prepareAndIndexRolesData(tokenRolesAndProperties *tokeninfo.TokenRolesAndProperties, buffSlice *data.BufferSlice) error {
-	if !ei.isIndexEnabled(elasticIndexer.TokensIndex) {
+func (ei *elasticProcessor) prepareAndIndexRolesData(tokenRolesAndProperties *tokeninfo.TokenRolesAndProperties, buffSlice *data.BufferSlice, index string) error {
+	if !ei.isIndexEnabled(index) {
 		return nil
 	}
 
-	return ei.logsAndEventsProc.SerializeRolesData(tokenRolesAndProperties, buffSlice, elasticIndexer.TokensIndex)
+	return ei.logsAndEventsProc.SerializeRolesData(tokenRolesAndProperties, buffSlice, index)
 }
 
 func (ei *elasticProcessor) prepareAndIndexDelegators(delegators map[string]*data.Delegator, buffSlice *data.BufferSlice) error {
@@ -627,11 +655,6 @@ func (ei *elasticProcessor) saveAccountsESDT(
 ) error {
 	accountsESDTMap, tokensData := ei.accountsProc.PrepareAccountsMapESDT(timestamp, wrappedAccounts, tagsCount, shardID)
 	err := ei.addTokenTypeAndCurrentOwnerInAccountsESDT(tokensData, accountsESDTMap)
-	if err != nil {
-		return err
-	}
-
-	err = collections.ExtractAndSerializeCollectionsData(accountsESDTMap, buffSlice, elasticIndexer.CollectionsIndex)
 	if err != nil {
 		return err
 	}

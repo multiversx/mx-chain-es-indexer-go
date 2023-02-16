@@ -5,17 +5,17 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/data"
-	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go/process/dataindexer"
-	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
+	elasticIndexer "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 )
 
 func (ei *elasticProcessor) indexTokens(tokensData []*data.TokenInfo, updateNFTData []*data.NFTDataUpdate, buffSlice *data.BufferSlice) error {
-	if !ei.isIndexEnabled(elasticIndexer.TokensIndex) {
-		return nil
+	err := ei.prepareAndAddSerializedDataForTokens(tokensData, updateNFTData, buffSlice, elasticIndexer.ESDTsIndex)
+	if err != nil {
+		return err
 	}
-
-	err := ei.logsAndEventsProc.SerializeTokens(tokensData, updateNFTData, buffSlice, elasticIndexer.TokensIndex)
+	err = ei.prepareAndAddSerializedDataForTokens(tokensData, updateNFTData, buffSlice, elasticIndexer.TokensIndex)
 	if err != nil {
 		return err
 	}
@@ -26,6 +26,14 @@ func (ei *elasticProcessor) indexTokens(tokensData []*data.TokenInfo, updateNFTD
 	}
 
 	return ei.addTokenType(tokensData, elasticIndexer.TokensIndex)
+}
+
+func (ei *elasticProcessor) prepareAndAddSerializedDataForTokens(tokensData []*data.TokenInfo, updateNFTData []*data.NFTDataUpdate, buffSlice *data.BufferSlice, index string) error {
+	if !ei.isIndexEnabled(index) {
+		return nil
+	}
+
+	return ei.logsAndEventsProc.SerializeTokens(tokensData, updateNFTData, buffSlice, index)
 }
 
 func (ei *elasticProcessor) addTokenType(tokensData []*data.TokenInfo, index string) error {

@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
-	"github.com/ElrondNetwork/elastic-indexer-go/tools/index-modifier/pkg/alterindex"
-	"github.com/ElrondNetwork/elastic-indexer-go/tools/index-modifier/pkg/modifiers"
+	"github.com/multiversx/mx-chain-es-indexer-go/tools/index-modifier/pkg/alterindex"
+	"github.com/multiversx/mx-chain-es-indexer-go/tools/index-modifier/pkg/modifiers"
 )
 
 const (
