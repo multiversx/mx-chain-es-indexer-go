@@ -53,7 +53,7 @@ var SCResults = Object{
 				"type": "keyword",
 			},
 			"nonce": Object{
-				"type": "long",
+				"type": "double",
 			},
 			"operation": Object{
 				"type": "keyword",
