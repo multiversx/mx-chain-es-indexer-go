@@ -26,7 +26,7 @@ var Rounds = Object{
 				"type": "long",
 			},
 			"round": Object{
-				"type": "long",
+				"type": "double",
 			},
 			"shardId": Object{
 				"type": "long",

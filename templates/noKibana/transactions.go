@@ -73,7 +73,7 @@ var Transactions = Object{
 				"type": "keyword",
 			},
 			"nonce": Object{
-				"type": "long",
+				"type": "double",
 			},
 			"operation": Object{
 				"type": "keyword",
@@ -91,7 +91,7 @@ var Transactions = Object{
 				"type": "long",
 			},
 			"round": Object{
-				"type": "long",
+				"type": "double",
 			},
 			"searchOrder": Object{
 				"type": "long",
