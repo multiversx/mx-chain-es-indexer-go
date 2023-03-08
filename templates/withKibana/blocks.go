@@ -136,16 +136,16 @@ var Blocks = Object{
 				},
 			},
 			"gasPenalized": Object{
-				"type": "long",
+				"type": "double",
 			},
 			"gasProvided": Object{
-				"type": "long",
+				"type": "double",
 			},
 			"gasRefunded": Object{
-				"type": "long",
+				"type": "double",
 			},
 			"maxGasLimit": Object{
-				"type": "long",
+				"type": "double",
 			},
 			"miniBlocksDetails": Object{
 				"properties": Object{
@@ -201,15 +201,15 @@ var Blocks = Object{
 					},
 					"gasProvided": Object{
 						"index": "false",
-						"type":  "long",
+						"type":  "double",
 					},
 					"gasRefunded": Object{
 						"index": "false",
-						"type":  "long",
+						"type":  "double",
 					},
 					"penalized": Object{
 						"index": "false",
-						"type":  "long",
+						"type":  "double",
 					},
 					"rootHash": Object{
 						"index": "false",

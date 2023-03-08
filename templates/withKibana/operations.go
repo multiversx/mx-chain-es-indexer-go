@@ -52,15 +52,15 @@ var Operations = Object{
 			},
 			"gasLimit": Object{
 				"index": "false",
-				"type":  "long",
+				"type":  "double",
 			},
 			"gasPrice": Object{
 				"index": "false",
-				"type":  "long",
+				"type":  "double",
 			},
 			"gasUsed": Object{
 				"index": "false",
-				"type":  "long",
+				"type":  "double",
 			},
 			"hasOperations": Object{
 				"type": "boolean",
