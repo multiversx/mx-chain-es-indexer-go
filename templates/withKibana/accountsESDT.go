@@ -76,7 +76,7 @@ var AccountsESDT = Object{
 				"type": "keyword",
 			},
 			"tokenNonce": Object{
-				"type": "long",
+				"type": "double",
 			},
 			"type": Object{
 				"type": "keyword",

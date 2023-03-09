@@ -40,11 +40,11 @@ var SCResults = Object{
 			},
 			"gasLimit": Object{
 				"index": "false",
-				"type":  "long",
+				"type":  "double",
 			},
 			"gasPrice": Object{
 				"index": "false",
-				"type":  "long",
+				"type":  "double",
 			},
 			"hasOperations": Object{
 				"type": "boolean",
@@ -53,7 +53,7 @@ var SCResults = Object{
 				"type": "keyword",
 			},
 			"nonce": Object{
-				"type": "long",
+				"type": "double",
 			},
 			"operation": Object{
 				"type": "keyword",

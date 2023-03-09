@@ -52,15 +52,15 @@ var Operations = Object{
 			},
 			"gasLimit": Object{
 				"index": "false",
-				"type":  "long",
+				"type":  "double",
 			},
 			"gasPrice": Object{
 				"index": "false",
-				"type":  "long",
+				"type":  "double",
 			},
 			"gasUsed": Object{
 				"index": "false",
-				"type":  "long",
+				"type":  "double",
 			},
 			"hasOperations": Object{
 				"type": "boolean",
@@ -85,7 +85,7 @@ var Operations = Object{
 				"type": "keyword",
 			},
 			"nonce": Object{
-				"type": "long",
+				"type": "double",
 			},
 			"operation": Object{
 				"type": "keyword",
@@ -122,7 +122,7 @@ var Operations = Object{
 				"type": "text",
 			},
 			"round": Object{
-				"type": "long",
+				"type": "double",
 			},
 			"searchOrder": Object{
 				"type": "long",

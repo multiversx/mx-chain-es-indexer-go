@@ -38,7 +38,7 @@ var AccountsESDTHistory = Object{
 				"type": "keyword",
 			},
 			"tokenNonce": Object{
-				"type": "long",
+				"type": "double",
 			},
 		},
 	},

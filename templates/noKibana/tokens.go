@@ -63,7 +63,7 @@ var Tokens = Object{
 			},
 
 			"nonce": Object{
-				"type": "long",
+				"type": "double",
 			},
 			"numDecimals": Object{
 				"type": "long",
