@@ -151,7 +151,7 @@ func (st *scrsDataToTransactions) processSCRsWithoutTx(scrs []*data.ScResult) (m
 			}
 			if err != nil {
 				log.Warn("scrsDataToTransactions.processSCRsWithoutTx: cannot compute fee as num",
-					"fee", scr.InitialTxFee, "error", err)
+					"initial Tx fee", initialTxFeeBig, "error", err)
 			}
 
 			txHashRefund[scr.OriginalTxHash] = &data.FeeData{
