@@ -12,7 +12,9 @@ import (
 const (
 	numDecimalsInFloatBalance     = 10
 	numDecimalsInFloatBalanceESDT = 18
-	maxBigLength                  = 100
+
+	// MaxESDTValueLength defines the maximum length for an ESDT value that can be parsed
+	MaxESDTValueLength = 100
 )
 
 var (
@@ -76,7 +78,7 @@ func (bc *balanceConverter) computeBalanceAsFloat(balance *big.Int, balancePreci
 	if balance == nil || balance.Cmp(zero) == 0 {
 		return 0, nil
 	}
-	if len(balance.Bytes()) > maxBigLength {
+	if len(balance.Bytes()) > MaxESDTValueLength {
 		return 0, errValueTooBig
 	}
 
