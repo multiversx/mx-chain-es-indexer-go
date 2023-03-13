@@ -11,6 +11,7 @@ import (
 const (
 	numDecimalsInFloatBalance     = 10
 	numDecimalsInFloatBalanceESDT = 18
+	maxBigLength                  = 100
 )
 
 var zero = big.NewInt(0)
@@ -66,6 +67,9 @@ func (bc *balanceConverter) computeBalanceAsFloat(balance *big.Int, balancePreci
 	if balance == nil || balance.Cmp(zero) == 0 {
 		return 0
 	}
+	if len(balance.Bytes()) > maxBigLength {
+		return 0
+	}
 
 	balanceBigFloat := big.NewFloat(0).SetInt(balance)
 	balanceFloat64, _ := balanceBigFloat.Float64()
@@ -74,7 +78,12 @@ func (bc *balanceConverter) computeBalanceAsFloat(balance *big.Int, balancePreci
 
 	balanceFloatWithDecimals := math.Round(bal*balancePrecision) / balancePrecision
 
-	return core.MaxFloat64(balanceFloatWithDecimals, 0)
+	value := core.MaxFloat64(balanceFloatWithDecimals, 0)
+	if math.IsInf(value, +1) || math.IsInf(value, -1) {
+		return 0
+	}
+
+	return value
 }
 
 // IsInterfaceNil returns true if there is no value under the interface
