@@ -13,7 +13,6 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	elasticIndexer "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
-	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
 	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 )
 
@@ -43,7 +42,7 @@ func checkTxsProcessorArg(args *ArgsTransactionProcessor) error {
 
 func areESDTValuesOK(values []string) bool {
 	for _, value := range values {
-		if len(value) > converters.MaxESDTValueLength {
+		if len(value) > data.MaxESDTValueLength {
 			return false
 		}
 	}

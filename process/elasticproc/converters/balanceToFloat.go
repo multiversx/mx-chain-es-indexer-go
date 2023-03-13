@@ -6,15 +6,13 @@ import (
 	"math/big"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	indexer "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 )
 
 const (
 	numDecimalsInFloatBalance     = 10
 	numDecimalsInFloatBalanceESDT = 18
-
-	// MaxESDTValueLength defines the maximum length for an ESDT value that can be parsed
-	MaxESDTValueLength = 100
 )
 
 var (
@@ -78,7 +76,7 @@ func (bc *balanceConverter) computeBalanceAsFloat(balance *big.Int, balancePreci
 	if balance == nil || balance.Cmp(zero) == 0 {
 		return 0, nil
 	}
-	if len(balance.Bytes()) > MaxESDTValueLength {
+	if len(balance.Bytes()) > data.MaxESDTValueLength {
 		return 0, errValueTooBig
 	}
 
