@@ -47,7 +47,8 @@ func TestComputeBalanceAsFloat(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		out := ap.ComputeBalanceAsFloat(tt.input)
+		out, err := ap.ComputeBalanceAsFloat(tt.input)
+		require.Nil(t, err)
 		assert.Equal(t, tt.output, out)
 	}
 }
@@ -58,11 +59,20 @@ func TestComputeBalanceToFloat18Decimals(t *testing.T) {
 	ap, _ := NewBalanceConverter(18)
 	require.NotNil(t, ap)
 
-	require.Equal(t, 1e-18, ap.ComputeESDTBalanceAsFloat(big.NewInt(1)))
-	require.Equal(t, 1e-17, ap.ComputeESDTBalanceAsFloat(big.NewInt(10)))
-	require.Equal(t, 1e-16, ap.ComputeESDTBalanceAsFloat(big.NewInt(100)))
-	require.Equal(t, 1e-15, ap.ComputeESDTBalanceAsFloat(big.NewInt(1000)))
-	require.Equal(t, float64(0), ap.ComputeESDTBalanceAsFloat(big.NewInt(0)))
+	valueNum, _ := ap.ComputeESDTBalanceAsFloat(big.NewInt(1))
+	require.Equal(t, 1e-18, valueNum)
+
+	valueNum, _ = ap.ComputeESDTBalanceAsFloat(big.NewInt(10))
+	require.Equal(t, 1e-17, valueNum)
+
+	valueNum, _ = ap.ComputeESDTBalanceAsFloat(big.NewInt(100))
+	require.Equal(t, 1e-16, valueNum)
+
+	valueNum, _ = ap.ComputeESDTBalanceAsFloat(big.NewInt(1000))
+	require.Equal(t, 1e-15, valueNum)
+
+	valueNum, _ = ap.ComputeESDTBalanceAsFloat(big.NewInt(0))
+	require.Equal(t, float64(0), valueNum)
 }
 
 func TestComputeBalanceToFloatInf(t *testing.T) {
@@ -73,12 +83,16 @@ func TestComputeBalanceToFloatInf(t *testing.T) {
 
 	str := "erd1ahmy0yjhjg87n755yv99nzla22zzwfud55sa69gk3anyxyyucq9q2hgxwwerd1ahmy0yjhjg87n755yv99nzla22zzwfud55sa69gk3anyxyyucq9q2hgxwwerd1ahmy0yjhjg87n755yv99nzla22zzwfud55sa69gk3anyxyyucq9q2hgxwwerd1ahmy0yjhjg87n755yv99nzla22zzwfud55sa69gk3anyxyyucq9q2hgxww"
 	bigValue := big.NewInt(0).SetBytes([]byte(str))
-	require.Equal(t, float64(0), ap.ComputeESDTBalanceAsFloat(bigValue))
+	valueNum, err := ap.ComputeESDTBalanceAsFloat(bigValue)
+	require.Equal(t, errValueTooBig, err)
+	require.Equal(t, float64(0), valueNum)
 
 	hexValueStr := "2642378914478872274757363306845016200438452904128227930177150600998175785079732885392662259024767727006622197340762976891962082611710440131598510606436851189901116516523843401702254087190199876126823217692111058487892984414016231313689031989"
 	decoded, _ := hex.DecodeString(hexValueStr)
 	bigValue = big.NewInt(0).SetBytes(decoded)
-	require.Equal(t, float64(0), ap.ComputeESDTBalanceAsFloat(bigValue))
+	valueNum, err = ap.ComputeESDTBalanceAsFloat(bigValue)
+	require.Equal(t, errValueTooBig, err)
+	require.Equal(t, float64(0), valueNum)
 }
 
 func TestComputeBalanceToFloatSliceOfValues(t *testing.T) {
@@ -88,10 +102,14 @@ func TestComputeBalanceToFloatSliceOfValues(t *testing.T) {
 	require.NotNil(t, ap)
 
 	values := []string{"1000000000000000000", "200000000000000000", "100", "2000", "0"}
-	require.Equal(t, []float64{1, 0.2, 1e-16, 2e-15, 0}, ap.ComputeSliceOfStringsAsFloat(values))
+	valuesNum, err := ap.ComputeSliceOfStringsAsFloat(values)
+	require.Nil(t, err)
+	require.Equal(t, []float64{1, 0.2, 1e-16, 2e-15, 0}, valuesNum)
 
 	valuesWrong := []string{"wrong"}
-	require.Equal(t, []float64{0}, ap.ComputeSliceOfStringsAsFloat(valuesWrong))
+	valuesNum, err = ap.ComputeSliceOfStringsAsFloat(valuesWrong)
+	require.Equal(t, errCastStringToBigInt, err)
+	require.Nil(t, valuesNum)
 }
 
 func TestBigIntToString(t *testing.T) {
