@@ -56,13 +56,34 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		receiverShardID = sharding.ComputeShardID(tx.RcvAddr, numOfShards)
 	}
 
+	valueNum, err := dtb.balanceConverter.ComputeESDTBalanceAsFloat(tx.Value)
+	if err != nil {
+		log.Warn("dbTransactionBuilder.prepareTransaction: cannot compute value as num", "value", tx.Value,
+			"hash", txHash, "error", err)
+	}
+	feeNum, err := dtb.balanceConverter.ComputeESDTBalanceAsFloat(fee)
+	if err != nil {
+		log.Warn("dbTransactionBuilder.prepareTransaction: cannot compute transaction fee as num", "fee", fee,
+			"hash", txHash, "error", err)
+	}
+	esdtValuesNum, err := dtb.balanceConverter.ComputeSliceOfStringsAsFloat(res.ESDTValues)
+	if err != nil {
+		log.Warn("dbTransactionBuilder.prepareTransaction: cannot compute esdt values as num",
+			"esdt values", res.ESDTValues, "hash", txHash, "error", err)
+	}
+
+	var esdtValues []string
+	if areESDTValuesOK(res.ESDTValues) {
+		esdtValues = res.ESDTValues
+	}
+
 	return &data.Transaction{
 		Hash:              hex.EncodeToString(txHash),
 		MBHash:            hex.EncodeToString(mbHash),
 		Nonce:             tx.Nonce,
 		Round:             header.GetRound(),
 		Value:             tx.Value.String(),
-		ValueNum:          dtb.balanceConverter.ComputeESDTBalanceAsFloat(tx.Value),
+		ValueNum:          valueNum,
 		Receiver:          dtb.addressPubkeyConverter.Encode(tx.RcvAddr),
 		Sender:            dtb.addressPubkeyConverter.Encode(tx.SndAddr),
 		ReceiverShard:     receiverShardID,
@@ -76,14 +97,14 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		GasUsed:           gasUsed,
 		InitialPaidFee:    initialPaidFee.String(),
 		Fee:               fee.String(),
-		FeeNum:            dtb.balanceConverter.ComputeESDTBalanceAsFloat(fee),
+		FeeNum:            feeNum,
 		ReceiverUserName:  tx.RcvUserName,
 		SenderUserName:    tx.SndUserName,
 		IsScCall:          isScCall,
 		Operation:         res.Operation,
 		Function:          res.Function,
-		ESDTValues:        res.ESDTValues,
-		ESDTValuesNum:     dtb.balanceConverter.ComputeSliceOfStringsAsFloat(res.ESDTValues),
+		ESDTValues:        esdtValues,
+		ESDTValuesNum:     esdtValuesNum,
 		Tokens:            res.Tokens,
 		Receivers:         datafield.EncodeBytesSlice(dtb.addressPubkeyConverter.Encode, res.Receivers),
 		ReceiversShardIDs: res.ReceiversShardID,
@@ -100,13 +121,19 @@ func (dtb *dbTransactionBuilder) prepareRewardTransaction(
 	header coreData.HeaderHandler,
 	txStatus string,
 ) *data.Transaction {
+	valueNum, err := dtb.balanceConverter.ComputeESDTBalanceAsFloat(rTx.Value)
+	if err != nil {
+		log.Warn("dbTransactionBuilder.prepareRewardTransaction cannot compute value as num", "value", rTx.Value,
+			"hash", txHash, "error", err)
+	}
+
 	return &data.Transaction{
 		Hash:          hex.EncodeToString(txHash),
 		MBHash:        hex.EncodeToString(mbHash),
 		Nonce:         0,
 		Round:         rTx.Round,
 		Value:         rTx.Value.String(),
-		ValueNum:      dtb.balanceConverter.ComputeESDTBalanceAsFloat(rTx.Value),
+		ValueNum:      valueNum,
 		Receiver:      dtb.addressPubkeyConverter.Encode(rTx.RcvAddr),
 		Sender:        fmt.Sprintf("%d", core.MetachainShardId),
 		ReceiverShard: mb.ReceiverShardID,

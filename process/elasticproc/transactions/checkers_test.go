@@ -154,3 +154,13 @@ func TestIsCrossShardSourceMe(t *testing.T) {
 	tx2 := &data.Transaction{SenderShard: 1, ReceiverShard: 1}
 	require.False(t, isCrossShardOnSourceShard(tx2, 1))
 }
+
+func TestAreESDTValuesOK(t *testing.T) {
+	t.Parallel()
+
+	values := []string{"10000", "1", "10"}
+	require.True(t, areESDTValuesOK(values))
+
+	values = []string{"10000", "1", "1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"}
+	require.False(t, areESDTValuesOK(values))
+}

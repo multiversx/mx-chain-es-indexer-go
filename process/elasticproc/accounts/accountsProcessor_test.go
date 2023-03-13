@@ -277,14 +277,16 @@ func TestAccountsProcessor_PrepareAccountsMapEGLD(t *testing.T) {
 	ap, _ := NewAccountsProcessor(mock.NewPubkeyConverterMock(32), balanceConverter)
 	require.NotNil(t, ap)
 
+	balanceNum, _ := balanceConverter.ComputeBalanceAsFloat(big.NewInt(1000))
+
 	res := ap.PrepareRegularAccountsMap(123, []*data.Account{egldAccount}, 0)
 	require.Equal(t, &data.AccountInfo{
 		Address:                  addr,
 		Nonce:                    1,
 		Balance:                  "1000",
-		BalanceNum:               balanceConverter.ComputeBalanceAsFloat(big.NewInt(1000)),
+		BalanceNum:               balanceNum,
 		TotalBalanceWithStake:    "1000",
-		TotalBalanceWithStakeNum: balanceConverter.ComputeBalanceAsFloat(big.NewInt(1000)),
+		TotalBalanceWithStakeNum: balanceNum,
 		IsSmartContract:          true,
 		Timestamp:                time.Duration(123),
 	},
@@ -331,10 +333,11 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 	res, _ := ap.PrepareAccountsMapESDT(123, accountsESDT, tagsCount, 0)
 	require.Len(t, res, 2)
 
+	balanceNum, _ := balanceConverter.ComputeBalanceAsFloat(big.NewInt(1000))
 	require.Equal(t, &data.AccountInfo{
 		Address:         hex.EncodeToString([]byte(addr)),
 		Balance:         "1000",
-		BalanceNum:      balanceConverter.ComputeBalanceAsFloat(big.NewInt(1000)),
+		BalanceNum:      balanceNum,
 		TokenName:       "token",
 		TokenIdentifier: "token-0f",
 		Properties:      "3032",
@@ -348,7 +351,7 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 	require.Equal(t, &data.AccountInfo{
 		Address:         hex.EncodeToString([]byte(addr)),
 		Balance:         "1000",
-		BalanceNum:      balanceConverter.ComputeBalanceAsFloat(big.NewInt(1000)),
+		BalanceNum:      balanceNum,
 		TokenName:       "token",
 		TokenIdentifier: "token-10",
 		Properties:      "3032",

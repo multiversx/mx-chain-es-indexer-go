@@ -148,7 +148,7 @@ var Operations = Object{
 				"format": "epoch_second",
 			},
 			"tokens": Object{
-				"type": "keyword",
+				"type": "text",
 			},
 			"type": Object{
 				"type": "keyword",
