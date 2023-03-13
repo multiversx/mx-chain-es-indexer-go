@@ -118,7 +118,8 @@ func (ap *accountsProcessor) PrepareRegularAccountsMap(timestamp uint64, account
 
 		balanceAsFloat, err := ap.balanceConverter.ComputeBalanceAsFloat(balance)
 		if err != nil {
-			log.Warn("accountsProcessor.PrepareRegularAccountsMap: cannot compute balance as num", "address", address, "error", err)
+			log.Warn("accountsProcessor.PrepareRegularAccountsMap: cannot compute balance as num",
+				"balance", balance, "address", address, "error", err)
 		}
 
 		acc := &data.AccountInfo{
@@ -168,7 +169,8 @@ func (ap *accountsProcessor) addDeveloperRewardsInAccount(additionalData *outpor
 
 	developerRewardsNum, err := ap.balanceConverter.ComputeBalanceAsFloat(developerRewardsBig)
 	if err != nil {
-		log.Warn("accountsProcessor.addDeveloperRewardsInAccount: cannot compute developer rewards as num", "error", err)
+		log.Warn("accountsProcessor.addDeveloperRewardsInAccount: cannot compute developer rewards as num",
+			"developer rewards", developerRewardsBig, "error", err)
 	}
 
 	account.DeveloperRewardsNum = developerRewardsNum
@@ -205,7 +207,8 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(
 		tokenIdentifier := converters.ComputeTokenIdentifier(accountESDT.TokenIdentifier, accountESDT.NFTNonce)
 		balanceNum, err := ap.balanceConverter.ComputeESDTBalanceAsFloat(balance)
 		if err != nil {
-			log.Warn("accountsProcessor.PrepareAccountsMapESDT: cannot compute esdt balance as num", "address", address, "error", err, "token", tokenIdentifier)
+			log.Warn("accountsProcessor.PrepareAccountsMapESDT: cannot compute esdt balance as num",
+				"balance", balance, "address", address, "error", err, "token", tokenIdentifier)
 		}
 
 		acc := &data.AccountInfo{

@@ -150,7 +150,8 @@ func (st *scrsDataToTransactions) processSCRsWithoutTx(scrs []*data.ScResult) (m
 				feeNum, err = st.balanceConverter.ComputeESDTBalanceAsFloat(initialTxFeeBig)
 			}
 			if err != nil {
-				log.Warn("scrsDataToTransactions.processSCRsWithoutTx", "cannot compute fee as num", "error", err)
+				log.Warn("scrsDataToTransactions.processSCRsWithoutTx: cannot compute fee as num",
+					"fee", scr.InitialTxFee, "error", err)
 			}
 
 			txHashRefund[scr.OriginalTxHash] = &data.FeeData{

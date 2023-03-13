@@ -146,12 +146,14 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 
 	valueNum, err := proc.balanceConverter.ComputeESDTBalanceAsFloat(scr.Value)
 	if err != nil {
-		log.Warn("smartContractResultsProcessor.prepareSmartContractResult cannot compute scr value as num", "hash", scrHash, "error", err)
+		log.Warn("smartContractResultsProcessor.prepareSmartContractResult cannot compute scr value as num",
+			"value", scr.Value, "hash", scrHash, "error", err)
 	}
 
 	esdtValuesNum, err := proc.balanceConverter.ComputeSliceOfStringsAsFloat(res.ESDTValues)
 	if err != nil {
-		log.Warn("smartContractResultsProcessor.prepareSmartContractResult cannot compute scr esdt values as num", "hash", scrHash, "error", err)
+		log.Warn("smartContractResultsProcessor.prepareSmartContractResult cannot compute scr esdt values as num",
+			"esdt values", res.ESDTValues, "hash", scrHash, "error", err)
 	}
 
 	return &indexerData.ScResult{

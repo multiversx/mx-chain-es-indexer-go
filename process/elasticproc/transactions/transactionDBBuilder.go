@@ -58,15 +58,18 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 
 	valueNum, err := dtb.balanceConverter.ComputeESDTBalanceAsFloat(tx.Value)
 	if err != nil {
-		log.Warn("dbTransactionBuilder.prepareTransaction: cannot compute value as num", "hash", txHash, "error", err)
+		log.Warn("dbTransactionBuilder.prepareTransaction: cannot compute value as num", "value", tx.Value,
+			"hash", txHash, "error", err)
 	}
 	feeNum, err := dtb.balanceConverter.ComputeESDTBalanceAsFloat(fee)
 	if err != nil {
-		log.Warn("dbTransactionBuilder.prepareTransaction: cannot compute transaction fee as num", "hash", txHash, "error", err)
+		log.Warn("dbTransactionBuilder.prepareTransaction: cannot compute transaction fee as num", "fee", fee,
+			"hash", txHash, "error", err)
 	}
 	esdtValuesNum, err := dtb.balanceConverter.ComputeSliceOfStringsAsFloat(res.ESDTValues)
 	if err != nil {
-		log.Warn("dbTransactionBuilder.prepareTransaction: cannot compute esdt values as num", "hash", txHash, "error", err)
+		log.Warn("dbTransactionBuilder.prepareTransaction: cannot compute esdt values as num",
+			"esdt values", res.ESDTValues, "hash", txHash, "error", err)
 	}
 
 	return &data.Transaction{
@@ -115,7 +118,8 @@ func (dtb *dbTransactionBuilder) prepareRewardTransaction(
 ) *data.Transaction {
 	valueNum, err := dtb.balanceConverter.ComputeESDTBalanceAsFloat(rTx.Value)
 	if err != nil {
-		log.Warn("dbTransactionBuilder.prepareRewardTransaction cannot compute value as num", "hash", txHash, "error", err)
+		log.Warn("dbTransactionBuilder.prepareRewardTransaction cannot compute value as num", "value", rTx.Value,
+			"hash", txHash, "error", err)
 	}
 
 	return &data.Transaction{

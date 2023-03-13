@@ -87,7 +87,8 @@ func (dp *delegatorsProc) processEvent(args *argsProcessEvent) argOutputProcessE
 
 	activeStakeNum, err := dp.balanceConverter.ComputeBalanceAsFloat(activeStake)
 	if err != nil {
-		log.Warn("delegatorsProc.processEvent cannot compute active stake as num", "hash", args.txHashHexEncoded, "error", err)
+		log.Warn("delegatorsProc.processEvent cannot compute active stake as num", "active stake", activeStake,
+			"hash", args.txHashHexEncoded, "error", err)
 	}
 
 	delegator := &data.Delegator{
@@ -110,7 +111,8 @@ func (dp *delegatorsProc) processEvent(args *argsProcessEvent) argOutputProcessE
 		unDelegateValue := big.NewInt(0).SetBytes(topics[0])
 		unDelegatedValueNum, errUn := dp.balanceConverter.ComputeBalanceAsFloat(unDelegateValue)
 		if errUn != nil {
-			log.Warn("delegatorsProc.processEvent cannot compute undelegated value as num", "hash", args.txHashHexEncoded, "error", errUn)
+			log.Warn("delegatorsProc.processEvent cannot compute undelegated value as num",
+				"undelegated value", unDelegateValue, "hash", args.txHashHexEncoded, "error", errUn)
 		}
 
 		delegator.UnDelegateInfo = &data.UnDelegate{
