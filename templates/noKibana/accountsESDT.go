@@ -60,7 +60,7 @@ var AccountsESDT = Object{
 				},
 			},
 			"identifier": Object{
-				"type": "keyword",
+				"type": "text",
 			},
 			"properties": Object{
 				"type": "keyword",
@@ -73,7 +73,7 @@ var AccountsESDT = Object{
 				"format": "epoch_second",
 			},
 			"token": Object{
-				"type": "keyword",
+				"type": "text",
 			},
 			"tokenNonce": Object{
 				"type": "double",

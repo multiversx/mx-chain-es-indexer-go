@@ -117,7 +117,7 @@ var Transactions = Object{
 				"format": "epoch_second",
 			},
 			"tokens": Object{
-				"type": "keyword",
+				"type": "text",
 			},
 			"value": Object{
 				"type": "keyword",

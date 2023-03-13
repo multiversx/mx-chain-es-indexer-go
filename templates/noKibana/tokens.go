@@ -53,7 +53,7 @@ var Tokens = Object{
 				},
 			},
 			"identifier": Object{
-				"type": "keyword",
+				"type": "text",
 			},
 			"issuer": Object{
 				"type": "keyword",
@@ -162,7 +162,7 @@ var Tokens = Object{
 				"format": "epoch_second",
 			},
 			"token": Object{
-				"type": "keyword",
+				"type": "text",
 			},
 			"type": Object{
 				"type": "keyword",
