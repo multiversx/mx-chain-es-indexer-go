@@ -17,7 +17,8 @@ import (
 )
 
 const (
-	okHexEncoded = "6f6b"
+	okHexEncoded       = "6f6b"
+	maxLengthESDTValue = 100
 )
 
 func checkTxsProcessorArg(args *ArgsTransactionProcessor) error {
@@ -38,6 +39,16 @@ func checkTxsProcessorArg(args *ArgsTransactionProcessor) error {
 	}
 
 	return nil
+}
+
+func areESDTValuesOK(values []string) bool {
+	for _, value := range values {
+		if len(value) > maxLengthESDTValue {
+			return false
+		}
+	}
+
+	return true
 }
 
 func checkPrepareTransactionForDatabaseArguments(

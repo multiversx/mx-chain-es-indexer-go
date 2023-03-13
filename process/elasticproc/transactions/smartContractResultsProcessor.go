@@ -156,6 +156,11 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 			"esdt values", res.ESDTValues, "hash", scrHash, "error", err)
 	}
 
+	var esdtValues []string
+	if areESDTValuesOK(res.ESDTValues) {
+		esdtValues = res.ESDTValues
+	}
+
 	return &indexerData.ScResult{
 		Hash:               hex.EncodeToString(scrHash),
 		MBHash:             hexEncodedMBHash,
@@ -181,7 +186,7 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 		ReceiverShard:      receiverShard,
 		Operation:          res.Operation,
 		Function:           res.Function,
-		ESDTValues:         res.ESDTValues,
+		ESDTValues:         esdtValues,
 		ESDTValuesNum:      esdtValuesNum,
 		Tokens:             res.Tokens,
 		Receivers:          datafield.EncodeBytesSlice(proc.pubKeyConverter.Encode, res.Receivers),

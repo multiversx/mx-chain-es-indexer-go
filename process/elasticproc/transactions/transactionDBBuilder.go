@@ -72,6 +72,11 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 			"esdt values", res.ESDTValues, "hash", txHash, "error", err)
 	}
 
+	var esdtValues []string
+	if areESDTValuesOK(res.ESDTValues) {
+		esdtValues = res.ESDTValues
+	}
+
 	return &data.Transaction{
 		Hash:              hex.EncodeToString(txHash),
 		MBHash:            hex.EncodeToString(mbHash),
@@ -98,7 +103,7 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		IsScCall:          isScCall,
 		Operation:         res.Operation,
 		Function:          res.Function,
-		ESDTValues:        res.ESDTValues,
+		ESDTValues:        esdtValues,
 		ESDTValuesNum:     esdtValuesNum,
 		Tokens:            res.Tokens,
 		Receivers:         datafield.EncodeBytesSlice(dtb.addressPubkeyConverter.Encode, res.Receivers),
