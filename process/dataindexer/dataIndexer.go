@@ -131,7 +131,7 @@ func (di *dataIndexer) SaveAccounts(accounts *outport.Accounts) error {
 }
 
 // FinalizedBlock returns nil
-func (di *dataIndexer) FinalizedBlock(_ []byte) error {
+func (di *dataIndexer) FinalizedBlock(_ *outport.FinalizedBlock) error {
 	return nil
 }
 

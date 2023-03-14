@@ -60,7 +60,7 @@ type Indexer interface {
 	SaveValidatorsPubKeys(validatorsPubKeys *outport.ValidatorsPubKeys) error
 	SaveValidatorsRating(ratingData *outport.ValidatorsRating) error
 	SaveAccounts(accountsData *outport.Accounts) error
-	FinalizedBlock(headerHash []byte) error
+	FinalizedBlock(finalizedBlock *outport.FinalizedBlock) error
 	Close() error
 	IsInterfaceNil() bool
 	IsNilIndexer() bool
