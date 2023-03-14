@@ -144,9 +144,14 @@ func (st *scrsDataToTransactions) processSCRsWithoutTx(scrs []*data.ScResult) (m
 	for _, scr := range scrs {
 		if scr.InitialTxGasUsed != 0 {
 			var feeNum float64
+			var err error
 			initialTxFeeBig, ok := big.NewInt(0).SetString(scr.InitialTxFee, 10)
 			if ok {
-				feeNum = st.balanceConverter.ComputeESDTBalanceAsFloat(initialTxFeeBig)
+				feeNum, err = st.balanceConverter.ComputeESDTBalanceAsFloat(initialTxFeeBig)
+			}
+			if err != nil {
+				log.Warn("scrsDataToTransactions.processSCRsWithoutTx: cannot compute fee as num",
+					"initial Tx fee", initialTxFeeBig, "error", err)
 			}
 
 			txHashRefund[scr.OriginalTxHash] = &data.FeeData{

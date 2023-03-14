@@ -19,7 +19,7 @@ var AccountsESDTHistory = Object{
 				"type": "keyword",
 			},
 			"identifier": Object{
-				"type": "keyword",
+				"type": "text",
 			},
 			"isSender": Object{
 				"type": "boolean",
@@ -35,10 +35,10 @@ var AccountsESDTHistory = Object{
 				"format": "epoch_second",
 			},
 			"token": Object{
-				"type": "keyword",
+				"type": "text",
 			},
 			"tokenNonce": Object{
-				"type": "long",
+				"type": "double",
 			},
 		},
 	},
