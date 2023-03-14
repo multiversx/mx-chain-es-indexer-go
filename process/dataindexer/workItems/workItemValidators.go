@@ -1,37 +1,26 @@
 package workItems
 
+import "github.com/multiversx/mx-chain-core-go/data/outport"
+
 type itemValidators struct {
 	indexer           saveValidatorsIndexer
-	epoch             uint32
-	validatorsPubKeys map[uint32][][]byte
+	validatorsPubKeys *outport.ValidatorsPubKeys
 }
 
 // NewItemValidators will create a new instance of itemValidators
 func NewItemValidators(
 	indexer saveValidatorsIndexer,
-	epoch uint32,
-	validatorsPubKeys map[uint32][][]byte,
+	validatorsPubKeys *outport.ValidatorsPubKeys,
 ) WorkItemHandler {
 	return &itemValidators{
 		indexer:           indexer,
-		epoch:             epoch,
 		validatorsPubKeys: validatorsPubKeys,
 	}
 }
 
 // Save will save information about validators
 func (wiv *itemValidators) Save() error {
-	for shardID, shardPubKeys := range wiv.validatorsPubKeys {
-		err := wiv.indexer.SaveShardValidatorsPubKeys(shardID, wiv.epoch, shardPubKeys)
-		if err != nil {
-			log.Warn("itemValidators.Save could not index validators public keys",
-				"for shard", shardID,
-				"error", err.Error())
-			return err
-		}
-	}
-
-	return nil
+	return wiv.indexer.SaveShardValidatorsPubKeys(wiv.validatorsPubKeys)
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

@@ -53,7 +53,7 @@ func areESDTValuesOK(values []string) bool {
 func checkPrepareTransactionForDatabaseArguments(
 	body *block.Body,
 	header coreData.HeaderHandler,
-	pool *outport.Pool,
+	pool *outport.TransactionPool,
 ) error {
 	if body == nil {
 		return elasticIndexer.ErrNilBlockBody

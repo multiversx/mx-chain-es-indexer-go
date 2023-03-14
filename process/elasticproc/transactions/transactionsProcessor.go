@@ -67,7 +67,7 @@ func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txsDatabaseProce
 func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 	body *block.Body,
 	header coreData.HeaderHandler,
-	pool *outport.Pool,
+	pool *outport.TransactionPool,
 	isImportDB bool,
 	numOfShards uint32,
 ) *data.PreparedResults {
@@ -92,7 +92,7 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 				continue
 			}
 
-			txs, errGroup := tdp.txsGrouper.groupNormalTxs(mbIndex, mb, header, pool.Txs, isImportDB, numOfShards)
+			txs, errGroup := tdp.txsGrouper.groupNormalTxs(mbIndex, mb, header, pool.Transactions, isImportDB, numOfShards)
 			if errGroup != nil {
 				log.Warn("txsDatabaseProcessor.groupNormalTxs", "error", errGroup)
 				continue
@@ -106,7 +106,7 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 			}
 			mergeTxsMaps(rewardsTxs, txs)
 		case block.InvalidBlock:
-			txs, errGroup := tdp.txsGrouper.groupInvalidTxs(mbIndex, mb, header, pool.Invalid, numOfShards)
+			txs, errGroup := tdp.txsGrouper.groupInvalidTxs(mbIndex, mb, header, pool.InvalidTxs, numOfShards)
 			if errGroup != nil {
 				log.Warn("txsDatabaseProcessor.groupInvalidTxs", "error", errGroup)
 				continue
@@ -119,7 +119,7 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 
 	normalTxs = tdp.setTransactionSearchOrder(normalTxs)
 	dbReceipts := tdp.txsGrouper.groupReceipts(header, pool.Receipts)
-	dbSCResults := tdp.scrsProc.processSCRs(body, header, pool.Scrs, numOfShards)
+	dbSCResults := tdp.scrsProc.processSCRs(body, header, pool.SmartContractResults, numOfShards)
 
 	srcsNoTxInCurrentShard := tdp.scrsDataToTxs.attachSCRsToTransactionsAndReturnSCRsWithoutTx(normalTxs, dbSCResults)
 	tdp.scrsDataToTxs.processTransactionsAfterSCRsWereAttached(normalTxs)

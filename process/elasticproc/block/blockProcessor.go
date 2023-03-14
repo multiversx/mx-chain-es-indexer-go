@@ -48,62 +48,56 @@ func NewBlockProcessor(hasher hashing.Hasher, marshalizer marshal.Marshalizer) (
 }
 
 // PrepareBlockForDB will prepare a database block and serialize it for database
-func (bp *blockProcessor) PrepareBlockForDB(
-	headerHash []byte,
-	header coreData.HeaderHandler,
-	signersIndexes []uint64,
-	body *block.Body,
-	notarizedHeadersHashes []string,
-	gasConsumptionData outport.HeaderGasConsumption,
-	sizeTxs int,
-	pool *outport.Pool,
-) (*data.Block, error) {
-	if check.IfNil(header) {
+func (bp *blockProcessor) PrepareBlockForDB(obh *outport.OutportBlockWithHeader) (*data.Block, error) {
+	if check.IfNil(obh.Header) {
 		return nil, indexer.ErrNilHeaderHandler
 	}
-	if body == nil {
+	if obh.BlockData.Body == nil {
 		return nil, indexer.ErrNilBlockBody
 	}
 
-	blockSizeInBytes, err := bp.computeBlockSize(header, body)
+	blockSizeInBytes, err := bp.computeBlockSize(obh.Header, obh.BlockData.Body)
 	if err != nil {
 		return nil, err
 	}
 
-	miniblocksHashes := bp.getEncodedMBSHashes(body)
-	leaderIndex := bp.getLeaderIndex(signersIndexes)
+	// TODO compute size of transactions
+	sizeTxs := obh.OutportBlock.TransactionPool.Size()
 
-	numTxs, notarizedTxs := getTxsCount(header)
+	miniblocksHashes := bp.getEncodedMBSHashes(obh.BlockData.Body)
+	leaderIndex := bp.getLeaderIndex(obh.SignersIndexes)
+
+	numTxs, notarizedTxs := getTxsCount(obh.Header)
 	elasticBlock := &data.Block{
-		Nonce:                 header.GetNonce(),
-		Round:                 header.GetRound(),
-		Epoch:                 header.GetEpoch(),
-		ShardID:               header.GetShardID(),
-		Hash:                  hex.EncodeToString(headerHash),
+		Nonce:                 obh.Header.GetNonce(),
+		Round:                 obh.Header.GetRound(),
+		Epoch:                 obh.Header.GetEpoch(),
+		ShardID:               obh.Header.GetShardID(),
+		Hash:                  hex.EncodeToString(obh.BlockData.HeaderHash),
 		MiniBlocksHashes:      miniblocksHashes,
-		NotarizedBlocksHashes: notarizedHeadersHashes,
+		NotarizedBlocksHashes: obh.NotarizedHeadersHashes,
 		Proposer:              leaderIndex,
-		Validators:            signersIndexes,
-		PubKeyBitmap:          hex.EncodeToString(header.GetPubKeysBitmap()),
+		Validators:            obh.SignersIndexes,
+		PubKeyBitmap:          hex.EncodeToString(obh.Header.GetPubKeysBitmap()),
 		Size:                  int64(blockSizeInBytes),
 		SizeTxs:               int64(sizeTxs),
-		Timestamp:             time.Duration(header.GetTimeStamp()),
+		Timestamp:             time.Duration(obh.Header.GetTimeStamp()),
 		TxCount:               numTxs,
 		NotarizedTxsCount:     notarizedTxs,
-		StateRootHash:         hex.EncodeToString(header.GetRootHash()),
-		PrevHash:              hex.EncodeToString(header.GetPrevHash()),
-		SearchOrder:           computeBlockSearchOrder(header),
-		EpochStartBlock:       header.IsStartOfEpochBlock(),
-		GasProvided:           gasConsumptionData.GasProvided,
-		GasRefunded:           gasConsumptionData.GasRefunded,
-		GasPenalized:          gasConsumptionData.GasPenalized,
-		MaxGasLimit:           gasConsumptionData.MaxGasPerBlock,
-		AccumulatedFees:       converters.BigIntToString(header.GetAccumulatedFees()),
-		DeveloperFees:         converters.BigIntToString(header.GetDeveloperFees()),
+		StateRootHash:         hex.EncodeToString(obh.Header.GetRootHash()),
+		PrevHash:              hex.EncodeToString(obh.Header.GetPrevHash()),
+		SearchOrder:           computeBlockSearchOrder(obh.Header),
+		EpochStartBlock:       obh.Header.IsStartOfEpochBlock(),
+		GasProvided:           obh.HeaderGasConsumption.GasProvided,
+		GasRefunded:           obh.HeaderGasConsumption.GasRefunded,
+		GasPenalized:          obh.HeaderGasConsumption.GasPenalized,
+		MaxGasLimit:           obh.HeaderGasConsumption.MaxGasPerBlock,
+		AccumulatedFees:       converters.BigIntToString(obh.Header.GetAccumulatedFees()),
+		DeveloperFees:         converters.BigIntToString(obh.Header.GetDeveloperFees()),
 	}
 
-	additionalData := header.GetAdditionalData()
-	if header.GetAdditionalData() != nil {
+	additionalData := obh.Header.GetAdditionalData()
+	if obh.Header.GetAdditionalData() != nil {
 		elasticBlock.ScheduledData = &data.ScheduledData{
 			ScheduledRootHash:        hex.EncodeToString(additionalData.GetScheduledRootHash()),
 			ScheduledAccumulatedFees: converters.BigIntToString(additionalData.GetScheduledAccumulatedFees()),
@@ -114,8 +108,8 @@ func (bp *blockProcessor) PrepareBlockForDB(
 		}
 	}
 
-	bp.addEpochStartInfoForMeta(header, elasticBlock)
-	putMiniblocksDetailsInBlock(header, elasticBlock, pool, body)
+	bp.addEpochStartInfoForMeta(obh.Header, elasticBlock)
+	putMiniblocksDetailsInBlock(obh.Header, elasticBlock, obh.TransactionPool, obh.BlockData.Body)
 
 	return elasticBlock, nil
 }
@@ -233,7 +227,7 @@ func (bp *blockProcessor) getEncodedMBSHashes(body *block.Body) []string {
 	return miniblocksHashes
 }
 
-func putMiniblocksDetailsInBlock(header coreData.HeaderHandler, block *data.Block, pool *outport.Pool, body *block.Body) {
+func putMiniblocksDetailsInBlock(header coreData.HeaderHandler, block *data.Block, pool *outport.TransactionPool, body *block.Body) {
 	mbHeaders := header.GetMiniBlockHeaderHandlers()
 
 	for idx, mbHeader := range mbHeaders {
@@ -257,8 +251,8 @@ func putMiniblocksDetailsInBlock(header coreData.HeaderHandler, block *data.Bloc
 	}
 }
 
-func extractExecutionOrderIndicesFromPool(mbHeader coreData.MiniBlockHeaderHandler, txsHashes [][]byte, pool *outport.Pool) []int {
-	txsMap := getTxsMap(nodeBlock.Type(mbHeader.GetTypeInt32()), pool)
+func extractExecutionOrderIndicesFromPool(mbHeader coreData.MiniBlockHeaderHandler, txsHashes [][]byte, pool *outport.TransactionPool) []int {
+	mbType := mbHeader.GetTypeInt32()
 	executionOrderTxsIndices := make([]int, len(txsHashes))
 	indexOfFirstTxProcessed, indexOfLastTxProcessed := mbHeader.GetIndexOfFirstTxProcessed(), mbHeader.GetIndexOfLastTxProcessed()
 	for idx, txHash := range txsHashes {
@@ -268,17 +262,44 @@ func extractExecutionOrderIndicesFromPool(mbHeader coreData.MiniBlockHeaderHandl
 			continue
 		}
 
-		tx, found := txsMap[string(txHash)]
+		executionOrder, found := getExecutionOrderForTx(txHash, mbType, pool)
 		if !found {
 			log.Warn("blockProcessor.extractExecutionOrderIndicesFromPool cannot find tx in pool", "txHash", hex.EncodeToString(txHash))
 			executionOrderTxsIndices[idx] = notFound
 			continue
 		}
 
-		executionOrderTxsIndices[idx] = tx.GetExecutionOrder()
+		executionOrderTxsIndices[idx] = int(executionOrder)
 	}
 
 	return executionOrderTxsIndices
+}
+
+type executionOrderHandler interface {
+	GetExecutionOrder() uint32
+}
+
+func getExecutionOrderForTx(txHash []byte, mbType int32, pool *outport.TransactionPool) (uint32, bool) {
+	var tx executionOrderHandler
+	var found bool
+
+	switch mbType {
+	case nodeBlock.TxBlock:
+		tx, found = pool.Transactions[hex.EncodeToString(txHash)]
+	case nodeBlock.InvalidBlock:
+		tx, found = pool.InvalidTxs[hex.EncodeToString(txHash)]
+	case nodeBlock.RewardsBlock:
+		tx, found = pool.Rewards[hex.EncodeToString(txHash)]
+	case nodeBlock.SmartContractResultBlock:
+		tx, found = pool.SmartContractResults[hex.EncodeToString(txHash)]
+	default:
+		return 0, false
+	}
+
+	if !found {
+		return 0, false
+	}
+	return tx.GetExecutionOrder(), true
 }
 
 func (bp *blockProcessor) computeBlockSize(header coreData.HeaderHandler, body *block.Body) (int, error) {
@@ -330,21 +351,6 @@ func createShardIdentifier(shardID uint32) uint32 {
 // ComputeHeaderHash will compute the hash of a provided header
 func (bp *blockProcessor) ComputeHeaderHash(header coreData.HeaderHandler) ([]byte, error) {
 	return core.CalculateHash(bp.marshalizer, bp.hasher, header)
-}
-
-func getTxsMap(mbType nodeBlock.Type, pool *outport.Pool) map[string]coreData.TransactionHandlerWithGasUsedAndFee {
-	switch mbType {
-	case nodeBlock.TxBlock:
-		return pool.Txs
-	case nodeBlock.InvalidBlock:
-		return pool.Invalid
-	case nodeBlock.RewardsBlock:
-		return pool.Rewards
-	case nodeBlock.SmartContractResultBlock:
-		return pool.Scrs
-	default:
-		return make(map[string]coreData.TransactionHandlerWithGasUsedAndFee)
-	}
 }
 
 func hexEncodeSlice(slice [][]byte) []string {

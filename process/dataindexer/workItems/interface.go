@@ -4,7 +4,6 @@ import (
 	coreData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
-	"github.com/multiversx/mx-chain-es-indexer-go/data"
 )
 
 // WorkItemHandler defines the interface for item that needs to be saved in elasticsearch database
@@ -14,22 +13,13 @@ type WorkItemHandler interface {
 }
 
 type saveBlockIndexer interface {
-	SaveHeader(
-		headerHash []byte,
-		header coreData.HeaderHandler,
-		signersIndexes []uint64,
-		body *block.Body,
-		notarizedHeadersHashes []string,
-		gasConsumptionData outport.HeaderGasConsumption,
-		txsSize int,
-		pool *outport.Pool,
-	) error
+	SaveHeader(outportBlockWithHeader *outport.OutportBlockWithHeader) error
 	SaveMiniblocks(header coreData.HeaderHandler, body *block.Body) error
-	SaveTransactions(body *block.Body, header coreData.HeaderHandler, pool *outport.Pool, coreAlteredAccounts map[string]*outport.AlteredAccount, isImportDB bool, numOfShards uint32) error
+	SaveTransactions(outportBlockWithHeader *outport.OutportBlockWithHeader) error
 }
 
 type saveRatingIndexer interface {
-	SaveValidatorsRating(index string, validatorsRatingInfo []*data.ValidatorRatingInfo) error
+	SaveValidatorsRating(ratingData *outport.ValidatorsRating) error
 }
 
 type removeIndexer interface {
@@ -40,13 +30,13 @@ type removeIndexer interface {
 }
 
 type saveRounds interface {
-	SaveRoundsInfo(infos []*data.RoundInfo) error
+	SaveRoundsInfo(rounds *outport.RoundsInfo) error
 }
 
 type saveValidatorsIndexer interface {
-	SaveShardValidatorsPubKeys(shardID, epoch uint32, shardValidatorsPubKeys [][]byte) error
+	SaveShardValidatorsPubKeys(validatorsPubKeys *outport.ValidatorsPubKeys) error
 }
 
 type saveAccountsIndexer interface {
-	SaveAccounts(blockTimestamp uint64, accounts []*data.Account, shardID uint32) error
+	SaveAccounts(accounts *outport.Accounts) error
 }

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/mock"
@@ -38,6 +39,7 @@ func TestPrepareSmartContractResult(t *testing.T) {
 	code := []byte("code")
 	sndAddr, rcvAddr := []byte("snd"), []byte("rec")
 	scHash := "scHash"
+
 	smartContractRes := &smartContractResult.SmartContractResult{
 		Nonce:      nonce,
 		PrevTxHash: txHash,
@@ -47,10 +49,18 @@ func TestPrepareSmartContractResult(t *testing.T) {
 		RcvAddr:    rcvAddr,
 		CallType:   1,
 	}
+
+	scrInfo := &outport.SCRInfo{
+		SmartContractResult: smartContractRes,
+		FeeInfo: &outport.FeeInfo{
+			Fee: big.NewInt(0),
+		},
+	}
+
 	header := &block.Header{TimeStamp: 100}
 
 	mbHash := []byte("hash")
-	scRes := scrsProc.prepareSmartContractResult([]byte(scHash), mbHash, smartContractRes, header, 0, 1, big.NewInt(0), 0, 3)
+	scRes := scrsProc.prepareSmartContractResult([]byte(scHash), mbHash, scrInfo, header, 0, 1, 3)
 	expectedTx := &data.ScResult{
 		Nonce:              nonce,
 		Hash:               hex.EncodeToString([]byte(scHash)),

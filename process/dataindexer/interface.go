@@ -6,7 +6,6 @@ import (
 	coreData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
-	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer/workItems"
 )
 
@@ -20,26 +19,17 @@ type DispatcherHandler interface {
 
 // ElasticProcessor defines the interface for the elastic search indexer
 type ElasticProcessor interface {
-	SaveHeader(
-		headerHash []byte,
-		header coreData.HeaderHandler,
-		signersIndexes []uint64,
-		body *block.Body,
-		notarizedHeadersHashes []string,
-		gasConsumptionData outport.HeaderGasConsumption,
-		txsSize int,
-		pool *outport.Pool,
-	) error
+	SaveHeader(outportBlockWithHeader *outport.OutportBlockWithHeader) error
 	RemoveHeader(header coreData.HeaderHandler) error
 	RemoveMiniblocks(header coreData.HeaderHandler, body *block.Body) error
 	RemoveTransactions(header coreData.HeaderHandler, body *block.Body) error
 	RemoveAccountsESDT(headerTimestamp uint64, shardID uint32) error
 	SaveMiniblocks(header coreData.HeaderHandler, body *block.Body) error
-	SaveTransactions(body *block.Body, header coreData.HeaderHandler, pool *outport.Pool, coreAlteredAccounts map[string]*outport.AlteredAccount, isImportDB bool, numOfShards uint32) error
-	SaveValidatorsRating(index string, validatorsRatingInfo []*data.ValidatorRatingInfo) error
-	SaveRoundsInfo(infos []*data.RoundInfo) error
-	SaveShardValidatorsPubKeys(shardID, epoch uint32, shardValidatorsPubKeys [][]byte) error
-	SaveAccounts(blockTimestamp uint64, accounts []*data.Account, shardID uint32) error
+	SaveTransactions(outportBlockWithHeader *outport.OutportBlockWithHeader) error
+	SaveValidatorsRating(ratingData *outport.ValidatorsRating) error
+	SaveRoundsInfo(rounds *outport.RoundsInfo) error
+	SaveShardValidatorsPubKeys(validatorsPubKeys *outport.ValidatorsPubKeys) error
+	SaveAccounts(accounts *outport.Accounts) error
 	IsInterfaceNil() bool
 }
 
@@ -64,12 +54,12 @@ type ShardCoordinator interface {
 // Indexer is an interface for saving node specific data to other storage.
 // This could be an elastic search index, a MySql database or any other external services.
 type Indexer interface {
-	SaveBlock(args *outport.ArgsSaveBlockData) error
-	RevertIndexedBlock(header coreData.HeaderHandler, body coreData.BodyHandler) error
-	SaveRoundsInfo(roundsInfos []*outport.RoundInfo) error
-	SaveValidatorsPubKeys(validatorsPubKeys map[uint32][][]byte, epoch uint32) error
-	SaveValidatorsRating(indexID string, infoRating []*outport.ValidatorRatingInfo) error
-	SaveAccounts(blockTimestamp uint64, acc map[string]*outport.AlteredAccount, shardID uint32) error
+	SaveBlock(outportBlock *outport.OutportBlock) error
+	RevertIndexedBlock(blockData *outport.BlockData) error
+	SaveRoundsInfo(roundsInfos *outport.RoundsInfo) error
+	SaveValidatorsPubKeys(validatorsPubKeys *outport.ValidatorsPubKeys) error
+	SaveValidatorsRating(ratingData *outport.ValidatorsRating) error
+	SaveAccounts(accountsData *outport.Accounts) error
 	FinalizedBlock(headerHash []byte) error
 	Close() error
 	IsInterfaceNil() bool

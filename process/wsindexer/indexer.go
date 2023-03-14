@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	"github.com/multiversx/mx-chain-core-go/websocketOutportDriver/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
@@ -49,61 +50,63 @@ func (i *indexer) GetOperationsMap() map[data.OperationType]func(d []byte) error
 }
 
 func (i *indexer) saveBlock(marshalledData []byte) error {
-	argsSaveBlockS, err := i.getArgsSaveBlock(marshalledData)
+	outportBlock := &outport.OutportBlock{}
+	err := i.marshaller.Unmarshal(outportBlock, marshalledData)
 	if err != nil {
 		return err
 	}
 
-	return i.di.SaveBlock(argsSaveBlockS)
+	return i.di.SaveBlock(outportBlock)
 }
 
 func (i *indexer) revertIndexedBlock(marshalledData []byte) error {
-	header, body, err := i.getHeaderAndBody(marshalledData)
+	blockData := &outport.BlockData{}
+	err := i.marshaller.Unmarshal(blockData, marshalledData)
 	if err != nil {
 		return err
 	}
 
-	return i.di.RevertIndexedBlock(header, body)
+	return i.di.RevertIndexedBlock(blockData)
 }
 
 func (i *indexer) saveRounds(marshalledData []byte) error {
-	argsRounds := &data.ArgsSaveRoundsInfo{}
-	err := i.marshaller.Unmarshal(argsRounds, marshalledData)
+	roundsInfo := &outport.RoundsInfo{}
+	err := i.marshaller.Unmarshal(roundsInfo, marshalledData)
 	if err != nil {
 		return err
 	}
 
-	return i.di.SaveRoundsInfo(argsRounds.RoundsInfos)
+	return i.di.SaveRoundsInfo(roundsInfo)
 }
 
 func (i *indexer) saveValidatorsRating(marshalledData []byte) error {
-	argsValidatorsRating := &data.ArgsSaveValidatorsRating{}
-	err := i.marshaller.Unmarshal(argsValidatorsRating, marshalledData)
+	ratingData := &outport.ValidatorsRating{}
+	err := i.marshaller.Unmarshal(ratingData, marshalledData)
 	if err != nil {
 		return err
 	}
 
-	return i.di.SaveValidatorsRating(argsValidatorsRating.IndexID, argsValidatorsRating.InfoRating)
+	return i.di.SaveValidatorsRating(ratingData)
 }
 
 func (i *indexer) saveValidatorsPubKeys(marshalledData []byte) error {
-	argsValidators := &data.ArgsSaveValidatorsPubKeys{}
-	err := i.marshaller.Unmarshal(argsValidators, marshalledData)
+	validatorsPubKeys := &outport.ValidatorsPubKeys{}
+	err := i.marshaller.Unmarshal(validatorsPubKeys, marshalledData)
 	if err != nil {
 		return err
 	}
 
-	return i.di.SaveValidatorsPubKeys(argsValidators.ValidatorsPubKeys, argsValidators.Epoch)
+	return i.di.SaveValidatorsPubKeys(validatorsPubKeys)
 }
 
 func (i *indexer) saveAccounts(marshalledData []byte) error {
-	argsSaveAccounts := &data.ArgsSaveAccounts{}
-	err := i.marshaller.Unmarshal(argsSaveAccounts, marshalledData)
+	accounts := &outport.Accounts{}
+	err := i.marshaller.Unmarshal(accounts, marshalledData)
 	if err != nil {
 		return err
 	}
 
-	return i.di.SaveAccounts(argsSaveAccounts.BlockTimestamp, argsSaveAccounts.Acc, argsSaveAccounts.ShardID)
+	return i.di.SaveAccounts(accounts)
 }
 
 func (i *indexer) finalizedBlock(_ []byte) error {

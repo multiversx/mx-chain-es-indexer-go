@@ -3,16 +3,15 @@ package transactions
 import (
 	"encoding/hex"
 	"fmt"
-	"math/big"
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/sharding"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/receipt"
 	"github.com/multiversx/mx-chain-core-go/data/rewardTx"
-	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	datafield "github.com/multiversx/mx-chain-vm-common-go/parsers/dataField"
@@ -37,17 +36,16 @@ func newTransactionDBBuilder(
 }
 
 func (dtb *dbTransactionBuilder) prepareTransaction(
-	tx *transaction.Transaction,
+	txInfo *outport.TxInfo,
 	txHash []byte,
 	mbHash []byte,
 	mb *block.MiniBlock,
 	header coreData.HeaderHandler,
 	txStatus string,
-	fee *big.Int,
-	gasUsed uint64,
-	initialPaidFee *big.Int,
 	numOfShards uint32,
 ) *data.Transaction {
+	tx := txInfo.Transaction
+
 	isScCall := core.IsSmartContractAddress(tx.RcvAddr)
 	res := dtb.dataFieldParser.Parse(tx.Data, tx.SndAddr, tx.RcvAddr, numOfShards)
 
@@ -61,9 +59,9 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		log.Warn("dbTransactionBuilder.prepareTransaction: cannot compute value as num", "value", tx.Value,
 			"hash", txHash, "error", err)
 	}
-	feeNum, err := dtb.balanceConverter.ComputeESDTBalanceAsFloat(fee)
+	feeNum, err := dtb.balanceConverter.ComputeESDTBalanceAsFloat(txInfo.FeeInfo.Fee)
 	if err != nil {
-		log.Warn("dbTransactionBuilder.prepareTransaction: cannot compute transaction fee as num", "fee", fee,
+		log.Warn("dbTransactionBuilder.prepareTransaction: cannot compute transaction fee as num", "fee", txInfo.FeeInfo.Fee,
 			"hash", txHash, "error", err)
 	}
 	esdtValuesNum, err := dtb.balanceConverter.ComputeSliceOfStringsAsFloat(res.ESDTValues)
@@ -94,9 +92,9 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		Signature:         hex.EncodeToString(tx.Signature),
 		Timestamp:         time.Duration(header.GetTimeStamp()),
 		Status:            txStatus,
-		GasUsed:           gasUsed,
-		InitialPaidFee:    initialPaidFee.String(),
-		Fee:               fee.String(),
+		GasUsed:           txInfo.FeeInfo.GasUsed,
+		InitialPaidFee:    txInfo.FeeInfo.InitialPaidFee.String(),
+		Fee:               txInfo.FeeInfo.Fee.String(),
 		FeeNum:            feeNum,
 		ReceiverUserName:  tx.RcvUserName,
 		SenderUserName:    tx.SndUserName,

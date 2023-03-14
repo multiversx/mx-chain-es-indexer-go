@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	coreData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/mock"
@@ -57,9 +56,9 @@ func TestNewLogsAndEventsProcessor(t *testing.T) {
 func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T) {
 	t.Parallel()
 
-	logsAndEvents := map[string]coreData.LogHandler{
+	logsAndEvents := map[string]*transaction.Log{
 		"wrong": nil,
-		"h3": &transaction.Log{
+		"h3": {
 			Events: []*transaction.Event{
 				{
 					Address:    []byte("addr"),
@@ -69,7 +68,7 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 			},
 		},
 
-		"h1": &transaction.Log{
+		"h1": {
 			Address: []byte("address"),
 			Events: []*transaction.Event{
 				{
@@ -80,7 +79,7 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 			},
 		},
 
-		"h2": &transaction.Log{
+		"h2": {
 			Events: []*transaction.Event{
 				{
 					Address:    []byte("addr"),
@@ -90,7 +89,7 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 				nil,
 			},
 		},
-		"h4": &transaction.Log{
+		"h4": {
 			Events: []*transaction.Event{
 				{
 					Address:    []byte("addr"),
@@ -100,7 +99,7 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 				nil,
 			},
 		},
-		"h5": &transaction.Log{
+		"h5": {
 			Address: []byte("contract"),
 			Events: []*transaction.Event{
 				{
@@ -110,7 +109,7 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 				},
 			},
 		},
-		"h6": &transaction.Log{
+		"h6": {
 			Address: []byte("contract-second"),
 			Events: []*transaction.Event{
 				{
@@ -120,14 +119,6 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 				},
 			},
 		},
-	}
-
-	logsAndEventsSlice := make([]*coreData.LogData, 0)
-	for hash, val := range logsAndEvents {
-		logsAndEventsSlice = append(logsAndEventsSlice, &coreData.LogData{
-			TxHash:     hash,
-			LogHandler: val,
-		})
 	}
 
 	res := &data.PreparedResults{
@@ -148,7 +139,7 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 	args.BalanceConverter = balanceConverter
 	proc, _ := NewLogsAndEventsProcessor(args)
 
-	resLogs := proc.ExtractDataFromLogs(logsAndEventsSlice, res, 1000, core.MetachainShardId, 3)
+	resLogs := proc.ExtractDataFromLogs(logsAndEvents, res, 1000, core.MetachainShardId, 3)
 	require.NotNil(t, resLogs.Tokens)
 	require.True(t, res.Transactions[0].HasOperations)
 	require.True(t, res.ScResults[0].HasOperations)
@@ -197,7 +188,7 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 	t.Parallel()
 
-	logsAndEvents := map[string]coreData.LogHandler{
+	logsAndEvents := map[string]*transaction.Log{
 		"wrong": nil,
 
 		"txHash": &transaction.Log{
@@ -212,14 +203,6 @@ func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 		},
 	}
 
-	logsAndEventsSlice := make([]*coreData.LogData, 0)
-	for hash, val := range logsAndEvents {
-		logsAndEventsSlice = append(logsAndEventsSlice, &coreData.LogData{
-			TxHash:     hash,
-			LogHandler: val,
-		})
-	}
-
 	args := createMockArgs()
 	proc, _ := NewLogsAndEventsProcessor(args)
 
@@ -230,7 +213,7 @@ func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 		},
 	}}, 1234, 0, 3)
 
-	logsDB := proc.PrepareLogsForDB(logsAndEventsSlice, 1234)
+	logsDB := proc.PrepareLogsForDB(logsAndEvents, 1234)
 	require.Equal(t, &data.Logs{
 		ID:             "747848617368",
 		Address:        "61646472657373",
@@ -249,19 +232,16 @@ func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 func TestLogsAndEventsProcessor_ExtractDataFromLogsNFTBurn(t *testing.T) {
 	t.Parallel()
 
-	logsAndEventsSlice := make([]*coreData.LogData, 1)
-	logsAndEventsSlice[0] = &coreData.LogData{
-		LogHandler: &transaction.Log{
-			Address: []byte("address"),
-			Events: []*transaction.Event{
-				{
-					Address:    []byte("addr"),
-					Identifier: []byte(core.BuiltInFunctionESDTNFTBurn),
-					Topics:     [][]byte{[]byte("MY-NFT"), big.NewInt(2).Bytes(), big.NewInt(1).Bytes()},
-				},
+	logsAndEventsSlice := make(map[string]*transaction.Log, 1)
+	logsAndEventsSlice["h1"] = &transaction.Log{
+		Address: []byte("address"),
+		Events: []*transaction.Event{
+			{
+				Address:    []byte("addr"),
+				Identifier: []byte(core.BuiltInFunctionESDTNFTBurn),
+				Topics:     [][]byte{[]byte("MY-NFT"), big.NewInt(2).Bytes(), big.NewInt(1).Bytes()},
 			},
 		},
-		TxHash: "h1",
 	}
 
 	res := &data.PreparedResults{

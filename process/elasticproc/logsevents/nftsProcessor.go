@@ -7,8 +7,8 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/sharding"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/alteredAccount"
 	"github.com/multiversx/mx-chain-core-go/data/esdt"
-	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
@@ -154,12 +154,12 @@ func (np *nftsProcessor) processNFTEventOnSender(
 	})
 }
 
-func (np *nftsProcessor) convertMetaData(metaData *esdt.MetaData) *outport.TokenMetaData {
+func (np *nftsProcessor) convertMetaData(metaData *esdt.MetaData) *alteredAccount.TokenMetaData {
 	if metaData == nil {
 		return nil
 	}
 
-	return &outport.TokenMetaData{
+	return &alteredAccount.TokenMetaData{
 		Nonce:      metaData.Nonce,
 		Name:       string(metaData.Name),
 		Creator:    np.pubKeyConverter.Encode(metaData.Creator),

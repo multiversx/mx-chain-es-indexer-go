@@ -7,6 +7,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
@@ -86,7 +87,7 @@ func createEventsProcessors(args ArgsLogsAndEventsProcessor) []eventsProcessor {
 
 // ExtractDataFromLogs will extract data from the provided logs and events and put in altered addresses
 func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
-	logsAndEvents []*coreData.LogData,
+	logsAndEvents map[string]*transaction.Log,
 	preparedResults *data.PreparedResults,
 	timestamp uint64,
 	shardID uint32,
@@ -94,15 +95,14 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 ) *data.PreparedLogsResults {
 	lep.logsData = newLogsData(timestamp, preparedResults.Transactions, preparedResults.ScResults)
 
-	for _, txLog := range logsAndEvents {
-		if txLog == nil || check.IfNil(txLog.LogHandler) {
+	for txHashHexEncoded, txLog := range logsAndEvents {
+		if txLog == nil {
 			continue
 		}
 
-		events := txLog.LogHandler.GetLogEvents()
-		lep.processEvents(txLog.TxHash, txLog.LogHandler.GetAddress(), events, shardID, numOfShards)
+		events := txLog.Events
+		lep.processEvents(txHashHexEncoded, txLog.Address, events, shardID, numOfShards)
 
-		txHashHexEncoded := hex.EncodeToString([]byte(txLog.TxHash))
 		tx, ok := lep.logsData.txsMap[txHashHexEncoded]
 		if ok {
 			tx.HasLogs = true
@@ -126,18 +126,17 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 	}
 }
 
-func (lep *logsAndEventsProcessor) processEvents(logHash string, logAddress []byte, events []coreData.EventHandler, shardID uint32, numOfShards uint32) {
+func (lep *logsAndEventsProcessor) processEvents(logHashHexEncoded string, logAddress []byte, events []*transaction.Event, shardID uint32, numOfShards uint32) {
 	for _, event := range events {
 		if check.IfNil(event) {
 			continue
 		}
 
-		lep.processEvent(logHash, logAddress, event, shardID, numOfShards)
+		lep.processEvent(logHashHexEncoded, logAddress, event, shardID, numOfShards)
 	}
 }
 
-func (lep *logsAndEventsProcessor) processEvent(logHash string, logAddress []byte, event coreData.EventHandler, shardID uint32, numOfShards uint32) {
-	logHashHexEncoded := hex.EncodeToString([]byte(logHash))
+func (lep *logsAndEventsProcessor) processEvent(logHashHexEncoded string, logAddress []byte, event coreData.EventHandler, shardID uint32, numOfShards uint32) {
 	for _, proc := range lep.eventsProcessors {
 		res := proc.processEvent(&argsProcessEvent{
 			event:                   event,
@@ -181,17 +180,17 @@ func (lep *logsAndEventsProcessor) processEvent(logHash string, logAddress []byt
 
 // PrepareLogsForDB will prepare logs for database
 func (lep *logsAndEventsProcessor) PrepareLogsForDB(
-	logsAndEvents []*coreData.LogData,
+	logsAndEvents map[string]*transaction.Log,
 	timestamp uint64,
 ) []*data.Logs {
 	logs := make([]*data.Logs, 0, len(logsAndEvents))
 
-	for _, txLog := range logsAndEvents {
-		if txLog == nil || check.IfNil(txLog.LogHandler) {
+	for txHashHex, txLog := range logsAndEvents {
+		if txLog == nil {
 			continue
 		}
 
-		logs = append(logs, lep.prepareLogsForDB(txLog.TxHash, txLog.LogHandler, timestamp))
+		logs = append(logs, lep.prepareLogsForDB(txHashHex, txLog, timestamp))
 	}
 
 	return logs

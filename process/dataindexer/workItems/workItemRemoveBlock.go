@@ -1,26 +1,28 @@
 package workItems
 
 import (
-	"github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/core/unmarshal"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
+	"github.com/multiversx/mx-chain-core-go/marshal"
 )
 
 type itemRemoveBlock struct {
-	indexer       removeIndexer
-	bodyHandler   data.BodyHandler
-	headerHandler data.HeaderHandler
+	indexer    removeIndexer
+	marshaller marshal.Marshalizer
+	blockData  *outport.BlockData
 }
 
 // NewItemRemoveBlock will create a new instance of itemRemoveBlock
 func NewItemRemoveBlock(
 	indexer removeIndexer,
-	bodyHandler data.BodyHandler,
-	headerHandler data.HeaderHandler,
+	marshaller marshal.Marshalizer,
+	blockData *outport.BlockData,
 ) WorkItemHandler {
 	return &itemRemoveBlock{
-		indexer:       indexer,
-		bodyHandler:   bodyHandler,
-		headerHandler: headerHandler,
+		indexer:    indexer,
+		marshaller: marshaller,
+		blockData:  blockData,
 	}
 }
 
@@ -31,25 +33,25 @@ func (wirb *itemRemoveBlock) IsInterfaceNil() bool {
 
 // Save will remove a block and miniblocks from elasticsearch database
 func (wirb *itemRemoveBlock) Save() error {
-	err := wirb.indexer.RemoveHeader(wirb.headerHandler)
+	header, err := unmarshal.GetHeaderFromBytes(wirb.marshaller, core.HeaderType(wirb.blockData.HeaderType), wirb.blockData.HeaderBytes)
 	if err != nil {
 		return err
 	}
 
-	body, ok := wirb.bodyHandler.(*block.Body)
-	if !ok {
-		return ErrBodyTypeAssertion
-	}
-
-	err = wirb.indexer.RemoveMiniblocks(wirb.headerHandler, body)
+	err = wirb.indexer.RemoveHeader(header)
 	if err != nil {
 		return err
 	}
 
-	err = wirb.indexer.RemoveTransactions(wirb.headerHandler, body)
+	err = wirb.indexer.RemoveMiniblocks(header, wirb.blockData.Body)
 	if err != nil {
 		return err
 	}
 
-	return wirb.indexer.RemoveAccountsESDT(wirb.headerHandler.GetTimeStamp(), wirb.headerHandler.GetShardID())
+	err = wirb.indexer.RemoveTransactions(header, wirb.blockData.Body)
+	if err != nil {
+		return err
+	}
+
+	return wirb.indexer.RemoveAccountsESDT(header.GetTimeStamp(), header.GetShardID())
 }

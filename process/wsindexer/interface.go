@@ -1,7 +1,6 @@
 package wsindexer
 
 import (
-	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 )
 
@@ -13,12 +12,12 @@ type WSClient interface {
 
 // DataIndexer dines what a data indexer should do
 type DataIndexer interface {
-	SaveBlock(args *outport.ArgsSaveBlockData) error
-	RevertIndexedBlock(header data.HeaderHandler, body data.BodyHandler) error
-	SaveRoundsInfo(roundsInfos []*outport.RoundInfo) error
-	SaveValidatorsPubKeys(validatorsPubKeys map[uint32][][]byte, epoch uint32) error
-	SaveValidatorsRating(indexID string, infoRating []*outport.ValidatorRatingInfo) error
-	SaveAccounts(blockTimestamp uint64, acc map[string]*outport.AlteredAccount, shardID uint32) error
+	SaveBlock(outportBlock *outport.OutportBlock) error
+	RevertIndexedBlock(blockData *outport.BlockData) error
+	SaveRoundsInfo(roundsInfos *outport.RoundsInfo) error
+	SaveValidatorsPubKeys(validatorsPubKeys *outport.ValidatorsPubKeys) error
+	SaveValidatorsRating(ratingData *outport.ValidatorsRating) error
+	SaveAccounts(accountsData *outport.Accounts) error
 	FinalizedBlock(headerHash []byte) error
 	Close() error
 	IsInterfaceNil() bool
