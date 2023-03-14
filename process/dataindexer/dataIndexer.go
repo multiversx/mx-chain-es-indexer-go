@@ -65,7 +65,7 @@ func (di *dataIndexer) SaveBlock(outportBlock *outport.OutportBlock) error {
 	wi := workItems.NewItemBlock(
 		di.elasticProcessor,
 		&outport.OutportBlockWithHeader{
-			OutportBlock: *outportBlock,
+			OutportBlock: outportBlock,
 			Header:       header,
 		},
 	)

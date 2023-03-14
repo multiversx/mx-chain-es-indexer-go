@@ -61,7 +61,7 @@ func TestBlockProcessor_PrepareBlockForDBShouldWork(t *testing.T) {
 
 	outportBlockWithHeader := &outport.OutportBlockWithHeader{
 		Header: &dataBlock.Header{},
-		OutportBlock: outport.OutportBlock{
+		OutportBlock: &outport.OutportBlock{
 			BlockData: &outport.BlockData{
 				HeaderHash: []byte("hash"),
 				Body: &dataBlock.Body{
@@ -133,7 +133,7 @@ func TestBlockProcessor_PrepareBlockForDBMarshalFailHeader(t *testing.T) {
 
 	outportBlockWithHeader := &outport.OutportBlockWithHeader{
 		Header: &dataBlock.Header{},
-		OutportBlock: outport.OutportBlock{
+		OutportBlock: &outport.OutportBlock{
 			BlockData: &outport.BlockData{
 				HeaderHash: []byte("hash"),
 				Body:       &dataBlock.Body{},
@@ -167,7 +167,7 @@ func TestBlockProcessor_PrepareBlockForDBMarshalFailBlock(t *testing.T) {
 
 	outportBlockWithHeader := &outport.OutportBlockWithHeader{
 		Header: &dataBlock.Header{},
-		OutportBlock: outport.OutportBlock{
+		OutportBlock: &outport.OutportBlock{
 			BlockData: &outport.BlockData{
 				HeaderHash: []byte("hash"),
 				Body:       &dataBlock.Body{},
@@ -242,7 +242,7 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 				},
 			},
 		},
-		OutportBlock: outport.OutportBlock{
+		OutportBlock: &outport.OutportBlock{
 			BlockData: &outport.BlockData{
 				HeaderHash: []byte("hash"),
 				Body: &dataBlock.Body{
@@ -373,7 +373,7 @@ func TestBlockProcessor_PrepareBlockForDBMiniBlocksDetails(t *testing.T) {
 				},
 			},
 		},
-		OutportBlock: outport.OutportBlock{
+		OutportBlock: &outport.OutportBlock{
 			BlockData: &outport.BlockData{
 				HeaderHash: []byte("hash"),
 				Body: &dataBlock.Body{

@@ -283,7 +283,7 @@ func getExecutionOrderForTx(txHash []byte, mbType int32, pool *outport.Transacti
 	var tx executionOrderHandler
 	var found bool
 
-	switch mbType {
+	switch nodeBlock.Type(mbType) {
 	case nodeBlock.TxBlock:
 		tx, found = pool.Transactions[hex.EncodeToString(txHash)]
 	case nodeBlock.InvalidBlock:

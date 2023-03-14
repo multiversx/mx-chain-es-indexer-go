@@ -721,9 +721,18 @@ func (ei *elasticProcessor) indexNFTBurnInfo(tokensData data.TokensHandler, buff
 }
 
 // SaveAccounts will prepare and save information about provided accounts in elasticsearch server
-func (ei *elasticProcessor) SaveAccounts(timestamp uint64, accts []*data.Account, shardID uint32) error {
+func (ei *elasticProcessor) SaveAccounts(accountsData *outport.Accounts) error {
 	buffSlice := data.NewBufferSlice(ei.bulkRequestMaxSize)
-	return ei.saveAccounts(timestamp, accts, buffSlice, shardID)
+
+	accounts := make([]*data.Account, 0, len(accountsData.AlteredAccounts))
+	for _, account := range accountsData.AlteredAccounts {
+		accounts = append(accounts, &data.Account{
+			UserAccount: account,
+			IsSender:    false,
+		})
+	}
+
+	return ei.saveAccounts(accountsData.BlockTimestamp, accounts, buffSlice, accountsData.ShardID)
 }
 
 func (ei *elasticProcessor) saveAccounts(timestamp uint64, accts []*data.Account, buffSlice *data.BufferSlice, shardID uint32) error {
