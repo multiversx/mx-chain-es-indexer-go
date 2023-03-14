@@ -116,7 +116,12 @@ func (ap *accountsProcessor) PrepareRegularAccountsMap(timestamp uint64, account
 			continue
 		}
 
-		balanceAsFloat := ap.balanceConverter.ComputeBalanceAsFloat(balance)
+		balanceAsFloat, err := ap.balanceConverter.ComputeBalanceAsFloat(balance)
+		if err != nil {
+			log.Warn("accountsProcessor.PrepareRegularAccountsMap: cannot compute balance as num",
+				"balance", balance, "address", address, "error", err)
+		}
+
 		acc := &data.AccountInfo{
 			Address:                  address,
 			Nonce:                    userAccount.UserAccount.Nonce,
@@ -161,7 +166,14 @@ func (ap *accountsProcessor) addDeveloperRewardsInAccount(additionalData *outpor
 	}
 
 	account.DeveloperRewards = additionalData.DeveloperRewards
-	account.DeveloperRewardsNum = ap.balanceConverter.ComputeBalanceAsFloat(developerRewardsBig)
+
+	developerRewardsNum, err := ap.balanceConverter.ComputeBalanceAsFloat(developerRewardsBig)
+	if err != nil {
+		log.Warn("accountsProcessor.addDeveloperRewardsInAccount: cannot compute developer rewards as num",
+			"developer rewards", developerRewardsBig, "error", err)
+	}
+
+	account.DeveloperRewardsNum = developerRewardsNum
 }
 
 // PrepareAccountsMapESDT will prepare a map of accounts with ESDT tokens
@@ -193,13 +205,19 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(
 		}
 
 		tokenIdentifier := converters.ComputeTokenIdentifier(accountESDT.TokenIdentifier, accountESDT.NFTNonce)
+		balanceNum, err := ap.balanceConverter.ComputeESDTBalanceAsFloat(balance)
+		if err != nil {
+			log.Warn("accountsProcessor.PrepareAccountsMapESDT: cannot compute esdt balance as num",
+				"balance", balance, "address", address, "error", err, "token", tokenIdentifier)
+		}
+
 		acc := &data.AccountInfo{
 			Address:         address,
 			TokenName:       accountESDT.TokenIdentifier,
 			TokenIdentifier: tokenIdentifier,
 			TokenNonce:      accountESDT.NFTNonce,
 			Balance:         balance.String(),
-			BalanceNum:      ap.balanceConverter.ComputeESDTBalanceAsFloat(balance),
+			BalanceNum:      balanceNum,
 			Properties:      properties,
 			Frozen:          isFrozen(properties),
 			IsSender:        accountESDT.IsSender,
