@@ -147,6 +147,23 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 	receiverAddr := proc.pubKeyConverter.SilentEncode(scr.RcvAddr, log)
 	receiversAddr, _ := proc.pubKeyConverter.EncodeSlice(res.Receivers)
 
+	valueNum, err := proc.balanceConverter.ComputeESDTBalanceAsFloat(scr.Value)
+	if err != nil {
+		log.Warn("smartContractResultsProcessor.prepareSmartContractResult cannot compute scr value as num",
+			"value", scr.Value, "hash", scrHash, "error", err)
+	}
+
+	esdtValuesNum, err := proc.balanceConverter.ComputeSliceOfStringsAsFloat(res.ESDTValues)
+	if err != nil {
+		log.Warn("smartContractResultsProcessor.prepareSmartContractResult cannot compute scr esdt values as num",
+			"esdt values", res.ESDTValues, "hash", scrHash, "error", err)
+	}
+
+	var esdtValues []string
+	if areESDTValuesOK(res.ESDTValues) {
+		esdtValues = res.ESDTValues
+	}
+
 	return &indexerData.ScResult{
 		Hash:               hex.EncodeToString(scrHash),
 		MBHash:             hexEncodedMBHash,
@@ -154,6 +171,7 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 		GasLimit:           scr.GasLimit,
 		GasPrice:           scr.GasPrice,
 		Value:              scr.Value.String(),
+		ValueNum:           valueNum,
 		Sender:             senderAddr,
 		Receiver:           receiverAddr,
 		RelayerAddr:        relayerAddr,
@@ -171,8 +189,8 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 		ReceiverShard:      receiverShard,
 		Operation:          res.Operation,
 		Function:           res.Function,
-		ESDTValues:         res.ESDTValues,
-		ESDTValuesNum:      proc.balanceConverter.ComputeSliceOfStringsAsFloat(res.ESDTValues),
+		ESDTValues:         esdtValues,
+		ESDTValuesNum:      esdtValuesNum,
 		Tokens:             res.Tokens,
 		Receivers:          receiversAddr,
 		ReceiversShardIDs:  res.ReceiversShardID,

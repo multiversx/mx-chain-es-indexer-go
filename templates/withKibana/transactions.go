@@ -41,15 +41,15 @@ var Transactions = Object{
 			},
 			"gasLimit": Object{
 				"index": "false",
-				"type":  "long",
+				"type":  "double",
 			},
 			"gasPrice": Object{
 				"index": "false",
-				"type":  "long",
+				"type":  "double",
 			},
 			"gasUsed": Object{
 				"index": "false",
-				"type":  "long",
+				"type":  "double",
 			},
 			"hasOperations": Object{
 				"type": "boolean",
@@ -74,7 +74,7 @@ var Transactions = Object{
 				"type": "keyword",
 			},
 			"nonce": Object{
-				"type": "long",
+				"type": "double",
 			},
 			"operation": Object{
 				"type": "keyword",
@@ -92,7 +92,7 @@ var Transactions = Object{
 				"type": "long",
 			},
 			"round": Object{
-				"type": "long",
+				"type": "double",
 			},
 			"searchOrder": Object{
 				"type": "long",
@@ -118,7 +118,7 @@ var Transactions = Object{
 				"format": "epoch_second",
 			},
 			"tokens": Object{
-				"type": "keyword",
+				"type": "text",
 			},
 			"value": Object{
 				"type": "keyword",

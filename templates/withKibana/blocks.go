@@ -46,7 +46,7 @@ var Blocks = Object{
 					},
 					"prevEpochStartRound": Object{
 						"index": "false",
-						"type":  "long",
+						"type":  "double",
 					},
 					"rewardsForProtocolSustainability": Object{
 						"index": "false",
@@ -90,7 +90,7 @@ var Blocks = Object{
 					},
 					"nonce": Object{
 						"index": "false",
-						"type":  "long",
+						"type":  "double",
 					},
 					"pendingMiniBlockHeaders": Object{
 						"properties": Object{
@@ -123,7 +123,7 @@ var Blocks = Object{
 					},
 					"round": Object{
 						"index": "false",
-						"type":  "long",
+						"type":  "double",
 					},
 					"scheduledRootHash": Object{
 						"index": "false",
@@ -136,16 +136,16 @@ var Blocks = Object{
 				},
 			},
 			"gasPenalized": Object{
-				"type": "long",
+				"type": "double",
 			},
 			"gasProvided": Object{
-				"type": "long",
+				"type": "double",
 			},
 			"gasRefunded": Object{
-				"type": "long",
+				"type": "double",
 			},
 			"maxGasLimit": Object{
-				"type": "long",
+				"type": "double",
 			},
 			"miniBlocksDetails": Object{
 				"properties": Object{
@@ -167,7 +167,7 @@ var Blocks = Object{
 				"type": "keyword",
 			},
 			"nonce": Object{
-				"type": "long",
+				"type": "double",
 			},
 			"notarizedBlocksHashes": Object{
 				"type": "keyword",
@@ -187,7 +187,7 @@ var Blocks = Object{
 				"type":  "keyword",
 			},
 			"round": Object{
-				"type": "long",
+				"type": "double",
 			},
 			"scheduledData": Object{
 				"properties": Object{
@@ -201,15 +201,15 @@ var Blocks = Object{
 					},
 					"gasProvided": Object{
 						"index": "false",
-						"type":  "long",
+						"type":  "double",
 					},
 					"gasRefunded": Object{
 						"index": "false",
-						"type":  "long",
+						"type":  "double",
 					},
 					"penalized": Object{
 						"index": "false",
-						"type":  "long",
+						"type":  "double",
 					},
 					"rootHash": Object{
 						"index": "false",
