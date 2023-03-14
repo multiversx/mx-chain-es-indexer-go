@@ -1,7 +1,7 @@
 package mock
 
 import (
-	"github.com/multiversx/mx-chain-core-go/data/outport"
+	"github.com/multiversx/mx-chain-core-go/data/alteredAccount"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 )
 
@@ -12,7 +12,7 @@ type DBAccountsHandlerStub struct {
 }
 
 // GetAccounts -
-func (dba *DBAccountsHandlerStub) GetAccounts(_ map[string]*outport.AlteredAccount) ([]*data.Account, []*data.AccountESDT) {
+func (dba *DBAccountsHandlerStub) GetAccounts(_ map[string]*alteredAccount.AlteredAccount) ([]*data.Account, []*data.AccountESDT) {
 	return nil, nil
 }
 
@@ -59,7 +59,7 @@ func (dba *DBAccountsHandlerStub) SerializeNFTCreateInfo(_ []*data.TokenInfo, _ 
 }
 
 // PutTokenMedataDataInTokens -
-func (dba *DBAccountsHandlerStub) PutTokenMedataDataInTokens(_ []*data.TokenInfo, _ map[string]*outport.AlteredAccount) {
+func (dba *DBAccountsHandlerStub) PutTokenMedataDataInTokens(_ []*data.TokenInfo, _ map[string]*alteredAccount.AlteredAccount) {
 }
 
 // SerializeTypeForProvidedIDs -

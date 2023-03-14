@@ -9,7 +9,7 @@ import (
 
 // DBTransactionProcessorStub -
 type DBTransactionProcessorStub struct {
-	PrepareTransactionsForDatabaseCalled func(body *block.Body, header coreData.HeaderHandler, pool *outport.Pool) *data.PreparedResults
+	PrepareTransactionsForDatabaseCalled func(body *block.Body, header coreData.HeaderHandler, pool *outport.TransactionPool) *data.PreparedResults
 	SerializeReceiptsCalled              func(recs []*data.Receipt, buffSlice *data.BufferSlice, index string) error
 	SerializeScResultsCalled             func(scrs []*data.ScResult, buffSlice *data.BufferSlice, index string) error
 }
@@ -20,7 +20,7 @@ func (tps *DBTransactionProcessorStub) SerializeTransactionsFeeData(_ map[string
 }
 
 // PrepareTransactionsForDatabase -
-func (tps *DBTransactionProcessorStub) PrepareTransactionsForDatabase(body *block.Body, header coreData.HeaderHandler, pool *outport.Pool, _ bool, _ uint32) *data.PreparedResults {
+func (tps *DBTransactionProcessorStub) PrepareTransactionsForDatabase(body *block.Body, header coreData.HeaderHandler, pool *outport.TransactionPool, _ bool, _ uint32) *data.PreparedResults {
 	if tps.PrepareTransactionsForDatabaseCalled != nil {
 		return tps.PrepareTransactionsForDatabaseCalled(body, header, pool)
 	}
