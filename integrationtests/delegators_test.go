@@ -3,12 +3,12 @@
 package integrationtests
 
 import (
+	"encoding/hex"
 	"math/big"
 	"testing"
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	coreData "github.com/multiversx/mx-chain-core-go/data"
 	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
@@ -40,26 +40,23 @@ func TestDelegateUnDelegateAndWithdraw(t *testing.T) {
 
 	// delegate
 	delegatedValue, _ := big.NewInt(0).SetString("200000000000000000000", 10)
-	pool := &outport.Pool{
-		Logs: []*coreData.LogData{
-			{
-				TxHash: "h1",
-				LogHandler: &transaction.Log{
-					Address: decodeAddress("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqhllllsajxzat"),
-					Events: []*transaction.Event{
-						{
-							Address:    decodeAddress(address1),
-							Identifier: []byte("delegate"),
-							Topics:     [][]byte{delegatedValue.Bytes(), delegatedValue.Bytes(), big.NewInt(10).Bytes(), delegatedValue.Bytes()},
-						},
-						nil,
+	pool := &outport.TransactionPool{
+		Logs: map[string]*transaction.Log{
+			hex.EncodeToString([]byte("h1")): {
+				Address: decodeAddress("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqhllllsajxzat"),
+				Events: []*transaction.Event{
+					{
+						Address:    decodeAddress(address1),
+						Identifier: []byte("delegate"),
+						Topics:     [][]byte{delegatedValue.Bytes(), delegatedValue.Bytes(), big.NewInt(10).Bytes(), delegatedValue.Bytes()},
 					},
+					nil,
 				},
 			},
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, false, testNumOfShards))
 	require.Nil(t, err)
 
 	ids := []string{"9v/pLAXxUZJ4Oy1U+x5al/Xg5sebh1dYCRTeZwg/u68="}
@@ -71,27 +68,24 @@ func TestDelegateUnDelegateAndWithdraw(t *testing.T) {
 	// unDelegate 1
 	unDelegatedValue, _ := big.NewInt(0).SetString("50000000000000000000", 10)
 	totalDelegation, _ := big.NewInt(0).SetString("150000000000000000000", 10)
-	pool = &outport.Pool{
-		Logs: []*coreData.LogData{
-			{
-				TxHash: "h2",
-				LogHandler: &transaction.Log{
-					Address: decodeAddress("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqhllllsajxzat"),
-					Events: []*transaction.Event{
-						{
-							Address:    decodeAddress(address1),
-							Identifier: []byte("unDelegate"),
-							Topics:     [][]byte{unDelegatedValue.Bytes(), totalDelegation.Bytes(), big.NewInt(10).Bytes(), totalDelegation.Bytes(), []byte("1")},
-						},
-						nil,
+	pool = &outport.TransactionPool{
+		Logs: map[string]*transaction.Log{
+			hex.EncodeToString([]byte("h2")): {
+				Address: decodeAddress("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqhllllsajxzat"),
+				Events: []*transaction.Event{
+					{
+						Address:    decodeAddress(address1),
+						Identifier: []byte("unDelegate"),
+						Topics:     [][]byte{unDelegatedValue.Bytes(), totalDelegation.Bytes(), big.NewInt(10).Bytes(), totalDelegation.Bytes(), []byte("1")},
 					},
+					nil,
 				},
 			},
 		},
 	}
 
 	header.TimeStamp = 5050
-	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, false, testNumOfShards))
 	require.Nil(t, err)
 
 	err = esClient.DoMultiGet(ids, indexerdata.DelegatorsIndex, true, genericResponse)
@@ -101,27 +95,24 @@ func TestDelegateUnDelegateAndWithdraw(t *testing.T) {
 	// unDelegate 2
 	unDelegatedValue, _ = big.NewInt(0).SetString("25500000000000000000", 10)
 	totalDelegation, _ = big.NewInt(0).SetString("124500000000000000000", 10)
-	pool = &outport.Pool{
-		Logs: []*coreData.LogData{
-			{
-				TxHash: "h3",
-				LogHandler: &transaction.Log{
-					Address: decodeAddress("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqhllllsajxzat"),
-					Events: []*transaction.Event{
-						{
-							Address:    decodeAddress(address1),
-							Identifier: []byte("unDelegate"),
-							Topics:     [][]byte{unDelegatedValue.Bytes(), totalDelegation.Bytes(), big.NewInt(10).Bytes(), totalDelegation.Bytes(), []byte("2")},
-						},
-						nil,
+	pool = &outport.TransactionPool{
+		Logs: map[string]*transaction.Log{
+			hex.EncodeToString([]byte("h3")): {
+				Address: decodeAddress("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqhllllsajxzat"),
+				Events: []*transaction.Event{
+					{
+						Address:    decodeAddress(address1),
+						Identifier: []byte("unDelegate"),
+						Topics:     [][]byte{unDelegatedValue.Bytes(), totalDelegation.Bytes(), big.NewInt(10).Bytes(), totalDelegation.Bytes(), []byte("2")},
 					},
+					nil,
 				},
 			},
 		},
 	}
 
 	header.TimeStamp = 5060
-	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, false, testNumOfShards))
 	require.Nil(t, err)
 
 	err = esClient.DoMultiGet(ids, indexerdata.DelegatorsIndex, true, genericResponse)
@@ -141,27 +132,24 @@ func TestDelegateUnDelegateAndWithdraw(t *testing.T) {
 
 	// withdraw
 	withdrawValue, _ := big.NewInt(0).SetString("725500000000000000000", 10)
-	pool = &outport.Pool{
-		Logs: []*coreData.LogData{
-			{
-				TxHash: "h4",
-				LogHandler: &transaction.Log{
-					Address: decodeAddress("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqhllllsajxzat"),
-					Events: []*transaction.Event{
-						{
-							Address:    decodeAddress(address1),
-							Identifier: []byte("withdraw"),
-							Topics:     [][]byte{withdrawValue.Bytes(), totalDelegation.Bytes(), big.NewInt(10).Bytes(), totalDelegation.Bytes(), []byte("false"), []byte("1"), []byte("2")},
-						},
-						nil,
+	pool = &outport.TransactionPool{
+		Logs: map[string]*transaction.Log{
+			hex.EncodeToString([]byte("h4")): {
+				Address: decodeAddress("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqhllllsajxzat"),
+				Events: []*transaction.Event{
+					{
+						Address:    decodeAddress(address1),
+						Identifier: []byte("withdraw"),
+						Topics:     [][]byte{withdrawValue.Bytes(), totalDelegation.Bytes(), big.NewInt(10).Bytes(), totalDelegation.Bytes(), []byte("false"), []byte("1"), []byte("2")},
 					},
+					nil,
 				},
 			},
 		},
 	}
 
 	header.TimeStamp = 5070
-	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, false, testNumOfShards))
 	require.Nil(t, err)
 
 	err = esClient.DoMultiGet(ids, indexerdata.DelegatorsIndex, true, genericResponse)

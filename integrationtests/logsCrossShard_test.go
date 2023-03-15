@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	coreData "github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/alteredAccount"
 	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
@@ -37,25 +37,22 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 	logID := hex.EncodeToString([]byte("cross-log"))
 
 	// index on source
-	pool := &outport.Pool{
-		Logs: []*coreData.LogData{
-			{
-				LogHandler: &transaction.Log{
-					Address: decodeAddress(address1),
-					Events: []*transaction.Event{
-						{
-							Address:    decodeAddress(address1),
-							Identifier: []byte(core.BuiltInFunctionESDTTransfer),
-							Topics:     [][]byte{[]byte("ESDT-abcd"), big.NewInt(0).Bytes(), big.NewInt(1).Bytes()},
-						},
-						nil,
+	pool := &outport.TransactionPool{
+		Logs: map[string]*transaction.Log{
+			hex.EncodeToString([]byte("cross-log")): {
+				Address: decodeAddress(address1),
+				Events: []*transaction.Event{
+					{
+						Address:    decodeAddress(address1),
+						Identifier: []byte(core.BuiltInFunctionESDTTransfer),
+						Topics:     [][]byte{[]byte("ESDT-abcd"), big.NewInt(0).Bytes(), big.NewInt(1).Bytes()},
 					},
+					nil,
 				},
-				TxHash: "cross-log",
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, map[string]*alteredAccount.AlteredAccount{}, false, testNumOfShards))
 	require.Nil(t, err)
 
 	ids := []string{logID}
@@ -72,31 +69,28 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 		Round:     50,
 		TimeStamp: 6040,
 	}
-	pool = &outport.Pool{
-		Logs: []*coreData.LogData{
-			{
-				LogHandler: &transaction.Log{
-					Address: decodeAddress(address1),
-					Events: []*transaction.Event{
-						{
-							Address:    decodeAddress(address1),
-							Identifier: []byte(core.BuiltInFunctionESDTTransfer),
-							Topics:     [][]byte{[]byte("ESDT-abcd"), big.NewInt(0).Bytes(), big.NewInt(1).Bytes()},
-						},
-						{
-
-							Address:    decodeAddress(address2),
-							Identifier: []byte("do-something"),
-							Topics:     [][]byte{[]byte("topic1"), []byte("topic2")},
-						},
-						nil,
+	pool = &outport.TransactionPool{
+		Logs: map[string]*transaction.Log{
+			hex.EncodeToString([]byte("cross-log")): {
+				Address: decodeAddress(address1),
+				Events: []*transaction.Event{
+					{
+						Address:    decodeAddress(address1),
+						Identifier: []byte(core.BuiltInFunctionESDTTransfer),
+						Topics:     [][]byte{[]byte("ESDT-abcd"), big.NewInt(0).Bytes(), big.NewInt(1).Bytes()},
 					},
+					{
+
+						Address:    decodeAddress(address2),
+						Identifier: []byte("do-something"),
+						Topics:     [][]byte{[]byte("topic1"), []byte("topic2")},
+					},
+					nil,
 				},
-				TxHash: "cross-log",
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, map[string]*alteredAccount.AlteredAccount{}, false, testNumOfShards))
 	require.Nil(t, err)
 
 	err = esClient.DoMultiGet(ids, indexerdata.LogsIndex, true, genericResponse)
@@ -111,25 +105,22 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 		Round:     50,
 		TimeStamp: 5000,
 	}
-	pool = &outport.Pool{
-		Logs: []*coreData.LogData{
-			{
-				LogHandler: &transaction.Log{
-					Address: decodeAddress(address1),
-					Events: []*transaction.Event{
-						{
-							Address:    decodeAddress(address1),
-							Identifier: []byte(core.BuiltInFunctionESDTTransfer),
-							Topics:     [][]byte{[]byte("ESDT-abcd"), big.NewInt(0).Bytes(), big.NewInt(1).Bytes()},
-						},
-						nil,
+	pool = &outport.TransactionPool{
+		Logs: map[string]*transaction.Log{
+			hex.EncodeToString([]byte("cross-log")): {
+				Address: decodeAddress(address1),
+				Events: []*transaction.Event{
+					{
+						Address:    decodeAddress(address1),
+						Identifier: []byte(core.BuiltInFunctionESDTTransfer),
+						Topics:     [][]byte{[]byte("ESDT-abcd"), big.NewInt(0).Bytes(), big.NewInt(1).Bytes()},
 					},
+					nil,
 				},
-				TxHash: "cross-log",
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, map[string]*alteredAccount.AlteredAccount{}, false, testNumOfShards))
 	require.Nil(t, err)
 
 	err = esClient.DoMultiGet(ids, indexerdata.LogsIndex, true, genericResponse)

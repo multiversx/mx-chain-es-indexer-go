@@ -3,6 +3,7 @@
 package integrationtests
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"math/big"
@@ -10,7 +11,7 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	coreData "github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/alteredAccount"
 	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/esdt"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
@@ -37,25 +38,22 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 	}
 
 	address := "erd1sqy2ywvswp09ef7qwjhv8zwr9kzz3xas6y2ye5nuryaz0wcnfzzsnq0am3"
-	pool := &outport.Pool{
-		Logs: []*coreData.LogData{
-			{
-				TxHash: "h1",
-				LogHandler: &transaction.Log{
-					Events: []*transaction.Event{
-						{
-							Address:    decodeAddress(address),
-							Identifier: []byte("issueSemiFungible"),
-							Topics:     [][]byte{[]byte("SEMI-abcd"), []byte("SEMI-token"), []byte("SEM"), []byte(core.SemiFungibleESDT)},
-						},
-						nil,
+	pool := &outport.TransactionPool{
+		Logs: map[string]*transaction.Log{
+			hex.EncodeToString([]byte("h1")): {
+				Events: []*transaction.Event{
+					{
+						Address:    decodeAddress(address),
+						Identifier: []byte("issueSemiFungible"),
+						Topics:     [][]byte{[]byte("SEMI-abcd"), []byte("SEMI-token"), []byte("SEM"), []byte(core.SemiFungibleESDT)},
 					},
+					nil,
 				},
 			},
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, map[string]*alteredAccount.AlteredAccount{}, false, testNumOfShards))
 	require.Nil(t, err)
 
 	ids := []string{"SEMI-abcd"}
@@ -65,17 +63,17 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 	require.JSONEq(t, readExpectedResult("./testdata/accountsESDTWithTokenType/token-after-issue.json"), string(genericResponse.Docs[0].Source))
 
 	// ################ CREATE SEMI FUNGIBLE TOKEN ##########################
-	coreAlteredAccounts := map[string]*outport.AlteredAccount{
+	coreAlteredAccounts := map[string]*alteredAccount.AlteredAccount{
 		address: {
 			Address: address,
 			Balance: "1000",
-			Tokens: []*outport.AccountTokenData{
+			Tokens: []*alteredAccount.AccountTokenData{
 				{
 					Identifier: "SEMI-abcd",
 					Balance:    "1000",
 					Nonce:      2,
 					Properties: "3032",
-					MetaData: &outport.TokenMetaData{
+					MetaData: &alteredAccount.TokenMetaData{
 						Creator: "creator",
 					},
 				},
@@ -98,25 +96,22 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 	}
 	esdtDataBytes, _ := json.Marshal(esdtData)
 
-	pool = &outport.Pool{
-		Logs: []*coreData.LogData{
-			{
-				TxHash: "h1",
-				LogHandler: &transaction.Log{
-					Events: []*transaction.Event{
-						{
-							Address:    decodeAddress(address),
-							Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
-							Topics:     [][]byte{[]byte("SEMI-abcd"), big.NewInt(2).Bytes(), big.NewInt(1).Bytes(), esdtDataBytes},
-						},
-						nil,
+	pool = &outport.TransactionPool{
+		Logs: map[string]*transaction.Log{
+			hex.EncodeToString([]byte("h1")): {
+				Events: []*transaction.Event{
+					{
+						Address:    decodeAddress(address),
+						Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
+						Topics:     [][]byte{[]byte("SEMI-abcd"), big.NewInt(2).Bytes(), big.NewInt(1).Bytes(), esdtDataBytes},
 					},
+					nil,
 				},
 			},
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, coreAlteredAccounts, false, testNumOfShards))
 	require.Nil(t, err)
 
 	ids = []string{fmt.Sprintf("%s-SEMI-abcd-02", address)}
@@ -137,17 +132,17 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 	body := &dataBlock.Body{}
 
 	address := "erd1l29zsl2dqq988kvr2y0xlfv9ydgnvhzkatfd8ccalpag265pje8qn8lslf"
-	coreAlteredAccounts := map[string]*outport.AlteredAccount{
+	coreAlteredAccounts := map[string]*alteredAccount.AlteredAccount{
 		address: {
 			Address: address,
 			Balance: "1000",
-			Tokens: []*outport.AccountTokenData{
+			Tokens: []*alteredAccount.AccountTokenData{
 				{
 					Identifier: "TTTT-abcd",
 					Nonce:      2,
 					Balance:    "1000",
 					Properties: "3032",
-					MetaData: &outport.TokenMetaData{
+					MetaData: &alteredAccount.TokenMetaData{
 						Creator: "erd1l29zsl2dqq988kvr2y0xlfv9ydgnvhzkatfd8ccalpag265pje8qn8lslf",
 					},
 				},
@@ -170,25 +165,22 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 	}
 	esdtDataBytes, _ := json.Marshal(esdtData)
 
-	pool := &outport.Pool{
-		Logs: []*coreData.LogData{
-			{
-				TxHash: "h1",
-				LogHandler: &transaction.Log{
-					Events: []*transaction.Event{
-						{
-							Address:    decodeAddress(address),
-							Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
-							Topics:     [][]byte{[]byte("TTTT-abcd"), big.NewInt(2).Bytes(), big.NewInt(1).Bytes(), esdtDataBytes},
-						},
-						nil,
+	pool := &outport.TransactionPool{
+		Logs: map[string]*transaction.Log{
+			hex.EncodeToString([]byte("h1")): {
+				Events: []*transaction.Event{
+					{
+						Address:    decodeAddress(address),
+						Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
+						Topics:     [][]byte{[]byte("TTTT-abcd"), big.NewInt(2).Bytes(), big.NewInt(1).Bytes(), esdtDataBytes},
 					},
+					nil,
 				},
 			},
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, coreAlteredAccounts, false, testNumOfShards))
 	require.Nil(t, err)
 
 	ids := []string{fmt.Sprintf("%s-TTTT-abcd-02", address)}
@@ -209,25 +201,22 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 	esProc, err = CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
-	pool = &outport.Pool{
-		Logs: []*coreData.LogData{
-			{
-				TxHash: "h1",
-				LogHandler: &transaction.Log{
-					Events: []*transaction.Event{
-						{
-							Address:    decodeAddress(address),
-							Identifier: []byte("issueSemiFungible"),
-							Topics:     [][]byte{[]byte("TTTT-abcd"), []byte("TTTT-token"), []byte("SEM"), []byte(core.SemiFungibleESDT)},
-						},
-						nil,
+	pool = &outport.TransactionPool{
+		Logs: map[string]*transaction.Log{
+			hex.EncodeToString([]byte("h1")): {
+				Events: []*transaction.Event{
+					{
+						Address:    decodeAddress(address),
+						Identifier: []byte("issueSemiFungible"),
+						Topics:     [][]byte{[]byte("TTTT-abcd"), []byte("TTTT-token"), []byte("SEM"), []byte(core.SemiFungibleESDT)},
 					},
+					nil,
 				},
 			},
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, map[string]*alteredAccount.AlteredAccount{}, false, testNumOfShards))
 	require.Nil(t, err)
 
 	ids = []string{"TTTT-abcd"}

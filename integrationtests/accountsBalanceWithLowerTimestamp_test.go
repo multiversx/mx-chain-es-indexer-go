@@ -3,12 +3,13 @@
 package integrationtests
 
 import (
+	"encoding/hex"
 	"fmt"
 	"math/big"
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	coreData "github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/alteredAccount"
 	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/esdt"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
@@ -33,10 +34,10 @@ func TestIndexAccountsBalance(t *testing.T) {
 	addr := "erd17umc0uvel62ng30k5uprqcxh3ue33hq608njejaqljuqzqlxtzuqeuzlcv"
 	addr2 := "erd1m2pyjudsqt8gn0tnsstht35gfqcfx8ku5utz07mf2r6pq3sfxjzszhcx6w"
 
-	alteredAccount := &outport.AlteredAccount{
+	account := &alteredAccount.AlteredAccount{
 		Address: addr,
 		Balance: "0",
-		Tokens: []*outport.AccountTokenData{
+		Tokens: []*alteredAccount.AccountTokenData{
 			{
 				Identifier: "TTTT-abcd",
 				Balance:    "1000",
@@ -45,9 +46,9 @@ func TestIndexAccountsBalance(t *testing.T) {
 		},
 	}
 
-	coreAlteredAccounts := map[string]*outport.AlteredAccount{
-		addr:  alteredAccount,
-		addr2: alteredAccount,
+	coreAlteredAccounts := map[string]*alteredAccount.AlteredAccount{
+		addr:  account,
+		addr2: account,
 	}
 
 	esProc, err := CreateElasticProcessor(esClient)
@@ -59,25 +60,22 @@ func TestIndexAccountsBalance(t *testing.T) {
 		ShardID:   2,
 	}
 
-	pool := &outport.Pool{
-		Logs: []*coreData.LogData{
-			{
-				TxHash: "h1",
-				LogHandler: &transaction.Log{
-					Events: []*transaction.Event{
-						{
-							Address:    []byte("eeeebbbb"),
-							Identifier: []byte(core.BuiltInFunctionESDTTransfer),
-							Topics:     [][]byte{[]byte("TTTT-abcd"), nil, big.NewInt(1).Bytes()},
-						},
-						nil,
+	pool := &outport.TransactionPool{
+		Logs: map[string]*transaction.Log{
+			hex.EncodeToString([]byte("h1")): {
+				Events: []*transaction.Event{
+					{
+						Address:    []byte("eeeebbbb"),
+						Identifier: []byte(core.BuiltInFunctionESDTTransfer),
+						Topics:     [][]byte{[]byte("TTTT-abcd"), nil, big.NewInt(1).Bytes()},
 					},
+					nil,
 				},
 			},
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, coreAlteredAccounts, false, testNumOfShards))
 	require.Nil(t, err)
 
 	ids := []string{addr}
@@ -100,7 +98,7 @@ func TestIndexAccountsBalance(t *testing.T) {
 		ShardID:   2,
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, map[string]*alteredAccount.AlteredAccount{}, false, testNumOfShards))
 	require.Nil(t, err)
 
 	ids = []string{addr}
@@ -123,28 +121,28 @@ func TestIndexAccountsBalance(t *testing.T) {
 	}
 
 	coreAlteredAccounts[addr].Balance = "2000"
-	coreAlteredAccounts[addr].AdditionalData = &outport.AdditionalAccountData{
+	coreAlteredAccounts[addr].AdditionalData = &alteredAccount.AdditionalAccountData{
 		IsSender:       true,
 		BalanceChanged: true,
 	}
-	pool = &outport.Pool{
-		Txs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
-			"h1": outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
-				SndAddr: []byte(addr),
-			}, 0, big.NewInt(0)),
+	pool = &outport.TransactionPool{
+		Transactions: map[string]*outport.TxInfo{
+			hex.EncodeToString([]byte("h1")): {
+				Transaction: &transaction.Transaction{
+					SndAddr: []byte(addr),
+				},
+				FeeInfo: &outport.FeeInfo{},
+			},
 		},
-		Logs: []*coreData.LogData{
-			{
-				TxHash: "h1",
-				LogHandler: &transaction.Log{
-					Events: []*transaction.Event{
-						{
-							Address:    decodeAddress(addr2),
-							Identifier: []byte(core.BuiltInFunctionESDTTransfer),
-							Topics:     [][]byte{[]byte("TTTT-abcd"), nil, big.NewInt(1).Bytes()},
-						},
-						nil,
+		Logs: map[string]*transaction.Log{
+			hex.EncodeToString([]byte("h1")): {
+				Events: []*transaction.Event{
+					{
+						Address:    decodeAddress(addr2),
+						Identifier: []byte(core.BuiltInFunctionESDTTransfer),
+						Topics:     [][]byte{[]byte("TTTT-abcd"), nil, big.NewInt(1).Bytes()},
 					},
+					nil,
 				},
 			},
 		},
@@ -159,7 +157,7 @@ func TestIndexAccountsBalance(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, coreAlteredAccounts, false, testNumOfShards))
 	require.Nil(t, err)
 
 	ids = []string{addr}
@@ -188,13 +186,13 @@ func TestIndexAccountsBalance(t *testing.T) {
 
 	coreAlteredAccounts[addr].Balance = "2000"
 	coreAlteredAccounts[addr].Tokens[0].Balance = "0"
-	coreAlteredAccounts[addr].AdditionalData = &outport.AdditionalAccountData{
+	coreAlteredAccounts[addr].AdditionalData = &alteredAccount.AdditionalAccountData{
 		IsSender:       false,
 		BalanceChanged: false,
 	}
 
-	pool.Txs = make(map[string]coreData.TransactionHandlerWithGasUsedAndFee)
-	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
+	pool.Transactions = make(map[string]*outport.TxInfo)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, coreAlteredAccounts, false, testNumOfShards))
 	require.Nil(t, err)
 
 	ids = []string{addr}

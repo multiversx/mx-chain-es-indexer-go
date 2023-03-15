@@ -3,12 +3,12 @@
 package integrationtests
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"math/big"
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	coreData "github.com/multiversx/mx-chain-core-go/data"
 	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/esdt"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
@@ -42,24 +42,21 @@ func TestNFTUpdateMetadata(t *testing.T) {
 
 	// CREATE NFT data
 	address := "erd1w7jyzuj6cv4ngw8luhlkakatjpmjh3ql95lmxphd3vssc4vpymks6k5th7"
-	pool := &outport.Pool{
-		Logs: []*coreData.LogData{
-			{
-				LogHandler: &transaction.Log{
-					Events: []*transaction.Event{
-						{
-							Address:    decodeAddress(address),
-							Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
-							Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(1).Bytes(), marshalizedCreate},
-						},
-						nil,
+	pool := &outport.TransactionPool{
+		Logs: map[string]*transaction.Log{
+			hex.EncodeToString([]byte("h1")): {
+				Events: []*transaction.Event{
+					{
+						Address:    decodeAddress(address),
+						Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
+						Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(1).Bytes(), marshalizedCreate},
 					},
+					nil,
 				},
-				TxHash: "h1",
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, false, testNumOfShards))
 	require.Nil(t, err)
 
 	ids := []string{"NFT-abcd-0e"}
@@ -69,45 +66,39 @@ func TestNFTUpdateMetadata(t *testing.T) {
 	require.JSONEq(t, readExpectedResult("./testdata/updateNFT/token.json"), string(genericResponse.Docs[0].Source))
 
 	// Add URIS 1
-	pool = &outport.Pool{
-		Logs: []*coreData.LogData{
-			{
-				LogHandler: &transaction.Log{
-					Events: []*transaction.Event{
-						{
-							Address:    decodeAddress(address),
-							Identifier: []byte(core.BuiltInFunctionESDTNFTAddURI),
-							Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("uri1"), []byte("uri2")},
-						},
-						nil,
+	pool = &outport.TransactionPool{
+		Logs: map[string]*transaction.Log{
+			hex.EncodeToString([]byte("h1")): {
+				Events: []*transaction.Event{
+					{
+						Address:    decodeAddress(address),
+						Identifier: []byte(core.BuiltInFunctionESDTNFTAddURI),
+						Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("uri1"), []byte("uri2")},
 					},
+					nil,
 				},
-				TxHash: "h1",
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, false, testNumOfShards))
 	require.Nil(t, err)
 
 	// Add URIS 2 --- results should be the same
-	pool = &outport.Pool{
-		Logs: []*coreData.LogData{
-			{
-				LogHandler: &transaction.Log{
-					Events: []*transaction.Event{
-						{
-							Address:    decodeAddress(address),
-							Identifier: []byte(core.BuiltInFunctionESDTNFTAddURI),
-							Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("uri1"), []byte("uri2")},
-						},
-						nil,
+	pool = &outport.TransactionPool{
+		Logs: map[string]*transaction.Log{
+			hex.EncodeToString([]byte("h1")): {
+				Events: []*transaction.Event{
+					{
+						Address:    decodeAddress(address),
+						Identifier: []byte(core.BuiltInFunctionESDTNFTAddURI),
+						Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("uri1"), []byte("uri2")},
 					},
+					nil,
 				},
-				TxHash: "h1",
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, false, testNumOfShards))
 	require.Nil(t, err)
 
 	// Update attributes 1
@@ -117,24 +108,21 @@ func TestNFTUpdateMetadata(t *testing.T) {
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/updateNFT/token-after-add-uris.json"), string(genericResponse.Docs[0].Source))
 
-	pool = &outport.Pool{
-		Logs: []*coreData.LogData{
-			{
-				LogHandler: &transaction.Log{
-					Events: []*transaction.Event{
-						{
-							Address:    decodeAddress(address),
-							Identifier: []byte(core.BuiltInFunctionESDTNFTUpdateAttributes),
-							Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("tags:test,free,fun;description:This is a test description for an awesome nft;metadata:metadata-test")},
-						},
-						nil,
+	pool = &outport.TransactionPool{
+		Logs: map[string]*transaction.Log{
+			hex.EncodeToString([]byte("h1")): {
+				Events: []*transaction.Event{
+					{
+						Address:    decodeAddress(address),
+						Identifier: []byte(core.BuiltInFunctionESDTNFTUpdateAttributes),
+						Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("tags:test,free,fun;description:This is a test description for an awesome nft;metadata:metadata-test")},
 					},
+					nil,
 				},
-				TxHash: "h1",
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, false, testNumOfShards))
 	require.Nil(t, err)
 
 	ids = []string{"NFT-abcd-0e"}
@@ -145,24 +133,21 @@ func TestNFTUpdateMetadata(t *testing.T) {
 
 	// Update attributes 2
 
-	pool = &outport.Pool{
-		Logs: []*coreData.LogData{
-			{
-				LogHandler: &transaction.Log{
-					Events: []*transaction.Event{
-						{
-							Address:    decodeAddress(address),
-							Identifier: []byte(core.BuiltInFunctionESDTNFTUpdateAttributes),
-							Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("something")},
-						},
-						nil,
+	pool = &outport.TransactionPool{
+		Logs: map[string]*transaction.Log{
+			hex.EncodeToString([]byte("h1")): {
+				Events: []*transaction.Event{
+					{
+						Address:    decodeAddress(address),
+						Identifier: []byte(core.BuiltInFunctionESDTNFTUpdateAttributes),
+						Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("something")},
 					},
+					nil,
 				},
-				TxHash: "h1",
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, false, testNumOfShards))
 	require.Nil(t, err)
 
 	ids = []string{"NFT-abcd-0e"}
@@ -172,24 +157,21 @@ func TestNFTUpdateMetadata(t *testing.T) {
 	require.JSONEq(t, readExpectedResult("./testdata/updateNFT/token-after-update-attributes-second.json"), string(genericResponse.Docs[0].Source))
 
 	// Freeze nft
-	pool = &outport.Pool{
-		Logs: []*coreData.LogData{
-			{
-				LogHandler: &transaction.Log{
-					Events: []*transaction.Event{
-						{
-							Address:    decodeAddress(address),
-							Identifier: []byte(core.BuiltInFunctionESDTFreeze),
-							Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("something")},
-						},
-						nil,
+	pool = &outport.TransactionPool{
+		Logs: map[string]*transaction.Log{
+			hex.EncodeToString([]byte("h1")): {
+				Events: []*transaction.Event{
+					{
+						Address:    decodeAddress(address),
+						Identifier: []byte(core.BuiltInFunctionESDTFreeze),
+						Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("something")},
 					},
+					nil,
 				},
-				TxHash: "h1",
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, false, testNumOfShards))
 	require.Nil(t, err)
 	ids = []string{"NFT-abcd-0e"}
 	genericResponse = &GenericResponse{}
@@ -198,24 +180,21 @@ func TestNFTUpdateMetadata(t *testing.T) {
 	require.JSONEq(t, readExpectedResult("./testdata/updateNFT/token-after-freeze.json"), string(genericResponse.Docs[0].Source))
 
 	// UnFreeze nft
-	pool = &outport.Pool{
-		Logs: []*coreData.LogData{
-			{
-				LogHandler: &transaction.Log{
-					Events: []*transaction.Event{
-						{
-							Address:    decodeAddress(address),
-							Identifier: []byte(core.BuiltInFunctionESDTUnFreeze),
-							Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("something")},
-						},
-						nil,
+	pool = &outport.TransactionPool{
+		Logs: map[string]*transaction.Log{
+			hex.EncodeToString([]byte("h1")): {
+				Events: []*transaction.Event{
+					{
+						Address:    decodeAddress(address),
+						Identifier: []byte(core.BuiltInFunctionESDTUnFreeze),
+						Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("something")},
 					},
+					nil,
 				},
-				TxHash: "h1",
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, false, testNumOfShards))
 	require.Nil(t, err)
 	ids = []string{"NFT-abcd-0e"}
 	genericResponse = &GenericResponse{}
