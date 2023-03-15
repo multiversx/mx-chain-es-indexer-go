@@ -123,7 +123,7 @@ func checkDataIndexerParams(arguments ArgsIndexerFactory) error {
 		return dataindexer.ErrNilHasher
 	}
 	if check.IfNil(arguments.HeaderMarshaller) {
-		return fmt.Errorf("%w header marshaller", dataindexer.ErrNilMarshalizer)
+		return fmt.Errorf("%w: header marshaller", dataindexer.ErrNilMarshalizer)
 	}
 
 	return nil

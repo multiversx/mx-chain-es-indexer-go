@@ -1,6 +1,7 @@
 package logsevents
 
 import (
+	"encoding/hex"
 	"math/big"
 	"testing"
 	"time"
@@ -57,8 +58,8 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 	t.Parallel()
 
 	logsAndEvents := map[string]*transaction.Log{
-		"wrong": nil,
-		"h3": {
+		hex.EncodeToString([]byte("wrong")): nil,
+		hex.EncodeToString([]byte("h3")): {
 			Events: []*transaction.Event{
 				{
 					Address:    []byte("addr"),
@@ -68,7 +69,7 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 			},
 		},
 
-		"h1": {
+		hex.EncodeToString([]byte("h1")): {
 			Address: []byte("address"),
 			Events: []*transaction.Event{
 				{
@@ -79,7 +80,7 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 			},
 		},
 
-		"h2": {
+		hex.EncodeToString([]byte("h2")): {
 			Events: []*transaction.Event{
 				{
 					Address:    []byte("addr"),
@@ -89,7 +90,7 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 				nil,
 			},
 		},
-		"h4": {
+		hex.EncodeToString([]byte("h4")): {
 			Events: []*transaction.Event{
 				{
 					Address:    []byte("addr"),
@@ -99,7 +100,7 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 				nil,
 			},
 		},
-		"h5": {
+		hex.EncodeToString([]byte("h5")): {
 			Address: []byte("contract"),
 			Events: []*transaction.Event{
 				{
@@ -109,7 +110,7 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 				},
 			},
 		},
-		"h6": {
+		hex.EncodeToString([]byte("h6")): {
 			Address: []byte("contract-second"),
 			Events: []*transaction.Event{
 				{
@@ -191,7 +192,7 @@ func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 	logsAndEvents := map[string]*transaction.Log{
 		"wrong": nil,
 
-		"txHash": &transaction.Log{
+		"txHash": {
 			Address: []byte("address"),
 			Events: []*transaction.Event{
 				{

@@ -21,6 +21,7 @@ func createMockIndexerFactoryArgs() ArgsIndexerFactory {
 		UserName:                 "",
 		Password:                 "",
 		Marshalizer:              &mock.MarshalizerMock{},
+		HeaderMarshaller:         &mock.MarshalizerMock{},
 		Hasher:                   &mock.HasherMock{},
 		AddressPubkeyConverter:   mock.NewPubkeyConverterMock(32),
 		ValidatorPubkeyConverter: &mock.PubkeyConverterMock{},
@@ -79,6 +80,15 @@ func TestNewIndexerFactory(t *testing.T) {
 				return args
 			},
 			exError: dataindexer.ErrNilHasher,
+		},
+		{
+			name: "NilHeaderMarshaller",
+			argsFunc: func() ArgsIndexerFactory {
+				args := createMockIndexerFactoryArgs()
+				args.HeaderMarshaller = nil
+				return args
+			},
+			exError: dataindexer.ErrNilMarshalizer,
 		},
 		{
 			name: "EmptyUrl",

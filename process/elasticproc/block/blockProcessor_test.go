@@ -88,9 +88,9 @@ func TestBlockProcessor_PrepareBlockForDBShouldWork(t *testing.T) {
 		Validators:            []uint64{0x0, 0x1, 0x2},
 		EpochStartBlock:       false,
 		SearchOrder:           0x3fc,
-		MiniBlocksHashes:      []string{"c57392e53257b4861f5e406349a8deb89c6dbc2127564ee891a41a188edbf01a", "28fda294dc987e5099d75e53cd6f87a9a42b96d55242a634385b5d41175c0c21"},
+		MiniBlocksHashes:      []string{"0796d34e8d443fd31bf4d9ec4051421b4d5d0e8c1db9ff942d6f4dc3a9ca2803", "4cc379ab1f0aef6602e85a0a7ffabb5bc9a2ba646dc0fd720028e06527bf873f"},
 		NotarizedBlocksHashes: []string(nil),
-		Size:                  104,
+		Size:                  230,
 		AccumulatedFees:       "0",
 		DeveloperFees:         "0",
 	}
@@ -115,6 +115,9 @@ func TestBlockProcessor_PrepareBlockForDBNilBody(t *testing.T) {
 
 	outportBlockWithHeader := &outport.OutportBlockWithHeader{
 		Header: &dataBlock.MetaBlock{},
+		OutportBlock: &outport.OutportBlock{
+			BlockData: &outport.BlockData{},
+		},
 	}
 	dbBlock, err := bp.PrepareBlockForDB(outportBlockWithHeader)
 	require.Equal(t, indexer.ErrNilBlockBody, err)
@@ -190,7 +193,7 @@ func TestBlockProcessor_ComputeHeaderHash(t *testing.T) {
 	header := &dataBlock.Header{}
 	hashBytes, err := bp.ComputeHeaderHash(header)
 	require.Nil(t, err)
-	require.Equal(t, "c7c81a1b22b67680f35837b474387ddfe10f67e104034c80f94ab9e5a0a089fb", hex.EncodeToString(hashBytes))
+	require.Equal(t, "96f7d09988eafbc99b45dfce0eaf9df1d02def2ae678d88bd154ebffa3247b2a", hex.EncodeToString(hashBytes))
 }
 
 func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
@@ -264,12 +267,12 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 		Round:                 0,
 		Epoch:                 0,
 		Hash:                  "68617368",
-		MiniBlocksHashes:      []string{"44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a", "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"},
+		MiniBlocksHashes:      []string{"8748c4677b01f7db984004fa8465afbf55feaab4b573174c8c0afa282941b9e4", "8748c4677b01f7db984004fa8465afbf55feaab4b573174c8c0afa282941b9e4"},
 		NotarizedBlocksHashes: nil,
 		Proposer:              0,
 		Validators:            nil,
 		PubKeyBitmap:          "",
-		Size:                  643,
+		Size:                  898,
 		SizeTxs:               0,
 		Timestamp:             0,
 		StateRootHash:         "",
@@ -397,27 +400,26 @@ func TestBlockProcessor_PrepareBlockForDBMiniBlocksDetails(t *testing.T) {
 					},
 				},
 			},
-			SignersIndexes: []uint64{0, 1, 2},
 			TransactionPool: &outport.TransactionPool{
 				Transactions: map[string]*outport.TxInfo{
-					txHash: {
+					hex.EncodeToString([]byte(txHash)): {
 						ExecutionOrder: 2,
 					},
-					notExecutedTxHash: {
+					hex.EncodeToString([]byte(notExecutedTxHash)): {
 						ExecutionOrder: 0,
 					},
 				},
 				Rewards: map[string]*outport.RewardInfo{
-					rewardsTxHash: {
+					hex.EncodeToString([]byte(rewardsTxHash)): {
 						ExecutionOrder: 3,
 					},
 				},
 				InvalidTxs: map[string]*outport.TxInfo{
-					invalidTxHash: {
+					hex.EncodeToString([]byte(invalidTxHash)): {
 						ExecutionOrder: 1,
 					}},
 				SmartContractResults: map[string]*outport.SCRInfo{
-					scrHash: {
+					hex.EncodeToString([]byte(scrHash)): {
 						ExecutionOrder: 0,
 					},
 				},
@@ -431,16 +433,17 @@ func TestBlockProcessor_PrepareBlockForDBMiniBlocksDetails(t *testing.T) {
 
 	require.Equal(t, &data.Block{
 		Hash:            "68617368",
-		Size:            int64(341),
+		Size:            int64(723),
+		SizeTxs:         94,
 		AccumulatedFees: "0",
 		DeveloperFees:   "0",
 		TxCount:         uint32(5),
 		SearchOrder:     uint64(1020),
 		MiniBlocksHashes: []string{
-			"ee29d9b4a5017b7351974110d6a3f28ce6612476582f16b7849e3e87c647fc2d",
-			"c067de5b3c0031a14578699b1c3cdb9a19039e4a7b3fae6a94932ad3f70cf375",
-			"758f925b254ea0a6ad1bcbe3ddfcc73418ed4c8712506aafddc4da703295ad63",
-			"28a96506c2999838923f5310b3bb1d6849b5a259b429790d9eeb21c2a1402f82",
+			"8987edec270eb942d8ea9051fe301673aea29890919f5849882617aabcc7a248",
+			"1183f422a5b76c3cb7b439334f1fe7235c8d09f577e0f1e15e62cd05b9a81950",
+			"b24e307f3917e84603d3ebfb9c03c8fc651b62cb68ca884c3ff015b66a610a79",
+			"c0a855563172b2f72be569963d26d4fae38d4371342e2bf3ded93466a72f36f3",
 		},
 		MiniBlocksDetails: []*data.MiniBlocksDetails{
 			{
