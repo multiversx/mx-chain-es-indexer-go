@@ -33,6 +33,7 @@ type ArgsIndexerFactory struct {
 	Password                 string
 	TemplatesPath            string
 	EnabledIndexes           []string
+	HeaderMarshaller         marshal.Marshalizer
 	Marshalizer              marshal.Marshalizer
 	Hasher                   hashing.Hasher
 	AddressPubkeyConverter   core.PubkeyConverter
@@ -59,7 +60,7 @@ func NewIndexer(args ArgsIndexerFactory) (dataindexer.Indexer, error) {
 	dispatcher.StartIndexData()
 
 	arguments := dataindexer.ArgDataIndexer{
-		Marshalizer:      args.Marshalizer,
+		HeaderMarshaller: args.HeaderMarshaller,
 		ElasticProcessor: elasticProcessor,
 		DataDispatcher:   dispatcher,
 	}
@@ -120,6 +121,9 @@ func checkDataIndexerParams(arguments ArgsIndexerFactory) error {
 	}
 	if check.IfNil(arguments.Hasher) {
 		return dataindexer.ErrNilHasher
+	}
+	if check.IfNil(arguments.HeaderMarshaller) {
+		return fmt.Errorf("%w header marshaller", dataindexer.ErrNilMarshalizer)
 	}
 
 	return nil

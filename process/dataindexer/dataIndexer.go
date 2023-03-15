@@ -11,7 +11,7 @@ import (
 
 // ArgDataIndexer is a structure that is used to store all the components that are needed to create an indexer
 type ArgDataIndexer struct {
-	Marshalizer      marshal.Marshalizer
+	HeaderMarshaller marshal.Marshalizer
 	DataDispatcher   DispatcherHandler
 	ElasticProcessor ElasticProcessor
 }
@@ -20,7 +20,6 @@ type dataIndexer struct {
 	isNilIndexer     bool
 	dispatcher       DispatcherHandler
 	elasticProcessor ElasticProcessor
-	marshaller       marshal.Marshalizer
 	headerMarshaller marshal.Marshalizer
 }
 
@@ -35,7 +34,7 @@ func NewDataIndexer(arguments ArgDataIndexer) (*dataIndexer, error) {
 		isNilIndexer:     false,
 		dispatcher:       arguments.DataDispatcher,
 		elasticProcessor: arguments.ElasticProcessor,
-		marshaller:       arguments.Marshalizer,
+		headerMarshaller: arguments.HeaderMarshaller,
 	}
 
 	return dataIndexerObj, nil
@@ -48,7 +47,7 @@ func checkIndexerArgs(arguments ArgDataIndexer) error {
 	if check.IfNil(arguments.ElasticProcessor) {
 		return ErrNilElasticProcessor
 	}
-	if check.IfNil(arguments.Marshalizer) {
+	if check.IfNil(arguments.HeaderMarshaller) {
 		return ErrNilMarshalizer
 	}
 
@@ -81,11 +80,15 @@ func (di *dataIndexer) Close() error {
 
 // RevertIndexedBlock will remove from database block and miniblocks
 func (di *dataIndexer) RevertIndexedBlock(blockData *outport.BlockData) error {
+	header, err := unmarshal.GetHeaderFromBytes(di.headerMarshaller, core.HeaderType(blockData.HeaderType), blockData.HeaderBytes)
+	if err != nil {
+		return err
+	}
+
 	wi := workItems.NewItemRemoveBlock(
 		di.elasticProcessor,
-		// TODO possible to be json or proto marshaller
-		di.headerMarshaller,
-		blockData,
+		header,
+		blockData.Body,
 	)
 	di.dispatcher.Add(wi)
 

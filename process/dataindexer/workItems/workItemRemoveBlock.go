@@ -1,28 +1,26 @@
 package workItems
 
 import (
-	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-core-go/core/unmarshal"
-	"github.com/multiversx/mx-chain-core-go/data/outport"
-	"github.com/multiversx/mx-chain-core-go/marshal"
+	"github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/block"
 )
 
 type itemRemoveBlock struct {
-	indexer    removeIndexer
-	marshaller marshal.Marshalizer
-	blockData  *outport.BlockData
+	indexer removeIndexer
+	header  data.HeaderHandler
+	body    *block.Body
 }
 
 // NewItemRemoveBlock will create a new instance of itemRemoveBlock
 func NewItemRemoveBlock(
 	indexer removeIndexer,
-	marshaller marshal.Marshalizer,
-	blockData *outport.BlockData,
+	header data.HeaderHandler,
+	body *block.Body,
 ) WorkItemHandler {
 	return &itemRemoveBlock{
-		indexer:    indexer,
-		marshaller: marshaller,
-		blockData:  blockData,
+		indexer: indexer,
+		header:  header,
+		body:    body,
 	}
 }
 
@@ -33,25 +31,20 @@ func (wirb *itemRemoveBlock) IsInterfaceNil() bool {
 
 // Save will remove a block and miniblocks from elasticsearch database
 func (wirb *itemRemoveBlock) Save() error {
-	header, err := unmarshal.GetHeaderFromBytes(wirb.marshaller, core.HeaderType(wirb.blockData.HeaderType), wirb.blockData.HeaderBytes)
+	err := wirb.indexer.RemoveHeader(wirb.header)
 	if err != nil {
 		return err
 	}
 
-	err = wirb.indexer.RemoveHeader(header)
+	err = wirb.indexer.RemoveMiniblocks(wirb.header, wirb.body)
 	if err != nil {
 		return err
 	}
 
-	err = wirb.indexer.RemoveMiniblocks(header, wirb.blockData.Body)
+	err = wirb.indexer.RemoveTransactions(wirb.header, wirb.body)
 	if err != nil {
 		return err
 	}
 
-	err = wirb.indexer.RemoveTransactions(header, wirb.blockData.Body)
-	if err != nil {
-		return err
-	}
-
-	return wirb.indexer.RemoveAccountsESDT(header.GetTimeStamp(), header.GetShardID())
+	return wirb.indexer.RemoveAccountsESDT(wirb.header.GetTimeStamp(), wirb.header.GetShardID())
 }

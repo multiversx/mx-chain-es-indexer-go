@@ -4,27 +4,22 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/multiversx/mx-chain-es-indexer-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-es-indexer-go/mock"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer/workItems"
 	"github.com/stretchr/testify/require"
 )
 
 func TestItemRating_Save(t *testing.T) {
-	id := "0_1"
 	called := false
 	itemRating := workItems.NewItemRating(
 		&mock.ElasticProcessorStub{
-			SaveValidatorsRatingCalled: func(index string, validatorsRatingInfo []*data.ValidatorRatingInfo) error {
-				require.Equal(t, id, index)
+			SaveValidatorsRatingCalled: func(_ *outport.ValidatorsRating) error {
 				called = true
 				return nil
 			},
 		},
-		id,
-		[]*data.ValidatorRatingInfo{
-			{PublicKey: "pub-key", Rating: 100},
-		},
+		&outport.ValidatorsRating{},
 	)
 	require.False(t, itemRating.IsInterfaceNil())
 
@@ -34,18 +29,14 @@ func TestItemRating_Save(t *testing.T) {
 }
 
 func TestItemRating_SaveShouldErr(t *testing.T) {
-	id := "0_1"
 	localErr := errors.New("local err")
 	itemRating := workItems.NewItemRating(
 		&mock.ElasticProcessorStub{
-			SaveValidatorsRatingCalled: func(index string, validatorsRatingInfo []*data.ValidatorRatingInfo) error {
+			SaveValidatorsRatingCalled: func(_ *outport.ValidatorsRating) error {
 				return localErr
 			},
 		},
-		id,
-		[]*data.ValidatorRatingInfo{
-			{PublicKey: "pub-key", Rating: 100},
-		},
+		&outport.ValidatorsRating{},
 	)
 	require.False(t, itemRating.IsInterfaceNil())
 

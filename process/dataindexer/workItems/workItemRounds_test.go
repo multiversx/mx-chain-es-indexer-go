@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/multiversx/mx-chain-es-indexer-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-es-indexer-go/mock"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer/workItems"
 	"github.com/stretchr/testify/require"
@@ -14,14 +14,12 @@ func TestItemRounds_Save(t *testing.T) {
 	called := false
 	itemRounds := workItems.NewItemRounds(
 		&mock.ElasticProcessorStub{
-			SaveRoundsInfoCalled: func(infos []*data.RoundInfo) error {
+			SaveRoundsInfoCalled: func(_ *outport.RoundsInfo) error {
 				called = true
 				return nil
 			},
 		},
-		[]*data.RoundInfo{
-			{},
-		},
+		&outport.RoundsInfo{},
 	)
 	require.False(t, itemRounds.IsInterfaceNil())
 
@@ -34,13 +32,11 @@ func TestItemRounds_SaveRoundsShouldErr(t *testing.T) {
 	localErr := errors.New("local err")
 	itemRounds := workItems.NewItemRounds(
 		&mock.ElasticProcessorStub{
-			SaveRoundsInfoCalled: func(infos []*data.RoundInfo) error {
+			SaveRoundsInfoCalled: func(_ *outport.RoundsInfo) error {
 				return localErr
 			},
 		},
-		[]*data.RoundInfo{
-			{},
-		},
+		&outport.RoundsInfo{},
 	)
 	require.False(t, itemRounds.IsInterfaceNil())
 

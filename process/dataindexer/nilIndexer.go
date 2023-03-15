@@ -8,11 +8,6 @@ import (
 type NilIndexer struct {
 }
 
-// NewNilIndexer will return a Nil indexer
-func NewNilIndexer() *NilIndexer {
-	return new(NilIndexer)
-}
-
 // SaveBlock returns nil
 func (ni *NilIndexer) SaveBlock(_ *outport.OutportBlock) error {
 	return nil
