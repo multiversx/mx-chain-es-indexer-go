@@ -95,7 +95,7 @@ func (proc *smartContractResultsProcessor) processSCRsFromMiniblock(
 		indexerSCR := proc.prepareSmartContractResult(scrHash, mbHash, scrInfo, header, mb.SenderShardID, mb.ReceiverShardID, numOfShards)
 		indexerSCRs = append(indexerSCRs, indexerSCR)
 
-		delete(scrs, string(scrHash))
+		delete(scrs, hex.EncodeToString(scrHash))
 	}
 
 	return indexerSCRs

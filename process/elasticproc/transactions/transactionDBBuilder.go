@@ -147,12 +147,12 @@ func (dtb *dbTransactionBuilder) prepareRewardTransaction(
 }
 
 func (dtb *dbTransactionBuilder) prepareReceipt(
-	recHash string,
+	recHashHex string,
 	rec *receipt.Receipt,
 	header coreData.HeaderHandler,
 ) *data.Receipt {
 	return &data.Receipt{
-		Hash:      hex.EncodeToString([]byte(recHash)),
+		Hash:      recHashHex,
 		Value:     rec.Value.String(),
 		Sender:    dtb.addressPubkeyConverter.Encode(rec.SndAddr),
 		Data:      string(rec.Data),

@@ -190,7 +190,7 @@ func (tg *txsGrouper) prepareInvalidTxForDB(
 	header coreData.HeaderHandler,
 	numOfShards uint32,
 ) (*data.Transaction, bool) {
-	txInfo, okGet := txs[string(txHash)]
+	txInfo, okGet := txs[hex.EncodeToString(txHash)]
 	if !okGet {
 		return nil, false
 	}
@@ -210,8 +210,8 @@ func (tg *txsGrouper) shouldIndex(destinationShardID uint32, isImportDB bool, se
 
 func (tg *txsGrouper) groupReceipts(header coreData.HeaderHandler, txsPool map[string]*receipt.Receipt) []*data.Receipt {
 	dbReceipts := make([]*data.Receipt, 0)
-	for hash, rec := range txsPool {
-		dbReceipts = append(dbReceipts, tg.txBuilder.prepareReceipt(hash, rec, header))
+	for hashHex, rec := range txsPool {
+		dbReceipts = append(dbReceipts, tg.txBuilder.prepareReceipt(hashHex, rec, header))
 	}
 
 	return dbReceipts

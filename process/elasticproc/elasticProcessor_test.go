@@ -360,7 +360,16 @@ func TestElasticseachDatabaseSaveHeader_RequestError(t *testing.T) {
 	arguments.BlockProc, _ = block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 	elasticDatabase := newElasticsearchProcessor(dbWriter, arguments)
 
-	err := elasticDatabase.SaveHeader([]byte("hh"), header, signerIndexes, &dataBlock.Body{}, nil, outport.HeaderGasConsumption{}, 1, &outport.Pool{})
+	err := elasticDatabase.SaveHeader(&outport.OutportBlockWithHeader{
+		Header: header,
+		OutportBlock: &outport.OutportBlock{
+			BlockData: &outport.BlockData{
+				Body: &dataBlock.Body{},
+			},
+			SignersIndexes:       signerIndexes,
+			HeaderGasConsumption: &outport.HeaderGasConsumption{},
+		},
+	})
 	require.Equal(t, localErr, err)
 }
 
@@ -401,7 +410,16 @@ func TestElasticseachDatabaseSaveHeader_CheckRequestBody(t *testing.T) {
 
 	arguments.BlockProc, _ = block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 	elasticDatabase := newElasticsearchProcessor(dbWriter, arguments)
-	err := elasticDatabase.SaveHeader([]byte("hh"), header, signerIndexes, blockBody, nil, outport.HeaderGasConsumption{}, 1, &outport.Pool{})
+	err := elasticDatabase.SaveHeader(&outport.OutportBlockWithHeader{
+		Header: header,
+		OutportBlock: &outport.OutportBlock{
+			BlockData: &outport.BlockData{
+				Body: blockBody,
+			},
+			SignersIndexes:       signerIndexes,
+			HeaderGasConsumption: &outport.HeaderGasConsumption{},
+		},
+	})
 	require.Nil(t, err)
 }
 
@@ -416,7 +434,6 @@ func TestElasticseachSaveTransactions(t *testing.T) {
 
 	body := newTestBlockBody()
 	header := &dataBlock.Header{Nonce: 1, TxCount: 2}
-	txPool := newTestTxPool()
 
 	bc, _ := converters.NewBalanceConverter(18)
 	args := &transactions.ArgsTransactionProcessor{
@@ -429,16 +446,25 @@ func TestElasticseachSaveTransactions(t *testing.T) {
 	arguments.TransactionsProc = txDbProc
 
 	elasticDatabase := newElasticsearchProcessor(dbWriter, arguments)
-	pool := &outport.Pool{Txs: txPool}
-	err := elasticDatabase.SaveTransactions(body, header, pool, nil, false, 3)
+	err := elasticDatabase.SaveTransactions(&outport.OutportBlockWithHeader{
+		Header: header,
+		OutportBlock: &outport.OutportBlock{
+			BlockData: &outport.BlockData{
+				Body: body,
+			},
+			HeaderGasConsumption: &outport.HeaderGasConsumption{},
+			TransactionPool: &outport.TransactionPool{
+				Transactions: map[string]*outport.TxInfo{
+					hex.EncodeToString([]byte("tx1")): {Transaction: &transaction.Transaction{}, FeeInfo: &outport.FeeInfo{}},
+				},
+			},
+		},
+	})
 	require.Equal(t, localErr, err)
 }
 
 func TestElasticProcessor_SaveValidatorsRating(t *testing.T) {
-	docID := "0_1"
 	localErr := errors.New("localErr")
-
-	blsKey := "bls"
 
 	arguments := createMockElasticProcessorArgs()
 	arguments.DBClient = &mock.DatabaseWriterStub{
@@ -450,15 +476,11 @@ func TestElasticProcessor_SaveValidatorsRating(t *testing.T) {
 	arguments.ValidatorsProc, _ = validators.NewValidatorsProcessor(mock.NewPubkeyConverterMock(32), 0)
 	elasticProc, _ := NewElasticProcessor(arguments)
 
-	err := elasticProc.SaveValidatorsRating(
-		docID,
-		[]*data.ValidatorRatingInfo{
-			{
-				PublicKey: blsKey,
-				Rating:    100,
-			},
-		},
-	)
+	err := elasticProc.SaveValidatorsRating(&outport.ValidatorsRating{
+		ShardID:              0,
+		Epoch:                1,
+		ValidatorsRatingInfo: []*outport.ValidatorRatingInfo{{}},
+	})
 	require.Equal(t, localErr, err)
 }
 
@@ -493,14 +515,19 @@ func TestElasticsearch_saveShardValidatorsPubKeys_RequestError(t *testing.T) {
 	localErr := errors.New("localErr")
 	arguments := createMockElasticProcessorArgs()
 	dbWriter := &mock.DatabaseWriterStub{
-		DoRequestCalled: func(req *esapi.IndexRequest) error {
+		DoBulkRequestCalled: func(buff *bytes.Buffer, index string) error {
 			return localErr
 		},
 	}
 	arguments.ValidatorsProc, _ = validators.NewValidatorsProcessor(mock.NewPubkeyConverterMock(32), 0)
 	elasticDatabase := newElasticsearchProcessor(dbWriter, arguments)
 
-	err := elasticDatabase.SaveShardValidatorsPubKeys(shardID, epoch, valPubKeys)
+	err := elasticDatabase.SaveShardValidatorsPubKeys(&outport.ValidatorsPubKeys{
+		Epoch: epoch,
+		ShardValidatorsPubKeys: map[uint32]*outport.PubKeys{
+			shardID: {Keys: valPubKeys},
+		},
+	})
 	require.Equal(t, localErr, err)
 }
 
@@ -517,29 +544,34 @@ func TestElasticsearch_saveShardValidatorsPubKeys(t *testing.T) {
 	}
 	elasticDatabase := newElasticsearchProcessor(dbWriter, arguments)
 
-	err := elasticDatabase.SaveShardValidatorsPubKeys(shardID, epoch, valPubKeys)
+	err := elasticDatabase.SaveShardValidatorsPubKeys(&outport.ValidatorsPubKeys{
+		Epoch: epoch,
+		ShardValidatorsPubKeys: map[uint32]*outport.PubKeys{
+			shardID: {Keys: valPubKeys},
+		},
+	})
 	require.Nil(t, err)
 }
 
 func TestElasticsearch_saveRoundInfo(t *testing.T) {
-	roundInfo := &data.RoundInfo{
-		Index: 1, ShardId: 0, BlockWasProposed: true,
+	roundInfo := &outport.RoundInfo{
+		Round: 1, ShardId: 0, BlockWasProposed: true,
 	}
 	arguments := createMockElasticProcessorArgs()
 	dbWriter := &mock.DatabaseWriterStub{
 		DoRequestCalled: func(req *esapi.IndexRequest) error {
-			require.Equal(t, strconv.FormatUint(uint64(roundInfo.ShardId), 10)+"_"+strconv.FormatUint(roundInfo.Index, 10), req.DocumentID)
+			require.Equal(t, strconv.FormatUint(uint64(roundInfo.ShardId), 10)+"_"+strconv.FormatUint(roundInfo.Round, 10), req.DocumentID)
 			return nil
 		},
 	}
 	elasticDatabase := newElasticsearchProcessor(dbWriter, arguments)
 
-	err := elasticDatabase.SaveRoundsInfo([]*data.RoundInfo{roundInfo})
+	err := elasticDatabase.SaveRoundsInfo(&outport.RoundsInfo{RoundsInfo: []*outport.RoundInfo{roundInfo}})
 	require.Nil(t, err)
 }
 
 func TestElasticsearch_saveRoundInfoRequestError(t *testing.T) {
-	roundInfo := &data.RoundInfo{}
+	roundInfo := &outport.RoundInfo{}
 	localError := errors.New("local err")
 	arguments := createMockElasticProcessorArgs()
 	dbWriter := &mock.DatabaseWriterStub{
@@ -549,7 +581,7 @@ func TestElasticsearch_saveRoundInfoRequestError(t *testing.T) {
 	}
 	elasticDatabase := newElasticsearchProcessor(dbWriter, arguments)
 
-	err := elasticDatabase.SaveRoundsInfo([]*data.RoundInfo{roundInfo})
+	err := elasticDatabase.SaveRoundsInfo(&outport.RoundsInfo{RoundsInfo: []*outport.RoundInfo{roundInfo}})
 	require.Equal(t, localError, err)
 
 }
@@ -625,7 +657,15 @@ func TestElasticProcessor_IndexEpochInfoData(t *testing.T) {
 	body := &dataBlock.Body{}
 	metaHeader := &dataBlock.MetaBlock{}
 
-	err = elasticSearchProc.SaveHeader([]byte("hh"), metaHeader, nil, body, nil, outport.HeaderGasConsumption{}, 0, &outport.Pool{})
+	err = elasticSearchProc.SaveHeader(&outport.OutportBlockWithHeader{
+		Header: metaHeader,
+		OutportBlock: &outport.OutportBlock{
+			BlockData: &outport.BlockData{
+				Body: body,
+			},
+			HeaderGasConsumption: &outport.HeaderGasConsumption{},
+		},
+	})
 	require.Nil(t, err)
 	require.True(t, called)
 }
@@ -634,7 +674,7 @@ func TestElasticProcessor_SaveTransactionNoDataShouldNotDoRequest(t *testing.T) 
 	called := false
 	arguments := createMockElasticProcessorArgs()
 	arguments.TransactionsProc = &mock.DBTransactionProcessorStub{
-		PrepareTransactionsForDatabaseCalled: func(body *dataBlock.Body, header coreData.HeaderHandler, pool *outport.Pool) *data.PreparedResults {
+		PrepareTransactionsForDatabaseCalled: func(body *dataBlock.Body, header coreData.HeaderHandler, pool *outport.TransactionPool) *data.PreparedResults {
 			return &data.PreparedResults{
 				Transactions: nil,
 				ScResults:    nil,
@@ -655,7 +695,14 @@ func TestElasticProcessor_SaveTransactionNoDataShouldNotDoRequest(t *testing.T) 
 	elasticSearchProc := newElasticsearchProcessor(dbWriter, arguments)
 	elasticSearchProc.enabledIndexes[dataindexer.ScResultsIndex] = struct{}{}
 
-	err := elasticSearchProc.SaveTransactions(&dataBlock.Body{}, &dataBlock.Header{}, &outport.Pool{}, nil, false, 3)
+	err := elasticSearchProc.SaveTransactions(&outport.OutportBlockWithHeader{
+		Header: &dataBlock.Header{},
+		OutportBlock: &outport.OutportBlock{
+			BlockData: &outport.BlockData{
+				Body: &dataBlock.Body{},
+			},
+		},
+	})
 	require.Nil(t, err)
 	require.False(t, called)
 }

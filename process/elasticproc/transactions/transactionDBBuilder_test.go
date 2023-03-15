@@ -9,6 +9,7 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/rewardTx"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
@@ -53,6 +54,16 @@ func TestGetMoveBalanceTransaction(t *testing.T) {
 		SndUserName: []byte("snd"),
 	}
 
+	txInfo := &outport.TxInfo{
+		Transaction: tx,
+		FeeInfo: &outport.FeeInfo{
+			GasUsed:        500,
+			Fee:            big.NewInt(100),
+			InitialPaidFee: big.NewInt(100),
+		},
+		ExecutionOrder: 0,
+	}
+
 	expectedTx := &data.Transaction{
 		Hash:             hex.EncodeToString(txHash),
 		MBHash:           hex.EncodeToString(mbHash),
@@ -82,7 +93,7 @@ func TestGetMoveBalanceTransaction(t *testing.T) {
 		Receivers:        []string{},
 	}
 
-	dbTx := cp.prepareTransaction(tx, txHash, mbHash, mb, header, status, big.NewInt(100), 500, big.NewInt(100), 3)
+	dbTx := cp.prepareTransaction(txInfo, txHash, mbHash, mb, header, status, 3)
 	require.Equal(t, expectedTx, dbTx)
 }
 
@@ -172,6 +183,16 @@ func TestGetMoveBalanceTransactionInvalid(t *testing.T) {
 		ESDTValuesNum:    []float64{},
 	}
 
-	dbTx := cp.prepareTransaction(tx, txHash, mbHash, mb, header, status, big.NewInt(100), 500, big.NewInt(100), 3)
+	txInfo := &outport.TxInfo{
+		Transaction: tx,
+		FeeInfo: &outport.FeeInfo{
+			GasUsed:        500,
+			Fee:            big.NewInt(100),
+			InitialPaidFee: big.NewInt(100),
+		},
+		ExecutionOrder: 0,
+	}
+
+	dbTx := cp.prepareTransaction(txInfo, txHash, mbHash, mb, header, status, 3)
 	require.Equal(t, expectedTx, dbTx)
 }

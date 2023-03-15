@@ -1,10 +1,9 @@
 package transactions
 
 import (
-	"math/big"
+	"encoding/hex"
 	"testing"
 
-	coreData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/receipt"
@@ -30,15 +29,21 @@ func TestGroupNormalTxs(t *testing.T) {
 		Type:     block.TxBlock,
 	}
 	header := &block.Header{}
-	txs := map[string]coreData.TransactionHandlerWithGasUsedAndFee{
-		string(txHash1): outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
-			SndAddr: []byte("sender1"),
-			RcvAddr: []byte("receiver1"),
-		}, 0, big.NewInt(0)),
-		string(txHash2): outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
-			SndAddr: []byte("sender2"),
-			RcvAddr: []byte("receiver2"),
-		}, 0, big.NewInt(0)),
+	txs := map[string]*outport.TxInfo{
+		hex.EncodeToString(txHash1): {
+			Transaction: &transaction.Transaction{
+				SndAddr: []byte("sender1"),
+				RcvAddr: []byte("receiver1"),
+			},
+			FeeInfo: &outport.FeeInfo{},
+		},
+		hex.EncodeToString(txHash2): {
+			Transaction: &transaction.Transaction{
+				SndAddr: []byte("sender2"),
+				RcvAddr: []byte("receiver2"),
+			},
+			FeeInfo: &outport.FeeInfo{},
+		},
 	}
 
 	normalTxs, _ := grouper.groupNormalTxs(0, mb, header, txs, false, 3)
@@ -60,13 +65,13 @@ func TestGroupRewardsTxs(t *testing.T) {
 		Type:     block.RewardsBlock,
 	}
 	header := &block.Header{}
-	txs := map[string]coreData.TransactionHandlerWithGasUsedAndFee{
-		string(txHash1): outport.NewTransactionHandlerWithGasAndFee(&rewardTx.RewardTx{
+	txs := map[string]*outport.RewardInfo{
+		hex.EncodeToString(txHash1): {Reward: &rewardTx.RewardTx{
 			RcvAddr: []byte("receiver1"),
-		}, 0, big.NewInt(0)),
-		string(txHash2): outport.NewTransactionHandlerWithGasAndFee(&rewardTx.RewardTx{
+		}},
+		hex.EncodeToString(txHash2): {Reward: &rewardTx.RewardTx{
 			RcvAddr: []byte("receiver2"),
-		}, 0, big.NewInt(0)),
+		}},
 	}
 
 	normalTxs, _ := grouper.groupRewardsTxs(0, mb, header, txs, false)
@@ -88,15 +93,17 @@ func TestGroupInvalidTxs(t *testing.T) {
 		Type:     block.InvalidBlock,
 	}
 	header := &block.Header{}
-	txs := map[string]coreData.TransactionHandlerWithGasUsedAndFee{
-		string(txHash1): outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
-			SndAddr: []byte("sender1"),
-			RcvAddr: []byte("receiver1"),
-		}, 0, big.NewInt(0)),
-		string(txHash2): outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
-			SndAddr: []byte("sender2"),
-			RcvAddr: []byte("receiver2"),
-		}, 0, big.NewInt(0)),
+	txs := map[string]*outport.TxInfo{
+		hex.EncodeToString(txHash1): {
+			Transaction: &transaction.Transaction{
+				SndAddr: []byte("sender1"),
+				RcvAddr: []byte("receiver1"),
+			}, FeeInfo: &outport.FeeInfo{}},
+		hex.EncodeToString(txHash2): {
+			Transaction: &transaction.Transaction{
+				SndAddr: []byte("sender2"),
+				RcvAddr: []byte("receiver2"),
+			}, FeeInfo: &outport.FeeInfo{}},
 	}
 
 	normalTxs, _ := grouper.groupInvalidTxs(0, mb, header, txs, 3)
@@ -114,15 +121,15 @@ func TestGroupReceipts(t *testing.T) {
 	txHash1 := []byte("txHash1")
 	txHash2 := []byte("txHash2")
 	header := &block.Header{}
-	txs := map[string]coreData.TransactionHandlerWithGasUsedAndFee{
-		string(txHash1): outport.NewTransactionHandlerWithGasAndFee(&receipt.Receipt{
+	txs := map[string]*receipt.Receipt{
+		hex.EncodeToString(txHash1): {
 			SndAddr: []byte("sender1"),
-		}, 0, big.NewInt(0)),
-		string(txHash2): outport.NewTransactionHandlerWithGasAndFee(&receipt.Receipt{
+		},
+		hex.EncodeToString(txHash2): {
 			SndAddr: []byte("sender2"),
-		}, 0, big.NewInt(0)),
+		},
 	}
 
-	normalTxs := grouper.groupReceipts(header, txs)
-	require.Len(t, normalTxs, 2)
+	receipts := grouper.groupReceipts(header, txs)
+	require.Len(t, receipts, 2)
 }

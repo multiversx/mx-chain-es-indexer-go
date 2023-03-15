@@ -1,6 +1,7 @@
 package transactions
 
 import (
+	"encoding/hex"
 	"math/big"
 	"testing"
 
@@ -124,6 +125,9 @@ func TestPrepareTransactionsForDatabase(t *testing.T) {
 			PrevTxHash:     txHash1,
 			GasLimit:       1,
 		},
+		FeeInfo: &outport.FeeInfo{
+			Fee: big.NewInt(0),
+		},
 	}
 	scHash2 := []byte("scHash2")
 	scResult2 := &outport.SCRInfo{
@@ -132,12 +136,18 @@ func TestPrepareTransactionsForDatabase(t *testing.T) {
 			PrevTxHash:     txHash1,
 			GasLimit:       1,
 		},
+		FeeInfo: &outport.FeeInfo{
+			Fee: big.NewInt(0),
+		},
 	}
 	scHash3 := []byte("scHash3")
 	scResult3 := &outport.SCRInfo{
 		SmartContractResult: &smartContractResult.SmartContractResult{
 			OriginalTxHash: txHash3,
 			Data:           []byte("@" + "6F6B"),
+		},
+		FeeInfo: &outport.FeeInfo{
+			Fee: big.NewInt(0),
 		},
 	}
 
@@ -177,26 +187,26 @@ func TestPrepareTransactionsForDatabase(t *testing.T) {
 
 	pool := &outport.TransactionPool{
 		Transactions: map[string]*outport.TxInfo{
-			string(txHash1): tx1,
-			string(txHash2): tx2,
-			string(txHash3): tx3,
-			string(txHash4): tx4,
+			hex.EncodeToString(txHash1): tx1,
+			hex.EncodeToString(txHash2): tx2,
+			hex.EncodeToString(txHash3): tx3,
+			hex.EncodeToString(txHash4): tx4,
 		},
 		SmartContractResults: map[string]*outport.SCRInfo{
-			string(scHash1): scResult1,
-			string(scHash2): scResult2,
-			string(scHash3): scResult3,
+			hex.EncodeToString(scHash1): scResult1,
+			hex.EncodeToString(scHash2): scResult2,
+			hex.EncodeToString(scHash3): scResult3,
 		},
 		Rewards: map[string]*outport.RewardInfo{
-			string(rTx1Hash): rTx1,
-			string(rTx2Hash): rTx2,
+			hex.EncodeToString(rTx1Hash): rTx1,
+			hex.EncodeToString(rTx2Hash): rTx2,
 		},
 		InvalidTxs: map[string]*outport.TxInfo{
-			string(txHash5): tx5,
+			hex.EncodeToString(txHash5): tx5,
 		},
 		Receipts: map[string]*receipt.Receipt{
-			string(recHash1): rec1,
-			string(recHash2): rec2,
+			hex.EncodeToString(recHash1): rec1,
+			hex.EncodeToString(recHash2): rec2,
 		},
 	}
 
@@ -211,24 +221,27 @@ func TestRelayedTransactions(t *testing.T) {
 	t.Parallel()
 
 	txHash1 := []byte("txHash1")
-	tx1 := &outport.TxInfo{Transaction: &transaction.Transaction{
-		GasLimit: 100,
-		GasPrice: 100,
-		Data:     []byte("relayedTx@blablabllablalba"),
-	}}
+	tx1 := &outport.TxInfo{
+		Transaction: &transaction.Transaction{
+			GasLimit: 100,
+			GasPrice: 100,
+			Data:     []byte("relayedTx@blablabllablalba"),
+		}, FeeInfo: &outport.FeeInfo{}}
 
 	scHash1 := []byte("scHash1")
-	scResult1 := &outport.SCRInfo{SmartContractResult: &smartContractResult.SmartContractResult{
-		OriginalTxHash: txHash1,
-		PrevTxHash:     txHash1,
-		GasLimit:       1,
-	}}
+	scResult1 := &outport.SCRInfo{
+		SmartContractResult: &smartContractResult.SmartContractResult{
+			OriginalTxHash: txHash1,
+			PrevTxHash:     txHash1,
+			GasLimit:       1,
+		}, FeeInfo: &outport.FeeInfo{}}
 	scHash2 := []byte("scHash2")
-	scResult2 := &outport.SCRInfo{SmartContractResult: &smartContractResult.SmartContractResult{
-		OriginalTxHash: txHash1,
-		PrevTxHash:     txHash1,
-		GasLimit:       1,
-	}}
+	scResult2 := &outport.SCRInfo{
+		SmartContractResult: &smartContractResult.SmartContractResult{
+			OriginalTxHash: txHash1,
+			PrevTxHash:     txHash1,
+			GasLimit:       1,
+		}, FeeInfo: &outport.FeeInfo{}}
 
 	body := &block.Body{
 		MiniBlocks: []*block.MiniBlock{
@@ -247,11 +260,11 @@ func TestRelayedTransactions(t *testing.T) {
 
 	pool := &outport.TransactionPool{
 		Transactions: map[string]*outport.TxInfo{
-			string(txHash1): tx1,
+			hex.EncodeToString(txHash1): tx1,
 		},
 		SmartContractResults: map[string]*outport.SCRInfo{
-			string(scHash1): scResult1,
-			string(scHash2): scResult2,
+			hex.EncodeToString(scHash1): scResult1,
+			hex.EncodeToString(scHash2): scResult2,
 		},
 	}
 
@@ -361,10 +374,10 @@ func TestCheckGasUsedInvalidTransaction(t *testing.T) {
 
 	pool := &outport.TransactionPool{
 		InvalidTxs: map[string]*outport.TxInfo{
-			string(txHash1): tx1,
+			hex.EncodeToString(txHash1): tx1,
 		},
 		Receipts: map[string]*receipt.Receipt{
-			string(recHash1): rec1,
+			hex.EncodeToString(recHash1): rec1,
 		},
 	}
 
@@ -469,9 +482,12 @@ func TestTxsDatabaseProcessor_PrepareTransactionsForDatabaseInvalidTxWithSCR(t *
 		FeeInfo: &outport.FeeInfo{GasUsed: 100},
 	}
 	scResHash1 := []byte("scResHash1")
-	scRes1 := &outport.SCRInfo{SmartContractResult: &smartContractResult.SmartContractResult{
-		OriginalTxHash: txHash1,
-	}}
+	scRes1 := &outport.SCRInfo{
+		SmartContractResult: &smartContractResult.SmartContractResult{
+			OriginalTxHash: txHash1,
+		},
+		FeeInfo: &outport.FeeInfo{},
+	}
 
 	body := &block.Body{
 		MiniBlocks: []*block.MiniBlock{
@@ -490,10 +506,10 @@ func TestTxsDatabaseProcessor_PrepareTransactionsForDatabaseInvalidTxWithSCR(t *
 
 	pool := &outport.TransactionPool{
 		InvalidTxs: map[string]*outport.TxInfo{
-			string(txHash1): tx1,
+			hex.EncodeToString(txHash1): tx1,
 		},
 		SmartContractResults: map[string]*outport.SCRInfo{
-			string(scResHash1): scRes1,
+			hex.EncodeToString(scResHash1): scRes1,
 		},
 	}
 
@@ -523,12 +539,14 @@ func TestTxsDatabaseProcessor_PrepareTransactionsForDatabaseESDTNFTTransfer(t *t
 		FeeInfo: &outport.FeeInfo{GasUsed: 100},
 	}
 	scResHash1 := []byte("scResHash1")
-	scRes1 := &outport.SCRInfo{SmartContractResult: &smartContractResult.SmartContractResult{
-		Nonce:          1,
-		Data:           []byte("@" + okHexEncoded),
-		OriginalTxHash: txHash1,
-		PrevTxHash:     txHash1,
-	}}
+	scRes1 := &outport.SCRInfo{
+		SmartContractResult: &smartContractResult.SmartContractResult{
+			Nonce:          1,
+			Data:           []byte("@" + okHexEncoded),
+			OriginalTxHash: txHash1,
+			PrevTxHash:     txHash1,
+		},
+		FeeInfo: &outport.FeeInfo{}}
 
 	body := &block.Body{
 		MiniBlocks: []*block.MiniBlock{
@@ -547,7 +565,7 @@ func TestTxsDatabaseProcessor_PrepareTransactionsForDatabaseESDTNFTTransfer(t *t
 
 	pool := &outport.TransactionPool{
 		Transactions: map[string]*outport.TxInfo{
-			string(txHash1): tx1,
+			hex.EncodeToString(txHash1): tx1,
 		},
 		SmartContractResults: map[string]*outport.SCRInfo{
 			string(scResHash1): scRes1,
@@ -598,25 +616,25 @@ func TestTxsDatabaseProcessor_IssueESDTTx(t *testing.T) {
 	}
 	pool := &outport.TransactionPool{
 		Transactions: map[string]*outport.TxInfo{
-			"t1": {Transaction: &transaction.Transaction{
+			hex.EncodeToString([]byte("t1")): {Transaction: &transaction.Transaction{
 				SndAddr: decodeBech32("erd1dglncxk6sl9a3xumj78n6z2xux4ghp5c92cstv5zsn56tjgtdwpsk46qrs"),
 				RcvAddr: decodeBech32("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u"),
 				Data:    []byte("issue@4141414141@41414141414141@0186a0@01@63616e467265657a65@74727565@63616e57697065@74727565@63616e5061757365@74727565@63616e4d696e74@74727565@63616e4275726e@74727565@63616e4368616e67654f776e6572@74727565@63616e55706772616465@74727565"),
-			}},
+			}, FeeInfo: &outport.FeeInfo{}},
 		},
 		SmartContractResults: map[string]*outport.SCRInfo{
-			"scr1": {SmartContractResult: &smartContractResult.SmartContractResult{
+			hex.EncodeToString([]byte("scr1")): {SmartContractResult: &smartContractResult.SmartContractResult{
 				OriginalTxHash: []byte("t1"),
 				Data:           []byte("ESDTTransfer@414141414141412d323436626461@0186a0"),
 				SndAddr:        decodeBech32("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u"),
 				RcvAddr:        decodeBech32("erd1dglncxk6sl9a3xumj78n6z2xux4ghp5c92cstv5zsn56tjgtdwpsk46qrs"),
-			}},
-			"scr2": {SmartContractResult: &smartContractResult.SmartContractResult{
+			}, FeeInfo: &outport.FeeInfo{}},
+			hex.EncodeToString([]byte("scr2")): {SmartContractResult: &smartContractResult.SmartContractResult{
 				OriginalTxHash: []byte("t1"),
 				Data:           []byte("@6f6b"),
 				SndAddr:        decodeBech32("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u"),
 				RcvAddr:        decodeBech32("erd1dglncxk6sl9a3xumj78n6z2xux4ghp5c92cstv5zsn56tjgtdwpsk46qrs"),
-			}},
+			}, FeeInfo: &outport.FeeInfo{}},
 		},
 	}
 
@@ -627,19 +645,19 @@ func TestTxsDatabaseProcessor_IssueESDTTx(t *testing.T) {
 	// transaction fail
 	pool = &outport.TransactionPool{
 		Transactions: map[string]*outport.TxInfo{
-			"t1": {Transaction: &transaction.Transaction{
+			hex.EncodeToString([]byte("t1")): {Transaction: &transaction.Transaction{
 				SndAddr: decodeBech32("erd1dglncxk6sl9a3xumj78n6z2xux4ghp5c92cstv5zsn56tjgtdwpsk46qrs"),
 				RcvAddr: decodeBech32("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u"),
 				Data:    []byte("issue@4141414141@41414141414141@0186a0@01@63616e467265657a65@74727565@63616e57697065@74727565@63616e5061757365@74727565@63616e4d696e74@74727565@63616e4275726e@74727565@63616e4368616e67654f776e6572@74727565@63616e55706772616465@74727565"),
-			}},
+			}, FeeInfo: &outport.FeeInfo{}},
 		},
 		SmartContractResults: map[string]*outport.SCRInfo{
-			"scr1": {SmartContractResult: &smartContractResult.SmartContractResult{
+			hex.EncodeToString([]byte("scr1")): {SmartContractResult: &smartContractResult.SmartContractResult{
 				OriginalTxHash: []byte("t1"),
 				Data:           []byte("75736572206572726f72"),
 				SndAddr:        decodeBech32("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u"),
 				RcvAddr:        decodeBech32("erd1dglncxk6sl9a3xumj78n6z2xux4ghp5c92cstv5zsn56tjgtdwpsk46qrs"),
-			}},
+			}, FeeInfo: &outport.FeeInfo{}},
 		},
 	}
 
