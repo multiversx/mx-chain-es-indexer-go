@@ -190,9 +190,9 @@ func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 	t.Parallel()
 
 	logsAndEvents := map[string]*transaction.Log{
-		"wrong": nil,
+		hex.EncodeToString([]byte("wrong")): nil,
 
-		"txHash": {
+		hex.EncodeToString([]byte("txHash")): {
 			Address: []byte("address"),
 			Events: []*transaction.Event{
 				{
