@@ -49,6 +49,9 @@ var ESDTs = Object{
 					},
 				},
 			},
+			"paused": Object{
+				"type": "boolean",
+			},
 			"properties": Object{
 				"properties": Object{
 					"canMint": Object{
