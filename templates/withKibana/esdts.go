@@ -18,7 +18,7 @@ var ESDTs = Object{
 				"type": "keyword",
 			},
 			"token": Object{
-				"type": "keyword",
+				"type": "text",
 			},
 			"issuer": Object{
 				"type": "keyword",

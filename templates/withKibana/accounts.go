@@ -26,8 +26,7 @@ var Accounts = Object{
 				"type": "double",
 			},
 			"nonce": Object{
-				"index": "false",
-				"type":  "long",
+				"type": "double",
 			},
 			"address": Object{
 				"type": "keyword",
