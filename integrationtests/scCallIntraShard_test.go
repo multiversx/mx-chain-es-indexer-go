@@ -147,10 +147,10 @@ func TestTransactionWithScCallSuccess(t *testing.T) {
 	refundValueBig, _ := big.NewInt(0).SetString("2161082850000000", 10)
 	pool := &outport.TransactionPool{
 		Transactions: map[string]*outport.TxInfo{
-			string(txHash): txInfo,
+			hex.EncodeToString(txHash): txInfo,
 		},
 		SmartContractResults: map[string]*outport.SCRInfo{
-			string(scrHash1): {SmartContractResult: &smartContractResult.SmartContractResult{
+			hex.EncodeToString(scrHash1): {SmartContractResult: &smartContractResult.SmartContractResult{
 				Nonce:          102,
 				Value:          refundValueBig,
 				GasPrice:       1000000000,

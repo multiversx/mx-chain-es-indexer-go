@@ -1,7 +1,6 @@
 package logsevents
 
 import (
-	"encoding/hex"
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
@@ -197,20 +196,19 @@ func (lep *logsAndEventsProcessor) PrepareLogsForDB(
 }
 
 func (lep *logsAndEventsProcessor) prepareLogsForDB(
-	id string,
+	logHashHex string,
 	logHandler coreData.LogHandler,
 	timestamp uint64,
 ) *data.Logs {
-	encodedID := hex.EncodeToString([]byte(id))
 	originalTxHash := ""
-	scr, ok := lep.logsData.scrsMap[encodedID]
+	scr, ok := lep.logsData.scrsMap[logHashHex]
 	if ok {
 		originalTxHash = scr.OriginalTxHash
 	}
 
 	events := logHandler.GetLogEvents()
 	logsDB := &data.Logs{
-		ID:             encodedID,
+		ID:             logHashHex,
 		OriginalTxHash: originalTxHash,
 		Address:        lep.pubKeyConverter.Encode(logHandler.GetAddress()),
 		Timestamp:      time.Duration(timestamp),

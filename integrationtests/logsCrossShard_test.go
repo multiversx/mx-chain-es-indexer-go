@@ -39,7 +39,7 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 	// index on source
 	pool := &outport.TransactionPool{
 		Logs: map[string]*transaction.Log{
-			hex.EncodeToString([]byte("cross-log")): {
+			logID: {
 				Address: decodeAddress(address1),
 				Events: []*transaction.Event{
 					{
@@ -71,7 +71,7 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 	}
 	pool = &outport.TransactionPool{
 		Logs: map[string]*transaction.Log{
-			hex.EncodeToString([]byte("cross-log")): {
+			logID: {
 				Address: decodeAddress(address1),
 				Events: []*transaction.Event{
 					{
@@ -107,7 +107,7 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 	}
 	pool = &outport.TransactionPool{
 		Logs: map[string]*transaction.Log{
-			hex.EncodeToString([]byte("cross-log")): {
+			logID: {
 				Address: decodeAddress(address1),
 				Events: []*transaction.Event{
 					{
