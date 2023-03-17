@@ -138,9 +138,9 @@ func (di *dataIndexer) FinalizedBlock(_ *outport.FinalizedBlock) error {
 	return nil
 }
 
-// IsNilIndexer will return a bool value that signals if the indexer's implementation is a NilIndexer
-func (di *dataIndexer) IsNilIndexer() bool {
-	return di.isNilIndexer
+// GetMarshaller return the marshaller
+func (di *dataIndexer) GetMarshaller() marshal.Marshalizer {
+	return di.headerMarshaller
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

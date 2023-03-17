@@ -54,7 +54,6 @@ func TestDataIndexer_NewIndexerWithCorrectParamsShouldWork(t *testing.T) {
 
 	require.Nil(t, err)
 	require.False(t, check.IfNil(ei))
-	require.False(t, ei.IsNilIndexer())
 }
 
 func TestDataIndexer_SaveBlock(t *testing.T) {

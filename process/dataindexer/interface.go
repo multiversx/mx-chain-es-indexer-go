@@ -6,6 +6,7 @@ import (
 	coreData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
+	"github.com/multiversx/mx-chain-core-go/marshal"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer/workItems"
 )
 
@@ -61,9 +62,9 @@ type Indexer interface {
 	SaveValidatorsRating(ratingData *outport.ValidatorsRating) error
 	SaveAccounts(accountsData *outport.Accounts) error
 	FinalizedBlock(finalizedBlock *outport.FinalizedBlock) error
+	GetMarshaller() marshal.Marshalizer
 	Close() error
 	IsInterfaceNil() bool
-	IsNilIndexer() bool
 }
 
 // BalanceConverter defines what a balance converter should be able to do

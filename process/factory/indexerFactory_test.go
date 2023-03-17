@@ -126,7 +126,6 @@ func TestIndexerFactoryCreate_ElasticIndexer(t *testing.T) {
 
 	err = elasticIndexer.Close()
 	require.NoError(t, err)
-	require.False(t, elasticIndexer.IsNilIndexer())
 
 	err = elasticIndexer.Close()
 	require.NoError(t, err)
