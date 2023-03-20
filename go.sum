@@ -70,12 +70,12 @@ github.com/mitchellh/mapstructure v1.4.1/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RR
 github.com/mr-tron/base58 v1.2.0 h1:T/HDJBh4ZCPbU39/+c3rRvE0uKBQlU27+QI8LJ4t64o=
 github.com/mr-tron/base58 v1.2.0/go.mod h1:BinMc/sQntlIE1frQmRFPUoPA1Zkr8VRgBdjWI2mNwc=
 github.com/multiversx/mx-chain-core-go v1.1.30/go.mod h1:8gGEQv6BWuuJwhd25qqhCOZbBSv9mk+hLeKvinSaSMk=
-github.com/multiversx/mx-chain-core-go v1.1.34-0.20230215164556-5ec8f51e96d3 h1:68ooIEnoUO69QGWXDa0VdDarOA4CaF9IiEMg9q/kisc=
-github.com/multiversx/mx-chain-core-go v1.1.34-0.20230215164556-5ec8f51e96d3/go.mod h1:8gGEQv6BWuuJwhd25qqhCOZbBSv9mk+hLeKvinSaSMk=
+github.com/multiversx/mx-chain-core-go v1.2.0 h1:K539hKZKcHjBiFQpowFbA3BUd95Fe5+FLC+rKBOFZF0=
+github.com/multiversx/mx-chain-core-go v1.2.0/go.mod h1:8gGEQv6BWuuJwhd25qqhCOZbBSv9mk+hLeKvinSaSMk=
 github.com/multiversx/mx-chain-logger-go v1.0.11 h1:DFsHa+sc5fKwhDR50I8uBM99RTDTEW68ESyr5ALRDwE=
 github.com/multiversx/mx-chain-logger-go v1.0.11/go.mod h1:1srDkP0DQucWQ+rYfaq0BX2qLnULsUdRPADpYUTM6dA=
-github.com/multiversx/mx-chain-vm-common-go v1.3.37-0.20230216122352-6dd6ff58ca2d h1:n2qx7CceoqbEqZXWOsjLccS34zLPh5KNriIXTlNSIc4=
-github.com/multiversx/mx-chain-vm-common-go v1.3.37-0.20230216122352-6dd6ff58ca2d/go.mod h1:Y9ggiJtjGCPK/8WEzFO91JLlppMa/uUMobMmsogeiRw=
+github.com/multiversx/mx-chain-vm-common-go v1.4.0 h1:0i0cJZJOXGzqYzwtKFHSr2yGmnFAdizOuISK8HgsnYo=
+github.com/multiversx/mx-chain-vm-common-go v1.4.0/go.mod h1:odBJC92ANA8zLtPh/wwajUUGJOaS88F5QYGf0t8Wgzw=
 github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI8A=
 github.com/onsi/ginkgo v1.6.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
 github.com/onsi/ginkgo v1.7.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
