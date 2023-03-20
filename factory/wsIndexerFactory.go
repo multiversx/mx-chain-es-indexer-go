@@ -8,10 +8,7 @@ import (
 	"github.com/multiversx/mx-chain-es-indexer-go/process/factory"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/wsclient"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/wsindexer"
-	logger "github.com/multiversx/mx-chain-logger-go"
 )
-
-var log = logger.GetOrCreate("factory")
 
 const (
 	indexerCacheSize = 1
@@ -46,7 +43,7 @@ func createDataIndexer(cfg config.Config, clusterCfg config.ClusterConfig) (wsin
 	if err != nil {
 		return nil, err
 	}
-	addressPubkeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(cfg.Config.AddressConverter.Length, log)
+	addressPubkeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(cfg.Config.AddressConverter.Length, cfg.Config.AddressConverter.Prefix)
 	if err != nil {
 		return nil, err
 	}

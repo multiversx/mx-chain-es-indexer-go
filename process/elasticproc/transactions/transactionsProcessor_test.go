@@ -524,7 +524,7 @@ func TestTxsDatabaseProcessor_IssueESDTTx(t *testing.T) {
 	t.Parallel()
 
 	args := createMockArgsTxsDBProc()
-	pubKeyConv, _ := pubkeyConverter.NewBech32PubkeyConverter(32, log)
+	pubKeyConv, _ := pubkeyConverter.NewBech32PubkeyConverter(32, "erd")
 	args.AddressPubkeyConverter = pubKeyConv
 	txDbProc, _ := NewTransactionsProcessor(args)
 

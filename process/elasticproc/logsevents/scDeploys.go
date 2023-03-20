@@ -34,10 +34,12 @@ func (sdp *scDeploysProcessor) processEvent(args *argsProcessEvent) argOutputPro
 		}
 	}
 
-	scAddress := sdp.pubKeyConverter.Encode(topics[0])
+	scAddress := sdp.pubKeyConverter.SilentEncode(topics[0], log)
+	creatorAddress := sdp.pubKeyConverter.SilentEncode(topics[1], log)
+
 	args.scDeploys[scAddress] = &data.ScDeployInfo{
 		TxHash:    args.txHashHexEncoded,
-		Creator:   sdp.pubKeyConverter.Encode(topics[1]),
+		Creator:   creatorAddress,
 		Timestamp: args.timestamp,
 	}
 
