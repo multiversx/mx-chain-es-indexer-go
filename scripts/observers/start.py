@@ -2,14 +2,24 @@ from dotenv import load_dotenv
 from utils import *
 
 
-def start_observer(shard_id, working_dir):
+def start_seed_node(working_dir):
+    current_directory = os.getcwd()
+    working_dir_seed_node = working_dir/"seednode"
+    os.chdir(working_dir_seed_node)
+    command = "./seednode"
+    os.system("screen -d -m -S seednode" + " " + command)
+
+    os.chdir(current_directory)
+
+
+def start_observer(shard_id, working_dir, sk_index):
     current_observer = str(os.getenv('OBSERVER_DIR_PREFIX')) + str(shard_id)
     working_dir_observer = working_dir / current_observer
 
     current_directory = os.getcwd()
     # start observer
     os.chdir(working_dir_observer / "node")
-    command = "./node" + " --log-level *:DEBUG --no-key --log-save"
+    command = "./node" + " --log-level *:DEBUG --log-save --sk-index " + str(sk_index)
     os.system("screen -d -m -S obs" + str(shard_id) + " " + command)
 
     # start indexer
@@ -29,10 +39,11 @@ def main():
 
     print("staring observers and indexers....")
 
-    start_observer(0, working_dir)
-    start_observer(1, working_dir)
-    start_observer(2, working_dir)
-    start_observer(METACHAIN, working_dir)
+    start_seed_node(working_dir)
+    start_observer(0, working_dir, 0)
+    start_observer(1, working_dir, 1)
+    start_observer(2, working_dir, 2)
+    start_observer(METACHAIN, working_dir, 3)
 
     print("done")
 

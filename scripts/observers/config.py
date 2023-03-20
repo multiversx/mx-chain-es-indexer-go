@@ -72,26 +72,24 @@ def prepare_observer(shard_id, working_dir, config_folder):
     update_toml_indexer(indexer_config, shard_id)
 
 
-def main():
-    load_dotenv()
-    working_dir = get_working_dir()
-    try:
-        os.makedirs(working_dir)
-    except FileExistsError:
-        print(f"working directory {working_dir} already exists")
-        print("use `python3 clean.py` command first")
-        sys.exit()
+def generate_new_config(working_dir):
+    mx_chain_go_folder = working_dir / "mx-chain-go" / "scripts" / "testnet"
 
-    # CLONE config
-    print("cloning config....")
-    config_folder = working_dir / "config"
-    if not os.path.isdir(config_folder):
-        Repo.clone_from(os.getenv('NODE_CONFIG_URL'), config_folder)
+    with open(mx_chain_go_folder/"local.sh", "w") as file:
+        file.write("export SHARDCOUNT=3\n")
+        file.write("export SHARD_VALIDATORCOUNT=1\n")
+        file.write("export SHARD_OBSERVERCOUNT=0\n")
+        file.write("export SHARD_CONSENSUS_SIZE=1\n")
+        file.write("export META_VALIDATORCOUNT=1\n")
+        file.write("export META_OBSERVERCOUNT=0\n")
+        file.write("export META_CONSENSUS_SIZE=1\n")
+        file.write('export LOGLEVEL="*:DEBUG"\n')
+        file.write('export OBSERVERS_ANTIFLOOD_DISABLE=0\n')
+        file.write('export USETMUX=0\n')
+        file.write('export USE_PROXY=0\n')
 
-    repo_cfg = Repo(config_folder)
-    repo_cfg.git.checkout(os.getenv('NODE_CONFIG_BRANCH'))
 
-    # CLONE mx-chain-go
+def clone_mx_chain_go(working_dir):
     print("cloning mx-chain-go....")
     mx_chain_go_folder = working_dir / "mx-chain-go"
     if not os.path.isdir(mx_chain_go_folder):
@@ -100,8 +98,63 @@ def main():
     repo_mx_chain_go = Repo(mx_chain_go_folder)
     repo_mx_chain_go.git.checkout(os.getenv('NODE_GO_BRANCH'))
 
+
+def clone_dependencies(working_dir):
+    print("cloning dependencies")
+    mx_chain_deploy_folder = working_dir / "mx-chain-deploy-go"
+    if not os.path.isdir(mx_chain_deploy_folder):
+        Repo.clone_from(os.getenv('MX_CHAIN_DEPLOY_GO_URL'), mx_chain_deploy_folder)
+
+
+def prepare_seed_node(working_dir):
+    print("preparing seed node")
+    seed_node = Path.home() / "MultiversX/testnet/seednode"
+    shutil.copytree(seed_node, working_dir/"seednode")
+
+    mx_chain_go_folder = working_dir / "mx-chain-go"
+    subprocess.check_call(["go", "build"], cwd=mx_chain_go_folder / "cmd/seednode")
+
+    seed_node_exec = mx_chain_go_folder / "cmd/seednode/seednode"
+    shutil.copyfile(seed_node_exec, working_dir/"seednode/seednode")
+
+    st = os.stat(working_dir/"seednode/seednode")
+    os.chmod(working_dir/"seednode/seednode", st.st_mode | stat.S_IEXEC)
+
+
+def generate_config_for_local_testnet(working_dir):
+    mx_chain_local_testnet_scripts = working_dir / "mx-chain-go/scripts/testnet"
+    subprocess.check_call(["./clean.sh"], cwd=mx_chain_local_testnet_scripts)
+    subprocess.check_call(["./config.sh"], cwd=mx_chain_local_testnet_scripts)
+
+    config_folder = Path.home() / "MultiversX/testnet/node/config"
+    os.rename(config_folder / "config_validator.toml", config_folder / "config.toml")
+    shutil.copytree(config_folder, working_dir/"config")
+
+
+def main():
+    load_dotenv()
+    working_dir = get_working_dir()
+    try:
+        os.makedirs(working_dir)
+    except FileExistsError:
+        print("something")
+        print(f"working directory {working_dir} already exists")
+        print("use `python3 clean.py` command first")
+        sys.exit()
+
+    # clone mx-chain-go
+    clone_mx_chain_go(working_dir)
+    # clone dependencies
+    clone_dependencies(working_dir)
+    # generate configs
+    generate_new_config(working_dir)
+    generate_config_for_local_testnet(working_dir)
+    # prepare seednode
+    prepare_seed_node(working_dir)
+
     # build binary mx-chain-go
     print("building node...")
+    mx_chain_go_folder = working_dir / "mx-chain-go"
     subprocess.check_call(["go", "build"], cwd=mx_chain_go_folder / "cmd/node")
 
     # build binary indexer
@@ -109,6 +162,7 @@ def main():
     subprocess.check_call(["go", "build"], cwd="../../cmd/elasticindexer")
 
     # prepare observers
+    config_folder = working_dir / "config"
     print("preparing config...")
     prepare_observer(0, working_dir, config_folder)
     prepare_observer(1, working_dir, config_folder)
