@@ -31,6 +31,7 @@ func TestValidatorsProcessor_PrepareAnSerializeValidatorsPubKeys(t *testing.T) {
 		},
 	}
 	res, err := vp.PrepareAnSerializeValidatorsPubKeys(validators)
+	require.Nil(t, err)
 	require.Equal(t, `{ "index" : { "_id" : "0_30" } }
 {"publicKeys":["6b31","6b32"]}
 { "index" : { "_id" : "1_30" } }
