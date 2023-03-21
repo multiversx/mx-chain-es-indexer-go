@@ -16,6 +16,8 @@ def update_toml_indexer(path, shard_id):
         prefs_data['config']['web-socket']['server-url'] = "localhost:" + str(WS_PORT_BASE + shard_id)
     else:
         prefs_data['config']['web-socket']['server-url'] = "localhost:" + str(WS_METACHAIN_PORT)
+    prefs_data['config']['web-socket']['data-marshaller-type'] = str(os.getenv('WS_MARSHALLER_TYPE'))
+
     f = open(path_prefs, 'w')
     toml.dump(prefs_data, f)
     f.close()
@@ -38,6 +40,8 @@ def update_toml_node(path, shard_id):
         external_data['WebSocketConnector']['URL'] = "localhost:" + str(WS_PORT_BASE + shard_id)
     else:
         external_data['WebSocketConnector']['URL'] = "localhost:" + str(WS_METACHAIN_PORT)
+
+    external_data['WebSocketConnector']['MarshallerType'] = str(os.getenv('WS_MARSHALLER_TYPE'))
     f = open(path_external, 'w')
     toml.dump(external_data, f)
     f.close()
