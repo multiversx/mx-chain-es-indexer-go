@@ -14,7 +14,6 @@ import (
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	indexerData "github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
-	datafield "github.com/multiversx/mx-chain-vm-common-go/parsers/dataField"
 )
 
 type smartContractResultsProcessor struct {
@@ -119,7 +118,7 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 
 	relayerAddr := ""
 	if len(scr.RelayerAddr) > 0 {
-		relayerAddr = proc.pubKeyConverter.Encode(scr.RelayerAddr)
+		relayerAddr = proc.pubKeyConverter.SilentEncode(scr.RelayerAddr, log)
 	}
 
 	relayedValue := ""
@@ -128,10 +127,14 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 	}
 	originalSenderAddr := ""
 	if scr.OriginalSender != nil {
-		originalSenderAddr = proc.pubKeyConverter.Encode(scr.OriginalSender)
+		originalSenderAddr = proc.pubKeyConverter.SilentEncode(scr.OriginalSender, log)
 	}
 
 	res := proc.dataFieldParser.Parse(scr.Data, scr.SndAddr, scr.RcvAddr, numOfShards)
+
+	senderAddr := proc.pubKeyConverter.SilentEncode(scr.SndAddr, log)
+	receiverAddr := proc.pubKeyConverter.SilentEncode(scr.RcvAddr, log)
+	receiversAddr, _ := proc.pubKeyConverter.EncodeSlice(res.Receivers)
 
 	valueNum, err := proc.balanceConverter.ComputeESDTBalanceAsFloat(scr.Value)
 	if err != nil {
@@ -166,8 +169,8 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 		GasPrice:           scr.GasPrice,
 		Value:              scr.Value.String(),
 		ValueNum:           valueNum,
-		Sender:             proc.pubKeyConverter.Encode(scr.SndAddr),
-		Receiver:           proc.pubKeyConverter.Encode(scr.RcvAddr),
+		Sender:             senderAddr,
+		Receiver:           receiverAddr,
 		RelayerAddr:        relayerAddr,
 		RelayedValue:       relayedValue,
 		Code:               string(scr.Code),
@@ -186,7 +189,7 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 		ESDTValues:         esdtValues,
 		ESDTValuesNum:      esdtValuesNum,
 		Tokens:             res.Tokens,
-		Receivers:          datafield.EncodeBytesSlice(proc.pubKeyConverter.Encode, res.Receivers),
+		Receivers:          receiversAddr,
 		ReceiversShardIDs:  res.ReceiversShardID,
 		IsRelayed:          res.IsRelayed,
 		OriginalSender:     originalSenderAddr,

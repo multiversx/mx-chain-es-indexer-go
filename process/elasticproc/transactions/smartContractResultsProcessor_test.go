@@ -61,6 +61,12 @@ func TestPrepareSmartContractResult(t *testing.T) {
 
 	mbHash := []byte("hash")
 	scRes := scrsProc.prepareSmartContractResult([]byte(scHash), mbHash, scrInfo, header, 0, 1, 3)
+
+	senderAddr, err := pubKeyConverter.Encode(sndAddr)
+	require.Nil(t, err)
+	receiverAddr, err := pubKeyConverter.Encode(rcvAddr)
+	require.Nil(t, err)
+
 	expectedTx := &data.ScResult{
 		Nonce:              nonce,
 		Hash:               hex.EncodeToString([]byte(scHash)),
@@ -68,8 +74,8 @@ func TestPrepareSmartContractResult(t *testing.T) {
 		MBHash:             hex.EncodeToString(mbHash),
 		Code:               string(code),
 		Data:               make([]byte, 0),
-		Sender:             pubKeyConverter.Encode(sndAddr),
-		Receiver:           pubKeyConverter.Encode(rcvAddr),
+		Sender:             senderAddr,
+		Receiver:           receiverAddr,
 		Value:              "<nil>",
 		CallType:           "1",
 		Timestamp:          time.Duration(100),

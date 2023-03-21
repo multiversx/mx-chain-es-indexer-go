@@ -15,7 +15,6 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/rewardTx"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
-	datafield "github.com/multiversx/mx-chain-vm-common-go/parsers/dataField"
 )
 
 type dbTransactionBuilder struct {
@@ -49,6 +48,10 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 
 	isScCall := core.IsSmartContractAddress(tx.RcvAddr)
 	res := dtb.dataFieldParser.Parse(tx.Data, tx.SndAddr, tx.RcvAddr, numOfShards)
+
+	receiverAddr := dtb.addressPubkeyConverter.SilentEncode(tx.RcvAddr, log)
+	senderAddr := dtb.addressPubkeyConverter.SilentEncode(tx.SndAddr, log)
+	receiversAddr, _ := dtb.addressPubkeyConverter.EncodeSlice(res.Receivers)
 
 	receiverShardID := mb.ReceiverShardID
 	if mb.Type == block.InvalidBlock {
@@ -91,9 +94,9 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		Nonce:             tx.Nonce,
 		Round:             header.GetRound(),
 		Value:             tx.Value.String(),
+		Receiver:          receiverAddr,
+		Sender:            senderAddr,
 		ValueNum:          valueNum,
-		Receiver:          dtb.addressPubkeyConverter.Encode(tx.RcvAddr),
-		Sender:            dtb.addressPubkeyConverter.Encode(tx.SndAddr),
 		ReceiverShard:     receiverShardID,
 		SenderShard:       mb.SenderShardID,
 		GasPrice:          tx.GasPrice,
@@ -114,7 +117,7 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		ESDTValues:        esdtValues,
 		ESDTValuesNum:     esdtValuesNum,
 		Tokens:            res.Tokens,
-		Receivers:         datafield.EncodeBytesSlice(dtb.addressPubkeyConverter.Encode, res.Receivers),
+		Receivers:         receiversAddr,
 		ReceiversShardIDs: res.ReceiversShardID,
 		IsRelayed:         res.IsRelayed,
 		Version:           tx.Version,
@@ -135,6 +138,8 @@ func (dtb *dbTransactionBuilder) prepareRewardTransaction(
 			"hash", txHash, "error", err)
 	}
 
+	receiverAddr := dtb.addressPubkeyConverter.SilentEncode(rTx.RcvAddr, log)
+
 	return &data.Transaction{
 		Hash:          hex.EncodeToString(txHash),
 		MBHash:        hex.EncodeToString(mbHash),
@@ -142,7 +147,7 @@ func (dtb *dbTransactionBuilder) prepareRewardTransaction(
 		Round:         rTx.Round,
 		Value:         rTx.Value.String(),
 		ValueNum:      valueNum,
-		Receiver:      dtb.addressPubkeyConverter.Encode(rTx.RcvAddr),
+		Receiver:      receiverAddr,
 		Sender:        fmt.Sprintf("%d", core.MetachainShardId),
 		ReceiverShard: mb.ReceiverShardID,
 		SenderShard:   mb.SenderShardID,
@@ -161,10 +166,12 @@ func (dtb *dbTransactionBuilder) prepareReceipt(
 	rec *receipt.Receipt,
 	header coreData.HeaderHandler,
 ) *data.Receipt {
+	senderAddr := dtb.addressPubkeyConverter.SilentEncode(rec.SndAddr, log)
+
 	return &data.Receipt{
 		Hash:      recHashHex,
 		Value:     rec.Value.String(),
-		Sender:    dtb.addressPubkeyConverter.Encode(rec.SndAddr),
+		Sender:    senderAddr,
 		Data:      string(rec.Data),
 		TxHash:    hex.EncodeToString(rec.TxHash),
 		Timestamp: time.Duration(header.GetTimeStamp()),

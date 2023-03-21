@@ -22,7 +22,7 @@ import (
 
 var (
 	log                = logger.GetOrCreate("integration-tests")
-	pubKeyConverter, _ = pubkeyConverter.NewBech32PubkeyConverter(32, log)
+	pubKeyConverter, _ = pubkeyConverter.NewBech32PubkeyConverter(32, addressPrefix)
 )
 
 //nolint

@@ -64,6 +64,11 @@ func TestGetMoveBalanceTransaction(t *testing.T) {
 		ExecutionOrder: 0,
 	}
 
+	senderAddr, err := cp.addressPubkeyConverter.Encode(tx.RcvAddr)
+	require.Nil(t, err)
+	receiverAddr, err := cp.addressPubkeyConverter.Encode(tx.SndAddr)
+	require.Nil(t, err)
+
 	expectedTx := &data.Transaction{
 		Hash:             hex.EncodeToString(txHash),
 		MBHash:           hex.EncodeToString(mbHash),
@@ -71,8 +76,8 @@ func TestGetMoveBalanceTransaction(t *testing.T) {
 		Round:            header.Round,
 		Value:            tx.Value.String(),
 		ValueNum:         1e-15,
-		Receiver:         cp.addressPubkeyConverter.Encode(tx.RcvAddr),
-		Sender:           cp.addressPubkeyConverter.Encode(tx.SndAddr),
+		Receiver:         senderAddr,
+		Sender:           receiverAddr,
 		ReceiverShard:    mb.ReceiverShardID,
 		SenderShard:      mb.SenderShardID,
 		GasPrice:         gasPrice,
@@ -161,8 +166,8 @@ func TestGetMoveBalanceTransactionInvalid(t *testing.T) {
 		Round:            header.Round,
 		Value:            tx.Value.String(),
 		ValueNum:         1e-15,
-		Receiver:         cp.addressPubkeyConverter.Encode(tx.RcvAddr),
-		Sender:           cp.addressPubkeyConverter.Encode(tx.SndAddr),
+		Receiver:         cp.addressPubkeyConverter.SilentEncode(tx.RcvAddr, log),
+		Sender:           cp.addressPubkeyConverter.SilentEncode(tx.SndAddr, log),
 		ReceiverShard:    uint32(2),
 		SenderShard:      mb.SenderShardID,
 		GasPrice:         gasPrice,
