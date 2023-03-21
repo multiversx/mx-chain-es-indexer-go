@@ -1,6 +1,7 @@
 package workItems
 
 import (
+	"encoding/hex"
 	"fmt"
 	"time"
 
@@ -53,7 +54,7 @@ func (wib *itemBlock) Save() error {
 	err := wib.indexer.SaveHeader(wib.outportBlockWithHeader)
 	if err != nil {
 		return fmt.Errorf("%w when saving header block, hash %s, nonce %d",
-			err, wib.outportBlockWithHeader.BlockData.HeaderHash, wib.outportBlockWithHeader.Header.GetNonce())
+			err, hex.EncodeToString(wib.outportBlockWithHeader.BlockData.HeaderHash), wib.outportBlockWithHeader.Header.GetNonce())
 	}
 
 	if len(wib.outportBlockWithHeader.BlockData.Body.MiniBlocks) == 0 {
@@ -63,13 +64,13 @@ func (wib *itemBlock) Save() error {
 	err = wib.indexer.SaveMiniblocks(wib.outportBlockWithHeader.Header, wib.outportBlockWithHeader.BlockData.Body)
 	if err != nil {
 		return fmt.Errorf("%w when saving miniblocks, block hash %s, nonce %d",
-			err, wib.outportBlockWithHeader.BlockData.HeaderHash, wib.outportBlockWithHeader.Header.GetNonce())
+			err, hex.EncodeToString(wib.outportBlockWithHeader.BlockData.HeaderHash), wib.outportBlockWithHeader.Header.GetNonce())
 	}
 
 	err = wib.indexer.SaveTransactions(wib.outportBlockWithHeader)
 	if err != nil {
 		return fmt.Errorf("%w when saving transactions, block hash %s, nonce %d",
-			err, wib.outportBlockWithHeader.BlockData.HeaderHash, wib.outportBlockWithHeader.Header.GetNonce())
+			err, hex.EncodeToString(wib.outportBlockWithHeader.BlockData.HeaderHash), wib.outportBlockWithHeader.Header.GetNonce())
 	}
 
 	return nil

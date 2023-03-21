@@ -2,6 +2,7 @@ package block
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -25,7 +26,11 @@ const (
 	notFound                  = -2
 )
 
-var log = logger.GetOrCreate("indexer/process/block")
+var (
+	log                     = logger.GetOrCreate("indexer/process/block")
+	errNilBlockData         = errors.New("nil block data")
+	errNilHeaderGasConsumed = errors.New("nil header gas consumed data")
+)
 
 type blockProcessor struct {
 	hasher      hashing.Hasher
@@ -52,8 +57,14 @@ func (bp *blockProcessor) PrepareBlockForDB(obh *outport.OutportBlockWithHeader)
 	if check.IfNil(obh.Header) {
 		return nil, indexer.ErrNilHeaderHandler
 	}
+	if obh.BlockData == nil {
+		return nil, errNilBlockData
+	}
 	if obh.BlockData.Body == nil {
 		return nil, indexer.ErrNilBlockBody
+	}
+	if obh.HeaderGasConsumption == nil {
+		return nil, errNilHeaderGasConsumed
 	}
 
 	blockSizeInBytes, err := bp.computeBlockSize(obh.Header, obh.BlockData.Body)
@@ -61,9 +72,7 @@ func (bp *blockProcessor) PrepareBlockForDB(obh *outport.OutportBlockWithHeader)
 		return nil, err
 	}
 
-	// TODO compute size of transactions
-	sizeTxs := obh.OutportBlock.TransactionPool.Size()
-
+	sizeTxs := computeSizeOfTransactions(obh.TransactionPool)
 	miniblocksHashes := bp.getEncodedMBSHashes(obh.BlockData.Body)
 	leaderIndex := bp.getLeaderIndex(obh.SignersIndexes)
 
@@ -359,4 +368,26 @@ func hexEncodeSlice(slice [][]byte) []string {
 		res = append(res, hex.EncodeToString(s))
 	}
 	return res
+}
+
+func computeSizeOfTransactions(pool *outport.TransactionPool) int {
+	if pool == nil {
+		return 0
+	}
+
+	txsSize := 0
+	for _, txInfo := range pool.Transactions {
+		txsSize += txInfo.Transaction.Size()
+	}
+	for _, rewardInfo := range pool.Rewards {
+		txsSize += rewardInfo.Reward.Size()
+	}
+	for _, invalidTxInfo := range pool.InvalidTxs {
+		txsSize += invalidTxInfo.Transaction.Size()
+	}
+	for _, scrInfo := range pool.SmartContractResults {
+		txsSize += scrInfo.SmartContractResult.Size()
+	}
+
+	return txsSize
 }

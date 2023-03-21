@@ -3,6 +3,7 @@ package transactions
 import (
 	"encoding/hex"
 	"fmt"
+	"math/big"
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
@@ -59,9 +60,18 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		log.Warn("dbTransactionBuilder.prepareTransaction: cannot compute value as num", "value", tx.Value,
 			"hash", txHash, "error", err)
 	}
-	feeNum, err := dtb.balanceConverter.ComputeESDTBalanceAsFloat(txInfo.FeeInfo.Fee)
+
+	feeInfo := &outport.FeeInfo{
+		Fee:            big.NewInt(0),
+		InitialPaidFee: big.NewInt(0),
+	}
+	if txInfo.FeeInfo != nil {
+		feeInfo = txInfo.FeeInfo
+	}
+
+	feeNum, err := dtb.balanceConverter.ComputeESDTBalanceAsFloat(feeInfo.Fee)
 	if err != nil {
-		log.Warn("dbTransactionBuilder.prepareTransaction: cannot compute transaction fee as num", "fee", txInfo.FeeInfo.Fee,
+		log.Warn("dbTransactionBuilder.prepareTransaction: cannot compute transaction fee as num", "fee", feeInfo.Fee,
 			"hash", txHash, "error", err)
 	}
 	esdtValuesNum, err := dtb.balanceConverter.ComputeSliceOfStringsAsFloat(res.ESDTValues)
@@ -92,9 +102,9 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		Signature:         hex.EncodeToString(tx.Signature),
 		Timestamp:         time.Duration(header.GetTimeStamp()),
 		Status:            txStatus,
-		GasUsed:           txInfo.FeeInfo.GasUsed,
-		InitialPaidFee:    txInfo.FeeInfo.InitialPaidFee.String(),
-		Fee:               txInfo.FeeInfo.Fee.String(),
+		GasUsed:           feeInfo.GasUsed,
+		InitialPaidFee:    feeInfo.InitialPaidFee.String(),
+		Fee:               feeInfo.Fee.String(),
 		FeeNum:            feeNum,
 		ReceiverUserName:  tx.RcvUserName,
 		SenderUserName:    tx.SndUserName,

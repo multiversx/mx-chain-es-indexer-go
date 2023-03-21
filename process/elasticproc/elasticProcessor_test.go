@@ -47,6 +47,22 @@ func newElasticsearchProcessor(elasticsearchWriter DatabaseClientHandler, argume
 	}
 }
 
+func createEmptyOutportBlockWithHeader() *outport.OutportBlockWithHeader {
+	signerIndexes := []uint64{0, 1}
+	header := &dataBlock.Header{Nonce: 1}
+	return &outport.OutportBlockWithHeader{
+		Header: header,
+		OutportBlock: &outport.OutportBlock{
+			BlockData: &outport.BlockData{
+				Body: &dataBlock.Body{},
+			},
+			SignersIndexes:       signerIndexes,
+			HeaderGasConsumption: &outport.HeaderGasConsumption{},
+			TransactionPool:      &outport.TransactionPool{},
+		},
+	}
+}
+
 func createMockElasticProcessorArgs() *ArgElasticProcessor {
 	balanceConverter, _ := converters.NewBalanceConverter(10)
 
@@ -311,8 +327,7 @@ func TestElasticProcessor_RemoveMiniblocks(t *testing.T) {
 
 func TestElasticseachDatabaseSaveHeader_RequestError(t *testing.T) {
 	localErr := errors.New("localErr")
-	header := &dataBlock.Header{Nonce: 1}
-	signerIndexes := []uint64{0, 1}
+
 	arguments := createMockElasticProcessorArgs()
 	dbWriter := &mock.DatabaseWriterStub{
 		DoBulkRequestCalled: func(buff *bytes.Buffer, index string) error {
@@ -322,24 +337,12 @@ func TestElasticseachDatabaseSaveHeader_RequestError(t *testing.T) {
 	arguments.BlockProc, _ = block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 	elasticDatabase := newElasticsearchProcessor(dbWriter, arguments)
 
-	err := elasticDatabase.SaveHeader(&outport.OutportBlockWithHeader{
-		Header: header,
-		OutportBlock: &outport.OutportBlock{
-			BlockData: &outport.BlockData{
-				Body: &dataBlock.Body{},
-			},
-			SignersIndexes:       signerIndexes,
-			HeaderGasConsumption: &outport.HeaderGasConsumption{},
-		},
-	})
+	err := elasticDatabase.SaveHeader(createEmptyOutportBlockWithHeader())
 	require.Equal(t, localErr, err)
 }
 
 func TestElasticseachDatabaseSaveHeader_CheckRequestBody(t *testing.T) {
-	header := &dataBlock.Header{
-		Nonce: 1,
-	}
-	signerIndexes := []uint64{0, 1}
+	outportBlock := createEmptyOutportBlockWithHeader()
 
 	miniBlock := &dataBlock.MiniBlock{
 		Type: dataBlock.TxBlock,
@@ -349,6 +352,7 @@ func TestElasticseachDatabaseSaveHeader_CheckRequestBody(t *testing.T) {
 			miniBlock,
 		},
 	}
+	outportBlock.BlockData.Body = blockBody
 
 	arguments := createMockElasticProcessorArgs()
 
@@ -362,9 +366,9 @@ func TestElasticseachDatabaseSaveHeader_CheckRequestBody(t *testing.T) {
 			var bl data.Block
 			blockBytes, _ := ioutil.ReadAll(req.Body)
 			_ = json.Unmarshal(blockBytes, &bl)
-			require.Equal(t, header.Nonce, bl.Nonce)
+			require.Equal(t, outportBlock.Header.GetNonce(), bl.Nonce)
 			require.Equal(t, hexEncodedHash, bl.MiniBlocksHashes[0])
-			require.Equal(t, signerIndexes, bl.Validators)
+			require.Equal(t, outportBlock.SignersIndexes, bl.Validators)
 
 			return nil
 		},
@@ -372,16 +376,7 @@ func TestElasticseachDatabaseSaveHeader_CheckRequestBody(t *testing.T) {
 
 	arguments.BlockProc, _ = block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 	elasticDatabase := newElasticsearchProcessor(dbWriter, arguments)
-	err := elasticDatabase.SaveHeader(&outport.OutportBlockWithHeader{
-		Header: header,
-		OutportBlock: &outport.OutportBlock{
-			BlockData: &outport.BlockData{
-				Body: blockBody,
-			},
-			SignersIndexes:       signerIndexes,
-			HeaderGasConsumption: &outport.HeaderGasConsumption{},
-		},
-	})
+	err := elasticDatabase.SaveHeader(outportBlock)
 	require.Nil(t, err)
 }
 
@@ -407,21 +402,15 @@ func TestElasticseachSaveTransactions(t *testing.T) {
 	txDbProc, _ := transactions.NewTransactionsProcessor(args)
 	arguments.TransactionsProc = txDbProc
 
+	outportBlock := createEmptyOutportBlockWithHeader()
+	outportBlock.Header = header
+	outportBlock.BlockData.Body = body
+	outportBlock.TransactionPool.Transactions = map[string]*outport.TxInfo{
+		hex.EncodeToString([]byte("tx1")): {Transaction: &transaction.Transaction{}, FeeInfo: &outport.FeeInfo{}},
+	}
+
 	elasticDatabase := newElasticsearchProcessor(dbWriter, arguments)
-	err := elasticDatabase.SaveTransactions(&outport.OutportBlockWithHeader{
-		Header: header,
-		OutportBlock: &outport.OutportBlock{
-			BlockData: &outport.BlockData{
-				Body: body,
-			},
-			HeaderGasConsumption: &outport.HeaderGasConsumption{},
-			TransactionPool: &outport.TransactionPool{
-				Transactions: map[string]*outport.TxInfo{
-					hex.EncodeToString([]byte("tx1")): {Transaction: &transaction.Transaction{}, FeeInfo: &outport.FeeInfo{}},
-				},
-			},
-		},
-	})
+	err := elasticDatabase.SaveTransactions(outportBlock)
 	require.Equal(t, localErr, err)
 }
 
@@ -616,18 +605,7 @@ func TestElasticProcessor_IndexEpochInfoData(t *testing.T) {
 	err := elasticSearchProc.indexEpochInfoData(shardHeader, buffSlice)
 	require.True(t, errors.Is(err, dataindexer.ErrHeaderTypeAssertion))
 
-	body := &dataBlock.Body{}
-	metaHeader := &dataBlock.MetaBlock{}
-
-	err = elasticSearchProc.SaveHeader(&outport.OutportBlockWithHeader{
-		Header: metaHeader,
-		OutportBlock: &outport.OutportBlock{
-			BlockData: &outport.BlockData{
-				Body: body,
-			},
-			HeaderGasConsumption: &outport.HeaderGasConsumption{},
-		},
-	})
+	err = elasticSearchProc.SaveHeader(createEmptyOutportBlockWithHeader())
 	require.Nil(t, err)
 	require.True(t, called)
 }
@@ -657,15 +635,7 @@ func TestElasticProcessor_SaveTransactionNoDataShouldNotDoRequest(t *testing.T) 
 	elasticSearchProc := newElasticsearchProcessor(dbWriter, arguments)
 	elasticSearchProc.enabledIndexes[dataindexer.ScResultsIndex] = struct{}{}
 
-	err := elasticSearchProc.SaveTransactions(&outport.OutportBlockWithHeader{
-		Header: &dataBlock.Header{},
-		OutportBlock: &outport.OutportBlock{
-			BlockData: &outport.BlockData{
-				Body: &dataBlock.Body{},
-			},
-			TransactionPool: &outport.TransactionPool{},
-		},
-	})
+	err := elasticSearchProc.SaveTransactions(createEmptyOutportBlockWithHeader())
 	require.Nil(t, err)
 	require.False(t, called)
 }

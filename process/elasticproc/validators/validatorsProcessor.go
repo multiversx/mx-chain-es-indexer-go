@@ -29,7 +29,7 @@ func NewValidatorsProcessor(validatorPubkeyConverter core.PubkeyConverter, bulkS
 	}, nil
 }
 
-// PrepareAnSerializeValidatorsPubKeys will prepare validators public keys and serialize validators public keys
+// PrepareAnSerializeValidatorsPubKeys will prepare validators public keys and serialize them
 func (vp *validatorsProcessor) PrepareAnSerializeValidatorsPubKeys(validatorsPubKeys *outport.ValidatorsPubKeys) ([]*bytes.Buffer, error) {
 	buffSlice := data.NewBufferSlice(vp.bulkSizeMaxSize)
 

@@ -434,7 +434,7 @@ func TestBlockProcessor_PrepareBlockForDBMiniBlocksDetails(t *testing.T) {
 	require.Equal(t, &data.Block{
 		Hash:            "68617368",
 		Size:            int64(723),
-		SizeTxs:         94,
+		SizeTxs:         0,
 		AccumulatedFees: "0",
 		DeveloperFees:   "0",
 		TxCount:         uint32(5),
