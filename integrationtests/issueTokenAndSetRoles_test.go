@@ -35,20 +35,23 @@ func TestIssueTokenAndSetRole(t *testing.T) {
 	address1 := "erd1k04pxr6c0gvlcx4rd5fje0a4uy33axqxwz0fpcrgtfdy3nrqauqqgvxprv"
 	address2 := "erd1suhxyflu4w4pqdxmushpxzc6a3qszr89m8uswzqcvyh0mh9mzxwqdwkm0x"
 	pool := &outport.TransactionPool{
-		Logs: map[string]*transaction.Log{
-			hex.EncodeToString([]byte("h1")): {
-				Events: []*transaction.Event{
-					{
-						Address:    decodeAddress(address1),
-						Identifier: []byte("issueSemiFungible"),
-						Topics:     [][]byte{[]byte("TOK-abcd"), []byte("semi-token"), []byte("SEMI"), []byte(core.SemiFungibleESDT)},
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address1),
+							Identifier: []byte("issueSemiFungible"),
+							Topics:     [][]byte{[]byte("TOK-abcd"), []byte("semi-token"), []byte("SEMI"), []byte(core.SemiFungibleESDT)},
+						},
+						{
+							Address:    decodeAddress(address1),
+							Identifier: []byte("upgradeProperties"),
+							Topics:     [][]byte{[]byte("TOK-abcd"), big.NewInt(0).Bytes(), []byte("canUpgrade"), []byte("true")},
+						},
+						nil,
 					},
-					{
-						Address:    decodeAddress(address1),
-						Identifier: []byte("upgradeProperties"),
-						Topics:     [][]byte{[]byte("TOK-abcd"), big.NewInt(0).Bytes(), []byte("canUpgrade"), []byte("true")},
-					},
-					nil,
 				},
 			},
 		},
@@ -65,15 +68,18 @@ func TestIssueTokenAndSetRole(t *testing.T) {
 
 	// SET ROLES
 	pool = &outport.TransactionPool{
-		Logs: map[string]*transaction.Log{
-			hex.EncodeToString([]byte("h1")): {
-				Events: []*transaction.Event{
-					{
-						Address:    decodeAddress(address1),
-						Identifier: []byte(core.BuiltInFunctionSetESDTRole),
-						Topics:     [][]byte{[]byte("TOK-abcd"), big.NewInt(0).Bytes(), big.NewInt(0).Bytes(), []byte(core.ESDTRoleNFTCreate), []byte(core.ESDTRoleNFTBurn)},
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address1),
+							Identifier: []byte(core.BuiltInFunctionSetESDTRole),
+							Topics:     [][]byte{[]byte("TOK-abcd"), big.NewInt(0).Bytes(), big.NewInt(0).Bytes(), []byte(core.ESDTRoleNFTCreate), []byte(core.ESDTRoleNFTBurn)},
+						},
+						nil,
 					},
-					nil,
 				},
 			},
 		},
@@ -91,18 +97,21 @@ func TestIssueTokenAndSetRole(t *testing.T) {
 
 	// TRANSFER ROLE
 	pool = &outport.TransactionPool{
-		Logs: map[string]*transaction.Log{
-			hex.EncodeToString([]byte("h1")): {
-				Events: []*transaction.Event{
-					{
-						Address:    decodeAddress(address1),
-						Identifier: []byte(core.BuiltInFunctionESDTNFTCreateRoleTransfer),
-						Topics:     [][]byte{[]byte("TOK-abcd"), big.NewInt(0).Bytes(), big.NewInt(0).Bytes(), []byte("false")},
-					},
-					{
-						Address:    decodeAddress(address2),
-						Identifier: []byte(core.BuiltInFunctionESDTNFTCreateRoleTransfer),
-						Topics:     [][]byte{[]byte("TOK-abcd"), big.NewInt(0).Bytes(), big.NewInt(0).Bytes(), []byte("true")},
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address1),
+							Identifier: []byte(core.BuiltInFunctionESDTNFTCreateRoleTransfer),
+							Topics:     [][]byte{[]byte("TOK-abcd"), big.NewInt(0).Bytes(), big.NewInt(0).Bytes(), []byte("false")},
+						},
+						{
+							Address:    decodeAddress(address2),
+							Identifier: []byte(core.BuiltInFunctionESDTNFTCreateRoleTransfer),
+							Topics:     [][]byte{[]byte("TOK-abcd"), big.NewInt(0).Bytes(), big.NewInt(0).Bytes(), []byte("true")},
+						},
 					},
 				},
 			},
@@ -121,15 +130,18 @@ func TestIssueTokenAndSetRole(t *testing.T) {
 
 	// UNSET ROLES
 	pool = &outport.TransactionPool{
-		Logs: map[string]*transaction.Log{
-			hex.EncodeToString([]byte("h1")): {
-				Events: []*transaction.Event{
-					{
-						Address:    decodeAddress(address1),
-						Identifier: []byte(core.BuiltInFunctionUnSetESDTRole),
-						Topics:     [][]byte{[]byte("TOK-abcd"), big.NewInt(0).Bytes(), big.NewInt(0).Bytes(), []byte(core.ESDTRoleNFTBurn)},
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address1),
+							Identifier: []byte(core.BuiltInFunctionUnSetESDTRole),
+							Topics:     [][]byte{[]byte("TOK-abcd"), big.NewInt(0).Bytes(), big.NewInt(0).Bytes(), []byte(core.ESDTRoleNFTBurn)},
+						},
+						nil,
 					},
-					nil,
 				},
 			},
 		},
@@ -165,15 +177,18 @@ func TestIssueSetRolesEventAndAfterTokenIssue(t *testing.T) {
 	address1 := "erd1k04pxr6c0gvlcx4rd5fje0a4uy33axqxwz0fpcrgtfdy3nrqauqqgvxprv"
 	// SET ROLES
 	pool := &outport.TransactionPool{
-		Logs: map[string]*transaction.Log{
-			hex.EncodeToString([]byte("h1")): {
-				Events: []*transaction.Event{
-					{
-						Address:    decodeAddress(address1),
-						Identifier: []byte(core.BuiltInFunctionSetESDTRole),
-						Topics:     [][]byte{[]byte("TTT-abcd"), big.NewInt(0).Bytes(), big.NewInt(0).Bytes(), []byte(core.ESDTRoleNFTCreate), []byte(core.ESDTRoleNFTBurn)},
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address1),
+							Identifier: []byte(core.BuiltInFunctionSetESDTRole),
+							Topics:     [][]byte{[]byte("TTT-abcd"), big.NewInt(0).Bytes(), big.NewInt(0).Bytes(), []byte(core.ESDTRoleNFTCreate), []byte(core.ESDTRoleNFTBurn)},
+						},
+						nil,
 					},
-					nil,
 				},
 			},
 		},
@@ -191,15 +206,18 @@ func TestIssueSetRolesEventAndAfterTokenIssue(t *testing.T) {
 
 	// ISSUE
 	pool = &outport.TransactionPool{
-		Logs: map[string]*transaction.Log{
-			hex.EncodeToString([]byte("h1")): {
-				Events: []*transaction.Event{
-					{
-						Address:    decodeAddress(address1),
-						Identifier: []byte("issueSemiFungible"),
-						Topics:     [][]byte{[]byte("TTT-abcd"), []byte("semi-token"), []byte("SEMI"), []byte(core.SemiFungibleESDT)},
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address1),
+							Identifier: []byte("issueSemiFungible"),
+							Topics:     [][]byte{[]byte("TTT-abcd"), []byte("semi-token"), []byte("SEMI"), []byte(core.SemiFungibleESDT)},
+						},
+						nil,
 					},
-					nil,
 				},
 			},
 		},

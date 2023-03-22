@@ -38,16 +38,19 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 
 	// index on source
 	pool := &outport.TransactionPool{
-		Logs: map[string]*transaction.Log{
-			logID: {
-				Address: decodeAddress(address1),
-				Events: []*transaction.Event{
-					{
-						Address:    decodeAddress(address1),
-						Identifier: []byte(core.BuiltInFunctionESDTTransfer),
-						Topics:     [][]byte{[]byte("ESDT-abcd"), big.NewInt(0).Bytes(), big.NewInt(1).Bytes()},
+		Logs: []*outport.LogData{
+			{
+				TxHash: logID,
+				Log: &transaction.Log{
+					Address: decodeAddress(address1),
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address1),
+							Identifier: []byte(core.BuiltInFunctionESDTTransfer),
+							Topics:     [][]byte{[]byte("ESDT-abcd"), big.NewInt(0).Bytes(), big.NewInt(1).Bytes()},
+						},
+						nil,
 					},
-					nil,
 				},
 			},
 		},
@@ -70,22 +73,25 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 		TimeStamp: 6040,
 	}
 	pool = &outport.TransactionPool{
-		Logs: map[string]*transaction.Log{
-			logID: {
-				Address: decodeAddress(address1),
-				Events: []*transaction.Event{
-					{
-						Address:    decodeAddress(address1),
-						Identifier: []byte(core.BuiltInFunctionESDTTransfer),
-						Topics:     [][]byte{[]byte("ESDT-abcd"), big.NewInt(0).Bytes(), big.NewInt(1).Bytes()},
-					},
-					{
+		Logs: []*outport.LogData{
+			{
+				TxHash: logID,
+				Log: &transaction.Log{
+					Address: decodeAddress(address1),
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address1),
+							Identifier: []byte(core.BuiltInFunctionESDTTransfer),
+							Topics:     [][]byte{[]byte("ESDT-abcd"), big.NewInt(0).Bytes(), big.NewInt(1).Bytes()},
+						},
+						{
 
-						Address:    decodeAddress(address2),
-						Identifier: []byte("do-something"),
-						Topics:     [][]byte{[]byte("topic1"), []byte("topic2")},
+							Address:    decodeAddress(address2),
+							Identifier: []byte("do-something"),
+							Topics:     [][]byte{[]byte("topic1"), []byte("topic2")},
+						},
+						nil,
 					},
-					nil,
 				},
 			},
 		},
@@ -106,16 +112,19 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 		TimeStamp: 5000,
 	}
 	pool = &outport.TransactionPool{
-		Logs: map[string]*transaction.Log{
-			logID: {
-				Address: decodeAddress(address1),
-				Events: []*transaction.Event{
-					{
-						Address:    decodeAddress(address1),
-						Identifier: []byte(core.BuiltInFunctionESDTTransfer),
-						Topics:     [][]byte{[]byte("ESDT-abcd"), big.NewInt(0).Bytes(), big.NewInt(1).Bytes()},
+		Logs: []*outport.LogData{
+			{
+				TxHash: logID,
+				Log: &transaction.Log{
+					Address: decodeAddress(address1),
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address1),
+							Identifier: []byte(core.BuiltInFunctionESDTTransfer),
+							Topics:     [][]byte{[]byte("ESDT-abcd"), big.NewInt(0).Bytes(), big.NewInt(1).Bytes()},
+						},
+						nil,
 					},
-					nil,
 				},
 			},
 		},

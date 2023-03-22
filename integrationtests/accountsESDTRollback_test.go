@@ -56,15 +56,18 @@ func TestAccountsESDTDeleteOnRollback(t *testing.T) {
 	// CREATE SEMI-FUNGIBLE TOKEN
 	esdtDataBytes, _ := json.Marshal(esdtToken)
 	pool := &outport.TransactionPool{
-		Logs: map[string]*transaction.Log{
-			hex.EncodeToString([]byte("h1")): {
-				Events: []*transaction.Event{
-					{
-						Address:    decodeAddress(addr),
-						Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
-						Topics:     [][]byte{[]byte("TOKEN-eeee"), big.NewInt(2).Bytes(), big.NewInt(1).Bytes(), esdtDataBytes},
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(addr),
+							Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
+							Topics:     [][]byte{[]byte("TOKEN-eeee"), big.NewInt(2).Bytes(), big.NewInt(1).Bytes(), esdtDataBytes},
+						},
+						nil,
 					},
-					nil,
 				},
 			},
 		},

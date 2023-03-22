@@ -61,15 +61,18 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 	}
 
 	pool := &outport.TransactionPool{
-		Logs: map[string]*transaction.Log{
-			hex.EncodeToString([]byte("h1")): {
-				Events: []*transaction.Event{
-					{
-						Address:    decodeAddress(addr),
-						Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
-						Topics:     [][]byte{[]byte("NFT-abcdef"), big.NewInt(7440483).Bytes(), big.NewInt(1).Bytes()},
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(addr),
+							Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
+							Topics:     [][]byte{[]byte("NFT-abcdef"), big.NewInt(7440483).Bytes(), big.NewInt(1).Bytes()},
+						},
+						nil,
 					},
-					nil,
 				},
 			},
 		},
@@ -107,15 +110,18 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 	}
 
 	pool = &outport.TransactionPool{
-		Logs: map[string]*transaction.Log{
-			hex.EncodeToString([]byte("h1")): {
-				Events: []*transaction.Event{
-					{
-						Address:    []byte("test-address-balance-1"),
-						Identifier: []byte(core.BuiltInFunctionESDTNFTTransfer),
-						Topics:     [][]byte{[]byte("NFT-abcdef"), big.NewInt(7440483).Bytes(), big.NewInt(1).Bytes(), decodeAddress(addrReceiver)},
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    []byte("test-address-balance-1"),
+							Identifier: []byte(core.BuiltInFunctionESDTNFTTransfer),
+							Topics:     [][]byte{[]byte("NFT-abcdef"), big.NewInt(7440483).Bytes(), big.NewInt(1).Bytes(), decodeAddress(addrReceiver)},
+						},
+						nil,
 					},
-					nil,
 				},
 			},
 		},

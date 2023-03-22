@@ -34,15 +34,18 @@ func TestIssueTokenAndTransferOwnership(t *testing.T) {
 	address1 := "erd1v7e552pz9py4hv6raan0c4jflez3e6csdmzcgrncg0qrnk4tywvsqx0h5j"
 	address2 := "erd1acjlnuhkd8773sqhmw85r0ur4lcyuqgm0n69h9ttxh0gwxtuuzxq4lckh6"
 	pool := &outport.TransactionPool{
-		Logs: map[string]*transaction.Log{
-			hex.EncodeToString([]byte("h1")): {
-				Events: []*transaction.Event{
-					{
-						Address:    decodeAddress(address1),
-						Identifier: []byte("issueSemiFungible"),
-						Topics:     [][]byte{[]byte("SSSS-abcd"), []byte("semi-token"), []byte("SSSS"), []byte(core.SemiFungibleESDT), big.NewInt(18).Bytes()},
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address1),
+							Identifier: []byte("issueSemiFungible"),
+							Topics:     [][]byte{[]byte("SSSS-abcd"), []byte("semi-token"), []byte("SSSS"), []byte(core.SemiFungibleESDT), big.NewInt(18).Bytes()},
+						},
+						nil,
 					},
-					nil,
 				},
 			},
 		},
@@ -63,15 +66,18 @@ func TestIssueTokenAndTransferOwnership(t *testing.T) {
 
 	// transfer ownership
 	pool = &outport.TransactionPool{
-		Logs: map[string]*transaction.Log{
-			hex.EncodeToString([]byte("h1")): {
-				Events: []*transaction.Event{
-					{
-						Address:    decodeAddress(address1),
-						Identifier: []byte("transferOwnership"),
-						Topics:     [][]byte{[]byte("SSSS-abcd"), []byte("semi-token"), []byte("SSSS"), []byte(core.SemiFungibleESDT), decodeAddress(address2)},
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address1),
+							Identifier: []byte("transferOwnership"),
+							Topics:     [][]byte{[]byte("SSSS-abcd"), []byte("semi-token"), []byte("SSSS"), []byte(core.SemiFungibleESDT), decodeAddress(address2)},
+						},
+						nil,
 					},
-					nil,
 				},
 			},
 		},
@@ -91,15 +97,18 @@ func TestIssueTokenAndTransferOwnership(t *testing.T) {
 
 	// do pause
 	pool = &outport.TransactionPool{
-		Logs: map[string]*transaction.Log{
-			hex.EncodeToString([]byte("h1")): {
-				Events: []*transaction.Event{
-					{
-						Address:    decodeAddress(address1),
-						Identifier: []byte("ESDTPause"),
-						Topics:     [][]byte{[]byte("SSSS-abcd")},
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address1),
+							Identifier: []byte("ESDTPause"),
+							Topics:     [][]byte{[]byte("SSSS-abcd")},
+						},
+						nil,
 					},
-					nil,
 				},
 			},
 		},
@@ -115,15 +124,18 @@ func TestIssueTokenAndTransferOwnership(t *testing.T) {
 
 	// do unPause
 	pool = &outport.TransactionPool{
-		Logs: map[string]*transaction.Log{
-			hex.EncodeToString([]byte("h1")): {
-				Events: []*transaction.Event{
-					{
-						Address:    decodeAddress(address1),
-						Identifier: []byte("ESDTUnPause"),
-						Topics:     [][]byte{[]byte("SSSS-abcd")},
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address1),
+							Identifier: []byte("ESDTUnPause"),
+							Topics:     [][]byte{[]byte("SSSS-abcd")},
+						},
+						nil,
 					},
-					nil,
 				},
 			},
 		},

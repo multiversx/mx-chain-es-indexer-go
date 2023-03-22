@@ -61,15 +61,18 @@ func TestIndexAccountsBalance(t *testing.T) {
 	}
 
 	pool := &outport.TransactionPool{
-		Logs: map[string]*transaction.Log{
-			hex.EncodeToString([]byte("h1")): {
-				Events: []*transaction.Event{
-					{
-						Address:    []byte("eeeebbbb"),
-						Identifier: []byte(core.BuiltInFunctionESDTTransfer),
-						Topics:     [][]byte{[]byte("TTTT-abcd"), nil, big.NewInt(1).Bytes()},
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    []byte("eeeebbbb"),
+							Identifier: []byte(core.BuiltInFunctionESDTTransfer),
+							Topics:     [][]byte{[]byte("TTTT-abcd"), nil, big.NewInt(1).Bytes()},
+						},
+						nil,
 					},
-					nil,
 				},
 			},
 		},
@@ -134,15 +137,18 @@ func TestIndexAccountsBalance(t *testing.T) {
 				FeeInfo: &outport.FeeInfo{},
 			},
 		},
-		Logs: map[string]*transaction.Log{
-			hex.EncodeToString([]byte("h1")): {
-				Events: []*transaction.Event{
-					{
-						Address:    decodeAddress(addr2),
-						Identifier: []byte(core.BuiltInFunctionESDTTransfer),
-						Topics:     [][]byte{[]byte("TTTT-abcd"), nil, big.NewInt(1).Bytes()},
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(addr2),
+							Identifier: []byte(core.BuiltInFunctionESDTTransfer),
+							Topics:     [][]byte{[]byte("TTTT-abcd"), nil, big.NewInt(1).Bytes()},
+						},
+						nil,
 					},
-					nil,
 				},
 			},
 		},

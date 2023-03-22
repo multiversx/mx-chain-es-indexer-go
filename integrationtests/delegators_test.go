@@ -41,16 +41,19 @@ func TestDelegateUnDelegateAndWithdraw(t *testing.T) {
 	// delegate
 	delegatedValue, _ := big.NewInt(0).SetString("200000000000000000000", 10)
 	pool := &outport.TransactionPool{
-		Logs: map[string]*transaction.Log{
-			hex.EncodeToString([]byte("h1")): {
-				Address: decodeAddress("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqhllllsajxzat"),
-				Events: []*transaction.Event{
-					{
-						Address:    decodeAddress(address1),
-						Identifier: []byte("delegate"),
-						Topics:     [][]byte{delegatedValue.Bytes(), delegatedValue.Bytes(), big.NewInt(10).Bytes(), delegatedValue.Bytes()},
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
+					Address: decodeAddress("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqhllllsajxzat"),
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address1),
+							Identifier: []byte("delegate"),
+							Topics:     [][]byte{delegatedValue.Bytes(), delegatedValue.Bytes(), big.NewInt(10).Bytes(), delegatedValue.Bytes()},
+						},
+						nil,
 					},
-					nil,
 				},
 			},
 		},
@@ -69,16 +72,19 @@ func TestDelegateUnDelegateAndWithdraw(t *testing.T) {
 	unDelegatedValue, _ := big.NewInt(0).SetString("50000000000000000000", 10)
 	totalDelegation, _ := big.NewInt(0).SetString("150000000000000000000", 10)
 	pool = &outport.TransactionPool{
-		Logs: map[string]*transaction.Log{
-			hex.EncodeToString([]byte("h2")): {
-				Address: decodeAddress("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqhllllsajxzat"),
-				Events: []*transaction.Event{
-					{
-						Address:    decodeAddress(address1),
-						Identifier: []byte("unDelegate"),
-						Topics:     [][]byte{unDelegatedValue.Bytes(), totalDelegation.Bytes(), big.NewInt(10).Bytes(), totalDelegation.Bytes(), []byte("1")},
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString([]byte("h2")),
+				Log: &transaction.Log{
+					Address: decodeAddress("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqhllllsajxzat"),
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address1),
+							Identifier: []byte("unDelegate"),
+							Topics:     [][]byte{unDelegatedValue.Bytes(), totalDelegation.Bytes(), big.NewInt(10).Bytes(), totalDelegation.Bytes(), []byte("1")},
+						},
+						nil,
 					},
-					nil,
 				},
 			},
 		},
@@ -96,16 +102,19 @@ func TestDelegateUnDelegateAndWithdraw(t *testing.T) {
 	unDelegatedValue, _ = big.NewInt(0).SetString("25500000000000000000", 10)
 	totalDelegation, _ = big.NewInt(0).SetString("124500000000000000000", 10)
 	pool = &outport.TransactionPool{
-		Logs: map[string]*transaction.Log{
-			hex.EncodeToString([]byte("h3")): {
-				Address: decodeAddress("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqhllllsajxzat"),
-				Events: []*transaction.Event{
-					{
-						Address:    decodeAddress(address1),
-						Identifier: []byte("unDelegate"),
-						Topics:     [][]byte{unDelegatedValue.Bytes(), totalDelegation.Bytes(), big.NewInt(10).Bytes(), totalDelegation.Bytes(), []byte("2")},
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString([]byte("h3")),
+				Log: &transaction.Log{
+					Address: decodeAddress("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqhllllsajxzat"),
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address1),
+							Identifier: []byte("unDelegate"),
+							Topics:     [][]byte{unDelegatedValue.Bytes(), totalDelegation.Bytes(), big.NewInt(10).Bytes(), totalDelegation.Bytes(), []byte("2")},
+						},
+						nil,
 					},
-					nil,
 				},
 			},
 		},
@@ -133,16 +142,19 @@ func TestDelegateUnDelegateAndWithdraw(t *testing.T) {
 	// withdraw
 	withdrawValue, _ := big.NewInt(0).SetString("725500000000000000000", 10)
 	pool = &outport.TransactionPool{
-		Logs: map[string]*transaction.Log{
-			hex.EncodeToString([]byte("h4")): {
-				Address: decodeAddress("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqhllllsajxzat"),
-				Events: []*transaction.Event{
-					{
-						Address:    decodeAddress(address1),
-						Identifier: []byte("withdraw"),
-						Topics:     [][]byte{withdrawValue.Bytes(), totalDelegation.Bytes(), big.NewInt(10).Bytes(), totalDelegation.Bytes(), []byte("false"), []byte("1"), []byte("2")},
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString([]byte("h4")),
+				Log: &transaction.Log{
+					Address: decodeAddress("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqhllllsajxzat"),
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address1),
+							Identifier: []byte("withdraw"),
+							Topics:     [][]byte{withdrawValue.Bytes(), totalDelegation.Bytes(), big.NewInt(10).Bytes(), totalDelegation.Bytes(), []byte("false"), []byte("1"), []byte("2")},
+						},
+						nil,
 					},
-					nil,
 				},
 			},
 		},

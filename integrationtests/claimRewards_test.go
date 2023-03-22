@@ -105,13 +105,16 @@ func TestTransactionWithClaimRewardsGasRefund(t *testing.T) {
 			hex.EncodeToString(scrHash2): {SmartContractResult: scr2, FeeInfo: &outport.FeeInfo{}},
 			hex.EncodeToString(scrHash1): {SmartContractResult: scr1, FeeInfo: &outport.FeeInfo{}},
 		},
-		Logs: map[string]*transaction.Log{
-			hex.EncodeToString(txHash): {
-				Events: []*transaction.Event{
-					{
-						Address:    decodeAddress(addressSender),
-						Identifier: []byte("writeLog"),
-						Topics:     [][]byte{[]byte("something")},
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString(txHash),
+				Log: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(addressSender),
+							Identifier: []byte("writeLog"),
+							Topics:     [][]byte{[]byte("something")},
+						},
 					},
 				},
 			},

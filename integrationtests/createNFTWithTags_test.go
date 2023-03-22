@@ -48,15 +48,18 @@ func TestCreateNFTWithTags(t *testing.T) {
 	// CREATE A FIRST NFT WITH THE TAGS
 	address1 := "erd1v7e552pz9py4hv6raan0c4jflez3e6csdmzcgrncg0qrnk4tywvsqx0h5j"
 	pool := &outport.TransactionPool{
-		Logs: map[string]*transaction.Log{
-			hex.EncodeToString([]byte("h1")): {
-				Events: []*transaction.Event{
-					{
-						Address:    decodeAddress(address1),
-						Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
-						Topics:     [][]byte{[]byte("DESK-abcd"), big.NewInt(1).Bytes(), big.NewInt(1).Bytes(), esdtDataBytes},
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address1),
+							Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
+							Topics:     [][]byte{[]byte("DESK-abcd"), big.NewInt(1).Bytes(), big.NewInt(1).Bytes(), esdtDataBytes},
+						},
+						nil,
 					},
-					nil,
 				},
 			},
 		},
@@ -113,15 +116,18 @@ func TestCreateNFTWithTags(t *testing.T) {
 
 	// CREATE A SECOND NFT WITH THE SAME TAGS
 	pool = &outport.TransactionPool{
-		Logs: map[string]*transaction.Log{
-			hex.EncodeToString([]byte("h1")): {
-				Events: []*transaction.Event{
-					{
-						Address:    decodeAddress(address1),
-						Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
-						Topics:     [][]byte{[]byte("DESK-abcd"), big.NewInt(2).Bytes(), big.NewInt(1).Bytes(), esdtDataBytes},
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address1),
+							Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
+							Topics:     [][]byte{[]byte("DESK-abcd"), big.NewInt(2).Bytes(), big.NewInt(1).Bytes(), esdtDataBytes},
+						},
+						nil,
 					},
-					nil,
 				},
 			},
 		},
@@ -159,15 +165,18 @@ func TestCreateNFTWithTags(t *testing.T) {
 	require.Nil(t, err)
 
 	pool = &outport.TransactionPool{
-		Logs: map[string]*transaction.Log{
-			hex.EncodeToString([]byte("h1")): {
-				Events: []*transaction.Event{
-					{
-						Address:    decodeAddress(address1),
-						Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
-						Topics:     [][]byte{[]byte("DESK-abcd"), big.NewInt(3).Bytes(), big.NewInt(1).Bytes(), esdtDataBytes},
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address1),
+							Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
+							Topics:     [][]byte{[]byte("DESK-abcd"), big.NewInt(3).Bytes(), big.NewInt(1).Bytes(), esdtDataBytes},
+						},
+						nil,
 					},
-					nil,
 				},
 			},
 		},

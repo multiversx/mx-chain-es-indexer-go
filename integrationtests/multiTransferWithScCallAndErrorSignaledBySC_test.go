@@ -139,17 +139,20 @@ func TestMultiTransferCrossShardAndScCallErrorSignaledBySC(t *testing.T) {
 			hex.EncodeToString(scrHash1): {SmartContractResult: scr1, FeeInfo: &outport.FeeInfo{}},
 			hex.EncodeToString(scrHash2): {SmartContractResult: scr2, FeeInfo: &outport.FeeInfo{}},
 		},
-		Logs: map[string]*transaction.Log{
-			hex.EncodeToString(scrHash1): {
-				Address: decodeAddress(address2),
-				Events: []*transaction.Event{
-					{
-						Address:    decodeAddress(address2),
-						Identifier: []byte("signalError"),
-					},
-					{
-						Address:    decodeAddress(address1),
-						Identifier: []byte("internalVMErrors"),
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString(scrHash1),
+				Log: &transaction.Log{
+					Address: decodeAddress(address2),
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address2),
+							Identifier: []byte("signalError"),
+						},
+						{
+							Address:    decodeAddress(address1),
+							Identifier: []byte("internalVMErrors"),
+						},
 					},
 				},
 			},

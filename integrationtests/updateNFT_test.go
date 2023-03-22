@@ -43,15 +43,18 @@ func TestNFTUpdateMetadata(t *testing.T) {
 	// CREATE NFT data
 	address := "erd1w7jyzuj6cv4ngw8luhlkakatjpmjh3ql95lmxphd3vssc4vpymks6k5th7"
 	pool := &outport.TransactionPool{
-		Logs: map[string]*transaction.Log{
-			hex.EncodeToString([]byte("h1")): {
-				Events: []*transaction.Event{
-					{
-						Address:    decodeAddress(address),
-						Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
-						Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(1).Bytes(), marshalizedCreate},
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address),
+							Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
+							Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(1).Bytes(), marshalizedCreate},
+						},
+						nil,
 					},
-					nil,
 				},
 			},
 		},
@@ -67,15 +70,18 @@ func TestNFTUpdateMetadata(t *testing.T) {
 
 	// Add URIS 1
 	pool = &outport.TransactionPool{
-		Logs: map[string]*transaction.Log{
-			hex.EncodeToString([]byte("h1")): {
-				Events: []*transaction.Event{
-					{
-						Address:    decodeAddress(address),
-						Identifier: []byte(core.BuiltInFunctionESDTNFTAddURI),
-						Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("uri1"), []byte("uri2")},
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address),
+							Identifier: []byte(core.BuiltInFunctionESDTNFTAddURI),
+							Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("uri1"), []byte("uri2")},
+						},
+						nil,
 					},
-					nil,
 				},
 			},
 		},
@@ -85,15 +91,18 @@ func TestNFTUpdateMetadata(t *testing.T) {
 
 	// Add URIS 2 --- results should be the same
 	pool = &outport.TransactionPool{
-		Logs: map[string]*transaction.Log{
-			hex.EncodeToString([]byte("h1")): {
-				Events: []*transaction.Event{
-					{
-						Address:    decodeAddress(address),
-						Identifier: []byte(core.BuiltInFunctionESDTNFTAddURI),
-						Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("uri1"), []byte("uri2")},
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address),
+							Identifier: []byte(core.BuiltInFunctionESDTNFTAddURI),
+							Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("uri1"), []byte("uri2")},
+						},
+						nil,
 					},
-					nil,
 				},
 			},
 		},
@@ -109,15 +118,18 @@ func TestNFTUpdateMetadata(t *testing.T) {
 	require.JSONEq(t, readExpectedResult("./testdata/updateNFT/token-after-add-uris.json"), string(genericResponse.Docs[0].Source))
 
 	pool = &outport.TransactionPool{
-		Logs: map[string]*transaction.Log{
-			hex.EncodeToString([]byte("h1")): {
-				Events: []*transaction.Event{
-					{
-						Address:    decodeAddress(address),
-						Identifier: []byte(core.BuiltInFunctionESDTNFTUpdateAttributes),
-						Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("tags:test,free,fun;description:This is a test description for an awesome nft;metadata:metadata-test")},
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address),
+							Identifier: []byte(core.BuiltInFunctionESDTNFTUpdateAttributes),
+							Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("tags:test,free,fun;description:This is a test description for an awesome nft;metadata:metadata-test")},
+						},
+						nil,
 					},
-					nil,
 				},
 			},
 		},
@@ -134,15 +146,18 @@ func TestNFTUpdateMetadata(t *testing.T) {
 	// Update attributes 2
 
 	pool = &outport.TransactionPool{
-		Logs: map[string]*transaction.Log{
-			hex.EncodeToString([]byte("h1")): {
-				Events: []*transaction.Event{
-					{
-						Address:    decodeAddress(address),
-						Identifier: []byte(core.BuiltInFunctionESDTNFTUpdateAttributes),
-						Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("something")},
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address),
+							Identifier: []byte(core.BuiltInFunctionESDTNFTUpdateAttributes),
+							Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("something")},
+						},
+						nil,
 					},
-					nil,
 				},
 			},
 		},
@@ -158,15 +173,18 @@ func TestNFTUpdateMetadata(t *testing.T) {
 
 	// Freeze nft
 	pool = &outport.TransactionPool{
-		Logs: map[string]*transaction.Log{
-			hex.EncodeToString([]byte("h1")): {
-				Events: []*transaction.Event{
-					{
-						Address:    decodeAddress(address),
-						Identifier: []byte(core.BuiltInFunctionESDTFreeze),
-						Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("something")},
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address),
+							Identifier: []byte(core.BuiltInFunctionESDTFreeze),
+							Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("something")},
+						},
+						nil,
 					},
-					nil,
 				},
 			},
 		},
@@ -181,15 +199,18 @@ func TestNFTUpdateMetadata(t *testing.T) {
 
 	// UnFreeze nft
 	pool = &outport.TransactionPool{
-		Logs: map[string]*transaction.Log{
-			hex.EncodeToString([]byte("h1")): {
-				Events: []*transaction.Event{
-					{
-						Address:    decodeAddress(address),
-						Identifier: []byte(core.BuiltInFunctionESDTUnFreeze),
-						Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("something")},
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address),
+							Identifier: []byte(core.BuiltInFunctionESDTUnFreeze),
+							Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("something")},
+						},
+						nil,
 					},
-					nil,
 				},
 			},
 		},
