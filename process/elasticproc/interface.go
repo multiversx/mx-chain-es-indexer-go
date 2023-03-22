@@ -8,7 +8,6 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/alteredAccount"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
-	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/tokeninfo"
 )
@@ -93,9 +92,9 @@ type DBValidatorsHandler interface {
 
 // DBLogsAndEventsHandler defines the actions that a logs and events handler should do
 type DBLogsAndEventsHandler interface {
-	PrepareLogsForDB(logsAndEvents map[string]*transaction.Log, timestamp uint64) []*data.Logs
+	PrepareLogsForDB(logsAndEvents []*outport.LogData, timestamp uint64) []*data.Logs
 	ExtractDataFromLogs(
-		logsAndEvents map[string]*transaction.Log,
+		logsAndEvents []*outport.LogData,
 		preparedResults *data.PreparedResults,
 		timestamp uint64,
 		shardID uint32,

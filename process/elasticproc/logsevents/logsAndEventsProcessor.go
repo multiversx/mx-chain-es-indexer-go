@@ -6,6 +6,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
@@ -86,7 +87,7 @@ func createEventsProcessors(args ArgsLogsAndEventsProcessor) []eventsProcessor {
 
 // ExtractDataFromLogs will extract data from the provided logs and events and put in altered addresses
 func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
-	logsAndEvents map[string]*transaction.Log,
+	logsAndEvents []*outport.LogData,
 	preparedResults *data.PreparedResults,
 	timestamp uint64,
 	shardID uint32,
@@ -94,20 +95,20 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 ) *data.PreparedLogsResults {
 	lep.logsData = newLogsData(timestamp, preparedResults.Transactions, preparedResults.ScResults)
 
-	for txHashHexEncoded, txLog := range logsAndEvents {
+	for _, txLog := range logsAndEvents {
 		if txLog == nil {
 			continue
 		}
 
-		events := txLog.Events
-		lep.processEvents(txHashHexEncoded, txLog.Address, events, shardID, numOfShards)
+		events := txLog.Log.Events
+		lep.processEvents(txLog.TxHash, txLog.Log.Address, events, shardID, numOfShards)
 
-		tx, ok := lep.logsData.txsMap[txHashHexEncoded]
+		tx, ok := lep.logsData.txsMap[txLog.TxHash]
 		if ok {
 			tx.HasLogs = true
 			continue
 		}
-		scr, ok := lep.logsData.scrsMap[txHashHexEncoded]
+		scr, ok := lep.logsData.scrsMap[txLog.TxHash]
 		if ok {
 			scr.HasLogs = true
 			continue
@@ -179,17 +180,17 @@ func (lep *logsAndEventsProcessor) processEvent(logHashHexEncoded string, logAdd
 
 // PrepareLogsForDB will prepare logs for database
 func (lep *logsAndEventsProcessor) PrepareLogsForDB(
-	logsAndEvents map[string]*transaction.Log,
+	logsAndEvents []*outport.LogData,
 	timestamp uint64,
 ) []*data.Logs {
 	logs := make([]*data.Logs, 0, len(logsAndEvents))
 
-	for txHashHex, txLog := range logsAndEvents {
+	for _, txLog := range logsAndEvents {
 		if txLog == nil {
 			continue
 		}
 
-		logs = append(logs, lep.prepareLogsForDB(txHashHex, txLog, timestamp))
+		logs = append(logs, lep.prepareLogsForDB(txLog.TxHash, txLog.Log, timestamp))
 	}
 
 	return logs

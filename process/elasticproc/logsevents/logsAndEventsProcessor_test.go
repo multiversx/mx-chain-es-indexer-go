@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/mock"
@@ -57,66 +58,82 @@ func TestNewLogsAndEventsProcessor(t *testing.T) {
 func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T) {
 	t.Parallel()
 
-	logsAndEvents := map[string]*transaction.Log{
-		hex.EncodeToString([]byte("wrong")): nil,
-		hex.EncodeToString([]byte("h3")): {
-			Events: []*transaction.Event{
-				{
-					Address:    []byte("addr"),
-					Identifier: []byte(core.SCDeployIdentifier),
-					Topics:     [][]byte{[]byte("addr1"), []byte("addr2")},
+	logsAndEvents := []*outport.LogData{
+		nil,
+		{
+			TxHash: hex.EncodeToString([]byte("h3")),
+			Log: &transaction.Log{
+				Events: []*transaction.Event{
+					{
+						Address:    []byte("addr"),
+						Identifier: []byte(core.SCDeployIdentifier),
+						Topics:     [][]byte{[]byte("addr1"), []byte("addr2")},
+					},
 				},
 			},
 		},
-
-		hex.EncodeToString([]byte("h1")): {
-			Address: []byte("address"),
-			Events: []*transaction.Event{
-				{
-					Address:    []byte("addr"),
-					Identifier: []byte(core.BuiltInFunctionESDTNFTTransfer),
-					Topics:     [][]byte{[]byte("my-token"), big.NewInt(0).SetUint64(1).Bytes(), big.NewInt(100).Bytes(), []byte("receiver")},
+		{
+			TxHash: hex.EncodeToString([]byte("h1")),
+			Log: &transaction.Log{
+				Address: []byte("address"),
+				Events: []*transaction.Event{
+					{
+						Address:    []byte("addr"),
+						Identifier: []byte(core.BuiltInFunctionESDTNFTTransfer),
+						Topics:     [][]byte{[]byte("my-token"), big.NewInt(0).SetUint64(1).Bytes(), big.NewInt(100).Bytes(), []byte("receiver")},
+					},
 				},
 			},
 		},
-
-		hex.EncodeToString([]byte("h2")): {
-			Events: []*transaction.Event{
-				{
-					Address:    []byte("addr"),
-					Identifier: []byte(core.BuiltInFunctionESDTTransfer),
-					Topics:     [][]byte{[]byte("esdt"), big.NewInt(0).Bytes(), big.NewInt(0).SetUint64(100).Bytes(), []byte("receiver")},
-				},
-				nil,
-			},
-		},
-		hex.EncodeToString([]byte("h4")): {
-			Events: []*transaction.Event{
-				{
-					Address:    []byte("addr"),
-					Identifier: []byte(issueSemiFungibleESDTFunc),
-					Topics:     [][]byte{[]byte("SEMI-abcd"), []byte("semi-token"), []byte("SEMI"), []byte(core.SemiFungibleESDT)},
-				},
-				nil,
-			},
-		},
-		hex.EncodeToString([]byte("h5")): {
-			Address: []byte("contract"),
-			Events: []*transaction.Event{
-				{
-					Address:    []byte("addr"),
-					Identifier: []byte(delegateFunc),
-					Topics:     [][]byte{big.NewInt(1000).Bytes(), big.NewInt(1000000000).Bytes(), big.NewInt(10).Bytes(), big.NewInt(1000000000).Bytes()},
+		{
+			TxHash: hex.EncodeToString([]byte("h2")),
+			Log: &transaction.Log{
+				Events: []*transaction.Event{
+					{
+						Address:    []byte("addr"),
+						Identifier: []byte(core.BuiltInFunctionESDTTransfer),
+						Topics:     [][]byte{[]byte("esdt"), big.NewInt(0).Bytes(), big.NewInt(0).SetUint64(100).Bytes(), []byte("receiver")},
+					},
+					nil,
 				},
 			},
 		},
-		hex.EncodeToString([]byte("h6")): {
-			Address: []byte("contract-second"),
-			Events: []*transaction.Event{
-				{
-					Address:    []byte("addr"),
-					Identifier: []byte(delegateFunc),
-					Topics:     [][]byte{big.NewInt(1000).Bytes(), big.NewInt(1000000000).Bytes(), big.NewInt(10).Bytes(), big.NewInt(1000000000).Bytes()},
+		{
+			TxHash: hex.EncodeToString([]byte("h4")),
+			Log: &transaction.Log{
+				Events: []*transaction.Event{
+					{
+						Address:    []byte("addr"),
+						Identifier: []byte(issueSemiFungibleESDTFunc),
+						Topics:     [][]byte{[]byte("SEMI-abcd"), []byte("semi-token"), []byte("SEMI"), []byte(core.SemiFungibleESDT)},
+					},
+					nil,
+				},
+			},
+		},
+		{
+			TxHash: hex.EncodeToString([]byte("h5")),
+			Log: &transaction.Log{
+				Address: []byte("contract"),
+				Events: []*transaction.Event{
+					{
+						Address:    []byte("addr"),
+						Identifier: []byte(delegateFunc),
+						Topics:     [][]byte{big.NewInt(1000).Bytes(), big.NewInt(1000000000).Bytes(), big.NewInt(10).Bytes(), big.NewInt(1000000000).Bytes()},
+					},
+				},
+			},
+		},
+		{
+			TxHash: hex.EncodeToString([]byte("h6")),
+			Log: &transaction.Log{
+				Address: []byte("contract-second"),
+				Events: []*transaction.Event{
+					{
+						Address:    []byte("addr"),
+						Identifier: []byte(delegateFunc),
+						Topics:     [][]byte{big.NewInt(1000).Bytes(), big.NewInt(1000000000).Bytes(), big.NewInt(10).Bytes(), big.NewInt(1000000000).Bytes()},
+					},
 				},
 			},
 		},
@@ -189,16 +206,18 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 	t.Parallel()
 
-	logsAndEvents := map[string]*transaction.Log{
-		hex.EncodeToString([]byte("wrong")): nil,
-
-		hex.EncodeToString([]byte("txHash")): {
-			Address: []byte("address"),
-			Events: []*transaction.Event{
-				{
-					Address:    []byte("addr"),
-					Identifier: []byte(core.BuiltInFunctionESDTNFTTransfer),
-					Topics:     [][]byte{[]byte("my-token"), big.NewInt(0).SetUint64(1).Bytes(), []byte("receiver")},
+	logsAndEvents := []*outport.LogData{
+		nil,
+		{
+			TxHash: hex.EncodeToString([]byte("txHash")),
+			Log: &transaction.Log{
+				Address: []byte("address"),
+				Events: []*transaction.Event{
+					{
+						Address:    []byte("addr"),
+						Identifier: []byte(core.BuiltInFunctionESDTNFTTransfer),
+						Topics:     [][]byte{[]byte("my-token"), big.NewInt(0).SetUint64(1).Bytes(), []byte("receiver")},
+					},
 				},
 			},
 		},
@@ -233,14 +252,17 @@ func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 func TestLogsAndEventsProcessor_ExtractDataFromLogsNFTBurn(t *testing.T) {
 	t.Parallel()
 
-	logsAndEventsSlice := make(map[string]*transaction.Log, 1)
-	logsAndEventsSlice["h1"] = &transaction.Log{
-		Address: []byte("address"),
-		Events: []*transaction.Event{
-			{
-				Address:    []byte("addr"),
-				Identifier: []byte(core.BuiltInFunctionESDTNFTBurn),
-				Topics:     [][]byte{[]byte("MY-NFT"), big.NewInt(2).Bytes(), big.NewInt(1).Bytes()},
+	logsAndEventsSlice := make([]*outport.LogData, 1)
+	logsAndEventsSlice[0] = &outport.LogData{
+		TxHash: "h1",
+		Log: &transaction.Log{
+			Address: []byte("address"),
+			Events: []*transaction.Event{
+				{
+					Address:    []byte("addr"),
+					Identifier: []byte(core.BuiltInFunctionESDTNFTBurn),
+					Topics:     [][]byte{[]byte("MY-NFT"), big.NewInt(2).Bytes(), big.NewInt(1).Bytes()},
+				},
 			},
 		},
 	}
