@@ -90,7 +90,7 @@ func TestBlockProcessor_PrepareBlockForDBShouldWork(t *testing.T) {
 		SearchOrder:           0x3fc,
 		MiniBlocksHashes:      []string{"0796d34e8d443fd31bf4d9ec4051421b4d5d0e8c1db9ff942d6f4dc3a9ca2803", "4cc379ab1f0aef6602e85a0a7ffabb5bc9a2ba646dc0fd720028e06527bf873f"},
 		NotarizedBlocksHashes: []string(nil),
-		Size:                  230,
+		Size:                  114,
 		AccumulatedFees:       "0",
 		DeveloperFees:         "0",
 	}
@@ -154,17 +154,10 @@ func TestBlockProcessor_PrepareBlockForDBMarshalFailHeader(t *testing.T) {
 func TestBlockProcessor_PrepareBlockForDBMarshalFailBlock(t *testing.T) {
 	t.Parallel()
 
-	count := 0
 	expectedErr := errors.New("local error")
 	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{
 		MarshalCalled: func(obj interface{}) ([]byte, error) {
-			defer func() {
-				count++
-			}()
-			if count > 0 {
-				return nil, expectedErr
-			}
-			return nil, nil
+			return nil, expectedErr
 		},
 	})
 
@@ -201,53 +194,57 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 
 	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 
-	outportBlockWithHeader := &outport.OutportBlockWithHeader{
-		Header: &dataBlock.MetaBlock{
-			TxCount: 1000,
-			EpochStart: dataBlock.EpochStart{
-				LastFinalizedHeaders: []dataBlock.EpochStartShardData{{
-					ShardID:               1,
-					Nonce:                 1234,
-					Round:                 1500,
-					Epoch:                 10,
-					HeaderHash:            []byte("hh"),
-					RootHash:              []byte("rh"),
-					ScheduledRootHash:     []byte("sch"),
-					FirstPendingMetaBlock: []byte("fpmb"),
-					LastFinishedMetaBlock: []byte("lfmb"),
-					PendingMiniBlockHeaders: []dataBlock.MiniBlockHeader{
-						{
-							Hash:            []byte("mbh"),
-							SenderShardID:   0,
-							ReceiverShardID: 1,
-							Type:            dataBlock.TxBlock,
-							Reserved:        []byte("rrr"),
-						},
+	header := &dataBlock.MetaBlock{
+		TxCount: 1000,
+		EpochStart: dataBlock.EpochStart{
+			LastFinalizedHeaders: []dataBlock.EpochStartShardData{{
+				ShardID:               1,
+				Nonce:                 1234,
+				Round:                 1500,
+				Epoch:                 10,
+				HeaderHash:            []byte("hh"),
+				RootHash:              []byte("rh"),
+				ScheduledRootHash:     []byte("sch"),
+				FirstPendingMetaBlock: []byte("fpmb"),
+				LastFinishedMetaBlock: []byte("lfmb"),
+				PendingMiniBlockHeaders: []dataBlock.MiniBlockHeader{
+					{
+						Hash:            []byte("mbh"),
+						SenderShardID:   0,
+						ReceiverShardID: 1,
+						Type:            dataBlock.TxBlock,
+						Reserved:        []byte("rrr"),
 					},
-				}},
-				Economics: dataBlock.Economics{
-					TotalSupply:                      big.NewInt(100),
-					TotalToDistribute:                big.NewInt(55),
-					TotalNewlyMinted:                 big.NewInt(20),
-					RewardsPerBlock:                  big.NewInt(15),
-					RewardsForProtocolSustainability: big.NewInt(2),
-					NodePrice:                        big.NewInt(10),
-					PrevEpochStartRound:              222,
-					PrevEpochStartHash:               []byte("prevEpoch"),
 				},
-			},
-			MiniBlockHeaders: []dataBlock.MiniBlockHeader{
-				{
-					TxCount: 50,
-				},
-				{
-					TxCount: 120,
-				},
+			}},
+			Economics: dataBlock.Economics{
+				TotalSupply:                      big.NewInt(100),
+				TotalToDistribute:                big.NewInt(55),
+				TotalNewlyMinted:                 big.NewInt(20),
+				RewardsPerBlock:                  big.NewInt(15),
+				RewardsForProtocolSustainability: big.NewInt(2),
+				NodePrice:                        big.NewInt(10),
+				PrevEpochStartRound:              222,
+				PrevEpochStartHash:               []byte("prevEpoch"),
 			},
 		},
+		MiniBlockHeaders: []dataBlock.MiniBlockHeader{
+			{
+				TxCount: 50,
+			},
+			{
+				TxCount: 120,
+			},
+		},
+	}
+
+	headerBytes, _ := bp.marshalizer.Marshal(header)
+	outportBlockWithHeader := &outport.OutportBlockWithHeader{
+		Header: header,
 		OutportBlock: &outport.OutportBlock{
 			BlockData: &outport.BlockData{
-				HeaderHash: []byte("hash"),
+				HeaderBytes: headerBytes,
+				HeaderHash:  []byte("hash"),
 				Body: &dataBlock.Body{
 					MiniBlocks: []*dataBlock.MiniBlock{
 						{},
@@ -353,32 +350,35 @@ func TestBlockProcessor_PrepareBlockForDBMiniBlocksDetails(t *testing.T) {
 
 	txHash, notExecutedTxHash, notFoundTxHash, invalidTxHash, rewardsTxHash, scrHash := "tx", "notExecuted", "notFound", "invalid", "reward", "scr"
 
-	outportBlockWithHeader := &outport.OutportBlockWithHeader{
-		Header: &dataBlock.Header{
-			TxCount: 5,
-			MiniBlockHeaders: []dataBlock.MiniBlockHeader{
-				{
-					TxCount:  1,
-					Type:     dataBlock.TxBlock,
-					Reserved: mbhrBytes,
-				},
-				{
-					TxCount: 1,
-					Type:    dataBlock.RewardsBlock,
-				},
-				{
-					TxCount: 1,
-					Type:    dataBlock.InvalidBlock,
-				},
-				{
-					TxCount: 1,
-					Type:    dataBlock.SmartContractResultBlock,
-				},
+	header := &dataBlock.Header{
+		TxCount: 5,
+		MiniBlockHeaders: []dataBlock.MiniBlockHeader{
+			{
+				TxCount:  1,
+				Type:     dataBlock.TxBlock,
+				Reserved: mbhrBytes,
+			},
+			{
+				TxCount: 1,
+				Type:    dataBlock.RewardsBlock,
+			},
+			{
+				TxCount: 1,
+				Type:    dataBlock.InvalidBlock,
+			},
+			{
+				TxCount: 1,
+				Type:    dataBlock.SmartContractResultBlock,
 			},
 		},
+	}
+	headerBytes, _ := bp.marshalizer.Marshal(header)
+	outportBlockWithHeader := &outport.OutportBlockWithHeader{
+		Header: header,
 		OutportBlock: &outport.OutportBlock{
 			BlockData: &outport.BlockData{
-				HeaderHash: []byte("hash"),
+				HeaderBytes: headerBytes,
+				HeaderHash:  []byte("hash"),
 				Body: &dataBlock.Body{
 					MiniBlocks: []*dataBlock.MiniBlock{
 						{

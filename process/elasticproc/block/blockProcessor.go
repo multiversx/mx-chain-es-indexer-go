@@ -67,7 +67,7 @@ func (bp *blockProcessor) PrepareBlockForDB(obh *outport.OutportBlockWithHeader)
 		return nil, errNilHeaderGasConsumed
 	}
 
-	blockSizeInBytes, err := bp.computeBlockSize(obh.Header, obh.BlockData.Body)
+	blockSizeInBytes, err := bp.computeBlockSize(obh.BlockData.HeaderBytes, obh.BlockData.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -311,11 +311,7 @@ func getExecutionOrderForTx(txHash []byte, mbType int32, pool *outport.Transacti
 	return tx.GetExecutionOrder(), true
 }
 
-func (bp *blockProcessor) computeBlockSize(header coreData.HeaderHandler, body *block.Body) (int, error) {
-	headerBytes, err := bp.marshalizer.Marshal(header)
-	if err != nil {
-		return 0, err
-	}
+func (bp *blockProcessor) computeBlockSize(headerBytes []byte, body *block.Body) (int, error) {
 	bodyBytes, err := bp.marshalizer.Marshal(body)
 	if err != nil {
 		return 0, err

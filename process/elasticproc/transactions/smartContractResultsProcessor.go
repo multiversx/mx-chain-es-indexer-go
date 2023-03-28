@@ -84,10 +84,11 @@ func (proc *smartContractResultsProcessor) processSCRsFromMiniblock(
 
 	indexerSCRs := make([]*indexerData.ScResult, 0, len(mb.TxHashes))
 	for _, scrHash := range mb.TxHashes {
-		scrInfo, ok := scrs[hex.EncodeToString(scrHash)]
+		scrHashHex := hex.EncodeToString(scrHash)
+		scrInfo, ok := scrs[scrHashHex]
 		if !ok {
 			log.Warn("smartContractResultsProcessor.processSCRsFromMiniblock scr not found in map",
-				"scr hash", hex.EncodeToString(scrHash),
+				"scr hash", scrHashHex,
 			)
 			continue
 		}
@@ -95,7 +96,7 @@ func (proc *smartContractResultsProcessor) processSCRsFromMiniblock(
 		indexerSCR := proc.prepareSmartContractResult(scrHash, mbHash, scrInfo, header, mb.SenderShardID, mb.ReceiverShardID, numOfShards)
 		indexerSCRs = append(indexerSCRs, indexerSCR)
 
-		delete(scrs, hex.EncodeToString(scrHash))
+		delete(scrs, scrHashHex)
 	}
 
 	return indexerSCRs
