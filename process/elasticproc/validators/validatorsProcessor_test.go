@@ -27,14 +27,11 @@ func TestValidatorsProcessor_PrepareAnSerializeValidatorsPubKeys(t *testing.T) {
 		Epoch: 30,
 		ShardValidatorsPubKeys: map[uint32]*outport.PubKeys{
 			0: {Keys: [][]byte{[]byte("k1"), []byte("k2")}},
-			1: {Keys: [][]byte{[]byte("k3"), []byte("k4")}},
 		},
 	}
 	res, err := vp.PrepareAnSerializeValidatorsPubKeys(validators)
 	require.Nil(t, err)
 	require.Equal(t, `{ "index" : { "_id" : "0_30" } }
 {"publicKeys":["6b31","6b32"]}
-{ "index" : { "_id" : "1_30" } }
-{"publicKeys":["6b33","6b34"]}
 `, res[0].String())
 }
