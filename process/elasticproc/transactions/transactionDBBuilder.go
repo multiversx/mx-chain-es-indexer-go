@@ -3,7 +3,6 @@ package transactions
 import (
 	"encoding/hex"
 	"fmt"
-	"math/big"
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
@@ -64,14 +63,7 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 			"hash", txHash, "error", err)
 	}
 
-	feeInfo := &outport.FeeInfo{
-		Fee:            big.NewInt(0),
-		InitialPaidFee: big.NewInt(0),
-	}
-	if txInfo.FeeInfo != nil {
-		feeInfo = txInfo.FeeInfo
-	}
-
+	feeInfo := getFeeInfo(txInfo)
 	feeNum, err := dtb.balanceConverter.ComputeESDTBalanceAsFloat(feeInfo.Fee)
 	if err != nil {
 		log.Warn("dbTransactionBuilder.prepareTransaction: cannot compute transaction fee as num", "fee", feeInfo.Fee,

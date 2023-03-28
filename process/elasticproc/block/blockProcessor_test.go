@@ -9,6 +9,9 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
+	"github.com/multiversx/mx-chain-core-go/data/rewardTx"
+	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
+	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
@@ -403,6 +406,7 @@ func TestBlockProcessor_PrepareBlockForDBMiniBlocksDetails(t *testing.T) {
 			TransactionPool: &outport.TransactionPool{
 				Transactions: map[string]*outport.TxInfo{
 					hex.EncodeToString([]byte(txHash)): {
+						Transaction:    &transaction.Transaction{},
 						ExecutionOrder: 2,
 					},
 					hex.EncodeToString([]byte(notExecutedTxHash)): {
@@ -411,16 +415,19 @@ func TestBlockProcessor_PrepareBlockForDBMiniBlocksDetails(t *testing.T) {
 				},
 				Rewards: map[string]*outport.RewardInfo{
 					hex.EncodeToString([]byte(rewardsTxHash)): {
+						Reward:         &rewardTx.RewardTx{},
 						ExecutionOrder: 3,
 					},
 				},
 				InvalidTxs: map[string]*outport.TxInfo{
 					hex.EncodeToString([]byte(invalidTxHash)): {
+						Transaction:    &transaction.Transaction{},
 						ExecutionOrder: 1,
 					}},
 				SmartContractResults: map[string]*outport.SCRInfo{
 					hex.EncodeToString([]byte(scrHash)): {
-						ExecutionOrder: 0,
+						SmartContractResult: &smartContractResult.SmartContractResult{},
+						ExecutionOrder:      0,
 					},
 				},
 			},
@@ -434,7 +441,7 @@ func TestBlockProcessor_PrepareBlockForDBMiniBlocksDetails(t *testing.T) {
 	require.Equal(t, &data.Block{
 		Hash:            "68617368",
 		Size:            int64(723),
-		SizeTxs:         0,
+		SizeTxs:         15,
 		AccumulatedFees: "0",
 		DeveloperFees:   "0",
 		TxCount:         uint32(5),

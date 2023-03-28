@@ -2,7 +2,6 @@ package transactions
 
 import (
 	"encoding/hex"
-	"math/big"
 	"strconv"
 	"time"
 
@@ -154,14 +153,7 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 		esdtValues = res.ESDTValues
 	}
 
-	feeInfo := &outport.FeeInfo{
-		Fee:            big.NewInt(0),
-		InitialPaidFee: big.NewInt(0),
-	}
-	if scrInfo.FeeInfo != nil {
-		feeInfo = scrInfo.FeeInfo
-	}
-
+	feeInfo := getFeeInfo(scrInfo)
 	return &indexerData.ScResult{
 		Hash:               hex.EncodeToString(scrHash),
 		MBHash:             hexEncodedMBHash,

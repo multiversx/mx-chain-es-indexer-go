@@ -2,6 +2,7 @@ package transactions
 
 import (
 	"encoding/hex"
+	"math/big"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
@@ -206,5 +207,17 @@ func getTxsHashesFromMiniblockHexEncoded(miniBlock *block.MiniBlock) []string {
 func mergeTxsMaps(dst, src map[string]*data.Transaction) {
 	for key, value := range src {
 		dst[key] = value
+	}
+}
+
+func getFeeInfo(txWithFeeInfo feeInfoHandler) *outport.FeeInfo {
+	feeInfo := txWithFeeInfo.GetFeeInfo()
+	if feeInfo != nil {
+		return feeInfo
+	}
+
+	return &outport.FeeInfo{
+		Fee:            big.NewInt(0),
+		InitialPaidFee: big.NewInt(0),
 	}
 }
