@@ -5,10 +5,10 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/alteredAccount"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
@@ -244,21 +244,12 @@ func getTemplateByName(templateName string, templateList map[string]*bytes.Buffe
 }
 
 // SaveHeader will prepare and save information about a header in elasticsearch server
-func (ei *elasticProcessor) SaveHeader(
-	headerHash []byte,
-	header coreData.HeaderHandler,
-	signersIndexes []uint64,
-	body *block.Body,
-	notarizedHeadersHashes []string,
-	gasConsumptionData outport.HeaderGasConsumption,
-	txsSize int,
-	pool *outport.Pool,
-) error {
+func (ei *elasticProcessor) SaveHeader(outportBlockWithHeader *outport.OutportBlockWithHeader) error {
 	if !ei.isIndexEnabled(elasticIndexer.BlockIndex) {
 		return nil
 	}
 
-	elasticBlock, err := ei.blockProc.PrepareBlockForDB(headerHash, header, signersIndexes, body, notarizedHeadersHashes, gasConsumptionData, txsSize, pool)
+	elasticBlock, err := ei.blockProc.PrepareBlockForDB(outportBlockWithHeader)
 	if err != nil {
 		return err
 	}
@@ -269,7 +260,7 @@ func (ei *elasticProcessor) SaveHeader(
 		return err
 	}
 
-	err = ei.indexEpochInfoData(header, buffSlice)
+	err = ei.indexEpochInfoData(outportBlockWithHeader.Header, buffSlice)
 	if err != nil {
 		return err
 	}
@@ -412,26 +403,19 @@ func (ei *elasticProcessor) miniblocksInDBMap(mbs []*data.Miniblock) (map[string
 }
 
 // SaveTransactions will prepare and save information about a transactions in elasticsearch server
-func (ei *elasticProcessor) SaveTransactions(
-	body *block.Body,
-	header coreData.HeaderHandler,
-	pool *outport.Pool,
-	coreAlteredAccounts map[string]*outport.AlteredAccount,
-	isImportDB bool,
-	numOfShards uint32,
-) error {
-	headerTimestamp := header.GetTimeStamp()
+func (ei *elasticProcessor) SaveTransactions(obh *outport.OutportBlockWithHeader) error {
+	headerTimestamp := obh.Header.GetTimeStamp()
 
-	preparedResults := ei.transactionsProc.PrepareTransactionsForDatabase(body, header, pool, isImportDB, numOfShards)
-	logsData := ei.logsAndEventsProc.ExtractDataFromLogs(pool.Logs, preparedResults, headerTimestamp, header.GetShardID(), numOfShards)
+	preparedResults := ei.transactionsProc.PrepareTransactionsForDatabase(obh.BlockData.Body, obh.Header, obh.TransactionPool, obh.IsImportDB, obh.NumberOfShards)
+	logsData := ei.logsAndEventsProc.ExtractDataFromLogs(obh.TransactionPool.Logs, preparedResults, headerTimestamp, obh.Header.GetShardID(), obh.NumberOfShards)
 
 	buffers := data.NewBufferSlice(ei.bulkRequestMaxSize)
-	err := ei.indexTransactions(preparedResults.Transactions, preparedResults.TxHashStatus, header, buffers)
+	err := ei.indexTransactions(preparedResults.Transactions, preparedResults.TxHashStatus, obh.Header, buffers)
 	if err != nil {
 		return err
 	}
 
-	err = ei.prepareAndIndexOperations(preparedResults.Transactions, preparedResults.TxHashStatus, header, preparedResults.ScResults, buffers, isImportDB)
+	err = ei.prepareAndIndexOperations(preparedResults.Transactions, preparedResults.TxHashStatus, obh.Header, preparedResults.ScResults, buffers, obh.IsImportDB)
 	if err != nil {
 		return err
 	}
@@ -441,12 +425,12 @@ func (ei *elasticProcessor) SaveTransactions(
 		return err
 	}
 
-	err = ei.indexNFTCreateInfo(logsData.Tokens, coreAlteredAccounts, buffers)
+	err = ei.indexNFTCreateInfo(logsData.Tokens, obh.AlteredAccounts, buffers)
 	if err != nil {
 		return err
 	}
 
-	err = ei.prepareAndIndexLogs(pool.Logs, headerTimestamp, buffers)
+	err = ei.prepareAndIndexLogs(obh.TransactionPool.Logs, headerTimestamp, buffers)
 	if err != nil {
 		return err
 	}
@@ -462,7 +446,7 @@ func (ei *elasticProcessor) SaveTransactions(
 	}
 
 	tagsCount := tags.NewTagsCount()
-	err = ei.indexAlteredAccounts(headerTimestamp, logsData.NFTsDataUpdates, coreAlteredAccounts, buffers, tagsCount, header.GetShardID())
+	err = ei.indexAlteredAccounts(headerTimestamp, logsData.NFTsDataUpdates, obh.AlteredAccounts, buffers, tagsCount, obh.Header.GetShardID())
 	if err != nil {
 		return err
 	}
@@ -533,7 +517,7 @@ func (ei *elasticProcessor) indexTransactionsFeeData(txsHashFeeData map[string]*
 	return ei.transactionsProc.SerializeTransactionsFeeData(txsHashFeeData, buffSlice, elasticIndexer.OperationsIndex)
 }
 
-func (ei *elasticProcessor) prepareAndIndexLogs(logsAndEvents []*coreData.LogData, timestamp uint64, buffSlice *data.BufferSlice) error {
+func (ei *elasticProcessor) prepareAndIndexLogs(logsAndEvents []*outport.LogData, timestamp uint64, buffSlice *data.BufferSlice) error {
 	if !ei.isIndexEnabled(elasticIndexer.LogsIndex) {
 		return nil
 	}
@@ -582,12 +566,12 @@ func (ei *elasticProcessor) prepareAndIndexOperations(
 }
 
 // SaveValidatorsRating will save validators rating
-func (ei *elasticProcessor) SaveValidatorsRating(index string, validatorsRatingInfo []*data.ValidatorRatingInfo) error {
+func (ei *elasticProcessor) SaveValidatorsRating(ratingData *outport.ValidatorsRating) error {
 	if !ei.isIndexEnabled(elasticIndexer.RatingIndex) {
 		return nil
 	}
 
-	buffSlice, err := ei.validatorsProc.SerializeValidatorsRating(index, validatorsRatingInfo)
+	buffSlice, err := ei.validatorsProc.SerializeValidatorsRating(ratingData)
 	if err != nil {
 		return err
 	}
@@ -596,33 +580,26 @@ func (ei *elasticProcessor) SaveValidatorsRating(index string, validatorsRatingI
 }
 
 // SaveShardValidatorsPubKeys will prepare and save information about a shard validators public keys in elasticsearch server
-func (ei *elasticProcessor) SaveShardValidatorsPubKeys(shardID, epoch uint32, shardValidatorsPubKeys [][]byte) error {
+func (ei *elasticProcessor) SaveShardValidatorsPubKeys(validatorsPubKeys *outport.ValidatorsPubKeys) error {
 	if !ei.isIndexEnabled(elasticIndexer.ValidatorsIndex) {
 		return nil
 	}
 
-	validatorsPubKeys := ei.validatorsProc.PrepareValidatorsPublicKeys(shardValidatorsPubKeys)
-	buff, err := ei.validatorsProc.SerializeValidatorsPubKeys(validatorsPubKeys)
+	buffSlice, err := ei.validatorsProc.PrepareAnSerializeValidatorsPubKeys(validatorsPubKeys)
 	if err != nil {
 		return err
 	}
 
-	req := &esapi.IndexRequest{
-		Index:      elasticIndexer.ValidatorsIndex,
-		DocumentID: fmt.Sprintf("%d_%d", shardID, epoch),
-		Body:       bytes.NewReader(buff.Bytes()),
-	}
-
-	return ei.elasticClient.DoRequest(req)
+	return ei.doBulkRequests(elasticIndexer.ValidatorsIndex, buffSlice)
 }
 
 // SaveRoundsInfo will prepare and save information about a slice of rounds in elasticsearch server
-func (ei *elasticProcessor) SaveRoundsInfo(info []*data.RoundInfo) error {
+func (ei *elasticProcessor) SaveRoundsInfo(rounds *outport.RoundsInfo) error {
 	if !ei.isIndexEnabled(elasticIndexer.RoundsIndex) {
 		return nil
 	}
 
-	buff := ei.statisticsProc.SerializeRoundsInfo(info)
+	buff := ei.statisticsProc.SerializeRoundsInfo(rounds)
 
 	return ei.elasticClient.DoBulkRequest(buff, elasticIndexer.RoundsIndex)
 }
@@ -630,7 +607,7 @@ func (ei *elasticProcessor) SaveRoundsInfo(info []*data.RoundInfo) error {
 func (ei *elasticProcessor) indexAlteredAccounts(
 	timestamp uint64,
 	updatesNFTsData []*data.NFTDataUpdate,
-	coreAlteredAccounts map[string]*outport.AlteredAccount,
+	coreAlteredAccounts map[string]*alteredAccount.AlteredAccount,
 	buffSlice *data.BufferSlice,
 	tagsCount data.CountTags,
 	shardID uint32,
@@ -705,7 +682,7 @@ func (ei *elasticProcessor) indexAccountsESDT(
 	return ei.accountsProc.SerializeAccountsESDT(accountsESDTMap, updatesNFTsData, buffSlice, elasticIndexer.AccountsESDTIndex)
 }
 
-func (ei *elasticProcessor) indexNFTCreateInfo(tokensData data.TokensHandler, coreAlteredAccounts map[string]*outport.AlteredAccount, buffSlice *data.BufferSlice) error {
+func (ei *elasticProcessor) indexNFTCreateInfo(tokensData data.TokensHandler, coreAlteredAccounts map[string]*alteredAccount.AlteredAccount, buffSlice *data.BufferSlice) error {
 	shouldSkipIndex := !ei.isIndexEnabled(elasticIndexer.TokensIndex) || tokensData.Len() == 0
 	if shouldSkipIndex {
 		return nil
@@ -743,9 +720,18 @@ func (ei *elasticProcessor) indexNFTBurnInfo(tokensData data.TokensHandler, buff
 }
 
 // SaveAccounts will prepare and save information about provided accounts in elasticsearch server
-func (ei *elasticProcessor) SaveAccounts(timestamp uint64, accts []*data.Account, shardID uint32) error {
+func (ei *elasticProcessor) SaveAccounts(accountsData *outport.Accounts) error {
 	buffSlice := data.NewBufferSlice(ei.bulkRequestMaxSize)
-	return ei.saveAccounts(timestamp, accts, buffSlice, shardID)
+
+	accounts := make([]*data.Account, 0, len(accountsData.AlteredAccounts))
+	for _, account := range accountsData.AlteredAccounts {
+		accounts = append(accounts, &data.Account{
+			UserAccount: account,
+			IsSender:    false,
+		})
+	}
+
+	return ei.saveAccounts(accountsData.BlockTimestamp, accounts, buffSlice, accountsData.ShardID)
 }
 
 func (ei *elasticProcessor) saveAccounts(timestamp uint64, accts []*data.Account, buffSlice *data.BufferSlice, shardID uint32) error {

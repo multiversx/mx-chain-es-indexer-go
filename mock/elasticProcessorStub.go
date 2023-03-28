@@ -4,30 +4,20 @@ import (
 	coreData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
-	"github.com/multiversx/mx-chain-es-indexer-go/data"
 )
 
 // ElasticProcessorStub -
 type ElasticProcessorStub struct {
-	SaveHeaderCalled func(
-		headerHash []byte,
-		header coreData.HeaderHandler,
-		signersIndexes []uint64,
-		body *block.Body,
-		notarizedHeadersHashes []string,
-		gasConsumptionData outport.HeaderGasConsumption,
-		txsSize int,
-		pool *outport.Pool,
-	) error
+	SaveHeaderCalled                 func(outportBlockWithHeader *outport.OutportBlockWithHeader) error
 	RemoveHeaderCalled               func(header coreData.HeaderHandler) error
 	RemoveMiniblocksCalled           func(header coreData.HeaderHandler, body *block.Body) error
 	RemoveTransactionsCalled         func(header coreData.HeaderHandler, body *block.Body) error
 	SaveMiniblocksCalled             func(header coreData.HeaderHandler, body *block.Body) error
-	SaveTransactionsCalled           func(body *block.Body, header coreData.HeaderHandler, pool *outport.Pool, coreAlteredAccounts map[string]*outport.AlteredAccount) error
-	SaveValidatorsRatingCalled       func(index string, validatorsRatingInfo []*data.ValidatorRatingInfo) error
-	SaveRoundsInfoCalled             func(infos []*data.RoundInfo) error
-	SaveShardValidatorsPubKeysCalled func(shardID, epoch uint32, shardValidatorsPubKeys [][]byte) error
-	SaveAccountsCalled               func(timestamp uint64, acc []*data.Account) error
+	SaveTransactionsCalled           func(outportBlockWithHeader *outport.OutportBlockWithHeader) error
+	SaveValidatorsRatingCalled       func(validatorsRating *outport.ValidatorsRating) error
+	SaveRoundsInfoCalled             func(infos *outport.RoundsInfo) error
+	SaveShardValidatorsPubKeysCalled func(validators *outport.ValidatorsPubKeys) error
+	SaveAccountsCalled               func(accountsData *outport.Accounts) error
 	RemoveAccountsESDTCalled         func(headerTimestamp uint64) error
 }
 
@@ -41,17 +31,9 @@ func (eim *ElasticProcessorStub) RemoveAccountsESDT(headerTimestamp uint64, _ ui
 }
 
 // SaveHeader -
-func (eim *ElasticProcessorStub) SaveHeader(
-	headerHash []byte,
-	header coreData.HeaderHandler,
-	signersIndexes []uint64,
-	body *block.Body,
-	notarizedHeadersHashes []string,
-	gasConsumptionData outport.HeaderGasConsumption,
-	txsSize int,
-	pool *outport.Pool) error {
+func (eim *ElasticProcessorStub) SaveHeader(obh *outport.OutportBlockWithHeader) error {
 	if eim.SaveHeaderCalled != nil {
-		return eim.SaveHeaderCalled(headerHash, header, signersIndexes, body, notarizedHeadersHashes, gasConsumptionData, txsSize, pool)
+		return eim.SaveHeaderCalled(obh)
 	}
 	return nil
 }
@@ -89,23 +71,23 @@ func (eim *ElasticProcessorStub) SaveMiniblocks(header coreData.HeaderHandler, b
 }
 
 // SaveTransactions -
-func (eim *ElasticProcessorStub) SaveTransactions(body *block.Body, header coreData.HeaderHandler, pool *outport.Pool, coreAlteredAccounts map[string]*outport.AlteredAccount, _ bool, _ uint32) error {
+func (eim *ElasticProcessorStub) SaveTransactions(outportBlockWithHeader *outport.OutportBlockWithHeader) error {
 	if eim.SaveTransactionsCalled != nil {
-		return eim.SaveTransactionsCalled(body, header, pool, coreAlteredAccounts)
+		return eim.SaveTransactionsCalled(outportBlockWithHeader)
 	}
 	return nil
 }
 
 // SaveValidatorsRating -
-func (eim *ElasticProcessorStub) SaveValidatorsRating(index string, validatorsRatingInfo []*data.ValidatorRatingInfo) error {
+func (eim *ElasticProcessorStub) SaveValidatorsRating(validatorsRating *outport.ValidatorsRating) error {
 	if eim.SaveValidatorsRatingCalled != nil {
-		return eim.SaveValidatorsRatingCalled(index, validatorsRatingInfo)
+		return eim.SaveValidatorsRatingCalled(validatorsRating)
 	}
 	return nil
 }
 
 // SaveRoundsInfo -
-func (eim *ElasticProcessorStub) SaveRoundsInfo(info []*data.RoundInfo) error {
+func (eim *ElasticProcessorStub) SaveRoundsInfo(info *outport.RoundsInfo) error {
 	if eim.SaveRoundsInfoCalled != nil {
 		return eim.SaveRoundsInfoCalled(info)
 	}
@@ -113,17 +95,17 @@ func (eim *ElasticProcessorStub) SaveRoundsInfo(info []*data.RoundInfo) error {
 }
 
 // SaveShardValidatorsPubKeys -
-func (eim *ElasticProcessorStub) SaveShardValidatorsPubKeys(shardID, epoch uint32, shardValidatorsPubKeys [][]byte) error {
+func (eim *ElasticProcessorStub) SaveShardValidatorsPubKeys(validatorsPubKeys *outport.ValidatorsPubKeys) error {
 	if eim.SaveShardValidatorsPubKeysCalled != nil {
-		return eim.SaveShardValidatorsPubKeysCalled(shardID, epoch, shardValidatorsPubKeys)
+		return eim.SaveShardValidatorsPubKeysCalled(validatorsPubKeys)
 	}
 	return nil
 }
 
 // SaveAccounts -
-func (eim *ElasticProcessorStub) SaveAccounts(timestamp uint64, acc []*data.Account, _ uint32) error {
+func (eim *ElasticProcessorStub) SaveAccounts(accounts *outport.Accounts) error {
 	if eim.SaveAccountsCalled != nil {
-		return eim.SaveAccountsCalled(timestamp, acc)
+		return eim.SaveAccountsCalled(accounts)
 	}
 
 	return nil

@@ -14,9 +14,9 @@ import (
 
 func NewDataIndexerArguments() ArgDataIndexer {
 	return ArgDataIndexer{
-		Marshalizer:      &mock.MarshalizerMock{},
 		DataDispatcher:   &mock.DispatcherMock{},
 		ElasticProcessor: &mock.ElasticProcessorStub{},
+		HeaderMarshaller: &mock.MarshalizerMock{},
 	}
 }
 
@@ -40,7 +40,7 @@ func TestDataIndexer_NewIndexerWithNilElasticProcessorShouldErr(t *testing.T) {
 
 func TestDataIndexer_NewIndexerWithNilMarshalizerShouldErr(t *testing.T) {
 	arguments := NewDataIndexerArguments()
-	arguments.Marshalizer = nil
+	arguments.HeaderMarshaller = nil
 	ei, err := NewDataIndexer(arguments)
 
 	require.Nil(t, ei)
@@ -54,7 +54,6 @@ func TestDataIndexer_NewIndexerWithCorrectParamsShouldWork(t *testing.T) {
 
 	require.Nil(t, err)
 	require.False(t, check.IfNil(ei))
-	require.False(t, ei.IsNilIndexer())
 }
 
 func TestDataIndexer_SaveBlock(t *testing.T) {
@@ -68,17 +67,16 @@ func TestDataIndexer_SaveBlock(t *testing.T) {
 	}
 	ei, _ := NewDataIndexer(arguments)
 
-	args := &outport.ArgsSaveBlockData{
-		HeaderHash:             []byte("hash"),
-		Body:                   &dataBlock.Body{MiniBlocks: []*dataBlock.MiniBlock{}},
-		Header:                 nil,
-		SignersIndexes:         nil,
-		NotarizedHeadersHashes: nil,
-		TransactionsPool:       nil,
+	args := &outport.OutportBlock{
+		BlockData: &outport.BlockData{
+			HeaderType:  string(core.ShardHeaderV2),
+			Body:        &dataBlock.Body{MiniBlocks: []*dataBlock.MiniBlock{{}}},
+			HeaderBytes: []byte("{}"),
+		},
 	}
 	err := ei.SaveBlock(args)
-	require.True(t, called)
 	require.Nil(t, err)
+	require.True(t, called)
 }
 
 func TestDataIndexer_SaveRoundInfo(t *testing.T) {
@@ -91,11 +89,11 @@ func TestDataIndexer_SaveRoundInfo(t *testing.T) {
 		},
 	}
 
-	arguments.Marshalizer = &mock.MarshalizerMock{Fail: true}
+	arguments.HeaderMarshaller = &mock.MarshalizerMock{Fail: true}
 	ei, _ := NewDataIndexer(arguments)
 	_ = ei.Close()
 
-	err := ei.SaveRoundsInfo([]*outport.RoundInfo{})
+	err := ei.SaveRoundsInfo(&outport.RoundsInfo{})
 	require.True(t, called)
 	require.Nil(t, err)
 }
@@ -115,9 +113,8 @@ func TestDataIndexer_SaveValidatorsPubKeys(t *testing.T) {
 
 	keys := [][]byte{[]byte("key")}
 	valPubKey[0] = keys
-	epoch := uint32(0)
 
-	err := ei.SaveValidatorsPubKeys(valPubKey, epoch)
+	err := ei.SaveValidatorsPubKeys(&outport.ValidatorsPubKeys{})
 	require.True(t, called)
 	require.Nil(t, err)
 }
@@ -133,9 +130,7 @@ func TestDataIndexer_SaveValidatorsRating(t *testing.T) {
 	}
 	ei, _ := NewDataIndexer(arguments)
 
-	err := ei.SaveValidatorsRating("ID", []*outport.ValidatorRatingInfo{
-		{Rating: 1}, {Rating: 2},
-	})
+	err := ei.SaveValidatorsRating(&outport.ValidatorsRating{})
 	require.True(t, called)
 	require.Nil(t, err)
 }
@@ -151,7 +146,11 @@ func TestDataIndexer_RevertIndexedBlock(t *testing.T) {
 	}
 	ei, _ := NewDataIndexer(arguments)
 
-	err := ei.RevertIndexedBlock(&dataBlock.Header{}, &dataBlock.Body{})
-	require.True(t, called)
+	err := ei.RevertIndexedBlock(&outport.BlockData{
+		HeaderType:  string(core.ShardHeaderV2),
+		Body:        &dataBlock.Body{MiniBlocks: []*dataBlock.MiniBlock{{}}},
+		HeaderBytes: []byte("{}"),
+	})
 	require.Nil(t, err)
+	require.True(t, called)
 }

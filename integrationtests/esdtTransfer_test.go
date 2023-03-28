@@ -7,7 +7,6 @@ import (
 	"math/big"
 	"testing"
 
-	coreData "github.com/multiversx/mx-chain-core-go/data"
 	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
@@ -84,19 +83,26 @@ func TestESDTTransferTooMuchGasProvided(t *testing.T) {
 	}
 
 	initialPaidFee, _ := big.NewInt(0).SetString("104000110000000", 10)
-	tx := outport.NewTransactionHandlerWithGasAndFee(txESDT, 104011, big.NewInt(104000110000000))
-	tx.SetInitialPaidFee(initialPaidFee)
-
-	pool := &outport.Pool{
-		Txs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
-			string(txHash): tx,
+	txInfo := &outport.TxInfo{
+		Transaction: txESDT,
+		FeeInfo: &outport.FeeInfo{
+			GasUsed:        104011,
+			Fee:            initialPaidFee,
+			InitialPaidFee: big.NewInt(104000110000000),
 		},
-		Scrs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
-			string(scrHash2): outport.NewTransactionHandlerWithGasAndFee(scr2, 0, big.NewInt(0)),
-			string(scrHash1): outport.NewTransactionHandlerWithGasAndFee(scr1, 0, big.NewInt(0)),
+		ExecutionOrder: 0,
+	}
+
+	pool := &outport.TransactionPool{
+		Transactions: map[string]*outport.TxInfo{
+			hex.EncodeToString(txHash): txInfo,
+		},
+		SmartContractResults: map[string]*outport.SCRInfo{
+			hex.EncodeToString(scrHash2): {SmartContractResult: scr2, FeeInfo: &outport.FeeInfo{}},
+			hex.EncodeToString(scrHash1): {SmartContractResult: scr1, FeeInfo: &outport.FeeInfo{}},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, false, testNumOfShards))
 	require.Nil(t, err)
 
 	ids := []string{hex.EncodeToString(txHash)}

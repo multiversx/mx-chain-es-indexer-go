@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/multiversx/mx-chain-core-go/data/outport"
+	"github.com/multiversx/mx-chain-core-go/data/alteredAccount"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 )
 
@@ -20,7 +20,7 @@ const (
 )
 
 // PrepareTokenMetaData will prepare the token metadata in a friendly format for database
-func PrepareTokenMetaData(tokenMetadata *outport.TokenMetaData) *data.TokenMetaData {
+func PrepareTokenMetaData(tokenMetadata *alteredAccount.TokenMetaData) *data.TokenMetaData {
 	if tokenMetadata == nil {
 		return nil
 	}

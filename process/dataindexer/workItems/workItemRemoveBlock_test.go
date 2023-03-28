@@ -28,8 +28,8 @@ func TestItemRemoveBlock_Save(t *testing.T) {
 				return nil
 			},
 		},
-		&dataBlock.Body{},
 		&dataBlock.Header{},
+		&dataBlock.Body{},
 	)
 	require.False(t, itemRemove.IsInterfaceNil())
 
@@ -46,8 +46,8 @@ func TestItemRemoveBlock_SaveRemoveHeaderShouldErr(t *testing.T) {
 				return localErr
 			},
 		},
-		&dataBlock.Body{},
 		&dataBlock.Header{},
+		&dataBlock.Body{},
 	)
 	require.False(t, itemRemove.IsInterfaceNil())
 
@@ -63,8 +63,8 @@ func TestItemRemoveBlock_SaveRemoveMiniblocksShouldErr(t *testing.T) {
 				return localErr
 			},
 		},
-		&dataBlock.Body{},
 		&dataBlock.Header{},
+		&dataBlock.Body{},
 	)
 	require.False(t, itemRemove.IsInterfaceNil())
 

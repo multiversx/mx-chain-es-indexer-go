@@ -136,9 +136,9 @@ func TestMiniblocksProcessor_GetMiniblocksHashesHexEncoded(t *testing.T) {
 	}
 
 	expectedHashes := []string{
-		"c57392e53257b4861f5e406349a8deb89c6dbc2127564ee891a41a188edbf01a",
-		"28fda294dc987e5099d75e53cd6f87a9a42b96d55242a634385b5d41175c0c21",
-		"44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+		"0796d34e8d443fd31bf4d9ec4051421b4d5d0e8c1db9ff942d6f4dc3a9ca2803",
+		"4cc379ab1f0aef6602e85a0a7ffabb5bc9a2ba646dc0fd720028e06527bf873f",
+		"8748c4677b01f7db984004fa8465afbf55feaab4b573174c8c0afa282941b9e4",
 	}
 	miniblocksHashes := mp.GetMiniblocksHashesHexEncoded(header, body)
 	require.Equal(t, expectedHashes, miniblocksHashes)
@@ -177,9 +177,9 @@ func TestMiniblocksProcessor_GetMiniblocksHashesHexEncodedImportDBMode(t *testin
 	}
 
 	expectedHashes := []string{
-		"3acf97c324f5e8cd1e2d87de862b3105a9f08262c7914be2e186ced2a1cf1124",
-		"40a551b2ebc5e4b5a55e73d49ec056c72af6314606850c4d54dadfad3a7e23e5",
-		"4a270e1ddac6b429c14c7ebccdcdd53e4f68aeebfc41552c775a7f5a5c35d06d",
+		"11a1bb4065e16a2e93b2b5ac5957b7b69f1cfba7579b170b24f30dab2d3162e0",
+		"68e9a4360489ab7a6e99f92e05d1a3f06a982b7b157ac23fdf39f2392bf88e15",
+		"d1fd2a5c95c8899ebbaad035b6b0f77c5103b3aacfe630b1a7c51468d682bb1b",
 	}
 	miniblocksHashes := mp.GetMiniblocksHashesHexEncoded(header, body)
 	require.Equal(t, expectedHashes, miniblocksHashes)

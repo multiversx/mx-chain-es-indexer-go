@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	coreData "github.com/multiversx/mx-chain-core-go/data"
 	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
@@ -88,21 +87,28 @@ func TestTransactionWithClaimRewardsGasRefund(t *testing.T) {
 		Value:    big.NewInt(0),
 	}
 
-	tx := outport.NewTransactionHandlerWithGasAndFee(tx1, 1068000, big.NewInt(78000000000000))
-	tx.SetInitialPaidFee(big.NewInt(127320000000000))
+	txInfo := &outport.TxInfo{
+		Transaction: tx1,
+		FeeInfo: &outport.FeeInfo{
+			GasUsed:        1068000,
+			Fee:            big.NewInt(78000000000000),
+			InitialPaidFee: big.NewInt(127320000000000),
+		},
+		ExecutionOrder: 0,
+	}
 
-	pool := &outport.Pool{
-		Txs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
-			string(txHash): tx,
+	pool := &outport.TransactionPool{
+		Transactions: map[string]*outport.TxInfo{
+			hex.EncodeToString(txHash): txInfo,
 		},
-		Scrs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
-			string(scrHash2): outport.NewTransactionHandlerWithGasAndFee(scr2, 0, big.NewInt(0)),
-			string(scrHash1): outport.NewTransactionHandlerWithGasAndFee(scr1, 0, big.NewInt(0)),
+		SmartContractResults: map[string]*outport.SCRInfo{
+			hex.EncodeToString(scrHash2): {SmartContractResult: scr2, FeeInfo: &outport.FeeInfo{}},
+			hex.EncodeToString(scrHash1): {SmartContractResult: scr1, FeeInfo: &outport.FeeInfo{}},
 		},
-		Logs: []*coreData.LogData{
+		Logs: []*outport.LogData{
 			{
-				TxHash: string(txHash),
-				LogHandler: &transaction.Log{
+				TxHash: hex.EncodeToString(txHash),
+				Log: &transaction.Log{
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(addressSender),
@@ -115,7 +121,7 @@ func TestTransactionWithClaimRewardsGasRefund(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, false, testNumOfShards))
 	require.Nil(t, err)
 
 	ids := []string{hex.EncodeToString(txHash)}

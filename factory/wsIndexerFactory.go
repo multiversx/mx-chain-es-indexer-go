@@ -3,6 +3,7 @@ package factory
 import (
 	"github.com/multiversx/mx-chain-core-go/core/pubkeyConverter"
 	factoryHasher "github.com/multiversx/mx-chain-core-go/hashing/factory"
+	"github.com/multiversx/mx-chain-core-go/marshal"
 	factoryMarshaller "github.com/multiversx/mx-chain-core-go/marshal/factory"
 	"github.com/multiversx/mx-chain-es-indexer-go/config"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/factory"
@@ -16,12 +17,12 @@ const (
 
 // CreateWsIndexer will create a new instance of wsindexer.WSClient
 func CreateWsIndexer(cfg config.Config, clusterCfg config.ClusterConfig) (wsindexer.WSClient, error) {
-	dataIndexer, err := createDataIndexer(cfg, clusterCfg)
+	wsMarshaller, err := factoryMarshaller.NewMarshalizer(clusterCfg.Config.WebSocket.DataMarshallerType)
 	if err != nil {
 		return nil, err
 	}
 
-	wsMarshaller, err := factoryMarshaller.NewMarshalizer(clusterCfg.Config.WebSocket.DataMarshallerType)
+	dataIndexer, err := createDataIndexer(cfg, clusterCfg, wsMarshaller)
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +35,7 @@ func CreateWsIndexer(cfg config.Config, clusterCfg config.ClusterConfig) (wsinde
 	return wsclient.New(clusterCfg.Config.WebSocket.ServerURL, indexer)
 }
 
-func createDataIndexer(cfg config.Config, clusterCfg config.ClusterConfig) (wsindexer.DataIndexer, error) {
+func createDataIndexer(cfg config.Config, clusterCfg config.ClusterConfig, wsMarshaller marshal.Marshalizer) (wsindexer.DataIndexer, error) {
 	marshaller, err := factoryMarshaller.NewMarshalizer(cfg.Config.Marshaller.Type)
 	if err != nil {
 		return nil, err
@@ -65,6 +66,7 @@ func createDataIndexer(cfg config.Config, clusterCfg config.ClusterConfig) (wsin
 		Hasher:                   hasher,
 		AddressPubkeyConverter:   addressPubkeyConverter,
 		ValidatorPubkeyConverter: validatorPubkeyConverter,
+		HeaderMarshaller:         wsMarshaller,
 	})
 }
 

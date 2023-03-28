@@ -1,17 +1,17 @@
 package dataindexer
 
 import (
+	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	coreData "github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/core/unmarshal"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer/workItems"
 )
 
 // ArgDataIndexer is a structure that is used to store all the components that are needed to create an indexer
 type ArgDataIndexer struct {
-	Marshalizer      marshal.Marshalizer
+	HeaderMarshaller marshal.Marshalizer
 	DataDispatcher   DispatcherHandler
 	ElasticProcessor ElasticProcessor
 }
@@ -20,7 +20,7 @@ type dataIndexer struct {
 	isNilIndexer     bool
 	dispatcher       DispatcherHandler
 	elasticProcessor ElasticProcessor
-	marshalizer      marshal.Marshalizer
+	headerMarshaller marshal.Marshalizer
 }
 
 // NewDataIndexer will create a new data indexer
@@ -34,7 +34,7 @@ func NewDataIndexer(arguments ArgDataIndexer) (*dataIndexer, error) {
 		isNilIndexer:     false,
 		dispatcher:       arguments.DataDispatcher,
 		elasticProcessor: arguments.ElasticProcessor,
-		marshalizer:      arguments.Marshalizer,
+		headerMarshaller: arguments.HeaderMarshaller,
 	}
 
 	return dataIndexerObj, nil
@@ -47,7 +47,7 @@ func checkIndexerArgs(arguments ArgDataIndexer) error {
 	if check.IfNil(arguments.ElasticProcessor) {
 		return ErrNilElasticProcessor
 	}
-	if check.IfNil(arguments.Marshalizer) {
+	if check.IfNil(arguments.HeaderMarshaller) {
 		return ErrNilMarshalizer
 	}
 
@@ -55,11 +55,18 @@ func checkIndexerArgs(arguments ArgDataIndexer) error {
 }
 
 // SaveBlock saves the block info in the queue to be sent to elastic
-func (di *dataIndexer) SaveBlock(args *outport.ArgsSaveBlockData) error {
+func (di *dataIndexer) SaveBlock(outportBlock *outport.OutportBlock) error {
+	header, err := unmarshal.GetHeaderFromBytes(di.headerMarshaller, core.HeaderType(outportBlock.BlockData.HeaderType), outportBlock.BlockData.HeaderBytes)
+	if err != nil {
+		return err
+	}
+
 	wi := workItems.NewItemBlock(
 		di.elasticProcessor,
-		di.marshalizer,
-		args,
+		&outport.OutportBlockWithHeader{
+			OutportBlock: outportBlock,
+			Header:       header,
+		},
 	)
 	di.dispatcher.Add(wi)
 
@@ -72,11 +79,16 @@ func (di *dataIndexer) Close() error {
 }
 
 // RevertIndexedBlock will remove from database block and miniblocks
-func (di *dataIndexer) RevertIndexedBlock(header coreData.HeaderHandler, body coreData.BodyHandler) error {
+func (di *dataIndexer) RevertIndexedBlock(blockData *outport.BlockData) error {
+	header, err := unmarshal.GetHeaderFromBytes(di.headerMarshaller, core.HeaderType(blockData.HeaderType), blockData.HeaderBytes)
+	if err != nil {
+		return err
+	}
+
 	wi := workItems.NewItemRemoveBlock(
 		di.elasticProcessor,
-		body,
 		header,
+		blockData.Body,
 	)
 	di.dispatcher.Add(wi)
 
@@ -84,39 +96,18 @@ func (di *dataIndexer) RevertIndexedBlock(header coreData.HeaderHandler, body co
 }
 
 // SaveRoundsInfo will save data about a slice of rounds in elasticsearch
-func (di *dataIndexer) SaveRoundsInfo(rf []*outport.RoundInfo) error {
-	roundsInfo := make([]*data.RoundInfo, 0)
-	for _, info := range rf {
-		roundsInfo = append(roundsInfo, &data.RoundInfo{
-			Index:            info.Index,
-			SignersIndexes:   info.SignersIndexes,
-			BlockWasProposed: info.BlockWasProposed,
-			ShardId:          info.ShardId,
-			Epoch:            info.Epoch,
-			Timestamp:        info.Timestamp,
-		})
-	}
-
-	wi := workItems.NewItemRounds(di.elasticProcessor, roundsInfo)
+func (di *dataIndexer) SaveRoundsInfo(rounds *outport.RoundsInfo) error {
+	wi := workItems.NewItemRounds(di.elasticProcessor, rounds)
 	di.dispatcher.Add(wi)
 
 	return nil
 }
 
 // SaveValidatorsRating will save all validators rating info to elasticsearch
-func (di *dataIndexer) SaveValidatorsRating(indexID string, validatorsRatingInfo []*outport.ValidatorRatingInfo) error {
-	valRatingInfo := make([]*data.ValidatorRatingInfo, 0)
-	for _, info := range validatorsRatingInfo {
-		valRatingInfo = append(valRatingInfo, &data.ValidatorRatingInfo{
-			PublicKey: info.PublicKey,
-			Rating:    info.Rating,
-		})
-	}
-
+func (di *dataIndexer) SaveValidatorsRating(ratingData *outport.ValidatorsRating) error {
 	wi := workItems.NewItemRating(
 		di.elasticProcessor,
-		indexID,
-		valRatingInfo,
+		ratingData,
 	)
 	di.dispatcher.Add(wi)
 
@@ -124,10 +115,9 @@ func (di *dataIndexer) SaveValidatorsRating(indexID string, validatorsRatingInfo
 }
 
 // SaveValidatorsPubKeys will save all validators public keys to elasticsearch
-func (di *dataIndexer) SaveValidatorsPubKeys(validatorsPubKeys map[uint32][][]byte, epoch uint32) error {
+func (di *dataIndexer) SaveValidatorsPubKeys(validatorsPubKeys *outport.ValidatorsPubKeys) error {
 	wi := workItems.NewItemValidators(
 		di.elasticProcessor,
-		epoch,
 		validatorsPubKeys,
 	)
 	di.dispatcher.Add(wi)
@@ -136,21 +126,21 @@ func (di *dataIndexer) SaveValidatorsPubKeys(validatorsPubKeys map[uint32][][]by
 }
 
 // SaveAccounts will save the provided accounts
-func (di *dataIndexer) SaveAccounts(timestamp uint64, accounts map[string]*outport.AlteredAccount, shardID uint32) error {
-	wi := workItems.NewItemAccounts(di.elasticProcessor, timestamp, accounts, shardID)
+func (di *dataIndexer) SaveAccounts(accounts *outport.Accounts) error {
+	wi := workItems.NewItemAccounts(di.elasticProcessor, accounts)
 	di.dispatcher.Add(wi)
 
 	return nil
 }
 
 // FinalizedBlock returns nil
-func (di *dataIndexer) FinalizedBlock(_ []byte) error {
+func (di *dataIndexer) FinalizedBlock(_ *outport.FinalizedBlock) error {
 	return nil
 }
 
-// IsNilIndexer will return a bool value that signals if the indexer's implementation is a NilIndexer
-func (di *dataIndexer) IsNilIndexer() bool {
-	return di.isNilIndexer
+// GetMarshaller return the marshaller
+func (di *dataIndexer) GetMarshaller() marshal.Marshalizer {
+	return di.headerMarshaller
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

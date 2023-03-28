@@ -6,21 +6,21 @@ import (
 )
 
 type itemRemoveBlock struct {
-	indexer       removeIndexer
-	bodyHandler   data.BodyHandler
-	headerHandler data.HeaderHandler
+	indexer removeIndexer
+	header  data.HeaderHandler
+	body    *block.Body
 }
 
 // NewItemRemoveBlock will create a new instance of itemRemoveBlock
 func NewItemRemoveBlock(
 	indexer removeIndexer,
-	bodyHandler data.BodyHandler,
-	headerHandler data.HeaderHandler,
+	header data.HeaderHandler,
+	body *block.Body,
 ) WorkItemHandler {
 	return &itemRemoveBlock{
-		indexer:       indexer,
-		bodyHandler:   bodyHandler,
-		headerHandler: headerHandler,
+		indexer: indexer,
+		header:  header,
+		body:    body,
 	}
 }
 
@@ -31,25 +31,20 @@ func (wirb *itemRemoveBlock) IsInterfaceNil() bool {
 
 // Save will remove a block and miniblocks from elasticsearch database
 func (wirb *itemRemoveBlock) Save() error {
-	err := wirb.indexer.RemoveHeader(wirb.headerHandler)
+	err := wirb.indexer.RemoveHeader(wirb.header)
 	if err != nil {
 		return err
 	}
 
-	body, ok := wirb.bodyHandler.(*block.Body)
-	if !ok {
-		return ErrBodyTypeAssertion
-	}
-
-	err = wirb.indexer.RemoveMiniblocks(wirb.headerHandler, body)
+	err = wirb.indexer.RemoveMiniblocks(wirb.header, wirb.body)
 	if err != nil {
 		return err
 	}
 
-	err = wirb.indexer.RemoveTransactions(wirb.headerHandler, body)
+	err = wirb.indexer.RemoveTransactions(wirb.header, wirb.body)
 	if err != nil {
 		return err
 	}
 
-	return wirb.indexer.RemoveAccountsESDT(wirb.headerHandler.GetTimeStamp(), wirb.headerHandler.GetShardID())
+	return wirb.indexer.RemoveAccountsESDT(wirb.header.GetTimeStamp(), wirb.header.GetShardID())
 }

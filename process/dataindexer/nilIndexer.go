@@ -1,7 +1,6 @@
 package dataindexer
 
 import (
-	"github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 )
 
@@ -9,38 +8,33 @@ import (
 type NilIndexer struct {
 }
 
-// NewNilIndexer will return a Nil indexer
-func NewNilIndexer() *NilIndexer {
-	return new(NilIndexer)
-}
-
 // SaveBlock returns nil
-func (ni *NilIndexer) SaveBlock(_ *outport.ArgsSaveBlockData) error {
+func (ni *NilIndexer) SaveBlock(_ *outport.OutportBlock) error {
 	return nil
 }
 
 // RevertIndexedBlock returns nil
-func (ni *NilIndexer) RevertIndexedBlock(_ data.HeaderHandler, _ data.BodyHandler) error {
+func (ni *NilIndexer) RevertIndexedBlock(_ *outport.BlockData) error {
 	return nil
 }
 
 // SaveRoundsInfo returns nil
-func (ni *NilIndexer) SaveRoundsInfo(_ []*outport.RoundInfo) error {
+func (ni *NilIndexer) SaveRoundsInfo(_ *outport.RoundsInfo) error {
 	return nil
 }
 
 // SaveValidatorsRating returns nil
-func (ni *NilIndexer) SaveValidatorsRating(_ string, _ []*outport.ValidatorRatingInfo) error {
+func (ni *NilIndexer) SaveValidatorsRating(_ *outport.ValidatorsRating) error {
 	return nil
 }
 
 // SaveValidatorsPubKeys returns nil
-func (ni *NilIndexer) SaveValidatorsPubKeys(_ map[uint32][][]byte, _ uint32) error {
+func (ni *NilIndexer) SaveValidatorsPubKeys(_ *outport.ValidatorsPubKeys) error {
 	return nil
 }
 
 // SaveAccounts returns nil
-func (ni *NilIndexer) SaveAccounts(_ uint64, _ map[string]*outport.AlteredAccount, _ uint32) error {
+func (ni *NilIndexer) SaveAccounts(_ *outport.Accounts) error {
 	return nil
 }
 

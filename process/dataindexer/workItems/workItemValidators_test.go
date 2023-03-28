@@ -4,6 +4,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-es-indexer-go/mock"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer/workItems"
 	"github.com/stretchr/testify/require"
@@ -11,18 +12,14 @@ import (
 
 func TestItemValidators_Save(t *testing.T) {
 	called := false
-	validators := map[uint32][][]byte{
-		0: {[]byte("val1"), []byte("val2")},
-	}
 	itemValidators := workItems.NewItemValidators(
 		&mock.ElasticProcessorStub{
-			SaveShardValidatorsPubKeysCalled: func(shardID, epoch uint32, shardValidatorsPubKeys [][]byte) error {
+			SaveShardValidatorsPubKeysCalled: func(_ *outport.ValidatorsPubKeys) error {
 				called = true
 				return nil
 			},
 		},
-		1,
-		validators,
+		&outport.ValidatorsPubKeys{},
 	)
 	require.False(t, itemValidators.IsInterfaceNil())
 
@@ -33,17 +30,13 @@ func TestItemValidators_Save(t *testing.T) {
 
 func TestItemValidators_SaveValidatorsShouldErr(t *testing.T) {
 	localErr := errors.New("local err")
-	validators := map[uint32][][]byte{
-		0: {[]byte("val1"), []byte("val2")},
-	}
 	itemValidators := workItems.NewItemValidators(
 		&mock.ElasticProcessorStub{
-			SaveShardValidatorsPubKeysCalled: func(shardID, epoch uint32, shardValidatorsPubKeys [][]byte) error {
+			SaveShardValidatorsPubKeysCalled: func(_ *outport.ValidatorsPubKeys) error {
 				return localErr
 			},
 		},
-		1,
-		validators,
+		&outport.ValidatorsPubKeys{},
 	)
 	require.False(t, itemValidators.IsInterfaceNil())
 

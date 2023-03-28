@@ -3,7 +3,7 @@ package data
 import (
 	"time"
 
-	"github.com/multiversx/mx-chain-core-go/data/outport"
+	"github.com/multiversx/mx-chain-core-go/data/alteredAccount"
 )
 
 // AccountInfo holds (serializable) data about an account
@@ -62,13 +62,13 @@ type AccountBalanceHistory struct {
 
 // Account is a structure that is needed for regular accounts
 type Account struct {
-	UserAccount *outport.AlteredAccount
+	UserAccount *alteredAccount.AlteredAccount
 	IsSender    bool
 }
 
 // AccountESDT is a structure that is needed for ESDT accounts
 type AccountESDT struct {
-	Account         *outport.AlteredAccount
+	Account         *alteredAccount.AlteredAccount
 	TokenIdentifier string
 	NFTNonce        uint64
 	IsSender        bool
