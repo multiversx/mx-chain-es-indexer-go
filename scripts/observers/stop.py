@@ -2,6 +2,7 @@ import os
 
 
 def main():
+    os.system("screen -X -S proxy quit")
     os.system("screen -X -S seednode quit")
     os.system("screen -X -S obs0 quit")
     os.system("screen -X -S obs1 quit")

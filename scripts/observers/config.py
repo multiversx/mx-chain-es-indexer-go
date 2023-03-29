@@ -109,6 +109,10 @@ def clone_dependencies(working_dir):
     if not os.path.isdir(mx_chain_deploy_folder):
         Repo.clone_from(os.getenv('MX_CHAIN_DEPLOY_GO_URL'), mx_chain_deploy_folder)
 
+    mx_chain_proxy_folder = working_dir / "mx-chain-proxy-go"
+    if not os.path.isdir(mx_chain_proxy_folder):
+        Repo.clone_from(os.getenv('MX_CHAIN_PROXY_URL'), mx_chain_proxy_folder)
+
 
 def prepare_seed_node(working_dir):
     print("preparing seed node")
@@ -123,6 +127,42 @@ def prepare_seed_node(working_dir):
 
     st = os.stat(working_dir/"seednode/seednode")
     os.chmod(working_dir/"seednode/seednode", st.st_mode | stat.S_IEXEC)
+
+
+def prepare_proxy(working_dir):
+    print("preparing proxy")
+    mx_chain_proxy_go_folder = working_dir / "mx-chain-proxy-go"
+    subprocess.check_call(["go", "build"], cwd=mx_chain_proxy_go_folder / "cmd/proxy")
+
+    mx_chain_proxy_go_binary_folder = mx_chain_proxy_go_folder / "cmd/proxy"
+    st = os.stat(mx_chain_proxy_go_binary_folder / "proxy")
+    os.chmod(mx_chain_proxy_go_binary_folder / "proxy", st.st_mode | stat.S_IEXEC)
+
+    # prefs.toml
+    path_config = mx_chain_proxy_go_binary_folder / "config/config.toml"
+    config_data = toml.load(str(path_config))
+
+    config_data['GeneralSettings']['ServerPort'] = 7950
+
+    config_data['Observers'][0]['ShardId'] = 0
+    config_data['Observers'][0]['Address'] = "http://127.0.0.1:9500"
+
+    config_data['Observers'][1]['ShardId'] = 1
+    config_data['Observers'][1]['Address'] = "http://127.0.0.1:9501"
+
+    config_data['Observers'][2]['ShardId'] = 2
+    config_data['Observers'][2]['Address'] = "http://127.0.0.1:9502"
+
+    new_observer = {
+        'ShardId': 4294967295,
+        'Address': 'http://127.0.0.1:9503',
+    }
+    config_data['Observers'].append(new_observer)
+    del config_data['FullHistoryNodes']
+
+    f = open(path_config, 'w')
+    toml.dump(config_data, f)
+    f.close()
 
 
 def generate_config_for_local_testnet(working_dir):
@@ -155,6 +195,8 @@ def main():
     generate_config_for_local_testnet(working_dir)
     # prepare seednode
     prepare_seed_node(working_dir)
+    # prepare proxy
+    prepare_proxy(working_dir)
 
     # build binary mx-chain-go
     print("building node...")
