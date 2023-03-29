@@ -41,8 +41,8 @@ func NewIndexer(marshaller marshal.Marshalizer, dataIndexer DataIndexer) (*index
 }
 
 // GetOperationsMap returns the map with all the operations that will index data
-func (i *indexer) initActionsMap() map[data.OperationType]func(d []byte) error {
-	return map[data.OperationType]func(d []byte) error{
+func (i *indexer) initActionsMap() {
+	i.actions = map[data.OperationType]func(d []byte) error{
 		data.OperationSaveBlock:             i.saveBlock,
 		data.OperationRevertIndexedBlock:    i.revertIndexedBlock,
 		data.OperationSaveRoundsInfo:        i.saveRounds,
@@ -57,6 +57,7 @@ func (i *indexer) ProcessPayload(payload *data.PayloadData) error {
 	function, ok := i.actions[payload.OperationType]
 	if !ok {
 		log.Warn("invalid operation", "operation type", payload.OperationType.String())
+		return nil
 	}
 
 	err := function(payload.Payload)
