@@ -39,9 +39,13 @@ func (wib *itemBlock) Save() error {
 		return nil
 	}
 
-	defer func(startTime time.Time) {
-		log.Debug("wib.SaveBlockData duration", "time", time.Since(startTime))
-	}(time.Now())
+	defer func(startTime time.Time, headerHash []byte, headerNonce uint64) {
+		log.Debug("wib.SaveBlockData",
+			"duration", time.Since(startTime),
+			"block nonce", headerNonce,
+			"block hash", headerHash,
+		)
+	}(time.Now(), wib.outportBlockWithHeader.BlockData.HeaderHash, wib.outportBlockWithHeader.Header.GetNonce())
 
 	log.Debug("indexer: starting indexing block",
 		"hash", wib.outportBlockWithHeader.BlockData.HeaderHash,
