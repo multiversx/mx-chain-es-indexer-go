@@ -3,6 +3,8 @@
     [config.web-socket]
         server-url = "localhost:22111"
         data-marshaller-type = "json"
+        retry-duration-in-seconds = 5
+        blocking-ack-on-error = true
 
     [config.elastic-cluster]
         use-kibana = false
