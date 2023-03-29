@@ -32,6 +32,15 @@ def update_toml_node(path, shard_id):
     toml.dump(prefs_data, f)
     f.close()
 
+    # config.toml
+    path_config = path / "config.toml"
+    config_data = toml.load(path_config)
+    config_data['DbLookupExtensions']['Enabled'] = True
+    config_data['EpochStartConfig']['RoundsPerEpoch'] = 20
+    f = open(path_config, 'w')
+    toml.dump(config_data, f)
+    f.close()
+
     # external.toml
     path_external = path / "external.toml"
     external_data = toml.load(str(path_external))
@@ -144,17 +153,17 @@ def prepare_proxy(working_dir):
 
     config_data['GeneralSettings']['ServerPort'] = 7950
 
-    config_data['Observers'][0]['ShardId'] = 0
+    config_data['Observers'][0]['ShardId'] = 4294967295
     config_data['Observers'][0]['Address'] = "http://127.0.0.1:9500"
 
-    config_data['Observers'][1]['ShardId'] = 1
+    config_data['Observers'][1]['ShardId'] = 0
     config_data['Observers'][1]['Address'] = "http://127.0.0.1:9501"
 
-    config_data['Observers'][2]['ShardId'] = 2
+    config_data['Observers'][2]['ShardId'] = 1
     config_data['Observers'][2]['Address'] = "http://127.0.0.1:9502"
 
     new_observer = {
-        'ShardId': 4294967295,
+        'ShardId': 2,
         'Address': 'http://127.0.0.1:9503',
     }
     config_data['Observers'].append(new_observer)
@@ -210,10 +219,10 @@ def main():
     # prepare observers
     config_folder = working_dir / "config"
     print("preparing config...")
+    prepare_observer(METACHAIN, working_dir, config_folder)
     prepare_observer(0, working_dir, config_folder)
     prepare_observer(1, working_dir, config_folder)
     prepare_observer(2, working_dir, config_folder)
-    prepare_observer(METACHAIN, working_dir, config_folder)
 
 
 if __name__ == "__main__":

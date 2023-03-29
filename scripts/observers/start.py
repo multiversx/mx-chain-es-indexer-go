@@ -52,10 +52,10 @@ def main():
 
     start_seed_node(working_dir)
     start_proxy(working_dir)
-    start_observer(0, working_dir, 0)
-    start_observer(1, working_dir, 1)
-    start_observer(2, working_dir, 2)
-    start_observer(METACHAIN, working_dir, 3)
+    start_observer(METACHAIN, working_dir, 0)
+    start_observer(0, working_dir, 1)
+    start_observer(1, working_dir, 2)
+    start_observer(2, working_dir, 3)
 
     print("done")
 
