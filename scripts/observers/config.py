@@ -33,10 +33,12 @@ def update_toml_node(path, shard_id):
     f.close()
 
     # config.toml
+    num_of_shards = int(os.getenv('NUM_OF_SHARDS'))
     path_config = path / "config.toml"
     config_data = toml.load(path_config)
     config_data['DbLookupExtensions']['Enabled'] = True
     config_data['EpochStartConfig']['RoundsPerEpoch'] = 20
+    config_data['GeneralSettings']['GenesisMaxNumberOfShards'] = num_of_shards
     f = open(path_config, 'w')
     toml.dump(config_data, f)
     f.close()
@@ -87,9 +89,10 @@ def prepare_observer(shard_id, working_dir, config_folder):
 
 def generate_new_config(working_dir):
     mx_chain_go_folder = working_dir / "mx-chain-go" / "scripts" / "testnet"
+    num_of_shards = str(os.getenv('NUM_OF_SHARDS'))
 
     with open(mx_chain_go_folder/"local.sh", "w") as file:
-        file.write("export SHARDCOUNT=3\n")
+        file.write(f'export SHARDCOUNT={num_of_shards}\n')
         file.write("export SHARD_VALIDATORCOUNT=1\n")
         file.write("export SHARD_OBSERVERCOUNT=0\n")
         file.write("export SHARD_CONSENSUS_SIZE=1\n")
@@ -151,23 +154,28 @@ def prepare_proxy(working_dir):
     path_config = mx_chain_proxy_go_binary_folder / "config/config.toml"
     config_data = toml.load(str(path_config))
 
-    config_data['GeneralSettings']['ServerPort'] = 7950
-
-    config_data['Observers'][0]['ShardId'] = 4294967295
-    config_data['Observers'][0]['Address'] = "http://127.0.0.1:9500"
-
-    config_data['Observers'][1]['ShardId'] = 0
-    config_data['Observers'][1]['Address'] = "http://127.0.0.1:9501"
-
-    config_data['Observers'][2]['ShardId'] = 1
-    config_data['Observers'][2]['Address'] = "http://127.0.0.1:9502"
-
-    new_observer = {
-        'ShardId': 2,
-        'Address': 'http://127.0.0.1:9503',
-    }
-    config_data['Observers'].append(new_observer)
+    proxy_port = int(os.getenv('PROXY_PORT'))
+    config_data['GeneralSettings']['ServerPort'] = proxy_port
+    del config_data['Observers']
     del config_data['FullHistoryNodes']
+
+    config_data['Observers'] = []
+
+    observers_start_port = int(os.getenv('OBSERVERS_START_PORT'))
+    meta_observer = {
+        'ShardId': 4294967295,
+        'Address': f'http://127.0.0.1:{observers_start_port}',
+    }
+    config_data['Observers'].append(meta_observer)
+
+    num_of_shards = int(os.getenv('NUM_OF_SHARDS'))
+    for shardID in range(num_of_shards):
+        shard_observer_port = observers_start_port+shardID+1
+        meta_observer = {
+            'ShardId': shardID,
+            'Address': f'http://127.0.0.1:{shard_observer_port}',
+        }
+        config_data['Observers'].append(meta_observer)
 
     f = open(path_config, 'w')
     toml.dump(config_data, f)
@@ -220,9 +228,10 @@ def main():
     config_folder = working_dir / "config"
     print("preparing config...")
     prepare_observer(METACHAIN, working_dir, config_folder)
-    prepare_observer(0, working_dir, config_folder)
-    prepare_observer(1, working_dir, config_folder)
-    prepare_observer(2, working_dir, config_folder)
+
+    num_of_shards = int(os.getenv('NUM_OF_SHARDS'))
+    for shardID in range(num_of_shards):
+        prepare_observer(shardID, working_dir, config_folder)
 
 
 if __name__ == "__main__":
