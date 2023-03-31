@@ -5,6 +5,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 )
 
+// BlockContainerStub -
 type BlockContainerStub struct {
 	GetCalled func(headerType core.HeaderType) (block.EmptyBlockCreator, error)
 }
