@@ -32,6 +32,17 @@ def update_toml_node(path, shard_id):
     toml.dump(prefs_data, f)
     f.close()
 
+    # config.toml
+    num_of_shards = int(os.getenv('NUM_OF_SHARDS'))
+    path_config = path / "config.toml"
+    config_data = toml.load(path_config)
+    config_data['DbLookupExtensions']['Enabled'] = True
+    config_data['EpochStartConfig']['RoundsPerEpoch'] = 20
+    config_data['GeneralSettings']['GenesisMaxNumberOfShards'] = num_of_shards
+    f = open(path_config, 'w')
+    toml.dump(config_data, f)
+    f.close()
+
     # external.toml
     path_external = path / "external.toml"
     external_data = toml.load(str(path_external))
@@ -78,9 +89,10 @@ def prepare_observer(shard_id, working_dir, config_folder):
 
 def generate_new_config(working_dir):
     mx_chain_go_folder = working_dir / "mx-chain-go" / "scripts" / "testnet"
+    num_of_shards = str(os.getenv('NUM_OF_SHARDS'))
 
     with open(mx_chain_go_folder/"local.sh", "w") as file:
-        file.write("export SHARDCOUNT=3\n")
+        file.write(f'export SHARDCOUNT={num_of_shards}\n')
         file.write("export SHARD_VALIDATORCOUNT=1\n")
         file.write("export SHARD_OBSERVERCOUNT=0\n")
         file.write("export SHARD_CONSENSUS_SIZE=1\n")
@@ -109,6 +121,10 @@ def clone_dependencies(working_dir):
     if not os.path.isdir(mx_chain_deploy_folder):
         Repo.clone_from(os.getenv('MX_CHAIN_DEPLOY_GO_URL'), mx_chain_deploy_folder)
 
+    mx_chain_proxy_folder = working_dir / "mx-chain-proxy-go"
+    if not os.path.isdir(mx_chain_proxy_folder):
+        Repo.clone_from(os.getenv('MX_CHAIN_PROXY_URL'), mx_chain_proxy_folder)
+
 
 def prepare_seed_node(working_dir):
     print("preparing seed node")
@@ -123,6 +139,47 @@ def prepare_seed_node(working_dir):
 
     st = os.stat(working_dir/"seednode/seednode")
     os.chmod(working_dir/"seednode/seednode", st.st_mode | stat.S_IEXEC)
+
+
+def prepare_proxy(working_dir):
+    print("preparing proxy")
+    mx_chain_proxy_go_folder = working_dir / "mx-chain-proxy-go"
+    subprocess.check_call(["go", "build"], cwd=mx_chain_proxy_go_folder / "cmd/proxy")
+
+    mx_chain_proxy_go_binary_folder = mx_chain_proxy_go_folder / "cmd/proxy"
+    st = os.stat(mx_chain_proxy_go_binary_folder / "proxy")
+    os.chmod(mx_chain_proxy_go_binary_folder / "proxy", st.st_mode | stat.S_IEXEC)
+
+    # config.toml
+    path_config = mx_chain_proxy_go_binary_folder / "config/config.toml"
+    config_data = toml.load(str(path_config))
+
+    proxy_port = int(os.getenv('PROXY_PORT'))
+    config_data['GeneralSettings']['ServerPort'] = proxy_port
+    del config_data['Observers']
+    del config_data['FullHistoryNodes']
+
+    config_data['Observers'] = []
+
+    observers_start_port = int(os.getenv('OBSERVERS_START_PORT'))
+    meta_observer = {
+        'ShardId': 4294967295,
+        'Address': f'http://127.0.0.1:{observers_start_port}',
+    }
+    config_data['Observers'].append(meta_observer)
+
+    num_of_shards = int(os.getenv('NUM_OF_SHARDS'))
+    for shardID in range(num_of_shards):
+        shard_observer_port = observers_start_port+shardID+1
+        meta_observer = {
+            'ShardId': shardID,
+            'Address': f'http://127.0.0.1:{shard_observer_port}',
+        }
+        config_data['Observers'].append(meta_observer)
+
+    f = open(path_config, 'w')
+    toml.dump(config_data, f)
+    f.close()
 
 
 def generate_config_for_local_testnet(working_dir):
@@ -146,6 +203,9 @@ def main():
         print("use `python3 clean.py` command first")
         sys.exit()
 
+    num_of_shards = int(os.getenv('NUM_OF_SHARDS'))
+    check_num_of_shards(num_of_shards)
+
     # clone mx-chain-go
     clone_mx_chain_go(working_dir)
     # clone dependencies
@@ -155,6 +215,8 @@ def main():
     generate_config_for_local_testnet(working_dir)
     # prepare seednode
     prepare_seed_node(working_dir)
+    # prepare proxy
+    prepare_proxy(working_dir)
 
     # build binary mx-chain-go
     print("building node...")
@@ -168,10 +230,11 @@ def main():
     # prepare observers
     config_folder = working_dir / "config"
     print("preparing config...")
-    prepare_observer(0, working_dir, config_folder)
-    prepare_observer(1, working_dir, config_folder)
-    prepare_observer(2, working_dir, config_folder)
     prepare_observer(METACHAIN, working_dir, config_folder)
+
+
+    for shardID in range(num_of_shards):
+        prepare_observer(shardID, working_dir, config_folder)
 
 
 if __name__ == "__main__":

@@ -3,7 +3,8 @@ package dataindexer
 import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-core-go/core/unmarshal"
+	"github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer/workItems"
@@ -14,6 +15,7 @@ type ArgDataIndexer struct {
 	HeaderMarshaller marshal.Marshalizer
 	DataDispatcher   DispatcherHandler
 	ElasticProcessor ElasticProcessor
+	BlockContainer   BlockContainerHandler
 }
 
 type dataIndexer struct {
@@ -21,6 +23,7 @@ type dataIndexer struct {
 	dispatcher       DispatcherHandler
 	elasticProcessor ElasticProcessor
 	headerMarshaller marshal.Marshalizer
+	blockContainer   BlockContainerHandler
 }
 
 // NewDataIndexer will create a new data indexer
@@ -35,6 +38,7 @@ func NewDataIndexer(arguments ArgDataIndexer) (*dataIndexer, error) {
 		dispatcher:       arguments.DataDispatcher,
 		elasticProcessor: arguments.ElasticProcessor,
 		headerMarshaller: arguments.HeaderMarshaller,
+		blockContainer:   arguments.BlockContainer,
 	}
 
 	return dataIndexerObj, nil
@@ -50,13 +54,25 @@ func checkIndexerArgs(arguments ArgDataIndexer) error {
 	if check.IfNil(arguments.HeaderMarshaller) {
 		return ErrNilMarshalizer
 	}
+	if check.IfNilReflect(arguments.BlockContainer) {
+		return ErrNilBlockContainerHandler
+	}
 
 	return nil
 }
 
+func (di *dataIndexer) getHeaderFromBytes(headerType core.HeaderType, headerBytes []byte) (header data.HeaderHandler, err error) {
+	creator, err := di.blockContainer.Get(headerType)
+	if err != nil {
+		return nil, err
+	}
+
+	return block.GetHeaderFromBytes(di.headerMarshaller, creator, headerBytes)
+}
+
 // SaveBlock saves the block info in the queue to be sent to elastic
 func (di *dataIndexer) SaveBlock(outportBlock *outport.OutportBlock) error {
-	header, err := unmarshal.GetHeaderFromBytes(di.headerMarshaller, core.HeaderType(outportBlock.BlockData.HeaderType), outportBlock.BlockData.HeaderBytes)
+	header, err := di.getHeaderFromBytes(core.HeaderType(outportBlock.BlockData.HeaderType), outportBlock.BlockData.HeaderBytes)
 	if err != nil {
 		return err
 	}
@@ -80,7 +96,7 @@ func (di *dataIndexer) Close() error {
 
 // RevertIndexedBlock will remove from database block and miniblocks
 func (di *dataIndexer) RevertIndexedBlock(blockData *outport.BlockData) error {
-	header, err := unmarshal.GetHeaderFromBytes(di.headerMarshaller, core.HeaderType(blockData.HeaderType), blockData.HeaderBytes)
+	header, err := di.getHeaderFromBytes(core.HeaderType(blockData.HeaderType), blockData.HeaderBytes)
 	if err != nil {
 		return err
 	}

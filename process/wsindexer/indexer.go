@@ -19,6 +19,7 @@ var (
 type indexer struct {
 	marshaller marshal.Marshalizer
 	di         DataIndexer
+	actions    map[data.OperationType]func(marshalledData []byte) error
 }
 
 // NewIndexer will create a new instance of *indexer
@@ -30,15 +31,18 @@ func NewIndexer(marshaller marshal.Marshalizer, dataIndexer DataIndexer) (*index
 		return nil, errNilDataIndexer
 	}
 
-	return &indexer{
+	payloadIndexer := &indexer{
 		marshaller: marshaller,
 		di:         dataIndexer,
-	}, nil
+	}
+	payloadIndexer.initActionsMap()
+
+	return payloadIndexer, nil
 }
 
 // GetOperationsMap returns the map with all the operations that will index data
-func (i *indexer) GetOperationsMap() map[data.OperationType]func(d []byte) error {
-	return map[data.OperationType]func(d []byte) error{
+func (i *indexer) initActionsMap() {
+	i.actions = map[data.OperationType]func(d []byte) error{
 		data.OperationSaveBlock:             i.saveBlock,
 		data.OperationRevertIndexedBlock:    i.revertIndexedBlock,
 		data.OperationSaveRoundsInfo:        i.saveRounds,
@@ -47,6 +51,16 @@ func (i *indexer) GetOperationsMap() map[data.OperationType]func(d []byte) error
 		data.OperationSaveAccounts:          i.saveAccounts,
 		data.OperationFinalizedBlock:        i.finalizedBlock,
 	}
+}
+
+func (i *indexer) ProcessPayload(payload *data.PayloadData) error {
+	operationAction, ok := i.actions[payload.OperationType]
+	if !ok {
+		log.Warn("invalid operation", "operation type", payload.OperationType.String())
+		return nil
+	}
+
+	return operationAction(payload.Payload)
 }
 
 func (i *indexer) saveBlock(marshalledData []byte) error {
@@ -116,4 +130,9 @@ func (i *indexer) finalizedBlock(_ []byte) error {
 // Close will close the indexer
 func (i *indexer) Close() error {
 	return i.di.Close()
+}
+
+// IsInterfaceNil returns true if underlying object is nil
+func (i *indexer) IsInterfaceNil() bool {
+	return i == nil
 }

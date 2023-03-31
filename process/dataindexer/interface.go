@@ -3,6 +3,7 @@ package dataindexer
 import (
 	"math/big"
 
+	"github.com/multiversx/mx-chain-core-go/core"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
@@ -73,4 +74,9 @@ type BalanceConverter interface {
 	ComputeESDTBalanceAsFloat(balance *big.Int) (float64, error)
 	ComputeSliceOfStringsAsFloat(values []string) ([]float64, error)
 	IsInterfaceNil() bool
+}
+
+// BlockContainerHandler defines what a block container should be able to do
+type BlockContainerHandler interface {
+	Get(headerType core.HeaderType) (block.EmptyBlockCreator, error)
 }

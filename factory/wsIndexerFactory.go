@@ -5,9 +5,9 @@ import (
 	factoryHasher "github.com/multiversx/mx-chain-core-go/hashing/factory"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	factoryMarshaller "github.com/multiversx/mx-chain-core-go/marshal/factory"
+	"github.com/multiversx/mx-chain-core-go/websocketOutportDriver/client"
 	"github.com/multiversx/mx-chain-es-indexer-go/config"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/factory"
-	"github.com/multiversx/mx-chain-es-indexer-go/process/wsclient"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/wsindexer"
 )
 
@@ -32,7 +32,12 @@ func CreateWsIndexer(cfg config.Config, clusterCfg config.ClusterConfig) (wsinde
 		return nil, err
 	}
 
-	return wsclient.New(clusterCfg.Config.WebSocket.ServerURL, indexer)
+	return client.CreateWsClient(client.ArgsCreateWsClient{
+		Url:                clusterCfg.Config.WebSocket.ServerURL,
+		RetryDurationInSec: clusterCfg.Config.WebSocket.RetryDurationInSec,
+		BlockingAckOnError: clusterCfg.Config.WebSocket.BlockingAckOnError,
+		PayloadProcessor:   indexer,
+	})
 }
 
 func createDataIndexer(cfg config.Config, clusterCfg config.ClusterConfig, wsMarshaller marshal.Marshalizer) (wsindexer.DataIndexer, error) {

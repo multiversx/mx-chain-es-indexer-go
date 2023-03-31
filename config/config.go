@@ -38,6 +38,8 @@ type ClusterConfig struct {
 		WebSocket       struct {
 			ServerURL          string `toml:"server-url"`
 			DataMarshallerType string `toml:"data-marshaller-type"`
+			RetryDurationInSec uint32 `toml:"retry-duration-in-seconds"`
+			BlockingAckOnError bool   `toml:"blocking-ack-on-error"`
 		} `toml:"web-socket"`
 		ElasticCluster struct {
 			UseKibana                 bool   `toml:"use-kibana"`

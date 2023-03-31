@@ -17,6 +17,7 @@ func NewDataIndexerArguments() ArgDataIndexer {
 		DataDispatcher:   &mock.DispatcherMock{},
 		ElasticProcessor: &mock.ElasticProcessorStub{},
 		HeaderMarshaller: &mock.MarshalizerMock{},
+		BlockContainer:   &mock.BlockContainerStub{},
 	}
 }
 
@@ -63,6 +64,11 @@ func TestDataIndexer_SaveBlock(t *testing.T) {
 	arguments.DataDispatcher = &mock.DispatcherMock{
 		AddCalled: func(item workItems.WorkItemHandler) {
 			called = true
+		},
+	}
+	arguments.BlockContainer = &mock.BlockContainerStub{
+		GetCalled: func(headerType core.HeaderType) (dataBlock.EmptyBlockCreator, error) {
+			return dataBlock.NewEmptyHeaderV2Creator(), nil
 		},
 	}
 	ei, _ := NewDataIndexer(arguments)
@@ -144,6 +150,10 @@ func TestDataIndexer_RevertIndexedBlock(t *testing.T) {
 			called = true
 		},
 	}
+	arguments.BlockContainer = &mock.BlockContainerStub{
+		GetCalled: func(headerType core.HeaderType) (dataBlock.EmptyBlockCreator, error) {
+			return dataBlock.NewEmptyHeaderV2Creator(), nil
+		}}
 	ei, _ := NewDataIndexer(arguments)
 
 	err := ei.RevertIndexedBlock(&outport.BlockData{
