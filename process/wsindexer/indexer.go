@@ -31,13 +31,13 @@ func NewIndexer(marshaller marshal.Marshalizer, dataIndexer DataIndexer) (*index
 		return nil, errNilDataIndexer
 	}
 
-	i := &indexer{
+	payloadIndexer := &indexer{
 		marshaller: marshaller,
 		di:         dataIndexer,
 	}
-	i.initActionsMap()
+	payloadIndexer.initActionsMap()
 
-	return i, nil
+	return payloadIndexer, nil
 }
 
 // GetOperationsMap returns the map with all the operations that will index data
@@ -54,13 +54,13 @@ func (i *indexer) initActionsMap() {
 }
 
 func (i *indexer) ProcessPayload(payload *data.PayloadData) error {
-	function, ok := i.actions[payload.OperationType]
+	operationAction, ok := i.actions[payload.OperationType]
 	if !ok {
 		log.Warn("invalid operation", "operation type", payload.OperationType.String())
 		return nil
 	}
 
-	return function(payload.Payload)
+	return operationAction(payload.Payload)
 }
 
 func (i *indexer) saveBlock(marshalledData []byte) error {

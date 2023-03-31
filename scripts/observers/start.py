@@ -49,13 +49,15 @@ def main():
         print("working directory folder is missing...you should run first `python3 config.py` command")
         sys.exit()
 
+    num_of_shards = int(os.getenv('NUM_OF_SHARDS'))
+    check_num_of_shards(num_of_shards)
+
     print("staring observers and indexers....")
 
     start_seed_node(working_dir)
     start_proxy(working_dir)
     start_observer_and_indexer(METACHAIN, working_dir, 0)
 
-    num_of_shards = int(os.getenv('NUM_OF_SHARDS'))
     for shard_id in range(num_of_shards):
         start_observer_and_indexer(shard_id, working_dir, shard_id+1)
 

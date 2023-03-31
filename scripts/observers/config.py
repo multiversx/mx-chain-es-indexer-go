@@ -150,7 +150,7 @@ def prepare_proxy(working_dir):
     st = os.stat(mx_chain_proxy_go_binary_folder / "proxy")
     os.chmod(mx_chain_proxy_go_binary_folder / "proxy", st.st_mode | stat.S_IEXEC)
 
-    # prefs.toml
+    # config.toml
     path_config = mx_chain_proxy_go_binary_folder / "config/config.toml"
     config_data = toml.load(str(path_config))
 
@@ -203,6 +203,9 @@ def main():
         print("use `python3 clean.py` command first")
         sys.exit()
 
+    num_of_shards = int(os.getenv('NUM_OF_SHARDS'))
+    check_num_of_shards(num_of_shards)
+
     # clone mx-chain-go
     clone_mx_chain_go(working_dir)
     # clone dependencies
@@ -229,7 +232,7 @@ def main():
     print("preparing config...")
     prepare_observer(METACHAIN, working_dir, config_folder)
 
-    num_of_shards = int(os.getenv('NUM_OF_SHARDS'))
+
     for shardID in range(num_of_shards):
         prepare_observer(shardID, working_dir, config_folder)
 
