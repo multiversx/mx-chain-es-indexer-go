@@ -15,6 +15,7 @@ type ArgDataIndexer struct {
 	HeaderMarshaller marshal.Marshalizer
 	DataDispatcher   DispatcherHandler
 	ElasticProcessor ElasticProcessor
+	BlockContainer   BlockContainerHandler
 }
 
 type dataIndexer struct {
@@ -22,7 +23,7 @@ type dataIndexer struct {
 	dispatcher       DispatcherHandler
 	elasticProcessor ElasticProcessor
 	headerMarshaller marshal.Marshalizer
-	blockContainer   blockContainerHandler
+	blockContainer   BlockContainerHandler
 }
 
 // NewDataIndexer will create a new data indexer
@@ -32,38 +33,15 @@ func NewDataIndexer(arguments ArgDataIndexer) (*dataIndexer, error) {
 		return nil, err
 	}
 
-	blockContainer, err := createBlockCreatorsContainer()
-	if err != nil {
-		return nil, err
-	}
-
 	dataIndexerObj := &dataIndexer{
 		isNilIndexer:     false,
 		dispatcher:       arguments.DataDispatcher,
 		elasticProcessor: arguments.ElasticProcessor,
 		headerMarshaller: arguments.HeaderMarshaller,
-		blockContainer:   blockContainer,
+		blockContainer:   arguments.BlockContainer,
 	}
 
 	return dataIndexerObj, nil
-}
-
-func createBlockCreatorsContainer() (blockContainerHandler, error) {
-	container := block.NewEmptyBlockCreatorsContainer()
-	err := container.Add(core.ShardHeaderV1, block.NewEmptyHeaderCreator())
-	if err != nil {
-		return nil, err
-	}
-	err = container.Add(core.ShardHeaderV2, block.NewEmptyHeaderV2Creator())
-	if err != nil {
-		return nil, err
-	}
-	err = container.Add(core.MetaHeader, block.NewEmptyMetaBlockCreator())
-	if err != nil {
-		return nil, err
-	}
-
-	return container, nil
 }
 
 func checkIndexerArgs(arguments ArgDataIndexer) error {
@@ -75,6 +53,9 @@ func checkIndexerArgs(arguments ArgDataIndexer) error {
 	}
 	if check.IfNil(arguments.HeaderMarshaller) {
 		return ErrNilMarshalizer
+	}
+	if check.IfNilReflect(arguments.BlockContainer) {
+		return ErrNilBlockContainerHandler
 	}
 
 	return nil

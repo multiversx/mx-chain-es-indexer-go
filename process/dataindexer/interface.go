@@ -76,6 +76,7 @@ type BalanceConverter interface {
 	IsInterfaceNil() bool
 }
 
-type blockContainerHandler interface {
+// BlockContainerHandler defines what a block container should be able to do
+type BlockContainerHandler interface {
 	Get(headerType core.HeaderType) (block.EmptyBlockCreator, error)
 }

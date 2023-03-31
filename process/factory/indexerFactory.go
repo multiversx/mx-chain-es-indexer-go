@@ -9,6 +9,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	"github.com/multiversx/mx-chain-es-indexer-go/client"
@@ -59,10 +60,16 @@ func NewIndexer(args ArgsIndexerFactory) (dataindexer.Indexer, error) {
 
 	dispatcher.StartIndexData()
 
+	blockContainer, err := createBlockCreatorsContainer()
+	if err != nil {
+		return nil, err
+	}
+
 	arguments := dataindexer.ArgDataIndexer{
 		HeaderMarshaller: args.HeaderMarshaller,
 		ElasticProcessor: elasticProcessor,
 		DataDispatcher:   dispatcher,
+		BlockContainer:   blockContainer,
 	}
 
 	return dataindexer.NewDataIndexer(arguments)
@@ -127,4 +134,22 @@ func checkDataIndexerParams(arguments ArgsIndexerFactory) error {
 	}
 
 	return nil
+}
+
+func createBlockCreatorsContainer() (dataindexer.BlockContainerHandler, error) {
+	container := block.NewEmptyBlockCreatorsContainer()
+	err := container.Add(core.ShardHeaderV1, block.NewEmptyHeaderCreator())
+	if err != nil {
+		return nil, err
+	}
+	err = container.Add(core.ShardHeaderV2, block.NewEmptyHeaderV2Creator())
+	if err != nil {
+		return nil, err
+	}
+	err = container.Add(core.MetaHeader, block.NewEmptyMetaBlockCreator())
+	if err != nil {
+		return nil, err
+	}
+
+	return container, nil
 }

@@ -60,11 +60,7 @@ func (i *indexer) ProcessPayload(payload *data.PayloadData) error {
 		return nil
 	}
 
-	err := function(payload.Payload)
-	if err != nil {
-		log.Error("something went wrong", "error", err.Error())
-	}
-	return nil
+	return function(payload.Payload)
 }
 
 func (i *indexer) saveBlock(marshalledData []byte) error {
