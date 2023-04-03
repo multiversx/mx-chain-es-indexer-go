@@ -69,8 +69,9 @@ github.com/kkdai/bstream v0.0.0-20161212061736-f391b8402d23/go.mod h1:J+Gs4SYgM6
 github.com/mitchellh/mapstructure v1.4.1/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
 github.com/mr-tron/base58 v1.2.0 h1:T/HDJBh4ZCPbU39/+c3rRvE0uKBQlU27+QI8LJ4t64o=
 github.com/mr-tron/base58 v1.2.0/go.mod h1:BinMc/sQntlIE1frQmRFPUoPA1Zkr8VRgBdjWI2mNwc=
-github.com/multiversx/mx-chain-core-go v1.1.30 h1:BtURR4I6HU1OnSbxcPMTQSQXNqtOuH3RW6bg5N7FSM0=
 github.com/multiversx/mx-chain-core-go v1.1.30/go.mod h1:8gGEQv6BWuuJwhd25qqhCOZbBSv9mk+hLeKvinSaSMk=
+github.com/multiversx/mx-chain-core-go v1.1.36 h1:yI4E6vv2KSn9dTbllyPZJvF9tYweuZnIbX9lTqJCCaU=
+github.com/multiversx/mx-chain-core-go v1.1.36/go.mod h1:8gGEQv6BWuuJwhd25qqhCOZbBSv9mk+hLeKvinSaSMk=
 github.com/multiversx/mx-chain-logger-go v1.0.11 h1:DFsHa+sc5fKwhDR50I8uBM99RTDTEW68ESyr5ALRDwE=
 github.com/multiversx/mx-chain-logger-go v1.0.11/go.mod h1:1srDkP0DQucWQ+rYfaq0BX2qLnULsUdRPADpYUTM6dA=
 github.com/multiversx/mx-chain-vm-common-go v1.3.34 h1:6tSshEeVJpgFZmP8JV2wrPyRtL477oTYw1tjFcHTtv4=

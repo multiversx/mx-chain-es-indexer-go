@@ -76,6 +76,10 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 	if areESDTValuesOK(res.ESDTValues) {
 		esdtValues = res.ESDTValues
 	}
+	guardianAddress := ""
+	if len(tx.GuardianAddr) > 0 {
+		guardianAddress = dtb.addressPubkeyConverter.Encode(tx.GuardianAddr)
+	}
 
 	return &data.Transaction{
 		Hash:              hex.EncodeToString(txHash),
@@ -110,6 +114,8 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		ReceiversShardIDs: res.ReceiversShardID,
 		IsRelayed:         res.IsRelayed,
 		Version:           tx.Version,
+		GuardianAddress:   guardianAddress,
+		GuardianSignature: hex.EncodeToString(tx.GuardianSignature),
 	}
 }
 
