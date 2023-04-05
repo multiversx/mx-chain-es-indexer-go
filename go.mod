@@ -5,9 +5,9 @@ go 1.17
 require (
 	github.com/elastic/go-elasticsearch/v7 v7.12.0
 	github.com/gorilla/websocket v1.5.0
-	github.com/multiversx/mx-chain-core-go v1.1.36
+	github.com/multiversx/mx-chain-core-go v1.1.37
 	github.com/multiversx/mx-chain-logger-go v1.0.11
-	github.com/multiversx/mx-chain-vm-common-go v1.3.39
+	github.com/multiversx/mx-chain-vm-common-go v1.3.40
 	github.com/stretchr/testify v1.7.0
 	github.com/tidwall/gjson v1.14.0
 	github.com/urfave/cli v1.22.9
