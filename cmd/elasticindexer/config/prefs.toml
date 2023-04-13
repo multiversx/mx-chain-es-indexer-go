@@ -2,6 +2,7 @@
     disabled-indices = []
     [config.web-socket]
         server-url = "localhost:22111"
+        is-server = true
         # Possible values: json, gogo protobuf. Should be compatible with mx-chain-node outport driver config
         data-marshaller-type = "json"
         # Retry duration (receive/send ack signal) in seconds

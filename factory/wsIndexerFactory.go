@@ -5,15 +5,18 @@ import (
 	factoryHasher "github.com/multiversx/mx-chain-core-go/hashing/factory"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	factoryMarshaller "github.com/multiversx/mx-chain-core-go/marshal/factory"
-	"github.com/multiversx/mx-chain-core-go/websocketOutportDriver/client"
+	"github.com/multiversx/mx-chain-core-go/webSockets/clientServerReceiver"
 	"github.com/multiversx/mx-chain-es-indexer-go/config"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/factory"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/wsindexer"
+	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 const (
 	indexerCacheSize = 1
 )
+
+var log = logger.GetOrCreate("elasticindexer")
 
 // CreateWsIndexer will create a new instance of wsindexer.WSClient
 func CreateWsIndexer(cfg config.Config, clusterCfg config.ClusterConfig) (wsindexer.WSClient, error) {
@@ -32,11 +35,13 @@ func CreateWsIndexer(cfg config.Config, clusterCfg config.ClusterConfig) (wsinde
 		return nil, err
 	}
 
-	return client.CreateWsClient(client.ArgsCreateWsClient{
+	return clientServerReceiver.NewClientServerReceiver(clientServerReceiver.ArgsWsClientServerReceiver{
 		Url:                clusterCfg.Config.WebSocket.ServerURL,
 		RetryDurationInSec: clusterCfg.Config.WebSocket.RetryDurationInSec,
 		BlockingAckOnError: clusterCfg.Config.WebSocket.BlockingAckOnError,
 		PayloadProcessor:   indexer,
+		IsServer:           clusterCfg.Config.WebSocket.IsServer,
+		Log:                log,
 	})
 }
 

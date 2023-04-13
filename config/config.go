@@ -37,6 +37,7 @@ type ClusterConfig struct {
 		DisabledIndices []string `toml:"disabled-indices"`
 		WebSocket       struct {
 			ServerURL          string `toml:"server-url"`
+			IsServer           bool   `toml:"is-server"`
 			DataMarshallerType string `toml:"data-marshaller-type"`
 			RetryDurationInSec uint32 `toml:"retry-duration-in-seconds"`
 			BlockingAckOnError bool   `toml:"blocking-ack-on-error"`

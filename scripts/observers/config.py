@@ -9,13 +9,21 @@ from utils import *
 
 def update_toml_indexer(path, shard_id):
     # prefs.toml
+    is_indexer_server = os.getenv('INDEXER_BINARY_SERVER')
     path_prefs = path / "prefs.toml"
     prefs_data = toml.load(str(path_prefs))
-    prefs_data['config']['web-socket']['server-url'] = str(shard_id)
+
+    port = WS_PORT_BASE + shard_id
+    meta_port = WS_METACHAIN_PORT
+    if is_indexer_server:
+        port = WS_PORT_BASE
+        meta_port = WS_PORT_BASE
+        prefs_data['config']['web-socket']['is-server'] = True
+
     if shard_id != METACHAIN:
-        prefs_data['config']['web-socket']['server-url'] = "localhost:" + str(WS_PORT_BASE + shard_id)
+        prefs_data['config']['web-socket']['server-url'] = "localhost:" + str(port)
     else:
-        prefs_data['config']['web-socket']['server-url'] = "localhost:" + str(WS_METACHAIN_PORT)
+        prefs_data['config']['web-socket']['server-url'] = "localhost:" + str(meta_port)
     prefs_data['config']['web-socket']['data-marshaller-type'] = str(os.getenv('WS_MARSHALLER_TYPE'))
 
     f = open(path_prefs, 'w')
@@ -46,13 +54,23 @@ def update_toml_node(path, shard_id):
     # external.toml
     path_external = path / "external.toml"
     external_data = toml.load(str(path_external))
-    external_data['WebSocketConnector']['Enabled'] = True
-    if shard_id != METACHAIN:
-        external_data['WebSocketConnector']['URL'] = "localhost:" + str(WS_PORT_BASE + shard_id)
-    else:
-        external_data['WebSocketConnector']['URL'] = "localhost:" + str(WS_METACHAIN_PORT)
+    external_data['WebSocketsConnector']['Enabled'] = True
 
-    external_data['WebSocketConnector']['MarshallerType'] = str(os.getenv('WS_MARSHALLER_TYPE'))
+    port = WS_PORT_BASE + shard_id
+    meta_port = WS_METACHAIN_PORT
+
+    is_indexer_server = os.getenv('INDEXER_BINARY_SERVER')
+    if is_indexer_server:
+        external_data['WebSocketsConnector']['IsServer'] = False
+        port = WS_PORT_BASE
+        meta_port = WS_PORT_BASE
+
+    if shard_id != METACHAIN:
+        external_data['WebSocketsConnector']['URL'] = "localhost:" + str(port)
+    else:
+        external_data['WebSocketsConnector']['URL'] = "localhost:" + str(meta_port)
+
+    external_data['WebSocketsConnector']['MarshallerType'] = str(os.getenv('WS_MARSHALLER_TYPE'))
     f = open(path_external, 'w')
     toml.dump(external_data, f)
     f.close()
@@ -87,11 +105,21 @@ def prepare_observer(shard_id, working_dir, config_folder):
     update_toml_indexer(indexer_config, shard_id)
 
 
+def prepare_indexer_server(meta_id, working_dir):
+    is_indexer_server = os.getenv('INDEXER_BINARY_SERVER')
+    if not is_indexer_server:
+        return
+
+    current_observer = str(os.getenv('OBSERVER_DIR_PREFIX')) + str(meta_id)
+    working_dir_observer = working_dir / current_observer
+    shutil.copytree(working_dir_observer / "indexer", working_dir / "indexer")
+
+
 def generate_new_config(working_dir):
     mx_chain_go_folder = working_dir / "mx-chain-go" / "scripts" / "testnet"
     num_of_shards = str(os.getenv('NUM_OF_SHARDS'))
 
-    with open(mx_chain_go_folder/"local.sh", "w") as file:
+    with open(mx_chain_go_folder / "local.sh", "w") as file:
         file.write(f'export SHARDCOUNT={num_of_shards}\n')
         file.write("export SHARD_VALIDATORCOUNT=1\n")
         file.write("export SHARD_OBSERVERCOUNT=0\n")
@@ -129,16 +157,16 @@ def clone_dependencies(working_dir):
 def prepare_seed_node(working_dir):
     print("preparing seed node")
     seed_node = Path.home() / "MultiversX/testnet/seednode"
-    shutil.copytree(seed_node, working_dir/"seednode")
+    shutil.copytree(seed_node, working_dir / "seednode")
 
     mx_chain_go_folder = working_dir / "mx-chain-go"
     subprocess.check_call(["go", "build"], cwd=mx_chain_go_folder / "cmd/seednode")
 
     seed_node_exec = mx_chain_go_folder / "cmd/seednode/seednode"
-    shutil.copyfile(seed_node_exec, working_dir/"seednode/seednode")
+    shutil.copyfile(seed_node_exec, working_dir / "seednode/seednode")
 
-    st = os.stat(working_dir/"seednode/seednode")
-    os.chmod(working_dir/"seednode/seednode", st.st_mode | stat.S_IEXEC)
+    st = os.stat(working_dir / "seednode/seednode")
+    os.chmod(working_dir / "seednode/seednode", st.st_mode | stat.S_IEXEC)
 
 
 def prepare_proxy(working_dir):
@@ -170,7 +198,7 @@ def prepare_proxy(working_dir):
 
     num_of_shards = int(os.getenv('NUM_OF_SHARDS'))
     for shardID in range(num_of_shards):
-        shard_observer_port = observers_start_port+shardID+1
+        shard_observer_port = observers_start_port + shardID + 1
         meta_observer = {
             'ShardId': shardID,
             'Address': f'http://127.0.0.1:{shard_observer_port}',
@@ -189,7 +217,7 @@ def generate_config_for_local_testnet(working_dir):
 
     config_folder = Path.home() / "MultiversX/testnet/node/config"
     os.rename(config_folder / "config_validator.toml", config_folder / "config.toml")
-    shutil.copytree(config_folder, working_dir/"config")
+    shutil.copytree(config_folder, working_dir / "config")
 
 
 def main():
@@ -231,7 +259,7 @@ def main():
     config_folder = working_dir / "config"
     print("preparing config...")
     prepare_observer(METACHAIN, working_dir, config_folder)
-
+    prepare_indexer_server(METACHAIN, working_dir)
 
     for shardID in range(num_of_shards):
         prepare_observer(shardID, working_dir, config_folder)
