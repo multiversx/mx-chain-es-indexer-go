@@ -81,7 +81,7 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 	}
 	guardianAddress := ""
 	if len(tx.GuardianAddr) > 0 {
-		guardianAddress = dtb.addressPubkeyConverter.Encode(tx.GuardianAddr)
+		guardianAddress = dtb.addressPubkeyConverter.SilentEncode(tx.GuardianAddr, log)
 	}
 
 	return &data.Transaction{
