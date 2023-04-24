@@ -44,6 +44,8 @@ type Transaction struct {
 	Function             string        `json:"function,omitempty"`
 	IsRelayed            bool          `json:"isRelayed,omitempty"`
 	Version              uint32        `json:"version,omitempty"`
+	GuardianAddress      string        `json:"guardian,omitempty"`
+	GuardianSignature    string        `json:"guardianSignature,omitempty"`
 	SmartContractResults []*ScResult   `json:"-"`
 	Hash                 string        `json:"-"`
 	BlockHash            string        `json:"-"`
