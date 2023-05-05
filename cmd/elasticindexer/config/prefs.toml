@@ -9,6 +9,7 @@
         retry-duration-in-seconds = 5
         # Signals if in case of data payload processing error, we should send the ack signal or not
         blocking-ack-on-error = false
+        with-acknowledge = true
 
     [config.elastic-cluster]
         use-kibana = false

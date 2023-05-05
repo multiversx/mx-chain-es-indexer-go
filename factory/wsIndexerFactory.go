@@ -2,10 +2,13 @@ package factory
 
 import (
 	"github.com/multiversx/mx-chain-core-go/core/pubkeyConverter"
+	"github.com/multiversx/mx-chain-core-go/data/typeConverters/uint64ByteSlice"
 	factoryHasher "github.com/multiversx/mx-chain-core-go/hashing/factory"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	factoryMarshaller "github.com/multiversx/mx-chain-core-go/marshal/factory"
-	"github.com/multiversx/mx-chain-core-go/webSockets/clientServerReceiver"
+	"github.com/multiversx/mx-chain-core-go/webSocket"
+	"github.com/multiversx/mx-chain-core-go/webSocket/client"
+	"github.com/multiversx/mx-chain-core-go/webSocket/server"
 	"github.com/multiversx/mx-chain-es-indexer-go/config"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/factory"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/wsindexer"
@@ -35,14 +38,17 @@ func CreateWsIndexer(cfg config.Config, clusterCfg config.ClusterConfig) (wsinde
 		return nil, err
 	}
 
-	return clientServerReceiver.NewClientServerReceiver(clientServerReceiver.ArgsWsClientServerReceiver{
-		Url:                clusterCfg.Config.WebSocket.ServerURL,
-		RetryDurationInSec: clusterCfg.Config.WebSocket.RetryDurationInSec,
-		BlockingAckOnError: clusterCfg.Config.WebSocket.BlockingAckOnError,
-		PayloadProcessor:   indexer,
-		IsServer:           clusterCfg.Config.WebSocket.IsServer,
-		Log:                log,
-	})
+	host, err := createWsHost(clusterCfg)
+	if err != nil {
+		return nil, err
+	}
+
+	err = host.SetPayloadHandler(indexer)
+	if err != nil {
+		return nil, err
+	}
+
+	return host, nil
 }
 
 func createDataIndexer(cfg config.Config, clusterCfg config.ClusterConfig, wsMarshaller marshal.Marshalizer) (wsindexer.DataIndexer, error) {
@@ -97,4 +103,32 @@ func prepareIndices(availableIndices, disabledIndices []string) []string {
 	}
 
 	return indices
+}
+
+func createWsHost(clusterCfg config.ClusterConfig) (webSocket.HostWebSocket, error) {
+	uint64Converter := uint64ByteSlice.NewBigEndianConverter()
+	payloadConverter, err := webSocket.NewWebSocketPayloadConverter(uint64Converter)
+	if err != nil {
+		return nil, err
+	}
+
+	if clusterCfg.Config.WebSocket.IsServer {
+		return server.NewWebSocketServer(server.ArgsWebSocketServer{
+			RetryDurationInSeconds: int(clusterCfg.Config.WebSocket.RetryDurationInSec),
+			BlockingAckOnError:     clusterCfg.Config.WebSocket.BlockingAckOnError,
+			WithAcknowledge:        clusterCfg.Config.WebSocket.WithAcknowledge,
+			URL:                    clusterCfg.Config.WebSocket.ServerURL,
+			PayloadConverter:       payloadConverter,
+			Log:                    log,
+		})
+	}
+
+	return client.NewWebSocketClient(client.ArgsWebSocketClient{
+		RetryDurationInSeconds: int(clusterCfg.Config.WebSocket.RetryDurationInSec),
+		BlockingAckOnError:     clusterCfg.Config.WebSocket.BlockingAckOnError,
+		WithAcknowledge:        clusterCfg.Config.WebSocket.WithAcknowledge,
+		URL:                    clusterCfg.Config.WebSocket.ServerURL,
+		PayloadConverter:       payloadConverter,
+		Log:                    log,
+	})
 }

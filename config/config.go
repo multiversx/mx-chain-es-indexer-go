@@ -41,6 +41,7 @@ type ClusterConfig struct {
 			DataMarshallerType string `toml:"data-marshaller-type"`
 			RetryDurationInSec uint32 `toml:"retry-duration-in-seconds"`
 			BlockingAckOnError bool   `toml:"blocking-ack-on-error"`
+			WithAcknowledge    bool   `toml:"with-acknowledge"`
 		} `toml:"web-socket"`
 		ElasticCluster struct {
 			UseKibana                 bool   `toml:"use-kibana"`

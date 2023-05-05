@@ -80,7 +80,7 @@ func startIndexer(ctx *cli.Context) error {
 		return err
 	}
 
-	wsClient, err := factory.CreateWsIndexer(cfg, clusterCfg)
+	wsHost, err := factory.CreateWsIndexer(cfg, clusterCfg)
 	if err != nil {
 		log.Error("cannot create ws indexer", "error", err)
 	}
@@ -88,11 +88,15 @@ func startIndexer(ctx *cli.Context) error {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, syscall.SIGINT, syscall.SIGTERM)
 
-	go wsClient.Start()
+	wsHost.Start()
 
 	<-interrupt
 	log.Info("closing app at user's signal")
-	wsClient.Close()
+	err = wsHost.Close()
+	if err != nil {
+		log.Error("cannot close ws indexer", "error", err)
+	}
+
 	if !check.IfNilReflect(fileLogging) {
 		err = fileLogging.Close()
 		log.LogIfError(err)

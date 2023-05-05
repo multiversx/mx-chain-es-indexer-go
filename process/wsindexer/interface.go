@@ -7,7 +7,7 @@ import (
 // WSClient defines what a websocket client should do
 type WSClient interface {
 	Start()
-	Close()
+	Close() error
 }
 
 // DataIndexer dines what a data indexer should do
