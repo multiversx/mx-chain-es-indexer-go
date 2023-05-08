@@ -2,7 +2,6 @@ package factory
 
 import (
 	"github.com/multiversx/mx-chain-core-go/core/pubkeyConverter"
-	"github.com/multiversx/mx-chain-core-go/data/typeConverters/uint64ByteSlice"
 	factoryHasher "github.com/multiversx/mx-chain-core-go/hashing/factory"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	factoryMarshaller "github.com/multiversx/mx-chain-core-go/marshal/factory"
@@ -38,7 +37,7 @@ func CreateWsIndexer(cfg config.Config, clusterCfg config.ClusterConfig) (wsinde
 		return nil, err
 	}
 
-	host, err := createWsHost(clusterCfg)
+	host, err := createWsHost(clusterCfg, wsMarshaller)
 	if err != nil {
 		return nil, err
 	}
@@ -105,9 +104,8 @@ func prepareIndices(availableIndices, disabledIndices []string) []string {
 	return indices
 }
 
-func createWsHost(clusterCfg config.ClusterConfig) (webSocket.HostWebSocket, error) {
-	uint64Converter := uint64ByteSlice.NewBigEndianConverter()
-	payloadConverter, err := webSocket.NewWebSocketPayloadConverter(uint64Converter)
+func createWsHost(clusterCfg config.ClusterConfig, wsMarshaller marshal.Marshalizer) (webSocket.HostWebSocket, error) {
+	payloadConverter, err := webSocket.NewWebSocketPayloadConverter(wsMarshaller)
 	if err != nil {
 		return nil, err
 	}

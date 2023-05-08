@@ -54,9 +54,10 @@ func (i *indexer) initActionsMap() {
 }
 
 func (i *indexer) ProcessPayload(payload *data.PayloadData) error {
-	operationAction, ok := i.actions[payload.OperationType]
+	operationType := data.OperationType(payload.OperationType)
+	operationAction, ok := i.actions[operationType]
 	if !ok {
-		log.Warn("invalid operation", "operation type", payload.OperationType.String())
+		log.Warn("invalid operation", "operation type", operationType.String())
 		return nil
 	}
 
