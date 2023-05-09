@@ -19,7 +19,7 @@ var (
 type indexer struct {
 	marshaller marshal.Marshalizer
 	di         DataIndexer
-	actions    map[data.OperationType]func(marshalledData []byte) error
+	actions    map[data.PayloadType]func(marshalledData []byte) error
 }
 
 // NewIndexer will create a new instance of *indexer
@@ -42,26 +42,25 @@ func NewIndexer(marshaller marshal.Marshalizer, dataIndexer DataIndexer) (*index
 
 // GetOperationsMap returns the map with all the operations that will index data
 func (i *indexer) initActionsMap() {
-	i.actions = map[data.OperationType]func(d []byte) error{
-		data.OperationSaveBlock:             i.saveBlock,
-		data.OperationRevertIndexedBlock:    i.revertIndexedBlock,
-		data.OperationSaveRoundsInfo:        i.saveRounds,
-		data.OperationSaveValidatorsRating:  i.saveValidatorsRating,
-		data.OperationSaveValidatorsPubKeys: i.saveValidatorsPubKeys,
-		data.OperationSaveAccounts:          i.saveAccounts,
-		data.OperationFinalizedBlock:        i.finalizedBlock,
+	i.actions = map[data.PayloadType]func(d []byte) error{
+		data.PayloadSaveBlock:             i.saveBlock,
+		data.PayloadRevertIndexedBlock:    i.revertIndexedBlock,
+		data.PayloadSaveRoundsInfo:        i.saveRounds,
+		data.PayloadSaveValidatorsRating:  i.saveValidatorsRating,
+		data.PayloadSaveValidatorsPubKeys: i.saveValidatorsPubKeys,
+		data.PayloadSaveAccounts:          i.saveAccounts,
+		data.PayloadFinalizedBlock:        i.finalizedBlock,
 	}
 }
 
-func (i *indexer) ProcessPayload(payload *data.PayloadData) error {
-	operationType := data.OperationType(payload.OperationType)
-	operationAction, ok := i.actions[operationType]
+func (i *indexer) ProcessPayload(payload []byte, payloadType data.PayloadType) error {
+	payloadTypeAction, ok := i.actions[payloadType]
 	if !ok {
-		log.Warn("invalid operation", "operation type", operationType.String())
+		log.Warn("invalid payload type", "payloadType type", payloadType.String())
 		return nil
 	}
 
-	return operationAction(payload.Payload)
+	return payloadTypeAction(payload)
 }
 
 func (i *indexer) saveBlock(marshalledData []byte) error {
