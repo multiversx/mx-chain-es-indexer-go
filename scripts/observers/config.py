@@ -54,23 +54,23 @@ def update_toml_node(path, shard_id):
     # external.toml
     path_external = path / "external.toml"
     external_data = toml.load(str(path_external))
-    external_data['WebSocketsConnector']['Enabled'] = True
+    external_data['HostDriverConfig']['Enabled'] = True
 
     port = WS_PORT_BASE + shard_id
     meta_port = WS_METACHAIN_PORT
 
     is_indexer_server = os.getenv('INDEXER_BINARY_SERVER')
     if is_indexer_server:
-        external_data['WebSocketsConnector']['IsServer'] = False
+        external_data['HostDriverConfig']['IsServer'] = False
         port = WS_PORT_BASE
         meta_port = WS_PORT_BASE
 
     if shard_id != METACHAIN:
-        external_data['WebSocketsConnector']['URL'] = "localhost:" + str(port)
+        external_data['HostDriverConfig']['URL'] = "localhost:" + str(port)
     else:
-        external_data['WebSocketsConnector']['URL'] = "localhost:" + str(meta_port)
+        external_data['HostDriverConfig']['URL'] = "localhost:" + str(meta_port)
 
-    external_data['WebSocketsConnector']['MarshallerType'] = str(os.getenv('WS_MARSHALLER_TYPE'))
+    external_data['HostDriverConfig']['MarshallerType'] = str(os.getenv('WS_MARSHALLER_TYPE'))
     f = open(path_external, 'w')
     toml.dump(external_data, f)
     f.close()
