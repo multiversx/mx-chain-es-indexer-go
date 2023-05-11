@@ -88,8 +88,6 @@ func startIndexer(ctx *cli.Context) error {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, syscall.SIGINT, syscall.SIGTERM)
 
-	wsHost.Start()
-
 	<-interrupt
 	log.Info("closing app at user's signal")
 	err = wsHost.Close()

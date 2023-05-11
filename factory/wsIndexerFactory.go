@@ -1,13 +1,12 @@
 package factory
 
 import (
+	"github.com/multiversx/mx-chain-communication-go/websocket/data"
+	factoryHost "github.com/multiversx/mx-chain-communication-go/websocket/factory"
 	"github.com/multiversx/mx-chain-core-go/core/pubkeyConverter"
 	factoryHasher "github.com/multiversx/mx-chain-core-go/hashing/factory"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	factoryMarshaller "github.com/multiversx/mx-chain-core-go/marshal/factory"
-	"github.com/multiversx/mx-chain-core-go/webSocket"
-	"github.com/multiversx/mx-chain-core-go/webSocket/client"
-	"github.com/multiversx/mx-chain-core-go/webSocket/server"
 	"github.com/multiversx/mx-chain-es-indexer-go/config"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/factory"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/wsindexer"
@@ -104,29 +103,16 @@ func prepareIndices(availableIndices, disabledIndices []string) []string {
 	return indices
 }
 
-func createWsHost(clusterCfg config.ClusterConfig, wsMarshaller marshal.Marshalizer) (webSocket.HostWebSocket, error) {
-	payloadConverter, err := webSocket.NewWebSocketPayloadConverter(wsMarshaller)
-	if err != nil {
-		return nil, err
-	}
-
-	if clusterCfg.Config.WebSocket.IsServer {
-		return server.NewWebSocketServer(server.ArgsWebSocketServer{
-			RetryDurationInSeconds: int(clusterCfg.Config.WebSocket.RetryDurationInSec),
-			BlockingAckOnError:     clusterCfg.Config.WebSocket.BlockingAckOnError,
-			WithAcknowledge:        clusterCfg.Config.WebSocket.WithAcknowledge,
-			URL:                    clusterCfg.Config.WebSocket.ServerURL,
-			PayloadConverter:       payloadConverter,
-			Log:                    log,
-		})
-	}
-
-	return client.NewWebSocketClient(client.ArgsWebSocketClient{
-		RetryDurationInSeconds: int(clusterCfg.Config.WebSocket.RetryDurationInSec),
-		BlockingAckOnError:     clusterCfg.Config.WebSocket.BlockingAckOnError,
-		WithAcknowledge:        clusterCfg.Config.WebSocket.WithAcknowledge,
-		URL:                    clusterCfg.Config.WebSocket.ServerURL,
-		PayloadConverter:       payloadConverter,
-		Log:                    log,
+func createWsHost(clusterCfg config.ClusterConfig, wsMarshaller marshal.Marshalizer) (factoryHost.FullDuplexHost, error) {
+	return factoryHost.CreateWebSocketHost(factoryHost.ArgsWebSocketHost{
+		WebSocketConfig: data.WebSocketConfig{
+			URL:                clusterCfg.Config.WebSocket.ServerURL,
+			WithAcknowledge:    clusterCfg.Config.WebSocket.WithAcknowledge,
+			IsServer:           clusterCfg.Config.WebSocket.IsServer,
+			RetryDurationInSec: int(clusterCfg.Config.WebSocket.RetryDurationInSec),
+			BlockingAckOnError: clusterCfg.Config.WebSocket.BlockingAckOnError,
+		},
+		Marshaller: wsMarshaller,
+		Log:        log,
 	})
 }

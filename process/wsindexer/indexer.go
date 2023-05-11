@@ -6,7 +6,6 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-core-go/webSocket/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	logger "github.com/multiversx/mx-chain-logger-go"
 )
@@ -19,7 +18,7 @@ var (
 type indexer struct {
 	marshaller marshal.Marshalizer
 	di         DataIndexer
-	actions    map[data.PayloadType]func(marshalledData []byte) error
+	actions    map[string]func(marshalledData []byte) error
 }
 
 // NewIndexer will create a new instance of *indexer
@@ -42,21 +41,21 @@ func NewIndexer(marshaller marshal.Marshalizer, dataIndexer DataIndexer) (*index
 
 // GetOperationsMap returns the map with all the operations that will index data
 func (i *indexer) initActionsMap() {
-	i.actions = map[data.PayloadType]func(d []byte) error{
-		data.PayloadSaveBlock:             i.saveBlock,
-		data.PayloadRevertIndexedBlock:    i.revertIndexedBlock,
-		data.PayloadSaveRoundsInfo:        i.saveRounds,
-		data.PayloadSaveValidatorsRating:  i.saveValidatorsRating,
-		data.PayloadSaveValidatorsPubKeys: i.saveValidatorsPubKeys,
-		data.PayloadSaveAccounts:          i.saveAccounts,
-		data.PayloadFinalizedBlock:        i.finalizedBlock,
+	i.actions = map[string]func(d []byte) error{
+		outport.TopicSaveBlock:             i.saveBlock,
+		outport.TopicRevertIndexedBlock:    i.revertIndexedBlock,
+		outport.TopicSaveRoundsInfo:        i.saveRounds,
+		outport.TopicSaveValidatorsRating:  i.saveValidatorsRating,
+		outport.TopicSaveValidatorsPubKeys: i.saveValidatorsPubKeys,
+		outport.TopicSaveAccounts:          i.saveAccounts,
+		outport.TopicFinalizedBlock:        i.finalizedBlock,
 	}
 }
 
-func (i *indexer) ProcessPayload(payload []byte, payloadType data.PayloadType) error {
-	payloadTypeAction, ok := i.actions[payloadType]
+func (i *indexer) ProcessPayload(payload []byte, topic string) error {
+	payloadTypeAction, ok := i.actions[topic]
 	if !ok {
-		log.Warn("invalid payload type", "payloadType type", payloadType.String())
+		log.Warn("invalid payload type", "topic", topic)
 		return nil
 	}
 
