@@ -21,9 +21,9 @@ def update_toml_indexer(path, shard_id):
         prefs_data['config']['web-socket']['mode'] = "server"
 
     if shard_id != METACHAIN:
-        prefs_data['config']['web-socket']['server-url'] = "localhost:" + str(port)
+        prefs_data['config']['web-socket']['url'] = "localhost:" + str(port)
     else:
-        prefs_data['config']['web-socket']['server-url'] = "localhost:" + str(meta_port)
+        prefs_data['config']['web-socket']['url'] = "localhost:" + str(meta_port)
     prefs_data['config']['web-socket']['data-marshaller-type'] = str(os.getenv('WS_MARSHALLER_TYPE'))
 
     f = open(path_prefs, 'w')
