@@ -18,7 +18,7 @@ def update_toml_indexer(path, shard_id):
     if is_indexer_server:
         port = WS_PORT_BASE
         meta_port = WS_PORT_BASE
-        prefs_data['config']['web-socket']['is-server'] = True
+        prefs_data['config']['web-socket']['mode'] = "server"
 
     if shard_id != METACHAIN:
         prefs_data['config']['web-socket']['server-url'] = "localhost:" + str(port)

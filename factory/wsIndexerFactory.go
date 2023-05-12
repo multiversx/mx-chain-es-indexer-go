@@ -106,9 +106,9 @@ func prepareIndices(availableIndices, disabledIndices []string) []string {
 func createWsHost(clusterCfg config.ClusterConfig, wsMarshaller marshal.Marshalizer) (factoryHost.FullDuplexHost, error) {
 	return factoryHost.CreateWebSocketHost(factoryHost.ArgsWebSocketHost{
 		WebSocketConfig: data.WebSocketConfig{
-			URL:                clusterCfg.Config.WebSocket.ServerURL,
+			URL:                clusterCfg.Config.WebSocket.URL,
 			WithAcknowledge:    clusterCfg.Config.WebSocket.WithAcknowledge,
-			IsServer:           clusterCfg.Config.WebSocket.IsServer,
+			Mode:               clusterCfg.Config.WebSocket.Mode,
 			RetryDurationInSec: int(clusterCfg.Config.WebSocket.RetryDurationInSec),
 			BlockingAckOnError: clusterCfg.Config.WebSocket.BlockingAckOnError,
 		},

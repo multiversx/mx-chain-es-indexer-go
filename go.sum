@@ -70,8 +70,8 @@ github.com/kkdai/bstream v0.0.0-20161212061736-f391b8402d23/go.mod h1:J+Gs4SYgM6
 github.com/mitchellh/mapstructure v1.4.1/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
 github.com/mr-tron/base58 v1.2.0 h1:T/HDJBh4ZCPbU39/+c3rRvE0uKBQlU27+QI8LJ4t64o=
 github.com/mr-tron/base58 v1.2.0/go.mod h1:BinMc/sQntlIE1frQmRFPUoPA1Zkr8VRgBdjWI2mNwc=
-github.com/multiversx/mx-chain-communication-go v0.0.0-20230510151427-d0bd41659967 h1:/Zg28BlD8Xs5Gl8V4ltfJ2n/UkP5Jw4anvTOOMkb4Bg=
-github.com/multiversx/mx-chain-communication-go v0.0.0-20230510151427-d0bd41659967/go.mod h1:GPHOm4HSXbvC0IotMziWXQmhtsUe69ScBPYsb+mF9bk=
+github.com/multiversx/mx-chain-communication-go v0.0.0-20230512095548-5bc637293104 h1:oFsYNkebv7TQygdEjN4aGgQ8ICLPmS9bDJmzlOHtU2Y=
+github.com/multiversx/mx-chain-communication-go v0.0.0-20230512095548-5bc637293104/go.mod h1:GPHOm4HSXbvC0IotMziWXQmhtsUe69ScBPYsb+mF9bk=
 github.com/multiversx/mx-chain-core-go v1.1.30/go.mod h1:8gGEQv6BWuuJwhd25qqhCOZbBSv9mk+hLeKvinSaSMk=
 github.com/multiversx/mx-chain-core-go v1.2.0/go.mod h1:8gGEQv6BWuuJwhd25qqhCOZbBSv9mk+hLeKvinSaSMk=
 github.com/multiversx/mx-chain-core-go v1.2.1-0.20230510143029-ab37792342df/go.mod h1:jzYFSiYBuO0dGpGFXnZWSwcwcKP7Flyn/X41y4zIQrQ=
