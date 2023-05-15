@@ -1,3 +1,5 @@
+import shutil
+
 from dotenv import load_dotenv
 from utils import *
 
@@ -35,9 +37,22 @@ def start_observer_and_indexer(shard_id, working_dir, sk_index):
     os.system("screen -d -m -S obs" + str(shard_id) + " " + command)
 
     # start indexer
+    is_indexer_server = os.getenv('INDEXER_BINARY_SERVER')
+    if is_indexer_server:
+        return
+
     os.chdir(working_dir_observer / "indexer")
     command = "./elasticindexer" + " --log-level *:DEBUG --log-save"
     os.system("screen -d -m -S indexer" + str(shard_id) + " " + command)
+
+    os.chdir(current_directory)
+
+
+def start_indexer_server(working_dir):
+    current_directory = os.getcwd()
+    os.chdir(working_dir / "indexer")
+    command = "./elasticindexer" + " --log-level *:DEBUG --log-save"
+    os.system("screen -d -m -S indexer" + "server" + " " + command)
 
     os.chdir(current_directory)
 
@@ -60,6 +75,10 @@ def main():
 
     for shard_id in range(num_of_shards):
         start_observer_and_indexer(shard_id, working_dir, shard_id+1)
+
+    is_indexer_server = os.getenv('INDEXER_BINARY_SERVER')
+    if is_indexer_server:
+        start_indexer_server(working_dir)
 
     print("done")
 

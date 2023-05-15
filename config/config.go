@@ -36,10 +36,12 @@ type ClusterConfig struct {
 	Config struct {
 		DisabledIndices []string `toml:"disabled-indices"`
 		WebSocket       struct {
-			ServerURL          string `toml:"server-url"`
+			URL                string `toml:"url"`
+			Mode               string `toml:"mode"`
 			DataMarshallerType string `toml:"data-marshaller-type"`
 			RetryDurationInSec uint32 `toml:"retry-duration-in-seconds"`
 			BlockingAckOnError bool   `toml:"blocking-ack-on-error"`
+			WithAcknowledge    bool   `toml:"with-acknowledge"`
 		} `toml:"web-socket"`
 		ElasticCluster struct {
 			UseKibana                 bool   `toml:"use-kibana"`

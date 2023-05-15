@@ -6,7 +6,6 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-core-go/websocketOutportDriver/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	logger "github.com/multiversx/mx-chain-logger-go"
 )
@@ -19,7 +18,7 @@ var (
 type indexer struct {
 	marshaller marshal.Marshalizer
 	di         DataIndexer
-	actions    map[data.OperationType]func(marshalledData []byte) error
+	actions    map[string]func(marshalledData []byte) error
 }
 
 // NewIndexer will create a new instance of *indexer
@@ -42,25 +41,26 @@ func NewIndexer(marshaller marshal.Marshalizer, dataIndexer DataIndexer) (*index
 
 // GetOperationsMap returns the map with all the operations that will index data
 func (i *indexer) initActionsMap() {
-	i.actions = map[data.OperationType]func(d []byte) error{
-		data.OperationSaveBlock:             i.saveBlock,
-		data.OperationRevertIndexedBlock:    i.revertIndexedBlock,
-		data.OperationSaveRoundsInfo:        i.saveRounds,
-		data.OperationSaveValidatorsRating:  i.saveValidatorsRating,
-		data.OperationSaveValidatorsPubKeys: i.saveValidatorsPubKeys,
-		data.OperationSaveAccounts:          i.saveAccounts,
-		data.OperationFinalizedBlock:        i.finalizedBlock,
+	i.actions = map[string]func(d []byte) error{
+		outport.TopicSaveBlock:             i.saveBlock,
+		outport.TopicRevertIndexedBlock:    i.revertIndexedBlock,
+		outport.TopicSaveRoundsInfo:        i.saveRounds,
+		outport.TopicSaveValidatorsRating:  i.saveValidatorsRating,
+		outport.TopicSaveValidatorsPubKeys: i.saveValidatorsPubKeys,
+		outport.TopicSaveAccounts:          i.saveAccounts,
+		outport.TopicFinalizedBlock:        i.finalizedBlock,
 	}
 }
 
-func (i *indexer) ProcessPayload(payload *data.PayloadData) error {
-	operationAction, ok := i.actions[payload.OperationType]
+// ProcessPayload will proces the provided payload based on the topic
+func (i *indexer) ProcessPayload(payload []byte, topic string) error {
+	payloadTypeAction, ok := i.actions[topic]
 	if !ok {
-		log.Warn("invalid operation", "operation type", payload.OperationType.String())
+		log.Warn("invalid payload type", "topic", topic)
 		return nil
 	}
 
-	return operationAction(payload.Payload)
+	return payloadTypeAction(payload)
 }
 
 func (i *indexer) saveBlock(marshalledData []byte) error {
