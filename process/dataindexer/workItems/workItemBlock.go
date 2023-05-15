@@ -42,13 +42,14 @@ func (wib *itemBlock) Save() error {
 	headerNonce := wib.outportBlockWithHeader.Header.GetNonce()
 	headerHash := wib.outportBlockWithHeader.BlockData.HeaderHash
 	shardID := wib.outportBlockWithHeader.Header.GetShardID()
-	startTime := time.Now()
-	defer log.Debug("wib.SaveBlockData",
-		"duration", time.Since(startTime),
-		"shardID", shardID,
-		"nonce", headerNonce,
-		"hash", headerHash,
-	)
+	defer func(startTime time.Time, headerHash []byte, headerNonce uint64, shardID uint32) {
+		log.Debug("wib.SaveBlockData",
+			"duration", time.Since(startTime),
+			"shardID", shardID,
+			"nonce", headerNonce,
+			"hash", headerHash,
+		)
+	}(time.Now(), headerHash, headerNonce, shardID)
 
 	log.Debug("indexer: starting indexing block",
 		"hash", wib.outportBlockWithHeader.BlockData.HeaderHash,
