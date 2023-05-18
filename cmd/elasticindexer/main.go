@@ -47,6 +47,7 @@ func main() {
 		logLevel,
 		logSaveFile,
 		disableAnsiColor,
+		importDB,
 	}
 	app.Authors = []cli.Author{
 		{
@@ -80,7 +81,8 @@ func startIndexer(ctx *cli.Context) error {
 		return fmt.Errorf("%w while initializing the logger", err)
 	}
 
-	wsHost, err := factory.CreateWsIndexer(cfg, clusterCfg)
+	importDBMode := ctx.GlobalBool(importDB.Name)
+	wsHost, err := factory.CreateWsIndexer(cfg, clusterCfg, importDBMode)
 	if err != nil {
 		return fmt.Errorf("%w while creating the indexer", err)
 	}

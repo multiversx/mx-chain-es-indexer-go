@@ -29,6 +29,7 @@ type ArgElasticProcessorFactory struct {
 	Denomination             int
 	BulkRequestMaxSize       int
 	UseKibana                bool
+	ImportDB                 bool
 }
 
 // CreateElasticProcessor will create a new instance of ElasticProcessor
@@ -118,6 +119,7 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (dataindexer.E
 		IndexTemplates:     indexTemplates,
 		IndexPolicies:      indexPolicies,
 		OperationsProc:     operationsProc,
+		ImportDB:           arguments.ImportDB,
 	}
 
 	return elasticproc.NewElasticProcessor(args)

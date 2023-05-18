@@ -26,6 +26,7 @@ var log = logger.GetOrCreate("indexer/factory")
 type ArgsIndexerFactory struct {
 	Enabled                  bool
 	UseKibana                bool
+	ImportDB                 bool
 	IndexerCacheSize         int
 	Denomination             int
 	BulkRequestMaxSize       int
@@ -105,6 +106,7 @@ func createElasticProcessor(args ArgsIndexerFactory) (dataindexer.ElasticProcess
 		Denomination:             args.Denomination,
 		EnabledIndexes:           args.EnabledIndexes,
 		BulkRequestMaxSize:       args.BulkRequestMaxSize,
+		ImportDB:                 args.ImportDB,
 	}
 
 	return factory.CreateElasticProcessor(argsElasticProcFac)
