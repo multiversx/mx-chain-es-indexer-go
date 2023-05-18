@@ -51,7 +51,7 @@ func TestIssueTokenAndTransferOwnership(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, false, testNumOfShards))
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
 	require.Nil(t, err)
 
 	ids := []string{"SSSS-abcd"}
@@ -84,7 +84,7 @@ func TestIssueTokenAndTransferOwnership(t *testing.T) {
 	}
 
 	header.TimeStamp = 10000
-	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, false, testNumOfShards))
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
 	require.Nil(t, err)
 
 	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse)
@@ -115,7 +115,7 @@ func TestIssueTokenAndTransferOwnership(t *testing.T) {
 	}
 
 	header.TimeStamp = 10000
-	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, false, testNumOfShards))
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
 	require.Nil(t, err)
 
 	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse)
@@ -142,7 +142,7 @@ func TestIssueTokenAndTransferOwnership(t *testing.T) {
 	}
 
 	header.TimeStamp = 10000
-	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, false, testNumOfShards))
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
 	require.Nil(t, err)
 
 	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse)

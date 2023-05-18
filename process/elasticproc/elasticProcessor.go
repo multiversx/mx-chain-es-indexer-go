@@ -44,6 +44,7 @@ type objectsMap = map[string]interface{}
 type ArgElasticProcessor struct {
 	BulkRequestMaxSize int
 	UseKibana          bool
+	ImportDB           bool
 	IndexTemplates     map[string]*bytes.Buffer
 	IndexPolicies      map[string]*bytes.Buffer
 	EnabledIndexes     map[string]struct{}
@@ -60,6 +61,7 @@ type ArgElasticProcessor struct {
 
 type elasticProcessor struct {
 	bulkRequestMaxSize int
+	importDB           bool
 	enabledIndexes     map[string]struct{}
 	elasticClient      DatabaseClientHandler
 	accountsProc       DBAccountHandler
@@ -406,7 +408,7 @@ func (ei *elasticProcessor) miniblocksInDBMap(mbs []*data.Miniblock) (map[string
 func (ei *elasticProcessor) SaveTransactions(obh *outport.OutportBlockWithHeader) error {
 	headerTimestamp := obh.Header.GetTimeStamp()
 
-	preparedResults := ei.transactionsProc.PrepareTransactionsForDatabase(obh.BlockData.Body, obh.Header, obh.TransactionPool, obh.IsImportDB, obh.NumberOfShards)
+	preparedResults := ei.transactionsProc.PrepareTransactionsForDatabase(obh.BlockData.Body, obh.Header, obh.TransactionPool, ei.importDB, obh.NumberOfShards)
 	logsData := ei.logsAndEventsProc.ExtractDataFromLogs(obh.TransactionPool.Logs, preparedResults, headerTimestamp, obh.Header.GetShardID(), obh.NumberOfShards)
 
 	buffers := data.NewBufferSlice(ei.bulkRequestMaxSize)
@@ -415,7 +417,7 @@ func (ei *elasticProcessor) SaveTransactions(obh *outport.OutportBlockWithHeader
 		return err
 	}
 
-	err = ei.prepareAndIndexOperations(preparedResults.Transactions, preparedResults.TxHashStatus, obh.Header, preparedResults.ScResults, buffers, obh.IsImportDB)
+	err = ei.prepareAndIndexOperations(preparedResults.Transactions, preparedResults.TxHashStatus, obh.Header, preparedResults.ScResults, buffers, ei.importDB)
 	if err != nil {
 		return err
 	}

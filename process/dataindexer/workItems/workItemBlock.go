@@ -39,13 +39,17 @@ func (wib *itemBlock) Save() error {
 		return nil
 	}
 
-	defer func(startTime time.Time, headerHash []byte, headerNonce uint64) {
+	headerNonce := wib.outportBlockWithHeader.Header.GetNonce()
+	headerHash := wib.outportBlockWithHeader.BlockData.HeaderHash
+	shardID := wib.outportBlockWithHeader.Header.GetShardID()
+	defer func(startTime time.Time, headerHash []byte, headerNonce uint64, shardID uint32) {
 		log.Debug("wib.SaveBlockData",
 			"duration", time.Since(startTime),
-			"block nonce", headerNonce,
-			"block hash", headerHash,
+			"shardID", shardID,
+			"nonce", headerNonce,
+			"hash", headerHash,
 		)
-	}(time.Now(), wib.outportBlockWithHeader.BlockData.HeaderHash, wib.outportBlockWithHeader.Header.GetNonce())
+	}(time.Now(), headerHash, headerNonce, shardID)
 
 	log.Debug("indexer: starting indexing block",
 		"hash", wib.outportBlockWithHeader.BlockData.HeaderHash,
@@ -58,7 +62,7 @@ func (wib *itemBlock) Save() error {
 	err := wib.indexer.SaveHeader(wib.outportBlockWithHeader)
 	if err != nil {
 		return fmt.Errorf("%w when saving header block, hash %s, nonce %d",
-			err, hex.EncodeToString(wib.outportBlockWithHeader.BlockData.HeaderHash), wib.outportBlockWithHeader.Header.GetNonce())
+			err, hex.EncodeToString(headerHash), headerNonce)
 	}
 
 	if len(wib.outportBlockWithHeader.BlockData.Body.MiniBlocks) == 0 {
@@ -68,13 +72,13 @@ func (wib *itemBlock) Save() error {
 	err = wib.indexer.SaveMiniblocks(wib.outportBlockWithHeader.Header, wib.outportBlockWithHeader.BlockData.Body)
 	if err != nil {
 		return fmt.Errorf("%w when saving miniblocks, block hash %s, nonce %d",
-			err, hex.EncodeToString(wib.outportBlockWithHeader.BlockData.HeaderHash), wib.outportBlockWithHeader.Header.GetNonce())
+			err, hex.EncodeToString(headerHash), headerNonce)
 	}
 
 	err = wib.indexer.SaveTransactions(wib.outportBlockWithHeader)
 	if err != nil {
 		return fmt.Errorf("%w when saving transactions, block hash %s, nonce %d",
-			err, hex.EncodeToString(wib.outportBlockWithHeader.BlockData.HeaderHash), wib.outportBlockWithHeader.Header.GetNonce())
+			err, hex.EncodeToString(headerHash), headerNonce)
 	}
 
 	return nil

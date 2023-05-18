@@ -20,13 +20,13 @@ const (
 var log = logger.GetOrCreate("elasticindexer")
 
 // CreateWsIndexer will create a new instance of wsindexer.WSClient
-func CreateWsIndexer(cfg config.Config, clusterCfg config.ClusterConfig) (wsindexer.WSClient, error) {
+func CreateWsIndexer(cfg config.Config, clusterCfg config.ClusterConfig, importDB bool) (wsindexer.WSClient, error) {
 	wsMarshaller, err := factoryMarshaller.NewMarshalizer(clusterCfg.Config.WebSocket.DataMarshallerType)
 	if err != nil {
 		return nil, err
 	}
 
-	dataIndexer, err := createDataIndexer(cfg, clusterCfg, wsMarshaller)
+	dataIndexer, err := createDataIndexer(cfg, clusterCfg, wsMarshaller, importDB)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func CreateWsIndexer(cfg config.Config, clusterCfg config.ClusterConfig) (wsinde
 	return host, nil
 }
 
-func createDataIndexer(cfg config.Config, clusterCfg config.ClusterConfig, wsMarshaller marshal.Marshalizer) (wsindexer.DataIndexer, error) {
+func createDataIndexer(cfg config.Config, clusterCfg config.ClusterConfig, wsMarshaller marshal.Marshalizer, importDB bool) (wsindexer.DataIndexer, error) {
 	marshaller, err := factoryMarshaller.NewMarshalizer(cfg.Config.Marshaller.Type)
 	if err != nil {
 		return nil, err
@@ -81,6 +81,7 @@ func createDataIndexer(cfg config.Config, clusterCfg config.ClusterConfig, wsMar
 		AddressPubkeyConverter:   addressPubkeyConverter,
 		ValidatorPubkeyConverter: validatorPubkeyConverter,
 		HeaderMarshaller:         wsMarshaller,
+		ImportDB:                 importDB,
 	})
 }
 

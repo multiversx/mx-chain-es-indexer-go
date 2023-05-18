@@ -47,6 +47,7 @@ func main() {
 		logLevel,
 		logSaveFile,
 		disableAnsiColor,
+		importDB,
 	}
 	app.Authors = []cli.Author{
 		{
@@ -67,22 +68,23 @@ func main() {
 func startIndexer(ctx *cli.Context) error {
 	cfg, err := loadMainConfig(ctx.GlobalString(configurationFile.Name))
 	if err != nil {
-		return err
+		return fmt.Errorf("%w while loading the config file", err)
 	}
 
 	clusterCfg, err := loadClusterConfig(ctx.GlobalString(configurationPreferencesFile.Name))
 	if err != nil {
-		return err
+		return fmt.Errorf("%w while loading the preferences config file", err)
 	}
 
 	fileLogging, err := initializeLogger(ctx, cfg)
 	if err != nil {
-		return err
+		return fmt.Errorf("%w while initializing the logger", err)
 	}
 
-	wsHost, err := factory.CreateWsIndexer(cfg, clusterCfg)
+	importDBMode := ctx.GlobalBool(importDB.Name)
+	wsHost, err := factory.CreateWsIndexer(cfg, clusterCfg, importDBMode)
 	if err != nil {
-		log.Error("cannot create ws indexer", "error", err)
+		return fmt.Errorf("%w while creating the indexer", err)
 	}
 
 	interrupt := make(chan os.Signal, 1)

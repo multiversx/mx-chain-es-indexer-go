@@ -87,7 +87,7 @@ func TestNFTTransferCrossShardWithScCall(t *testing.T) {
 			hex.EncodeToString(scrHash2): {SmartContractResult: scr2, FeeInfo: &outport.FeeInfo{}},
 		},
 	}
-	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, false, testNumOfShards))
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
 	require.Nil(t, err)
 
 	ids := []string{hex.EncodeToString(txHash)}

@@ -75,8 +75,8 @@ github.com/multiversx/mx-chain-communication-go v0.0.0-20230512095548-5bc6372931
 github.com/multiversx/mx-chain-core-go v1.1.30/go.mod h1:8gGEQv6BWuuJwhd25qqhCOZbBSv9mk+hLeKvinSaSMk=
 github.com/multiversx/mx-chain-core-go v1.2.0/go.mod h1:8gGEQv6BWuuJwhd25qqhCOZbBSv9mk+hLeKvinSaSMk=
 github.com/multiversx/mx-chain-core-go v1.2.1-0.20230510143029-ab37792342df/go.mod h1:jzYFSiYBuO0dGpGFXnZWSwcwcKP7Flyn/X41y4zIQrQ=
-github.com/multiversx/mx-chain-core-go v1.2.1-0.20230511072341-83cfe4713dac h1:cueVlh2q3oO6reSZndgBEv/VL9xkaCgvPedo1ADqohg=
-github.com/multiversx/mx-chain-core-go v1.2.1-0.20230511072341-83cfe4713dac/go.mod h1:jzYFSiYBuO0dGpGFXnZWSwcwcKP7Flyn/X41y4zIQrQ=
+github.com/multiversx/mx-chain-core-go v1.2.4-0.20230517135533-2e54a17cd912 h1:7dgFuxG2sUbQEFA4y36NAoRjuN+Z3PlY0znmmgr7ZSo=
+github.com/multiversx/mx-chain-core-go v1.2.4-0.20230517135533-2e54a17cd912/go.mod h1:jzYFSiYBuO0dGpGFXnZWSwcwcKP7Flyn/X41y4zIQrQ=
 github.com/multiversx/mx-chain-logger-go v1.0.11 h1:DFsHa+sc5fKwhDR50I8uBM99RTDTEW68ESyr5ALRDwE=
 github.com/multiversx/mx-chain-logger-go v1.0.11/go.mod h1:1srDkP0DQucWQ+rYfaq0BX2qLnULsUdRPADpYUTM6dA=
 github.com/multiversx/mx-chain-vm-common-go v1.4.0 h1:0i0cJZJOXGzqYzwtKFHSr2yGmnFAdizOuISK8HgsnYo=

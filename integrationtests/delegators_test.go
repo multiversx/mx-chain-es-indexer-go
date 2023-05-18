@@ -59,7 +59,7 @@ func TestDelegateUnDelegateAndWithdraw(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, false, testNumOfShards))
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
 	require.Nil(t, err)
 
 	ids := []string{"9v/pLAXxUZJ4Oy1U+x5al/Xg5sebh1dYCRTeZwg/u68="}
@@ -91,7 +91,7 @@ func TestDelegateUnDelegateAndWithdraw(t *testing.T) {
 	}
 
 	header.TimeStamp = 5050
-	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, false, testNumOfShards))
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
 	require.Nil(t, err)
 
 	err = esClient.DoMultiGet(ids, indexerdata.DelegatorsIndex, true, genericResponse)
@@ -121,7 +121,7 @@ func TestDelegateUnDelegateAndWithdraw(t *testing.T) {
 	}
 
 	header.TimeStamp = 5060
-	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, false, testNumOfShards))
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
 	require.Nil(t, err)
 
 	err = esClient.DoMultiGet(ids, indexerdata.DelegatorsIndex, true, genericResponse)
@@ -161,7 +161,7 @@ func TestDelegateUnDelegateAndWithdraw(t *testing.T) {
 	}
 
 	header.TimeStamp = 5070
-	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, false, testNumOfShards))
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
 	require.Nil(t, err)
 
 	err = esClient.DoMultiGet(ids, indexerdata.DelegatorsIndex, true, genericResponse)
