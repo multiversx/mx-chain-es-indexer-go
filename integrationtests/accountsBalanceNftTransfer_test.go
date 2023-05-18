@@ -23,7 +23,6 @@ func createOutportBlockWithHeader(
 	header coreData.HeaderHandler,
 	pool *outport.TransactionPool,
 	coreAlteredAccounts map[string]*alteredAccount.AlteredAccount,
-	importDD bool,
 	numOfShards uint32,
 ) *outport.OutportBlockWithHeader {
 	return &outport.OutportBlockWithHeader{
@@ -34,7 +33,6 @@ func createOutportBlockWithHeader(
 			TransactionPool: pool,
 			AlteredAccounts: coreAlteredAccounts,
 			NumberOfShards:  numOfShards,
-			IsImportDB:      importDD,
 		},
 		Header: header,
 	}
@@ -91,7 +89,7 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, coreAlteredAccounts, false, testNumOfShards))
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, coreAlteredAccounts, testNumOfShards))
 	require.Nil(t, err)
 
 	ids := []string{fmt.Sprintf("%s-NFT-abcdef-718863", addr)}
@@ -152,7 +150,7 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 			},
 		},
 	}
-	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, coreAlteredAccounts, false, testNumOfShards))
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, coreAlteredAccounts, testNumOfShards))
 	require.Nil(t, err)
 
 	ids = []string{fmt.Sprintf("%s-NFT-abcdef-718863", addr)}

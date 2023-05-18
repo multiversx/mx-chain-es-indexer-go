@@ -59,7 +59,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 			},
 		},
 	}
-	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, false, testNumOfShards))
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
 	require.Nil(t, err)
 
 	ids := []string{"NFT-abcd-0e"}
@@ -86,7 +86,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 			},
 		},
 	}
-	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, false, testNumOfShards))
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
 	require.Nil(t, err)
 
 	// Add URIS 2 --- results should be the same
@@ -107,7 +107,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 			},
 		},
 	}
-	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, false, testNumOfShards))
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
 	require.Nil(t, err)
 
 	// Update attributes 1
@@ -134,7 +134,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 			},
 		},
 	}
-	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, false, testNumOfShards))
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
 	require.Nil(t, err)
 
 	ids = []string{"NFT-abcd-0e"}
@@ -162,7 +162,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 			},
 		},
 	}
-	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, false, testNumOfShards))
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
 	require.Nil(t, err)
 
 	ids = []string{"NFT-abcd-0e"}
@@ -189,7 +189,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 			},
 		},
 	}
-	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, false, testNumOfShards))
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
 	require.Nil(t, err)
 	ids = []string{"NFT-abcd-0e"}
 	genericResponse = &GenericResponse{}
@@ -215,7 +215,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 			},
 		},
 	}
-	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, false, testNumOfShards))
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
 	require.Nil(t, err)
 	ids = []string{"NFT-abcd-0e"}
 	genericResponse = &GenericResponse{}
