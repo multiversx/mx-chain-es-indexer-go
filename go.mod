@@ -7,7 +7,7 @@ require (
 	github.com/multiversx/mx-chain-communication-go v0.0.0-20230512095548-5bc637293104
 	github.com/multiversx/mx-chain-core-go v1.2.4-0.20230517135533-2e54a17cd912
 	github.com/multiversx/mx-chain-logger-go v1.0.11
-	github.com/multiversx/mx-chain-vm-common-go v1.4.0
+	github.com/multiversx/mx-chain-vm-common-go v1.4.1
 	github.com/stretchr/testify v1.8.2
 	github.com/tidwall/gjson v1.14.0
 	github.com/urfave/cli v1.22.10
