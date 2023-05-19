@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/multiversx/mx-chain-es-indexer-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-es-indexer-go/mock"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer/workItems"
 	"github.com/stretchr/testify/require"
@@ -43,32 +43,32 @@ func TestDataDispatcher_StartIndexDataClose(t *testing.T) {
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	elasticProc := &mock.ElasticProcessorStub{
-		SaveRoundsInfoCalled: func(infos []*data.RoundInfo) error {
+		SaveRoundsInfoCalled: func(infos *outport.RoundsInfo) error {
 			called = true
 			wg.Done()
 			return nil
 		},
-		SaveAccountsCalled: func(timestamp uint64, acc []*data.Account) error {
+		SaveAccountsCalled: func(accounts *outport.Accounts) error {
 			time.Sleep(7 * time.Second)
 			return nil
 		},
 
-		SaveValidatorsRatingCalled: func(index string, validatorsRatingInfo []*data.ValidatorRatingInfo) error {
+		SaveValidatorsRatingCalled: func(_ *outport.ValidatorsRating) error {
 			time.Sleep(6 * time.Second)
 			return nil
 		},
 	}
-	dispatcher.Add(workItems.NewItemRounds(elasticProc, []*data.RoundInfo{}))
+	dispatcher.Add(workItems.NewItemRounds(elasticProc, &outport.RoundsInfo{}))
 	wg.Wait()
 
 	require.True(t, called)
 
-	dispatcher.Add(workItems.NewItemAccounts(elasticProc, 0, nil, 0))
+	dispatcher.Add(workItems.NewItemAccounts(elasticProc, &outport.Accounts{}))
 	wg.Add(1)
-	dispatcher.Add(workItems.NewItemRounds(elasticProc, []*data.RoundInfo{}))
-	dispatcher.Add(workItems.NewItemRating(elasticProc, "", nil))
+	dispatcher.Add(workItems.NewItemRounds(elasticProc, &outport.RoundsInfo{}))
+	dispatcher.Add(workItems.NewItemRating(elasticProc, &outport.ValidatorsRating{}))
 	wg.Add(1)
-	dispatcher.Add(workItems.NewItemRounds(elasticProc, []*data.RoundInfo{}))
+	dispatcher.Add(workItems.NewItemRounds(elasticProc, &outport.RoundsInfo{}))
 	err = dispatcher.Close()
 	require.NoError(t, err)
 }
@@ -84,7 +84,7 @@ func TestDataDispatcher_Add(t *testing.T) {
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	elasticProc := &mock.ElasticProcessorStub{
-		SaveRoundsInfoCalled: func(infos []*data.RoundInfo) error {
+		SaveRoundsInfoCalled: func(_ *outport.RoundsInfo) error {
 			if calledCount < 2 {
 				atomic.AddUint32(&calledCount, 1)
 				return fmt.Errorf("%w: wrapped error", ErrBackOff)
@@ -97,7 +97,7 @@ func TestDataDispatcher_Add(t *testing.T) {
 	}
 
 	start := time.Now()
-	dispatcher.Add(workItems.NewItemRounds(elasticProc, []*data.RoundInfo{}))
+	dispatcher.Add(workItems.NewItemRounds(elasticProc, &outport.RoundsInfo{}))
 	wg.Wait()
 
 	timePassed := time.Since(start)
@@ -120,7 +120,7 @@ func TestDataDispatcher_AddWithErrorShouldRetryTheReprocessing(t *testing.T) {
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	elasticProc := &mock.ElasticProcessorStub{
-		SaveRoundsInfoCalled: func(infos []*data.RoundInfo) error {
+		SaveRoundsInfoCalled: func(_ *outport.RoundsInfo) error {
 			if calledCount < 2 {
 				atomic.AddUint32(&calledCount, 1)
 				return errors.New("generic error")
@@ -133,7 +133,7 @@ func TestDataDispatcher_AddWithErrorShouldRetryTheReprocessing(t *testing.T) {
 	}
 
 	start := time.Now()
-	dispatcher.Add(workItems.NewItemRounds(elasticProc, []*data.RoundInfo{}))
+	dispatcher.Add(workItems.NewItemRounds(elasticProc, &outport.RoundsInfo{}))
 	wg.Wait()
 
 	timePassed := time.Since(start)
@@ -153,7 +153,7 @@ func TestDataDispatcher_Close(t *testing.T) {
 	dispatcher.StartIndexData()
 
 	elasticProc := &mock.ElasticProcessorStub{
-		SaveRoundsInfoCalled: func(infos []*data.RoundInfo) error {
+		SaveRoundsInfoCalled: func(_ *outport.RoundsInfo) error {
 			time.Sleep(1000*time.Millisecond + 200*time.Microsecond)
 			return nil
 		},
@@ -173,7 +173,7 @@ func TestDataDispatcher_Close(t *testing.T) {
 				if count == 105 {
 					w.Done()
 				}
-				dispatcher.Add(workItems.NewItemRounds(elasticProc, []*data.RoundInfo{}))
+				dispatcher.Add(workItems.NewItemRounds(elasticProc, &outport.RoundsInfo{}))
 				time.Sleep(50 * time.Millisecond)
 			}
 		}
@@ -199,11 +199,11 @@ func TestDataDispatcher_RecoverPanic(t *testing.T) {
 	require.NoError(t, err)
 
 	elasticProc := &mock.ElasticProcessorStub{
-		SaveRoundsInfoCalled: func(infos []*data.RoundInfo) error {
+		SaveRoundsInfoCalled: func(_ *outport.RoundsInfo) error {
 			panic(1)
 		},
 	}
 
-	dispatcher.Add(workItems.NewItemRounds(elasticProc, []*data.RoundInfo{}))
+	dispatcher.Add(workItems.NewItemRounds(elasticProc, &outport.RoundsInfo{}))
 	dispatcher.doDataDispatch(context.Background())
 }

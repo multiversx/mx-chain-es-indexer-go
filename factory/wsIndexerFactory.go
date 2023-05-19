@@ -1,27 +1,32 @@
 package factory
 
 import (
+	"github.com/multiversx/mx-chain-communication-go/websocket/data"
+	factoryHost "github.com/multiversx/mx-chain-communication-go/websocket/factory"
 	"github.com/multiversx/mx-chain-core-go/core/pubkeyConverter"
 	factoryHasher "github.com/multiversx/mx-chain-core-go/hashing/factory"
+	"github.com/multiversx/mx-chain-core-go/marshal"
 	factoryMarshaller "github.com/multiversx/mx-chain-core-go/marshal/factory"
 	"github.com/multiversx/mx-chain-es-indexer-go/config"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/factory"
-	"github.com/multiversx/mx-chain-es-indexer-go/process/wsclient"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/wsindexer"
+	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 const (
 	indexerCacheSize = 1
 )
 
+var log = logger.GetOrCreate("elasticindexer")
+
 // CreateWsIndexer will create a new instance of wsindexer.WSClient
-func CreateWsIndexer(cfg config.Config, clusterCfg config.ClusterConfig) (wsindexer.WSClient, error) {
-	dataIndexer, err := createDataIndexer(cfg, clusterCfg)
+func CreateWsIndexer(cfg config.Config, clusterCfg config.ClusterConfig, importDB bool) (wsindexer.WSClient, error) {
+	wsMarshaller, err := factoryMarshaller.NewMarshalizer(clusterCfg.Config.WebSocket.DataMarshallerType)
 	if err != nil {
 		return nil, err
 	}
 
-	wsMarshaller, err := factoryMarshaller.NewMarshalizer(clusterCfg.Config.WebSocket.DataMarshallerType)
+	dataIndexer, err := createDataIndexer(cfg, clusterCfg, wsMarshaller, importDB)
 	if err != nil {
 		return nil, err
 	}
@@ -31,10 +36,20 @@ func CreateWsIndexer(cfg config.Config, clusterCfg config.ClusterConfig) (wsinde
 		return nil, err
 	}
 
-	return wsclient.New(clusterCfg.Config.WebSocket.ServerURL, indexer)
+	host, err := createWsHost(clusterCfg, wsMarshaller)
+	if err != nil {
+		return nil, err
+	}
+
+	err = host.SetPayloadHandler(indexer)
+	if err != nil {
+		return nil, err
+	}
+
+	return host, nil
 }
 
-func createDataIndexer(cfg config.Config, clusterCfg config.ClusterConfig) (wsindexer.DataIndexer, error) {
+func createDataIndexer(cfg config.Config, clusterCfg config.ClusterConfig, wsMarshaller marshal.Marshalizer, importDB bool) (wsindexer.DataIndexer, error) {
 	marshaller, err := factoryMarshaller.NewMarshalizer(cfg.Config.Marshaller.Type)
 	if err != nil {
 		return nil, err
@@ -65,6 +80,8 @@ func createDataIndexer(cfg config.Config, clusterCfg config.ClusterConfig) (wsin
 		Hasher:                   hasher,
 		AddressPubkeyConverter:   addressPubkeyConverter,
 		ValidatorPubkeyConverter: validatorPubkeyConverter,
+		HeaderMarshaller:         wsMarshaller,
+		ImportDB:                 importDB,
 	})
 }
 
@@ -85,4 +102,18 @@ func prepareIndices(availableIndices, disabledIndices []string) []string {
 	}
 
 	return indices
+}
+
+func createWsHost(clusterCfg config.ClusterConfig, wsMarshaller marshal.Marshalizer) (factoryHost.FullDuplexHost, error) {
+	return factoryHost.CreateWebSocketHost(factoryHost.ArgsWebSocketHost{
+		WebSocketConfig: data.WebSocketConfig{
+			URL:                clusterCfg.Config.WebSocket.URL,
+			WithAcknowledge:    clusterCfg.Config.WebSocket.WithAcknowledge,
+			Mode:               clusterCfg.Config.WebSocket.Mode,
+			RetryDurationInSec: int(clusterCfg.Config.WebSocket.RetryDurationInSec),
+			BlockingAckOnError: clusterCfg.Config.WebSocket.BlockingAckOnError,
+		},
+		Marshaller: wsMarshaller,
+		Log:        log,
+	})
 }

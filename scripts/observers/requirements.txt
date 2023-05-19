@@ -1,1 +1,2 @@
-git
+python-dotenv
+GitPython

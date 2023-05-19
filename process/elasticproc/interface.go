@@ -5,6 +5,7 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/alteredAccount"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
@@ -31,11 +32,11 @@ type DatabaseClientHandler interface {
 
 // DBAccountHandler defines the actions that an accounts' handler should do
 type DBAccountHandler interface {
-	GetAccounts(coreAlteredAccounts map[string]*outport.AlteredAccount) ([]*data.Account, []*data.AccountESDT)
+	GetAccounts(coreAlteredAccounts map[string]*alteredAccount.AlteredAccount) ([]*data.Account, []*data.AccountESDT)
 	PrepareRegularAccountsMap(timestamp uint64, accounts []*data.Account, shardID uint32) map[string]*data.AccountInfo
 	PrepareAccountsMapESDT(timestamp uint64, accounts []*data.AccountESDT, tagsCount data.CountTags, shardID uint32) (map[string]*data.AccountInfo, data.TokensHandler)
 	PrepareAccountsHistory(timestamp uint64, accounts map[string]*data.AccountInfo, shardID uint32) map[string]*data.AccountBalanceHistory
-	PutTokenMedataDataInTokens(tokensData []*data.TokenInfo, coreAlteredAccounts map[string]*outport.AlteredAccount)
+	PutTokenMedataDataInTokens(tokensData []*data.TokenInfo, coreAlteredAccounts map[string]*alteredAccount.AlteredAccount)
 
 	SerializeAccountsHistory(accounts map[string]*data.AccountBalanceHistory, buffSlice *data.BufferSlice, index string) error
 	SerializeAccounts(accounts map[string]*data.AccountInfo, buffSlice *data.BufferSlice, index string) error
@@ -46,16 +47,7 @@ type DBAccountHandler interface {
 
 // DBBlockHandler defines the actions that a block handler should do
 type DBBlockHandler interface {
-	PrepareBlockForDB(
-		headerHash []byte,
-		header coreData.HeaderHandler,
-		signersIndexes []uint64,
-		body *block.Body,
-		notarizedHeadersHashes []string,
-		gasConsumptionData outport.HeaderGasConsumption,
-		sizeTxs int,
-		pool *outport.Pool,
-	) (*data.Block, error)
+	PrepareBlockForDB(obh *outport.OutportBlockWithHeader) (*data.Block, error)
 	ComputeHeaderHash(header coreData.HeaderHandler) ([]byte, error)
 
 	SerializeEpochInfoData(header coreData.HeaderHandler, buffSlice *data.BufferSlice, index string) error
@@ -67,7 +59,7 @@ type DBTransactionsHandler interface {
 	PrepareTransactionsForDatabase(
 		body *block.Body,
 		header coreData.HeaderHandler,
-		pool *outport.Pool,
+		pool *outport.TransactionPool,
 		isImportDB bool,
 		numOfShards uint32,
 	) *data.PreparedResults
@@ -89,21 +81,20 @@ type DBMiniblocksHandler interface {
 
 // DBStatisticsHandler defines the actions that a database statistics handler should do
 type DBStatisticsHandler interface {
-	SerializeRoundsInfo(roundsInfo []*data.RoundInfo) *bytes.Buffer
+	SerializeRoundsInfo(rounds *outport.RoundsInfo) *bytes.Buffer
 }
 
 // DBValidatorsHandler defines the actions that a validators handler should do
 type DBValidatorsHandler interface {
-	PrepareValidatorsPublicKeys(shardValidatorsPubKeys [][]byte) *data.ValidatorsPublicKeys
-	SerializeValidatorsPubKeys(validatorsPubKeys *data.ValidatorsPublicKeys) (*bytes.Buffer, error)
-	SerializeValidatorsRating(index string, validatorsRatingInfo []*data.ValidatorRatingInfo) ([]*bytes.Buffer, error)
+	PrepareAnSerializeValidatorsPubKeys(validatorsPubKeys *outport.ValidatorsPubKeys) ([]*bytes.Buffer, error)
+	SerializeValidatorsRating(ratingData *outport.ValidatorsRating) ([]*bytes.Buffer, error)
 }
 
 // DBLogsAndEventsHandler defines the actions that a logs and events handler should do
 type DBLogsAndEventsHandler interface {
-	PrepareLogsForDB(logsAndEvents []*coreData.LogData, timestamp uint64) []*data.Logs
+	PrepareLogsForDB(logsAndEvents []*outport.LogData, timestamp uint64) []*data.Logs
 	ExtractDataFromLogs(
-		logsAndEvents []*coreData.LogData,
+		logsAndEvents []*outport.LogData,
 		preparedResults *data.PreparedResults,
 		timestamp uint64,
 		shardID uint32,

@@ -3,11 +3,11 @@
 package integrationtests
 
 import (
+	"encoding/hex"
 	"math/big"
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	coreData "github.com/multiversx/mx-chain-core-go/data"
 	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
@@ -33,11 +33,11 @@ func TestIssueTokenAndTransferOwnership(t *testing.T) {
 
 	address1 := "erd1v7e552pz9py4hv6raan0c4jflez3e6csdmzcgrncg0qrnk4tywvsqx0h5j"
 	address2 := "erd1acjlnuhkd8773sqhmw85r0ur4lcyuqgm0n69h9ttxh0gwxtuuzxq4lckh6"
-	pool := &outport.Pool{
-		Logs: []*coreData.LogData{
+	pool := &outport.TransactionPool{
+		Logs: []*outport.LogData{
 			{
-				TxHash: "h1",
-				LogHandler: &transaction.Log{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(address1),
@@ -51,7 +51,7 @@ func TestIssueTokenAndTransferOwnership(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
 	require.Nil(t, err)
 
 	ids := []string{"SSSS-abcd"}
@@ -65,11 +65,11 @@ func TestIssueTokenAndTransferOwnership(t *testing.T) {
 	require.JSONEq(t, readExpectedResult("./testdata/issueToken/token-semi.json"), string(genericResponse.Docs[0].Source))
 
 	// transfer ownership
-	pool = &outport.Pool{
-		Logs: []*coreData.LogData{
+	pool = &outport.TransactionPool{
+		Logs: []*outport.LogData{
 			{
-				TxHash: "h1",
-				LogHandler: &transaction.Log{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(address1),
@@ -84,7 +84,7 @@ func TestIssueTokenAndTransferOwnership(t *testing.T) {
 	}
 
 	header.TimeStamp = 10000
-	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
 	require.Nil(t, err)
 
 	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse)
@@ -96,11 +96,11 @@ func TestIssueTokenAndTransferOwnership(t *testing.T) {
 	require.JSONEq(t, readExpectedResult("./testdata/issueToken/token-semi-after-transfer-ownership.json"), string(genericResponse.Docs[0].Source))
 
 	// do pause
-	pool = &outport.Pool{
-		Logs: []*coreData.LogData{
+	pool = &outport.TransactionPool{
+		Logs: []*outport.LogData{
 			{
-				TxHash: "h1",
-				LogHandler: &transaction.Log{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(address1),
@@ -115,7 +115,7 @@ func TestIssueTokenAndTransferOwnership(t *testing.T) {
 	}
 
 	header.TimeStamp = 10000
-	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
 	require.Nil(t, err)
 
 	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse)
@@ -123,11 +123,11 @@ func TestIssueTokenAndTransferOwnership(t *testing.T) {
 	require.JSONEq(t, readExpectedResult("./testdata/issueToken/token-semi-after-pause.json"), string(genericResponse.Docs[0].Source))
 
 	// do unPause
-	pool = &outport.Pool{
-		Logs: []*coreData.LogData{
+	pool = &outport.TransactionPool{
+		Logs: []*outport.LogData{
 			{
-				TxHash: "h1",
-				LogHandler: &transaction.Log{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(address1),
@@ -142,7 +142,7 @@ func TestIssueTokenAndTransferOwnership(t *testing.T) {
 	}
 
 	header.TimeStamp = 10000
-	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
 	require.Nil(t, err)
 
 	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse)

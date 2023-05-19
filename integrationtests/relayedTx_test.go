@@ -7,7 +7,6 @@ import (
 	"math/big"
 	"testing"
 
-	coreData "github.com/multiversx/mx-chain-core-go/data"
 	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
@@ -73,18 +72,25 @@ func TestRelayedTransactionGasUsedCrossShard(t *testing.T) {
 		OriginalTxHash: txHash,
 	}
 
-	tx := outport.NewTransactionHandlerWithGasAndFee(initialTx, 16610000, big.NewInt(1760000000000000))
-	tx.SetInitialPaidFee(big.NewInt(1760000000000000))
-
-	pool := &outport.Pool{
-		Txs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
-			string(txHash): tx,
+	txInfo := &outport.TxInfo{
+		Transaction: initialTx,
+		FeeInfo: &outport.FeeInfo{
+			GasUsed:        16610000,
+			Fee:            big.NewInt(1760000000000000),
+			InitialPaidFee: big.NewInt(1760000000000000),
 		},
-		Scrs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
-			string(scrHash1): outport.NewTransactionHandlerWithGasAndFee(scr1, 0, big.NewInt(0)),
+		ExecutionOrder: 0,
+	}
+
+	pool := &outport.TransactionPool{
+		Transactions: map[string]*outport.TxInfo{
+			hex.EncodeToString(txHash): txInfo,
+		},
+		SmartContractResults: map[string]*outport.SCRInfo{
+			hex.EncodeToString(scrHash1): {SmartContractResult: scr1, FeeInfo: &outport.FeeInfo{}},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
 	require.Nil(t, err)
 
 	ids := []string{hex.EncodeToString(txHash)}
@@ -110,10 +116,10 @@ func TestRelayedTransactionGasUsedCrossShard(t *testing.T) {
 	}
 	scrWithRefund := []byte("scrWithRefund")
 	refundValueBig, _ := big.NewInt(0).SetString("86271830000000", 10)
-	poolDstShard := &outport.Pool{
-		Scrs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
-			string(scrHash1): outport.NewTransactionHandlerWithGasAndFee(scr1, 0, big.NewInt(0)),
-			string(scrWithRefund): outport.NewTransactionHandlerWithGasAndFee(&smartContractResult.SmartContractResult{
+	poolDstShard := &outport.TransactionPool{
+		SmartContractResults: map[string]*outport.SCRInfo{
+			hex.EncodeToString(scrHash1): {SmartContractResult: scr1, FeeInfo: &outport.FeeInfo{}},
+			hex.EncodeToString(scrWithRefund): {SmartContractResult: &smartContractResult.SmartContractResult{
 				Nonce:          3,
 				SndAddr:        decodeAddress(address3),
 				RcvAddr:        decodeAddress(address1),
@@ -122,11 +128,11 @@ func TestRelayedTransactionGasUsedCrossShard(t *testing.T) {
 				Value:          refundValueBig,
 				Data:           []byte(""),
 				ReturnMessage:  []byte("gas refund for relayer"),
-			}, 7982817, big.NewInt(1673728170000000)),
+			}, FeeInfo: &outport.FeeInfo{GasUsed: 7982817, Fee: big.NewInt(1673728170000000)}},
 		},
 	}
 
-	err = esProc.SaveTransactions(bodyDstShard, header, poolDstShard, nil, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(bodyDstShard, header, poolDstShard, nil, testNumOfShards))
 	require.Nil(t, err)
 
 	err = esClient.DoMultiGet(ids, indexerdata.TransactionsIndex, true, genericResponse)
@@ -206,18 +212,26 @@ func TestRelayedTransactionIntraShard(t *testing.T) {
 		Value:          refundValueBig,
 	}
 
-	tx := outport.NewTransactionHandlerWithGasAndFee(initialTx, 10556000, big.NewInt(2257820000000000))
-	tx.SetInitialPaidFee(big.NewInt(2306320000000000))
-	pool := &outport.Pool{
-		Txs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
-			string(txHash): tx,
+	txInfo := &outport.TxInfo{
+		Transaction: initialTx,
+		FeeInfo: &outport.FeeInfo{
+			GasUsed:        10556000,
+			Fee:            big.NewInt(2257820000000000),
+			InitialPaidFee: big.NewInt(2306320000000000),
 		},
-		Scrs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
-			string(scrHash1): outport.NewTransactionHandlerWithGasAndFee(scr1, 0, big.NewInt(0)),
-			string(scrHash2): outport.NewTransactionHandlerWithGasAndFee(scr2, 0, big.NewInt(0)),
+		ExecutionOrder: 0,
+	}
+
+	pool := &outport.TransactionPool{
+		Transactions: map[string]*outport.TxInfo{
+			hex.EncodeToString(txHash): txInfo,
+		},
+		SmartContractResults: map[string]*outport.SCRInfo{
+			hex.EncodeToString(scrHash1): {SmartContractResult: scr1, FeeInfo: &outport.FeeInfo{}},
+			hex.EncodeToString(scrHash2): {SmartContractResult: scr2, FeeInfo: &outport.FeeInfo{}},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
 	require.Nil(t, err)
 
 	ids := []string{hex.EncodeToString(txHash)}

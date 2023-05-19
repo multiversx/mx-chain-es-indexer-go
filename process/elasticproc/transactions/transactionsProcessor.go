@@ -2,6 +2,7 @@ package transactions
 
 import (
 	"encoding/hex"
+	"math/big"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
@@ -67,7 +68,7 @@ func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txsDatabaseProce
 func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 	body *block.Body,
 	header coreData.HeaderHandler,
-	pool *outport.Pool,
+	pool *outport.TransactionPool,
 	isImportDB bool,
 	numOfShards uint32,
 ) *data.PreparedResults {
@@ -92,7 +93,7 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 				continue
 			}
 
-			txs, errGroup := tdp.txsGrouper.groupNormalTxs(mbIndex, mb, header, pool.Txs, isImportDB, numOfShards)
+			txs, errGroup := tdp.txsGrouper.groupNormalTxs(mbIndex, mb, header, pool.Transactions, isImportDB, numOfShards)
 			if errGroup != nil {
 				log.Warn("txsDatabaseProcessor.groupNormalTxs", "error", errGroup)
 				continue
@@ -106,7 +107,7 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 			}
 			mergeTxsMaps(rewardsTxs, txs)
 		case block.InvalidBlock:
-			txs, errGroup := tdp.txsGrouper.groupInvalidTxs(mbIndex, mb, header, pool.Invalid, numOfShards)
+			txs, errGroup := tdp.txsGrouper.groupInvalidTxs(mbIndex, mb, header, pool.InvalidTxs, numOfShards)
 			if errGroup != nil {
 				log.Warn("txsDatabaseProcessor.groupInvalidTxs", "error", errGroup)
 				continue
@@ -119,7 +120,7 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 
 	normalTxs = tdp.setTransactionSearchOrder(normalTxs)
 	dbReceipts := tdp.txsGrouper.groupReceipts(header, pool.Receipts)
-	dbSCResults := tdp.scrsProc.processSCRs(body, header, pool.Scrs, numOfShards)
+	dbSCResults := tdp.scrsProc.processSCRs(body, header, pool.SmartContractResults, numOfShards)
 
 	srcsNoTxInCurrentShard := tdp.scrsDataToTxs.attachSCRsToTransactionsAndReturnSCRsWithoutTx(normalTxs, dbSCResults)
 	tdp.scrsDataToTxs.processTransactionsAfterSCRsWereAttached(normalTxs)
@@ -206,5 +207,17 @@ func getTxsHashesFromMiniblockHexEncoded(miniBlock *block.MiniBlock) []string {
 func mergeTxsMaps(dst, src map[string]*data.Transaction) {
 	for key, value := range src {
 		dst[key] = value
+	}
+}
+
+func getFeeInfo(txWithFeeInfo feeInfoHandler) *outport.FeeInfo {
+	feeInfo := txWithFeeInfo.GetFeeInfo()
+	if feeInfo != nil {
+		return feeInfo
+	}
+
+	return &outport.FeeInfo{
+		Fee:            big.NewInt(0),
+		InitialPaidFee: big.NewInt(0),
 	}
 }

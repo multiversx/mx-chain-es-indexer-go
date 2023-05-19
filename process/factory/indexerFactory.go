@@ -9,6 +9,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	"github.com/multiversx/mx-chain-es-indexer-go/client"
@@ -25,6 +26,7 @@ var log = logger.GetOrCreate("indexer/factory")
 type ArgsIndexerFactory struct {
 	Enabled                  bool
 	UseKibana                bool
+	ImportDB                 bool
 	IndexerCacheSize         int
 	Denomination             int
 	BulkRequestMaxSize       int
@@ -33,6 +35,7 @@ type ArgsIndexerFactory struct {
 	Password                 string
 	TemplatesPath            string
 	EnabledIndexes           []string
+	HeaderMarshaller         marshal.Marshalizer
 	Marshalizer              marshal.Marshalizer
 	Hasher                   hashing.Hasher
 	AddressPubkeyConverter   core.PubkeyConverter
@@ -58,10 +61,16 @@ func NewIndexer(args ArgsIndexerFactory) (dataindexer.Indexer, error) {
 
 	dispatcher.StartIndexData()
 
+	blockContainer, err := createBlockCreatorsContainer()
+	if err != nil {
+		return nil, err
+	}
+
 	arguments := dataindexer.ArgDataIndexer{
-		Marshalizer:      args.Marshalizer,
+		HeaderMarshaller: args.HeaderMarshaller,
 		ElasticProcessor: elasticProcessor,
 		DataDispatcher:   dispatcher,
+		BlockContainer:   blockContainer,
 	}
 
 	return dataindexer.NewDataIndexer(arguments)
@@ -97,6 +106,7 @@ func createElasticProcessor(args ArgsIndexerFactory) (dataindexer.ElasticProcess
 		Denomination:             args.Denomination,
 		EnabledIndexes:           args.EnabledIndexes,
 		BulkRequestMaxSize:       args.BulkRequestMaxSize,
+		ImportDB:                 args.ImportDB,
 	}
 
 	return factory.CreateElasticProcessor(argsElasticProcFac)
@@ -121,6 +131,27 @@ func checkDataIndexerParams(arguments ArgsIndexerFactory) error {
 	if check.IfNil(arguments.Hasher) {
 		return dataindexer.ErrNilHasher
 	}
+	if check.IfNil(arguments.HeaderMarshaller) {
+		return fmt.Errorf("%w: header marshaller", dataindexer.ErrNilMarshalizer)
+	}
 
 	return nil
+}
+
+func createBlockCreatorsContainer() (dataindexer.BlockContainerHandler, error) {
+	container := block.NewEmptyBlockCreatorsContainer()
+	err := container.Add(core.ShardHeaderV1, block.NewEmptyHeaderCreator())
+	if err != nil {
+		return nil, err
+	}
+	err = container.Add(core.ShardHeaderV2, block.NewEmptyHeaderV2Creator())
+	if err != nil {
+		return nil, err
+	}
+	err = container.Add(core.MetaHeader, block.NewEmptyMetaBlockCreator())
+	if err != nil {
+		return nil, err
+	}
+
+	return container, nil
 }

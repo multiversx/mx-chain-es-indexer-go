@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"time"
 
+	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	logger "github.com/multiversx/mx-chain-logger-go"
 )
@@ -20,10 +22,17 @@ func NewStatisticsProcessor() *statisticsProcessor {
 }
 
 // SerializeRoundsInfo will serialize information about rounds
-func (sp *statisticsProcessor) SerializeRoundsInfo(roundsInfo []*data.RoundInfo) *bytes.Buffer {
+func (sp *statisticsProcessor) SerializeRoundsInfo(rounds *outport.RoundsInfo) *bytes.Buffer {
 	buff := &bytes.Buffer{}
-	for _, info := range roundsInfo {
-		serializedRoundInfo, meta := serializeRoundInfo(info)
+	for _, info := range rounds.RoundsInfo {
+		serializedRoundInfo, meta := serializeRoundInfo(&data.RoundInfo{
+			Round:            info.Round,
+			SignersIndexes:   info.SignersIndexes,
+			BlockWasProposed: info.BlockWasProposed,
+			ShardId:          info.ShardId,
+			Epoch:            info.Epoch,
+			Timestamp:        time.Duration(info.Timestamp),
+		})
 
 		buff.Grow(len(meta) + len(serializedRoundInfo))
 		_, err := buff.Write(meta)
@@ -41,7 +50,7 @@ func (sp *statisticsProcessor) SerializeRoundsInfo(roundsInfo []*data.RoundInfo)
 }
 
 func serializeRoundInfo(info *data.RoundInfo) ([]byte, []byte) {
-	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%d_%d" } }%s`, info.ShardId, info.Index, "\n"))
+	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%d_%d" } }%s`, info.ShardId, info.Round, "\n"))
 
 	serializedInfo, err := json.Marshal(info)
 	if err != nil {

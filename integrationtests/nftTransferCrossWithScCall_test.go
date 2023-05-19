@@ -7,7 +7,6 @@ import (
 	"math/big"
 	"testing"
 
-	coreData "github.com/multiversx/mx-chain-core-go/data"
 	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
@@ -60,7 +59,7 @@ func TestNFTTransferCrossShardWithScCall(t *testing.T) {
 		OriginalTxHash: txHash,
 	}
 
-	tx := outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
+	tx := &transaction.Transaction{
 		Nonce:    79,
 		SndAddr:  decodeAddress(address1),
 		RcvAddr:  decodeAddress(address1),
@@ -68,18 +67,27 @@ func TestNFTTransferCrossShardWithScCall(t *testing.T) {
 		GasPrice: 1000000000,
 		Data:     []byte("ESDTNFTTransfer@4d45584641524d2d636362323532@078b@0347543e5b59c9be8670@00000000000000000500a7a02771aa07090e607f02b25f4d6d241bff32b990a2@636c61696d52657761726473"),
 		Value:    big.NewInt(0),
-	}, 5000000, big.NewInt(595490000000000))
-	tx.SetInitialPaidFee(big.NewInt(595490000000000))
+	}
 
-	pool := &outport.Pool{
-		Txs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
-			string(txHash): tx,
+	txInfo := &outport.TxInfo{
+		Transaction: tx,
+		FeeInfo: &outport.FeeInfo{
+			GasUsed:        5000000,
+			Fee:            big.NewInt(595490000000000),
+			InitialPaidFee: big.NewInt(595490000000000),
 		},
-		Scrs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
-			string(scrHash2): outport.NewTransactionHandlerWithGasAndFee(scr2, 0, big.NewInt(0)),
+		ExecutionOrder: 0,
+	}
+
+	pool := &outport.TransactionPool{
+		Transactions: map[string]*outport.TxInfo{
+			hex.EncodeToString(txHash): txInfo,
+		},
+		SmartContractResults: map[string]*outport.SCRInfo{
+			hex.EncodeToString(scrHash2): {SmartContractResult: scr2, FeeInfo: &outport.FeeInfo{}},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
 	require.Nil(t, err)
 
 	ids := []string{hex.EncodeToString(txHash)}

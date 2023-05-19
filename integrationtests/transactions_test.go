@@ -7,7 +7,6 @@ import (
 	"math/big"
 	"testing"
 
-	coreData "github.com/multiversx/mx-chain-core-go/data"
 	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
@@ -39,7 +38,7 @@ func TestElasticIndexerSaveTransactions(t *testing.T) {
 			},
 		},
 	}
-	tx := outport.NewTransactionHandlerWithGasAndFee(&transaction.Transaction{
+	tx := &transaction.Transaction{
 		Nonce:    1,
 		SndAddr:  decodeAddress("erd1w7jyzuj6cv4ngw8luhlkakatjpmjh3ql95lmxphd3vssc4vpymks6k5th7"),
 		RcvAddr:  decodeAddress("erd1ahmy0yjhjg87n755yv99nzla22zzwfud55sa69gk3anyxyyucq9q2hgxww"),
@@ -47,14 +46,24 @@ func TestElasticIndexerSaveTransactions(t *testing.T) {
 		GasPrice: 1000000000,
 		Data:     []byte("transfer"),
 		Value:    big.NewInt(1234),
-	}, 62000, big.NewInt(62000000000000))
-	tx.SetInitialPaidFee(big.NewInt(62080000000000))
-	pool := &outport.Pool{
-		Txs: map[string]coreData.TransactionHandlerWithGasUsedAndFee{
-			string(txHash): tx,
+	}
+
+	txInfo := &outport.TxInfo{
+		Transaction: tx,
+		FeeInfo: &outport.FeeInfo{
+			GasUsed:        62000,
+			Fee:            big.NewInt(62000000000000),
+			InitialPaidFee: big.NewInt(62080000000000),
+		},
+		ExecutionOrder: 0,
+	}
+
+	pool := &outport.TransactionPool{
+		Transactions: map[string]*outport.TxInfo{
+			hex.EncodeToString(txHash): txInfo,
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
 	require.Nil(t, err)
 
 	ids := []string{hex.EncodeToString(txHash)}

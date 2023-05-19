@@ -1,19 +1,19 @@
 package workItems
 
-import "github.com/multiversx/mx-chain-es-indexer-go/data"
+import (
+	"github.com/multiversx/mx-chain-core-go/data/outport"
+)
 
 type itemRating struct {
 	indexer    saveRatingIndexer
-	indexID    string
-	infoRating []*data.ValidatorRatingInfo
+	ratingData *outport.ValidatorsRating
 }
 
 // NewItemRating will create a new instance of itemRating
-func NewItemRating(indexer saveRatingIndexer, indexID string, infoRating []*data.ValidatorRatingInfo) WorkItemHandler {
+func NewItemRating(indexer saveRatingIndexer, ratingData *outport.ValidatorsRating) WorkItemHandler {
 	return &itemRating{
 		indexer:    indexer,
-		indexID:    indexID,
-		infoRating: infoRating,
+		ratingData: ratingData,
 	}
 }
 
@@ -24,7 +24,7 @@ func (wir *itemRating) IsInterfaceNil() bool {
 
 // Save will save validators rating in elasticsearch database
 func (wir *itemRating) Save() error {
-	err := wir.indexer.SaveValidatorsRating(wir.indexID, wir.infoRating)
+	err := wir.indexer.SaveValidatorsRating(wir.ratingData)
 	if err != nil {
 		log.Warn("itemRating.Save", "could not index validators rating", err.Error())
 		return err

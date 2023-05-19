@@ -3,12 +3,12 @@
 package integrationtests
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"math/big"
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	coreData "github.com/multiversx/mx-chain-core-go/data"
 	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/esdt"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
@@ -36,11 +36,11 @@ func TestIssueNFTCreateAndBurn(t *testing.T) {
 	}
 
 	address1 := "erd1ju8pkvg57cwdmjsjx58jlmnuf4l9yspstrhr9tgsrt98n9edpm2qtlgy99"
-	pool := &outport.Pool{
-		Logs: []*coreData.LogData{
+	pool := &outport.TransactionPool{
+		Logs: []*outport.LogData{
 			{
-				TxHash: "h1",
-				LogHandler: &transaction.Log{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(address1),
@@ -54,7 +54,7 @@ func TestIssueNFTCreateAndBurn(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
 	require.Nil(t, err)
 
 	ids := []string{"NON-abcd"}
@@ -80,11 +80,11 @@ func TestIssueNFTCreateAndBurn(t *testing.T) {
 	}
 	esdtDataBytes, _ := json.Marshal(esdtData)
 
-	pool = &outport.Pool{
-		Logs: []*coreData.LogData{
+	pool = &outport.TransactionPool{
+		Logs: []*outport.LogData{
 			{
-				TxHash: "h1",
-				LogHandler: &transaction.Log{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
 					Address: decodeAddress(address1),
 					Events: []*transaction.Event{
 						{
@@ -99,7 +99,7 @@ func TestIssueNFTCreateAndBurn(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
 	require.Nil(t, err)
 
 	ids = []string{"NON-abcd-02"}
@@ -116,11 +116,11 @@ func TestIssueNFTCreateAndBurn(t *testing.T) {
 		ShardID:   0,
 	}
 
-	pool = &outport.Pool{
-		Logs: []*coreData.LogData{
+	pool = &outport.TransactionPool{
+		Logs: []*outport.LogData{
 			{
-				TxHash: "h1",
-				LogHandler: &transaction.Log{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(address1),
@@ -134,7 +134,7 @@ func TestIssueNFTCreateAndBurn(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveTransactions(body, header, pool, nil, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
 	require.Nil(t, err)
 
 	ids = []string{"NON-abcd-02"}

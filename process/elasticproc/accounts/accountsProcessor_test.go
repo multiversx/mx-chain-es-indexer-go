@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-core-go/data/outport"
+	"github.com/multiversx/mx-chain-core-go/data/alteredAccount"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/mock"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
@@ -86,11 +86,11 @@ func TestGetESDTInfo(t *testing.T) {
 
 	tokenIdentifier := "token-001"
 	wrapAccount := &data.AccountESDT{
-		Account: &outport.AlteredAccount{
+		Account: &alteredAccount.AlteredAccount{
 			Address: "",
 			Balance: "1000",
 			Nonce:   0,
-			Tokens: []*outport.AccountTokenData{
+			Tokens: []*alteredAccount.AccountTokenData{
 				{
 					Identifier: tokenIdentifier,
 					Balance:    "1000",
@@ -114,11 +114,11 @@ func TestGetESDTInfoNFT(t *testing.T) {
 
 	tokenIdentifier := "token-001"
 	wrapAccount := &data.AccountESDT{
-		Account: &outport.AlteredAccount{
+		Account: &alteredAccount.AlteredAccount{
 			Address: "",
 			Balance: "1",
 			Nonce:   10,
-			Tokens: []*outport.AccountTokenData{
+			Tokens: []*alteredAccount.AccountTokenData{
 				{
 					Identifier: tokenIdentifier,
 					Balance:    "1",
@@ -149,17 +149,17 @@ func TestGetESDTInfoNFTWithMetaData(t *testing.T) {
 
 	tokenIdentifier := "token-001"
 	wrapAccount := &data.AccountESDT{
-		Account: &outport.AlteredAccount{
+		Account: &alteredAccount.AlteredAccount{
 			Address: "",
 			Balance: "1",
 			Nonce:   1,
-			Tokens: []*outport.AccountTokenData{
+			Tokens: []*alteredAccount.AccountTokenData{
 				{
 					Identifier: tokenIdentifier,
 					Balance:    "1",
 					Properties: "6f6b",
 					Nonce:      10,
-					MetaData: &outport.TokenMetaData{
+					MetaData: &alteredAccount.TokenMetaData{
 						Nonce:     10,
 						Name:      nftName,
 						Creator:   creator,
@@ -187,8 +187,8 @@ func TestAccountsProcessor_GetAccountsEGLDAccounts(t *testing.T) {
 	t.Parallel()
 
 	addr := "aaaabbbb"
-	acc := &outport.AlteredAccount{}
-	alteredAccountsMap := map[string]*outport.AlteredAccount{
+	acc := &alteredAccount.AlteredAccount{}
+	alteredAccountsMap := map[string]*alteredAccount.AlteredAccount{
 		addr: acc,
 	}
 	ap, _ := NewAccountsProcessor(mock.NewPubkeyConverterMock(32), balanceConverter)
@@ -207,16 +207,16 @@ func TestAccountsProcessor_GetAccountsESDTAccount(t *testing.T) {
 	t.Parallel()
 
 	addr := "aaaabbbb"
-	acc := &outport.AlteredAccount{
+	acc := &alteredAccount.AlteredAccount{
 		Address: addr,
 		Balance: "1",
-		Tokens: []*outport.AccountTokenData{
+		Tokens: []*alteredAccount.AccountTokenData{
 			{
 				Identifier: "token",
 			},
 		},
 	}
-	alteredAccountsMap := map[string]*outport.AlteredAccount{
+	alteredAccountsMap := map[string]*alteredAccount.AlteredAccount{
 		addr: acc,
 	}
 	ap, _ := NewAccountsProcessor(mock.NewPubkeyConverterMock(32), balanceConverter)
@@ -233,14 +233,14 @@ func TestAccountsProcessor_GetAccountsESDTAccountNewAccountShouldBeInRegularAcco
 	t.Parallel()
 
 	addr := "aaaabbbb"
-	acc := &outport.AlteredAccount{
-		Tokens: []*outport.AccountTokenData{
+	acc := &alteredAccount.AlteredAccount{
+		Tokens: []*alteredAccount.AccountTokenData{
 			{
 				Identifier: "token",
 			},
 		},
 	}
-	alteredAccountsMap := map[string]*outport.AlteredAccount{
+	alteredAccountsMap := map[string]*alteredAccount.AlteredAccount{
 		addr: acc,
 	}
 	ap, _ := NewAccountsProcessor(mock.NewPubkeyConverterMock(32), balanceConverter)
@@ -263,7 +263,7 @@ func TestAccountsProcessor_PrepareAccountsMapEGLD(t *testing.T) {
 	addrBytes := bytes.Repeat([]byte{0}, 32)
 	addr := hex.EncodeToString(addrBytes)
 
-	account := &outport.AlteredAccount{
+	account := &alteredAccount.AlteredAccount{
 		Address: addr,
 		Balance: "1000",
 		Nonce:   1,
@@ -298,15 +298,15 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 
 	addr := "aaaabbbb"
 
-	account := &outport.AlteredAccount{
+	account := &alteredAccount.AlteredAccount{
 		Address: hex.EncodeToString([]byte(addr)),
-		Tokens: []*outport.AccountTokenData{
+		Tokens: []*alteredAccount.AccountTokenData{
 			{
 				Balance:    "1000",
 				Identifier: "token",
 				Nonce:      15,
 				Properties: "3032",
-				MetaData: &outport.TokenMetaData{
+				MetaData: &alteredAccount.TokenMetaData{
 					Creator: "creator",
 				},
 			},
@@ -315,7 +315,7 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 				Identifier: "token",
 				Nonce:      16,
 				Properties: "3032",
-				MetaData: &outport.TokenMetaData{
+				MetaData: &alteredAccount.TokenMetaData{
 					Creator: "creator",
 				},
 			},
@@ -403,7 +403,7 @@ func TestAccountsProcessor_PutTokenMedataDataInTokens(t *testing.T) {
 		tokensInfo := []*data.TokenInfo{
 			{Data: nil}, {Nonce: 5, Data: &data.TokenMetaData{Creator: oldCreator}},
 		}
-		emptyAlteredAccounts := map[string]*outport.AlteredAccount{}
+		emptyAlteredAccounts := map[string]*alteredAccount.AlteredAccount{}
 		ap.PutTokenMedataDataInTokens(tokensInfo, emptyAlteredAccounts)
 		require.Empty(t, emptyAlteredAccounts)
 		require.Empty(t, tokensInfo[0].Data)
@@ -423,8 +423,8 @@ func TestAccountsProcessor_PutTokenMedataDataInTokens(t *testing.T) {
 			},
 		}
 
-		alteredAccounts := map[string]*outport.AlteredAccount{
-			"addr": {Tokens: []*outport.AccountTokenData{}},
+		alteredAccounts := map[string]*alteredAccount.AlteredAccount{
+			"addr": {Tokens: []*alteredAccount.AccountTokenData{}},
 		}
 		ap.PutTokenMedataDataInTokens(tokensInfo, alteredAccounts)
 		require.Empty(t, tokensInfo[0].Data)
@@ -435,7 +435,7 @@ func TestAccountsProcessor_PutTokenMedataDataInTokens(t *testing.T) {
 
 		ap, _ := NewAccountsProcessor(mock.NewPubkeyConverterMock(32), balanceConverter)
 
-		metadata0, metadata1 := &outport.TokenMetaData{Creator: "creator 0"}, &outport.TokenMetaData{Creator: "creator 1"}
+		metadata0, metadata1 := &alteredAccount.TokenMetaData{Creator: "creator 0"}, &alteredAccount.TokenMetaData{Creator: "creator 1"}
 		tokensInfo := []*data.TokenInfo{
 			{
 				Nonce:      5,
@@ -449,9 +449,9 @@ func TestAccountsProcessor_PutTokenMedataDataInTokens(t *testing.T) {
 			},
 		}
 
-		alteredAccounts := map[string]*outport.AlteredAccount{
+		alteredAccounts := map[string]*alteredAccount.AlteredAccount{
 			"addr0": {
-				Tokens: []*outport.AccountTokenData{
+				Tokens: []*alteredAccount.AccountTokenData{
 					{
 						Identifier: "token0-5t6y7u",
 						Nonce:      5,
@@ -478,14 +478,14 @@ func TestAddAdditionalDataIntoAccounts(t *testing.T) {
 	ap, _ := NewAccountsProcessor(mock.NewPubkeyConverterMock(32), balanceConverter)
 
 	account := &data.AccountInfo{}
-	ap.addAdditionalDataInAccount(&outport.AdditionalAccountData{
+	ap.addAdditionalDataInAccount(&alteredAccount.AdditionalAccountData{
 		DeveloperRewards: "10000",
 	}, account)
 	require.Equal(t, "10000", account.DeveloperRewards)
 	require.Equal(t, 0.000001, account.DeveloperRewardsNum)
 
 	account = &data.AccountInfo{}
-	ap.addAdditionalDataInAccount(&outport.AdditionalAccountData{
+	ap.addAdditionalDataInAccount(&alteredAccount.AdditionalAccountData{
 		DeveloperRewards: "",
 	}, account)
 	require.Equal(t, "", account.DeveloperRewards)
@@ -494,7 +494,7 @@ func TestAddAdditionalDataIntoAccounts(t *testing.T) {
 	account = &data.AccountInfo{
 		Address: "addr",
 	}
-	ap.addAdditionalDataInAccount(&outport.AdditionalAccountData{
+	ap.addAdditionalDataInAccount(&alteredAccount.AdditionalAccountData{
 		DeveloperRewards: "wrong",
 	}, account)
 	require.Equal(t, "", account.DeveloperRewards)

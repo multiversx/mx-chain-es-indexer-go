@@ -91,3 +91,6 @@ var ErrNilBalanceConverter = errors.New("nil balance converter")
 
 // ErrNilOperationsHandler signals that a nil operations handler has been provided
 var ErrNilOperationsHandler = errors.New("nil operations handler")
+
+// ErrNilBlockContainerHandler signals that a nil block container handler has been provided
+var ErrNilBlockContainerHandler = errors.New("nil bock container handler")

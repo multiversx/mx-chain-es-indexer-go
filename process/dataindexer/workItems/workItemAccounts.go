@@ -2,42 +2,31 @@ package workItems
 
 import (
 	"github.com/multiversx/mx-chain-core-go/data/outport"
-	"github.com/multiversx/mx-chain-es-indexer-go/data"
 )
 
 type itemAccounts struct {
-	indexer        saveAccountsIndexer
-	blockTimestamp uint64
-	accounts       map[string]*outport.AlteredAccount
-	shardID        uint32
+	indexer  saveAccountsIndexer
+	accounts *outport.Accounts
 }
 
 // NewItemAccounts will create a new instance of itemAccounts
 func NewItemAccounts(
 	indexer saveAccountsIndexer,
-	blockTimestamp uint64,
-	accounts map[string]*outport.AlteredAccount,
-	shardID uint32,
+	accounts *outport.Accounts,
 ) WorkItemHandler {
 	return &itemAccounts{
-		indexer:        indexer,
-		accounts:       accounts,
-		blockTimestamp: blockTimestamp,
-		shardID:        shardID,
+		indexer:  indexer,
+		accounts: accounts,
 	}
 }
 
 // Save will save information about an account
 func (wiv *itemAccounts) Save() error {
-	accounts := make([]*data.Account, 0, len(wiv.accounts))
-	for _, account := range wiv.accounts {
-		accounts = append(accounts, &data.Account{
-			UserAccount: account,
-			IsSender:    false,
-		})
+	if wiv.accounts == nil {
+		return nil
 	}
 
-	err := wiv.indexer.SaveAccounts(wiv.blockTimestamp, accounts, wiv.shardID)
+	err := wiv.indexer.SaveAccounts(wiv.accounts)
 	if err != nil {
 		log.Warn("itemAccounts.Save",
 			"could not index account",
