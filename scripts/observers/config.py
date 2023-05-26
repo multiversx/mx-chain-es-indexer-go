@@ -249,11 +249,12 @@ def main():
     # build binary mx-chain-go
     print("building node...")
     mx_chain_go_folder = working_dir / "mx-chain-go"
-    subprocess.check_call(["go", "build"], cwd=mx_chain_go_folder / "cmd/node")
+    flags = '-gcflags="all=-N -l"'
+    subprocess.check_call(["go", "build", flags], cwd=mx_chain_go_folder / "cmd/node")
 
     # build binary indexer
     print("building indexer...")
-    subprocess.check_call(["go", "build"], cwd="../../cmd/elasticindexer")
+    subprocess.check_call(["go", "build", flags], cwd="../../cmd/elasticindexer")
 
     # prepare observers
     config_folder = working_dir / "config"
