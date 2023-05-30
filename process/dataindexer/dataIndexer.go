@@ -159,6 +159,16 @@ func (di *dataIndexer) GetMarshaller() marshal.Marshalizer {
 	return di.headerMarshaller
 }
 
+// RegisterHandlerForSettingsRequest will do nothing
+func (di *dataIndexer) RegisterHandlerForSettingsRequest(_ func()) error {
+	return nil
+}
+
+// CurrentSettings will do nothing
+func (di *dataIndexer) CurrentSettings(_ outport.OutportConfig) error {
+	return nil
+}
+
 // IsInterfaceNil returns true if there is no value under the interface
 func (di *dataIndexer) IsInterfaceNil() bool {
 	return di == nil
