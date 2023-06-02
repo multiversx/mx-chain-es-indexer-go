@@ -24,7 +24,7 @@ func ExtractMetaDataFromAttributes(attributes []byte) string {
 		return ""
 	}
 
-	return res[0]
+	return TruncateFieldIfExceedsMaxLength(res[0])
 }
 
 func extractFromAttributes(attributes []byte, key string) []string {

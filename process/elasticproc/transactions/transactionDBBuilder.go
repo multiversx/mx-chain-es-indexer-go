@@ -78,6 +78,8 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		esdtValues = res.ESDTValues
 	}
 
+	senderUserName := converters.TruncateFieldIfExceedsMaxLength(string(tx.SndUserName))
+	receiverUserName := converters.TruncateFieldIfExceedsMaxLength(string(tx.RcvUserName))
 	return &data.Transaction{
 		Hash:              hex.EncodeToString(txHash),
 		MBHash:            hex.EncodeToString(mbHash),
@@ -99,8 +101,8 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		InitialPaidFee:    initialPaidFee.String(),
 		Fee:               fee.String(),
 		FeeNum:            feeNum,
-		ReceiverUserName:  tx.RcvUserName,
-		SenderUserName:    tx.SndUserName,
+		ReceiverUserName:  []byte(receiverUserName),
+		SenderUserName:    []byte(senderUserName),
 		IsScCall:          isScCall,
 		Operation:         res.Operation,
 		Function:          converters.TruncateFieldIfExceedsMaxLength(res.Function),

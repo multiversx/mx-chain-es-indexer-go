@@ -25,15 +25,22 @@ func PrepareTokenMetaData(tokenMetadata *outport.TokenMetaData) *data.TokenMetaD
 		return nil
 	}
 
+	var uris [][]byte
+	for _, uri := range tokenMetadata.URIs {
+		truncatedURI := TruncateFieldIfExceedsMaxLength(string(uri))
+		uris = append(uris, []byte(truncatedURI))
+	}
+
+	tags := ExtractTagsFromAttributes(tokenMetadata.Attributes)
 	attributes := TruncateFieldIfExceedsMaxLength(string(tokenMetadata.Attributes))
 	return &data.TokenMetaData{
-		Name:               tokenMetadata.Name,
+		Name:               TruncateFieldIfExceedsMaxLength(tokenMetadata.Name),
 		Creator:            tokenMetadata.Creator,
 		Royalties:          tokenMetadata.Royalties,
 		Hash:               tokenMetadata.Hash,
-		URIs:               tokenMetadata.URIs,
+		URIs:               uris,
 		Attributes:         []byte(attributes),
-		Tags:               ExtractTagsFromAttributes(tokenMetadata.Attributes),
+		Tags:               TruncateSliceElementsIfExceedsMaxLength(tags),
 		MetaData:           ExtractMetaDataFromAttributes(tokenMetadata.Attributes),
 		NonEmptyURIs:       nonEmptyURIs(tokenMetadata.URIs),
 		WhiteListedStorage: whiteListedStorage(tokenMetadata.URIs),
