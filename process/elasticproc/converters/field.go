@@ -11,7 +11,7 @@ func TruncateFieldIfExceedsMaxLength(field string) string {
 	return field
 }
 
-// TruncateSliceElementsIfExceedsMaxLength will truncate the provided slice of field if the max length exceeds
+//TruncateSliceElementsIfExceedsMaxLength will truncate the provided slice of the field if the max length is exceeded
 func TruncateSliceElementsIfExceedsMaxLength(fields []string) []string {
 	var localFields []string
 	for _, field := range fields {
