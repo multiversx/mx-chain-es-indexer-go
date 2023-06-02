@@ -180,7 +180,7 @@ func TestGetESDTInfoNFTWithMetaData(t *testing.T) {
 		Name:       nftName,
 		Creator:    creator,
 		Royalties:  2,
-		Attributes: []byte{},
+		Attributes: make([]byte, 0),
 	}, metaData)
 }
 
@@ -345,7 +345,7 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 		TokenNonce:      15,
 		Data: &data.TokenMetaData{
 			Creator:    "creator",
-			Attributes: []byte{},
+			Attributes: make([]byte, 0),
 		},
 		Timestamp: time.Duration(123),
 	}, res[hex.EncodeToString([]byte(addr))+"-token-15"])
@@ -360,7 +360,7 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 		TokenNonce:      16,
 		Data: &data.TokenMetaData{
 			Creator:    "creator",
-			Attributes: []byte{},
+			Attributes: make([]byte, 0),
 		},
 		Timestamp: time.Duration(123),
 	}, res[hex.EncodeToString([]byte(addr))+"-token-16"])
