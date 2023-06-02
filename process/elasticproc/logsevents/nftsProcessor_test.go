@@ -50,7 +50,8 @@ func TestNftsProcessor_processLogAndEventsNFTs(t *testing.T) {
 		Issuer:     "",
 		Nonce:      uint64(19),
 		Data: &data.TokenMetaData{
-			Creator: hex.EncodeToString([]byte("creator")),
+			Creator:    hex.EncodeToString([]byte("creator")),
+			Attributes: []byte{},
 		},
 	}, tokensCreateInfo.GetAll()[0])
 

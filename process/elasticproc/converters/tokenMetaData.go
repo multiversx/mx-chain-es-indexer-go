@@ -25,13 +25,14 @@ func PrepareTokenMetaData(tokenMetadata *outport.TokenMetaData) *data.TokenMetaD
 		return nil
 	}
 
+	attributes := TruncateFieldIfExceedsMaxLength(string(tokenMetadata.Attributes))
 	return &data.TokenMetaData{
 		Name:               tokenMetadata.Name,
 		Creator:            tokenMetadata.Creator,
 		Royalties:          tokenMetadata.Royalties,
 		Hash:               tokenMetadata.Hash,
 		URIs:               tokenMetadata.URIs,
-		Attributes:         tokenMetadata.Attributes,
+		Attributes:         []byte(attributes),
 		Tags:               ExtractTagsFromAttributes(tokenMetadata.Attributes),
 		MetaData:           ExtractMetaDataFromAttributes(tokenMetadata.Attributes),
 		NonEmptyURIs:       nonEmptyURIs(tokenMetadata.URIs),

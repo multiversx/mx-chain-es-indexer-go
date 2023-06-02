@@ -177,9 +177,10 @@ func TestGetESDTInfoNFTWithMetaData(t *testing.T) {
 	require.Equal(t, big.NewInt(1), balance)
 	require.Equal(t, "6f6b", prop)
 	require.Equal(t, &data.TokenMetaData{
-		Name:      nftName,
-		Creator:   creator,
-		Royalties: 2,
+		Name:       nftName,
+		Creator:    creator,
+		Royalties:  2,
+		Attributes: []byte{},
 	}, metaData)
 }
 
@@ -343,7 +344,8 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 		Properties:      "3032",
 		TokenNonce:      15,
 		Data: &data.TokenMetaData{
-			Creator: "creator",
+			Creator:    "creator",
+			Attributes: []byte{},
 		},
 		Timestamp: time.Duration(123),
 	}, res[hex.EncodeToString([]byte(addr))+"-token-15"])
@@ -357,7 +359,8 @@ func TestAccountsProcessor_PrepareAccountsMapESDT(t *testing.T) {
 		Properties:      "3032",
 		TokenNonce:      16,
 		Data: &data.TokenMetaData{
-			Creator: "creator",
+			Creator:    "creator",
+			Attributes: []byte{},
 		},
 		Timestamp: time.Duration(123),
 	}, res[hex.EncodeToString([]byte(addr))+"-token-16"])
