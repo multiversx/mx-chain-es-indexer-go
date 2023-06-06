@@ -92,11 +92,18 @@ func (di *dataIndexer) SaveBlock(outportBlock *outport.OutportBlock) error {
 		outportBlock.TransactionPool = &outport.TransactionPool{}
 	}
 
+	return di.saveBlockData(outportBlock, header)
+}
+
+func (di *dataIndexer) saveBlockData(outportBlock *outport.OutportBlock, header data.HeaderHandler) error {
 	outportBlockWithHeader := &outport.OutportBlockWithHeader{
 		OutportBlock: outportBlock,
 		Header:       header,
 	}
-	err = di.elasticProcessor.SaveHeader(outportBlockWithHeader)
+
+	headerHash := outportBlock.BlockData.HeaderHash
+	headerNonce := header.GetNonce()
+	err := di.elasticProcessor.SaveHeader(outportBlockWithHeader)
 	if err != nil {
 		return fmt.Errorf("%w when saving header block, hash %s, nonce %d",
 			err, hex.EncodeToString(headerHash), headerNonce)

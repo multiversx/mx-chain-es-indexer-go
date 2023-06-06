@@ -48,7 +48,7 @@ func TestDataIndexer_NewIndexerWithCorrectParamsShouldWork(t *testing.T) {
 }
 
 func TestDataIndexer_SaveBlock(t *testing.T) {
-	count := 0
+	countMap := map[int]int{}
 
 	arguments := NewDataIndexerArguments()
 	arguments.BlockContainer = &mock.BlockContainerStub{
@@ -59,15 +59,15 @@ func TestDataIndexer_SaveBlock(t *testing.T) {
 
 	arguments.ElasticProcessor = &mock.ElasticProcessorStub{
 		SaveHeaderCalled: func(outportBlockWithHeader *outport.OutportBlockWithHeader) error {
-			count++
+			countMap[0]++
 			return nil
 		},
 		SaveMiniblocksCalled: func(header coreData.HeaderHandler, body *dataBlock.Body) error {
-			count++
+			countMap[1]++
 			return nil
 		},
 		SaveTransactionsCalled: func(outportBlockWithHeader *outport.OutportBlockWithHeader) error {
-			count++
+			countMap[2]++
 			return nil
 		},
 	}
@@ -82,7 +82,9 @@ func TestDataIndexer_SaveBlock(t *testing.T) {
 	}
 	err := ei.SaveBlock(args)
 	require.Nil(t, err)
-	require.Equal(t, 3, count)
+	require.Equal(t, 1, countMap[0])
+	require.Equal(t, 1, countMap[1])
+	require.Equal(t, 1, countMap[2])
 }
 
 func TestDataIndexer_SaveRoundInfo(t *testing.T) {
@@ -145,7 +147,7 @@ func TestDataIndexer_SaveValidatorsRating(t *testing.T) {
 }
 
 func TestDataIndexer_RevertIndexedBlock(t *testing.T) {
-	count := 0
+	countMap := map[int]int{}
 
 	arguments := NewDataIndexerArguments()
 	arguments.BlockContainer = &mock.BlockContainerStub{
@@ -154,19 +156,19 @@ func TestDataIndexer_RevertIndexedBlock(t *testing.T) {
 		}}
 	arguments.ElasticProcessor = &mock.ElasticProcessorStub{
 		RemoveHeaderCalled: func(header coreData.HeaderHandler) error {
-			count++
+			countMap[0]++
 			return nil
 		},
 		RemoveMiniblocksCalled: func(header coreData.HeaderHandler, body *dataBlock.Body) error {
-			count++
+			countMap[1]++
 			return nil
 		},
 		RemoveTransactionsCalled: func(header coreData.HeaderHandler, body *dataBlock.Body) error {
-			count++
+			countMap[2]++
 			return nil
 		},
 		RemoveAccountsESDTCalled: func(headerTimestamp uint64) error {
-			count++
+			countMap[3]++
 			return nil
 		},
 	}
@@ -178,5 +180,8 @@ func TestDataIndexer_RevertIndexedBlock(t *testing.T) {
 		HeaderBytes: []byte("{}"),
 	})
 	require.Nil(t, err)
-	require.Equal(t, 4, count)
+	require.Equal(t, 1, countMap[0])
+	require.Equal(t, 1, countMap[1])
+	require.Equal(t, 1, countMap[2])
+	require.Equal(t, 1, countMap[3])
 }
