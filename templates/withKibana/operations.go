@@ -162,6 +162,13 @@ var Operations = Object{
 			"version": Object{
 				"type": "long",
 			},
+			"guardian": Object{
+				"type": "keyword",
+			},
+			"guardianSignature": Object{
+				"index": "false",
+				"type":  "keyword",
+			},
 		},
 	},
 }
