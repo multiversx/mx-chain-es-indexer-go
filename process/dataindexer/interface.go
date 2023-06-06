@@ -8,16 +8,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer/workItems"
 )
-
-// DispatcherHandler defines the interface for the dispatcher that will manage when items are saved in elasticsearch database
-type DispatcherHandler interface {
-	StartIndexData()
-	Close() error
-	Add(item workItems.WorkItemHandler)
-	IsInterfaceNil() bool
-}
 
 // ElasticProcessor defines the interface for the elastic search indexer
 type ElasticProcessor interface {
