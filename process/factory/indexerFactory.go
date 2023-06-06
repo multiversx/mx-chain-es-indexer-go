@@ -54,13 +54,6 @@ func NewIndexer(args ArgsIndexerFactory) (dataindexer.Indexer, error) {
 		return nil, err
 	}
 
-	dispatcher, err := dataindexer.NewDataDispatcher(args.IndexerCacheSize)
-	if err != nil {
-		return nil, err
-	}
-
-	dispatcher.StartIndexData()
-
 	blockContainer, err := createBlockCreatorsContainer()
 	if err != nil {
 		return nil, err
@@ -69,7 +62,6 @@ func NewIndexer(args ArgsIndexerFactory) (dataindexer.Indexer, error) {
 	arguments := dataindexer.ArgDataIndexer{
 		HeaderMarshaller: args.HeaderMarshaller,
 		ElasticProcessor: elasticProcessor,
-		DataDispatcher:   dispatcher,
 		BlockContainer:   blockContainer,
 	}
 
