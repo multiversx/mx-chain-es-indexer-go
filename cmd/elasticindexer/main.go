@@ -10,8 +10,10 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/core/closing"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-es-indexer-go/config"
 	"github.com/multiversx/mx-chain-es-indexer-go/factory"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/wsindexer"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/multiversx/mx-chain-logger-go/file"
 	"github.com/urfave/cli"
@@ -87,6 +89,8 @@ func startIndexer(ctx *cli.Context) error {
 		return fmt.Errorf("%w while creating the indexer", err)
 	}
 
+	requestSettings(wsHost, clusterCfg.Config.WebSocket.RetryDurationInSec)
+
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, syscall.SIGINT, syscall.SIGTERM)
 
@@ -102,6 +106,16 @@ func startIndexer(ctx *cli.Context) error {
 		log.LogIfError(err)
 	}
 	return nil
+}
+
+func requestSettings(host wsindexer.WSClient, retryDurationInSec uint32) {
+	for {
+		err := host.Send([]byte{}, outport.TopicSettings)
+		if err != nil {
+			time.Sleep(time.Duration(retryDurationInSec) * time.Second)
+			log.Debug("request settings", "error", err)
+		}
+	}
 }
 
 func loadMainConfig(filepath string) (config.Config, error) {

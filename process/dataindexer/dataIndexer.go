@@ -165,7 +165,7 @@ func (di *dataIndexer) RegisterHandlerForSettingsRequest(_ func()) error {
 }
 
 // CurrentSettings will do nothing
-func (di *dataIndexer) CurrentSettings(_ outport.OutportConfig) error {
+func (di *dataIndexer) CurrentSettings(settings outport.OutportConfig) error {
 	return nil
 }
 

@@ -49,6 +49,7 @@ func (i *indexer) initActionsMap() {
 		outport.TopicSaveValidatorsPubKeys: i.saveValidatorsPubKeys,
 		outport.TopicSaveAccounts:          i.saveAccounts,
 		outport.TopicFinalizedBlock:        i.finalizedBlock,
+		outport.TopicSettings:              i.setSettings,
 	}
 }
 
@@ -125,6 +126,16 @@ func (i *indexer) saveAccounts(marshalledData []byte) error {
 
 func (i *indexer) finalizedBlock(_ []byte) error {
 	return nil
+}
+
+func (i *indexer) setSettings(marshalledData []byte) error {
+	settings := outport.OutportConfig{}
+	err := i.marshaller.Unmarshal(&settings, marshalledData)
+	if err != nil {
+		return err
+	}
+
+	return i.di.CurrentSettings(settings)
 }
 
 // Close will close the indexer

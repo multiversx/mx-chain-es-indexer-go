@@ -18,7 +18,12 @@ type payloadHandlerCreator struct {
 	marshaller marshal.Marshalizer
 }
 
-func newPayloadHandlerCreator(cfg config.Config, clusterCfg config.ClusterConfig, importDB bool, marshaller marshal.Marshalizer) (*payloadHandlerCreator, error) {
+func newPayloadHandlerCreator(
+	cfg config.Config,
+	clusterCfg config.ClusterConfig,
+	importDB bool,
+	marshaller marshal.Marshalizer,
+) (*payloadHandlerCreator, error) {
 	return &payloadHandlerCreator{
 		cfg:        cfg,
 		clusterCfg: clusterCfg,
