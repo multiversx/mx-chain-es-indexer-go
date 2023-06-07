@@ -111,6 +111,10 @@ func (eim *ElasticProcessorStub) SaveAccounts(accounts *outport.Accounts) error 
 	return nil
 }
 
+func (eim *ElasticProcessorStub) SetOutportConfig(_ outport.OutportConfig) error {
+	return nil
+}
+
 // IsInterfaceNil returns true if there is no value under the interface
 func (eim *ElasticProcessorStub) IsInterfaceNil() bool {
 	return eim == nil
