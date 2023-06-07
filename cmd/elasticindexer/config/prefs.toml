@@ -11,9 +11,11 @@
         # Retry duration (receive/send ack signal) in seconds
         retry-duration-in-seconds = 5
         # Signals if in case of data payload processing error, we should send the ack signal or not
-        blocking-ack-on-error = false
+        blocking-ack-on-error = true
         # After a message will be sent it will wait for an ack message if this flag is enabled
         with-acknowledge = true
+        # The duration in seconds to wait for an acknowledgment message, after this time passes an error will be returned
+        acknowledge-timeout-in-seconds = 50
 
     [config.elastic-cluster]
         use-kibana = false
