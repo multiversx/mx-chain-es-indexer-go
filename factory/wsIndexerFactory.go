@@ -13,10 +13,6 @@ import (
 	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
-const (
-	indexerCacheSize = 1
-)
-
 var log = logger.GetOrCreate("elasticindexer")
 
 // CreateWsIndexer will create a new instance of wsindexer.WSClient
@@ -69,7 +65,6 @@ func createDataIndexer(cfg config.Config, clusterCfg config.ClusterConfig, wsMar
 
 	return factory.NewIndexer(factory.ArgsIndexerFactory{
 		UseKibana:                clusterCfg.Config.ElasticCluster.UseKibana,
-		IndexerCacheSize:         indexerCacheSize,
 		Denomination:             cfg.Config.Economics.Denomination,
 		BulkRequestMaxSize:       clusterCfg.Config.ElasticCluster.BulkRequestMaxSizeInBytes,
 		Url:                      clusterCfg.Config.ElasticCluster.URL,
@@ -107,11 +102,12 @@ func prepareIndices(availableIndices, disabledIndices []string) []string {
 func createWsHost(clusterCfg config.ClusterConfig, wsMarshaller marshal.Marshalizer) (factoryHost.FullDuplexHost, error) {
 	return factoryHost.CreateWebSocketHost(factoryHost.ArgsWebSocketHost{
 		WebSocketConfig: data.WebSocketConfig{
-			URL:                clusterCfg.Config.WebSocket.URL,
-			WithAcknowledge:    clusterCfg.Config.WebSocket.WithAcknowledge,
-			Mode:               clusterCfg.Config.WebSocket.Mode,
-			RetryDurationInSec: int(clusterCfg.Config.WebSocket.RetryDurationInSec),
-			BlockingAckOnError: clusterCfg.Config.WebSocket.BlockingAckOnError,
+			URL:                     clusterCfg.Config.WebSocket.URL,
+			WithAcknowledge:         clusterCfg.Config.WebSocket.WithAcknowledge,
+			Mode:                    clusterCfg.Config.WebSocket.Mode,
+			RetryDurationInSec:      int(clusterCfg.Config.WebSocket.RetryDurationInSec),
+			AcknowledgeTimeoutInSec: int(clusterCfg.Config.WebSocket.AckTimeoutInSec),
+			BlockingAckOnError:      clusterCfg.Config.WebSocket.BlockingAckOnError,
 		},
 		Marshaller: wsMarshaller,
 		Log:        log,

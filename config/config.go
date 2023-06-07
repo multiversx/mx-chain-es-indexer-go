@@ -42,6 +42,7 @@ type ClusterConfig struct {
 			RetryDurationInSec uint32 `toml:"retry-duration-in-seconds"`
 			BlockingAckOnError bool   `toml:"blocking-ack-on-error"`
 			WithAcknowledge    bool   `toml:"with-acknowledge"`
+			AckTimeoutInSec    uint32 `toml:"acknowledge-timeout-in-seconds"`
 		} `toml:"web-socket"`
 		ElasticCluster struct {
 			UseKibana                 bool   `toml:"use-kibana"`
