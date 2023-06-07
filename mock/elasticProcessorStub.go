@@ -111,6 +111,7 @@ func (eim *ElasticProcessorStub) SaveAccounts(accounts *outport.Accounts) error 
 	return nil
 }
 
+// SetOutportConfig -
 func (eim *ElasticProcessorStub) SetOutportConfig(_ outport.OutportConfig) error {
 	return nil
 }
