@@ -16,7 +16,6 @@ func createMockIndexerFactoryArgs() ArgsIndexerFactory {
 
 	return ArgsIndexerFactory{
 		Enabled:                  true,
-		IndexerCacheSize:         100,
 		Url:                      ts.URL,
 		UserName:                 "",
 		Password:                 "",
@@ -36,15 +35,6 @@ func TestNewIndexerFactory(t *testing.T) {
 		argsFunc func() ArgsIndexerFactory
 		exError  error
 	}{
-		{
-			name: "InvalidCacheSize",
-			argsFunc: func() ArgsIndexerFactory {
-				args := createMockIndexerFactoryArgs()
-				args.IndexerCacheSize = -1
-				return args
-			},
-			exError: dataindexer.ErrNegativeCacheSize,
-		},
 		{
 			name: "NilAddressPubkeyConverter",
 			argsFunc: func() ArgsIndexerFactory {
