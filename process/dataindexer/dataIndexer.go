@@ -78,14 +78,15 @@ func (di *dataIndexer) SaveBlock(outportBlock *outport.OutportBlock) error {
 	headerHash := outportBlock.BlockData.HeaderHash
 	shardID := header.GetShardID()
 	headerNonce := header.GetNonce()
-	defer func(startTime time.Time, headerHash []byte, headerNonce uint64, shardID uint32) {
+	startTime := time.Now()
+	defer func() {
 		log.Debug("di.SaveBlockData",
 			"duration", time.Since(startTime),
 			"shardID", shardID,
 			"nonce", headerNonce,
 			"hash", headerHash,
 		)
-	}(time.Now(), headerHash, headerNonce, shardID)
+	}()
 	log.Debug("indexer: starting indexing block", "hash", headerHash, "nonce", headerNonce)
 
 	if outportBlock.TransactionPool == nil {
