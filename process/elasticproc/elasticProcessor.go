@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
+	"sync"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
@@ -63,6 +64,7 @@ type elasticProcessor struct {
 	bulkRequestMaxSize int
 	importDB           bool
 	enabledIndexes     map[string]struct{}
+	mutex              sync.RWMutex
 	elasticClient      DatabaseClientHandler
 	accountsProc       DBAccountHandler
 	blockProc          DBBlockHandler
@@ -408,7 +410,7 @@ func (ei *elasticProcessor) miniblocksInDBMap(mbs []*data.Miniblock) (map[string
 func (ei *elasticProcessor) SaveTransactions(obh *outport.OutportBlockWithHeader) error {
 	headerTimestamp := obh.Header.GetTimeStamp()
 
-	preparedResults := ei.transactionsProc.PrepareTransactionsForDatabase(obh.BlockData.Body, obh.Header, obh.TransactionPool, ei.importDB, obh.NumberOfShards)
+	preparedResults := ei.transactionsProc.PrepareTransactionsForDatabase(obh.BlockData.Body, obh.Header, obh.TransactionPool, ei.isImportDB(), obh.NumberOfShards)
 	logsData := ei.logsAndEventsProc.ExtractDataFromLogs(obh.TransactionPool.Logs, preparedResults, headerTimestamp, obh.Header.GetShardID(), obh.NumberOfShards)
 
 	buffers := data.NewBufferSlice(ei.bulkRequestMaxSize)
@@ -417,7 +419,7 @@ func (ei *elasticProcessor) SaveTransactions(obh *outport.OutportBlockWithHeader
 		return err
 	}
 
-	err = ei.prepareAndIndexOperations(preparedResults.Transactions, preparedResults.TxHashStatus, obh.Header, preparedResults.ScResults, buffers, ei.importDB)
+	err = ei.prepareAndIndexOperations(preparedResults.Transactions, preparedResults.TxHashStatus, obh.Header, preparedResults.ScResults, buffers, ei.isImportDB())
 	if err != nil {
 		return err
 	}
@@ -813,6 +815,23 @@ func (ei *elasticProcessor) doBulkRequests(index string, buffSlice []*bytes.Buff
 	}
 
 	return nil
+}
+
+// SetOutportConfig will set the outport config
+func (ei *elasticProcessor) SetOutportConfig(cfg outport.OutportConfig) error {
+	ei.mutex.Lock()
+	defer ei.mutex.Unlock()
+
+	ei.importDB = cfg.IsInImportDBMode
+
+	return nil
+}
+
+func (ei *elasticProcessor) isImportDB() bool {
+	ei.mutex.RLock()
+	defer ei.mutex.RUnlock()
+
+	return ei.importDB
 }
 
 // IsInterfaceNil returns true if there is no value under the interface
