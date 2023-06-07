@@ -13,10 +13,6 @@ import (
 	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
-const (
-	indexerCacheSize = 1
-)
-
 var log = logger.GetOrCreate("elasticindexer")
 
 // CreateWsIndexer will create a new instance of wsindexer.WSClient
@@ -69,7 +65,6 @@ func createDataIndexer(cfg config.Config, clusterCfg config.ClusterConfig, wsMar
 
 	return factory.NewIndexer(factory.ArgsIndexerFactory{
 		UseKibana:                clusterCfg.Config.ElasticCluster.UseKibana,
-		IndexerCacheSize:         indexerCacheSize,
 		Denomination:             cfg.Config.Economics.Denomination,
 		BulkRequestMaxSize:       clusterCfg.Config.ElasticCluster.BulkRequestMaxSizeInBytes,
 		Url:                      clusterCfg.Config.ElasticCluster.URL,
