@@ -22,7 +22,7 @@ def main():
             os.system(f'screen -X -S indexer{shard_id} quit')
 
     if is_indexer_server:
-        os.system(f'screen -X -S indexerserver quit')
+        os.system("screen -X -S indexerserver quit")
 
     print("done")
 

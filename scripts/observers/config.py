@@ -199,10 +199,10 @@ def prepare_proxy(working_dir):
     config_data['Observers'].append(meta_observer)
 
     num_of_shards = int(os.getenv('NUM_OF_SHARDS'))
-    for shardID in range(num_of_shards):
-        shard_observer_port = observers_start_port + shardID + 1
+    for shard_id in range(num_of_shards):
+        shard_observer_port = observers_start_port + shard_id + 1
         meta_observer = {
-            'ShardId': shardID,
+            'ShardId': shard_id,
             'Address': f'http://127.0.0.1:{shard_observer_port}',
         }
         config_data['Observers'].append(meta_observer)
@@ -264,8 +264,8 @@ def main():
     prepare_observer(METACHAIN, working_dir, config_folder)
     prepare_indexer_server(METACHAIN, working_dir)
 
-    for shardID in range(num_of_shards):
-        prepare_observer(shardID, working_dir, config_folder)
+    for shard_id in range(num_of_shards):
+        prepare_observer(shard_id, working_dir, config_folder)
 
 
 if __name__ == "__main__":
