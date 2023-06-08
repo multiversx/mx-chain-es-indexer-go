@@ -21,10 +21,11 @@ def update_toml_indexer(path, shard_id):
         prefs_data['config']['web-socket']['mode'] = "server"
 
     if shard_id != METACHAIN:
-        prefs_data['config']['web-socket']['url'] = "localhost:" + str(port)
+        prefs_data['config']['web-socket']['url'] = f"localhost:{str(port)}"
     else:
-        prefs_data['config']['web-socket']['url'] = "localhost:" + str(meta_port)
+        prefs_data['config']['web-socket']['url'] = f"localhost:{str(meta_port)}"
     prefs_data['config']['web-socket']['data-marshaller-type'] = str(os.getenv('WS_MARSHALLER_TYPE'))
+    prefs_data['config']['web-socket']['acknowledge-timeout-in-seconds'] = int(os.getenv('ACK_TIMEOUT_IN_SECONDS'))
 
     f = open(path_prefs, 'w')
     toml.dump(prefs_data, f)
@@ -61,16 +62,17 @@ def update_toml_node(path, shard_id):
 
     is_indexer_server = os.getenv('INDEXER_BINARY_SERVER')
     if is_indexer_server:
-        external_data['HostDriverConfig']['IsServer'] = False
+        external_data['HostDriverConfig']['Mode'] = "client"
         port = WS_PORT_BASE
         meta_port = WS_PORT_BASE
 
     if shard_id != METACHAIN:
-        external_data['HostDriverConfig']['URL'] = "localhost:" + str(port)
+        external_data['HostDriverConfig']['URL'] = f"localhost:{str(port)}"
     else:
-        external_data['HostDriverConfig']['URL'] = "localhost:" + str(meta_port)
+        external_data['HostDriverConfig']['URL'] = f"localhost:{str(meta_port)}"
 
     external_data['HostDriverConfig']['MarshallerType'] = str(os.getenv('WS_MARSHALLER_TYPE'))
+    external_data['HostDriverConfig']['AcknowledgeTimeoutInSec'] = int(os.getenv('ACK_TIMEOUT_IN_SECONDS'))
     f = open(path_external, 'w')
     toml.dump(external_data, f)
     f.close()

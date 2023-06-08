@@ -113,8 +113,11 @@ func requestSettings(host wsindexer.WSClient, retryDurationInSec uint32) {
 		err := host.Send([]byte{}, outport.TopicSettings)
 		if err != nil {
 			time.Sleep(time.Duration(retryDurationInSec) * time.Second)
+
 			log.Debug("request settings", "error", err)
+			continue
 		}
+		return
 	}
 }
 
