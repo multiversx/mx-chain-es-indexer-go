@@ -23,6 +23,7 @@ type ElasticProcessor interface {
 	SaveRoundsInfo(rounds *outport.RoundsInfo) error
 	SaveShardValidatorsPubKeys(validatorsPubKeys *outport.ValidatorsPubKeys) error
 	SaveAccounts(accounts *outport.Accounts) error
+	SetOutportConfig(cfg outport.OutportConfig) error
 	IsInterfaceNil() bool
 }
 
@@ -55,6 +56,8 @@ type Indexer interface {
 	SaveAccounts(accountsData *outport.Accounts) error
 	FinalizedBlock(finalizedBlock *outport.FinalizedBlock) error
 	GetMarshaller() marshal.Marshalizer
+	RegisterHandlerForSettingsRequest(handler func()) error
+	SetCurrentSettings(cfg outport.OutportConfig) error
 	Close() error
 	IsInterfaceNil() bool
 }

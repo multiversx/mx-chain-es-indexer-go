@@ -189,6 +189,18 @@ func (di *dataIndexer) GetMarshaller() marshal.Marshalizer {
 	return di.headerMarshaller
 }
 
+// RegisterHandlerForSettingsRequest will do nothing
+func (di *dataIndexer) RegisterHandlerForSettingsRequest(_ func()) error {
+	return nil
+}
+
+// SetCurrentSettings will set the provided settings
+func (di *dataIndexer) SetCurrentSettings(cfg outport.OutportConfig) error {
+	log.Debug("dataIndexer.SetCurrentSettings", "importDBMode", cfg.IsInImportDBMode)
+
+	return di.elasticProcessor.SetOutportConfig(cfg)
+}
+
 // IsInterfaceNil returns true if there is no value under the interface
 func (di *dataIndexer) IsInterfaceNil() bool {
 	return di == nil
