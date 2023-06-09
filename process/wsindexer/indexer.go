@@ -135,7 +135,7 @@ func (i *indexer) setSettings(marshalledData []byte) error {
 		return err
 	}
 
-	return i.di.CurrentSettings(settings)
+	return i.di.SetCurrentSettings(settings)
 }
 
 // Close will close the indexer

@@ -19,7 +19,7 @@ type DataIndexer interface {
 	SaveValidatorsRating(ratingData *outport.ValidatorsRating) error
 	SaveAccounts(accountsData *outport.Accounts) error
 	FinalizedBlock(finalizedBlock *outport.FinalizedBlock) error
-	CurrentSettings(settings outport.OutportConfig) error
+	SetCurrentSettings(settings outport.OutportConfig) error
 	Close() error
 	IsInterfaceNil() bool
 }

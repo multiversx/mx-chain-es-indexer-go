@@ -195,8 +195,8 @@ func (di *dataIndexer) RegisterHandlerForSettingsRequest(_ func()) error {
 }
 
 // CurrentSettings will set the provided settings
-func (di *dataIndexer) CurrentSettings(cfg outport.OutportConfig) error {
-	log.Debug("dataIndexer.CurrentSettings", "importDBMode", cfg.IsInImportDBMode)
+func (di *dataIndexer) SetCurrentSettings(cfg outport.OutportConfig) error {
+	log.Debug("dataIndexer.SetCurrentSettings", "importDBMode", cfg.IsInImportDBMode)
 
 	return di.elasticProcessor.SetOutportConfig(cfg)
 }

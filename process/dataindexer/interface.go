@@ -57,7 +57,7 @@ type Indexer interface {
 	FinalizedBlock(finalizedBlock *outport.FinalizedBlock) error
 	GetMarshaller() marshal.Marshalizer
 	RegisterHandlerForSettingsRequest(handler func()) error
-	CurrentSettings(cfg outport.OutportConfig) error
+	SetCurrentSettings(cfg outport.OutportConfig) error
 	Close() error
 	IsInterfaceNil() bool
 }

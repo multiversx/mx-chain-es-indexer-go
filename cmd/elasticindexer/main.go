@@ -114,7 +114,7 @@ func requestSettings(host wsindexer.WSClient, retryDurationInSec uint32) {
 		if err != nil {
 			time.Sleep(time.Duration(retryDurationInSec) * time.Second)
 
-			log.Debug("request settings", "error", err)
+			log.Debug("unable to request settings - will retry", "error", err)
 			continue
 		}
 		return
