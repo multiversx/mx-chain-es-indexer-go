@@ -125,7 +125,6 @@ func requestSettings(host wsindexer.WSClient, retryDurationInSec uint32, close c
 
 			timer.Reset(time.Duration(retryDurationInSec) * time.Second)
 		case <-close:
-			log.Debug("closed")
 			return true
 		}
 	}
