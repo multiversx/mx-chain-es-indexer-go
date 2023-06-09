@@ -89,12 +89,14 @@ func startIndexer(ctx *cli.Context) error {
 		return fmt.Errorf("%w while creating the indexer", err)
 	}
 
-	requestSettings(wsHost, clusterCfg.Config.WebSocket.RetryDurationInSec)
-
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, syscall.SIGINT, syscall.SIGTERM)
 
-	<-interrupt
+	closed := requestSettings(wsHost, clusterCfg.Config.WebSocket.RetryDurationInSec, interrupt)
+	if !closed {
+		<-interrupt
+	}
+
 	log.Info("closing app at user's signal")
 	err = wsHost.Close()
 	if err != nil {
@@ -108,16 +110,24 @@ func startIndexer(ctx *cli.Context) error {
 	return nil
 }
 
-func requestSettings(host wsindexer.WSClient, retryDurationInSec uint32) {
-	for {
-		err := host.Send([]byte{}, outport.TopicSettings)
-		if err != nil {
-			time.Sleep(time.Duration(retryDurationInSec) * time.Second)
+func requestSettings(host wsindexer.WSClient, retryDurationInSec uint32, close chan os.Signal) bool {
+	timer := time.NewTimer(0)
+	defer timer.Stop()
 
+	for {
+		select {
+		case <-timer.C:
+			err := host.Send([]byte{}, outport.TopicSettings)
+			if err == nil {
+				return false
+			}
 			log.Debug("unable to request settings - will retry", "error", err)
-			continue
+
+			timer.Reset(time.Duration(retryDurationInSec) * time.Second)
+		case <-close:
+			log.Debug("closed")
+			return true
 		}
-		return
 	}
 }
 
