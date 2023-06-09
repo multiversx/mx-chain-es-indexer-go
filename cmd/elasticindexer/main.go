@@ -92,7 +92,8 @@ func startIndexer(ctx *cli.Context) error {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, syscall.SIGINT, syscall.SIGTERM)
 
-	closed := requestSettings(wsHost, clusterCfg.Config.WebSocket.RetryDurationInSec, interrupt)
+	retryDuration := time.Duration(clusterCfg.Config.WebSocket.RetryDurationInSec) * time.Second
+	closed := requestSettings(wsHost, retryDuration, interrupt)
 	if !closed {
 		<-interrupt
 	}
@@ -110,20 +111,21 @@ func startIndexer(ctx *cli.Context) error {
 	return nil
 }
 
-func requestSettings(host wsindexer.WSClient, retryDurationInSec uint32, close chan os.Signal) bool {
+func requestSettings(host wsindexer.WSClient, retryDuration time.Duration, close chan os.Signal) bool {
 	timer := time.NewTimer(0)
 	defer timer.Stop()
 
+	emptyMessage := make([]byte, 0)
 	for {
 		select {
 		case <-timer.C:
-			err := host.Send([]byte{}, outport.TopicSettings)
+			err := host.Send(emptyMessage, outport.TopicSettings)
 			if err == nil {
 				return false
 			}
 			log.Debug("unable to request settings - will retry", "error", err)
 
-			timer.Reset(time.Duration(retryDurationInSec) * time.Second)
+			timer.Reset(retryDuration)
 		case <-close:
 			return true
 		}
