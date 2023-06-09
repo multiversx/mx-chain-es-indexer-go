@@ -194,7 +194,7 @@ func (di *dataIndexer) RegisterHandlerForSettingsRequest(_ func()) error {
 	return nil
 }
 
-// CurrentSettings will set the provided settings
+// SetCurrentSettings will set the provided settings
 func (di *dataIndexer) SetCurrentSettings(cfg outport.OutportConfig) error {
 	log.Debug("dataIndexer.SetCurrentSettings", "importDBMode", cfg.IsInImportDBMode)
 
