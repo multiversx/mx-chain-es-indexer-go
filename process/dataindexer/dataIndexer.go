@@ -189,8 +189,8 @@ func (di *dataIndexer) GetMarshaller() marshal.Marshalizer {
 	return di.headerMarshaller
 }
 
-// RegisterHandlerForSettingsRequest will do nothing
-func (di *dataIndexer) RegisterHandlerForSettingsRequest(_ func()) error {
+// RegisterHandler will do nothing
+func (di *dataIndexer) RegisterHandler(_ func() error, _ string) error {
 	return nil
 }
 
