@@ -56,7 +56,7 @@ type Indexer interface {
 	SaveAccounts(accountsData *outport.Accounts) error
 	FinalizedBlock(finalizedBlock *outport.FinalizedBlock) error
 	GetMarshaller() marshal.Marshalizer
-	RegisterHandlerForSettingsRequest(handler func() error) error
+	RegisterHandler(handler func() error, topic string) error
 	SetCurrentSettings(cfg outport.OutportConfig) error
 	Close() error
 	IsInterfaceNil() bool
