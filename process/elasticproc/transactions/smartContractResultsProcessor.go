@@ -13,6 +13,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	indexerData "github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
 )
 
 type smartContractResultsProcessor struct {
@@ -178,10 +179,10 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 		SenderShard:        senderShard,
 		ReceiverShard:      receiverShard,
 		Operation:          res.Operation,
-		Function:           res.Function,
+		Function:           converters.TruncateFieldIfExceedsMaxLength(res.Function),
 		ESDTValues:         esdtValues,
 		ESDTValuesNum:      esdtValuesNum,
-		Tokens:             res.Tokens,
+		Tokens:             converters.TruncateSliceElementsIfExceedsMaxLength(res.Tokens),
 		Receivers:          receiversAddr,
 		ReceiversShardIDs:  res.ReceiversShardID,
 		IsRelayed:          res.IsRelayed,

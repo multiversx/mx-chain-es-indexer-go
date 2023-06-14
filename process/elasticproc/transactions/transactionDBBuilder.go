@@ -14,6 +14,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/rewardTx"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
 )
 
 type dbTransactionBuilder struct {
@@ -84,6 +85,8 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		guardianAddress = dtb.addressPubkeyConverter.SilentEncode(tx.GuardianAddr, log)
 	}
 
+	senderUserName := converters.TruncateFieldIfExceedsMaxLength(string(tx.SndUserName))
+	receiverUserName := converters.TruncateFieldIfExceedsMaxLength(string(tx.RcvUserName))
 	return &data.Transaction{
 		Hash:              hex.EncodeToString(txHash),
 		MBHash:            hex.EncodeToString(mbHash),
@@ -105,14 +108,14 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		InitialPaidFee:    feeInfo.InitialPaidFee.String(),
 		Fee:               feeInfo.Fee.String(),
 		FeeNum:            feeNum,
-		ReceiverUserName:  tx.RcvUserName,
-		SenderUserName:    tx.SndUserName,
+		ReceiverUserName:  []byte(receiverUserName),
+		SenderUserName:    []byte(senderUserName),
 		IsScCall:          isScCall,
 		Operation:         res.Operation,
-		Function:          res.Function,
+		Function:          converters.TruncateFieldIfExceedsMaxLength(res.Function),
 		ESDTValues:        esdtValues,
 		ESDTValuesNum:     esdtValuesNum,
-		Tokens:            res.Tokens,
+		Tokens:            converters.TruncateSliceElementsIfExceedsMaxLength(res.Tokens),
 		Receivers:         receiversAddr,
 		ReceiversShardIDs: res.ReceiversShardID,
 		IsRelayed:         res.IsRelayed,
