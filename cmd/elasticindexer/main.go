@@ -10,8 +10,10 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/core/closing"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-es-indexer-go/config"
 	"github.com/multiversx/mx-chain-es-indexer-go/factory"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/wsindexer"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/multiversx/mx-chain-logger-go/file"
 	"github.com/urfave/cli"
@@ -90,7 +92,12 @@ func startIndexer(ctx *cli.Context) error {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, syscall.SIGINT, syscall.SIGTERM)
 
-	<-interrupt
+	retryDuration := time.Duration(clusterCfg.Config.WebSocket.RetryDurationInSec) * time.Second
+	closed := requestSettings(wsHost, retryDuration, interrupt)
+	if !closed {
+		<-interrupt
+	}
+
 	log.Info("closing app at user's signal")
 	err = wsHost.Close()
 	if err != nil {
@@ -102,6 +109,27 @@ func startIndexer(ctx *cli.Context) error {
 		log.LogIfError(err)
 	}
 	return nil
+}
+
+func requestSettings(host wsindexer.WSClient, retryDuration time.Duration, close chan os.Signal) bool {
+	timer := time.NewTimer(0)
+	defer timer.Stop()
+
+	emptyMessage := make([]byte, 0)
+	for {
+		select {
+		case <-timer.C:
+			err := host.Send(emptyMessage, outport.TopicSettings)
+			if err == nil {
+				return false
+			}
+			log.Debug("unable to request settings - will retry", "error", err)
+
+			timer.Reset(retryDuration)
+		case <-close:
+			return true
+		}
+	}
 }
 
 func loadMainConfig(filepath string) (config.Config, error) {

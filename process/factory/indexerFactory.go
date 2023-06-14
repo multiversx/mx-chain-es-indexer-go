@@ -27,7 +27,6 @@ type ArgsIndexerFactory struct {
 	Enabled                  bool
 	UseKibana                bool
 	ImportDB                 bool
-	IndexerCacheSize         int
 	Denomination             int
 	BulkRequestMaxSize       int
 	Url                      string
@@ -54,13 +53,6 @@ func NewIndexer(args ArgsIndexerFactory) (dataindexer.Indexer, error) {
 		return nil, err
 	}
 
-	dispatcher, err := dataindexer.NewDataDispatcher(args.IndexerCacheSize)
-	if err != nil {
-		return nil, err
-	}
-
-	dispatcher.StartIndexData()
-
 	blockContainer, err := createBlockCreatorsContainer()
 	if err != nil {
 		return nil, err
@@ -69,7 +61,6 @@ func NewIndexer(args ArgsIndexerFactory) (dataindexer.Indexer, error) {
 	arguments := dataindexer.ArgDataIndexer{
 		HeaderMarshaller: args.HeaderMarshaller,
 		ElasticProcessor: elasticProcessor,
-		DataDispatcher:   dispatcher,
 		BlockContainer:   blockContainer,
 	}
 
@@ -113,9 +104,6 @@ func createElasticProcessor(args ArgsIndexerFactory) (dataindexer.ElasticProcess
 }
 
 func checkDataIndexerParams(arguments ArgsIndexerFactory) error {
-	if arguments.IndexerCacheSize < 0 {
-		return dataindexer.ErrNegativeCacheSize
-	}
 	if check.IfNil(arguments.AddressPubkeyConverter) {
 		return fmt.Errorf("%w when setting AddressPubkeyConverter in indexer", dataindexer.ErrNilPubkeyConverter)
 	}

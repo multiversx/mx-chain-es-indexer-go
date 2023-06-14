@@ -8,16 +8,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer/workItems"
 )
-
-// DispatcherHandler defines the interface for the dispatcher that will manage when items are saved in elasticsearch database
-type DispatcherHandler interface {
-	StartIndexData()
-	Close() error
-	Add(item workItems.WorkItemHandler)
-	IsInterfaceNil() bool
-}
 
 // ElasticProcessor defines the interface for the elastic search indexer
 type ElasticProcessor interface {
@@ -32,6 +23,7 @@ type ElasticProcessor interface {
 	SaveRoundsInfo(rounds *outport.RoundsInfo) error
 	SaveShardValidatorsPubKeys(validatorsPubKeys *outport.ValidatorsPubKeys) error
 	SaveAccounts(accounts *outport.Accounts) error
+	SetOutportConfig(cfg outport.OutportConfig) error
 	IsInterfaceNil() bool
 }
 
@@ -64,6 +56,8 @@ type Indexer interface {
 	SaveAccounts(accountsData *outport.Accounts) error
 	FinalizedBlock(finalizedBlock *outport.FinalizedBlock) error
 	GetMarshaller() marshal.Marshalizer
+	RegisterHandler(handler func() error, topic string) error
+	SetCurrentSettings(cfg outport.OutportConfig) error
 	Close() error
 	IsInterfaceNil() bool
 }

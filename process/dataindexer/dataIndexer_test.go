@@ -5,29 +5,19 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
+	coreData "github.com/multiversx/mx-chain-core-go/data"
 	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-es-indexer-go/mock"
-	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer/workItems"
 	"github.com/stretchr/testify/require"
 )
 
 func NewDataIndexerArguments() ArgDataIndexer {
 	return ArgDataIndexer{
-		DataDispatcher:   &mock.DispatcherMock{},
 		ElasticProcessor: &mock.ElasticProcessorStub{},
 		HeaderMarshaller: &mock.MarshalizerMock{},
 		BlockContainer:   &mock.BlockContainerStub{},
 	}
-}
-
-func TestDataIndexer_NewIndexerWithNilDataDispatcherShouldErr(t *testing.T) {
-	arguments := NewDataIndexerArguments()
-	arguments.DataDispatcher = nil
-	ei, err := NewDataIndexer(arguments)
-
-	require.Nil(t, ei)
-	require.Equal(t, ErrNilDataDispatcher, err)
 }
 
 func TestDataIndexer_NewIndexerWithNilElasticProcessorShouldErr(t *testing.T) {
@@ -58,17 +48,27 @@ func TestDataIndexer_NewIndexerWithCorrectParamsShouldWork(t *testing.T) {
 }
 
 func TestDataIndexer_SaveBlock(t *testing.T) {
-	called := false
+	countMap := map[int]int{}
 
 	arguments := NewDataIndexerArguments()
-	arguments.DataDispatcher = &mock.DispatcherMock{
-		AddCalled: func(item workItems.WorkItemHandler) {
-			called = true
-		},
-	}
 	arguments.BlockContainer = &mock.BlockContainerStub{
 		GetCalled: func(headerType core.HeaderType) (dataBlock.EmptyBlockCreator, error) {
 			return dataBlock.NewEmptyHeaderV2Creator(), nil
+		},
+	}
+
+	arguments.ElasticProcessor = &mock.ElasticProcessorStub{
+		SaveHeaderCalled: func(outportBlockWithHeader *outport.OutportBlockWithHeader) error {
+			countMap[0]++
+			return nil
+		},
+		SaveMiniblocksCalled: func(header coreData.HeaderHandler, body *dataBlock.Body) error {
+			countMap[1]++
+			return nil
+		},
+		SaveTransactionsCalled: func(outportBlockWithHeader *outport.OutportBlockWithHeader) error {
+			countMap[2]++
+			return nil
 		},
 	}
 	ei, _ := NewDataIndexer(arguments)
@@ -82,20 +82,23 @@ func TestDataIndexer_SaveBlock(t *testing.T) {
 	}
 	err := ei.SaveBlock(args)
 	require.Nil(t, err)
-	require.True(t, called)
+	require.Equal(t, 1, countMap[0])
+	require.Equal(t, 1, countMap[1])
+	require.Equal(t, 1, countMap[2])
 }
 
 func TestDataIndexer_SaveRoundInfo(t *testing.T) {
 	called := false
 
 	arguments := NewDataIndexerArguments()
-	arguments.DataDispatcher = &mock.DispatcherMock{
-		AddCalled: func(item workItems.WorkItemHandler) {
-			called = true
-		},
-	}
 
 	arguments.HeaderMarshaller = &mock.MarshalizerMock{Fail: true}
+	arguments.ElasticProcessor = &mock.ElasticProcessorStub{
+		SaveRoundsInfoCalled: func(infos *outport.RoundsInfo) error {
+			called = true
+			return nil
+		},
+	}
 	ei, _ := NewDataIndexer(arguments)
 	_ = ei.Close()
 
@@ -108,9 +111,10 @@ func TestDataIndexer_SaveValidatorsPubKeys(t *testing.T) {
 	called := false
 
 	arguments := NewDataIndexerArguments()
-	arguments.DataDispatcher = &mock.DispatcherMock{
-		AddCalled: func(item workItems.WorkItemHandler) {
+	arguments.ElasticProcessor = &mock.ElasticProcessorStub{
+		SaveShardValidatorsPubKeysCalled: func(validators *outport.ValidatorsPubKeys) error {
 			called = true
+			return nil
 		},
 	}
 	ei, _ := NewDataIndexer(arguments)
@@ -129,9 +133,10 @@ func TestDataIndexer_SaveValidatorsRating(t *testing.T) {
 	called := false
 
 	arguments := NewDataIndexerArguments()
-	arguments.DataDispatcher = &mock.DispatcherMock{
-		AddCalled: func(item workItems.WorkItemHandler) {
+	arguments.ElasticProcessor = &mock.ElasticProcessorStub{
+		SaveValidatorsRatingCalled: func(validatorsRating *outport.ValidatorsRating) error {
 			called = true
+			return nil
 		},
 	}
 	ei, _ := NewDataIndexer(arguments)
@@ -142,18 +147,31 @@ func TestDataIndexer_SaveValidatorsRating(t *testing.T) {
 }
 
 func TestDataIndexer_RevertIndexedBlock(t *testing.T) {
-	called := false
+	countMap := map[int]int{}
 
 	arguments := NewDataIndexerArguments()
-	arguments.DataDispatcher = &mock.DispatcherMock{
-		AddCalled: func(item workItems.WorkItemHandler) {
-			called = true
-		},
-	}
 	arguments.BlockContainer = &mock.BlockContainerStub{
 		GetCalled: func(headerType core.HeaderType) (dataBlock.EmptyBlockCreator, error) {
 			return dataBlock.NewEmptyHeaderV2Creator(), nil
 		}}
+	arguments.ElasticProcessor = &mock.ElasticProcessorStub{
+		RemoveHeaderCalled: func(header coreData.HeaderHandler) error {
+			countMap[0]++
+			return nil
+		},
+		RemoveMiniblocksCalled: func(header coreData.HeaderHandler, body *dataBlock.Body) error {
+			countMap[1]++
+			return nil
+		},
+		RemoveTransactionsCalled: func(header coreData.HeaderHandler, body *dataBlock.Body) error {
+			countMap[2]++
+			return nil
+		},
+		RemoveAccountsESDTCalled: func(headerTimestamp uint64) error {
+			countMap[3]++
+			return nil
+		},
+	}
 	ei, _ := NewDataIndexer(arguments)
 
 	err := ei.RevertIndexedBlock(&outport.BlockData{
@@ -162,5 +180,8 @@ func TestDataIndexer_RevertIndexedBlock(t *testing.T) {
 		HeaderBytes: []byte("{}"),
 	})
 	require.Nil(t, err)
-	require.True(t, called)
+	require.Equal(t, 1, countMap[0])
+	require.Equal(t, 1, countMap[1])
+	require.Equal(t, 1, countMap[2])
+	require.Equal(t, 1, countMap[3])
 }

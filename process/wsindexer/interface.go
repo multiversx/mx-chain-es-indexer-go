@@ -6,6 +6,7 @@ import (
 
 // WSClient defines what a websocket client should do
 type WSClient interface {
+	Send(message []byte, topic string) error
 	Close() error
 }
 
@@ -18,6 +19,7 @@ type DataIndexer interface {
 	SaveValidatorsRating(ratingData *outport.ValidatorsRating) error
 	SaveAccounts(accountsData *outport.Accounts) error
 	FinalizedBlock(finalizedBlock *outport.FinalizedBlock) error
+	SetCurrentSettings(settings outport.OutportConfig) error
 	Close() error
 	IsInterfaceNil() bool
 }
