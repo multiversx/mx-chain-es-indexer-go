@@ -55,24 +55,24 @@ def update_toml_node(path, shard_id):
     # external.toml
     path_external = path / "external.toml"
     external_data = toml.load(str(path_external))
-    external_data['HostDriverConfig']['Enabled'] = True
+    external_data['HostDriversConfig'][0]['Enabled'] = True
 
     port = WS_PORT_BASE + shard_id
     meta_port = WS_METACHAIN_PORT
 
     is_indexer_server = os.getenv('INDEXER_BINARY_SERVER')
     if is_indexer_server:
-        external_data['HostDriverConfig']['Mode'] = "client"
+        external_data['HostDriversConfig'][0]['Mode'] = "client"
         port = WS_PORT_BASE
         meta_port = WS_PORT_BASE
 
     if shard_id != METACHAIN:
-        external_data['HostDriverConfig']['URL'] = f"localhost:{str(port)}"
+        external_data['HostDriversConfig'][0]['URL'] = f"localhost:{str(port)}"
     else:
-        external_data['HostDriverConfig']['URL'] = f"localhost:{str(meta_port)}"
+        external_data['HostDriversConfig'][0]['URL'] = f"localhost:{str(meta_port)}"
 
-    external_data['HostDriverConfig']['MarshallerType'] = str(os.getenv('WS_MARSHALLER_TYPE'))
-    external_data['HostDriverConfig']['AcknowledgeTimeoutInSec'] = int(os.getenv('ACK_TIMEOUT_IN_SECONDS'))
+    external_data['HostDriversConfig'][0]['MarshallerType'] = str(os.getenv('WS_MARSHALLER_TYPE'))
+    external_data['HostDriversConfig'][0]['AcknowledgeTimeoutInSec'] = int(os.getenv('ACK_TIMEOUT_IN_SECONDS'))
     f = open(path_external, 'w')
     toml.dump(external_data, f)
     f.close()
