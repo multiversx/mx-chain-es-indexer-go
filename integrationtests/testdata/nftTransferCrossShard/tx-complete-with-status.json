@@ -35,5 +35,6 @@
   "timestamp": 5040,
   "status": "fail",
   "initialPaidFee": "595490000000000",
-  "searchOrder": 0
+  "searchOrder": 0,
+  "errorEvent": true
 }

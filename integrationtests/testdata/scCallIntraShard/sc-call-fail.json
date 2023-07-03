@@ -22,5 +22,8 @@
   "hasScResults": true,
   "operation": "transfer",
   "isScCall": true,
-  "function": "delegate"
+  "function": "delegate",
+  "errorEvent": true,
+  "hasLogs": true,
+  "hasOperations": true
 }

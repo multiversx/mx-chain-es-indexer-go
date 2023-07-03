@@ -43,13 +43,13 @@ func newSmartContractResultsProcessor(
 func (proc *smartContractResultsProcessor) processSCRs(
 	body *block.Body,
 	header coreData.HeaderHandler,
-	txsHandler map[string]*outport.SCRInfo,
+	scrs map[string]*outport.SCRInfo,
 	numOfShards uint32,
 ) []*indexerData.ScResult {
-	allSCRs := make([]*indexerData.ScResult, 0, len(txsHandler))
+	allSCRs := make([]*indexerData.ScResult, 0, len(scrs))
 
 	// a copy of the SCRS map is needed because proc.processSCRsFromMiniblock would remove items from the original map
-	workingSCRSMap := copySCRSMap(txsHandler)
+	workingSCRSMap := copySCRSMap(scrs)
 	for _, mb := range body.MiniBlocks {
 		if mb.Type != block.SmartContractResultBlock {
 			continue
@@ -61,8 +61,8 @@ func (proc *smartContractResultsProcessor) processSCRs(
 	}
 
 	selfShardID := header.GetShardID()
-	for scrHash, noMBScrInfo := range workingSCRSMap {
-		indexerScr := proc.prepareSmartContractResult([]byte(scrHash), nil, noMBScrInfo, header, selfShardID, selfShardID, numOfShards)
+	for scrHashHex, noMBScrInfo := range workingSCRSMap {
+		indexerScr := proc.prepareSmartContractResult(scrHashHex, nil, noMBScrInfo, header, selfShardID, selfShardID, numOfShards)
 
 		allSCRs = append(allSCRs, indexerScr)
 	}
@@ -93,7 +93,7 @@ func (proc *smartContractResultsProcessor) processSCRsFromMiniblock(
 			continue
 		}
 
-		indexerSCR := proc.prepareSmartContractResult(scrHash, mbHash, scrInfo, header, mb.SenderShardID, mb.ReceiverShardID, numOfShards)
+		indexerSCR := proc.prepareSmartContractResult(hex.EncodeToString(scrHash), mbHash, scrInfo, header, mb.SenderShardID, mb.ReceiverShardID, numOfShards)
 		indexerSCRs = append(indexerSCRs, indexerSCR)
 
 		delete(scrs, scrHashHex)
@@ -103,7 +103,7 @@ func (proc *smartContractResultsProcessor) processSCRsFromMiniblock(
 }
 
 func (proc *smartContractResultsProcessor) prepareSmartContractResult(
-	scrHash []byte,
+	scrHashHex string,
 	mbHash []byte,
 	scrInfo *outport.SCRInfo,
 	header coreData.HeaderHandler,
@@ -140,13 +140,13 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 	valueNum, err := proc.balanceConverter.ComputeESDTBalanceAsFloat(scr.Value)
 	if err != nil {
 		log.Warn("smartContractResultsProcessor.prepareSmartContractResult cannot compute scr value as num",
-			"value", scr.Value, "hash", scrHash, "error", err)
+			"value", scr.Value, "hash", scrHashHex, "error", err)
 	}
 
 	esdtValuesNum, err := proc.balanceConverter.ComputeSliceOfStringsAsFloat(res.ESDTValues)
 	if err != nil {
 		log.Warn("smartContractResultsProcessor.prepareSmartContractResult cannot compute scr esdt values as num",
-			"esdt values", res.ESDTValues, "hash", scrHash, "error", err)
+			"esdt values", res.ESDTValues, "hash", scrHashHex, "error", err)
 	}
 
 	var esdtValues []string
@@ -156,7 +156,7 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 
 	feeInfo := getFeeInfo(scrInfo)
 	return &indexerData.ScResult{
-		Hash:               hex.EncodeToString(scrHash),
+		Hash:               scrHashHex,
 		MBHash:             hexEncodedMBHash,
 		Nonce:              scr.Nonce,
 		GasLimit:           scr.GasLimit,

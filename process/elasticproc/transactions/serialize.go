@@ -124,27 +124,19 @@ func serializeTxHashStatus(buffSlice *data.BufferSlice, txHashStatusInfo map[str
 		}
 
 		codeToExecute := `
-			if (params.statusInfo.status != "") {
-				ctx._source.status = params.statusInfo.status
+			if (!params.statusInfo.status.isEmpty()) {
+				ctx._source.status = params.statusInfo.status;
 			}
 
-			if (ctx._source.containsKey('completedEvent')) {
-				if (!ctx._source.completedEvent) {
-					ctx._source.completedEvent = params.statusInfo.completedEvent
-				}
-			} else {
-				ctx._source.completedEvent = params.statusInfo.completedEvent
+			if (params.statusInfo.completedEvent) {
+				ctx._source.completedEvent = params.statusInfo.completedEvent;
 			}
 			
-			if (ctx._source.containsKey('errorEvent')) {
-				if (!ctx._source.errorEvent) {
-					ctx._source.errorEvent = params.statusInfo.errorEvent 
-				}
-			} else {
-				ctx._source.errorEvent = params.statusInfo.errorEvent
+			if (params.statusInfo.errorEvent) {
+				ctx._source.errorEvent = params.statusInfo.errorEvent;
 			}
 `
-		serializedData := []byte(fmt.Sprintf(`{"script": {"source": "%s","lang": "painless","params": {"statusInfo": %s}},"upsert": %s }`, converters.FormatPainlessSource(codeToExecute), string(marshaledStatusInfo), string(marshaledTx)))
+		serializedData := []byte(fmt.Sprintf(`{"script": {"source": "%s","lang": "painless","params": {"statusInfo": %s}}, "upsert": %s }`, converters.FormatPainlessSource(codeToExecute), string(marshaledStatusInfo), string(marshaledTx)))
 		err = buffSlice.PutData(metaData, serializedData)
 		if err != nil {
 			return err
@@ -194,9 +186,11 @@ func prepareNFTESDTTransferOrMultiESDTTransfer(marshaledTx []byte) ([]byte, erro
 		if ('create' == ctx.op) {
 			ctx._source = params.tx;
 		} else {
-			def status = ctx._source.status; 
+			def status = ctx._source.status;
+			def errorEvent = ctx._source.errorEvent;
 			ctx._source = params.tx;
 			ctx._source.status = status;
+			ctx._source.errorEvent = errorEvent;
 		}
 `
 	serializedData := []byte(fmt.Sprintf(`{"scripted_upsert": true, "script":{"source":"%s","lang": "painless","params":{"tx": %s}},"upsert":{}}`,

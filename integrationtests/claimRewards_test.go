@@ -109,6 +109,7 @@ func TestTransactionWithClaimRewardsGasRefund(t *testing.T) {
 			{
 				TxHash: hex.EncodeToString(txHash),
 				Log: &transaction.Log{
+					Address: decodeAddress(addressSender),
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(addressSender),

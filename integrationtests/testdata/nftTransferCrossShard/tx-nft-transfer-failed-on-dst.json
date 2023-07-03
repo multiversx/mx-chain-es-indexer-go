@@ -35,5 +35,6 @@
   "receiversShardIDs": [
     2
   ],
-  "operation": "ESDTNFTTransfer"
+  "operation": "ESDTNFTTransfer",
+  "errorEvent": true
 }
