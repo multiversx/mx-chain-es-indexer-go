@@ -60,7 +60,7 @@ func TestPrepareSmartContractResult(t *testing.T) {
 	header := &block.Header{TimeStamp: 100}
 
 	mbHash := []byte("hash")
-	scRes := scrsProc.prepareSmartContractResult([]byte(scHash), mbHash, scrInfo, header, 0, 1, 3)
+	scRes := scrsProc.prepareSmartContractResult(scHash, mbHash, scrInfo, header, 0, 1, 3)
 
 	senderAddr, err := pubKeyConverter.Encode(sndAddr)
 	require.Nil(t, err)
@@ -69,7 +69,7 @@ func TestPrepareSmartContractResult(t *testing.T) {
 
 	expectedTx := &data.ScResult{
 		Nonce:              nonce,
-		Hash:               hex.EncodeToString([]byte(scHash)),
+		Hash:               scHash,
 		PrevTxHash:         hex.EncodeToString(txHash),
 		MBHash:             hex.EncodeToString(mbHash),
 		Code:               string(code),
