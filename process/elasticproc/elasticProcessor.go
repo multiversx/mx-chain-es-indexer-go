@@ -414,12 +414,12 @@ func (ei *elasticProcessor) SaveTransactions(obh *outport.OutportBlockWithHeader
 	logsData := ei.logsAndEventsProc.ExtractDataFromLogs(obh.TransactionPool.Logs, preparedResults, headerTimestamp, obh.Header.GetShardID(), obh.NumberOfShards)
 
 	buffers := data.NewBufferSlice(ei.bulkRequestMaxSize)
-	err := ei.indexTransactions(preparedResults.Transactions, preparedResults.TxHashStatus, obh.Header, buffers)
+	err := ei.indexTransactions(preparedResults.Transactions, logsData.TxHashStatusInfo, obh.Header, buffers)
 	if err != nil {
 		return err
 	}
 
-	err = ei.prepareAndIndexOperations(preparedResults.Transactions, preparedResults.TxHashStatus, obh.Header, preparedResults.ScResults, buffers, ei.isImportDB())
+	err = ei.prepareAndIndexOperations(preparedResults.Transactions, logsData.TxHashStatusInfo, obh.Header, preparedResults.ScResults, buffers, ei.isImportDB())
 	if err != nil {
 		return err
 	}
@@ -539,17 +539,17 @@ func (ei *elasticProcessor) indexScDeploys(deployData map[string]*data.ScDeployI
 	return ei.logsAndEventsProc.SerializeSCDeploys(deployData, buffSlice, elasticIndexer.SCDeploysIndex)
 }
 
-func (ei *elasticProcessor) indexTransactions(txs []*data.Transaction, txHashStatus map[string]string, header coreData.HeaderHandler, bytesBuff *data.BufferSlice) error {
+func (ei *elasticProcessor) indexTransactions(txs []*data.Transaction, txHashStatusInfo map[string]*data.StatusInfo, header coreData.HeaderHandler, bytesBuff *data.BufferSlice) error {
 	if !ei.isIndexEnabled(elasticIndexer.TransactionsIndex) {
 		return nil
 	}
 
-	return ei.transactionsProc.SerializeTransactions(txs, txHashStatus, header.GetShardID(), bytesBuff, elasticIndexer.TransactionsIndex)
+	return ei.transactionsProc.SerializeTransactions(txs, txHashStatusInfo, header.GetShardID(), bytesBuff, elasticIndexer.TransactionsIndex)
 }
 
 func (ei *elasticProcessor) prepareAndIndexOperations(
 	txs []*data.Transaction,
-	txHashStatus map[string]string,
+	txHashStatusInfo map[string]*data.StatusInfo,
 	header coreData.HeaderHandler,
 	scrs []*data.ScResult,
 	buffSlice *data.BufferSlice,
@@ -561,7 +561,7 @@ func (ei *elasticProcessor) prepareAndIndexOperations(
 
 	processedTxs, processedSCRs := ei.operationsProc.ProcessTransactionsAndSCRs(txs, scrs, isImportDB, header.GetShardID())
 
-	err := ei.transactionsProc.SerializeTransactions(processedTxs, txHashStatus, header.GetShardID(), buffSlice, elasticIndexer.OperationsIndex)
+	err := ei.transactionsProc.SerializeTransactions(processedTxs, txHashStatusInfo, header.GetShardID(), buffSlice, elasticIndexer.OperationsIndex)
 	if err != nil {
 		return err
 	}

@@ -3,6 +3,7 @@ package logsevents
 import (
 	"testing"
 
+	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/stretchr/testify/require"
@@ -40,7 +41,7 @@ func TestInformativeLogsProcessorWriteLog(t *testing.T) {
 
 	event := &transaction.Event{
 		Address:    []byte("addr"),
-		Identifier: []byte(writeLogOperation),
+		Identifier: []byte(core.WriteLogIdentifier),
 	}
 	args := &argsProcessEvent{
 		timestamp:        1234,
@@ -73,7 +74,7 @@ func TestInformativeLogsProcessorSignalError(t *testing.T) {
 
 	event := &transaction.Event{
 		Address:    []byte("addr"),
-		Identifier: []byte(signalErrorOperation),
+		Identifier: []byte(core.SignalErrorOperation),
 	}
 	args := &argsProcessEvent{
 		timestamp:        1234,

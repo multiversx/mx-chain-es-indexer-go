@@ -123,6 +123,7 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 		Delegators:              lep.logsData.delegators,
 		NFTsDataUpdates:         lep.logsData.nftsDataUpdates,
 		TokenRolesAndProperties: lep.logsData.tokenRolesAndProperties,
+		TxHashStatusInfo:        lep.logsData.txHashStatusInfoProc.getAllRecords(),
 	}
 }
 

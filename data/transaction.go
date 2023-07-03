@@ -46,6 +46,8 @@ type Transaction struct {
 	Version              uint32        `json:"version,omitempty"`
 	GuardianAddress      string        `json:"guardian,omitempty"`
 	GuardianSignature    string        `json:"guardianSignature,omitempty"`
+	ErrorEvent           bool          `json:"errorEvent,omitempty"`
+	CompletedEvent       bool          `json:"completedEvent,omitempty"`
 	SmartContractResults []*ScResult   `json:"-"`
 	Hash                 string        `json:"-"`
 	BlockHash            string        `json:"-"`
@@ -67,7 +69,6 @@ type PreparedResults struct {
 	Transactions []*Transaction
 	ScResults    []*ScResult
 	Receipts     []*Receipt
-	TxHashStatus map[string]string
 	TxHashFee    map[string]*FeeData
 }
 
