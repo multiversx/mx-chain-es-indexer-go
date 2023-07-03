@@ -21,6 +21,7 @@ func (ths *txHashStatusInfoProc) addRecord(hash string, statusInfo *data.StatusI
 	statusInfoFromMap, found := ths.hashStatusInfo[hash]
 	if !found {
 		ths.hashStatusInfo[hash] = statusInfo
+		return
 	}
 
 	if statusInfoFromMap.Status != transaction.TxStatusFail.String() {
