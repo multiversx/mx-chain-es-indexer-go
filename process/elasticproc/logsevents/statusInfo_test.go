@@ -19,29 +19,29 @@ func TestStatusInfoAddRecord(t *testing.T) {
 		ErrorEvent:     false,
 		Status:         transaction.TxStatusSuccess.String(),
 	})
-	require.Equal(t, statusInfOProc.getAllRecords()[txHash], &data.StatusInfo{
+	require.Equal(t, &data.StatusInfo{
 		CompletedEvent: true,
 		Status:         "success",
-	})
+	}, statusInfOProc.getAllRecords()[txHash])
 
 	statusInfOProc.addRecord(txHash, &data.StatusInfo{
 		ErrorEvent: true,
 		Status:     transaction.TxStatusFail.String(),
 	})
-	require.Equal(t, statusInfOProc.getAllRecords()[txHash], &data.StatusInfo{
+	require.Equal(t, &data.StatusInfo{
 		CompletedEvent: true,
 		ErrorEvent:     true,
 		Status:         "fail",
-	})
+	}, statusInfOProc.getAllRecords()[txHash])
 
 	statusInfOProc.addRecord(txHash, &data.StatusInfo{
 		ErrorEvent:     false,
 		CompletedEvent: false,
 		Status:         transaction.TxStatusSuccess.String(),
 	})
-	require.Equal(t, statusInfOProc.getAllRecords()[txHash], &data.StatusInfo{
+	require.Equal(t, &data.StatusInfo{
 		CompletedEvent: true,
 		ErrorEvent:     true,
 		Status:         "fail",
-	})
+	}, statusInfOProc.getAllRecords()[txHash])
 }

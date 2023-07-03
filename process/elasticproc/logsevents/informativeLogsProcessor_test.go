@@ -89,5 +89,134 @@ func TestInformativeLogsProcessorSignalError(t *testing.T) {
 	res := informativeLogsProc.processEvent(args)
 
 	require.Equal(t, transaction.TxStatusFail.String(), tx.Status)
+	require.True(t, tx.ErrorEvent)
 	require.Equal(t, true, res.processed)
+}
+
+func TestInformativeLogsProcessorCompletedEvent(t *testing.T) {
+	t.Parallel()
+
+	tx := &data.Transaction{
+		GasLimit: 200000,
+		GasPrice: 100000,
+		Data:     []byte("callMe"),
+	}
+
+	hexEncodedTxHash := "01020304"
+	txs := map[string]*data.Transaction{}
+	txs[hexEncodedTxHash] = tx
+
+	event := &transaction.Event{
+		Address:    []byte("addr"),
+		Identifier: []byte(core.CompletedTxEventIdentifier),
+	}
+	args := &argsProcessEvent{
+		timestamp:        1234,
+		event:            event,
+		logAddress:       []byte("contract"),
+		txs:              txs,
+		txHashHexEncoded: hexEncodedTxHash,
+	}
+
+	informativeLogsProc := newInformativeLogsProcessor()
+
+	res := informativeLogsProc.processEvent(args)
+
+	require.True(t, tx.CompletedEvent)
+	require.Equal(t, true, res.processed)
+}
+
+func TestInformativeLogsProcessorLogsGeneratedByScrsSignalError(t *testing.T) {
+	t.Parallel()
+
+	txHash := "txHash"
+	scrHash := "scrHash"
+	scr := &data.ScResult{
+		OriginalTxHash: txHash,
+	}
+	scrs := make(map[string]*data.ScResult)
+	scrs[scrHash] = scr
+
+	event := &transaction.Event{
+		Address:    []byte("addr"),
+		Identifier: []byte(core.SignalErrorOperation),
+	}
+
+	txStatusProc := newTxHashStatusInfo()
+	args := &argsProcessEvent{
+		timestamp:            1234,
+		event:                event,
+		logAddress:           []byte("contract"),
+		scrs:                 scrs,
+		txHashHexEncoded:     scrHash,
+		txHashStatusInfoProc: txStatusProc,
+	}
+
+	informativeLogsProc := newInformativeLogsProcessor()
+	res := informativeLogsProc.processEvent(args)
+	require.True(t, res.processed)
+
+	require.Equal(t, &data.StatusInfo{
+		Status:     transaction.TxStatusFail.String(),
+		ErrorEvent: true,
+	}, txStatusProc.getAllRecords()[txHash])
+}
+
+func TestInformativeLogsProcessorLogsGeneratedByScrsCompletedEvent(t *testing.T) {
+	t.Parallel()
+
+	txHash := "txHash"
+	scrHash := "scrHash"
+	scr := &data.ScResult{
+		OriginalTxHash: txHash,
+	}
+	scrs := make(map[string]*data.ScResult)
+	scrs[scrHash] = scr
+
+	event := &transaction.Event{
+		Address:    []byte("addr"),
+		Identifier: []byte(core.CompletedTxEventIdentifier),
+	}
+
+	txStatusProc := newTxHashStatusInfo()
+	args := &argsProcessEvent{
+		timestamp:            1234,
+		event:                event,
+		logAddress:           []byte("contract"),
+		scrs:                 scrs,
+		txHashHexEncoded:     scrHash,
+		txHashStatusInfoProc: txStatusProc,
+	}
+
+	informativeLogsProc := newInformativeLogsProcessor()
+	res := informativeLogsProc.processEvent(args)
+	require.True(t, res.processed)
+
+	require.Equal(t, &data.StatusInfo{
+		CompletedEvent: true,
+	}, txStatusProc.getAllRecords()[txHash])
+}
+
+func TestInformativeLogsProcessorLogsGeneratedByScrNotFoundInMap(t *testing.T) {
+	t.Parallel()
+
+	scrHash := "scrHash"
+
+	event := &transaction.Event{
+		Address:    []byte("addr"),
+		Identifier: []byte(core.CompletedTxEventIdentifier),
+	}
+
+	txStatusProc := newTxHashStatusInfo()
+	args := &argsProcessEvent{
+		timestamp:            1234,
+		event:                event,
+		logAddress:           []byte("contract"),
+		txHashHexEncoded:     scrHash,
+		txHashStatusInfoProc: txStatusProc,
+	}
+
+	informativeLogsProc := newInformativeLogsProcessor()
+	res := informativeLogsProc.processEvent(args)
+	require.True(t, res.processed)
 }
