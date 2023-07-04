@@ -1,0 +1,20 @@
+{
+  "miniBlockHash": "49345577b344acd366143ad353904657307dc21f57c3817bf164975de3858459",
+  "nonce": 0,
+  "gasLimit": 0,
+  "gasPrice": 0,
+  "value": "0",
+  "valueNum": 0,
+  "sender": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u",
+  "receiver": "erd1qqqqqqqqqqqqqpgqahumqen35dr9k4rmcnd70mqt5t4mt7ey4nwqwjme9g",
+  "senderShard": 4294967295,
+  "receiverShard": 0,
+  "data": "QDAwQDU0NDU1MzU0NGU0NjU0MmQ2NDM5NjQzNTM0NjM=",
+  "prevTxHash": "736372576974684973737565",
+  "originalTxHash": "747857697468536343616c6c",
+  "callType": "2",
+  "timestamp": 5040,
+  "type": "unsigned",
+  "status": "pending",
+  "operation": "transfer"
+}

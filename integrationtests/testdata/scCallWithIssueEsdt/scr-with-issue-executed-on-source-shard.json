@@ -1,0 +1,21 @@
+{
+  "miniBlockHash": "5eb176de1812fdfda088c1764f07ef9f991ba6159de3096143a59185884aed4a",
+  "nonce": 0,
+  "gasLimit": 0,
+  "gasPrice": 0,
+  "value": "50000000000000000",
+  "valueNum": 0.05,
+  "sender": "erd1qqqqqqqqqqqqqpgqahumqen35dr9k4rmcnd70mqt5t4mt7ey4nwqwjme9g",
+  "receiver": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u",
+  "senderShard": 0,
+  "receiverShard": 4294967295,
+  "data": "aXNzdWVOb25GdW5naWJsZUA0ZDc5NTQ2NTczNzQ0ZTY2NzQ2NEA1NDQ1NTM1NDRlNDY1NEA2MzYxNmU0NjcyNjU2NTdhNjVANzQ3Mjc1NjVANjM2MTZlNTc2OTcwNjVANzQ3Mjc1NjVANjM2MTZlNTA2MTc1NzM2NUA3NDcyNzU2NUA2MzYxNmU0MzY4NjE2ZTY3NjU0Zjc3NmU2NTcyQDY2NjE2YzczNjVANjM2MTZlNTU3MDY3NzI2MTY0NjVANjY2MTZjNzM2NUA2MzYxNmU0MTY0NjQ1MzcwNjU2MzY5NjE2YzUyNmY2YzY1NzNANzQ3Mjc1NjVANThmNjM4",
+  "prevTxHash": "747857697468536343616c6c",
+  "originalTxHash": "747857697468536343616c6c",
+  "callType": "1",
+  "timestamp": 5040,
+  "type": "unsigned",
+  "status": "pending",
+  "operation": "transfer",
+  "function": "issueNonFungible"
+}
