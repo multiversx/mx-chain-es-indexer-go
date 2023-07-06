@@ -2,6 +2,7 @@ package logsevents
 
 import (
 	coreData "github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/tokeninfo"
 )
@@ -34,6 +35,6 @@ type eventsProcessor interface {
 }
 
 type txHashStatusInfoHandler interface {
-	addRecord(hash string, statusInfo *data.StatusInfo)
-	getAllRecords() map[string]*data.StatusInfo
+	addRecord(hash string, statusInfo *outport.StatusInfo)
+	getAllRecords() map[string]*outport.StatusInfo
 }

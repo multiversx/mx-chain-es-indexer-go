@@ -3,6 +3,7 @@ package data
 import (
 	"time"
 
+	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/tokeninfo"
 )
 
@@ -24,20 +25,13 @@ type Event struct {
 	Order      int      `json:"order"`
 }
 
-// StatusInfo holds the fields for the transaction status
-type StatusInfo struct {
-	CompletedEvent bool   `json:"completedEvent"`
-	ErrorEvent     bool   `json:"errorEvent"`
-	Status         string `json:"status"`
-}
-
 // PreparedLogsResults is the DTO that holds all the results after processing
 type PreparedLogsResults struct {
 	Tokens                  TokensHandler
 	TokensSupply            TokensHandler
 	ScDeploys               map[string]*ScDeployInfo
 	Delegators              map[string]*Delegator
-	TxHashStatusInfo        map[string]*StatusInfo
+	TxHashStatusInfo        map[string]*outport.StatusInfo
 	TokensInfo              []*TokenInfo
 	NFTsDataUpdates         []*NFTDataUpdate
 	TokenRolesAndProperties *tokeninfo.TokenRolesAndProperties

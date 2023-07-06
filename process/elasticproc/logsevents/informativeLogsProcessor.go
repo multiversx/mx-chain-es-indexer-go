@@ -2,8 +2,8 @@ package logsevents
 
 import (
 	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
-	"github.com/multiversx/mx-chain-es-indexer-go/data"
 )
 
 type informativeLogsProcessor struct {
@@ -62,7 +62,7 @@ func processEventNoTx(args *argsProcessEvent) argOutputProcessEvent {
 		}
 	}
 
-	record := &data.StatusInfo{}
+	record := &outport.StatusInfo{}
 	switch string(args.event.GetIdentifier()) {
 	case core.CompletedTxEventIdentifier:
 		{

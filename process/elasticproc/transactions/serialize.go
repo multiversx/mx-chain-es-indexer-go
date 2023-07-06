@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
 )
@@ -80,7 +81,7 @@ func (tdp *txsDatabaseProcessor) SerializeTransactionsFeeData(txHashRefund map[s
 // SerializeTransactions will serialize the transactions in a way that Elasticsearch expects a bulk request
 func (tdp *txsDatabaseProcessor) SerializeTransactions(
 	transactions []*data.Transaction,
-	txHashStatusInfo map[string]*data.StatusInfo,
+	txHashStatusInfo map[string]*outport.StatusInfo,
 	selfShardID uint32,
 	buffSlice *data.BufferSlice,
 	index string,
@@ -105,7 +106,7 @@ func (tdp *txsDatabaseProcessor) SerializeTransactions(
 	return nil
 }
 
-func serializeTxHashStatus(buffSlice *data.BufferSlice, txHashStatusInfo map[string]*data.StatusInfo, index string) error {
+func serializeTxHashStatus(buffSlice *data.BufferSlice, txHashStatusInfo map[string]*outport.StatusInfo, index string) error {
 	for txHash, statusInfo := range txHashStatusInfo {
 		metaData := []byte(fmt.Sprintf(`{"update":{ "_index":"%s","_id":"%s"}}%s`, index, txHash, "\n"))
 

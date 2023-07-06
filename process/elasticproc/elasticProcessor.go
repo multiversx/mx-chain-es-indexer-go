@@ -539,7 +539,7 @@ func (ei *elasticProcessor) indexScDeploys(deployData map[string]*data.ScDeployI
 	return ei.logsAndEventsProc.SerializeSCDeploys(deployData, buffSlice, elasticIndexer.SCDeploysIndex)
 }
 
-func (ei *elasticProcessor) indexTransactions(txs []*data.Transaction, txHashStatusInfo map[string]*data.StatusInfo, header coreData.HeaderHandler, bytesBuff *data.BufferSlice) error {
+func (ei *elasticProcessor) indexTransactions(txs []*data.Transaction, txHashStatusInfo map[string]*outport.StatusInfo, header coreData.HeaderHandler, bytesBuff *data.BufferSlice) error {
 	if !ei.isIndexEnabled(elasticIndexer.TransactionsIndex) {
 		return nil
 	}
@@ -549,7 +549,7 @@ func (ei *elasticProcessor) indexTransactions(txs []*data.Transaction, txHashSta
 
 func (ei *elasticProcessor) prepareAndIndexOperations(
 	txs []*data.Transaction,
-	txHashStatusInfo map[string]*data.StatusInfo,
+	txHashStatusInfo map[string]*outport.StatusInfo,
 	header coreData.HeaderHandler,
 	scrs []*data.ScResult,
 	buffSlice *data.BufferSlice,

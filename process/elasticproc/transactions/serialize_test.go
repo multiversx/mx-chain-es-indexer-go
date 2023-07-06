@@ -3,6 +3,7 @@ package transactions
 import (
 	"testing"
 
+	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/stretchr/testify/require"
 )
@@ -81,7 +82,7 @@ func TestSerializeTransactionsIntraShardTx(t *testing.T) {
 	err := (&txsDatabaseProcessor{}).SerializeTransactions([]*data.Transaction{{
 		Hash:                 "txHash",
 		SmartContractResults: []*data.ScResult{{}},
-	}}, map[string]*data.StatusInfo{}, 0, buffSlice, "transactions")
+	}}, map[string]*outport.StatusInfo{}, 0, buffSlice, "transactions")
 	require.Nil(t, err)
 
 	expectedBuff := `{ "index" : { "_index":"transactions", "_id" : "txHash" } }
@@ -100,7 +101,7 @@ func TestSerializeTransactionCrossShardTxSource(t *testing.T) {
 		ReceiverShard:        1,
 		SmartContractResults: []*data.ScResult{{}},
 		Version:              1,
-	}}, map[string]*data.StatusInfo{}, 0, buffSlice, "transactions")
+	}}, map[string]*outport.StatusInfo{}, 0, buffSlice, "transactions")
 	require.Nil(t, err)
 
 	expectedBuff := `{"update":{ "_index":"transactions", "_id":"txHash"}}
@@ -119,7 +120,7 @@ func TestSerializeTransactionsCrossShardTxDestination(t *testing.T) {
 		ReceiverShard:        0,
 		SmartContractResults: []*data.ScResult{{}},
 		Version:              1,
-	}}, map[string]*data.StatusInfo{}, 0, buffSlice, "transactions")
+	}}, map[string]*outport.StatusInfo{}, 0, buffSlice, "transactions")
 	require.Nil(t, err)
 
 	expectedBuff := `{ "index" : { "_index":"transactions", "_id" : "txHash" } }

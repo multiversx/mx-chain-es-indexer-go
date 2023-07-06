@@ -1,23 +1,23 @@
 package logsevents
 
 import (
+	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
-	"github.com/multiversx/mx-chain-es-indexer-go/data"
 )
 
 type txHashStatusInfoProc struct {
-	hashStatusInfo map[string]*data.StatusInfo
+	hashStatusInfo map[string]*outport.StatusInfo
 }
 
-// NewTxHashStatusInfo will create a new instance of TxHashStatusInfo
-func newTxHashStatusInfo() *txHashStatusInfoProc {
+// newTxHashStatusInfoProcessor will create a new instance of txHashStatusInfoProc
+func newTxHashStatusInfoProcessor() *txHashStatusInfoProc {
 	return &txHashStatusInfoProc{
-		hashStatusInfo: make(map[string]*data.StatusInfo),
+		hashStatusInfo: make(map[string]*outport.StatusInfo),
 	}
 }
 
 // AddRecord will add a new record for the given hash
-func (ths *txHashStatusInfoProc) addRecord(hash string, statusInfo *data.StatusInfo) {
+func (ths *txHashStatusInfoProc) addRecord(hash string, statusInfo *outport.StatusInfo) {
 	statusInfoFromMap, found := ths.hashStatusInfo[hash]
 	if !found {
 		ths.hashStatusInfo[hash] = statusInfo
@@ -33,6 +33,6 @@ func (ths *txHashStatusInfoProc) addRecord(hash string, statusInfo *data.StatusI
 }
 
 // GetAllRecords will return all the records
-func (ths *txHashStatusInfoProc) getAllRecords() map[string]*data.StatusInfo {
+func (ths *txHashStatusInfoProc) getAllRecords() map[string]*outport.StatusInfo {
 	return ths.hashStatusInfo
 }

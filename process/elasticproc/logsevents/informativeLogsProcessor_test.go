@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/stretchr/testify/require"
@@ -142,7 +143,7 @@ func TestInformativeLogsProcessorLogsGeneratedByScrsSignalError(t *testing.T) {
 		Identifier: []byte(core.SignalErrorOperation),
 	}
 
-	txStatusProc := newTxHashStatusInfo()
+	txStatusProc := newTxHashStatusInfoProcessor()
 	args := &argsProcessEvent{
 		timestamp:            1234,
 		event:                event,
@@ -156,7 +157,7 @@ func TestInformativeLogsProcessorLogsGeneratedByScrsSignalError(t *testing.T) {
 	res := informativeLogsProc.processEvent(args)
 	require.True(t, res.processed)
 
-	require.Equal(t, &data.StatusInfo{
+	require.Equal(t, &outport.StatusInfo{
 		Status:     transaction.TxStatusFail.String(),
 		ErrorEvent: true,
 	}, txStatusProc.getAllRecords()[txHash])
@@ -178,7 +179,7 @@ func TestInformativeLogsProcessorLogsGeneratedByScrsCompletedEvent(t *testing.T)
 		Identifier: []byte(core.CompletedTxEventIdentifier),
 	}
 
-	txStatusProc := newTxHashStatusInfo()
+	txStatusProc := newTxHashStatusInfoProcessor()
 	args := &argsProcessEvent{
 		timestamp:            1234,
 		event:                event,
@@ -192,7 +193,7 @@ func TestInformativeLogsProcessorLogsGeneratedByScrsCompletedEvent(t *testing.T)
 	res := informativeLogsProc.processEvent(args)
 	require.True(t, res.processed)
 
-	require.Equal(t, &data.StatusInfo{
+	require.Equal(t, &outport.StatusInfo{
 		CompletedEvent: true,
 	}, txStatusProc.getAllRecords()[txHash])
 }
@@ -207,7 +208,7 @@ func TestInformativeLogsProcessorLogsGeneratedByScrNotFoundInMap(t *testing.T) {
 		Identifier: []byte(core.CompletedTxEventIdentifier),
 	}
 
-	txStatusProc := newTxHashStatusInfo()
+	txStatusProc := newTxHashStatusInfoProcessor()
 	args := &argsProcessEvent{
 		timestamp:            1234,
 		event:                event,

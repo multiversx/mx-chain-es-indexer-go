@@ -3,45 +3,45 @@ package logsevents
 import (
 	"testing"
 
+	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
-	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/stretchr/testify/require"
 )
 
 func TestStatusInfoAddRecord(t *testing.T) {
 	t.Parallel()
 
-	statusInfOProc := newTxHashStatusInfo()
+	statusInfoProc := newTxHashStatusInfoProcessor()
 
 	txHash := "txHash1"
-	statusInfOProc.addRecord(txHash, &data.StatusInfo{
+	statusInfoProc.addRecord(txHash, &outport.StatusInfo{
 		CompletedEvent: true,
 		ErrorEvent:     false,
 		Status:         transaction.TxStatusSuccess.String(),
 	})
-	require.Equal(t, &data.StatusInfo{
+	require.Equal(t, &outport.StatusInfo{
 		CompletedEvent: true,
 		Status:         "success",
-	}, statusInfOProc.getAllRecords()[txHash])
+	}, statusInfoProc.getAllRecords()[txHash])
 
-	statusInfOProc.addRecord(txHash, &data.StatusInfo{
+	statusInfoProc.addRecord(txHash, &outport.StatusInfo{
 		ErrorEvent: true,
 		Status:     transaction.TxStatusFail.String(),
 	})
-	require.Equal(t, &data.StatusInfo{
+	require.Equal(t, &outport.StatusInfo{
 		CompletedEvent: true,
 		ErrorEvent:     true,
 		Status:         "fail",
-	}, statusInfOProc.getAllRecords()[txHash])
+	}, statusInfoProc.getAllRecords()[txHash])
 
-	statusInfOProc.addRecord(txHash, &data.StatusInfo{
+	statusInfoProc.addRecord(txHash, &outport.StatusInfo{
 		ErrorEvent:     false,
 		CompletedEvent: false,
 		Status:         transaction.TxStatusSuccess.String(),
 	})
-	require.Equal(t, &data.StatusInfo{
+	require.Equal(t, &outport.StatusInfo{
 		CompletedEvent: true,
 		ErrorEvent:     true,
 		Status:         "fail",
-	}, statusInfOProc.getAllRecords()[txHash])
+	}, statusInfoProc.getAllRecords()[txHash])
 }

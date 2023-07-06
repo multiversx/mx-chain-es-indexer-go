@@ -137,7 +137,7 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 	receiverAddr := proc.pubKeyConverter.SilentEncode(scr.RcvAddr, log)
 	receiversAddr, _ := proc.pubKeyConverter.EncodeSlice(res.Receivers)
 
-	valueNum, err := proc.balanceConverter.ComputeESDTBalanceAsFloat(scr.Value)
+	valueNum, err := proc.balanceConverter.ConvertBigValueToFloat(scr.Value)
 	if err != nil {
 		log.Warn("smartContractResultsProcessor.prepareSmartContractResult cannot compute scr value as num",
 			"value", scr.Value, "hash", scrHashHex, "error", err)

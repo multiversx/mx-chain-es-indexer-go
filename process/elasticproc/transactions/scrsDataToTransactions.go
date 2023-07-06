@@ -62,7 +62,7 @@ func (st *scrsDataToTransactions) processSCRsWithoutTx(scrs []*data.ScResult) ma
 		var err error
 		initialTxFeeBig, ok := big.NewInt(0).SetString(scr.InitialTxFee, 10)
 		if ok {
-			feeNum, err = st.balanceConverter.ComputeESDTBalanceAsFloat(initialTxFeeBig)
+			feeNum, err = st.balanceConverter.ConvertBigValueToFloat(initialTxFeeBig)
 		}
 		if err != nil {
 			log.Warn("scrsDataToTransactions.processSCRsWithoutTx: cannot compute fee as num",

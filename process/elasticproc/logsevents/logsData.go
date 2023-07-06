@@ -37,7 +37,7 @@ func newLogsData(
 	ld.delegators = make(map[string]*data.Delegator)
 	ld.nftsDataUpdates = make([]*data.NFTDataUpdate, 0)
 	ld.tokenRolesAndProperties = tokeninfo.NewTokenRolesAndProperties()
-	ld.txHashStatusInfoProc = newTxHashStatusInfo()
+	ld.txHashStatusInfoProc = newTxHashStatusInfoProcessor()
 
 	return ld
 }
