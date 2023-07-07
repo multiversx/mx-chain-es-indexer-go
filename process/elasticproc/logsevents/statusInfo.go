@@ -16,7 +16,7 @@ func newTxHashStatusInfoProcessor() *txHashStatusInfoProc {
 	}
 }
 
-// AddRecord will add a new record for the given hash
+// addRecord will add a new record for the given hash
 func (ths *txHashStatusInfoProc) addRecord(hash string, statusInfo *outport.StatusInfo) {
 	statusInfoFromMap, found := ths.hashStatusInfo[hash]
 	if !found {
@@ -32,7 +32,7 @@ func (ths *txHashStatusInfoProc) addRecord(hash string, statusInfo *outport.Stat
 	statusInfoFromMap.CompletedEvent = statusInfoFromMap.CompletedEvent || statusInfo.CompletedEvent
 }
 
-// GetAllRecords will return all the records
+// getAllRecords will return all the records
 func (ths *txHashStatusInfoProc) getAllRecords() map[string]*outport.StatusInfo {
 	return ths.hashStatusInfo
 }
