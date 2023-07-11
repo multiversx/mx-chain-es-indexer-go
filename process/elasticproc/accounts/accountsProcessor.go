@@ -205,7 +205,7 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(
 		}
 
 		tokenIdentifier := converters.ComputeTokenIdentifier(accountESDT.TokenIdentifier, accountESDT.NFTNonce)
-		balanceNum, err := ap.balanceConverter.ComputeESDTBalanceAsFloat(balance)
+		balanceNum, err := ap.balanceConverter.ConvertBigValueToFloat(balance)
 		if err != nil {
 			log.Warn("accountsProcessor.PrepareAccountsMapESDT: cannot compute esdt balance as num",
 				"balance", balance, "address", address, "error", err, "token", tokenIdentifier)

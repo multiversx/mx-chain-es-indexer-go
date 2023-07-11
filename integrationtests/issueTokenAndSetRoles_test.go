@@ -39,6 +39,7 @@ func TestIssueTokenAndSetRole(t *testing.T) {
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
+					Address: decodeAddress(address1),
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(address1),
@@ -72,6 +73,7 @@ func TestIssueTokenAndSetRole(t *testing.T) {
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
+					Address: decodeAddress(address1),
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(address1),
@@ -101,6 +103,7 @@ func TestIssueTokenAndSetRole(t *testing.T) {
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
+					Address: decodeAddress(address1),
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(address1),
@@ -134,6 +137,7 @@ func TestIssueTokenAndSetRole(t *testing.T) {
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
+					Address: decodeAddress(address1),
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(address1),
@@ -181,6 +185,7 @@ func TestIssueSetRolesEventAndAfterTokenIssue(t *testing.T) {
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
+					Address: decodeAddress(address1),
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(address1),
@@ -210,6 +215,7 @@ func TestIssueSetRolesEventAndAfterTokenIssue(t *testing.T) {
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
+					Address: decodeAddress(address1),
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(address1),

@@ -662,6 +662,6 @@ func TestTxsDatabaseProcessor_IssueESDTTx(t *testing.T) {
 	}
 
 	res = txDbProc.PrepareTransactionsForDatabase(body, header, pool, false, 3)
-	require.Equal(t, "fail", res.Transactions[0].Status)
+	require.Equal(t, "success", res.Transactions[0].Status)
 	require.Equal(t, 1, len(res.ScResults))
 }

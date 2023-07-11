@@ -1,12 +1,9 @@
 package logsevents
 
 import (
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
-)
-
-const (
-	writeLogOperation    = "writeLog"
-	signalErrorOperation = "signalError"
 )
 
 type informativeLogsProcessor struct {
@@ -16,8 +13,10 @@ type informativeLogsProcessor struct {
 func newInformativeLogsProcessor() *informativeLogsProcessor {
 	return &informativeLogsProcessor{
 		operations: map[string]struct{}{
-			writeLogOperation:    {},
-			signalErrorOperation: {},
+			core.WriteLogIdentifier:         {},
+			core.SignalErrorOperation:       {},
+			core.CompletedTxEventIdentifier: {},
+			core.InternalVMErrorsOperation:  {},
 		},
 	}
 }
@@ -31,21 +30,52 @@ func (ilp *informativeLogsProcessor) processEvent(args *argsProcessEvent) argOut
 
 	tx, ok := args.txs[args.txHashHexEncoded]
 	if !ok {
+		return processEventNoTx(args)
+	}
+
+	switch identifier {
+	case core.CompletedTxEventIdentifier:
+		{
+			tx.CompletedEvent = true
+		}
+	case core.WriteLogIdentifier:
+		{
+			tx.Status = transaction.TxStatusSuccess.String()
+		}
+	case core.SignalErrorOperation, core.InternalVMErrorsOperation:
+		{
+			tx.Status = transaction.TxStatusFail.String()
+			tx.ErrorEvent = true
+		}
+	}
+
+	return argOutputProcessEvent{
+		processed: true,
+	}
+}
+
+func processEventNoTx(args *argsProcessEvent) argOutputProcessEvent {
+	scr, ok := args.scrs[args.txHashHexEncoded]
+	if !ok {
 		return argOutputProcessEvent{
 			processed: true,
 		}
 	}
 
-	switch identifier {
-	case writeLogOperation:
+	record := &outport.StatusInfo{}
+	switch string(args.event.GetIdentifier()) {
+	case core.CompletedTxEventIdentifier:
 		{
-			tx.Status = transaction.TxStatusSuccess.String()
+			record.CompletedEvent = true
 		}
-	case signalErrorOperation:
+	case core.SignalErrorOperation, core.InternalVMErrorsOperation:
 		{
-			tx.Status = transaction.TxStatusFail.String()
+			record.Status = transaction.TxStatusFail.String()
+			record.ErrorEvent = true
 		}
 	}
+
+	args.txHashStatusInfoProc.addRecord(scr.OriginalTxHash, record)
 
 	return argOutputProcessEvent{
 		processed: true,

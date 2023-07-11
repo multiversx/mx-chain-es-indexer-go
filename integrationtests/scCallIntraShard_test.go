@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/multiversx/mx-chain-core-go/core"
 	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
@@ -80,6 +81,20 @@ func TestTransactionWithSCCallFail(t *testing.T) {
 				OriginalTxHash: txHash,
 				ReturnMessage:  []byte("total delegation cap reached"),
 			}, FeeInfo: &outport.FeeInfo{}},
+		},
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString(txHash),
+				Log: &transaction.Log{
+					Address: decodeAddress(address1),
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address1),
+							Identifier: []byte(core.SignalErrorOperation),
+						},
+					},
+				},
+			},
 		},
 	}
 	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))

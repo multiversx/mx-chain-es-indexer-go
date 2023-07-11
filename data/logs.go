@@ -3,6 +3,7 @@ package data
 import (
 	"time"
 
+	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/tokeninfo"
 )
 
@@ -30,6 +31,7 @@ type PreparedLogsResults struct {
 	TokensSupply            TokensHandler
 	ScDeploys               map[string]*ScDeployInfo
 	Delegators              map[string]*Delegator
+	TxHashStatusInfo        map[string]*outport.StatusInfo
 	TokensInfo              []*TokenInfo
 	NFTsDataUpdates         []*NFTDataUpdate
 	TokenRolesAndProperties *tokeninfo.TokenRolesAndProperties

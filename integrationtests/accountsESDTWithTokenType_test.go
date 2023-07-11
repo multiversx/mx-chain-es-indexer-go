@@ -43,6 +43,7 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
+					Address: decodeAddress(address),
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(address),
@@ -104,6 +105,7 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
+					Address: decodeAddress(address),
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(address),
@@ -176,6 +178,7 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
+					Address: decodeAddress(address),
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(address),
@@ -215,6 +218,7 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
+					Address: decodeAddress(address),
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(address),

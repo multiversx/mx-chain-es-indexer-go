@@ -66,7 +66,7 @@ type DBTransactionsHandler interface {
 	GetHexEncodedHashesForRemove(header coreData.HeaderHandler, body *block.Body) ([]string, []string)
 
 	SerializeReceipts(receipts []*data.Receipt, buffSlice *data.BufferSlice, index string) error
-	SerializeTransactions(transactions []*data.Transaction, txHashStatus map[string]string, selfShardID uint32, buffSlice *data.BufferSlice, index string) error
+	SerializeTransactions(transactions []*data.Transaction, txHashStatusInfo map[string]*outport.StatusInfo, selfShardID uint32, buffSlice *data.BufferSlice, index string) error
 	SerializeTransactionsFeeData(txHashRefund map[string]*data.FeeData, buffSlice *data.BufferSlice, index string) error
 	SerializeScResults(scResults []*data.ScResult, buffSlice *data.BufferSlice, index string) error
 }

@@ -65,7 +65,7 @@ type Indexer interface {
 // BalanceConverter defines what a balance converter should be able to do
 type BalanceConverter interface {
 	ComputeBalanceAsFloat(balance *big.Int) (float64, error)
-	ComputeESDTBalanceAsFloat(balance *big.Int) (float64, error)
+	ConvertBigValueToFloat(value *big.Int) (float64, error)
 	ComputeSliceOfStringsAsFloat(values []string) ([]float64, error)
 	IsInterfaceNil() bool
 }

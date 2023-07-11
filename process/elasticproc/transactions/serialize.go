@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
 )
@@ -80,7 +81,7 @@ func (tdp *txsDatabaseProcessor) SerializeTransactionsFeeData(txHashRefund map[s
 // SerializeTransactions will serialize the transactions in a way that Elasticsearch expects a bulk request
 func (tdp *txsDatabaseProcessor) SerializeTransactions(
 	transactions []*data.Transaction,
-	txHashStatus map[string]string,
+	txHashStatusInfo map[string]*outport.StatusInfo,
 	selfShardID uint32,
 	buffSlice *data.BufferSlice,
 	index string,
@@ -97,7 +98,7 @@ func (tdp *txsDatabaseProcessor) SerializeTransactions(
 		}
 	}
 
-	err := serializeTxHashStatus(buffSlice, txHashStatus, index)
+	err := serializeTxHashStatus(buffSlice, txHashStatusInfo, index)
 	if err != nil {
 		return err
 	}
@@ -105,22 +106,38 @@ func (tdp *txsDatabaseProcessor) SerializeTransactions(
 	return nil
 }
 
-func serializeTxHashStatus(buffSlice *data.BufferSlice, txHashStatus map[string]string, index string) error {
-	for txHash, status := range txHashStatus {
+func serializeTxHashStatus(buffSlice *data.BufferSlice, txHashStatusInfo map[string]*outport.StatusInfo, index string) error {
+	for txHash, statusInfo := range txHashStatusInfo {
 		metaData := []byte(fmt.Sprintf(`{"update":{ "_index":"%s","_id":"%s"}}%s`, index, txHash, "\n"))
 
 		newTx := &data.Transaction{
-			Status: status,
+			Status:         statusInfo.Status,
+			ErrorEvent:     statusInfo.ErrorEvent,
+			CompletedEvent: statusInfo.CompletedEvent,
 		}
 		marshaledTx, err := json.Marshal(newTx)
 		if err != nil {
 			return err
 		}
+		marshaledStatusInfo, err := json.Marshal(statusInfo)
+		if err != nil {
+			return err
+		}
 
 		codeToExecute := `
-			ctx._source.status = params.status
+			if (!params.statusInfo.status.isEmpty()) {
+				ctx._source.status = params.statusInfo.status;
+			}
+
+			if (params.statusInfo.completedEvent) {
+				ctx._source.completedEvent = params.statusInfo.completedEvent;
+			}
+			
+			if (params.statusInfo.errorEvent) {
+				ctx._source.errorEvent = params.statusInfo.errorEvent;
+			}
 `
-		serializedData := []byte(fmt.Sprintf(`{"script": {"source": "%s","lang": "painless","params": {"status": "%s"}},"upsert": %s }`, converters.FormatPainlessSource(codeToExecute), converters.JsonEscape(status), string(marshaledTx)))
+		serializedData := []byte(fmt.Sprintf(`{"script": {"source": "%s","lang": "painless","params": {"statusInfo": %s}}, "upsert": %s }`, converters.FormatPainlessSource(codeToExecute), string(marshaledStatusInfo), string(marshaledTx)))
 		err = buffSlice.PutData(metaData, serializedData)
 		if err != nil {
 			return err
@@ -170,9 +187,11 @@ func prepareNFTESDTTransferOrMultiESDTTransfer(marshaledTx []byte) ([]byte, erro
 		if ('create' == ctx.op) {
 			ctx._source = params.tx;
 		} else {
-			def status = ctx._source.status; 
+			def status = ctx._source.status;
+			def errorEvent = ctx._source.errorEvent;
 			ctx._source = params.tx;
 			ctx._source.status = status;
+			ctx._source.errorEvent = errorEvent;
 		}
 `
 	serializedData := []byte(fmt.Sprintf(`{"scripted_upsert": true, "script":{"source":"%s","lang": "painless","params":{"tx": %s}},"upsert":{}}`,

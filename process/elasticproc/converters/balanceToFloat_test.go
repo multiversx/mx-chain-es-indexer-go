@@ -59,19 +59,19 @@ func TestComputeBalanceToFloat18Decimals(t *testing.T) {
 	ap, _ := NewBalanceConverter(18)
 	require.NotNil(t, ap)
 
-	valueNum, _ := ap.ComputeESDTBalanceAsFloat(big.NewInt(1))
+	valueNum, _ := ap.ConvertBigValueToFloat(big.NewInt(1))
 	require.Equal(t, 1e-18, valueNum)
 
-	valueNum, _ = ap.ComputeESDTBalanceAsFloat(big.NewInt(10))
+	valueNum, _ = ap.ConvertBigValueToFloat(big.NewInt(10))
 	require.Equal(t, 1e-17, valueNum)
 
-	valueNum, _ = ap.ComputeESDTBalanceAsFloat(big.NewInt(100))
+	valueNum, _ = ap.ConvertBigValueToFloat(big.NewInt(100))
 	require.Equal(t, 1e-16, valueNum)
 
-	valueNum, _ = ap.ComputeESDTBalanceAsFloat(big.NewInt(1000))
+	valueNum, _ = ap.ConvertBigValueToFloat(big.NewInt(1000))
 	require.Equal(t, 1e-15, valueNum)
 
-	valueNum, _ = ap.ComputeESDTBalanceAsFloat(big.NewInt(0))
+	valueNum, _ = ap.ConvertBigValueToFloat(big.NewInt(0))
 	require.Equal(t, float64(0), valueNum)
 }
 
@@ -83,14 +83,14 @@ func TestComputeBalanceToFloatInf(t *testing.T) {
 
 	str := "erd1ahmy0yjhjg87n755yv99nzla22zzwfud55sa69gk3anyxyyucq9q2hgxwwerd1ahmy0yjhjg87n755yv99nzla22zzwfud55sa69gk3anyxyyucq9q2hgxwwerd1ahmy0yjhjg87n755yv99nzla22zzwfud55sa69gk3anyxyyucq9q2hgxwwerd1ahmy0yjhjg87n755yv99nzla22zzwfud55sa69gk3anyxyyucq9q2hgxww"
 	bigValue := big.NewInt(0).SetBytes([]byte(str))
-	valueNum, err := ap.ComputeESDTBalanceAsFloat(bigValue)
+	valueNum, err := ap.ConvertBigValueToFloat(bigValue)
 	require.Equal(t, errValueTooBig, err)
 	require.Equal(t, float64(0), valueNum)
 
 	hexValueStr := "2642378914478872274757363306845016200438452904128227930177150600998175785079732885392662259024767727006622197340762976891962082611710440131598510606436851189901116516523843401702254087190199876126823217692111058487892984414016231313689031989"
 	decoded, _ := hex.DecodeString(hexValueStr)
 	bigValue = big.NewInt(0).SetBytes(decoded)
-	valueNum, err = ap.ComputeESDTBalanceAsFloat(bigValue)
+	valueNum, err = ap.ConvertBigValueToFloat(bigValue)
 	require.Equal(t, errValueTooBig, err)
 	require.Equal(t, float64(0), valueNum)
 }

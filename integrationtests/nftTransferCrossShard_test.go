@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/multiversx/mx-chain-core-go/core"
 	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
@@ -271,6 +272,20 @@ func TestNFTTransferCrossShard(t *testing.T) {
 				Data:           []byte("ESDTNFTTransfer@434f4c45435449452d323663313838@01@01@08011202000122e50108011204434f4f4c1a20e0f3ecf555f63f2d101241dfc98b4614aff9284edd50b46a1c6e36b83558744d20c4132a2e516d5a7961565631786a7866446255575a503178655a7676544d3156686f61346f594752444d706d4a727a52435a324368747470733a2f2f697066732e696f2f697066732f516d5a7961565631786a7866446255575a503178655a7676544d3156686f61346f594752444d706d4a727a52435a3a41746167733a436f6f6c3b6d657461646174613a516d5869417850396e535948515954546143357358717a4d32645856334142516145355241725932777a4e686179@75736572206572726f72"),
 			}, FeeInfo: &outport.FeeInfo{}},
 		},
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString(scr3WithErrHash),
+				Log: &transaction.Log{
+					Address: decodeAddress(address1),
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address1),
+							Identifier: []byte(core.InternalVMErrorsOperation),
+						},
+					},
+				},
+			},
+		},
 	}
 
 	err = esProc.SaveTransactions(createOutportBlockWithHeader(bodyDstShard, header, poolDstShard, nil, testNumOfShards))
@@ -336,6 +351,20 @@ func TestNFTTransferCrossShardImportDBScenarioFirstIndexDestinationAfterSource(t
 				OriginalTxHash: txHash,
 				Data:           []byte("ESDTNFTTransfer@434f4c4c454354494f4e2d323663313838@01@01@08011202000122e50108011204434f4f4c1a20e0f3ecf555f63f2d101241dfc98b4614aff9284edd50b46a1c6e36b83558744d20c4132a2e516d5a7961565631786a7866446255575a503178655a7676544d3156686f61346f594752444d706d4a727a52435a324368747470733a2f2f697066732e696f2f697066732f516d5a7961565631786a7866446255575a503178655a7676544d3156686f61346f594752444d706d4a727a52435a3a41746167733a436f6f6c3b6d657461646174613a516d5869417850396e535948515954546143357358717a4d32645856334142516145355241725932777a4e686179@75736572206572726f72"),
 			}, FeeInfo: &outport.FeeInfo{}},
+		},
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString(scr3WithErrHash),
+				Log: &transaction.Log{
+					Address: decodeAddress(address1),
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address1),
+							Identifier: []byte(core.SignalErrorOperation),
+						},
+					},
+				},
+			},
 		},
 	}
 

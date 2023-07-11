@@ -41,5 +41,6 @@
   "receiverShard": 0,
   "operation": "MultiESDTNFTTransfer",
   "status": "fail",
-  "searchOrder": 0
+  "searchOrder": 0,
+  "errorEvent": true
 }

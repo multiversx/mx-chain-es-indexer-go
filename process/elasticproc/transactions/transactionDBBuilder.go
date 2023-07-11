@@ -58,14 +58,14 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		receiverShardID = sharding.ComputeShardID(tx.RcvAddr, numOfShards)
 	}
 
-	valueNum, err := dtb.balanceConverter.ComputeESDTBalanceAsFloat(tx.Value)
+	valueNum, err := dtb.balanceConverter.ConvertBigValueToFloat(tx.Value)
 	if err != nil {
 		log.Warn("dbTransactionBuilder.prepareTransaction: cannot compute value as num", "value", tx.Value,
 			"hash", txHash, "error", err)
 	}
 
 	feeInfo := getFeeInfo(txInfo)
-	feeNum, err := dtb.balanceConverter.ComputeESDTBalanceAsFloat(feeInfo.Fee)
+	feeNum, err := dtb.balanceConverter.ConvertBigValueToFloat(feeInfo.Fee)
 	if err != nil {
 		log.Warn("dbTransactionBuilder.prepareTransaction: cannot compute transaction fee as num", "fee", feeInfo.Fee,
 			"hash", txHash, "error", err)
@@ -133,7 +133,7 @@ func (dtb *dbTransactionBuilder) prepareRewardTransaction(
 	header coreData.HeaderHandler,
 	txStatus string,
 ) *data.Transaction {
-	valueNum, err := dtb.balanceConverter.ComputeESDTBalanceAsFloat(rTx.Value)
+	valueNum, err := dtb.balanceConverter.ConvertBigValueToFloat(rTx.Value)
 	if err != nil {
 		log.Warn("dbTransactionBuilder.prepareRewardTransaction cannot compute value as num", "value", rTx.Value,
 			"hash", txHash, "error", err)

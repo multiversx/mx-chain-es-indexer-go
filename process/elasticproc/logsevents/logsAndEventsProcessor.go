@@ -123,6 +123,7 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 		Delegators:              lep.logsData.delegators,
 		NFTsDataUpdates:         lep.logsData.nftsDataUpdates,
 		TokenRolesAndProperties: lep.logsData.tokenRolesAndProperties,
+		TxHashStatusInfo:        lep.logsData.txHashStatusInfoProc.getAllRecords(),
 	}
 }
 
@@ -147,7 +148,9 @@ func (lep *logsAndEventsProcessor) processEvent(logHashHexEncoded string, logAdd
 			timestamp:               lep.logsData.timestamp,
 			scDeploys:               lep.logsData.scDeploys,
 			txs:                     lep.logsData.txsMap,
+			scrs:                    lep.logsData.scrsMap,
 			tokenRolesAndProperties: lep.logsData.tokenRolesAndProperties,
+			txHashStatusInfoProc:    lep.logsData.txHashStatusInfoProc,
 			selfShardID:             shardID,
 			numOfShards:             numOfShards,
 		})

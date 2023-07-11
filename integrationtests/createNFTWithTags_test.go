@@ -52,6 +52,7 @@ func TestCreateNFTWithTags(t *testing.T) {
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
+					Address: decodeAddress(address1),
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(address1),
@@ -120,6 +121,7 @@ func TestCreateNFTWithTags(t *testing.T) {
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
+					Address: decodeAddress(address1),
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(address1),
@@ -169,6 +171,7 @@ func TestCreateNFTWithTags(t *testing.T) {
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
+					Address: decodeAddress(address1),
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(address1),
