@@ -614,7 +614,7 @@ func TestElasticProcessor_SaveTransactionNoDataShouldNotDoRequest(t *testing.T) 
 	called := false
 	arguments := createMockElasticProcessorArgs()
 	arguments.TransactionsProc = &mock.DBTransactionProcessorStub{
-		PrepareTransactionsForDatabaseCalled: func(body *dataBlock.Body, header coreData.HeaderHandler, pool *outport.TransactionPool) *data.PreparedResults {
+		PrepareTransactionsForDatabaseCalled: func(mbs []*dataBlock.MiniBlock, header coreData.HeaderHandler, pool *outport.TransactionPool) *data.PreparedResults {
 			return &data.PreparedResults{
 				Transactions: nil,
 				ScResults:    nil,
