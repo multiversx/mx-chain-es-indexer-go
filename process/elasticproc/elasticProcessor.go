@@ -410,7 +410,8 @@ func (ei *elasticProcessor) miniblocksInDBMap(mbs []*data.Miniblock) (map[string
 func (ei *elasticProcessor) SaveTransactions(obh *outport.OutportBlockWithHeader) error {
 	headerTimestamp := obh.Header.GetTimeStamp()
 
-	preparedResults := ei.transactionsProc.PrepareTransactionsForDatabase(obh.BlockData.Body, obh.Header, obh.TransactionPool, ei.isImportDB(), obh.NumberOfShards)
+	miniBlocks := append(obh.BlockData.Body.MiniBlocks, obh.BlockData.IntraShardMiniBlocks...)
+	preparedResults := ei.transactionsProc.PrepareTransactionsForDatabase(miniBlocks, obh.Header, obh.TransactionPool, ei.isImportDB(), obh.NumberOfShards)
 	logsData := ei.logsAndEventsProc.ExtractDataFromLogs(obh.TransactionPool.Logs, preparedResults, headerTimestamp, obh.Header.GetShardID(), obh.NumberOfShards)
 
 	buffers := data.NewBufferSlice(ei.bulkRequestMaxSize)

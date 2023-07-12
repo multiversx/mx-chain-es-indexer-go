@@ -66,13 +66,13 @@ func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txsDatabaseProce
 
 // PrepareTransactionsForDatabase will prepare transactions for database
 func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
-	body *block.Body,
+	miniBlocks []*block.MiniBlock,
 	header coreData.HeaderHandler,
 	pool *outport.TransactionPool,
 	isImportDB bool,
 	numOfShards uint32,
 ) *data.PreparedResults {
-	err := checkPrepareTransactionForDatabaseArguments(body, header, pool)
+	err := checkPrepareTransactionForDatabaseArguments(header, pool)
 	if err != nil {
 		log.Warn("checkPrepareTransactionForDatabaseArguments", "error", err)
 
@@ -86,7 +86,7 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 	normalTxs := make(map[string]*data.Transaction)
 	rewardsTxs := make(map[string]*data.Transaction)
 
-	for mbIndex, mb := range body.MiniBlocks {
+	for mbIndex, mb := range miniBlocks {
 		switch mb.Type {
 		case block.TxBlock:
 			if shouldIgnoreProcessedMBScheduled(header, mbIndex) {
@@ -120,7 +120,7 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 
 	normalTxs = tdp.setTransactionSearchOrder(normalTxs)
 	dbReceipts := tdp.txsGrouper.groupReceipts(header, pool.Receipts)
-	dbSCResults := tdp.scrsProc.processSCRs(body, header, pool.SmartContractResults, numOfShards)
+	dbSCResults := tdp.scrsProc.processSCRs(miniBlocks, header, pool.SmartContractResults, numOfShards)
 
 	srcsNoTxInCurrentShard := tdp.scrsDataToTxs.attachSCRsToTransactionsAndReturnSCRsWithoutTx(normalTxs, dbSCResults)
 	tdp.scrsDataToTxs.processTransactionsAfterSCRsWereAttached(normalTxs)
@@ -184,12 +184,12 @@ func isCrossShardAtSourceNormalTx(selfShardID uint32, miniblock *block.MiniBlock
 }
 
 func shouldIgnoreProcessedMBScheduled(header coreData.HeaderHandler, mbIndex int) bool {
-	miniblockHeaders := header.GetMiniBlockHeaderHandlers()
-	if len(miniblockHeaders) <= mbIndex {
+	miniBlockHeaders := header.GetMiniBlockHeaderHandlers()
+	if len(miniBlockHeaders) <= mbIndex {
 		return false
 	}
 
-	processingType := miniblockHeaders[mbIndex].GetProcessingType()
+	processingType := miniBlockHeaders[mbIndex].GetProcessingType()
 
 	return processingType == int32(block.Processed)
 }

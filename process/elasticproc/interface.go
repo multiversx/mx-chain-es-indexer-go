@@ -57,7 +57,7 @@ type DBBlockHandler interface {
 // DBTransactionsHandler defines the actions that a transactions handler should do
 type DBTransactionsHandler interface {
 	PrepareTransactionsForDatabase(
-		body *block.Body,
+		miniBlocks []*block.MiniBlock,
 		header coreData.HeaderHandler,
 		pool *outport.TransactionPool,
 		isImportDB bool,

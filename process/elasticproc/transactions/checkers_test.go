@@ -72,27 +72,20 @@ func TestCheckTxsProcessorArg(t *testing.T) {
 
 	tests := []struct {
 		name  string
-		args  func() (body *block.Body, header coreData.HeaderHandler, pool *outport.TransactionPool)
+		args  func() (header coreData.HeaderHandler, pool *outport.TransactionPool)
 		exErr error
 	}{
 		{
-			name: "NilBlockBody",
-			args: func() (body *block.Body, header coreData.HeaderHandler, pool *outport.TransactionPool) {
-				return nil, &block.Header{}, &outport.TransactionPool{}
-			},
-			exErr: elasticIndexer.ErrNilBlockBody,
-		},
-		{
 			name: "NilHeaderHandler",
-			args: func() (body *block.Body, header coreData.HeaderHandler, pool *outport.TransactionPool) {
-				return &block.Body{}, nil, &outport.TransactionPool{}
+			args: func() (header coreData.HeaderHandler, pool *outport.TransactionPool) {
+				return nil, &outport.TransactionPool{}
 			},
 			exErr: elasticIndexer.ErrNilHeaderHandler,
 		},
 		{
 			name: "NilPool",
-			args: func() (body *block.Body, header coreData.HeaderHandler, pool *outport.TransactionPool) {
-				return &block.Body{}, &block.Header{}, nil
+			args: func() (header coreData.HeaderHandler, pool *outport.TransactionPool) {
+				return &block.Header{}, nil
 			},
 			exErr: elasticIndexer.ErrNilPool,
 		},
