@@ -6,6 +6,7 @@ import (
 	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/mock"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/stretchr/testify/require"
@@ -90,22 +91,35 @@ func TestMiniblocksProcessor_PrepareScheduledMB(t *testing.T) {
 			},
 		},
 	}
-	body := &dataBlock.Body{
-		MiniBlocks: []*dataBlock.MiniBlock{
-			{
-				SenderShardID:   0,
-				ReceiverShardID: 1,
-			},
-			{
-				SenderShardID:   0,
-				ReceiverShardID: 1,
-			},
+	miniBlocks := []*dataBlock.MiniBlock{
+		{
+			SenderShardID:   0,
+			ReceiverShardID: 1,
+		},
+		{
+			SenderShardID:   0,
+			ReceiverShardID: 1,
+		},
+		{
+			SenderShardID:   0,
+			ReceiverShardID: 0,
 		},
 	}
 
-	miniblocks := mp.PrepareDBMiniblocks(header, body.MiniBlocks)
-	require.Len(t, miniblocks, 2)
+	miniblocks := mp.PrepareDBMiniblocks(header, miniBlocks)
+	require.Len(t, miniblocks, 3)
 	require.Equal(t, dataBlock.Scheduled.String(), miniblocks[1].ProcessingTypeOnSource)
+
+	require.Equal(t, &data.Miniblock{
+		Hash:                        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+		SenderShardID:               0,
+		ReceiverShardID:             0,
+		SenderBlockHash:             "84b80cbf612d067201b5260b4c6f90fa7b5c11e898fa9c1c65f4c75e61e41619",
+		ReceiverBlockHash:           "84b80cbf612d067201b5260b4c6f90fa7b5c11e898fa9c1c65f4c75e61e41619",
+		ProcessingTypeOnSource:      dataBlock.Normal.String(),
+		ProcessingTypeOnDestination: dataBlock.Normal.String(),
+		Type:                        dataBlock.TxBlock.String(),
+	}, miniblocks[2])
 }
 
 func TestMiniblocksProcessor_GetMiniblocksHashesHexEncoded(t *testing.T) {
