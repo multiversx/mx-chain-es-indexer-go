@@ -64,7 +64,7 @@ func TestMiniblocksProcessor_PrepareDBMiniblocks(t *testing.T) {
 		},
 	}
 
-	miniblocks := mp.PrepareDBMiniblocks(header, body)
+	miniblocks := mp.PrepareDBMiniblocks(header, body.MiniBlocks)
 	require.Len(t, miniblocks, 3)
 }
 
@@ -103,7 +103,7 @@ func TestMiniblocksProcessor_PrepareScheduledMB(t *testing.T) {
 		},
 	}
 
-	miniblocks := mp.PrepareDBMiniblocks(header, body)
+	miniblocks := mp.PrepareDBMiniblocks(header, body.MiniBlocks)
 	require.Len(t, miniblocks, 2)
 	require.Equal(t, dataBlock.Scheduled.String(), miniblocks[1].ProcessingTypeOnSource)
 }

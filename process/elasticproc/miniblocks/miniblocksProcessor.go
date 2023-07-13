@@ -40,8 +40,8 @@ func NewMiniblocksProcessor(
 	}, nil
 }
 
-// PrepareDBMiniblocks will prepare miniblocks from body
-func (mp *miniblocksProcessor) PrepareDBMiniblocks(header coreData.HeaderHandler, body *block.Body) []*data.Miniblock {
+// PrepareDBMiniblocks will prepare miniblocks
+func (mp *miniblocksProcessor) PrepareDBMiniblocks(header coreData.HeaderHandler, miniBlocks []*block.MiniBlock) []*data.Miniblock {
 	headerHash, err := mp.calculateHash(header)
 	if err != nil {
 		log.Warn("indexer: could not calculate header hash", "error", err)
@@ -49,14 +49,14 @@ func (mp *miniblocksProcessor) PrepareDBMiniblocks(header coreData.HeaderHandler
 	}
 
 	dbMiniblocks := make([]*data.Miniblock, 0)
-	for mbIndex, miniblock := range body.MiniBlocks {
-		dbMiniblock, errPrepareMiniblock := mp.prepareMiniblockForDB(mbIndex, miniblock, header, headerHash)
-		if errPrepareMiniblock != nil {
-			log.Warn("miniblocksProcessor.PrepareDBMiniblocks cannot prepare miniblock", "error", errPrepareMiniblock)
+	for mbIndex, miniBlock := range miniBlocks {
+		dbMiniBlock, errPrepareMiniBlock := mp.prepareMiniblockForDB(mbIndex, miniBlock, header, headerHash)
+		if errPrepareMiniBlock != nil {
+			log.Warn("miniblocksProcessor.PrepareDBMiniBlocks cannot prepare miniblock", "error", errPrepareMiniBlock)
 			continue
 		}
 
-		dbMiniblocks = append(dbMiniblocks, dbMiniblock)
+		dbMiniblocks = append(dbMiniblocks, dbMiniBlock)
 	}
 
 	return dbMiniblocks
@@ -121,6 +121,11 @@ func (mp *miniblocksProcessor) setFieldsMBIntraShardAndCrossFromMe(
 	case constructionState == int32(block.Final) && processingType == block.Processed.String():
 		dbMiniblock.ReceiverBlockHash = headerHash
 		dbMiniblock.ProcessingTypeOnDestination = processingType
+	case constructionState == 0 && processingType == "":
+		dbMiniblock.SenderBlockHash = headerHash
+		dbMiniblock.ReceiverBlockHash = headerHash
+		dbMiniblock.ProcessingTypeOnSource = block.Normal.String()
+		dbMiniblock.ProcessingTypeOnDestination = block.Normal.String()
 	}
 }
 

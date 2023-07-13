@@ -376,12 +376,12 @@ func (ei *elasticProcessor) RemoveAccountsESDT(headerTimestamp uint64, shardID u
 }
 
 // SaveMiniblocks will prepare and save information about miniblocks in elasticsearch server
-func (ei *elasticProcessor) SaveMiniblocks(header coreData.HeaderHandler, body *block.Body) error {
+func (ei *elasticProcessor) SaveMiniblocks(header coreData.HeaderHandler, miniBlocks []*block.MiniBlock) error {
 	if !ei.isIndexEnabled(elasticIndexer.MiniblocksIndex) {
 		return nil
 	}
 
-	mbs := ei.miniblocksProc.PrepareDBMiniblocks(header, body)
+	mbs := ei.miniblocksProc.PrepareDBMiniblocks(header, miniBlocks)
 	if len(mbs) == 0 {
 		return nil
 	}

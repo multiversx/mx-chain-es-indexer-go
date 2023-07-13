@@ -455,7 +455,7 @@ func TestElasticProcessor_SaveMiniblocks(t *testing.T) {
 	body := &dataBlock.Body{MiniBlocks: dataBlock.MiniBlockSlice{
 		{SenderShardID: 0, ReceiverShardID: 1},
 	}}
-	err := elasticProc.SaveMiniblocks(header, body)
+	err := elasticProc.SaveMiniblocks(header, body.MiniBlocks)
 	require.Equal(t, localErr, err)
 }
 
