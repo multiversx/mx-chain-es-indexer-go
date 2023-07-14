@@ -27,7 +27,7 @@ func (sm *statusMetrics) GetMetrics() map[string]interface{} {
 	sm.mutEndpointsMetrics.RLock()
 	defer sm.mutEndpointsMetrics.RUnlock()
 
-	return sm.getAll()
+	return sm.getAllUnprotected()
 }
 
 // GetMetricsForPrometheus returns the metrics in a prometheus format
@@ -44,7 +44,7 @@ func (sm *statusMetrics) GetMetricsForPrometheus() string {
 	return stringBuilder.String()
 }
 
-func (sm *statusMetrics) getAll() map[string]interface{} {
+func (sm *statusMetrics) getAllUnprotected() map[string]interface{} {
 	newMap := make(map[string]interface{})
 	for key, value := range sm.metrics {
 		newMap[key] = value

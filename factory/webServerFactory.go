@@ -7,6 +7,7 @@ import (
 	"github.com/multiversx/mx-chain-es-indexer-go/facade"
 )
 
+// CreateWebServer will create a new instance of core.WebServerHandler
 func CreateWebServer(apiConfig config.ApiRoutesConfig, statusMetricsHandler core.StatusMetricsHandler) (core.WebServerHandler, error) {
 	metricsFacade, err := facade.NewMetricsFacade(statusMetricsHandler)
 	if err != nil {

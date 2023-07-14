@@ -9,6 +9,7 @@ type metricsFacade struct {
 	statusMetrics core.StatusMetricsHandler
 }
 
+// NewMetricsFacade will create a new instance of metricsFacade
 func NewMetricsFacade(statusMetrics core.StatusMetricsHandler) (*metricsFacade, error) {
 	if check.IfNil(statusMetrics) {
 		return nil, core.ErrNilMetricsHandler

@@ -16,6 +16,7 @@ const (
 	webServerOffString = "off"
 )
 
+// ArgsWebServer holds the arguments needed for a webServer
 type ArgsWebServer struct {
 	Facade    shared.FacadeHandler
 	ApiConfig config.ApiRoutesConfig
@@ -115,7 +116,7 @@ func (ws *webServer) Close() error {
 		err = fmt.Errorf("%w while closing the http server in gin/webServer", err)
 	}
 
-	return err
+	return nil
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

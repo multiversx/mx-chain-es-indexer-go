@@ -7,6 +7,7 @@ type StatusMetricsHandler interface {
 	IsInterfaceNil() bool
 }
 
+// WebServerHandler defines the behavior of a component that handles the web server
 type WebServerHandler interface {
 	StartHttpServer() error
 	Close() error
