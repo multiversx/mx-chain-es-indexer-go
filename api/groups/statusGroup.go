@@ -3,7 +3,6 @@ package groups
 import (
 	"fmt"
 	"net/http"
-	"sync"
 
 	"github.com/gin-gonic/gin"
 	"github.com/multiversx/mx-chain-core-go/core/check"
@@ -18,8 +17,7 @@ const (
 
 type statusGroup struct {
 	*baseGroup
-	facade    shared.FacadeHandler
-	mutFacade sync.RWMutex
+	facade shared.FacadeHandler
 }
 
 // NewStatusGroup returns a new instance of status group

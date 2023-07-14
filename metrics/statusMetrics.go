@@ -5,10 +5,10 @@ import (
 	"sync"
 )
 
-const (
-	numWSConnections  = "num_ws_connections"
-	numIndexingErrors = "num_indexing_errors"
-)
+//const (
+//	numWSConnections  = "num_ws_connections"
+//	numIndexingErrors = "num_indexing_errors"
+//)
 
 type statusMetrics struct {
 	metrics             map[string]interface{}

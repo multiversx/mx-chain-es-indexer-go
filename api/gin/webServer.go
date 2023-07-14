@@ -65,6 +65,8 @@ func (ws *webServer) StartHttpServer() error {
 		return err
 	}
 
+	ws.registerRoutes(engine)
+
 	s := &http.Server{Addr: apiInterface, Handler: engine}
 	log.Debug("creating gin web sever", "interface", apiInterface)
 	ws.httpServer, err = NewHttpServer(s)
