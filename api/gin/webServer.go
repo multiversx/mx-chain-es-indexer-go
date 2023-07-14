@@ -113,7 +113,7 @@ func (ws *webServer) Close() error {
 	ws.Unlock()
 
 	if err != nil {
-		err = fmt.Errorf("%w while closing the http server in gin/webServer", err)
+		return fmt.Errorf("%w while closing the http server in gin/webServer", err)
 	}
 
 	return nil
