@@ -5,6 +5,10 @@ import (
 	"github.com/urfave/cli"
 )
 
+const (
+	filePathPlaceholder = "[path]"
+)
+
 var (
 	configurationFile = cli.StringFlag{
 		Name:  "config",
@@ -14,10 +18,18 @@ var (
 	// configurationPreferencesFile defines a flag for the path to the preferences toml configuration file
 	configurationPreferencesFile = cli.StringFlag{
 		Name: "config-preferences",
-		Usage: "The [path] for the preferences configuration file. This TOML file contains " +
+		Usage: "The `" + filePathPlaceholder + "` for the preferences configuration file. This TOML file contains " +
 			"preferences configurations, such as the node display name or the shard to start in when starting as observer",
 		Value: "./config/prefs.toml",
 	}
+	// configurationApiFile defines a flag for the path to the api routes toml configuration file
+	configurationApiFile = cli.StringFlag{
+		Name: "config-api",
+		Usage: "The `" + filePathPlaceholder + "` for the api configuration file. This TOML file contains " +
+			"all available routes for Rest API and options to enable or disable them.",
+		Value: "config/api.toml",
+	}
+
 	logLevel = cli.StringFlag{
 		Name: "log-level",
 		Usage: "This flag specifies the logger `level(s)`. It can contain multiple comma-separated value. For example" +
