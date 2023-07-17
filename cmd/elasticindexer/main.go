@@ -13,6 +13,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-es-indexer-go/config"
 	"github.com/multiversx/mx-chain-es-indexer-go/factory"
+	"github.com/multiversx/mx-chain-es-indexer-go/metrics"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/wsindexer"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/multiversx/mx-chain-logger-go/file"
@@ -46,6 +47,7 @@ func main() {
 	app.Flags = []cli.Flag{
 		configurationFile,
 		configurationPreferencesFile,
+		configurationApiFile,
 		logLevel,
 		logSaveFile,
 		disableAnsiColor,
@@ -89,6 +91,22 @@ func startIndexer(ctx *cli.Context) error {
 		return fmt.Errorf("%w while creating the indexer", err)
 	}
 
+	apiConfig, err := loadApiConfig(ctx.GlobalString(configurationApiFile.Name))
+	if err != nil {
+		return fmt.Errorf("%w while loading the api config file", err)
+	}
+
+	statusMetric := metrics.NewStatusMetrics()
+	webServer, err := factory.CreateWebServer(apiConfig, statusMetric)
+	if err != nil {
+		return fmt.Errorf("%w while creating the web server", err)
+	}
+
+	err = webServer.StartHttpServer()
+	if err != nil {
+		return fmt.Errorf("%w while starting the web server", err)
+	}
+
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, syscall.SIGINT, syscall.SIGTERM)
 
@@ -102,6 +120,11 @@ func startIndexer(ctx *cli.Context) error {
 	err = wsHost.Close()
 	if err != nil {
 		log.Error("cannot close ws indexer", "error", err)
+	}
+
+	err = webServer.Close()
+	if err != nil {
+		log.Error("cannot close web server", "error", err)
 	}
 
 	if !check.IfNilReflect(fileLogging) {
@@ -144,6 +167,17 @@ func loadClusterConfig(filepath string) (config.ClusterConfig, error) {
 	err := core.LoadTomlFile(&cfg, filepath)
 
 	return cfg, err
+}
+
+// loadApiConfig returns a ApiRoutesConfig by reading the config file provided
+func loadApiConfig(filepath string) (config.ApiRoutesConfig, error) {
+	cfg := config.ApiRoutesConfig{}
+	err := core.LoadTomlFile(&cfg, filepath)
+	if err != nil {
+		return config.ApiRoutesConfig{}, err
+	}
+
+	return cfg, nil
 }
 
 func initializeLogger(ctx *cli.Context, cfg config.Config) (closing.Closer, error) {
