@@ -9,7 +9,7 @@ import (
 	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
-var log = logger.GetOrCreate("api")
+var log = logger.GetOrCreate("api/gin")
 
 // ErrNilHttpServer signals that a nil http server has been provided
 var ErrNilHttpServer = errors.New("nil http server")
