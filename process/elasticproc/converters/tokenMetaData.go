@@ -27,12 +27,12 @@ func PrepareTokenMetaData(tokenMetadata *outport.TokenMetaData) *data.TokenMetaD
 
 	var uris [][]byte
 	for _, uri := range tokenMetadata.URIs {
-		truncatedURI := TruncateFieldIfExceedsMaxLength(string(uri))
+		truncatedURI := TruncateFieldIfExceedsMaxLengthBase64(string(uri))
 		uris = append(uris, []byte(truncatedURI))
 	}
 
 	tags := ExtractTagsFromAttributes(tokenMetadata.Attributes)
-	attributes := TruncateFieldIfExceedsMaxLength(string(tokenMetadata.Attributes))
+	attributes := TruncateFieldIfExceedsMaxLengthBase64(string(tokenMetadata.Attributes))
 	return &data.TokenMetaData{
 		Name:               TruncateFieldIfExceedsMaxLength(tokenMetadata.Name),
 		Creator:            tokenMetadata.Creator,
@@ -90,7 +90,8 @@ func PrepareNFTUpdateData(buffSlice *data.BufferSlice, updateNFTData []*data.NFT
 			return buffSlice.PutData(metaData, prepareSerializedDataForPauseAndUnPause(nftUpdate))
 		}
 
-		base64Attr := TruncateFieldIfExceedsMaxLength(base64.StdEncoding.EncodeToString(nftUpdate.NewAttributes))
+		truncatedAttributes := TruncateFieldIfExceedsMaxLengthBase64(string(nftUpdate.NewAttributes))
+		base64Attr := base64.StdEncoding.EncodeToString([]byte(truncatedAttributes))
 		newTags := TruncateSliceElementsIfExceedsMaxLength(ExtractTagsFromAttributes(nftUpdate.NewAttributes))
 		newMetadata := ExtractMetaDataFromAttributes(nftUpdate.NewAttributes)
 
