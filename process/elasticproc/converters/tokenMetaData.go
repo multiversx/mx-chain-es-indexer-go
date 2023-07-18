@@ -90,8 +90,8 @@ func PrepareNFTUpdateData(buffSlice *data.BufferSlice, updateNFTData []*data.NFT
 			return buffSlice.PutData(metaData, prepareSerializedDataForPauseAndUnPause(nftUpdate))
 		}
 
-		base64Attr := base64.StdEncoding.EncodeToString(nftUpdate.NewAttributes)
-		newTags := ExtractTagsFromAttributes(nftUpdate.NewAttributes)
+		base64Attr := TruncateFieldIfExceedsMaxLength(base64.StdEncoding.EncodeToString(nftUpdate.NewAttributes))
+		newTags := TruncateSliceElementsIfExceedsMaxLength(ExtractTagsFromAttributes(nftUpdate.NewAttributes))
 		newMetadata := ExtractMetaDataFromAttributes(nftUpdate.NewAttributes)
 
 		marshalizedTags, errM := json.Marshal(newTags)
@@ -122,7 +122,11 @@ func PrepareNFTUpdateData(buffSlice *data.BufferSlice, updateNFTData []*data.NFT
 			FormatPainlessSource(codeToExecute), base64Attr, newMetadata, marshalizedTags),
 		)
 		if len(nftUpdate.URIsToAdd) != 0 {
-			marshalizedURIS, err := json.Marshal(nftUpdate.URIsToAdd)
+			uris := make([]string, 0, len(nftUpdate.URIsToAdd))
+			for _, uri := range nftUpdate.URIsToAdd {
+				uris = append(uris, base64.StdEncoding.EncodeToString(uri))
+			}
+			marshalizedURIS, err := json.Marshal(TruncateSliceElementsIfExceedsMaxLength(uris))
 			if err != nil {
 				return err
 			}
