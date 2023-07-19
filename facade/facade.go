@@ -21,7 +21,7 @@ func NewMetricsFacade(statusMetrics core.StatusMetricsHandler) (*metricsFacade, 
 }
 
 // GetMetrics will return metrics in json format
-func (mf *metricsFacade) GetMetrics() map[string]interface{} {
+func (mf *metricsFacade) GetMetrics() map[string]*core.IndexTopicMetricsResponse {
 	return mf.statusMetrics.GetMetrics()
 }
 

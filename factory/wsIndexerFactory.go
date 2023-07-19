@@ -8,6 +8,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	factoryMarshaller "github.com/multiversx/mx-chain-core-go/marshal/factory"
 	"github.com/multiversx/mx-chain-es-indexer-go/config"
+	"github.com/multiversx/mx-chain-es-indexer-go/core"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/factory"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/wsindexer"
 	logger "github.com/multiversx/mx-chain-logger-go"
@@ -16,7 +17,7 @@ import (
 var log = logger.GetOrCreate("elasticindexer")
 
 // CreateWsIndexer will create a new instance of wsindexer.WSClient
-func CreateWsIndexer(cfg config.Config, clusterCfg config.ClusterConfig, importDB bool) (wsindexer.WSClient, error) {
+func CreateWsIndexer(cfg config.Config, clusterCfg config.ClusterConfig, importDB bool, statusMetrics core.StatusMetricsHandler) (wsindexer.WSClient, error) {
 	wsMarshaller, err := factoryMarshaller.NewMarshalizer(clusterCfg.Config.WebSocket.DataMarshallerType)
 	if err != nil {
 		return nil, err
@@ -27,7 +28,12 @@ func CreateWsIndexer(cfg config.Config, clusterCfg config.ClusterConfig, importD
 		return nil, err
 	}
 
-	indexer, err := wsindexer.NewIndexer(wsMarshaller, dataIndexer)
+	args := wsindexer.ArgsIndexer{
+		Marshaller:    wsMarshaller,
+		DataIndexer:   dataIndexer,
+		StatusMetrics: statusMetrics,
+	}
+	indexer, err := wsindexer.NewIndexer(args)
 	if err != nil {
 		return nil, err
 	}

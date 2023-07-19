@@ -8,6 +8,9 @@ WS_PORT_BASE = 22111
 WS_METACHAIN_PORT = WS_PORT_BASE + 50
 MAX_NUM_OF_SHARDS = 3
 
+API_PORT_BASE = 8081
+API_META_PORT = API_PORT_BASE + 50
+
 
 def get_working_dir():
     working_dir_var = os.getenv('WORKING_DIRECTORY')

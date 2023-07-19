@@ -2,10 +2,12 @@ package wsindexer
 
 import (
 	"errors"
+	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+	"github.com/multiversx/mx-chain-es-indexer-go/core"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	logger "github.com/multiversx/mx-chain-logger-go"
 )
@@ -15,24 +17,35 @@ var (
 	errNilDataIndexer = errors.New("nil data indexer")
 )
 
+type ArgsIndexer struct {
+	Marshaller    marshal.Marshalizer
+	DataIndexer   DataIndexer
+	StatusMetrics core.StatusMetricsHandler
+}
+
 type indexer struct {
-	marshaller marshal.Marshalizer
-	di         DataIndexer
-	actions    map[string]func(marshalledData []byte) error
+	marshaller    marshal.Marshalizer
+	di            DataIndexer
+	statusMetrics core.StatusMetricsHandler
+	actions       map[string]func(marshalledData []byte) error
 }
 
 // NewIndexer will create a new instance of *indexer
-func NewIndexer(marshaller marshal.Marshalizer, dataIndexer DataIndexer) (*indexer, error) {
-	if check.IfNil(marshaller) {
+func NewIndexer(args ArgsIndexer) (*indexer, error) {
+	if check.IfNil(args.Marshaller) {
 		return nil, dataindexer.ErrNilMarshalizer
 	}
-	if check.IfNil(dataIndexer) {
+	if check.IfNil(args.DataIndexer) {
 		return nil, errNilDataIndexer
+	}
+	if check.IfNil(args.StatusMetrics) {
+		return nil, core.ErrNilMetricsHandler
 	}
 
 	payloadIndexer := &indexer{
-		marshaller: marshaller,
-		di:         dataIndexer,
+		marshaller:    args.Marshaller,
+		di:            args.DataIndexer,
+		statusMetrics: args.StatusMetrics,
 	}
 	payloadIndexer.initActionsMap()
 
@@ -61,7 +74,18 @@ func (i *indexer) ProcessPayload(payload []byte, topic string) error {
 		return nil
 	}
 
-	return payloadTypeAction(payload)
+	shardID, err := i.getShardID(payload)
+	if err != nil {
+		log.Warn("indexer.ProcessPayload: cannot get shardID from payload", "error", err)
+	}
+
+	start := time.Now()
+	err = payloadTypeAction(payload)
+	duration := time.Since(start)
+
+	i.statusMetrics.AddIndexingData(topic, shardID, duration, err != nil)
+
+	return err
 }
 
 func (i *indexer) saveBlock(marshalledData []byte) error {
@@ -146,4 +170,14 @@ func (i *indexer) Close() error {
 // IsInterfaceNil returns true if underlying object is nil
 func (i *indexer) IsInterfaceNil() bool {
 	return i == nil
+}
+
+func (i *indexer) getShardID(payload []byte) (uint32, error) {
+	shard := &outport.Shard{}
+	err := i.marshaller.Unmarshal(shard, payload)
+	if err != nil {
+		return 0, err
+	}
+
+	return shard.ShardID, nil
 }

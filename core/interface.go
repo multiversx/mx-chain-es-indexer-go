@@ -1,8 +1,11 @@
 package core
 
+import "time"
+
 // StatusMetricsHandler defines the behavior of a component that handles status metrics
 type StatusMetricsHandler interface {
-	GetMetrics() map[string]interface{}
+	AddIndexingData(topic string, shardID uint32, duration time.Duration, gotError bool)
+	GetMetrics() map[string]*IndexTopicMetricsResponse
 	GetMetricsForPrometheus() string
 	IsInterfaceNil() bool
 }

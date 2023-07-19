@@ -3,6 +3,7 @@ package shared
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/multiversx/mx-chain-es-indexer-go/config"
+	"github.com/multiversx/mx-chain-es-indexer-go/core"
 )
 
 // GroupHandler defines the actions needed to be performed by a gin API group
@@ -16,7 +17,7 @@ type GroupHandler interface {
 
 // FacadeHandler defines all the methods that a facade should implement
 type FacadeHandler interface {
-	GetMetrics() map[string]interface{}
+	GetMetrics() map[string]*core.IndexTopicMetricsResponse
 	GetMetricsForPrometheus() string
 	IsInterfaceNil() bool
 }
