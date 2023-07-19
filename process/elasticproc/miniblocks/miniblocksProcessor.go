@@ -121,18 +121,13 @@ func (mp *miniblocksProcessor) setFieldsMBIntraShardAndCrossFromMe(
 	case constructionState == int32(block.Final) && processingType == block.Processed.String():
 		dbMiniblock.ReceiverBlockHash = headerHash
 		dbMiniblock.ProcessingTypeOnDestination = processingType
-	case constructionState == 0 && processingType == "":
-		dbMiniblock.SenderBlockHash = headerHash
-		dbMiniblock.ReceiverBlockHash = headerHash
-		dbMiniblock.ProcessingTypeOnSource = block.Normal.String()
-		dbMiniblock.ProcessingTypeOnDestination = block.Normal.String()
 	}
 }
 
 func (mp *miniblocksProcessor) computeProcessingTypeAndConstructionState(mbIndex int, header coreData.HeaderHandler) (string, int32) {
 	miniblockHeaders := header.GetMiniBlockHeaderHandlers()
 	if len(miniblockHeaders) <= mbIndex {
-		return "", 0
+		return block.Normal.String(), int32(block.Final)
 	}
 
 	processingType := miniblockHeaders[mbIndex].GetProcessingType()
