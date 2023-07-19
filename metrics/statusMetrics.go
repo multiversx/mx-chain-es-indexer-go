@@ -37,7 +37,7 @@ func (sm *statusMetrics) AddIndexingData(topic string, shardID uint32, duration 
 	sm.metrics[key].TotalIndexingTime += duration
 	sm.metrics[key].LastIndexingTime = duration
 
-	if gotError == true {
+	if gotError {
 		sm.metrics[key].NumTotalErrors++
 	}
 }
