@@ -23,7 +23,7 @@ func CreateWsIndexer(cfg config.Config, clusterCfg config.ClusterConfig, importD
 		return nil, err
 	}
 
-	dataIndexer, err := createDataIndexer(cfg, clusterCfg, wsMarshaller, importDB)
+	dataIndexer, err := createDataIndexer(cfg, clusterCfg, wsMarshaller, importDB, statusMetrics)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,13 @@ func CreateWsIndexer(cfg config.Config, clusterCfg config.ClusterConfig, importD
 	return host, nil
 }
 
-func createDataIndexer(cfg config.Config, clusterCfg config.ClusterConfig, wsMarshaller marshal.Marshalizer, importDB bool) (wsindexer.DataIndexer, error) {
+func createDataIndexer(
+	cfg config.Config,
+	clusterCfg config.ClusterConfig,
+	wsMarshaller marshal.Marshalizer,
+	importDB bool,
+	statusMetrics core.StatusMetricsHandler,
+) (wsindexer.DataIndexer, error) {
 	marshaller, err := factoryMarshaller.NewMarshalizer(cfg.Config.Marshaller.Type)
 	if err != nil {
 		return nil, err
@@ -83,6 +89,7 @@ func createDataIndexer(cfg config.Config, clusterCfg config.ClusterConfig, wsMar
 		ValidatorPubkeyConverter: validatorPubkeyConverter,
 		HeaderMarshaller:         wsMarshaller,
 		ImportDB:                 importDB,
+		StatusMetrics:            statusMetrics,
 	})
 }
 

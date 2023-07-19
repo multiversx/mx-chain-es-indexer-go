@@ -10,6 +10,7 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
+	"github.com/multiversx/mx-chain-es-indexer-go/core/request"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	logger "github.com/multiversx/mx-chain-logger-go"
@@ -108,9 +109,14 @@ func (ec *elasticClient) DoBulkRequest(buff *bytes.Buffer, index string) error {
 	reader := bytes.NewReader(buff.Bytes())
 
 	options := make([]func(*esapi.BulkRequest), 0)
+	topicValue := fmt.Sprintf("%s_common", request.BulkTopic)
 	if index != "" {
+		topicValue = fmt.Sprintf("%s_%s", request.BulkTopic, index)
 		options = append(options, ec.client.Bulk.WithIndex(index))
 	}
+
+	valueCtx := context.WithValue(context.Background(), request.ContextKey, topicValue)
+	options = append(options, ec.client.Bulk.WithContext(valueCtx))
 
 	res, err := ec.client.Bulk(
 		reader,
@@ -133,9 +139,11 @@ func (ec *elasticClient) DoMultiGet(ids []string, index string, withSource bool,
 		return err
 	}
 
+	valueCtx := context.WithValue(context.Background(), request.ContextKey, request.GetTopic)
 	res, err := ec.client.Mget(
 		&body,
 		ec.client.Mget.WithIndex(index),
+		ec.client.Mget.WithContext(valueCtx),
 	)
 	if err != nil {
 		log.Warn("elasticClient.DoMultiGet",
@@ -159,11 +167,13 @@ func (ec *elasticClient) DoQueryRemove(index string, body *bytes.Buffer) error {
 		log.Warn("elasticClient.doRefresh", "cannot do refresh", err.Error())
 	}
 
+	valueCtx := context.WithValue(context.Background(), request.ContextKey, request.RemoveTopic)
 	res, err := ec.client.DeleteByQuery(
 		[]string{index},
 		body,
 		ec.client.DeleteByQuery.WithIgnoreUnavailable(true),
 		ec.client.DeleteByQuery.WithConflicts(esConflictsPolicy),
+		ec.client.DeleteByQuery.WithContext(valueCtx),
 	)
 
 	if err != nil {
@@ -332,9 +342,11 @@ func (ec *elasticClient) createAlias(alias string, index string) error {
 func (ec *elasticClient) UpdateByQuery(index string, buff *bytes.Buffer) error {
 	reader := bytes.NewReader(buff.Bytes())
 
+	valueCtx := context.WithValue(context.Background(), request.ContextKey, request.UpdateTopic)
 	res, err := ec.client.UpdateByQuery(
 		[]string{index},
 		ec.client.UpdateByQuery.WithBody(reader),
+		ec.client.UpdateByQuery.WithContext(valueCtx),
 	)
 	if err != nil {
 		return err

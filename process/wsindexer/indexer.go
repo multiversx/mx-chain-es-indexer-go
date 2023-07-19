@@ -2,12 +2,14 @@ package wsindexer
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	"github.com/multiversx/mx-chain-es-indexer-go/core"
+	"github.com/multiversx/mx-chain-es-indexer-go/metrics"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	logger "github.com/multiversx/mx-chain-logger-go"
 )
@@ -83,7 +85,13 @@ func (i *indexer) ProcessPayload(payload []byte, topic string) error {
 	err = payloadTypeAction(payload)
 	duration := time.Since(start)
 
-	i.statusMetrics.AddIndexingData(topic, shardID, duration, err != nil)
+	topicKey := fmt.Sprintf("%s_%d", topic, shardID)
+	i.statusMetrics.AddIndexingData(metrics.ArgsAddIndexingData{
+		GotError:   err != nil,
+		MessageLen: uint64(len(payload)),
+		Topic:      topicKey,
+		Duration:   duration,
+	})
 
 	return err
 }

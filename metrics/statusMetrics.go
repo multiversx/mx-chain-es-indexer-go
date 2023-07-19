@@ -1,49 +1,46 @@
 package metrics
 
 import (
-	"fmt"
 	"strings"
 	"sync"
-	"time"
 
-	"github.com/multiversx/mx-chain-es-indexer-go/core"
+	"github.com/multiversx/mx-chain-es-indexer-go/core/request"
 )
 
 type statusMetrics struct {
-	metrics map[string]*core.IndexTopicMetricsResponse
+	metrics map[string]*request.MetricsResponse
 	mut     sync.RWMutex
 }
 
 // NewStatusMetrics will return an instance of the statusMetrics
 func NewStatusMetrics() *statusMetrics {
 	return &statusMetrics{
-		metrics: make(map[string]*core.IndexTopicMetricsResponse),
+		metrics: make(map[string]*request.MetricsResponse),
 	}
 }
 
 // AddIndexingData will add the indexing data for the give topic
-func (sm *statusMetrics) AddIndexingData(topic string, shardID uint32, duration time.Duration, gotError bool) {
+func (sm *statusMetrics) AddIndexingData(args ArgsAddIndexingData) {
 	sm.mut.Lock()
 	defer sm.mut.Unlock()
 
-	key := fmt.Sprintf("%s_%d", topic, shardID)
-
-	_, found := sm.metrics[key]
+	topic := args.Topic
+	_, found := sm.metrics[topic]
 	if !found {
-		sm.metrics[key] = &core.IndexTopicMetricsResponse{}
+		sm.metrics[topic] = &request.MetricsResponse{}
 	}
 
-	sm.metrics[key].NumIndexingOperations++
-	sm.metrics[key].TotalIndexingTime += duration
-	sm.metrics[key].LastIndexingTime = duration
+	sm.metrics[topic].OperationsCount++
+	sm.metrics[topic].TotalIndexingTime += args.Duration
+	sm.metrics[topic].TotalData += args.MessageLen
 
-	if gotError {
-		sm.metrics[key].NumTotalErrors++
+	if args.GotError {
+		sm.metrics[topic].ErrorsCount++
 	}
 }
 
 // GetMetrics returns the metrics map
-func (sm *statusMetrics) GetMetrics() map[string]*core.IndexTopicMetricsResponse {
+func (sm *statusMetrics) GetMetrics() map[string]*request.MetricsResponse {
 	sm.mut.RLock()
 	defer sm.mut.RUnlock()
 
@@ -64,8 +61,8 @@ func (sm *statusMetrics) GetMetricsForPrometheus() string {
 	return stringBuilder.String()
 }
 
-func (sm *statusMetrics) getAllUnprotected() map[string]*core.IndexTopicMetricsResponse {
-	newMap := make(map[string]*core.IndexTopicMetricsResponse)
+func (sm *statusMetrics) getAllUnprotected() map[string]*request.MetricsResponse {
+	newMap := make(map[string]*request.MetricsResponse)
 	for key, value := range sm.metrics {
 		newMap[key] = value
 	}

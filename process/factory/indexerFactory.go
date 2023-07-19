@@ -14,7 +14,10 @@ import (
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	"github.com/multiversx/mx-chain-es-indexer-go/client"
 	"github.com/multiversx/mx-chain-es-indexer-go/client/logging"
+	"github.com/multiversx/mx-chain-es-indexer-go/client/transport"
+	indexerCore "github.com/multiversx/mx-chain-es-indexer-go/core"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/factory"
 	logger "github.com/multiversx/mx-chain-logger-go"
 )
@@ -39,6 +42,7 @@ type ArgsIndexerFactory struct {
 	Hasher                   hashing.Hasher
 	AddressPubkeyConverter   core.PubkeyConverter
 	ValidatorPubkeyConverter core.PubkeyConverter
+	StatusMetrics            indexerCore.StatusMetricsHandler
 }
 
 // NewIndexer will create a new instance of Indexer
@@ -75,14 +79,7 @@ func retryBackOff(attempt int) time.Duration {
 }
 
 func createElasticProcessor(args ArgsIndexerFactory) (dataindexer.ElasticProcessor, error) {
-	databaseClient, err := client.NewElasticClient(elasticsearch.Config{
-		Addresses:     []string{args.Url},
-		Username:      args.UserName,
-		Password:      args.Password,
-		Logger:        &logging.CustomLogger{},
-		RetryOnStatus: []int{http.StatusConflict},
-		RetryBackoff:  retryBackOff,
-	})
+	databaseClient, err := createElasticClient(args)
 	if err != nil {
 		return nil, err
 	}
@@ -101,6 +98,29 @@ func createElasticProcessor(args ArgsIndexerFactory) (dataindexer.ElasticProcess
 	}
 
 	return factory.CreateElasticProcessor(argsElasticProcFac)
+}
+
+func createElasticClient(args ArgsIndexerFactory) (elasticproc.DatabaseClientHandler, error) {
+	argsEsClient := elasticsearch.Config{
+		Addresses:     []string{args.Url},
+		Username:      args.UserName,
+		Password:      args.Password,
+		Logger:        &logging.CustomLogger{},
+		RetryOnStatus: []int{http.StatusConflict},
+		RetryBackoff:  retryBackOff,
+	}
+
+	if args.StatusMetrics == nil {
+		return client.NewElasticClient(argsEsClient)
+	}
+
+	transportMetrics, err := transport.NewMetricsTransport(args.StatusMetrics)
+	if err != nil {
+		return nil, err
+	}
+	argsEsClient.Transport = transportMetrics
+
+	return client.NewElasticClient(argsEsClient)
 }
 
 func checkDataIndexerParams(arguments ArgsIndexerFactory) error {

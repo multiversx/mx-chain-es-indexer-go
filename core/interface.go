@@ -1,11 +1,14 @@
 package core
 
-import "time"
+import (
+	"github.com/multiversx/mx-chain-es-indexer-go/core/request"
+	"github.com/multiversx/mx-chain-es-indexer-go/metrics"
+)
 
 // StatusMetricsHandler defines the behavior of a component that handles status metrics
 type StatusMetricsHandler interface {
-	AddIndexingData(topic string, shardID uint32, duration time.Duration, gotError bool)
-	GetMetrics() map[string]*IndexTopicMetricsResponse
+	AddIndexingData(args metrics.ArgsAddIndexingData)
+	GetMetrics() map[string]*request.MetricsResponse
 	GetMetricsForPrometheus() string
 	IsInterfaceNil() bool
 }
