@@ -27,12 +27,12 @@ func PrepareTokenMetaData(tokenMetadata *outport.TokenMetaData) *data.TokenMetaD
 
 	var uris [][]byte
 	for _, uri := range tokenMetadata.URIs {
-		truncatedURI := TruncateFieldIfExceedsMaxLength(string(uri))
+		truncatedURI := TruncateFieldIfExceedsMaxLengthBase64(string(uri))
 		uris = append(uris, []byte(truncatedURI))
 	}
 
 	tags := ExtractTagsFromAttributes(tokenMetadata.Attributes)
-	attributes := TruncateFieldIfExceedsMaxLength(string(tokenMetadata.Attributes))
+	attributes := TruncateFieldIfExceedsMaxLengthBase64(string(tokenMetadata.Attributes))
 	return &data.TokenMetaData{
 		Name:               TruncateFieldIfExceedsMaxLength(tokenMetadata.Name),
 		Creator:            tokenMetadata.Creator,
@@ -90,8 +90,9 @@ func PrepareNFTUpdateData(buffSlice *data.BufferSlice, updateNFTData []*data.NFT
 			return buffSlice.PutData(metaData, prepareSerializedDataForPauseAndUnPause(nftUpdate))
 		}
 
-		base64Attr := base64.StdEncoding.EncodeToString(nftUpdate.NewAttributes)
-		newTags := ExtractTagsFromAttributes(nftUpdate.NewAttributes)
+		truncatedAttributes := TruncateFieldIfExceedsMaxLengthBase64(string(nftUpdate.NewAttributes))
+		base64Attr := base64.StdEncoding.EncodeToString([]byte(truncatedAttributes))
+		newTags := TruncateSliceElementsIfExceedsMaxLength(ExtractTagsFromAttributes(nftUpdate.NewAttributes))
 		newMetadata := ExtractMetaDataFromAttributes(nftUpdate.NewAttributes)
 
 		marshalizedTags, errM := json.Marshal(newTags)
@@ -122,7 +123,11 @@ func PrepareNFTUpdateData(buffSlice *data.BufferSlice, updateNFTData []*data.NFT
 			FormatPainlessSource(codeToExecute), base64Attr, newMetadata, marshalizedTags),
 		)
 		if len(nftUpdate.URIsToAdd) != 0 {
-			marshalizedURIS, err := json.Marshal(nftUpdate.URIsToAdd)
+			uris := make([]string, 0, len(nftUpdate.URIsToAdd))
+			for _, uri := range nftUpdate.URIsToAdd {
+				uris = append(uris, base64.StdEncoding.EncodeToString(uri))
+			}
+			marshalizedURIS, err := json.Marshal(TruncateSliceElementsIfExceedsMaxLength(uris))
 			if err != nil {
 				return err
 			}

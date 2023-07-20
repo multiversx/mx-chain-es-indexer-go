@@ -82,8 +82,8 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		guardianAddress = dtb.addressPubkeyConverter.Encode(tx.GuardianAddr)
 	}
 
-	senderUserName := converters.TruncateFieldIfExceedsMaxLength(string(tx.SndUserName))
-	receiverUserName := converters.TruncateFieldIfExceedsMaxLength(string(tx.RcvUserName))
+	senderUserName := converters.TruncateFieldIfExceedsMaxLengthBase64(string(tx.SndUserName))
+	receiverUserName := converters.TruncateFieldIfExceedsMaxLengthBase64(string(tx.RcvUserName))
 	return &data.Transaction{
 		Hash:              hex.EncodeToString(txHash),
 		MBHash:            hex.EncodeToString(mbHash),
