@@ -50,15 +50,22 @@ func (sm *statusMetrics) GetMetrics() map[string]*request.MetricsResponse {
 // GetMetricsForPrometheus returns the metrics in a prometheus format
 func (sm *statusMetrics) GetMetricsForPrometheus() string {
 	sm.mut.RLock()
-	defer sm.mut.RUnlock()
-
-	//metricsMap := sm.getAll()
+	metrics := sm.getAllUnprotected()
+	sm.mut.RUnlock()
 
 	stringBuilder := strings.Builder{}
 
-	// TODO populate with metrics
+	for topicWithShardID, metricsData := range metrics {
+		topic, shardID := request.SplitTopicAndShardID(topicWithShardID)
+		stringBuilder.WriteString(counterMetric(topic, shardID, metricsData.TotalData))
+		stringBuilder.WriteString(counterMetric(topic, shardID, metricsData.ErrorsCount))
+		stringBuilder.WriteString(counterMetric(topic, shardID, metricsData.OperationsCount))
+		stringBuilder.WriteString(counterMetric(topic, shardID, uint64(metricsData.TotalIndexingTime.Milliseconds())))
+	}
 
-	return stringBuilder.String()
+	promMetricsOutput := stringBuilder.String()
+
+	return promMetricsOutput
 }
 
 func (sm *statusMetrics) getAllUnprotected() map[string]*request.MetricsResponse {

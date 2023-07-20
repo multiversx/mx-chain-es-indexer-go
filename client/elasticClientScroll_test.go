@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -32,7 +33,7 @@ func TestElasticClient_DoCountRequest(t *testing.T) {
 		Logger:    &logging.CustomLogger{},
 	})
 
-	count, err := esClient.DoCountRequest("tokens", []byte(`{}`))
+	count, err := esClient.DoCountRequest("tokens", []byte(`{}`), context.Background())
 	require.Nil(t, err)
 	require.Equal(t, uint64(112671), count)
 }

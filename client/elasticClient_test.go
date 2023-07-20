@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -63,12 +64,12 @@ func TestElasticClient_DoMultiGet(t *testing.T) {
 
 	ids := []string{"id"}
 	res := &data.ResponseTokens{}
-	err := esClient.DoMultiGet(ids, "tokens", true, res)
+	err := esClient.DoMultiGet(ids, "tokens", true, res, context.Background())
 	require.Nil(t, err)
 	require.Len(t, res.Docs, 3)
 
 	resMap := make(objectsMap)
-	err = esClient.DoMultiGet(ids, "tokens", true, &resMap)
+	err = esClient.DoMultiGet(ids, "tokens", true, &resMap, context.Background())
 	require.Nil(t, err)
 
 	_, ok := resMap["docs"]

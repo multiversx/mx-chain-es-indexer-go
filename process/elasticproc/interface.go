@@ -2,6 +2,7 @@ package elasticproc
 
 import (
 	"bytes"
+	"context"
 
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
@@ -14,13 +15,13 @@ import (
 
 // DatabaseClientHandler defines the actions that a component that handles requests should do
 type DatabaseClientHandler interface {
-	DoRequest(req *esapi.IndexRequest) error
-	DoBulkRequest(buff *bytes.Buffer, index string) error
-	DoQueryRemove(index string, buff *bytes.Buffer) error
-	DoMultiGet(ids []string, index string, withSource bool, res interface{}) error
-	DoScrollRequest(index string, body []byte, withSource bool, handlerFunc func(responseBytes []byte) error) error
-	DoCountRequest(index string, body []byte) (uint64, error)
-	UpdateByQuery(index string, buff *bytes.Buffer) error
+	DoRequest(req *esapi.IndexRequest, ctx context.Context) error
+	DoBulkRequest(buff *bytes.Buffer, index string, ctx context.Context) error
+	DoQueryRemove(index string, buff *bytes.Buffer, ctx context.Context) error
+	DoMultiGet(ids []string, index string, withSource bool, res interface{}, ctx context.Context) error
+	DoScrollRequest(index string, body []byte, withSource bool, handlerFunc func(responseBytes []byte) error, ctx context.Context) error
+	DoCountRequest(index string, body []byte, ctx context.Context) (uint64, error)
+	UpdateByQuery(index string, buff *bytes.Buffer, ctx context.Context) error
 
 	CheckAndCreateIndex(index string) error
 	CheckAndCreateAlias(alias string, index string) error
