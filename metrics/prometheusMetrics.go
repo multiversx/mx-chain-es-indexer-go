@@ -9,13 +9,17 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func counterMetric(metricName string, shardID uint32, count uint64) string {
+func counterMetric(metricName, operation string, shardID uint32, count uint64) string {
 	metricFamily := &dto.MetricFamily{
 		Name: proto.String(metricName),
 		Type: dto.MetricType_COUNTER.Enum(),
 		Metric: []*dto.Metric{
 			{
 				Label: []*dto.LabelPair{
+					{
+						Name:  proto.String("operation"),
+						Value: proto.String(operation),
+					},
 					{
 						Name:  proto.String("shardID"),
 						Value: proto.String(fmt.Sprintf("%d", shardID)),

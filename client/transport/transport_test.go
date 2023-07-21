@@ -51,7 +51,7 @@ func TestMetricsTransport_RoundTrip(t *testing.T) {
 	require.Equal(t, uint64(4), metricsMap[testTopic].TotalData)
 }
 
-func TestMetricsTransport_RoundTripNoValueInContextShouldNoAddMetrics(t *testing.T) {
+func TestMetricsTransport_RoundTripNoValueInContextShouldNotAddMetrics(t *testing.T) {
 	t.Parallel()
 
 	metricsHandler := metrics.NewStatusMetrics()

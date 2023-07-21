@@ -1,10 +1,19 @@
 package metrics
 
 import (
+	"bytes"
 	"strings"
 	"sync"
+	"unicode"
 
 	"github.com/multiversx/mx-chain-es-indexer-go/core/request"
+)
+
+const (
+	operationCount = "operations_count"
+	errorsCount    = "errors_count"
+	totalTime      = "total_time"
+	totalData      = "total_data"
 )
 
 type statusMetrics struct {
@@ -57,10 +66,10 @@ func (sm *statusMetrics) GetMetricsForPrometheus() string {
 
 	for topicWithShardID, metricsData := range metrics {
 		topic, shardID := request.SplitTopicAndShardID(topicWithShardID)
-		stringBuilder.WriteString(counterMetric(topic, shardID, metricsData.TotalData))
-		stringBuilder.WriteString(counterMetric(topic, shardID, metricsData.ErrorsCount))
-		stringBuilder.WriteString(counterMetric(topic, shardID, metricsData.OperationsCount))
-		stringBuilder.WriteString(counterMetric(topic, shardID, uint64(metricsData.TotalIndexingTime.Milliseconds())))
+		stringBuilder.WriteString(counterMetric(camelToSnake(topic), totalData, shardID, metricsData.TotalData))
+		stringBuilder.WriteString(counterMetric(camelToSnake(topic), errorsCount, shardID, metricsData.ErrorsCount))
+		stringBuilder.WriteString(counterMetric(camelToSnake(topic), operationCount, shardID, metricsData.OperationsCount))
+		stringBuilder.WriteString(counterMetric(camelToSnake(topic), totalTime, shardID, uint64(metricsData.TotalIndexingTime.Milliseconds())))
 	}
 
 	promMetricsOutput := stringBuilder.String()
@@ -80,4 +89,21 @@ func (sm *statusMetrics) getAllUnprotected() map[string]*request.MetricsResponse
 // IsInterfaceNil returns true if there is no value under the interface
 func (sm *statusMetrics) IsInterfaceNil() bool {
 	return sm == nil
+}
+
+func camelToSnake(camelStr string) string {
+	var snakeBuf bytes.Buffer
+
+	for i, r := range camelStr {
+		if unicode.IsUpper(r) {
+			if i > 0 && unicode.IsLower(rune(camelStr[i-1])) {
+				snakeBuf.WriteRune('_')
+			}
+			snakeBuf.WriteRune(unicode.ToLower(r))
+		} else {
+			snakeBuf.WriteRune(r)
+		}
+	}
+
+	return snakeBuf.String()
 }

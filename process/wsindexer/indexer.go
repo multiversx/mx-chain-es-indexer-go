@@ -19,6 +19,7 @@ var (
 	errNilDataIndexer = errors.New("nil data indexer")
 )
 
+// ArgsIndexer holds all the components needed to create a new instance of indexer
 type ArgsIndexer struct {
 	Marshaller    marshal.Marshalizer
 	DataIndexer   DataIndexer
