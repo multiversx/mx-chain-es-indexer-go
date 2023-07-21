@@ -7,15 +7,17 @@ import (
 	"time"
 )
 
+type StringKey string
+
 const (
 	separator = "_"
 
-	ContextKey  = "key"
-	RemoveTopic = "req_remove"
-	GetTopic    = "req_get"
-	BulkTopic   = "req_bulk"
-	UpdateTopic = "req_update"
-	ScrollTopic = "req_scroll"
+	ContextKey  StringKey = "key"
+	RemoveTopic           = "req_remove"
+	GetTopic              = "req_get"
+	BulkTopic             = "req_bulk"
+	UpdateTopic           = "req_update"
+	ScrollTopic           = "req_scroll"
 )
 
 // MetricsResponse defines the response for status metrics endpoint
