@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-es-indexer-go/core"
 	"github.com/multiversx/mx-chain-es-indexer-go/core/request"
 	"github.com/multiversx/mx-chain-es-indexer-go/metrics"
@@ -15,13 +16,20 @@ type metricsTransport struct {
 	transport     http.RoundTripper
 }
 
+// NewMetricsTransport will create a new instance of metricsTransport
 func NewMetricsTransport(statusMetrics core.StatusMetricsHandler) (*metricsTransport, error) {
+	if check.IfNil(statusMetrics) {
+		return nil, core.ErrNilMetricsHandler
+	}
+
 	return &metricsTransport{
 		statusMetrics: statusMetrics,
 		transport:     http.DefaultTransport,
 	}, nil
 }
 
+// RoundTrip implements the http.RoundTripper interface and is used as a wrapper around the underlying
+// transport to collect and record metrics related to the HTTP request/response cycle.
 func (m *metricsTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	startTime := time.Now()
 	size := req.ContentLength
