@@ -3,6 +3,7 @@
 package integrationtests
 
 import (
+	"context"
 	"encoding/hex"
 	"encoding/json"
 	"math/big"
@@ -64,7 +65,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 
 	ids := []string{"NFT-abcd-0e"}
 	genericResponse := &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse, context.Background())
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/updateNFT/token.json"), string(genericResponse.Docs[0].Source))
 
@@ -113,7 +114,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 	// Update attributes 1
 	ids = []string{"NFT-abcd-0e"}
 	genericResponse = &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse, context.Background())
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/updateNFT/token-after-add-uris.json"), string(genericResponse.Docs[0].Source))
 
@@ -139,7 +140,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 
 	ids = []string{"NFT-abcd-0e"}
 	genericResponse = &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse, context.Background())
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/updateNFT/token-after-update-attributes.json"), string(genericResponse.Docs[0].Source))
 
@@ -167,7 +168,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 
 	ids = []string{"NFT-abcd-0e"}
 	genericResponse = &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse, context.Background())
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/updateNFT/token-after-update-attributes-second.json"), string(genericResponse.Docs[0].Source))
 
@@ -193,7 +194,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 	require.Nil(t, err)
 	ids = []string{"NFT-abcd-0e"}
 	genericResponse = &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse, context.Background())
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/updateNFT/token-after-freeze.json"), string(genericResponse.Docs[0].Source))
 
@@ -219,7 +220,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 	require.Nil(t, err)
 	ids = []string{"NFT-abcd-0e"}
 	genericResponse = &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse, context.Background())
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/updateNFT/token-after-un-freeze.json"), string(genericResponse.Docs[0].Source))
 }

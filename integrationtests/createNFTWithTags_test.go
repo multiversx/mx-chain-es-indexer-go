@@ -3,6 +3,7 @@
 package integrationtests
 
 import (
+	"context"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -94,13 +95,13 @@ func TestCreateNFTWithTags(t *testing.T) {
 
 	ids := []string{fmt.Sprintf("%s-DESK-abcd-01", address1)}
 	genericResponse := &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse, context.Background())
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/createNFTWithTags/accounts-esdt-address-balance.json"), string(genericResponse.Docs[0].Source))
 
 	ids = []string{"bXVzaWM=", "aGVsbG8=", "Z2FsbGVyeQ==", "ZG8=", "YXJ0", "c29tZXRoaW5n"}
 	genericResponse = &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.TagsIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, indexerdata.TagsIndex, true, genericResponse, context.Background())
 	require.Nil(t, err)
 
 	tagsChecked := 0
@@ -141,7 +142,7 @@ func TestCreateNFTWithTags(t *testing.T) {
 	require.Nil(t, err)
 
 	genericResponse = &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.TagsIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, indexerdata.TagsIndex, true, genericResponse, context.Background())
 	require.Nil(t, err)
 
 	tagsChecked = 0
@@ -191,7 +192,7 @@ func TestCreateNFTWithTags(t *testing.T) {
 
 	ids = append(ids, "XFxcXFxcXFxcXFxcXFxcXFxcXA==", "JycnJw==", "PDw8Pj4+JiYmJiYmJiYmJiYmJiYm")
 	genericResponse = &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.TagsIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, indexerdata.TagsIndex, true, genericResponse, context.Background())
 	require.Nil(t, err)
 
 	tagsChecked = 0

@@ -3,6 +3,7 @@
 package integrationtests
 
 import (
+	"context"
 	"encoding/hex"
 	"math/big"
 	"testing"
@@ -87,7 +88,7 @@ func TestTransactionWithSCDeploy(t *testing.T) {
 
 	ids := []string{hex.EncodeToString(txHash)}
 	genericResponse := &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerData.TransactionsIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, indexerData.TransactionsIndex, true, genericResponse, context.Background())
 	require.Nil(t, err)
 
 	require.JSONEq(t,
@@ -96,7 +97,7 @@ func TestTransactionWithSCDeploy(t *testing.T) {
 	)
 
 	ids = []string{"erd1qqqqqqqqqqqqqpgq4t2tqxpst9a6qttpak8cz8wvz6a0nses5qfqel6rhy"}
-	err = esClient.DoMultiGet(ids, indexerData.SCDeploysIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, indexerData.SCDeploysIndex, true, genericResponse, context.Background())
 	require.Nil(t, err)
 
 	require.JSONEq(t,

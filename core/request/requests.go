@@ -11,13 +11,19 @@ import (
 type StringKeyType string
 
 const (
-	ContextKey  StringKeyType = "key"
-	separator   string        = "_"
-	RemoveTopic string        = "req_remove"
-	GetTopic    string        = "req_get"
-	BulkTopic   string        = "req_bulk"
-	UpdateTopic string        = "req_update"
-	ScrollTopic string        = "req_scroll"
+	// ContextKey the key for the value that will be added in the context
+	ContextKey StringKeyType = "key"
+	separator  string        = "_"
+	// RemoveTopic is the identifier for the remove requests metrics
+	RemoveTopic string = "req_remove"
+	// GetTopic is the identifier for the get requests metrics
+	GetTopic string = "req_get"
+	// BulkTopic is the identifier for the bulk requests metrics
+	BulkTopic string = "req_bulk"
+	// UpdateTopic is the identifier for the update requests metrics
+	UpdateTopic string = "req_update"
+	// ScrollTopic is the identifier for the scroll requests metrics
+	ScrollTopic string = "req_scroll"
 )
 
 // MetricsResponse defines the response for status metrics endpoint

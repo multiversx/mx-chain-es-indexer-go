@@ -3,6 +3,7 @@
 package integrationtests
 
 import (
+	"context"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -62,7 +63,7 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 
 	ids := []string{"SEMI-abcd"}
 	genericResponse := &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse, context.Background())
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/accountsESDTWithTokenType/token-after-issue.json"), string(genericResponse.Docs[0].Source))
 
@@ -124,7 +125,7 @@ func TestIndexAccountESDTWithTokenType(t *testing.T) {
 
 	ids = []string{fmt.Sprintf("%s-SEMI-abcd-02", address)}
 	genericResponse = &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse, context.Background())
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/accountsESDTWithTokenType/account-esdt.json"), string(genericResponse.Docs[0].Source))
 
@@ -197,7 +198,7 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 
 	ids := []string{fmt.Sprintf("%s-TTTT-abcd-02", address)}
 	genericResponse := &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse, context.Background())
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/accountsESDTWithTokenType/account-esdt-without-type.json"), string(genericResponse.Docs[0].Source))
 
@@ -237,19 +238,19 @@ func TestIndexAccountESDTWithTokenTypeShardFirstAndMetachainAfter(t *testing.T) 
 
 	ids = []string{"TTTT-abcd"}
 	genericResponse = &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse, context.Background())
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/accountsESDTWithTokenType/semi-fungible-token.json"), string(genericResponse.Docs[0].Source))
 
 	ids = []string{fmt.Sprintf("%s-TTTT-abcd-02", address)}
 	genericResponse = &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse, context.Background())
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/accountsESDTWithTokenType/account-esdt-with-type.json"), string(genericResponse.Docs[0].Source))
 
 	ids = []string{"TTTT-abcd-02"}
 	genericResponse = &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse, context.Background())
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/accountsESDTWithTokenType/semi-fungible-token-after-create.json"), string(genericResponse.Docs[0].Source))
 }

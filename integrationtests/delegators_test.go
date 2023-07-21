@@ -3,6 +3,7 @@
 package integrationtests
 
 import (
+	"context"
 	"encoding/hex"
 	"math/big"
 	"testing"
@@ -64,7 +65,7 @@ func TestDelegateUnDelegateAndWithdraw(t *testing.T) {
 
 	ids := []string{"9v/pLAXxUZJ4Oy1U+x5al/Xg5sebh1dYCRTeZwg/u68="}
 	genericResponse := &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.DelegatorsIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, indexerdata.DelegatorsIndex, true, genericResponse, context.Background())
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/delegators/delegator-after-delegate.json"), string(genericResponse.Docs[0].Source))
 
@@ -94,7 +95,7 @@ func TestDelegateUnDelegateAndWithdraw(t *testing.T) {
 	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
 	require.Nil(t, err)
 
-	err = esClient.DoMultiGet(ids, indexerdata.DelegatorsIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, indexerdata.DelegatorsIndex, true, genericResponse, context.Background())
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/delegators/delegator-after-un-delegate-1.json"), string(genericResponse.Docs[0].Source))
 
@@ -124,7 +125,7 @@ func TestDelegateUnDelegateAndWithdraw(t *testing.T) {
 	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
 	require.Nil(t, err)
 
-	err = esClient.DoMultiGet(ids, indexerdata.DelegatorsIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, indexerdata.DelegatorsIndex, true, genericResponse, context.Background())
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/delegators/delegator-after-un-delegate-2.json"), string(genericResponse.Docs[0].Source))
 	time.Sleep(time.Second)
@@ -135,7 +136,7 @@ func TestDelegateUnDelegateAndWithdraw(t *testing.T) {
 	require.Nil(t, err)
 
 	time.Sleep(time.Second)
-	err = esClient.DoMultiGet(ids, indexerdata.DelegatorsIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, indexerdata.DelegatorsIndex, true, genericResponse, context.Background())
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/delegators/delegator-after-revert.json"), string(genericResponse.Docs[0].Source))
 
@@ -164,7 +165,7 @@ func TestDelegateUnDelegateAndWithdraw(t *testing.T) {
 	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
 	require.Nil(t, err)
 
-	err = esClient.DoMultiGet(ids, indexerdata.DelegatorsIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, indexerdata.DelegatorsIndex, true, genericResponse, context.Background())
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/delegators/delegator-after-withdraw.json"), string(genericResponse.Docs[0].Source))
 }

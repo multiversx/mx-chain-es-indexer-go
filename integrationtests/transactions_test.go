@@ -3,6 +3,7 @@
 package integrationtests
 
 import (
+	"context"
 	"encoding/hex"
 	"math/big"
 	"testing"
@@ -68,7 +69,7 @@ func TestElasticIndexerSaveTransactions(t *testing.T) {
 
 	ids := []string{hex.EncodeToString(txHash)}
 	genericResponse := &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerData.TransactionsIndex, true, genericResponse)
+	err = esClient.DoMultiGet(ids, indexerData.TransactionsIndex, true, genericResponse, context.Background())
 	require.Nil(t, err)
 
 	require.JSONEq(t,
