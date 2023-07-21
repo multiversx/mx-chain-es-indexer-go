@@ -7,17 +7,17 @@ import (
 	"time"
 )
 
-type StringKey string
+// StringKeyType defines the type for the context key
+type StringKeyType string
 
 const (
-	separator = "_"
-
-	ContextKey  StringKey = "key"
-	RemoveTopic           = "req_remove"
-	GetTopic              = "req_get"
-	BulkTopic             = "req_bulk"
-	UpdateTopic           = "req_update"
-	ScrollTopic           = "req_scroll"
+	ContextKey  StringKeyType = "key"
+	separator   string        = "_"
+	RemoveTopic string        = "req_remove"
+	GetTopic    string        = "req_get"
+	BulkTopic   string        = "req_bulk"
+	UpdateTopic string        = "req_update"
+	ScrollTopic string        = "req_scroll"
 )
 
 // MetricsResponse defines the response for status metrics endpoint
