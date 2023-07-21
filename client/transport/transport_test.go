@@ -50,3 +50,23 @@ func TestMetricsTransport_RoundTrip(t *testing.T) {
 	require.Equal(t, uint64(0), metricsMap[testTopic].ErrorsCount)
 	require.Equal(t, uint64(4), metricsMap[testTopic].TotalData)
 }
+
+func TestMetricsTransport_RoundTripNoValueInContextShouldNoAddMetrics(t *testing.T) {
+	t.Parallel()
+
+	metricsHandler := metrics.NewStatusMetrics()
+	transportHandler, _ := NewMetricsTransport(metricsHandler)
+
+	transportHandler.transport = &mock.TransportMock{
+		Response: &http.Response{
+			StatusCode: http.StatusOK,
+		},
+		Err: nil,
+	}
+
+	req, _ := http.NewRequestWithContext(context.Background(), http.MethodGet, "dummy", bytes.NewBuffer([]byte("test")))
+	_, _ = transportHandler.RoundTrip(req)
+
+	metricsMap := metricsHandler.GetMetrics()
+	require.Len(t, metricsMap, 0)
+}

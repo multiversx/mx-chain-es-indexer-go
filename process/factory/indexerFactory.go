@@ -110,7 +110,7 @@ func createElasticClient(args ArgsIndexerFactory) (elasticproc.DatabaseClientHan
 		RetryBackoff:  retryBackOff,
 	}
 
-	if args.StatusMetrics == nil {
+	if check.IfNil(args.StatusMetrics) {
 		return client.NewElasticClient(argsEsClient)
 	}
 

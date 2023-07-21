@@ -46,11 +46,12 @@ func SplitTopicAndShardID(topicWithShardID string) (string, uint32) {
 		return topicWithShardID, 0
 	}
 
-	shardIDStr := split[len(split)-1]
+	shardIDIndex := len(split) - 1
+	shardIDStr := split[shardIDIndex]
 	shardID, err := strconv.ParseUint(shardIDStr, 10, 32)
 	if err != nil {
 		return topicWithShardID, 0
 	}
 
-	return strings.Join(split[:len(split)-1], separator), uint32(shardID)
+	return strings.Join(split[:shardIDIndex], separator), uint32(shardID)
 }
