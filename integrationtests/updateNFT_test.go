@@ -3,6 +3,7 @@
 package integrationtests
 
 import (
+	"bytes"
 	"encoding/hex"
 	"encoding/json"
 	"math/big"
@@ -23,9 +24,10 @@ func TestNFTUpdateMetadata(t *testing.T) {
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
+	bigUri := bytes.Repeat([]byte("a"), 50000)
 	esdtCreateData := &esdt.ESDigitalToken{
 		TokenMetaData: &esdt.MetaData{
-			URIs: [][]byte{[]byte("uri"), []byte("uri")},
+			URIs: [][]byte{[]byte("uri"), []byte("uri"), bigUri, bigUri, bigUri},
 		},
 	}
 	marshalizedCreate, _ := json.Marshal(esdtCreateData)
@@ -78,7 +80,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 						{
 							Address:    decodeAddress(address),
 							Identifier: []byte(core.BuiltInFunctionESDTNFTAddURI),
-							Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("uri1"), []byte("uri2")},
+							Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("uri"), bigUri},
 						},
 						nil,
 					},
@@ -99,7 +101,7 @@ func TestNFTUpdateMetadata(t *testing.T) {
 						{
 							Address:    decodeAddress(address),
 							Identifier: []byte(core.BuiltInFunctionESDTNFTAddURI),
-							Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("uri1"), []byte("uri2")},
+							Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("uri"), bigUri},
 						},
 						nil,
 					},
