@@ -33,7 +33,7 @@ func TestElasticClient_DoCountRequest(t *testing.T) {
 		Logger:    &logging.CustomLogger{},
 	})
 
-	count, err := esClient.DoCountRequest("tokens", []byte(`{}`), context.Background())
+	count, err := esClient.DoCountRequest(context.Background(), "tokens", []byte(`{}`))
 	require.Nil(t, err)
 	require.Equal(t, uint64(112671), count)
 }

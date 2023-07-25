@@ -11,6 +11,7 @@ import (
 type StringKeyType string
 
 const (
+	noShardID = "#"
 	// ContextKey the key for the value that will be added in the context
 	ContextKey StringKeyType = "key"
 	separator  string        = "_"
@@ -40,18 +41,18 @@ func ExtendTopicWithShardID(topic string, shardID uint32) string {
 }
 
 // SplitTopicAndShardID will extract shard id from the provided topic
-func SplitTopicAndShardID(topicWithShardID string) (string, uint32) {
+func SplitTopicAndShardID(topicWithShardID string) (string, string) {
 	split := strings.Split(topicWithShardID, separator)
 	if len(split) < 2 {
-		return topicWithShardID, 0
+		return topicWithShardID, noShardID
 	}
 
 	shardIDIndex := len(split) - 1
 	shardIDStr := split[shardIDIndex]
-	shardID, err := strconv.ParseUint(shardIDStr, 10, 32)
+	_, err := strconv.ParseUint(shardIDStr, 10, 32)
 	if err != nil {
-		return topicWithShardID, 0
+		return topicWithShardID, noShardID
 	}
 
-	return strings.Join(split[:shardIDIndex], separator), uint32(shardID)
+	return strings.Join(split[:shardIDIndex], separator), shardIDStr
 }

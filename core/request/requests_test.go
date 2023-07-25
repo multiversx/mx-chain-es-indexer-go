@@ -1,6 +1,7 @@
 package request
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
@@ -20,17 +21,17 @@ func TestSplitTopicAndShardID(t *testing.T) {
 
 	topic, shardID := SplitTopicAndShardID("req_update_2")
 	require.Equal(t, UpdateTopic, topic)
-	require.Equal(t, uint32(2), shardID)
+	require.Equal(t, "2", shardID)
 
 	topic, shardID = SplitTopicAndShardID("req_scroll_4294967295")
 	require.Equal(t, ScrollTopic, topic)
-	require.Equal(t, core.MetachainShardId, shardID)
+	require.Equal(t, fmt.Sprintf("%d", core.MetachainShardId), shardID)
 
 	topic, shardID = SplitTopicAndShardID("req")
 	require.Equal(t, "req", topic)
-	require.Equal(t, uint32(0), shardID)
+	require.Equal(t, noShardID, shardID)
 
 	topic, shardID = SplitTopicAndShardID("req_aaaa")
 	require.Equal(t, "req_aaaa", topic)
-	require.Equal(t, uint32(0), shardID)
+	require.Equal(t, noShardID, shardID)
 }

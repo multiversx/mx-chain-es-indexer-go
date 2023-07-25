@@ -2,14 +2,13 @@ package metrics
 
 import (
 	"bytes"
-	"fmt"
 
 	dto "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
 	"google.golang.org/protobuf/proto"
 )
 
-func counterMetric(metricName, operation string, shardID uint32, count uint64) string {
+func counterMetric(metricName, operation string, shardIDStr string, count uint64) string {
 	metricFamily := &dto.MetricFamily{
 		Name: proto.String(metricName),
 		Type: dto.MetricType_COUNTER.Enum(),
@@ -22,7 +21,7 @@ func counterMetric(metricName, operation string, shardID uint32, count uint64) s
 					},
 					{
 						Name:  proto.String("shardID"),
-						Value: proto.String(fmt.Sprintf("%d", shardID)),
+						Value: proto.String(shardIDStr),
 					},
 				},
 				Counter: &dto.Counter{

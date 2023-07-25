@@ -75,13 +75,13 @@ func (ei *elasticProcessor) addTokenType(tokensData []*data.TokenInfo, index str
 
 		ctxWithValue := context.WithValue(context.Background(), request.ContextKey, request.ExtendTopicWithShardID(request.GetTopic, shardID))
 		query := fmt.Sprintf(`{"query": {"bool": {"must": [{"match": {"token": {"query": "%s","operator": "AND"}}}],"must_not":[{"exists": {"field": "type"}}]}}}`, td.Token)
-		resultsCount, err := ei.elasticClient.DoCountRequest(index, []byte(query), ctxWithValue)
+		resultsCount, err := ei.elasticClient.DoCountRequest(ctxWithValue, index, []byte(query))
 		if err != nil || resultsCount == 0 {
 			return err
 		}
 
 		ctxWithValue = context.WithValue(context.Background(), request.ContextKey, request.ExtendTopicWithShardID(request.ScrollTopic, shardID))
-		err = ei.elasticClient.DoScrollRequest(index, []byte(query), false, handlerFunc, ctxWithValue)
+		err = ei.elasticClient.DoScrollRequest(ctxWithValue, index, []byte(query), false, handlerFunc)
 		if err != nil {
 			return err
 		}

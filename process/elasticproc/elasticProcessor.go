@@ -214,7 +214,7 @@ func (ei *elasticProcessor) getExistingObjMap(hashes []string, index string, sha
 
 	ctx := context.WithValue(context.Background(), request.ContextKey, request.ExtendTopicWithShardID(request.GetTopic, shardID))
 	response := make(objectsMap)
-	err := ei.elasticClient.DoMultiGet(hashes, index, false, &response, ctx)
+	err := ei.elasticClient.DoMultiGet(ctx, hashes, index, false, &response)
 	if err != nil {
 		return make(map[string]bool), err
 	}
@@ -293,9 +293,9 @@ func (ei *elasticProcessor) RemoveHeader(header coreData.HeaderHandler) error {
 
 	ctxWithValue := context.WithValue(context.Background(), request.ContextKey, request.ExtendTopicWithShardID(request.RemoveTopic, header.GetShardID()))
 	return ei.elasticClient.DoQueryRemove(
+		ctxWithValue,
 		elasticIndexer.BlockIndex,
 		converters.PrepareHashesForQueryRemove([]string{hex.EncodeToString(headerHash)}),
-		ctxWithValue,
 	)
 }
 
@@ -308,9 +308,9 @@ func (ei *elasticProcessor) RemoveMiniblocks(header coreData.HeaderHandler, body
 
 	ctxWithValue := context.WithValue(context.Background(), request.ContextKey, request.ExtendTopicWithShardID(request.RemoveTopic, header.GetShardID()))
 	return ei.elasticClient.DoQueryRemove(
+		ctxWithValue,
 		elasticIndexer.MiniblocksIndex,
 		converters.PrepareHashesForQueryRemove(encodedMiniblocksHashes),
-		ctxWithValue,
 	)
 }
 
@@ -353,7 +353,7 @@ func (ei *elasticProcessor) updateDelegatorsInCaseOfRevert(header coreData.Heade
 
 	ctxWithValue := context.WithValue(context.Background(), request.ContextKey, request.ExtendTopicWithShardID(request.UpdateTopic, header.GetShardID()))
 	delegatorsQuery := ei.logsAndEventsProc.PrepareDelegatorsQueryInCaseOfRevert(header.GetTimeStamp())
-	return ei.elasticClient.UpdateByQuery(elasticIndexer.DelegatorsIndex, delegatorsQuery, ctxWithValue)
+	return ei.elasticClient.UpdateByQuery(ctxWithValue, elasticIndexer.DelegatorsIndex, delegatorsQuery)
 }
 
 func (ei *elasticProcessor) removeIfHashesNotEmpty(index string, hashes []string, shardID uint32) error {
@@ -363,9 +363,9 @@ func (ei *elasticProcessor) removeIfHashesNotEmpty(index string, hashes []string
 
 	ctxWithValue := context.WithValue(context.Background(), request.ContextKey, request.ExtendTopicWithShardID(request.RemoveTopic, shardID))
 	return ei.elasticClient.DoQueryRemove(
+		ctxWithValue,
 		index,
 		converters.PrepareHashesForQueryRemove(hashes),
-		ctxWithValue,
 	)
 }
 
@@ -374,18 +374,18 @@ func (ei *elasticProcessor) RemoveAccountsESDT(headerTimestamp uint64, shardID u
 	ctxWithValue := context.WithValue(context.Background(), request.ContextKey, request.ExtendTopicWithShardID(request.RemoveTopic, shardID))
 	query := fmt.Sprintf(`{"query": {"bool": {"must": [{"match": {"shardID": {"query": %d,"operator": "AND"}}},{"match": {"timestamp": {"query": "%d","operator": "AND"}}}]}}}`, shardID, headerTimestamp)
 	err := ei.elasticClient.DoQueryRemove(
+		ctxWithValue,
 		elasticIndexer.AccountsESDTIndex,
 		bytes.NewBuffer([]byte(query)),
-		ctxWithValue,
 	)
 	if err != nil {
 		return err
 	}
 
 	return ei.elasticClient.DoQueryRemove(
+		ctxWithValue,
 		elasticIndexer.AccountsESDTHistoryIndex,
 		bytes.NewBuffer([]byte(query)),
-		ctxWithValue,
 	)
 }
 
@@ -620,7 +620,7 @@ func (ei *elasticProcessor) SaveRoundsInfo(rounds *outport.RoundsInfo) error {
 	buff := ei.statisticsProc.SerializeRoundsInfo(rounds)
 
 	ctxWithValue := context.WithValue(context.Background(), request.ContextKey, request.ExtendTopicWithShardID(request.BulkTopic, rounds.ShardID))
-	return ei.elasticClient.DoBulkRequest(buff, elasticIndexer.RoundsIndex, ctxWithValue)
+	return ei.elasticClient.DoBulkRequest(ctxWithValue, buff, elasticIndexer.RoundsIndex)
 }
 
 func (ei *elasticProcessor) indexAlteredAccounts(
@@ -670,7 +670,7 @@ func (ei *elasticProcessor) addTokenTypeAndCurrentOwnerInAccountsESDT(tokensData
 
 	responseTokens := &data.ResponseTokens{}
 	ctxWithValue := context.WithValue(context.Background(), request.ContextKey, request.ExtendTopicWithShardID(request.GetTopic, shardID))
-	err := ei.elasticClient.DoMultiGet(tokensData.GetAllTokens(), elasticIndexer.TokensIndex, true, responseTokens, ctxWithValue)
+	err := ei.elasticClient.DoMultiGet(ctxWithValue, tokensData.GetAllTokens(), elasticIndexer.TokensIndex, true, responseTokens)
 	if err != nil {
 		return err
 	}
@@ -710,7 +710,7 @@ func (ei *elasticProcessor) indexNFTCreateInfo(tokensData data.TokensHandler, co
 
 	ctxWithValue := context.WithValue(context.Background(), request.ContextKey, request.ExtendTopicWithShardID(request.GetTopic, shardID))
 	responseTokens := &data.ResponseTokens{}
-	err := ei.elasticClient.DoMultiGet(tokensData.GetAllTokens(), elasticIndexer.TokensIndex, true, responseTokens, ctxWithValue)
+	err := ei.elasticClient.DoMultiGet(ctxWithValue, tokensData.GetAllTokens(), elasticIndexer.TokensIndex, true, responseTokens)
 	if err != nil {
 		return err
 	}
@@ -731,7 +731,7 @@ func (ei *elasticProcessor) indexNFTBurnInfo(tokensData data.TokensHandler, buff
 
 	ctxWithValue := context.WithValue(context.Background(), request.ContextKey, request.ExtendTopicWithShardID(request.GetTopic, shardID))
 	responseTokens := &data.ResponseTokens{}
-	err := ei.elasticClient.DoMultiGet(tokensData.GetAllTokens(), elasticIndexer.TokensIndex, true, responseTokens, ctxWithValue)
+	err := ei.elasticClient.DoMultiGet(ctxWithValue, tokensData.GetAllTokens(), elasticIndexer.TokensIndex, true, responseTokens)
 	if err != nil {
 		return err
 	}
@@ -827,7 +827,7 @@ func (ei *elasticProcessor) doBulkRequests(index string, buffSlice []*bytes.Buff
 	var err error
 	for idx := range buffSlice {
 		ctxWithValue := context.WithValue(context.Background(), request.ContextKey, request.ExtendTopicWithShardID(request.BulkTopic, shardID))
-		err = ei.elasticClient.DoBulkRequest(buffSlice[idx], index, ctxWithValue)
+		err = ei.elasticClient.DoBulkRequest(ctxWithValue, buffSlice[idx], index)
 		if err != nil {
 			return err
 		}

@@ -26,6 +26,14 @@ func TestNewMetricsTransport(t *testing.T) {
 	require.NotNil(t, transportHandler)
 }
 
+func TestMetricsTransport_NilRequest(t *testing.T) {
+	metricsHandler := metrics.NewStatusMetrics()
+	transportHandler, _ := NewMetricsTransport(metricsHandler)
+
+	_, err := transportHandler.RoundTrip(nil)
+	require.Equal(t, errNilRequest, err)
+}
+
 func TestMetricsTransport_RoundTrip(t *testing.T) {
 	t.Parallel()
 

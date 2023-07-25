@@ -14,7 +14,7 @@ import (
 )
 
 // DoCountRequest will get the number of elements that correspond with the provided query
-func (ec *elasticClient) DoCountRequest(index string, body []byte, ctx context.Context) (uint64, error) {
+func (ec *elasticClient) DoCountRequest(ctx context.Context, index string, body []byte) (uint64, error) {
 	res, err := ec.client.Count(
 		ec.client.Count.WithIndex(index),
 		ec.client.Count.WithBody(bytes.NewBuffer(body)),
@@ -39,11 +39,11 @@ func (ec *elasticClient) DoCountRequest(index string, body []byte, ctx context.C
 
 // DoScrollRequest will perform a documents request using scroll api
 func (ec *elasticClient) DoScrollRequest(
+	ctx context.Context,
 	index string,
 	body []byte,
 	withSource bool,
 	handlerFunc func(responseBytes []byte) error,
-	ctx context.Context,
 ) error {
 	ec.countScroll++
 	res, err := ec.client.Search(

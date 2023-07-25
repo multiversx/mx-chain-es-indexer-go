@@ -33,7 +33,7 @@ func (sm *statusMetrics) AddIndexingData(args ArgsAddIndexingData) {
 	sm.mut.Lock()
 	defer sm.mut.Unlock()
 
-	topic := args.Topic
+	topic := camelToSnake(args.Topic)
 	_, found := sm.metrics[topic]
 	if !found {
 		sm.metrics[topic] = &request.MetricsResponse{}
@@ -65,11 +65,11 @@ func (sm *statusMetrics) GetMetricsForPrometheus() string {
 	stringBuilder := strings.Builder{}
 
 	for topicWithShardID, metricsData := range metrics {
-		topic, shardID := request.SplitTopicAndShardID(topicWithShardID)
-		stringBuilder.WriteString(counterMetric(camelToSnake(topic), totalData, shardID, metricsData.TotalData))
-		stringBuilder.WriteString(counterMetric(camelToSnake(topic), errorsCount, shardID, metricsData.ErrorsCount))
-		stringBuilder.WriteString(counterMetric(camelToSnake(topic), operationCount, shardID, metricsData.OperationsCount))
-		stringBuilder.WriteString(counterMetric(camelToSnake(topic), totalTime, shardID, uint64(metricsData.TotalIndexingTime.Milliseconds())))
+		topic, shardIDStr := request.SplitTopicAndShardID(topicWithShardID)
+		stringBuilder.WriteString(counterMetric(topic, totalData, shardIDStr, metricsData.TotalData))
+		stringBuilder.WriteString(counterMetric(topic, errorsCount, shardIDStr, metricsData.ErrorsCount))
+		stringBuilder.WriteString(counterMetric(topic, operationCount, shardIDStr, metricsData.OperationsCount))
+		stringBuilder.WriteString(counterMetric(topic, totalTime, shardIDStr, uint64(metricsData.TotalIndexingTime.Milliseconds())))
 	}
 
 	promMetricsOutput := stringBuilder.String()

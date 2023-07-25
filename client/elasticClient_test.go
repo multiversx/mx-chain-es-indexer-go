@@ -64,12 +64,12 @@ func TestElasticClient_DoMultiGet(t *testing.T) {
 
 	ids := []string{"id"}
 	res := &data.ResponseTokens{}
-	err := esClient.DoMultiGet(ids, "tokens", true, res, context.Background())
+	err := esClient.DoMultiGet(context.Background(), ids, "tokens", true, res)
 	require.Nil(t, err)
 	require.Len(t, res.Docs, 3)
 
 	resMap := make(objectsMap)
-	err = esClient.DoMultiGet(ids, "tokens", true, &resMap, context.Background())
+	err = esClient.DoMultiGet(context.Background(), ids, "tokens", true, &resMap)
 	require.Nil(t, err)
 
 	_, ok := resMap["docs"]
