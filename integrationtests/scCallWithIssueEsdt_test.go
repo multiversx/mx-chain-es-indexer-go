@@ -102,7 +102,7 @@ func TestScCallIntraShardWithIssueESDT(t *testing.T) {
 
 	ids := []string{hex.EncodeToString(txHash)}
 	genericResponse := &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerData.TransactionsIndex, true, genericResponse, context.Background())
+	err = esClient.DoMultiGet(context.Background(), ids, indexerData.TransactionsIndex, true, genericResponse)
 	require.Nil(t, err)
 
 	require.JSONEq(t,
@@ -111,7 +111,7 @@ func TestScCallIntraShardWithIssueESDT(t *testing.T) {
 	)
 
 	ids = []string{hex.EncodeToString(scrWithIssueHash)}
-	err = esClient.DoMultiGet(ids, indexerData.OperationsIndex, true, genericResponse, context.Background())
+	err = esClient.DoMultiGet(context.Background(), ids, indexerData.OperationsIndex, true, genericResponse)
 	require.Nil(t, err)
 
 	require.JSONEq(t,
@@ -164,7 +164,7 @@ func TestScCallIntraShardWithIssueESDT(t *testing.T) {
 	require.Nil(t, err)
 
 	ids = []string{hex.EncodeToString(scrWithIssueHash), hex.EncodeToString(scrWithCallBackHash)}
-	err = esClient.DoMultiGet(ids, indexerData.OperationsIndex, true, genericResponse, context.Background())
+	err = esClient.DoMultiGet(context.Background(), ids, indexerData.OperationsIndex, true, genericResponse)
 	require.Nil(t, err)
 
 	require.JSONEq(t,
@@ -217,7 +217,7 @@ func TestScCallIntraShardWithIssueESDT(t *testing.T) {
 	require.Nil(t, err)
 
 	ids = []string{hex.EncodeToString(txHash)}
-	err = esClient.DoMultiGet(ids, indexerData.TransactionsIndex, true, genericResponse, context.Background())
+	err = esClient.DoMultiGet(context.Background(), ids, indexerData.TransactionsIndex, true, genericResponse)
 	require.Nil(t, err)
 
 	require.JSONEq(t,
@@ -226,7 +226,7 @@ func TestScCallIntraShardWithIssueESDT(t *testing.T) {
 	)
 
 	ids = []string{hex.EncodeToString(txHash), hex.EncodeToString(scrWithCallBackHash)}
-	err = esClient.DoMultiGet(ids, indexerData.OperationsIndex, true, genericResponse, context.Background())
+	err = esClient.DoMultiGet(context.Background(), ids, indexerData.OperationsIndex, true, genericResponse)
 	require.Nil(t, err)
 
 	require.JSONEq(t,

@@ -61,7 +61,7 @@ func TestIssueNFTCreateAndBurn(t *testing.T) {
 
 	ids := []string{"NON-abcd"}
 	genericResponse := &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse, context.Background())
+	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.TokensIndex, true, genericResponse)
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/nftIssueCreateBurn/non-fungible-after-issue.json"), string(genericResponse.Docs[0].Source))
 
@@ -106,7 +106,7 @@ func TestIssueNFTCreateAndBurn(t *testing.T) {
 
 	ids = []string{"NON-abcd-02"}
 	genericResponse = &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse, context.Background())
+	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.TokensIndex, true, genericResponse)
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/nftIssueCreateBurn/non-fungible-after-create.json"), string(genericResponse.Docs[0].Source))
 
@@ -142,7 +142,7 @@ func TestIssueNFTCreateAndBurn(t *testing.T) {
 
 	ids = []string{"NON-abcd-02"}
 	genericResponse = &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.TokensIndex, true, genericResponse, context.Background())
+	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.TokensIndex, true, genericResponse)
 	require.Nil(t, err)
 	require.False(t, genericResponse.Docs[0].Found)
 }

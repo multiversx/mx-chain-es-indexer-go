@@ -98,7 +98,7 @@ func TestNFTTransferCrossShardWithSCCall(t *testing.T) {
 
 	ids := []string{hex.EncodeToString(txHash)}
 	genericResponse := &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.TransactionsIndex, true, genericResponse, context.Background())
+	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.TransactionsIndex, true, genericResponse)
 	require.Nil(t, err)
 
 	require.JSONEq(t,
@@ -136,7 +136,7 @@ func TestNFTTransferCrossShardWithSCCall(t *testing.T) {
 	err = esProc.SaveTransactions(createOutportBlockWithHeader(bodyDstShard, header, poolDstShard, nil, testNumOfShards))
 	require.Nil(t, err)
 
-	err = esClient.DoMultiGet(ids, indexerdata.TransactionsIndex, true, genericResponse, context.Background())
+	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.TransactionsIndex, true, genericResponse)
 	require.Nil(t, err)
 
 	require.JSONEq(t,
@@ -145,7 +145,7 @@ func TestNFTTransferCrossShardWithSCCall(t *testing.T) {
 	)
 
 	genericResponse = &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.OperationsIndex, true, genericResponse, context.Background())
+	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.OperationsIndex, true, genericResponse)
 	require.Nil(t, err)
 	require.JSONEq(t,
 		readExpectedResult("./testdata/nftTransferCrossShard/op-nft-transfer-sc-call-after-refund.json"),
@@ -242,7 +242,7 @@ func TestNFTTransferCrossShard(t *testing.T) {
 
 	ids := []string{hex.EncodeToString(txHash)}
 	genericResponse := &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.TransactionsIndex, true, genericResponse, context.Background())
+	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.TransactionsIndex, true, genericResponse)
 	require.Nil(t, err)
 
 	require.JSONEq(t,
@@ -292,7 +292,7 @@ func TestNFTTransferCrossShard(t *testing.T) {
 	err = esProc.SaveTransactions(createOutportBlockWithHeader(bodyDstShard, header, poolDstShard, nil, testNumOfShards))
 	require.Nil(t, err)
 
-	err = esClient.DoMultiGet(ids, indexerdata.TransactionsIndex, true, genericResponse, context.Background())
+	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.TransactionsIndex, true, genericResponse)
 	require.Nil(t, err)
 
 	require.JSONEq(t,
@@ -374,7 +374,7 @@ func TestNFTTransferCrossShardImportDBScenarioFirstIndexDestinationAfterSource(t
 	err = esProc.SaveTransactions(createOutportBlockWithHeader(bodyDstShard, header, poolDstShard, nil, testNumOfShards))
 	require.Nil(t, err)
 
-	err = esClient.DoMultiGet(ids, indexerdata.TransactionsIndex, true, genericResponse, context.Background())
+	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.TransactionsIndex, true, genericResponse)
 	require.Nil(t, err)
 
 	require.JSONEq(t,
@@ -443,7 +443,7 @@ func TestNFTTransferCrossShardImportDBScenarioFirstIndexDestinationAfterSource(t
 	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
 	require.Nil(t, err)
 
-	err = esClient.DoMultiGet(ids, indexerdata.TransactionsIndex, true, genericResponse, context.Background())
+	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.TransactionsIndex, true, genericResponse)
 	require.Nil(t, err)
 
 	require.JSONEq(t,

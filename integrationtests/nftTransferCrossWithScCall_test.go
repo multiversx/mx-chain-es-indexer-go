@@ -93,7 +93,7 @@ func TestNFTTransferCrossShardWithScCall(t *testing.T) {
 
 	ids := []string{hex.EncodeToString(txHash)}
 	genericResponse := &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.TransactionsIndex, true, genericResponse, context.Background())
+	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.TransactionsIndex, true, genericResponse)
 	require.Nil(t, err)
 	require.JSONEq(t,
 		readExpectedResult("./testdata/nftTransferCrossShardWithScCall/cross-shard-transfer-with-sc-call.json"),

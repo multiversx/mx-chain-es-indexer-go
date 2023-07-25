@@ -96,7 +96,7 @@ func TestRelayedTransactionGasUsedCrossShard(t *testing.T) {
 
 	ids := []string{hex.EncodeToString(txHash)}
 	genericResponse := &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.TransactionsIndex, true, genericResponse, context.Background())
+	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.TransactionsIndex, true, genericResponse)
 	require.Nil(t, err)
 
 	require.JSONEq(t,
@@ -136,7 +136,7 @@ func TestRelayedTransactionGasUsedCrossShard(t *testing.T) {
 	err = esProc.SaveTransactions(createOutportBlockWithHeader(bodyDstShard, header, poolDstShard, nil, testNumOfShards))
 	require.Nil(t, err)
 
-	err = esClient.DoMultiGet(ids, indexerdata.TransactionsIndex, true, genericResponse, context.Background())
+	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.TransactionsIndex, true, genericResponse)
 	require.Nil(t, err)
 
 	require.JSONEq(t,
@@ -237,7 +237,7 @@ func TestRelayedTransactionIntraShard(t *testing.T) {
 
 	ids := []string{hex.EncodeToString(txHash)}
 	genericResponse := &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.TransactionsIndex, true, genericResponse, context.Background())
+	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.TransactionsIndex, true, genericResponse)
 	require.Nil(t, err)
 
 	require.JSONEq(t,
