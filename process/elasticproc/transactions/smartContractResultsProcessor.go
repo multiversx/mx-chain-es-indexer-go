@@ -41,7 +41,7 @@ func newSmartContractResultsProcessor(
 }
 
 func (proc *smartContractResultsProcessor) processSCRs(
-	body *block.Body,
+	miniBlocks []*block.MiniBlock,
 	header coreData.HeaderHandler,
 	scrs map[string]*outport.SCRInfo,
 	numOfShards uint32,
@@ -50,7 +50,7 @@ func (proc *smartContractResultsProcessor) processSCRs(
 
 	// a copy of the SCRS map is needed because proc.processSCRsFromMiniblock would remove items from the original map
 	workingSCRSMap := copySCRSMap(scrs)
-	for _, mb := range body.MiniBlocks {
+	for _, mb := range miniBlocks {
 		if mb.Type != block.SmartContractResultBlock {
 			continue
 		}
