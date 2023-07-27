@@ -58,7 +58,7 @@ type DBBlockHandler interface {
 // DBTransactionsHandler defines the actions that a transactions handler should do
 type DBTransactionsHandler interface {
 	PrepareTransactionsForDatabase(
-		body *block.Body,
+		miniBlocks []*block.MiniBlock,
 		header coreData.HeaderHandler,
 		pool *outport.TransactionPool,
 		isImportDB bool,
@@ -74,7 +74,7 @@ type DBTransactionsHandler interface {
 
 // DBMiniblocksHandler defines the actions that a miniblocks handler should do
 type DBMiniblocksHandler interface {
-	PrepareDBMiniblocks(header coreData.HeaderHandler, body *block.Body) []*data.Miniblock
+	PrepareDBMiniblocks(header coreData.HeaderHandler, miniBlocks []*block.MiniBlock) []*data.Miniblock
 	GetMiniblocksHashesHexEncoded(header coreData.HeaderHandler, body *block.Body) []string
 
 	SerializeBulkMiniBlocks(bulkMbs []*data.Miniblock, mbsInDB map[string]bool, buffSlice *data.BufferSlice, index string, shardID uint32)
