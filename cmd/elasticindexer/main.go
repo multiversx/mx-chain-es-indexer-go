@@ -86,7 +86,8 @@ func startIndexer(ctx *cli.Context) error {
 	}
 
 	importDBMode := ctx.GlobalBool(importDB.Name)
-	wsHost, err := factory.CreateWsIndexer(cfg, clusterCfg, importDBMode)
+	statusMetrics := metrics.NewStatusMetrics()
+	wsHost, err := factory.CreateWsIndexer(cfg, clusterCfg, importDBMode, statusMetrics)
 	if err != nil {
 		return fmt.Errorf("%w while creating the indexer", err)
 	}
@@ -96,8 +97,7 @@ func startIndexer(ctx *cli.Context) error {
 		return fmt.Errorf("%w while loading the api config file", err)
 	}
 
-	statusMetric := metrics.NewStatusMetrics()
-	webServer, err := factory.CreateWebServer(apiConfig, statusMetric)
+	webServer, err := factory.CreateWebServer(apiConfig, statusMetrics)
 	if err != nil {
 		return fmt.Errorf("%w while creating the web server", err)
 	}

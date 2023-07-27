@@ -3,6 +3,7 @@ package facade
 import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-es-indexer-go/core"
+	"github.com/multiversx/mx-chain-es-indexer-go/core/request"
 )
 
 type metricsFacade struct {
@@ -21,7 +22,7 @@ func NewMetricsFacade(statusMetrics core.StatusMetricsHandler) (*metricsFacade, 
 }
 
 // GetMetrics will return metrics in json format
-func (mf *metricsFacade) GetMetrics() map[string]interface{} {
+func (mf *metricsFacade) GetMetrics() map[string]*request.MetricsResponse {
 	return mf.statusMetrics.GetMetrics()
 }
 

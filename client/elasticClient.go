@@ -94,8 +94,8 @@ func (ec *elasticClient) CheckAndCreateAlias(alias string, indexName string) err
 }
 
 // DoRequest will do a request to elastic server
-func (ec *elasticClient) DoRequest(req *esapi.IndexRequest) error {
-	res, err := req.Do(context.Background(), ec.client)
+func (ec *elasticClient) DoRequest(ctx context.Context, req *esapi.IndexRequest) error {
+	res, err := req.Do(ctx, ec.client)
 	if err != nil {
 		return err
 	}
@@ -104,13 +104,15 @@ func (ec *elasticClient) DoRequest(req *esapi.IndexRequest) error {
 }
 
 // DoBulkRequest will do a bulk of request to elastic server
-func (ec *elasticClient) DoBulkRequest(buff *bytes.Buffer, index string) error {
+func (ec *elasticClient) DoBulkRequest(ctx context.Context, buff *bytes.Buffer, index string) error {
 	reader := bytes.NewReader(buff.Bytes())
 
 	options := make([]func(*esapi.BulkRequest), 0)
 	if index != "" {
 		options = append(options, ec.client.Bulk.WithIndex(index))
 	}
+
+	options = append(options, ec.client.Bulk.WithContext(ctx))
 
 	res, err := ec.client.Bulk(
 		reader,
@@ -126,7 +128,7 @@ func (ec *elasticClient) DoBulkRequest(buff *bytes.Buffer, index string) error {
 }
 
 // DoMultiGet wil do a multi get request to Elasticsearch server
-func (ec *elasticClient) DoMultiGet(ids []string, index string, withSource bool, resBody interface{}) error {
+func (ec *elasticClient) DoMultiGet(ctx context.Context, ids []string, index string, withSource bool, resBody interface{}) error {
 	obj := getDocumentsByIDsQuery(ids, withSource)
 	body, err := encode(obj)
 	if err != nil {
@@ -136,6 +138,7 @@ func (ec *elasticClient) DoMultiGet(ids []string, index string, withSource bool,
 	res, err := ec.client.Mget(
 		&body,
 		ec.client.Mget.WithIndex(index),
+		ec.client.Mget.WithContext(ctx),
 	)
 	if err != nil {
 		log.Warn("elasticClient.DoMultiGet",
@@ -154,9 +157,10 @@ func (ec *elasticClient) DoMultiGet(ids []string, index string, withSource bool,
 }
 
 // DoQueryRemove will do a query remove to elasticsearch server
-func (ec *elasticClient) DoQueryRemove(index string, body *bytes.Buffer) error {
-	if err := ec.doRefresh(index); err != nil {
-		log.Warn("elasticClient.doRefresh", "cannot do refresh", err.Error())
+func (ec *elasticClient) DoQueryRemove(ctx context.Context, index string, body *bytes.Buffer) error {
+	err := ec.doRefresh(index)
+	if err != nil {
+		log.Warn("elasticClient.doRefresh", "cannot do refresh", err)
 	}
 
 	res, err := ec.client.DeleteByQuery(
@@ -164,16 +168,17 @@ func (ec *elasticClient) DoQueryRemove(index string, body *bytes.Buffer) error {
 		body,
 		ec.client.DeleteByQuery.WithIgnoreUnavailable(true),
 		ec.client.DeleteByQuery.WithConflicts(esConflictsPolicy),
+		ec.client.DeleteByQuery.WithContext(ctx),
 	)
 
 	if err != nil {
-		log.Warn("elasticClient.DoQueryRemove", "cannot do query remove", err.Error())
+		log.Warn("elasticClient.DoQueryRemove", "cannot do query remove", err)
 		return err
 	}
 
 	err = parseResponse(res, nil, elasticDefaultErrorResponseHandler)
 	if err != nil {
-		log.Warn("elasticClient.DoQueryRemove", "error parsing response", err.Error())
+		log.Warn("elasticClient.DoQueryRemove", "error parsing response", err)
 		return err
 	}
 
@@ -329,12 +334,12 @@ func (ec *elasticClient) createAlias(alias string, index string) error {
 }
 
 // UpdateByQuery will update all the documents that match the provided query from the provided index
-func (ec *elasticClient) UpdateByQuery(index string, buff *bytes.Buffer) error {
+func (ec *elasticClient) UpdateByQuery(ctx context.Context, index string, buff *bytes.Buffer) error {
 	reader := bytes.NewReader(buff.Bytes())
-
 	res, err := ec.client.UpdateByQuery(
 		[]string{index},
 		ec.client.UpdateByQuery.WithBody(reader),
+		ec.client.UpdateByQuery.WithContext(ctx),
 	)
 	if err != nil {
 		return err
