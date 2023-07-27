@@ -93,16 +93,6 @@ func (ec *elasticClient) CheckAndCreateAlias(alias string, indexName string) err
 	return ec.createAlias(alias, indexName)
 }
 
-// DoRequest will do a request to elastic server
-func (ec *elasticClient) DoRequest(ctx context.Context, req *esapi.IndexRequest) error {
-	res, err := req.Do(ctx, ec.client)
-	if err != nil {
-		return err
-	}
-
-	return parseResponse(res, nil, elasticDefaultErrorResponseHandler)
-}
-
 // DoBulkRequest will do a bulk of request to elastic server
 func (ec *elasticClient) DoBulkRequest(ctx context.Context, buff *bytes.Buffer, index string) error {
 	reader := bytes.NewReader(buff.Bytes())

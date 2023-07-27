@@ -12,13 +12,12 @@ import (
 // SerializeBulkMiniBlocks will serialize the provided miniblocks slice in a way that Elasticsearch expects a bulk request
 func (mp *miniblocksProcessor) SerializeBulkMiniBlocks(
 	bulkMbs []*data.Miniblock,
-	existsInDb map[string]bool,
 	buffSlice *data.BufferSlice,
 	index string,
 	shardID uint32,
 ) {
 	for _, mb := range bulkMbs {
-		meta, serializedData, err := mp.prepareMiniblockData(mb, existsInDb[mb.Hash], index, shardID)
+		meta, serializedData, err := mp.prepareMiniblockData(mb, index, shardID)
 		if err != nil {
 			log.Warn("miniblocksProcessor.prepareMiniblockData cannot prepare miniblock data", "error", err)
 			continue
@@ -32,28 +31,40 @@ func (mp *miniblocksProcessor) SerializeBulkMiniBlocks(
 	}
 }
 
-func (mp *miniblocksProcessor) prepareMiniblockData(miniblockDB *data.Miniblock, isInDB bool, index string, shardID uint32) ([]byte, []byte, error) {
+func (mp *miniblocksProcessor) prepareMiniblockData(miniblockDB *data.Miniblock, index string, shardID uint32) ([]byte, []byte, error) {
 	mbHash := miniblockDB.Hash
 	miniblockDB.Hash = ""
 
-	if !isInDB {
-		meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s", "_id" : "%s"} }%s`, index, converters.JsonEscape(mbHash), "\n"))
-		serializedData, err := json.Marshal(miniblockDB)
-
-		return meta, serializedData, err
+	mbBytes, errMarshal := json.Marshal(miniblockDB)
+	if errMarshal != nil {
+		return nil, nil, errMarshal
 	}
 
 	// prepare data for update operation
 	meta := []byte(fmt.Sprintf(`{ "update" : {"_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(mbHash), "\n"))
-	if shardID == miniblockDB.SenderShardID && miniblockDB.ProcessingTypeOnDestination != block.Processed.String() {
-		// prepare for update sender block hash
-		serializedData := []byte(fmt.Sprintf(`{ "doc" : { "senderBlockHash" : "%s", "procTypeS": "%s" } }`, converters.JsonEscape(miniblockDB.SenderBlockHash), converters.JsonEscape(miniblockDB.ProcessingTypeOnSource)))
 
-		return meta, serializedData, nil
+	onSourceNotProcessed := shardID == miniblockDB.SenderShardID && miniblockDB.ProcessingTypeOnDestination != block.Processed.String()
+	codeToExecute := `
+	if ('create' == ctx.op) {
+			ctx._source = params.mb
+	} else {
+		if (params.osnp) {
+			ctx._source.senderBlockHash = params.mb.senderBlockHash;
+			ctx._source.procTypeS = params.mb.procTypeS;
+		} else {
+			ctx._source.receiverBlockHash = params.mb.receiverBlockHash;
+			ctx._source.procTypeD = params.mb.procTypeD;
+		}
 	}
+`
 
-	// prepare for update receiver block hash
-	serializedData := []byte(fmt.Sprintf(`{ "doc" : { "receiverBlockHash" : "%s", "procTypeD": "%s" } }`, converters.JsonEscape(miniblockDB.ReceiverBlockHash), converters.JsonEscape(miniblockDB.ProcessingTypeOnDestination)))
+	serializedDataStr := fmt.Sprintf(`{"scripted_upsert": true, "script": {`+
+		`"source": "%s",`+
+		`"lang": "painless",`+
+		`"params": { "mb": %s, "osnp": %t }},`+
+		`"upsert": {}}`,
+		converters.FormatPainlessSource(codeToExecute), mbBytes, onSourceNotProcessed,
+	)
 
-	return meta, serializedData, nil
+	return meta, []byte(serializedDataStr), nil
 }

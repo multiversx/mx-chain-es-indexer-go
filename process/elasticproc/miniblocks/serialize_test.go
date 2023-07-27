@@ -20,12 +20,12 @@ func TestMiniblocksProcessor_SerializeBulkMiniBlocks(t *testing.T) {
 	}
 
 	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
-	mp.SerializeBulkMiniBlocks(miniblocks, nil, buffSlice, "miniblocks", 0)
+	mp.SerializeBulkMiniBlocks(miniblocks, buffSlice, "miniblocks", 0)
 
-	expectedBuff := `{ "index" : { "_index":"miniblocks", "_id" : "h1"} }
-{"senderShard":0,"receiverShard":1,"type":"","timestamp":0}
-{ "index" : { "_index":"miniblocks", "_id" : "h2"} }
-{"senderShard":0,"receiverShard":2,"type":"","timestamp":0}
+	expectedBuff := `{ "update" : {"_index":"miniblocks", "_id" : "h1" } }
+{"scripted_upsert": true, "script": {"source": "if ('create' == ctx.op) {ctx._source = params.mb} else {if (params.osnp) {ctx._source.senderBlockHash = params.mb.senderBlockHash;ctx._source.procTypeS = params.mb.procTypeS;} else {ctx._source.receiverBlockHash = params.mb.receiverBlockHash;ctx._source.procTypeD = params.mb.procTypeD;}}","lang": "painless","params": { "mb": {"senderShard":0,"receiverShard":1,"type":"","timestamp":0}, "osnp": true }},"upsert": {}}
+{ "update" : {"_index":"miniblocks", "_id" : "h2" } }
+{"scripted_upsert": true, "script": {"source": "if ('create' == ctx.op) {ctx._source = params.mb} else {if (params.osnp) {ctx._source.senderBlockHash = params.mb.senderBlockHash;ctx._source.procTypeS = params.mb.procTypeS;} else {ctx._source.receiverBlockHash = params.mb.receiverBlockHash;ctx._source.procTypeD = params.mb.procTypeD;}}","lang": "painless","params": { "mb": {"senderShard":0,"receiverShard":2,"type":"","timestamp":0}, "osnp": true }},"upsert": {}}
 `
 	require.Equal(t, expectedBuff, buffSlice.Buffers()[0].String())
 }
@@ -41,14 +41,12 @@ func TestMiniblocksProcessor_SerializeBulkMiniBlocksInDB(t *testing.T) {
 	}
 
 	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
-	mp.SerializeBulkMiniBlocks(miniblocks, map[string]bool{
-		"h1": true,
-	}, buffSlice, "miniblocks", 0)
+	mp.SerializeBulkMiniBlocks(miniblocks, buffSlice, "miniblocks", 0)
 
 	expectedBuff := `{ "update" : {"_index":"miniblocks", "_id" : "h1" } }
-{ "doc" : { "senderBlockHash" : "", "procTypeS": "" } }
-{ "index" : { "_index":"miniblocks", "_id" : "h2"} }
-{"senderShard":0,"receiverShard":2,"type":"","timestamp":0}
+{"scripted_upsert": true, "script": {"source": "if ('create' == ctx.op) {ctx._source = params.mb} else {if (params.osnp) {ctx._source.senderBlockHash = params.mb.senderBlockHash;ctx._source.procTypeS = params.mb.procTypeS;} else {ctx._source.receiverBlockHash = params.mb.receiverBlockHash;ctx._source.procTypeD = params.mb.procTypeD;}}","lang": "painless","params": { "mb": {"senderShard":0,"receiverShard":1,"type":"","timestamp":0}, "osnp": true }},"upsert": {}}
+{ "update" : {"_index":"miniblocks", "_id" : "h2" } }
+{"scripted_upsert": true, "script": {"source": "if ('create' == ctx.op) {ctx._source = params.mb} else {if (params.osnp) {ctx._source.senderBlockHash = params.mb.senderBlockHash;ctx._source.procTypeS = params.mb.procTypeS;} else {ctx._source.receiverBlockHash = params.mb.receiverBlockHash;ctx._source.procTypeD = params.mb.procTypeD;}}","lang": "painless","params": { "mb": {"senderShard":0,"receiverShard":2,"type":"","timestamp":0}, "osnp": true }},"upsert": {}}
 `
 	require.Equal(t, expectedBuff, buffSlice.Buffers()[0].String())
 }
@@ -61,12 +59,10 @@ func TestSerializeMiniblock_CrossShardNormal(t *testing.T) {
 	}
 
 	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
-	mp.SerializeBulkMiniBlocks(miniblocks, map[string]bool{
-		"h1": true,
-	}, buffSlice, "miniblocks", 1)
+	mp.SerializeBulkMiniBlocks(miniblocks, buffSlice, "miniblocks", 1)
 
 	expectedBuff := `{ "update" : {"_index":"miniblocks", "_id" : "h1" } }
-{ "doc" : { "receiverBlockHash" : "receiverBlock", "procTypeD": "" } }
+{"scripted_upsert": true, "script": {"source": "if ('create' == ctx.op) {ctx._source = params.mb} else {if (params.osnp) {ctx._source.senderBlockHash = params.mb.senderBlockHash;ctx._source.procTypeS = params.mb.procTypeS;} else {ctx._source.receiverBlockHash = params.mb.receiverBlockHash;ctx._source.procTypeD = params.mb.procTypeD;}}","lang": "painless","params": { "mb": {"senderShard":0,"receiverShard":1,"receiverBlockHash":"receiverBlock","type":"","timestamp":0}, "osnp": false }},"upsert": {}}
 `
 	require.Equal(t, expectedBuff, buffSlice.Buffers()[0].String())
 }
@@ -80,12 +76,10 @@ func TestSerializeMiniblock_IntraShardScheduled(t *testing.T) {
 	}
 
 	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
-	mp.SerializeBulkMiniBlocks(miniblocks, map[string]bool{
-		"h1": false,
-	}, buffSlice, "miniblocks", 1)
+	mp.SerializeBulkMiniBlocks(miniblocks, buffSlice, "miniblocks", 1)
 
-	expectedBuff := `{ "index" : { "_index":"miniblocks", "_id" : "h1"} }
-{"senderShard":1,"receiverShard":1,"senderBlockHash":"senderBlock","type":"","procTypeS":"Scheduled","timestamp":0}
+	expectedBuff := `{ "update" : {"_index":"miniblocks", "_id" : "h1" } }
+{"scripted_upsert": true, "script": {"source": "if ('create' == ctx.op) {ctx._source = params.mb} else {if (params.osnp) {ctx._source.senderBlockHash = params.mb.senderBlockHash;ctx._source.procTypeS = params.mb.procTypeS;} else {ctx._source.receiverBlockHash = params.mb.receiverBlockHash;ctx._source.procTypeD = params.mb.procTypeD;}}","lang": "painless","params": { "mb": {"senderShard":1,"receiverShard":1,"senderBlockHash":"senderBlock","type":"","procTypeS":"Scheduled","timestamp":0}, "osnp": true }},"upsert": {}}
 `
 	require.Equal(t, expectedBuff, buffSlice.Buffers()[0].String())
 
@@ -95,12 +89,10 @@ func TestSerializeMiniblock_IntraShardScheduled(t *testing.T) {
 	}
 
 	buffSlice = data.NewBufferSlice(data.DefaultMaxBulkSize)
-	mp.SerializeBulkMiniBlocks(miniblocks, map[string]bool{
-		"h1": true,
-	}, buffSlice, "miniblocks", 1)
+	mp.SerializeBulkMiniBlocks(miniblocks, buffSlice, "miniblocks", 1)
 
 	expectedBuff = `{ "update" : {"_index":"miniblocks", "_id" : "h1" } }
-{ "doc" : { "receiverBlockHash" : "receiverBlock", "procTypeD": "Processed" } }
+{"scripted_upsert": true, "script": {"source": "if ('create' == ctx.op) {ctx._source = params.mb} else {if (params.osnp) {ctx._source.senderBlockHash = params.mb.senderBlockHash;ctx._source.procTypeS = params.mb.procTypeS;} else {ctx._source.receiverBlockHash = params.mb.receiverBlockHash;ctx._source.procTypeD = params.mb.procTypeD;}}","lang": "painless","params": { "mb": {"senderShard":1,"receiverShard":1,"receiverBlockHash":"receiverBlock","type":"","procTypeD":"Processed","timestamp":0}, "osnp": false }},"upsert": {}}
 `
 	require.Equal(t, expectedBuff, buffSlice.Buffers()[0].String())
 }
