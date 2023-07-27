@@ -151,38 +151,37 @@ func TestPrepareTransactionsForDatabase(t *testing.T) {
 		},
 	}
 
-	body := &block.Body{
-		MiniBlocks: []*block.MiniBlock{
-			{
-				TxHashes: [][]byte{txHash1, txHash2, txHash3},
-				Type:     block.TxBlock,
-			},
-			{
-				TxHashes: [][]byte{txHash4},
-				Type:     block.TxBlock,
-			},
-			{
-				TxHashes: [][]byte{scHash1, scHash2},
-				Type:     block.SmartContractResultBlock,
-			},
-			{
-				TxHashes: [][]byte{scHash3},
-				Type:     block.SmartContractResultBlock,
-			},
-			{
-				TxHashes: [][]byte{recHash1, recHash2},
-				Type:     block.ReceiptBlock,
-			},
-			{
-				TxHashes: [][]byte{rTx1Hash, rTx2Hash},
-				Type:     block.RewardsBlock,
-			},
-			{
-				TxHashes: [][]byte{txHash5},
-				Type:     block.InvalidBlock,
-			},
+	mbs := []*block.MiniBlock{
+		{
+			TxHashes: [][]byte{txHash1, txHash2, txHash3},
+			Type:     block.TxBlock,
+		},
+		{
+			TxHashes: [][]byte{txHash4},
+			Type:     block.TxBlock,
+		},
+		{
+			TxHashes: [][]byte{scHash1, scHash2},
+			Type:     block.SmartContractResultBlock,
+		},
+		{
+			TxHashes: [][]byte{scHash3},
+			Type:     block.SmartContractResultBlock,
+		},
+		{
+			TxHashes: [][]byte{recHash1, recHash2},
+			Type:     block.ReceiptBlock,
+		},
+		{
+			TxHashes: [][]byte{rTx1Hash, rTx2Hash},
+			Type:     block.RewardsBlock,
+		},
+		{
+			TxHashes: [][]byte{txHash5},
+			Type:     block.InvalidBlock,
 		},
 	}
+
 	header := &block.Header{}
 
 	pool := &outport.TransactionPool{
@@ -212,7 +211,7 @@ func TestPrepareTransactionsForDatabase(t *testing.T) {
 
 	txDbProc, _ := NewTransactionsProcessor(createMockArgsTxsDBProc())
 
-	results := txDbProc.PrepareTransactionsForDatabase(body, header, pool, false, 3)
+	results := txDbProc.PrepareTransactionsForDatabase(mbs, header, pool, false, 3)
 	assert.Equal(t, 7, len(results.Transactions))
 
 }
@@ -243,16 +242,14 @@ func TestRelayedTransactions(t *testing.T) {
 			GasLimit:       1,
 		}, FeeInfo: &outport.FeeInfo{}}
 
-	body := &block.Body{
-		MiniBlocks: []*block.MiniBlock{
-			{
-				TxHashes: [][]byte{txHash1},
-				Type:     block.TxBlock,
-			},
-			{
-				TxHashes: [][]byte{scHash1, scHash2},
-				Type:     block.SmartContractResultBlock,
-			},
+	mbs := []*block.MiniBlock{
+		{
+			TxHashes: [][]byte{txHash1},
+			Type:     block.TxBlock,
+		},
+		{
+			TxHashes: [][]byte{scHash1, scHash2},
+			Type:     block.SmartContractResultBlock,
 		},
 	}
 
@@ -270,7 +267,7 @@ func TestRelayedTransactions(t *testing.T) {
 
 	txDbProc, _ := NewTransactionsProcessor(createMockArgsTxsDBProc())
 
-	results := txDbProc.PrepareTransactionsForDatabase(body, header, pool, false, 3)
+	results := txDbProc.PrepareTransactionsForDatabase(mbs, header, pool, false, 3)
 	assert.Equal(t, 1, len(results.Transactions))
 	assert.Equal(t, 2, len(results.Transactions[0].SmartContractResults))
 	assert.Equal(t, transaction.TxStatusSuccess.String(), results.Transactions[0].Status)
@@ -357,19 +354,16 @@ func TestCheckGasUsedInvalidTransaction(t *testing.T) {
 		TxHash: txHash1,
 	}
 
-	body := &block.Body{
-		MiniBlocks: []*block.MiniBlock{
-			{
-				TxHashes: [][]byte{txHash1},
-				Type:     block.InvalidBlock,
-			},
-			{
-				TxHashes: [][]byte{recHash1},
-				Type:     block.ReceiptBlock,
-			},
+	mbs := []*block.MiniBlock{
+		{
+			TxHashes: [][]byte{txHash1},
+			Type:     block.InvalidBlock,
+		},
+		{
+			TxHashes: [][]byte{recHash1},
+			Type:     block.ReceiptBlock,
 		},
 	}
-
 	header := &block.Header{}
 
 	pool := &outport.TransactionPool{
@@ -381,7 +375,7 @@ func TestCheckGasUsedInvalidTransaction(t *testing.T) {
 		},
 	}
 
-	results := txDbProc.PrepareTransactionsForDatabase(body, header, pool, false, 3)
+	results := txDbProc.PrepareTransactionsForDatabase(mbs, header, pool, false, 3)
 	require.Len(t, results.Transactions, 1)
 	require.Equal(t, tx1.Transaction.GetGasLimit(), results.Transactions[0].GasUsed)
 }
@@ -489,16 +483,14 @@ func TestTxsDatabaseProcessor_PrepareTransactionsForDatabaseInvalidTxWithSCR(t *
 		FeeInfo: &outport.FeeInfo{},
 	}
 
-	body := &block.Body{
-		MiniBlocks: []*block.MiniBlock{
-			{
-				TxHashes: [][]byte{txHash1},
-				Type:     block.InvalidBlock,
-			},
-			{
-				TxHashes: [][]byte{scResHash1},
-				Type:     block.SmartContractResultBlock,
-			},
+	mbs := []*block.MiniBlock{
+		{
+			TxHashes: [][]byte{txHash1},
+			Type:     block.InvalidBlock,
+		},
+		{
+			TxHashes: [][]byte{scResHash1},
+			Type:     block.SmartContractResultBlock,
 		},
 	}
 
@@ -513,7 +505,7 @@ func TestTxsDatabaseProcessor_PrepareTransactionsForDatabaseInvalidTxWithSCR(t *
 		},
 	}
 
-	results := txDbProc.PrepareTransactionsForDatabase(body, header, pool, false, 3)
+	results := txDbProc.PrepareTransactionsForDatabase(mbs, header, pool, false, 3)
 	require.NotNil(t, results)
 	require.Len(t, results.Transactions, 1)
 	require.Len(t, results.ScResults, 1)
@@ -548,16 +540,14 @@ func TestTxsDatabaseProcessor_PrepareTransactionsForDatabaseESDTNFTTransfer(t *t
 		},
 		FeeInfo: &outport.FeeInfo{}}
 
-	body := &block.Body{
-		MiniBlocks: []*block.MiniBlock{
-			{
-				TxHashes: [][]byte{txHash1},
-				Type:     block.TxBlock,
-			},
-			{
-				TxHashes: [][]byte{scResHash1},
-				Type:     block.SmartContractResultBlock,
-			},
+	mbs := []*block.MiniBlock{
+		{
+			TxHashes: [][]byte{txHash1},
+			Type:     block.TxBlock,
+		},
+		{
+			TxHashes: [][]byte{scResHash1},
+			Type:     block.SmartContractResultBlock,
 		},
 	}
 
@@ -572,7 +562,7 @@ func TestTxsDatabaseProcessor_PrepareTransactionsForDatabaseESDTNFTTransfer(t *t
 		},
 	}
 
-	results := txDbProc.PrepareTransactionsForDatabase(body, header, pool, false, 3)
+	results := txDbProc.PrepareTransactionsForDatabase(mbs, header, pool, false, 3)
 	require.NotNil(t, results)
 	require.Len(t, results.Transactions, 1)
 	require.Len(t, results.ScResults, 1)
@@ -597,18 +587,16 @@ func TestTxsDatabaseProcessor_IssueESDTTx(t *testing.T) {
 	}
 
 	// transaction success
-	body := &block.Body{
-		MiniBlocks: []*block.MiniBlock{
-			{
-				TxHashes:        [][]byte{[]byte("t1")},
-				Type:            block.TxBlock,
-				SenderShardID:   0,
-				ReceiverShardID: core.MetachainShardId,
-			},
-			{
-				TxHashes: [][]byte{[]byte("scr1"), []byte("scr2")},
-				Type:     block.SmartContractResultBlock,
-			},
+	mbs := []*block.MiniBlock{
+		{
+			TxHashes:        [][]byte{[]byte("t1")},
+			Type:            block.TxBlock,
+			SenderShardID:   0,
+			ReceiverShardID: core.MetachainShardId,
+		},
+		{
+			TxHashes: [][]byte{[]byte("scr1"), []byte("scr2")},
+			Type:     block.SmartContractResultBlock,
 		},
 	}
 	header := &block.Header{
@@ -638,7 +626,7 @@ func TestTxsDatabaseProcessor_IssueESDTTx(t *testing.T) {
 		},
 	}
 
-	res := txDbProc.PrepareTransactionsForDatabase(body, header, pool, false, 3)
+	res := txDbProc.PrepareTransactionsForDatabase(mbs, header, pool, false, 3)
 	require.Equal(t, "success", res.Transactions[0].Status)
 	require.Equal(t, 2, len(res.ScResults))
 
@@ -661,7 +649,7 @@ func TestTxsDatabaseProcessor_IssueESDTTx(t *testing.T) {
 		},
 	}
 
-	res = txDbProc.PrepareTransactionsForDatabase(body, header, pool, false, 3)
+	res = txDbProc.PrepareTransactionsForDatabase(mbs, header, pool, false, 3)
 	require.Equal(t, "success", res.Transactions[0].Status)
 	require.Equal(t, 1, len(res.ScResults))
 }
