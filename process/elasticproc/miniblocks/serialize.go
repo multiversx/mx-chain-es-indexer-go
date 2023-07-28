@@ -43,12 +43,12 @@ func (mp *miniblocksProcessor) prepareMiniblockData(miniblockDB *data.Miniblock,
 	// prepare data for update operation
 	meta := []byte(fmt.Sprintf(`{ "update" : {"_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(mbHash), "\n"))
 
-	onSourceNotProcessed := shardID == miniblockDB.SenderShardID && miniblockDB.ProcessingTypeOnDestination != block.Processed.String()
+	notProcessedOnSource := shardID == miniblockDB.SenderShardID && miniblockDB.ProcessingTypeOnDestination != block.Processed.String()
 	codeToExecute := `
 	if ('create' == ctx.op) {
 			ctx._source = params.mb
 	} else {
-		if (params.osnp) {
+		if (params.npos) {
 			ctx._source.senderBlockHash = params.mb.senderBlockHash;
 			ctx._source.procTypeS = params.mb.procTypeS;
 		} else {
@@ -61,9 +61,9 @@ func (mp *miniblocksProcessor) prepareMiniblockData(miniblockDB *data.Miniblock,
 	serializedDataStr := fmt.Sprintf(`{"scripted_upsert": true, "script": {`+
 		`"source": "%s",`+
 		`"lang": "painless",`+
-		`"params": { "mb": %s, "osnp": %t }},`+
+		`"params": { "mb": %s, "npos": %t }},`+
 		`"upsert": {}}`,
-		converters.FormatPainlessSource(codeToExecute), mbBytes, onSourceNotProcessed,
+		converters.FormatPainlessSource(codeToExecute), mbBytes, notProcessedOnSource,
 	)
 
 	return meta, []byte(serializedDataStr), nil
