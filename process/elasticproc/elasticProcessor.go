@@ -22,13 +22,6 @@ import (
 	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
-const (
-	docsKey  = "docs"
-	errorKey = "error"
-	idKey    = "_id"
-	foundKey = "found"
-)
-
 var (
 	log = logger.GetOrCreate("indexer/process")
 
@@ -207,40 +200,6 @@ func (ei *elasticProcessor) createAliases() error {
 	return nil
 }
 
-func (ei *elasticProcessor) getExistingObjMap(hashes []string, index string, shardID uint32) (map[string]bool, error) {
-	if len(hashes) == 0 {
-		return make(map[string]bool), nil
-	}
-
-	ctx := context.WithValue(context.Background(), request.ContextKey, request.ExtendTopicWithShardID(request.GetTopic, shardID))
-	response := make(objectsMap)
-	err := ei.elasticClient.DoMultiGet(ctx, hashes, index, false, &response)
-	if err != nil {
-		return make(map[string]bool), err
-	}
-
-	return getDecodedResponseMultiGet(response), nil
-}
-
-func getDecodedResponseMultiGet(response objectsMap) map[string]bool {
-	founded := make(map[string]bool)
-	interfaceSlice, ok := response[docsKey].([]interface{})
-	if !ok {
-		return founded
-	}
-
-	for _, element := range interfaceSlice {
-		obj := element.(objectsMap)
-		_, ok = obj[errorKey]
-		if ok {
-			continue
-		}
-		founded[obj[idKey].(string)] = obj[foundKey].(bool)
-	}
-
-	return founded
-}
-
 func getTemplateByName(templateName string, templateList map[string]*bytes.Buffer) *bytes.Buffer {
 	if template, ok := templateList[templateName]; ok {
 		return template
@@ -400,24 +359,10 @@ func (ei *elasticProcessor) SaveMiniblocks(header coreData.HeaderHandler, miniBl
 		return nil
 	}
 
-	miniblocksInDBMap, err := ei.miniblocksInDBMap(mbs, header.GetShardID())
-	if err != nil {
-		log.Warn("elasticProcessor.SaveMiniblocks cannot get indexed miniblocks", "error", err)
-	}
-
 	buffSlice := data.NewBufferSlice(ei.bulkRequestMaxSize)
-	ei.miniblocksProc.SerializeBulkMiniBlocks(mbs, miniblocksInDBMap, buffSlice, elasticIndexer.MiniblocksIndex, header.GetShardID())
+	ei.miniblocksProc.SerializeBulkMiniBlocks(mbs, buffSlice, elasticIndexer.MiniblocksIndex, header.GetShardID())
 
 	return ei.doBulkRequests("", buffSlice.Buffers(), header.GetShardID())
-}
-
-func (ei *elasticProcessor) miniblocksInDBMap(mbs []*data.Miniblock, shardID uint32) (map[string]bool, error) {
-	mbsHashes := make([]string, len(mbs))
-	for idx := range mbs {
-		mbsHashes[idx] = mbs[idx].Hash
-	}
-
-	return ei.getExistingObjMap(mbsHashes, elasticIndexer.MiniblocksIndex, shardID)
 }
 
 // SaveTransactions will prepare and save information about a transactions in elasticsearch server

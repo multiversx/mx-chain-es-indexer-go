@@ -1,0 +1,10 @@
+{
+  "procTypeD": "Processed",
+  "receiverShard": 0,
+  "senderShard": 2,
+  "receiverBlockHash": "b36435faaa72390772da84f418348ce0d477c74432579519bf0ffea1dc4c36e9",
+  "type": "TxBlock",
+  "timestamp": 54321,
+  "senderBlockHash": "b601381e1f41df2aa3da9f2b8eb169f14c86418229e30fc65f9e6b37b7f0d902",
+  "procTypeS": "Normal"
+}

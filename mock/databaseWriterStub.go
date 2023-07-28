@@ -3,13 +3,10 @@ package mock
 import (
 	"bytes"
 	"context"
-
-	"github.com/elastic/go-elasticsearch/v7/esapi"
 )
 
 // DatabaseWriterStub -
 type DatabaseWriterStub struct {
-	DoRequestCalled           func(req *esapi.IndexRequest) error
 	DoBulkRequestCalled       func(buff *bytes.Buffer, index string) error
 	DoQueryRemoveCalled       func(index string, body *bytes.Buffer) error
 	DoMultiGetCalled          func(ids []string, index string, withSource bool, response interface{}) error
@@ -31,14 +28,6 @@ func (dwm *DatabaseWriterStub) DoCountRequest(_ context.Context, _ string, _ []b
 func (dwm *DatabaseWriterStub) DoScrollRequest(_ context.Context, index string, body []byte, withSource bool, handlerFunc func(responseBytes []byte) error) error {
 	if dwm.DoScrollRequestCalled != nil {
 		return dwm.DoScrollRequestCalled(index, body, withSource, handlerFunc)
-	}
-	return nil
-}
-
-// DoRequest -
-func (dwm *DatabaseWriterStub) DoRequest(_ context.Context, req *esapi.IndexRequest) error {
-	if dwm.DoRequestCalled != nil {
-		return dwm.DoRequestCalled(req)
 	}
 	return nil
 }

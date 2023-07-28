@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 
-	"github.com/elastic/go-elasticsearch/v7/esapi"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/alteredAccount"
 	"github.com/multiversx/mx-chain-core-go/data/block"
@@ -15,7 +14,6 @@ import (
 
 // DatabaseClientHandler defines the actions that a component that handles requests should do
 type DatabaseClientHandler interface {
-	DoRequest(ctx context.Context, req *esapi.IndexRequest) error
 	DoBulkRequest(ctx context.Context, buff *bytes.Buffer, index string) error
 	DoQueryRemove(ctx context.Context, index string, buff *bytes.Buffer) error
 	DoMultiGet(ctx context.Context, ids []string, index string, withSource bool, res interface{}) error
@@ -77,7 +75,7 @@ type DBMiniblocksHandler interface {
 	PrepareDBMiniblocks(header coreData.HeaderHandler, miniBlocks []*block.MiniBlock) []*data.Miniblock
 	GetMiniblocksHashesHexEncoded(header coreData.HeaderHandler, body *block.Body) []string
 
-	SerializeBulkMiniBlocks(bulkMbs []*data.Miniblock, mbsInDB map[string]bool, buffSlice *data.BufferSlice, index string, shardID uint32)
+	SerializeBulkMiniBlocks(bulkMbs []*data.Miniblock, buffSlice *data.BufferSlice, index string, shardID uint32)
 }
 
 // DBStatisticsHandler defines the actions that a database statistics handler should do
