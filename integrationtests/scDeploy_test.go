@@ -74,7 +74,7 @@ func TestTransactionWithSCDeploy(t *testing.T) {
 						{
 							Address:    decodeAddress(sndAddress),
 							Identifier: []byte(core.SCDeployIdentifier),
-							Topics:     [][]byte{decodeAddress("erd1qqqqqqqqqqqqqpgq4t2tqxpst9a6qttpak8cz8wvz6a0nses5qfqel6rhy"), decodeAddress("erd12m3x8jp6dl027pj5f2nw6ght2cyhhjfrs86cdwsa8xn83r375qfqrwpdx0")},
+							Topics:     [][]byte{decodeAddress("erd1qqqqqqqqqqqqqpgq4t2tqxpst9a6qttpak8cz8wvz6a0nses5qfqel6rhy"), decodeAddress("erd12m3x8jp6dl027pj5f2nw6ght2cyhhjfrs86cdwsa8xn83r375qfqrwpdx0"), []byte("codeHash")},
 						},
 						nil,
 					},
@@ -101,6 +101,70 @@ func TestTransactionWithSCDeploy(t *testing.T) {
 
 	require.JSONEq(t,
 		readExpectedResult("./testdata/scDeploy/deploy.json"),
+		string(genericResponse.Docs[0].Source),
+	)
+
+	// UPGRADE contract
+	header.TimeStamp = 6000
+	pool = &outport.TransactionPool{
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString([]byte("h2")),
+				Log: &transaction.Log{
+					Address: decodeAddress(sndAddress),
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(sndAddress),
+							Identifier: []byte(core.SCDeployIdentifier),
+							Topics:     [][]byte{decodeAddress("erd1qqqqqqqqqqqqqpgq4t2tqxpst9a6qttpak8cz8wvz6a0nses5qfqel6rhy"), decodeAddress("erd12m3x8jp6dl027pj5f2nw6ght2cyhhjfrs86cdwsa8xn83r375qfqrwpdx0"), []byte("secondCodeHash")},
+						},
+						nil,
+					},
+				},
+			},
+		},
+	}
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
+	require.Nil(t, err)
+
+	ids = []string{"erd1qqqqqqqqqqqqqpgq4t2tqxpst9a6qttpak8cz8wvz6a0nses5qfqel6rhy"}
+	err = esClient.DoMultiGet(ids, indexerData.SCDeploysIndex, true, genericResponse)
+	require.Nil(t, err)
+
+	require.JSONEq(t,
+		readExpectedResult("./testdata/scDeploy/deploy-after-upgrade.json"),
+		string(genericResponse.Docs[0].Source),
+	)
+
+	// CHANGE owner
+	header.TimeStamp = 7000
+	pool = &outport.TransactionPool{
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString([]byte("h3")),
+				Log: &transaction.Log{
+					Address: decodeAddress(sndAddress),
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress("erd1qqqqqqqqqqqqqpgq4t2tqxpst9a6qttpak8cz8wvz6a0nses5qfqel6rhy"),
+							Identifier: []byte(core.BuiltInFunctionChangeOwnerAddress),
+							Topics:     [][]byte{decodeAddress("erd1d942l8w4yvgjffpqacs8vdwl0mndsv0zn0uxa80hxc3xmq4477eqnyw3dh")},
+						},
+						nil,
+					},
+				},
+			},
+		},
+	}
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
+	require.Nil(t, err)
+
+	ids = []string{"erd1qqqqqqqqqqqqqpgq4t2tqxpst9a6qttpak8cz8wvz6a0nses5qfqel6rhy"}
+	err = esClient.DoMultiGet(ids, indexerData.SCDeploysIndex, true, genericResponse)
+	require.Nil(t, err)
+
+	require.JSONEq(t,
+		readExpectedResult("./testdata/scDeploy/deploy-after-upgrade-and-change-owner.json"),
 		string(genericResponse.Docs[0].Source),
 	)
 }

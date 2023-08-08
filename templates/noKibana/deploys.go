@@ -24,7 +24,7 @@ var SCDeploys = Object{
 			"currentOwner": Object{
 				"type": "keyword",
 			},
-			"codeHash": Object{
+			"initialCodeHash": Object{
 				"type": "keyword",
 			},
 			"upgrades": Object{

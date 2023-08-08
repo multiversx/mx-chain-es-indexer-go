@@ -126,7 +126,6 @@ func serializeDeploy(deployInfo *data.ScDeployInfo) ([]byte, error) {
 	}
 
 	codeToExecute := `
-		ctx._source.codeHash = params.elem.codeHash;
 		if (!ctx._source.containsKey('upgrades')) {
 			ctx._source.upgrades = [params.elem];
 		} else {

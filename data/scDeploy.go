@@ -5,7 +5,7 @@ type ScDeployInfo struct {
 	TxHash        string       `json:"deployTxHash"`
 	Creator       string       `json:"deployer"`
 	CurrentOwner  string       `json:"currentOwner"`
-	CodeHash      []byte       `json:"codeHash"`
+	CodeHash      []byte       `json:"initialCodeHash"`
 	Timestamp     uint64       `json:"timestamp"`
 	Upgrades      []*Upgrade   `json:"upgrades"`
 	OwnersHistory []*OwnerData `json:"owners"`
