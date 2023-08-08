@@ -1,8 +1,14 @@
 package logsevents
 
 import (
+	"time"
+
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
+)
+
+const (
+	minTopicsContractEvent = 3
 )
 
 type scDeploysProcessor struct {
@@ -14,13 +20,15 @@ func newSCDeploysProcessor(pubKeyConverter core.PubkeyConverter) *scDeploysProce
 	return &scDeploysProcessor{
 		pubKeyConverter: pubKeyConverter,
 		scDeploysIdentifiers: map[string]struct{}{
-			core.SCDeployIdentifier:  {},
-			core.SCUpgradeIdentifier: {},
+			core.SCDeployIdentifier:                {},
+			core.SCUpgradeIdentifier:               {},
+			core.BuiltInFunctionChangeOwnerAddress: {},
 		},
 	}
 }
 
 func (sdp *scDeploysProcessor) processEvent(args *argsProcessEvent) argOutputProcessEvent {
+
 	eventIdentifier := string(args.event.GetIdentifier())
 	_, ok := sdp.scDeploysIdentifiers[eventIdentifier]
 	if !ok {
@@ -28,7 +36,12 @@ func (sdp *scDeploysProcessor) processEvent(args *argsProcessEvent) argOutputPro
 	}
 
 	topics := args.event.GetTopics()
-	if len(topics) < 2 {
+	isChangeOwnerEvent := len(topics) == 1 && eventIdentifier == core.BuiltInFunctionChangeOwnerAddress
+	if isChangeOwnerEvent {
+		return sdp.processChangeOwnerEvent(args)
+	}
+
+	if len(topics) < minTopicsContractEvent {
 		return argOutputProcessEvent{
 			processed: true,
 		}
@@ -38,9 +51,25 @@ func (sdp *scDeploysProcessor) processEvent(args *argsProcessEvent) argOutputPro
 	creatorAddress := sdp.pubKeyConverter.SilentEncode(topics[1], log)
 
 	args.scDeploys[scAddress] = &data.ScDeployInfo{
+		TxHash:       args.txHashHexEncoded,
+		Creator:      creatorAddress,
+		CurrentOwner: creatorAddress,
+		CodeHash:     topics[2],
+		Timestamp:    args.timestamp,
+	}
+
+	return argOutputProcessEvent{
+		processed: true,
+	}
+}
+
+func (sdp *scDeploysProcessor) processChangeOwnerEvent(args *argsProcessEvent) argOutputProcessEvent {
+	scAddress := sdp.pubKeyConverter.SilentEncode(args.event.GetAddress(), log)
+	newOwner := sdp.pubKeyConverter.SilentEncode(args.event.GetTopics()[0], log)
+	args.changeOwnerOperations[scAddress] = &data.OwnerData{
 		TxHash:    args.txHashHexEncoded,
-		Creator:   creatorAddress,
-		Timestamp: args.timestamp,
+		Address:   newOwner,
+		Timestamp: time.Duration(args.timestamp),
 	}
 
 	return argOutputProcessEvent{

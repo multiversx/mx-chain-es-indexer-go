@@ -10,6 +10,7 @@ import (
 type argsProcessEvent struct {
 	txHashHexEncoded        string
 	scDeploys               map[string]*data.ScDeployInfo
+	changeOwnerOperations   map[string]*data.OwnerData
 	txs                     map[string]*data.Transaction
 	scrs                    map[string]*data.ScResult
 	event                   coreData.EventHandler

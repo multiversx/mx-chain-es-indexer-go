@@ -14,6 +14,7 @@ type logsData struct {
 	txsMap                  map[string]*data.Transaction
 	scrsMap                 map[string]*data.ScResult
 	scDeploys               map[string]*data.ScDeployInfo
+	changeOwnerOperations   map[string]*data.OwnerData
 	delegators              map[string]*data.Delegator
 	tokensInfo              []*data.TokenInfo
 	nftsDataUpdates         []*data.NFTDataUpdate
@@ -35,6 +36,7 @@ func newLogsData(
 	ld.scDeploys = make(map[string]*data.ScDeployInfo)
 	ld.tokensInfo = make([]*data.TokenInfo, 0)
 	ld.delegators = make(map[string]*data.Delegator)
+	ld.changeOwnerOperations = make(map[string]*data.OwnerData)
 	ld.nftsDataUpdates = make([]*data.NFTDataUpdate, 0)
 	ld.tokenRolesAndProperties = tokeninfo.NewTokenRolesAndProperties()
 	ld.txHashStatusInfoProc = newTxHashStatusInfoProcessor()

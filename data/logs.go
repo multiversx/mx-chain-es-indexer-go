@@ -30,6 +30,7 @@ type PreparedLogsResults struct {
 	Tokens                  TokensHandler
 	TokensSupply            TokensHandler
 	ScDeploys               map[string]*ScDeployInfo
+	ChangeOwnerOperations   map[string]*OwnerData
 	Delegators              map[string]*Delegator
 	TxHashStatusInfo        map[string]*outport.StatusInfo
 	TokensInfo              []*TokenInfo

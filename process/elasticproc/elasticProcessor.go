@@ -485,7 +485,7 @@ func (ei *elasticProcessor) SaveTransactions(obh *outport.OutportBlockWithHeader
 		return err
 	}
 
-	err = ei.indexScDeploys(logsData.ScDeploys, buffers)
+	err = ei.indexScDeploys(logsData.ScDeploys, logsData.ChangeOwnerOperations, buffers)
 	if err != nil {
 		return err
 	}
@@ -532,12 +532,17 @@ func (ei *elasticProcessor) prepareAndIndexLogs(logsAndEvents []*outport.LogData
 	return ei.logsAndEventsProc.SerializeLogs(logsDB, buffSlice, elasticIndexer.LogsIndex)
 }
 
-func (ei *elasticProcessor) indexScDeploys(deployData map[string]*data.ScDeployInfo, buffSlice *data.BufferSlice) error {
+func (ei *elasticProcessor) indexScDeploys(deployData map[string]*data.ScDeployInfo, changeOwnerOperation map[string]*data.OwnerData, buffSlice *data.BufferSlice) error {
 	if !ei.isIndexEnabled(elasticIndexer.SCDeploysIndex) {
 		return nil
 	}
 
-	return ei.logsAndEventsProc.SerializeSCDeploys(deployData, buffSlice, elasticIndexer.SCDeploysIndex)
+	err := ei.logsAndEventsProc.SerializeSCDeploys(deployData, buffSlice, elasticIndexer.SCDeploysIndex)
+	if err != nil {
+		return err
+	}
+
+	return ei.logsAndEventsProc.SerializeChangeOwnerOperations(changeOwnerOperation, buffSlice, elasticIndexer.SCDeploysIndex)
 }
 
 func (ei *elasticProcessor) indexTransactions(txs []*data.Transaction, txHashStatusInfo map[string]*outport.StatusInfo, header coreData.HeaderHandler, bytesBuff *data.BufferSlice) error {
