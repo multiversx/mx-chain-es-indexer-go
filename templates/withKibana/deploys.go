@@ -21,6 +21,12 @@ var SCDeploys = Object{
 				"type":   "date",
 				"format": "epoch_second",
 			},
+			"currentOwner": Object{
+				"type": "keyword",
+			},
+			"codeHash": Object{
+				"type": "keyword",
+			},
 			"upgrades": Object{
 				"type": "nested",
 				"properties": Object{
@@ -32,6 +38,24 @@ var SCDeploys = Object{
 						"type": "keyword",
 					},
 					"upgrader": Object{
+						"type": "keyword",
+					},
+					"codeHash": Object{
+						"type": "keyword",
+					},
+				},
+			},
+			"owners": Object{
+				"type": "nested",
+				"properties": Object{
+					"timestamp": Object{
+						"type":   "date",
+						"format": "epoch_second",
+					},
+					"txHash": Object{
+						"type": "keyword",
+					},
+					"address": Object{
 						"type": "keyword",
 					},
 				},
