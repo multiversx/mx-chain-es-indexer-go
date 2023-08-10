@@ -88,7 +88,7 @@ func (mp *miniblocksProcessor) prepareMiniblockForDB(
 	isIntraShard := dbMiniblock.SenderShardID == dbMiniblock.ReceiverShardID
 	isCrossOnSource := !isIntraShard && dbMiniblock.SenderShardID == header.GetShardID()
 	if isIntraShard || isCrossOnSource {
-		mp.setFieldsMBIntraShardAndCrossFromMe(mbIndex, header, encodedHeaderHash, dbMiniblock)
+		mp.setFieldsMBIntraShardAndCrossFromMe(mbIndex, header, encodedHeaderHash, dbMiniblock, isIntraShard)
 
 		return dbMiniblock, nil
 	}
@@ -105,6 +105,7 @@ func (mp *miniblocksProcessor) setFieldsMBIntraShardAndCrossFromMe(
 	header coreData.HeaderHandler,
 	headerHash string,
 	dbMiniblock *data.Miniblock,
+	isIntraShard bool,
 ) {
 	processingType, constructionState := mp.computeProcessingTypeAndConstructionState(mbIndex, header)
 
@@ -112,9 +113,11 @@ func (mp *miniblocksProcessor) setFieldsMBIntraShardAndCrossFromMe(
 	switch {
 	case constructionState == int32(block.Final) && processingType == block.Normal.String():
 		dbMiniblock.SenderBlockHash = headerHash
-		dbMiniblock.ReceiverBlockHash = headerHash
 		dbMiniblock.ProcessingTypeOnSource = processingType
-		dbMiniblock.ProcessingTypeOnDestination = processingType
+		if isIntraShard {
+			dbMiniblock.ReceiverBlockHash = headerHash
+			dbMiniblock.ProcessingTypeOnDestination = processingType
+		}
 	case constructionState == int32(block.Proposed) && processingType == block.Scheduled.String():
 		dbMiniblock.SenderBlockHash = headerHash
 		dbMiniblock.ProcessingTypeOnSource = processingType

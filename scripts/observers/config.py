@@ -31,6 +31,23 @@ def update_toml_indexer(path, shard_id):
     toml.dump(prefs_data, f)
     f.close()
 
+    # api.toml
+    path_api = path / "api.toml"
+    api_data = toml.load(str(path_api))
+
+    api_port = API_PORT_BASE + shard_id
+    api_meta_port = API_META_PORT
+    if is_indexer_server:
+        api_port = API_PORT_BASE
+        api_meta_port = API_PORT_BASE
+    if shard_id != METACHAIN:
+        api_data['rest-api-interface'] = f":{api_port}"
+    else:
+        api_data['rest-api-interface'] = f":{api_meta_port}"
+    f = open(path_api, 'w')
+    toml.dump(api_data, f)
+    f.close()
+
 
 def update_toml_node(path, shard_id):
     # prefs.toml

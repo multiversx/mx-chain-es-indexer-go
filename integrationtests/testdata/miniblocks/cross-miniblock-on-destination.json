@@ -1,0 +1,10 @@
+{
+  "procTypeS": "Normal",
+  "senderBlockHash": "3fede8a9a3c4f2ba6d7e6e01541813606cd61c4d3af2940f8e089827b5d94e50",
+  "receiverShard": 2,
+  "senderShard": 1,
+  "type": "TxBlock",
+  "timestamp": 1234,
+  "receiverBlockHash": "d7f1e8003a45c7adbd87bbbb269cb4af3d1f4aedd0c214973bfc096dd0f3b65e",
+  "procTypeD": "Scheduled"
+}
