@@ -78,9 +78,7 @@ func (sm *statusMetrics) GetMetricsForPrometheus() string {
 		stringBuilder.WriteString(counterMetric(topic, errorsCount, shardIDStr, metricsData.TotalErrorsCount))
 		stringBuilder.WriteString(counterMetric(topic, operationCount, shardIDStr, metricsData.OperationsCount))
 		stringBuilder.WriteString(counterMetric(topic, totalTime, shardIDStr, uint64(metricsData.TotalIndexingTime.Milliseconds())))
-		if len(metricsData.ErrorsCount) > 0 {
-			stringBuilder.WriteString(errorsMetric(topic, requestsErrors, shardIDStr, metricsData.ErrorsCount))
-		}
+		stringBuilder.WriteString(errorsMetric(topic, requestsErrors, shardIDStr, metricsData.ErrorsCount))
 	}
 
 	promMetricsOutput := stringBuilder.String()
