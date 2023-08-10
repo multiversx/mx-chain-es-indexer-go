@@ -29,10 +29,11 @@ const (
 
 // MetricsResponse defines the response for status metrics endpoint
 type MetricsResponse struct {
-	OperationsCount   uint64        `json:"operations_count"`
-	ErrorsCount       uint64        `json:"errors_count"`
-	TotalIndexingTime time.Duration `json:"total_time"`
-	TotalData         uint64        `json:"total_data"`
+	TotalData         uint64         `json:"total_data"`
+	OperationsCount   uint64         `json:"operations_count"`
+	TotalErrorsCount  uint64         `json:"total_errors_count"`
+	ErrorsCount       map[int]uint64 `json:"errors_count,omitempty"`
+	TotalIndexingTime time.Duration  `json:"total_time"`
 }
 
 // ExtendTopicWithShardID will concatenate topic with shardID

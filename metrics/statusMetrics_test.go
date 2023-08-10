@@ -1,6 +1,7 @@
 package metrics
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/data/outport"
@@ -20,6 +21,7 @@ func TestStatusMetrics_AddIndexingDataAndGetMetrics(t *testing.T) {
 		MessageLen: 100,
 		Topic:      topic1,
 		Duration:   12,
+		StatusCode: http.StatusBadRequest,
 	})
 	statusMetricsHandler.AddIndexingData(ArgsAddIndexingData{
 		GotError:   false,
@@ -31,13 +33,31 @@ func TestStatusMetrics_AddIndexingDataAndGetMetrics(t *testing.T) {
 	metrics := statusMetricsHandler.GetMetrics()
 	require.Equal(t, &request.MetricsResponse{
 		OperationsCount:   2,
-		ErrorsCount:       1,
+		TotalErrorsCount:  1,
 		TotalIndexingTime: 27,
 		TotalData:         322,
+		ErrorsCount: map[int]uint64{
+			http.StatusBadRequest: 1,
+		},
 	}, metrics[topic1])
 
 	prometheusMetrics := statusMetricsHandler.GetMetricsForPrometheus()
-	require.Equal(t, "# TYPE test1 counter\ntest1{operation=\"total_data\",shardID=\"0\"} 322\n\n# TYPE test1 counter\ntest1{operation=\"errors_count\",shardID=\"0\"} 1\n\n# TYPE test1 counter\ntest1{operation=\"operations_count\",shardID=\"0\"} 2\n\n# TYPE test1 counter\ntest1{operation=\"total_time\",shardID=\"0\"} 0\n\n", prometheusMetrics)
+	require.Equal(t, `# TYPE test1 counter
+test1{operation="total_data",shardID="0"} 322
+
+# TYPE test1 counter
+test1{operation="errors_count",shardID="0"} 1
+
+# TYPE test1 counter
+test1{operation="operations_count",shardID="0"} 2
+
+# TYPE test1 counter
+test1{operation="total_time",shardID="0"} 0
+
+# TYPE test1 gauge
+test1{operation="requests_errors",shardID="0",errorCode="400"} 1
+
+`, prometheusMetrics)
 }
 
 func TestCamelCaseToSnakeCase(t *testing.T) {

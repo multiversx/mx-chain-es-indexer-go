@@ -55,7 +55,7 @@ func TestMetricsTransport_RoundTrip(t *testing.T) {
 
 	metricsMap := metricsHandler.GetMetrics()
 	require.Equal(t, uint64(1), metricsMap[testTopic].OperationsCount)
-	require.Equal(t, uint64(0), metricsMap[testTopic].ErrorsCount)
+	require.Equal(t, uint64(0), metricsMap[testTopic].TotalErrorsCount)
 	require.Equal(t, uint64(4), metricsMap[testTopic].TotalData)
 }
 
