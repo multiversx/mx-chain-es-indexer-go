@@ -58,4 +58,21 @@ stop_open_search() {
   docker stop "${IMAGE_OPEN_SEARCH}"
 }
 
+PROMETHEUS_CONTAINER_NAME=prometheus_container
+GRAFANA_CONTAINER_NAME=grafana_container
+
+start_prometheus_and_grafana() {
+ docker rm ${PROMETHEUS_CONTAINER_NAME} 2> /dev/null
+ docker rm ${GRAFANA_CONTAINER_NAME} 2> /dev/null
+
+ PROMETHEUS_CONFIG_FOLDER=$(pwd)/prometheus
+ docker run --network="host" --name "${PROMETHEUS_CONTAINER_NAME}" -d -p 9090:9090 -v "${PROMETHEUS_CONFIG_FOLDER}/prometheus.yml":/etc/prometheus/prometheus.yml prom/prometheus:v2.46.0
+ docker run --network="host" --name "${GRAFANA_CONTAINER_NAME}" -d -p 3000:3000  grafana/grafana:10.0.3
+}
+
+stop_prometheus_and_grafana() {
+  docker stop "${PROMETHEUS_CONTAINER_NAME}"
+  docker stop "${GRAFANA_CONTAINER_NAME}"
+}
+
 "$@"
