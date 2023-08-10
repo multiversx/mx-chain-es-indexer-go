@@ -50,6 +50,7 @@ func (m *metricsTransport) RoundTrip(req *http.Request) (*http.Response, error) 
 	topic := fmt.Sprintf("%s", valueFromCtx)
 
 	m.statusMetrics.AddIndexingData(metrics.ArgsAddIndexingData{
+		StatusCode: resp.StatusCode,
 		GotError:   err != nil,
 		MessageLen: uint64(size),
 		Topic:      topic,

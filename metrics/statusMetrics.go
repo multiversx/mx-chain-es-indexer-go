@@ -2,6 +2,7 @@ package metrics
 
 import (
 	"bytes"
+	"net/http"
 	"strings"
 	"sync"
 	"unicode"
@@ -14,6 +15,7 @@ const (
 	errorsCount    = "errors_count"
 	totalTime      = "total_time"
 	totalData      = "total_data"
+	requestsErrors = "requests_errors"
 )
 
 type statusMetrics struct {
@@ -36,15 +38,21 @@ func (sm *statusMetrics) AddIndexingData(args ArgsAddIndexingData) {
 	topic := camelToSnake(args.Topic)
 	_, found := sm.metrics[topic]
 	if !found {
-		sm.metrics[topic] = &request.MetricsResponse{}
+		sm.metrics[topic] = &request.MetricsResponse{
+			ErrorsCount: map[int]uint64{},
+		}
 	}
 
 	sm.metrics[topic].OperationsCount++
 	sm.metrics[topic].TotalIndexingTime += args.Duration
 	sm.metrics[topic].TotalData += args.MessageLen
 
-	if args.GotError {
-		sm.metrics[topic].ErrorsCount++
+	isErrorCode := args.StatusCode >= http.StatusBadRequest
+	if args.GotError || isErrorCode {
+		sm.metrics[topic].TotalErrorsCount++
+	}
+	if isErrorCode {
+		sm.metrics[topic].ErrorsCount[args.StatusCode]++
 	}
 }
 
@@ -67,9 +75,12 @@ func (sm *statusMetrics) GetMetricsForPrometheus() string {
 	for topicWithShardID, metricsData := range metrics {
 		topic, shardIDStr := request.SplitTopicAndShardID(topicWithShardID)
 		stringBuilder.WriteString(counterMetric(topic, totalData, shardIDStr, metricsData.TotalData))
-		stringBuilder.WriteString(counterMetric(topic, errorsCount, shardIDStr, metricsData.ErrorsCount))
+		stringBuilder.WriteString(counterMetric(topic, errorsCount, shardIDStr, metricsData.TotalErrorsCount))
 		stringBuilder.WriteString(counterMetric(topic, operationCount, shardIDStr, metricsData.OperationsCount))
 		stringBuilder.WriteString(counterMetric(topic, totalTime, shardIDStr, uint64(metricsData.TotalIndexingTime.Milliseconds())))
+		if len(metricsData.ErrorsCount) > 0 {
+			stringBuilder.WriteString(errorsMetric(topic, requestsErrors, shardIDStr, metricsData.ErrorsCount))
+		}
 	}
 
 	promMetricsOutput := stringBuilder.String()
