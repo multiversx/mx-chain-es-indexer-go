@@ -1,5 +1,9 @@
 IMAGE_NAME=elastic-container
 DEFAULT_ES_VERSION=7.16.2
+PROMETHEUS_CONTAINER_NAME=prometheus_container
+GRAFANA_CONTAINER_NAME=grafana_container
+GRAFANA_VERSION=10.0.3
+PROMETHEUS_VERSION=v2.46.0
 INDICES_LIST=("rating" "transactions" "blocks" "validators" "miniblocks" "rounds" "accounts" "accountshistory" "receipts" "scresults" "accountsesdt" "accountsesdthistory" "epochinfo" "scdeploys" "tokens" "tags" "logs" "delegators" "operations" "esdts")
 
 
@@ -58,16 +62,13 @@ stop_open_search() {
   docker stop "${IMAGE_OPEN_SEARCH}"
 }
 
-PROMETHEUS_CONTAINER_NAME=prometheus_container
-GRAFANA_CONTAINER_NAME=grafana_container
-
 start_prometheus_and_grafana() {
  docker rm ${PROMETHEUS_CONTAINER_NAME} 2> /dev/null
  docker rm ${GRAFANA_CONTAINER_NAME} 2> /dev/null
 
  PROMETHEUS_CONFIG_FOLDER=$(pwd)/prometheus
- docker run --network="host" --name "${PROMETHEUS_CONTAINER_NAME}" -d -p 9090:9090 -v "${PROMETHEUS_CONFIG_FOLDER}/prometheus.yml":/etc/prometheus/prometheus.yml prom/prometheus:v2.46.0
- docker run --network="host" --name "${GRAFANA_CONTAINER_NAME}" -d -p 3000:3000  grafana/grafana:10.0.3
+ docker run --network="host" --name "${PROMETHEUS_CONTAINER_NAME}" -d -p 9090:9090 -v "${PROMETHEUS_CONFIG_FOLDER}/prometheus.yml":/etc/prometheus/prometheus.yml prom/prometheus:${PROMETHEUS_VERSION}
+ docker run --network="host" --name "${GRAFANA_CONTAINER_NAME}" -d -p 3000:3000  grafana/grafana:${GRAFANA_VERSION}
 }
 
 stop_prometheus_and_grafana() {
