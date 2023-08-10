@@ -9,6 +9,12 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+const (
+	operationName = "operation"
+	shardIDName   = "shardID"
+	errorCodeName = "errorCode"
+)
+
 func counterMetric(metricName, operation string, shardIDStr string, count uint64) string {
 	metricFamily := &dto.MetricFamily{
 		Name: proto.String(metricName),
@@ -17,11 +23,11 @@ func counterMetric(metricName, operation string, shardIDStr string, count uint64
 			{
 				Label: []*dto.LabelPair{
 					{
-						Name:  proto.String("operation"),
+						Name:  proto.String(operationName),
 						Value: proto.String(operation),
 					},
 					{
-						Name:  proto.String("shardID"),
+						Name:  proto.String(shardIDName),
 						Value: proto.String(shardIDStr),
 					},
 				},
@@ -46,15 +52,15 @@ func errorsMetric(metricName, operation string, shardIDStr string, errorsCount m
 		m := &dto.Metric{
 			Label: []*dto.LabelPair{
 				{
-					Name:  proto.String("operation"),
+					Name:  proto.String(operationName),
 					Value: proto.String(operation),
 				},
 				{
-					Name:  proto.String("shardID"),
+					Name:  proto.String(shardIDName),
 					Value: proto.String(shardIDStr),
 				},
 				{
-					Name:  proto.String("errorCode"),
+					Name:  proto.String(errorCodeName),
 					Value: proto.String(strconv.Itoa(code)),
 				},
 			},
