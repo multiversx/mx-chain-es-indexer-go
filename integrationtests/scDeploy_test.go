@@ -115,7 +115,7 @@ func TestTransactionWithSCDeploy(t *testing.T) {
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(sndAddress),
-							Identifier: []byte(core.SCDeployIdentifier),
+							Identifier: []byte(core.SCUpgradeIdentifier),
 							Topics:     [][]byte{decodeAddress("erd1qqqqqqqqqqqqqpgq4t2tqxpst9a6qttpak8cz8wvz6a0nses5qfqel6rhy"), decodeAddress("erd12m3x8jp6dl027pj5f2nw6ght2cyhhjfrs86cdwsa8xn83r375qfqrwpdx0"), []byte("secondCodeHash")},
 						},
 						nil,
@@ -136,7 +136,7 @@ func TestTransactionWithSCDeploy(t *testing.T) {
 		string(genericResponse.Docs[0].Source),
 	)
 
-	// CHANGE owner
+	// CHANGE owner first
 	header.TimeStamp = 7000
 	pool = &outport.TransactionPool{
 		Logs: []*outport.LogData{
@@ -165,6 +165,38 @@ func TestTransactionWithSCDeploy(t *testing.T) {
 
 	require.JSONEq(t,
 		readExpectedResult("./testdata/scDeploy/deploy-after-upgrade-and-change-owner.json"),
+		string(genericResponse.Docs[0].Source),
+	)
+
+	// CHANGE owner second
+	header.TimeStamp = 8000
+	pool = &outport.TransactionPool{
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString([]byte("h4")),
+				Log: &transaction.Log{
+					Address: decodeAddress(sndAddress),
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress("erd1qqqqqqqqqqqqqpgq4t2tqxpst9a6qttpak8cz8wvz6a0nses5qfqel6rhy"),
+							Identifier: []byte(core.BuiltInFunctionChangeOwnerAddress),
+							Topics:     [][]byte{decodeAddress("erd1y78ds2tvzw6ntcggldjld2vk96wgq0mj47mk6auny0nkvn242e3sd4qz7m")},
+						},
+						nil,
+					},
+				},
+			},
+		},
+	}
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
+	require.Nil(t, err)
+
+	ids = []string{"erd1qqqqqqqqqqqqqpgq4t2tqxpst9a6qttpak8cz8wvz6a0nses5qfqel6rhy"}
+	err = esClient.DoMultiGet(ids, indexerData.SCDeploysIndex, true, genericResponse)
+	require.Nil(t, err)
+
+	require.JSONEq(t,
+		readExpectedResult("./testdata/scDeploy/deploy-after-upgrade-and-change-owner-second.json"),
 		string(genericResponse.Docs[0].Source),
 	)
 }

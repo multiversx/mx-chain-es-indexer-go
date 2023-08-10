@@ -8,6 +8,7 @@ import (
 )
 
 const (
+	numTopicsChangeOwner   = 1
 	minTopicsContractEvent = 3
 )
 
@@ -36,7 +37,7 @@ func (sdp *scDeploysProcessor) processEvent(args *argsProcessEvent) argOutputPro
 	}
 
 	topics := args.event.GetTopics()
-	isChangeOwnerEvent := len(topics) == 1 && eventIdentifier == core.BuiltInFunctionChangeOwnerAddress
+	isChangeOwnerEvent := len(topics) == numTopicsChangeOwner && eventIdentifier == core.BuiltInFunctionChangeOwnerAddress
 	if isChangeOwnerEvent {
 		return sdp.processChangeOwnerEvent(args)
 	}
