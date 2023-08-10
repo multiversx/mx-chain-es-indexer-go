@@ -1,0 +1,9 @@
+rest-api-interface = ":8080"
+
+[api-packages]
+
+[api-packages.status]
+    routes = [
+        { name = "/metrics", open = true },
+        { name = "/prometheus-metrics", open = true }
+    ]

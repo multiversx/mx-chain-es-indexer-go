@@ -3,15 +3,10 @@ package elasticproc
 import (
 	"bytes"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
-	"fmt"
-	"io/ioutil"
-	"strconv"
 	"strings"
 	"testing"
 
-	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"github.com/multiversx/mx-chain-core-go/core"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
 	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
@@ -341,45 +336,6 @@ func TestElasticseachDatabaseSaveHeader_RequestError(t *testing.T) {
 	require.Equal(t, localErr, err)
 }
 
-func TestElasticseachDatabaseSaveHeader_CheckRequestBody(t *testing.T) {
-	outportBlock := createEmptyOutportBlockWithHeader()
-
-	miniBlock := &dataBlock.MiniBlock{
-		Type: dataBlock.TxBlock,
-	}
-	blockBody := &dataBlock.Body{
-		MiniBlocks: []*dataBlock.MiniBlock{
-			miniBlock,
-		},
-	}
-	outportBlock.BlockData.Body = blockBody
-
-	arguments := createMockElasticProcessorArgs()
-
-	mbHash, _ := core.CalculateHash(&mock.MarshalizerMock{}, &mock.HasherMock{}, miniBlock)
-	hexEncodedHash := hex.EncodeToString(mbHash)
-
-	dbWriter := &mock.DatabaseWriterStub{
-		DoRequestCalled: func(req *esapi.IndexRequest) error {
-			require.Equal(t, dataindexer.BlockIndex, req.Index)
-
-			var bl data.Block
-			blockBytes, _ := ioutil.ReadAll(req.Body)
-			_ = json.Unmarshal(blockBytes, &bl)
-			require.Equal(t, outportBlock.Header.GetNonce(), bl.Nonce)
-			require.Equal(t, hexEncodedHash, bl.MiniBlocksHashes[0])
-			require.Equal(t, outportBlock.SignersIndexes, bl.Validators)
-
-			return nil
-		},
-	}
-
-	arguments.BlockProc, _ = block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
-	elasticDatabase := newElasticsearchProcessor(dbWriter, arguments)
-	err := elasticDatabase.SaveHeader(outportBlock)
-	require.Nil(t, err)
-}
-
 func TestElasticseachSaveTransactions(t *testing.T) {
 	localErr := errors.New("localErr")
 	arguments := createMockElasticProcessorArgs()
@@ -480,45 +436,6 @@ func TestElasticsearch_saveShardValidatorsPubKeys_RequestError(t *testing.T) {
 		},
 	})
 	require.Equal(t, localErr, err)
-}
-
-func TestElasticsearch_saveShardValidatorsPubKeys(t *testing.T) {
-	shardID := uint32(0)
-	epoch := uint32(0)
-	valPubKeys := [][]byte{[]byte("key1"), []byte("key2")}
-	arguments := createMockElasticProcessorArgs()
-	dbWriter := &mock.DatabaseWriterStub{
-		DoRequestCalled: func(req *esapi.IndexRequest) error {
-			require.Equal(t, fmt.Sprintf("%d_%d", shardID, epoch), req.DocumentID)
-			return nil
-		},
-	}
-	elasticDatabase := newElasticsearchProcessor(dbWriter, arguments)
-
-	err := elasticDatabase.SaveShardValidatorsPubKeys(&outport.ValidatorsPubKeys{
-		Epoch: epoch,
-		ShardValidatorsPubKeys: map[uint32]*outport.PubKeys{
-			shardID: {Keys: valPubKeys},
-		},
-	})
-	require.Nil(t, err)
-}
-
-func TestElasticsearch_saveRoundInfo(t *testing.T) {
-	roundInfo := &outport.RoundInfo{
-		Round: 1, ShardId: 0, BlockWasProposed: true,
-	}
-	arguments := createMockElasticProcessorArgs()
-	dbWriter := &mock.DatabaseWriterStub{
-		DoRequestCalled: func(req *esapi.IndexRequest) error {
-			require.Equal(t, strconv.FormatUint(uint64(roundInfo.ShardId), 10)+"_"+strconv.FormatUint(roundInfo.Round, 10), req.DocumentID)
-			return nil
-		},
-	}
-	elasticDatabase := newElasticsearchProcessor(dbWriter, arguments)
-
-	err := elasticDatabase.SaveRoundsInfo(&outport.RoundsInfo{RoundsInfo: []*outport.RoundInfo{roundInfo}})
-	require.Nil(t, err)
 }
 
 func TestElasticsearch_saveRoundInfoRequestError(t *testing.T) {

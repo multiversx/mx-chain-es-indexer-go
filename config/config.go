@@ -53,3 +53,20 @@ type ClusterConfig struct {
 		} `toml:"elastic-cluster"`
 	} `toml:"config"`
 }
+
+// ApiRoutesConfig holds the configuration related to Rest API routes
+type ApiRoutesConfig struct {
+	RestApiInterface string                      `toml:"rest-api-interface"`
+	APIPackages      map[string]APIPackageConfig `toml:"api-packages"`
+}
+
+// APIPackageConfig holds the configuration for the routes of each package
+type APIPackageConfig struct {
+	Routes []RouteConfig `toml:"routes"`
+}
+
+// RouteConfig holds the configuration for a single route
+type RouteConfig struct {
+	Name string `toml:"name"`
+	Open bool   `toml:"open"`
+}

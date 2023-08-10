@@ -2,13 +2,11 @@ package mock
 
 import (
 	"bytes"
-
-	"github.com/elastic/go-elasticsearch/v7/esapi"
+	"context"
 )
 
 // DatabaseWriterStub -
 type DatabaseWriterStub struct {
-	DoRequestCalled           func(req *esapi.IndexRequest) error
 	DoBulkRequestCalled       func(buff *bytes.Buffer, index string) error
 	DoQueryRemoveCalled       func(index string, body *bytes.Buffer) error
 	DoMultiGetCalled          func(ids []string, index string, withSource bool, response interface{}) error
@@ -17,33 +15,25 @@ type DatabaseWriterStub struct {
 }
 
 // UpdateByQuery -
-func (dwm *DatabaseWriterStub) UpdateByQuery(_ string, _ *bytes.Buffer) error {
+func (dwm *DatabaseWriterStub) UpdateByQuery(_ context.Context, _ string, _ *bytes.Buffer) error {
 	return nil
 }
 
 // DoCountRequest -
-func (dwm *DatabaseWriterStub) DoCountRequest(_ string, _ []byte) (uint64, error) {
+func (dwm *DatabaseWriterStub) DoCountRequest(_ context.Context, _ string, _ []byte) (uint64, error) {
 	return 0, nil
 }
 
 // DoScrollRequest -
-func (dwm *DatabaseWriterStub) DoScrollRequest(index string, body []byte, withSource bool, handlerFunc func(responseBytes []byte) error) error {
+func (dwm *DatabaseWriterStub) DoScrollRequest(_ context.Context, index string, body []byte, withSource bool, handlerFunc func(responseBytes []byte) error) error {
 	if dwm.DoScrollRequestCalled != nil {
 		return dwm.DoScrollRequestCalled(index, body, withSource, handlerFunc)
 	}
 	return nil
 }
 
-// DoRequest -
-func (dwm *DatabaseWriterStub) DoRequest(req *esapi.IndexRequest) error {
-	if dwm.DoRequestCalled != nil {
-		return dwm.DoRequestCalled(req)
-	}
-	return nil
-}
-
 // DoBulkRequest -
-func (dwm *DatabaseWriterStub) DoBulkRequest(buff *bytes.Buffer, index string) error {
+func (dwm *DatabaseWriterStub) DoBulkRequest(_ context.Context, buff *bytes.Buffer, index string) error {
 	if dwm.DoBulkRequestCalled != nil {
 		return dwm.DoBulkRequestCalled(buff, index)
 	}
@@ -51,7 +41,7 @@ func (dwm *DatabaseWriterStub) DoBulkRequest(buff *bytes.Buffer, index string) e
 }
 
 // DoMultiGet -
-func (dwm *DatabaseWriterStub) DoMultiGet(hashes []string, index string, withSource bool, response interface{}) error {
+func (dwm *DatabaseWriterStub) DoMultiGet(_ context.Context, hashes []string, index string, withSource bool, response interface{}) error {
 	if dwm.DoMultiGetCalled != nil {
 		return dwm.DoMultiGetCalled(hashes, index, withSource, response)
 	}
@@ -60,7 +50,7 @@ func (dwm *DatabaseWriterStub) DoMultiGet(hashes []string, index string, withSou
 }
 
 // DoQueryRemove -
-func (dwm *DatabaseWriterStub) DoQueryRemove(index string, body *bytes.Buffer) error {
+func (dwm *DatabaseWriterStub) DoQueryRemove(_ context.Context, index string, body *bytes.Buffer) error {
 	if dwm.DoQueryRemoveCalled != nil {
 		return dwm.DoQueryRemoveCalled(index, body)
 	}
