@@ -129,7 +129,7 @@ func TestTransactionWithSCDeploy(t *testing.T) {
 	require.Nil(t, err)
 
 	ids = []string{"erd1qqqqqqqqqqqqqpgq4t2tqxpst9a6qttpak8cz8wvz6a0nses5qfqel6rhy"}
-	err = esClient.DoMultiGet(ids, indexerData.SCDeploysIndex, true, genericResponse)
+	err = esClient.DoMultiGet(context.Background(), ids, indexerData.SCDeploysIndex, true, genericResponse)
 	require.Nil(t, err)
 
 	require.JSONEq(t,
@@ -161,7 +161,7 @@ func TestTransactionWithSCDeploy(t *testing.T) {
 	require.Nil(t, err)
 
 	ids = []string{"erd1qqqqqqqqqqqqqpgq4t2tqxpst9a6qttpak8cz8wvz6a0nses5qfqel6rhy"}
-	err = esClient.DoMultiGet(ids, indexerData.SCDeploysIndex, true, genericResponse)
+	err = esClient.DoMultiGet(context.Background(), ids, indexerData.SCDeploysIndex, true, genericResponse)
 	require.Nil(t, err)
 
 	require.JSONEq(t,
@@ -193,7 +193,7 @@ func TestTransactionWithSCDeploy(t *testing.T) {
 	require.Nil(t, err)
 
 	ids = []string{"erd1qqqqqqqqqqqqqpgq4t2tqxpst9a6qttpak8cz8wvz6a0nses5qfqel6rhy"}
-	err = esClient.DoMultiGet(ids, indexerData.SCDeploysIndex, true, genericResponse)
+	err = esClient.DoMultiGet(context.Background(), ids, indexerData.SCDeploysIndex, true, genericResponse)
 	require.Nil(t, err)
 
 	require.JSONEq(t,
