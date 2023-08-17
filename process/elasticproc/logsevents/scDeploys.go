@@ -29,7 +29,6 @@ func newSCDeploysProcessor(pubKeyConverter core.PubkeyConverter) *scDeploysProce
 }
 
 func (sdp *scDeploysProcessor) processEvent(args *argsProcessEvent) argOutputProcessEvent {
-
 	eventIdentifier := string(args.event.GetIdentifier())
 	_, ok := sdp.scDeploysIdentifiers[eventIdentifier]
 	if !ok {
