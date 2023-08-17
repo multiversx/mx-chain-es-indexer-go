@@ -102,7 +102,7 @@ CLI: run `--help` to get the command line parameters
 
 Before launching the `elasticindexer` service, it has to be configured so that it runs with the correct configuration.
 
-The `prefs.toml` file:
+The **_[prefs.toml](./cmd/elasticindexer/config/prefs.toml)_** file:
 
 ```toml
 [config]
@@ -132,7 +132,7 @@ The `prefs.toml` file:
         bulk-request-max-size-in-bytes = 4194304 # 4MB
 ```
 
-The `api.toml` file:
+The _**[api.toml](./cmd/elasticindexer/config/api.toml)**_ file:
 ```toml
 rest-api-interface = ":8080"
 
