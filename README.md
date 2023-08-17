@@ -89,7 +89,7 @@ The corresponding config section for enabling the driver:
 
 
 #### Install
-Using the cmd/elasticindexer package as root, execute the following commands:
+Using the `cmd/elasticindexer` package as root, execute the following commands:
 - install go dependencies: `go install`
 - build executable: `go build -o elasticindexer`
 
