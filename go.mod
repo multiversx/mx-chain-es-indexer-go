@@ -6,10 +6,10 @@ require (
 	github.com/elastic/go-elasticsearch/v7 v7.12.0
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.9.1
-	github.com/multiversx/mx-chain-communication-go v1.0.6-0.20230816102554-567e1f606ee9
-	github.com/multiversx/mx-chain-core-go v1.2.13-0.20230816090241-133da66033a9
-	github.com/multiversx/mx-chain-logger-go v1.0.13-0.20230816094710-e4e216ffef4e
-	github.com/multiversx/mx-chain-vm-common-go v1.5.1-0.20230816095353-9830338a04e4
+	github.com/multiversx/mx-chain-communication-go v1.0.6
+	github.com/multiversx/mx-chain-core-go v1.2.13
+	github.com/multiversx/mx-chain-logger-go v1.0.13
+	github.com/multiversx/mx-chain-vm-common-go v1.5.2
 	github.com/prometheus/client_model v0.4.0
 	github.com/prometheus/common v0.37.0
 	github.com/stretchr/testify v1.8.4
