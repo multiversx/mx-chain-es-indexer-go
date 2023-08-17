@@ -132,7 +132,7 @@ The `prefs.toml` file:
         bulk-request-max-size-in-bytes = 4194304 # 4MB
 ```
 
-The 'api.toml' file:
+The `api.toml` file:
 ```toml
 rest-api-interface = ":8080"
 
