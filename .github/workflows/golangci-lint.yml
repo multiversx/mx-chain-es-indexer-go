@@ -3,7 +3,7 @@ on:
   push:
     branches: [ master ]
   pull_request:
-    branches: [ master, development, feat/*, rc/* ]
+    branches: [ master, feat/*, rc/* ]
 
 permissions:
   contents: read
