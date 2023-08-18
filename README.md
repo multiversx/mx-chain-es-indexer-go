@@ -55,7 +55,7 @@ Before proceeding, ensure you have the following prerequisites:
 - Go programming environment set up.
 - Access to an Elasticsearch database instance.
 - One has to setup one or multiple observers. For running an observing squad, these [docs](https://docs.multiversx.com/integrators/observing-squad/) cover the whole process.
-The required configs for launching an observer/s with a driver attached, can be found here.
+The required configs for launching an observer/s with a driver attached, can be found [here](https://github.com/multiversx/mx-chain-go/blob/master/cmd/node/config/external.toml).
 
 The corresponding config section for enabling the driver:
 
