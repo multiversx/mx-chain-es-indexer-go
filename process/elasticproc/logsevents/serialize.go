@@ -49,6 +49,44 @@ func (*logsAndEventsProcessor) SerializeLogs(logs []*data.Logs, buffSlice *data.
 	return nil
 }
 
+// SerializeChangeOwnerOperations will serialize the provided change owner operations in a way that Elasticsearch expects a bulk request
+func (*logsAndEventsProcessor) SerializeChangeOwnerOperations(changeOwnerOperations map[string]*data.OwnerData, buffSlice *data.BufferSlice, index string) error {
+	for scAddr, ownerData := range changeOwnerOperations {
+		meta := []byte(fmt.Sprintf(`{ "update" : { "_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(scAddr), "\n"))
+		ownerDataBytes, err := json.Marshal(ownerData)
+		if err != nil {
+			return err
+		}
+
+		codeToExecute := `
+		if ('create' == ctx.op) {
+			return
+		} else {
+			ctx._source.currentOwner = params.ownerData.address;
+			if (!ctx._source.containsKey('owners')) {
+				ctx._source.owners = [params.ownerData];
+			} else {
+				ctx._source.owners.add(params.ownerData);
+			}
+		}
+`
+		serializedDataStr := fmt.Sprintf(`{"scripted_upsert": true, "script": {`+
+			`"source": "%s",`+
+			`"lang": "painless",`+
+			`"params": { "ownerData": %s }},`+
+			`"upsert": {}}`,
+			converters.FormatPainlessSource(codeToExecute), ownerDataBytes,
+		)
+
+		err = buffSlice.PutData(meta, []byte(serializedDataStr))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // SerializeSCDeploys will serialize the provided smart contract deploys in a way that Elasticsearch expects a bulk request
 func (*logsAndEventsProcessor) SerializeSCDeploys(deploys map[string]*data.ScDeployInfo, buffSlice *data.BufferSlice, index string) error {
 	for scAddr, deployInfo := range deploys {
@@ -70,6 +108,7 @@ func (*logsAndEventsProcessor) SerializeSCDeploys(deploys map[string]*data.ScDep
 
 func serializeDeploy(deployInfo *data.ScDeployInfo) ([]byte, error) {
 	deployInfo.Upgrades = make([]*data.Upgrade, 0)
+	deployInfo.OwnersHistory = make([]*data.OwnerData, 0)
 	serializedData, errPrepareD := json.Marshal(deployInfo)
 	if errPrepareD != nil {
 		return nil, errPrepareD
@@ -79,6 +118,7 @@ func serializeDeploy(deployInfo *data.ScDeployInfo) ([]byte, error) {
 		TxHash:    deployInfo.TxHash,
 		Upgrader:  deployInfo.Creator,
 		Timestamp: deployInfo.Timestamp,
+		CodeHash:  deployInfo.CodeHash,
 	}
 	upgradeSerialized, errPrepareU := json.Marshal(upgradeData)
 	if errPrepareU != nil {

@@ -67,7 +67,7 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 					{
 						Address:    []byte("addr"),
 						Identifier: []byte(core.SCDeployIdentifier),
-						Topics:     [][]byte{[]byte("addr1"), []byte("addr2")},
+						Topics:     [][]byte{[]byte("addr1"), []byte("addr2"), []byte("codeHash")},
 					},
 				},
 			},
@@ -165,9 +165,11 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 	require.True(t, res.ScResults[0].HasLogs)
 
 	require.Equal(t, &data.ScDeployInfo{
-		TxHash:    "6833",
-		Creator:   "6164647232",
-		Timestamp: uint64(1000),
+		TxHash:       "6833",
+		Creator:      "6164647232",
+		CurrentOwner: "6164647232",
+		Timestamp:    uint64(1000),
+		CodeHash:     []byte("codeHash"),
 	}, resLogs.ScDeploys["6164647231"])
 
 	require.Equal(t, &data.TokenInfo{
