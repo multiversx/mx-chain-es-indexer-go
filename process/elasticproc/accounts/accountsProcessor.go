@@ -123,16 +123,14 @@ func (ap *accountsProcessor) PrepareRegularAccountsMap(timestamp uint64, account
 		}
 
 		acc := &data.AccountInfo{
-			Address:                  address,
-			Nonce:                    userAccount.UserAccount.Nonce,
-			Balance:                  converters.BigIntToString(balance),
-			BalanceNum:               balanceAsFloat,
-			IsSender:                 userAccount.IsSender,
-			IsSmartContract:          core.IsSmartContractAddress(addressBytes),
-			TotalBalanceWithStake:    converters.BigIntToString(balance),
-			TotalBalanceWithStakeNum: balanceAsFloat,
-			Timestamp:                time.Duration(timestamp),
-			ShardID:                  shardID,
+			Address:         address,
+			Nonce:           userAccount.UserAccount.Nonce,
+			Balance:         converters.BigIntToString(balance),
+			BalanceNum:      balanceAsFloat,
+			IsSender:        userAccount.IsSender,
+			IsSmartContract: core.IsSmartContractAddress(addressBytes),
+			Timestamp:       time.Duration(timestamp),
+			ShardID:         shardID,
 		}
 
 		ap.addAdditionalDataInAccount(userAccount.UserAccount.AdditionalData, acc)
@@ -150,6 +148,9 @@ func (ap *accountsProcessor) addAdditionalDataInAccount(additionalData *alteredA
 
 	account.UserName = additionalData.UserName
 	account.CurrentOwner = additionalData.CurrentOwner
+	account.RootHash = additionalData.RootHash
+	account.CodeHash = additionalData.CodeHash
+	account.CodeMetadata = additionalData.CodeMetadata
 
 	ap.addDeveloperRewardsInAccount(additionalData, account)
 }

@@ -268,6 +268,11 @@ func TestAccountsProcessor_PrepareAccountsMapEGLD(t *testing.T) {
 		Address: addr,
 		Balance: "1000",
 		Nonce:   1,
+		AdditionalData: &alteredAccount.AdditionalAccountData{
+			CodeHash:     []byte("code"),
+			CodeMetadata: []byte("metadata"),
+			RootHash:     []byte("root"),
+		},
 	}
 
 	egldAccount := &data.Account{
@@ -282,14 +287,15 @@ func TestAccountsProcessor_PrepareAccountsMapEGLD(t *testing.T) {
 
 	res := ap.PrepareRegularAccountsMap(123, []*data.Account{egldAccount}, 0)
 	require.Equal(t, &data.AccountInfo{
-		Address:                  addr,
-		Nonce:                    1,
-		Balance:                  "1000",
-		BalanceNum:               balanceNum,
-		TotalBalanceWithStake:    "1000",
-		TotalBalanceWithStakeNum: balanceNum,
-		IsSmartContract:          true,
-		Timestamp:                time.Duration(123),
+		Address:         addr,
+		Nonce:           1,
+		Balance:         "1000",
+		BalanceNum:      balanceNum,
+		IsSmartContract: true,
+		Timestamp:       time.Duration(123),
+		CodeHash:        []byte("code"),
+		CodeMetadata:    []byte("metadata"),
+		RootHash:        []byte("root"),
 	},
 		res[addr])
 }
