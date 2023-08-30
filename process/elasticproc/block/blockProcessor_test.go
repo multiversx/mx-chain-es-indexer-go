@@ -63,7 +63,16 @@ func TestBlockProcessor_PrepareBlockForDBShouldWork(t *testing.T) {
 	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	outportBlockWithHeader := &outport.OutportBlockWithHeader{
-		Header: &dataBlock.Header{},
+		Header: &dataBlock.Header{
+			RandSeed:        []byte("randSeed"),
+			PrevRandSeed:    []byte("prevRandSeed"),
+			Signature:       []byte("signature"),
+			LeaderSignature: []byte("leaderSignature"),
+			ChainID:         []byte("1"),
+			SoftwareVersion: []byte("1"),
+			ReceiptsHash:    []byte("hash"),
+			Reserved:        []byte("reserved"),
+		},
 		OutportBlock: &outport.OutportBlock{
 			BlockData: &outport.BlockData{
 				HeaderHash: []byte("hash"),
@@ -96,6 +105,14 @@ func TestBlockProcessor_PrepareBlockForDBShouldWork(t *testing.T) {
 		Size:                  114,
 		AccumulatedFees:       "0",
 		DeveloperFees:         "0",
+		RandSeed:              "72616e6453656564",
+		PrevRandSeed:          "7072657652616e6453656564",
+		Signature:             "7369676e6174757265",
+		LeaderSignature:       "6c65616465725369676e6174757265",
+		ChainID:               "1",
+		SoftwareVersion:       "31",
+		ReceiptsHash:          "68617368",
+		Reserved:              []byte("reserved"),
 	}
 	require.Equal(t, expectedBlock, dbBlock)
 }
