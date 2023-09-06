@@ -103,6 +103,14 @@ func (bp *blockProcessor) PrepareBlockForDB(obh *outport.OutportBlockWithHeader)
 		MaxGasLimit:           obh.HeaderGasConsumption.MaxGasPerBlock,
 		AccumulatedFees:       converters.BigIntToString(obh.Header.GetAccumulatedFees()),
 		DeveloperFees:         converters.BigIntToString(obh.Header.GetDeveloperFees()),
+		RandSeed:              hex.EncodeToString(obh.Header.GetRandSeed()),
+		PrevRandSeed:          hex.EncodeToString(obh.Header.GetPrevRandSeed()),
+		Signature:             hex.EncodeToString(obh.Header.GetSignature()),
+		LeaderSignature:       hex.EncodeToString(obh.Header.GetLeaderSignature()),
+		ChainID:               string(obh.Header.GetChainID()),
+		SoftwareVersion:       hex.EncodeToString(obh.Header.GetSoftwareVersion()),
+		ReceiptsHash:          hex.EncodeToString(obh.Header.GetReceiptsHash()),
+		Reserved:              obh.Header.GetReserved(),
 	}
 
 	additionalData := obh.Header.GetAdditionalData()

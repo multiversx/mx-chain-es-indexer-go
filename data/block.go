@@ -5,8 +5,9 @@ import (
 )
 
 // Block is a structure containing all the fields that need
-//  to be saved for a block. It has all the default fields
-//  plus some extra information for ease of search and filter
+//
+//	to be saved for a block. It has all the default fields
+//	plus some extra information for ease of search and filter
 type Block struct {
 	Nonce                 uint64                 `json:"nonce"`
 	Round                 uint64                 `json:"round"`
@@ -37,6 +38,14 @@ type Block struct {
 	MaxGasLimit           uint64                 `json:"maxGasLimit"`
 	ScheduledData         *ScheduledData         `json:"scheduledData,omitempty"`
 	EpochStartShardsData  []*EpochStartShardData `json:"epochStartShardsData,omitempty"`
+	RandSeed              string                 `json:"randSeed,omitempty"`
+	PrevRandSeed          string                 `json:"prevRandSeed,omitempty"`
+	Signature             string                 `json:"signature,omitempty"`
+	LeaderSignature       string                 `json:"leaderSignature,omitempty"`
+	ChainID               string                 `json:"chainID,omitempty"`
+	SoftwareVersion       string                 `json:"softwareVersion,omitempty"`
+	ReceiptsHash          string                 `json:"receiptsHash,omitempty"`
+	Reserved              []byte                 `json:"reserved,omitempty"`
 }
 
 // MiniBlocksDetails is a structure that hold information about mini-blocks execution details

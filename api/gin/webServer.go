@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-es-indexer-go/api/groups"
 	"github.com/multiversx/mx-chain-es-indexer-go/api/shared"
 	"github.com/multiversx/mx-chain-es-indexer-go/config"
@@ -107,7 +108,7 @@ func (ws *webServer) registerRoutes(ginRouter *gin.Engine) {
 func (ws *webServer) Close() error {
 	var err error
 	ws.Lock()
-	if ws.httpServer != nil {
+	if !check.IfNil(ws.httpServer) {
 		err = ws.httpServer.Close()
 	}
 	ws.Unlock()
