@@ -48,8 +48,15 @@ func (mp *miniblocksProcessor) PrepareDBMiniblocks(header coreData.HeaderHandler
 		return nil
 	}
 
+	selfShard := header.GetShardID()
 	dbMiniblocks := make([]*data.Miniblock, 0)
 	for mbIndex, miniBlock := range miniBlocks {
+
+		if miniBlock.ReceiverShardID == core.AllShardId && selfShard != core.MetachainShardId {
+			// will not index the miniblock on the destination if is for all shards
+			continue
+		}
+
 		dbMiniBlock, errPrepareMiniBlock := mp.prepareMiniblockForDB(mbIndex, miniBlock, header, headerHash)
 		if errPrepareMiniBlock != nil {
 			log.Warn("miniblocksProcessor.PrepareDBMiniBlocks cannot prepare miniblock", "error", errPrepareMiniBlock)
