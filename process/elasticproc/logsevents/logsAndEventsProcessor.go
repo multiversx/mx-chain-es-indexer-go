@@ -203,7 +203,7 @@ func (lep *logsAndEventsProcessor) PrepareLogsForDB(
 
 func (lep *logsAndEventsProcessor) prepareLogsForDB(
 	logHashHex string,
-	logHandler coreData.LogHandler,
+	eventLogs *transaction.Log,
 	timestamp uint64,
 ) *data.Logs {
 	originalTxHash := ""
@@ -212,19 +212,16 @@ func (lep *logsAndEventsProcessor) prepareLogsForDB(
 		originalTxHash = scr.OriginalTxHash
 	}
 
-	events := logHandler.GetLogEvents()
-
-	encodedAddr := lep.pubKeyConverter.SilentEncode(logHandler.GetAddress(), log)
-
+	encodedAddr := lep.pubKeyConverter.SilentEncode(eventLogs.GetAddress(), log)
 	logsDB := &data.Logs{
 		ID:             logHashHex,
 		OriginalTxHash: originalTxHash,
 		Address:        encodedAddr,
 		Timestamp:      time.Duration(timestamp),
-		Events:         make([]*data.Event, 0, len(events)),
+		Events:         make([]*data.Event, 0, len(eventLogs.Events)),
 	}
 
-	for idx, event := range events {
+	for idx, event := range eventLogs.Events {
 		if check.IfNil(event) {
 			continue
 		}
@@ -232,11 +229,12 @@ func (lep *logsAndEventsProcessor) prepareLogsForDB(
 		encodedAddress := lep.pubKeyConverter.SilentEncode(event.GetAddress(), log)
 
 		logsDB.Events = append(logsDB.Events, &data.Event{
-			Address:    encodedAddress,
-			Identifier: string(event.GetIdentifier()),
-			Topics:     event.GetTopics(),
-			Data:       event.GetData(),
-			Order:      idx,
+			Address:        encodedAddress,
+			Identifier:     string(event.GetIdentifier()),
+			Topics:         event.GetTopics(),
+			Data:           event.GetData(),
+			AdditionalData: event.GetAdditionalData(),
+			Order:          idx,
 		})
 	}
 
