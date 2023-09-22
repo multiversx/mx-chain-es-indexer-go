@@ -216,9 +216,10 @@ func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 				Address: []byte("address"),
 				Events: []*transaction.Event{
 					{
-						Address:    []byte("addr"),
-						Identifier: []byte(core.BuiltInFunctionESDTNFTTransfer),
-						Topics:     [][]byte{[]byte("my-token"), big.NewInt(0).SetUint64(1).Bytes(), []byte("receiver")},
+						Address:        []byte("addr"),
+						Identifier:     []byte(core.BuiltInFunctionESDTNFTTransfer),
+						Topics:         [][]byte{[]byte("my-token"), big.NewInt(0).SetUint64(1).Bytes(), []byte("receiver")},
+						AdditionalData: [][]byte{[]byte("something")},
 					},
 				},
 			},
@@ -243,9 +244,10 @@ func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 		Timestamp:      time.Duration(1234),
 		Events: []*data.Event{
 			{
-				Address:    "61646472",
-				Identifier: core.BuiltInFunctionESDTNFTTransfer,
-				Topics:     [][]byte{[]byte("my-token"), big.NewInt(0).SetUint64(1).Bytes(), []byte("receiver")},
+				Address:        "61646472",
+				Identifier:     core.BuiltInFunctionESDTNFTTransfer,
+				Topics:         [][]byte{[]byte("my-token"), big.NewInt(0).SetUint64(1).Bytes(), []byte("receiver")},
+				AdditionalData: [][]byte{[]byte("something")},
 			},
 		},
 	}, logsDB[0])

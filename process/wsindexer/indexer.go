@@ -70,7 +70,11 @@ func (i *indexer) initActionsMap() {
 }
 
 // ProcessPayload will proces the provided payload based on the topic
-func (i *indexer) ProcessPayload(payload []byte, topic string) error {
+func (i *indexer) ProcessPayload(payload []byte, topic string, version uint32) error {
+	if version != 1 {
+		log.Warn("received a payload with a different version", "version", version)
+	}
+
 	payloadTypeAction, ok := i.actions[topic]
 	if !ok {
 		log.Warn("invalid payload type", "topic", topic)

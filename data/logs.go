@@ -18,11 +18,12 @@ type Logs struct {
 
 // Event holds all the fields needed for an event structure
 type Event struct {
-	Address    string   `json:"address"`
-	Identifier string   `json:"identifier"`
-	Topics     [][]byte `json:"topics"`
-	Data       []byte   `json:"data"`
-	Order      int      `json:"order"`
+	Address        string   `json:"address"`
+	Identifier     string   `json:"identifier"`
+	Topics         [][]byte `json:"topics"`
+	Data           []byte   `json:"data"`
+	AdditionalData [][]byte `json:"additionalData,omitempty"`
+	Order          int      `json:"order"`
 }
 
 // PreparedLogsResults is the DTO that holds all the results after processing
