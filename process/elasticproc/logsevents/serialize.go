@@ -299,7 +299,10 @@ func serializeRoleData(buffSlice *data.BufferSlice, rd *tokeninfo.RoleData, role
 		codeToExecute := `
 	if (ctx._source.containsKey('roles')) {
 		if (ctx._source.roles.containsKey(params.role)) {
-			ctx._source.roles.get(params.role).removeIf(p -> p.equals(params.address))
+			ctx._source.roles.get(params.role).removeIf(p -> p.equals(params.address));
+			if (ctx._source.roles.get(params.role).length == 0) {
+				ctx._source.roles.remove(params.role)
+			}
 		}
 	}
 `
