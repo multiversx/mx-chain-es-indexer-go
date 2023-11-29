@@ -40,7 +40,13 @@ func (m *metricsTransport) RoundTrip(req *http.Request) (*http.Response, error) 
 
 	startTime := time.Now()
 	size := req.ContentLength
+
+	var statusCode int
 	resp, err := m.transport.RoundTrip(req)
+	if err == nil {
+		statusCode = resp.StatusCode
+	}
+
 	duration := time.Since(startTime)
 
 	valueFromCtx := req.Context().Value(request.ContextKey)
@@ -50,7 +56,7 @@ func (m *metricsTransport) RoundTrip(req *http.Request) (*http.Response, error) 
 	topic := fmt.Sprintf("%s", valueFromCtx)
 
 	m.statusMetrics.AddIndexingData(metrics.ArgsAddIndexingData{
-		StatusCode: resp.StatusCode,
+		StatusCode: statusCode,
 		GotError:   err != nil,
 		MessageLen: uint64(size),
 		Topic:      topic,
