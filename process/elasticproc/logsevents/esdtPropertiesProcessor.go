@@ -4,6 +4,7 @@ import (
 	"unicode"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 )
 
 const (
@@ -23,10 +24,12 @@ func newEsdtPropertiesProcessor(pubKeyConverter core.PubkeyConverter) *esdtPrope
 	return &esdtPropertiesProc{
 		pubKeyConverter: pubKeyConverter,
 		rolesOperationsIdentifiers: map[string]struct{}{
-			core.BuiltInFunctionSetESDTRole:               {},
-			core.BuiltInFunctionUnSetESDTRole:             {},
-			core.BuiltInFunctionESDTNFTCreateRoleTransfer: {},
-			upgradePropertiesEvent:                        {},
+			core.BuiltInFunctionSetESDTRole:                 {},
+			core.BuiltInFunctionUnSetESDTRole:               {},
+			core.BuiltInFunctionESDTNFTCreateRoleTransfer:   {},
+			upgradePropertiesEvent:                          {},
+			vmcommon.BuiltInFunctionESDTUnSetBurnRoleForAll: {},
+			vmcommon.BuiltInFunctionESDTSetBurnRoleForAll:   {},
 		},
 	}
 }
@@ -67,10 +70,16 @@ func (epp *esdtPropertiesProc) processEvent(args *argsProcessEvent) argOutputPro
 		}
 	}
 
-	shouldAddRole := identifier == core.BuiltInFunctionSetESDTRole
+	shouldAddRole := identifier == core.BuiltInFunctionSetESDTRole || identifier == vmcommon.BuiltInFunctionESDTSetBurnRoleForAll
+
 	addrBech := epp.pubKeyConverter.SilentEncode(args.event.GetAddress(), log)
 	for _, roleBytes := range rolesBytes {
-		args.tokenRolesAndProperties.AddRole(string(topics[tokenTopicsIndex]), addrBech, string(roleBytes), shouldAddRole)
+		addr := addrBech
+		if string(roleBytes) == vmcommon.ESDTRoleBurnForAll {
+			addr = ""
+		}
+
+		args.tokenRolesAndProperties.AddRole(string(topics[tokenTopicsIndex]), addr, string(roleBytes), shouldAddRole)
 	}
 
 	return argOutputProcessEvent{

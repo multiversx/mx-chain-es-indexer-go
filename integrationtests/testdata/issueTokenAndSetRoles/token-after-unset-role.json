@@ -15,8 +15,7 @@
   "roles": {
     "ESDTRoleNFTCreate": [
       "erd1suhxyflu4w4pqdxmushpxzc6a3qszr89m8uswzqcvyh0mh9mzxwqdwkm0x"
-    ],
-    "ESDTRoleNFTBurn": []
+    ]
   },
   "properties": {
     "canMint": false,
