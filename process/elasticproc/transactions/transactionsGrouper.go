@@ -1,11 +1,13 @@
 package transactions
 
 import (
+	"encoding/hex"
+
 	"github.com/multiversx/mx-chain-core-go/core"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/receipt"
-	"github.com/multiversx/mx-chain-core-go/data/rewardTx"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
@@ -38,7 +40,7 @@ func (tg *txsGrouper) groupNormalTxs(
 	mbIndex int,
 	mb *block.MiniBlock,
 	header coreData.HeaderHandler,
-	txs map[string]coreData.TransactionHandlerWithGasUsedAndFee,
+	txs map[string]*outport.TxInfo,
 	isImportDB bool,
 	numOfShards uint32,
 ) (map[string]*data.Transaction, error) {
@@ -92,21 +94,16 @@ func (tg *txsGrouper) prepareNormalTxForDB(
 	mb *block.MiniBlock,
 	mbStatus string,
 	txHash []byte,
-	txs map[string]coreData.TransactionHandlerWithGasUsedAndFee,
+	txs map[string]*outport.TxInfo,
 	header coreData.HeaderHandler,
 	numOfShards uint32,
 ) (*data.Transaction, bool) {
-	txHandler, okGet := txs[string(txHash)]
+	txInfo, okGet := txs[hex.EncodeToString(txHash)]
 	if !okGet {
 		return nil, false
 	}
 
-	tx, okCast := txHandler.GetTxHandler().(*transaction.Transaction)
-	if !okCast {
-		return nil, false
-	}
-
-	dbTx := tg.txBuilder.prepareTransaction(tx, txHash, mbHash, mb, header, mbStatus, txHandler.GetFee(), txHandler.GetGasUsed(), txHandler.GetInitialPaidFee(), numOfShards)
+	dbTx := tg.txBuilder.prepareTransaction(txInfo, txHash, mbHash, mb, header, mbStatus, numOfShards)
 
 	return dbTx, true
 }
@@ -115,7 +112,7 @@ func (tg *txsGrouper) groupRewardsTxs(
 	mbIndex int,
 	mb *block.MiniBlock,
 	header coreData.HeaderHandler,
-	txs map[string]coreData.TransactionHandlerWithGasUsedAndFee,
+	txs map[string]*outport.RewardInfo,
 	isImportDB bool,
 ) (map[string]*data.Transaction, error) {
 	rewardsTxs := make(map[string]*data.Transaction)
@@ -146,20 +143,15 @@ func (tg *txsGrouper) prepareRewardTxForDB(
 	mb *block.MiniBlock,
 	mbStatus string,
 	txHash []byte,
-	txs map[string]coreData.TransactionHandlerWithGasUsedAndFee,
+	txs map[string]*outport.RewardInfo,
 	header coreData.HeaderHandler,
 ) (*data.Transaction, bool) {
-	txHandler, okGet := txs[string(txHash)]
+	rtx, okGet := txs[hex.EncodeToString(txHash)]
 	if !okGet {
 		return nil, false
 	}
 
-	rtx, okCast := txHandler.GetTxHandler().(*rewardTx.RewardTx)
-	if !okCast {
-		return nil, false
-	}
-
-	dbTx := tg.txBuilder.prepareRewardTransaction(rtx, txHash, mbHash, mb, header, mbStatus)
+	dbTx := tg.txBuilder.prepareRewardTransaction(rtx.Reward, txHash, mbHash, mb, header, mbStatus)
 
 	return dbTx, true
 }
@@ -168,7 +160,7 @@ func (tg *txsGrouper) groupInvalidTxs(
 	mbIndex int,
 	mb *block.MiniBlock,
 	header coreData.HeaderHandler,
-	txs map[string]coreData.TransactionHandlerWithGasUsedAndFee,
+	txs map[string]*outport.TxInfo,
 	numOfShards uint32,
 ) (map[string]*data.Transaction, error) {
 	transactions := make(map[string]*data.Transaction)
@@ -194,21 +186,16 @@ func (tg *txsGrouper) prepareInvalidTxForDB(
 	mbHash []byte,
 	mb *block.MiniBlock,
 	txHash []byte,
-	txs map[string]coreData.TransactionHandlerWithGasUsedAndFee,
+	txs map[string]*outport.TxInfo,
 	header coreData.HeaderHandler,
 	numOfShards uint32,
 ) (*data.Transaction, bool) {
-	txHandler, okGet := txs[string(txHash)]
+	txInfo, okGet := txs[hex.EncodeToString(txHash)]
 	if !okGet {
 		return nil, false
 	}
 
-	tx, okCast := txHandler.GetTxHandler().(*transaction.Transaction)
-	if !okCast {
-		return nil, false
-	}
-
-	dbTx := tg.txBuilder.prepareTransaction(tx, txHash, mbHash, mb, header, transaction.TxStatusInvalid.String(), txHandler.GetFee(), txHandler.GetGasUsed(), txHandler.GetInitialPaidFee(), numOfShards)
+	dbTx := tg.txBuilder.prepareTransaction(txInfo, txHash, mbHash, mb, header, transaction.TxStatusInvalid.String(), numOfShards)
 
 	return dbTx, true
 }
@@ -221,15 +208,10 @@ func (tg *txsGrouper) shouldIndex(destinationShardID uint32, isImportDB bool, se
 	return selfShardID == destinationShardID
 }
 
-func (tg *txsGrouper) groupReceipts(header coreData.HeaderHandler, txsPool map[string]coreData.TransactionHandlerWithGasUsedAndFee) []*data.Receipt {
+func (tg *txsGrouper) groupReceipts(header coreData.HeaderHandler, txsPool map[string]*receipt.Receipt) []*data.Receipt {
 	dbReceipts := make([]*data.Receipt, 0)
-	for hash, tx := range txsPool {
-		rec, ok := tx.GetTxHandler().(*receipt.Receipt)
-		if !ok {
-			continue
-		}
-
-		dbReceipts = append(dbReceipts, tg.txBuilder.prepareReceipt(hash, rec, header))
+	for hashHex, rec := range txsPool {
+		dbReceipts = append(dbReceipts, tg.txBuilder.prepareReceipt(hashHex, rec, header))
 	}
 
 	return dbReceipts

@@ -9,6 +9,7 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/rewardTx"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
@@ -53,6 +54,21 @@ func TestGetMoveBalanceTransaction(t *testing.T) {
 		SndUserName: []byte("snd"),
 	}
 
+	txInfo := &outport.TxInfo{
+		Transaction: tx,
+		FeeInfo: &outport.FeeInfo{
+			GasUsed:        500,
+			Fee:            big.NewInt(100),
+			InitialPaidFee: big.NewInt(100),
+		},
+		ExecutionOrder: 0,
+	}
+
+	senderAddr, err := cp.addressPubkeyConverter.Encode(tx.RcvAddr)
+	require.Nil(t, err)
+	receiverAddr, err := cp.addressPubkeyConverter.Encode(tx.SndAddr)
+	require.Nil(t, err)
+
 	expectedTx := &data.Transaction{
 		Hash:             hex.EncodeToString(txHash),
 		MBHash:           hex.EncodeToString(mbHash),
@@ -60,8 +76,8 @@ func TestGetMoveBalanceTransaction(t *testing.T) {
 		Round:            header.Round,
 		Value:            tx.Value.String(),
 		ValueNum:         1e-15,
-		Receiver:         cp.addressPubkeyConverter.Encode(tx.RcvAddr),
-		Sender:           cp.addressPubkeyConverter.Encode(tx.SndAddr),
+		Receiver:         senderAddr,
+		Sender:           receiverAddr,
 		ReceiverShard:    mb.ReceiverShardID,
 		SenderShard:      mb.SenderShardID,
 		GasPrice:         gasPrice,
@@ -82,7 +98,7 @@ func TestGetMoveBalanceTransaction(t *testing.T) {
 		Receivers:        []string{},
 	}
 
-	dbTx := cp.prepareTransaction(tx, txHash, mbHash, mb, header, status, big.NewInt(100), 500, big.NewInt(100), 3)
+	dbTx := cp.prepareTransaction(txInfo, txHash, mbHash, mb, header, status, 3)
 	require.Equal(t, expectedTx, dbTx)
 }
 
@@ -150,8 +166,8 @@ func TestGetMoveBalanceTransactionInvalid(t *testing.T) {
 		Round:            header.Round,
 		Value:            tx.Value.String(),
 		ValueNum:         1e-15,
-		Receiver:         cp.addressPubkeyConverter.Encode(tx.RcvAddr),
-		Sender:           cp.addressPubkeyConverter.Encode(tx.SndAddr),
+		Receiver:         cp.addressPubkeyConverter.SilentEncode(tx.RcvAddr, log),
+		Sender:           cp.addressPubkeyConverter.SilentEncode(tx.SndAddr, log),
 		ReceiverShard:    uint32(2),
 		SenderShard:      mb.SenderShardID,
 		GasPrice:         gasPrice,
@@ -172,6 +188,16 @@ func TestGetMoveBalanceTransactionInvalid(t *testing.T) {
 		ESDTValuesNum:    []float64{},
 	}
 
-	dbTx := cp.prepareTransaction(tx, txHash, mbHash, mb, header, status, big.NewInt(100), 500, big.NewInt(100), 3)
+	txInfo := &outport.TxInfo{
+		Transaction: tx,
+		FeeInfo: &outport.FeeInfo{
+			GasUsed:        500,
+			Fee:            big.NewInt(100),
+			InitialPaidFee: big.NewInt(100),
+		},
+		ExecutionOrder: 0,
+	}
+
+	dbTx := cp.prepareTransaction(txInfo, txHash, mbHash, mb, header, status, 3)
 	require.Equal(t, expectedTx, dbTx)
 }

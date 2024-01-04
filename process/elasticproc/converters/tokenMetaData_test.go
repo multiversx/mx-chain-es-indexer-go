@@ -3,7 +3,7 @@ package converters
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-core-go/data/outport"
+	"github.com/multiversx/mx-chain-core-go/data/alteredAccount"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/stretchr/testify/require"
 )
@@ -26,7 +26,7 @@ func TestPrepareTokenMetaData(t *testing.T) {
 		WhiteListedStorage: true,
 	}
 
-	result := PrepareTokenMetaData(&outport.TokenMetaData{
+	result := PrepareTokenMetaData(&alteredAccount.TokenMetaData{
 		Nonce:      2,
 		Name:       "token",
 		Creator:    "creator",

@@ -8,7 +8,7 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	"github.com/multiversx/mx-chain-core-go/data/outport"
+	"github.com/multiversx/mx-chain-core-go/data/alteredAccount"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
@@ -42,7 +42,7 @@ func NewAccountsProcessor(
 }
 
 // GetAccounts will get accounts for regular operations and esdt operations
-func (ap *accountsProcessor) GetAccounts(coreAlteredAccounts map[string]*outport.AlteredAccount) ([]*data.Account, []*data.AccountESDT) {
+func (ap *accountsProcessor) GetAccounts(coreAlteredAccounts map[string]*alteredAccount.AlteredAccount) ([]*data.Account, []*data.AccountESDT) {
 	regularAccountsToIndex := make([]*data.Account, 0)
 	accountsToIndexESDT := make([]*data.AccountESDT, 0)
 
@@ -57,7 +57,7 @@ func (ap *accountsProcessor) GetAccounts(coreAlteredAccounts map[string]*outport
 }
 
 func splitAlteredAccounts(
-	account *outport.AlteredAccount,
+	account *alteredAccount.AlteredAccount,
 ) ([]*data.Account, []*data.AccountESDT) {
 	regularAccountsToIndex := make([]*data.Account, 0)
 	accountsToIndexESDT := make([]*data.AccountESDT, 0)
@@ -123,16 +123,14 @@ func (ap *accountsProcessor) PrepareRegularAccountsMap(timestamp uint64, account
 		}
 
 		acc := &data.AccountInfo{
-			Address:                  address,
-			Nonce:                    userAccount.UserAccount.Nonce,
-			Balance:                  converters.BigIntToString(balance),
-			BalanceNum:               balanceAsFloat,
-			IsSender:                 userAccount.IsSender,
-			IsSmartContract:          core.IsSmartContractAddress(addressBytes),
-			TotalBalanceWithStake:    converters.BigIntToString(balance),
-			TotalBalanceWithStakeNum: balanceAsFloat,
-			Timestamp:                time.Duration(timestamp),
-			ShardID:                  shardID,
+			Address:         address,
+			Nonce:           userAccount.UserAccount.Nonce,
+			Balance:         converters.BigIntToString(balance),
+			BalanceNum:      balanceAsFloat,
+			IsSender:        userAccount.IsSender,
+			IsSmartContract: core.IsSmartContractAddress(addressBytes),
+			Timestamp:       time.Duration(timestamp),
+			ShardID:         shardID,
 		}
 
 		ap.addAdditionalDataInAccount(userAccount.UserAccount.AdditionalData, acc)
@@ -143,18 +141,21 @@ func (ap *accountsProcessor) PrepareRegularAccountsMap(timestamp uint64, account
 	return accountsMap
 }
 
-func (ap *accountsProcessor) addAdditionalDataInAccount(additionalData *outport.AdditionalAccountData, account *data.AccountInfo) {
+func (ap *accountsProcessor) addAdditionalDataInAccount(additionalData *alteredAccount.AdditionalAccountData, account *data.AccountInfo) {
 	if additionalData == nil {
 		return
 	}
 
 	account.UserName = additionalData.UserName
 	account.CurrentOwner = additionalData.CurrentOwner
+	account.RootHash = additionalData.RootHash
+	account.CodeHash = additionalData.CodeHash
+	account.CodeMetadata = additionalData.CodeMetadata
 
 	ap.addDeveloperRewardsInAccount(additionalData, account)
 }
 
-func (ap *accountsProcessor) addDeveloperRewardsInAccount(additionalData *outport.AdditionalAccountData, account *data.AccountInfo) {
+func (ap *accountsProcessor) addDeveloperRewardsInAccount(additionalData *alteredAccount.AdditionalAccountData, account *data.AccountInfo) {
 	if additionalData.DeveloperRewards == "" {
 		return
 	}
@@ -205,7 +206,7 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(
 		}
 
 		tokenIdentifier := converters.ComputeTokenIdentifier(accountESDT.TokenIdentifier, accountESDT.NFTNonce)
-		balanceNum, err := ap.balanceConverter.ComputeESDTBalanceAsFloat(balance)
+		balanceNum, err := ap.balanceConverter.ConvertBigValueToFloat(balance)
 		if err != nil {
 			log.Warn("accountsProcessor.PrepareAccountsMapESDT: cannot compute esdt balance as num",
 				"balance", balance, "address", address, "error", err, "token", tokenIdentifier)
@@ -281,7 +282,7 @@ func (ap *accountsProcessor) getESDTInfo(accountESDT *data.AccountESDT) (*big.In
 		return big.NewInt(0), "", nil, nil
 	}
 
-	accountTokenData := &outport.AccountTokenData{}
+	accountTokenData := &alteredAccount.AccountTokenData{}
 	for _, tokenData := range accountESDT.Account.Tokens {
 		if tokenData.Identifier == accountESDT.TokenIdentifier && tokenData.Nonce == accountESDT.NFTNonce {
 			accountTokenData = tokenData
@@ -299,7 +300,7 @@ func (ap *accountsProcessor) getESDTInfo(accountESDT *data.AccountESDT) (*big.In
 }
 
 // PutTokenMedataDataInTokens will put the TokenMedata in provided tokens data
-func (ap *accountsProcessor) PutTokenMedataDataInTokens(tokensData []*data.TokenInfo, coreAlteredAccounts map[string]*outport.AlteredAccount) {
+func (ap *accountsProcessor) PutTokenMedataDataInTokens(tokensData []*data.TokenInfo, coreAlteredAccounts map[string]*alteredAccount.AlteredAccount) {
 	for _, tokenData := range tokensData {
 		if tokenData.Data != nil || tokenData.Nonce == 0 {
 			continue
@@ -320,8 +321,8 @@ func (ap *accountsProcessor) PutTokenMedataDataInTokens(tokensData []*data.Token
 
 func (ap *accountsProcessor) loadMetadataForToken(
 	tokenData *data.TokenInfo,
-	coreAlteredAccounts map[string]*outport.AlteredAccount,
-) (*outport.TokenMetaData, error) {
+	coreAlteredAccounts map[string]*alteredAccount.AlteredAccount,
+) (*alteredAccount.TokenMetaData, error) {
 	for _, account := range coreAlteredAccounts {
 		for _, token := range account.Tokens {
 			if tokenData.Token == token.Identifier && tokenData.Nonce == token.Nonce {

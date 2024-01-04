@@ -3,6 +3,7 @@
 package integrationtests
 
 import (
+	"context"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -10,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	coreData "github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/alteredAccount"
 	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/esdt"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
@@ -47,11 +48,12 @@ func TestCreateNFTWithTags(t *testing.T) {
 
 	// CREATE A FIRST NFT WITH THE TAGS
 	address1 := "erd1v7e552pz9py4hv6raan0c4jflez3e6csdmzcgrncg0qrnk4tywvsqx0h5j"
-	pool := &outport.Pool{
-		Logs: []*coreData.LogData{
+	pool := &outport.TransactionPool{
+		Logs: []*outport.LogData{
 			{
-				TxHash: "h1",
-				LogHandler: &transaction.Log{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
+					Address: decodeAddress(address1),
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(address1),
@@ -65,20 +67,20 @@ func TestCreateNFTWithTags(t *testing.T) {
 		},
 	}
 
-	coreAlteredAccounts := map[string]*outport.AlteredAccount{
+	coreAlteredAccounts := map[string]*alteredAccount.AlteredAccount{
 		address1: {
 			Address: address1,
 			Balance: "0",
-			Tokens: []*outport.AccountTokenData{
+			Tokens: []*alteredAccount.AccountTokenData{
 				{
-					AdditionalData: &outport.AdditionalAccountTokenData{
+					AdditionalData: &alteredAccount.AdditionalAccountTokenData{
 						IsNFTCreate: true,
 					},
 					Identifier: "DESK-abcd",
 					Nonce:      1,
 					Balance:    "1000",
 					Properties: "3032",
-					MetaData: &outport.TokenMetaData{
+					MetaData: &alteredAccount.TokenMetaData{
 						Creator:    "creator",
 						Attributes: []byte("tags:hello,something,do,music,art,gallery;metadata:QmZ2QqaGq4bqsEzs5JLTjRmmvR2GAR4qXJZBN8ibfDdaud"),
 					},
@@ -88,18 +90,18 @@ func TestCreateNFTWithTags(t *testing.T) {
 	}
 
 	body := &dataBlock.Body{}
-	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, coreAlteredAccounts, testNumOfShards))
 	require.Nil(t, err)
 
 	ids := []string{fmt.Sprintf("%s-DESK-abcd-01", address1)}
 	genericResponse := &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.AccountsESDTIndex, true, genericResponse)
+	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.AccountsESDTIndex, true, genericResponse)
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/createNFTWithTags/accounts-esdt-address-balance.json"), string(genericResponse.Docs[0].Source))
 
 	ids = []string{"bXVzaWM=", "aGVsbG8=", "Z2FsbGVyeQ==", "ZG8=", "YXJ0", "c29tZXRoaW5n"}
 	genericResponse = &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.TagsIndex, true, genericResponse)
+	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.TagsIndex, true, genericResponse)
 	require.Nil(t, err)
 
 	tagsChecked := 0
@@ -115,11 +117,12 @@ func TestCreateNFTWithTags(t *testing.T) {
 	require.Equal(t, len(ids), tagsChecked)
 
 	// CREATE A SECOND NFT WITH THE SAME TAGS
-	pool = &outport.Pool{
-		Logs: []*coreData.LogData{
+	pool = &outport.TransactionPool{
+		Logs: []*outport.LogData{
 			{
-				TxHash: "h1",
-				LogHandler: &transaction.Log{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
+					Address: decodeAddress(address1),
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(address1),
@@ -135,11 +138,11 @@ func TestCreateNFTWithTags(t *testing.T) {
 
 	coreAlteredAccounts[address1].Tokens[0].Nonce = 2
 	body = &dataBlock.Body{}
-	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, coreAlteredAccounts, testNumOfShards))
 	require.Nil(t, err)
 
 	genericResponse = &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.TagsIndex, true, genericResponse)
+	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.TagsIndex, true, genericResponse)
 	require.Nil(t, err)
 
 	tagsChecked = 0
@@ -164,11 +167,12 @@ func TestCreateNFTWithTags(t *testing.T) {
 	esProc, err = CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
-	pool = &outport.Pool{
-		Logs: []*coreData.LogData{
+	pool = &outport.TransactionPool{
+		Logs: []*outport.LogData{
 			{
-				TxHash: "h1",
-				LogHandler: &transaction.Log{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
+					Address: decodeAddress(address1),
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(address1),
@@ -183,12 +187,12 @@ func TestCreateNFTWithTags(t *testing.T) {
 	}
 
 	body = &dataBlock.Body{}
-	err = esProc.SaveTransactions(body, header, pool, coreAlteredAccounts, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, coreAlteredAccounts, testNumOfShards))
 	require.Nil(t, err)
 
 	ids = append(ids, "XFxcXFxcXFxcXFxcXFxcXFxcXA==", "JycnJw==", "PDw8Pj4+JiYmJiYmJiYmJiYmJiYm")
 	genericResponse = &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.TagsIndex, true, genericResponse)
+	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.TagsIndex, true, genericResponse)
 	require.Nil(t, err)
 
 	tagsChecked = 0

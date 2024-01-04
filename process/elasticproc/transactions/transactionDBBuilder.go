@@ -3,20 +3,18 @@ package transactions
 import (
 	"encoding/hex"
 	"fmt"
-	"math/big"
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/sharding"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/receipt"
 	"github.com/multiversx/mx-chain-core-go/data/rewardTx"
-	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
-	datafield "github.com/multiversx/mx-chain-vm-common-go/parsers/dataField"
 )
 
 type dbTransactionBuilder struct {
@@ -38,33 +36,38 @@ func newTransactionDBBuilder(
 }
 
 func (dtb *dbTransactionBuilder) prepareTransaction(
-	tx *transaction.Transaction,
+	txInfo *outport.TxInfo,
 	txHash []byte,
 	mbHash []byte,
 	mb *block.MiniBlock,
 	header coreData.HeaderHandler,
 	txStatus string,
-	fee *big.Int,
-	gasUsed uint64,
-	initialPaidFee *big.Int,
 	numOfShards uint32,
 ) *data.Transaction {
+	tx := txInfo.Transaction
+
 	isScCall := core.IsSmartContractAddress(tx.RcvAddr)
 	res := dtb.dataFieldParser.Parse(tx.Data, tx.SndAddr, tx.RcvAddr, numOfShards)
+
+	receiverAddr := dtb.addressPubkeyConverter.SilentEncode(tx.RcvAddr, log)
+	senderAddr := dtb.addressPubkeyConverter.SilentEncode(tx.SndAddr, log)
+	receiversAddr, _ := dtb.addressPubkeyConverter.EncodeSlice(res.Receivers)
 
 	receiverShardID := mb.ReceiverShardID
 	if mb.Type == block.InvalidBlock {
 		receiverShardID = sharding.ComputeShardID(tx.RcvAddr, numOfShards)
 	}
 
-	valueNum, err := dtb.balanceConverter.ComputeESDTBalanceAsFloat(tx.Value)
+	valueNum, err := dtb.balanceConverter.ConvertBigValueToFloat(tx.Value)
 	if err != nil {
 		log.Warn("dbTransactionBuilder.prepareTransaction: cannot compute value as num", "value", tx.Value,
 			"hash", txHash, "error", err)
 	}
-	feeNum, err := dtb.balanceConverter.ComputeESDTBalanceAsFloat(fee)
+
+	feeInfo := getFeeInfo(txInfo)
+	feeNum, err := dtb.balanceConverter.ConvertBigValueToFloat(feeInfo.Fee)
 	if err != nil {
-		log.Warn("dbTransactionBuilder.prepareTransaction: cannot compute transaction fee as num", "fee", fee,
+		log.Warn("dbTransactionBuilder.prepareTransaction: cannot compute transaction fee as num", "fee", feeInfo.Fee,
 			"hash", txHash, "error", err)
 	}
 	esdtValuesNum, err := dtb.balanceConverter.ComputeSliceOfStringsAsFloat(res.ESDTValues)
@@ -79,7 +82,7 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 	}
 	guardianAddress := ""
 	if len(tx.GuardianAddr) > 0 {
-		guardianAddress = dtb.addressPubkeyConverter.Encode(tx.GuardianAddr)
+		guardianAddress = dtb.addressPubkeyConverter.SilentEncode(tx.GuardianAddr, log)
 	}
 
 	senderUserName := converters.TruncateFieldIfExceedsMaxLengthBase64(string(tx.SndUserName))
@@ -90,9 +93,9 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		Nonce:             tx.Nonce,
 		Round:             header.GetRound(),
 		Value:             tx.Value.String(),
+		Receiver:          receiverAddr,
+		Sender:            senderAddr,
 		ValueNum:          valueNum,
-		Receiver:          dtb.addressPubkeyConverter.Encode(tx.RcvAddr),
-		Sender:            dtb.addressPubkeyConverter.Encode(tx.SndAddr),
 		ReceiverShard:     receiverShardID,
 		SenderShard:       mb.SenderShardID,
 		GasPrice:          tx.GasPrice,
@@ -101,9 +104,9 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		Signature:         hex.EncodeToString(tx.Signature),
 		Timestamp:         time.Duration(header.GetTimeStamp()),
 		Status:            txStatus,
-		GasUsed:           gasUsed,
-		InitialPaidFee:    initialPaidFee.String(),
-		Fee:               fee.String(),
+		GasUsed:           feeInfo.GasUsed,
+		InitialPaidFee:    feeInfo.InitialPaidFee.String(),
+		Fee:               feeInfo.Fee.String(),
 		FeeNum:            feeNum,
 		ReceiverUserName:  []byte(receiverUserName),
 		SenderUserName:    []byte(senderUserName),
@@ -113,7 +116,7 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		ESDTValues:        esdtValues,
 		ESDTValuesNum:     esdtValuesNum,
 		Tokens:            converters.TruncateSliceElementsIfExceedsMaxLength(res.Tokens),
-		Receivers:         datafield.EncodeBytesSlice(dtb.addressPubkeyConverter.Encode, res.Receivers),
+		Receivers:         receiversAddr,
 		ReceiversShardIDs: res.ReceiversShardID,
 		IsRelayed:         res.IsRelayed,
 		Version:           tx.Version,
@@ -130,11 +133,13 @@ func (dtb *dbTransactionBuilder) prepareRewardTransaction(
 	header coreData.HeaderHandler,
 	txStatus string,
 ) *data.Transaction {
-	valueNum, err := dtb.balanceConverter.ComputeESDTBalanceAsFloat(rTx.Value)
+	valueNum, err := dtb.balanceConverter.ConvertBigValueToFloat(rTx.Value)
 	if err != nil {
 		log.Warn("dbTransactionBuilder.prepareRewardTransaction cannot compute value as num", "value", rTx.Value,
 			"hash", txHash, "error", err)
 	}
+
+	receiverAddr := dtb.addressPubkeyConverter.SilentEncode(rTx.RcvAddr, log)
 
 	return &data.Transaction{
 		Hash:          hex.EncodeToString(txHash),
@@ -143,7 +148,7 @@ func (dtb *dbTransactionBuilder) prepareRewardTransaction(
 		Round:         rTx.Round,
 		Value:         rTx.Value.String(),
 		ValueNum:      valueNum,
-		Receiver:      dtb.addressPubkeyConverter.Encode(rTx.RcvAddr),
+		Receiver:      receiverAddr,
 		Sender:        fmt.Sprintf("%d", core.MetachainShardId),
 		ReceiverShard: mb.ReceiverShardID,
 		SenderShard:   mb.SenderShardID,
@@ -158,14 +163,16 @@ func (dtb *dbTransactionBuilder) prepareRewardTransaction(
 }
 
 func (dtb *dbTransactionBuilder) prepareReceipt(
-	recHash string,
+	recHashHex string,
 	rec *receipt.Receipt,
 	header coreData.HeaderHandler,
 ) *data.Receipt {
+	senderAddr := dtb.addressPubkeyConverter.SilentEncode(rec.SndAddr, log)
+
 	return &data.Receipt{
-		Hash:      hex.EncodeToString([]byte(recHash)),
+		Hash:      recHashHex,
 		Value:     rec.Value.String(),
-		Sender:    dtb.addressPubkeyConverter.Encode(rec.SndAddr),
+		Sender:    senderAddr,
 		Data:      string(rec.Data),
 		TxHash:    hex.EncodeToString(rec.TxHash),
 		Timestamp: time.Duration(header.GetTimeStamp()),

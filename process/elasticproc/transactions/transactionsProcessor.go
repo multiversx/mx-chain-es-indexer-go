@@ -2,6 +2,7 @@ package transactions
 
 import (
 	"encoding/hex"
+	"math/big"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
@@ -65,13 +66,13 @@ func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txsDatabaseProce
 
 // PrepareTransactionsForDatabase will prepare transactions for database
 func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
-	body *block.Body,
+	miniBlocks []*block.MiniBlock,
 	header coreData.HeaderHandler,
-	pool *outport.Pool,
+	pool *outport.TransactionPool,
 	isImportDB bool,
 	numOfShards uint32,
 ) *data.PreparedResults {
-	err := checkPrepareTransactionForDatabaseArguments(body, header, pool)
+	err := checkPrepareTransactionForDatabaseArguments(header, pool)
 	if err != nil {
 		log.Warn("checkPrepareTransactionForDatabaseArguments", "error", err)
 
@@ -85,14 +86,14 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 	normalTxs := make(map[string]*data.Transaction)
 	rewardsTxs := make(map[string]*data.Transaction)
 
-	for mbIndex, mb := range body.MiniBlocks {
+	for mbIndex, mb := range miniBlocks {
 		switch mb.Type {
 		case block.TxBlock:
 			if shouldIgnoreProcessedMBScheduled(header, mbIndex) {
 				continue
 			}
 
-			txs, errGroup := tdp.txsGrouper.groupNormalTxs(mbIndex, mb, header, pool.Txs, isImportDB, numOfShards)
+			txs, errGroup := tdp.txsGrouper.groupNormalTxs(mbIndex, mb, header, pool.Transactions, isImportDB, numOfShards)
 			if errGroup != nil {
 				log.Warn("txsDatabaseProcessor.groupNormalTxs", "error", errGroup)
 				continue
@@ -106,7 +107,7 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 			}
 			mergeTxsMaps(rewardsTxs, txs)
 		case block.InvalidBlock:
-			txs, errGroup := tdp.txsGrouper.groupInvalidTxs(mbIndex, mb, header, pool.Invalid, numOfShards)
+			txs, errGroup := tdp.txsGrouper.groupInvalidTxs(mbIndex, mb, header, pool.InvalidTxs, numOfShards)
 			if errGroup != nil {
 				log.Warn("txsDatabaseProcessor.groupInvalidTxs", "error", errGroup)
 				continue
@@ -119,11 +120,11 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 
 	normalTxs = tdp.setTransactionSearchOrder(normalTxs)
 	dbReceipts := tdp.txsGrouper.groupReceipts(header, pool.Receipts)
-	dbSCResults := tdp.scrsProc.processSCRs(body, header, pool.Scrs, numOfShards)
+	dbSCResults := tdp.scrsProc.processSCRs(miniBlocks, header, pool.SmartContractResults, numOfShards)
 
 	srcsNoTxInCurrentShard := tdp.scrsDataToTxs.attachSCRsToTransactionsAndReturnSCRsWithoutTx(normalTxs, dbSCResults)
 	tdp.scrsDataToTxs.processTransactionsAfterSCRsWereAttached(normalTxs)
-	txHashStatus, txHashFee := tdp.scrsDataToTxs.processSCRsWithoutTx(srcsNoTxInCurrentShard)
+	txHashFee := tdp.scrsDataToTxs.processSCRsWithoutTx(srcsNoTxInCurrentShard)
 
 	sliceNormalTxs := convertMapTxsToSlice(normalTxs)
 	sliceRewardsTxs := convertMapTxsToSlice(rewardsTxs)
@@ -133,7 +134,6 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 		Transactions: txsSlice,
 		ScResults:    dbSCResults,
 		Receipts:     dbReceipts,
-		TxHashStatus: txHashStatus,
 		TxHashFee:    txHashFee,
 	}
 }
@@ -184,12 +184,12 @@ func isCrossShardAtSourceNormalTx(selfShardID uint32, miniblock *block.MiniBlock
 }
 
 func shouldIgnoreProcessedMBScheduled(header coreData.HeaderHandler, mbIndex int) bool {
-	miniblockHeaders := header.GetMiniBlockHeaderHandlers()
-	if len(miniblockHeaders) <= mbIndex {
+	miniBlockHeaders := header.GetMiniBlockHeaderHandlers()
+	if len(miniBlockHeaders) <= mbIndex {
 		return false
 	}
 
-	processingType := miniblockHeaders[mbIndex].GetProcessingType()
+	processingType := miniBlockHeaders[mbIndex].GetProcessingType()
 
 	return processingType == int32(block.Processed)
 }
@@ -206,5 +206,17 @@ func getTxsHashesFromMiniblockHexEncoded(miniBlock *block.MiniBlock) []string {
 func mergeTxsMaps(dst, src map[string]*data.Transaction) {
 	for key, value := range src {
 		dst[key] = value
+	}
+}
+
+func getFeeInfo(txWithFeeInfo feeInfoHandler) *outport.FeeInfo {
+	feeInfo := txWithFeeInfo.GetFeeInfo()
+	if feeInfo != nil {
+		return feeInfo
+	}
+
+	return &outport.FeeInfo{
+		Fee:            big.NewInt(0),
+		InitialPaidFee: big.NewInt(0),
 	}
 }

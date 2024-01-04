@@ -1,12 +1,13 @@
 package logsevents
 
 import (
-	"encoding/hex"
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
+	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
@@ -86,7 +87,7 @@ func createEventsProcessors(args ArgsLogsAndEventsProcessor) []eventsProcessor {
 
 // ExtractDataFromLogs will extract data from the provided logs and events and put in altered addresses
 func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
-	logsAndEvents []*coreData.LogData,
+	logsAndEvents []*outport.LogData,
 	preparedResults *data.PreparedResults,
 	timestamp uint64,
 	shardID uint32,
@@ -95,20 +96,19 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 	lep.logsData = newLogsData(timestamp, preparedResults.Transactions, preparedResults.ScResults)
 
 	for _, txLog := range logsAndEvents {
-		if txLog == nil || check.IfNil(txLog.LogHandler) {
+		if txLog == nil {
 			continue
 		}
 
-		events := txLog.LogHandler.GetLogEvents()
-		lep.processEvents(txLog.TxHash, txLog.LogHandler.GetAddress(), events, shardID, numOfShards)
+		events := txLog.Log.Events
+		lep.processEvents(txLog.TxHash, txLog.Log.Address, events, shardID, numOfShards)
 
-		txHashHexEncoded := hex.EncodeToString([]byte(txLog.TxHash))
-		tx, ok := lep.logsData.txsMap[txHashHexEncoded]
+		tx, ok := lep.logsData.txsMap[txLog.TxHash]
 		if ok {
 			tx.HasLogs = true
 			continue
 		}
-		scr, ok := lep.logsData.scrsMap[txHashHexEncoded]
+		scr, ok := lep.logsData.scrsMap[txLog.TxHash]
 		if ok {
 			scr.HasLogs = true
 			continue
@@ -123,21 +123,22 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 		Delegators:              lep.logsData.delegators,
 		NFTsDataUpdates:         lep.logsData.nftsDataUpdates,
 		TokenRolesAndProperties: lep.logsData.tokenRolesAndProperties,
+		TxHashStatusInfo:        lep.logsData.txHashStatusInfoProc.getAllRecords(),
+		ChangeOwnerOperations:   lep.logsData.changeOwnerOperations,
 	}
 }
 
-func (lep *logsAndEventsProcessor) processEvents(logHash string, logAddress []byte, events []coreData.EventHandler, shardID uint32, numOfShards uint32) {
+func (lep *logsAndEventsProcessor) processEvents(logHashHexEncoded string, logAddress []byte, events []*transaction.Event, shardID uint32, numOfShards uint32) {
 	for _, event := range events {
 		if check.IfNil(event) {
 			continue
 		}
 
-		lep.processEvent(logHash, logAddress, event, shardID, numOfShards)
+		lep.processEvent(logHashHexEncoded, logAddress, event, shardID, numOfShards)
 	}
 }
 
-func (lep *logsAndEventsProcessor) processEvent(logHash string, logAddress []byte, event coreData.EventHandler, shardID uint32, numOfShards uint32) {
-	logHashHexEncoded := hex.EncodeToString([]byte(logHash))
+func (lep *logsAndEventsProcessor) processEvent(logHashHexEncoded string, logAddress []byte, event coreData.EventHandler, shardID uint32, numOfShards uint32) {
 	for _, proc := range lep.eventsProcessors {
 		res := proc.processEvent(&argsProcessEvent{
 			event:                   event,
@@ -148,7 +149,10 @@ func (lep *logsAndEventsProcessor) processEvent(logHash string, logAddress []byt
 			timestamp:               lep.logsData.timestamp,
 			scDeploys:               lep.logsData.scDeploys,
 			txs:                     lep.logsData.txsMap,
+			scrs:                    lep.logsData.scrsMap,
 			tokenRolesAndProperties: lep.logsData.tokenRolesAndProperties,
+			txHashStatusInfoProc:    lep.logsData.txHashStatusInfoProc,
+			changeOwnerOperations:   lep.logsData.changeOwnerOperations,
 			selfShardID:             shardID,
 			numOfShards:             numOfShards,
 		})
@@ -181,54 +185,56 @@ func (lep *logsAndEventsProcessor) processEvent(logHash string, logAddress []byt
 
 // PrepareLogsForDB will prepare logs for database
 func (lep *logsAndEventsProcessor) PrepareLogsForDB(
-	logsAndEvents []*coreData.LogData,
+	logsAndEvents []*outport.LogData,
 	timestamp uint64,
 ) []*data.Logs {
 	logs := make([]*data.Logs, 0, len(logsAndEvents))
 
 	for _, txLog := range logsAndEvents {
-		if txLog == nil || check.IfNil(txLog.LogHandler) {
+		if txLog == nil {
 			continue
 		}
 
-		logs = append(logs, lep.prepareLogsForDB(txLog.TxHash, txLog.LogHandler, timestamp))
+		logs = append(logs, lep.prepareLogsForDB(txLog.TxHash, txLog.Log, timestamp))
 	}
 
 	return logs
 }
 
 func (lep *logsAndEventsProcessor) prepareLogsForDB(
-	id string,
-	logHandler coreData.LogHandler,
+	logHashHex string,
+	eventLogs *transaction.Log,
 	timestamp uint64,
 ) *data.Logs {
-	encodedID := hex.EncodeToString([]byte(id))
 	originalTxHash := ""
-	scr, ok := lep.logsData.scrsMap[encodedID]
+	scr, ok := lep.logsData.scrsMap[logHashHex]
 	if ok {
 		originalTxHash = scr.OriginalTxHash
 	}
 
-	events := logHandler.GetLogEvents()
+	encodedAddr := lep.pubKeyConverter.SilentEncode(eventLogs.GetAddress(), log)
 	logsDB := &data.Logs{
-		ID:             encodedID,
+		ID:             logHashHex,
 		OriginalTxHash: originalTxHash,
-		Address:        lep.pubKeyConverter.Encode(logHandler.GetAddress()),
+		Address:        encodedAddr,
 		Timestamp:      time.Duration(timestamp),
-		Events:         make([]*data.Event, 0, len(events)),
+		Events:         make([]*data.Event, 0, len(eventLogs.Events)),
 	}
 
-	for idx, event := range events {
+	for idx, event := range eventLogs.Events {
 		if check.IfNil(event) {
 			continue
 		}
 
+		encodedAddress := lep.pubKeyConverter.SilentEncode(event.GetAddress(), log)
+
 		logsDB.Events = append(logsDB.Events, &data.Event{
-			Address:    lep.pubKeyConverter.Encode(event.GetAddress()),
-			Identifier: string(event.GetIdentifier()),
-			Topics:     event.GetTopics(),
-			Data:       event.GetData(),
-			Order:      idx,
+			Address:        encodedAddress,
+			Identifier:     string(event.GetIdentifier()),
+			Topics:         event.GetTopics(),
+			Data:           event.GetData(),
+			AdditionalData: event.GetAdditionalData(),
+			Order:          idx,
 		})
 	}
 

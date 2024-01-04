@@ -16,11 +16,11 @@ func createMockIndexerFactoryArgs() ArgsIndexerFactory {
 
 	return ArgsIndexerFactory{
 		Enabled:                  true,
-		IndexerCacheSize:         100,
 		Url:                      ts.URL,
 		UserName:                 "",
 		Password:                 "",
 		Marshalizer:              &mock.MarshalizerMock{},
+		HeaderMarshaller:         &mock.MarshalizerMock{},
 		Hasher:                   &mock.HasherMock{},
 		AddressPubkeyConverter:   mock.NewPubkeyConverterMock(32),
 		ValidatorPubkeyConverter: &mock.PubkeyConverterMock{},
@@ -35,15 +35,6 @@ func TestNewIndexerFactory(t *testing.T) {
 		argsFunc func() ArgsIndexerFactory
 		exError  error
 	}{
-		{
-			name: "InvalidCacheSize",
-			argsFunc: func() ArgsIndexerFactory {
-				args := createMockIndexerFactoryArgs()
-				args.IndexerCacheSize = -1
-				return args
-			},
-			exError: dataindexer.ErrNegativeCacheSize,
-		},
 		{
 			name: "NilAddressPubkeyConverter",
 			argsFunc: func() ArgsIndexerFactory {
@@ -81,6 +72,15 @@ func TestNewIndexerFactory(t *testing.T) {
 			exError: dataindexer.ErrNilHasher,
 		},
 		{
+			name: "NilHeaderMarshaller",
+			argsFunc: func() ArgsIndexerFactory {
+				args := createMockIndexerFactoryArgs()
+				args.HeaderMarshaller = nil
+				return args
+			},
+			exError: dataindexer.ErrNilMarshalizer,
+		},
+		{
 			name: "EmptyUrl",
 			argsFunc: func() ArgsIndexerFactory {
 				args := createMockIndexerFactoryArgs()
@@ -116,7 +116,6 @@ func TestIndexerFactoryCreate_ElasticIndexer(t *testing.T) {
 
 	err = elasticIndexer.Close()
 	require.NoError(t, err)
-	require.False(t, elasticIndexer.IsNilIndexer())
 
 	err = elasticIndexer.Close()
 	require.NoError(t, err)

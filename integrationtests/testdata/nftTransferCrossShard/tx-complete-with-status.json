@@ -16,7 +16,7 @@
   "nonce": 79,
   "gasLimit": 5000000,
   "gasUsed": 963500,
-  "miniBlockHash": "db7161a83f08489cba131e55f042536ee49116b622e33e70335a13e51a6c268c",
+  "miniBlockHash": "6d6986fad945a4587927692450372cc0d7aea2a7c1b5326b485fe0a9da0c0065",
   "round": 50,
   "hasScResults": true,
   "sender": "erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv",
@@ -35,5 +35,6 @@
   "timestamp": 5040,
   "status": "fail",
   "initialPaidFee": "595490000000000",
-  "searchOrder": 0
+  "searchOrder": 0,
+  "errorEvent": true
 }

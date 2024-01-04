@@ -7,6 +7,7 @@ type Config struct {
 		AddressConverter struct {
 			Length int    `toml:"length"`
 			Type   string `toml:"type"`
+			Prefix string `toml:"prefix"`
 		} `toml:"address-converter"`
 		ValidatorKeysConverter struct {
 			Length int    `toml:"length"`
@@ -35,8 +36,13 @@ type ClusterConfig struct {
 	Config struct {
 		DisabledIndices []string `toml:"disabled-indices"`
 		WebSocket       struct {
-			ServerURL          string `toml:"server-url"`
+			URL                string `toml:"url"`
+			Mode               string `toml:"mode"`
 			DataMarshallerType string `toml:"data-marshaller-type"`
+			RetryDurationInSec uint32 `toml:"retry-duration-in-seconds"`
+			BlockingAckOnError bool   `toml:"blocking-ack-on-error"`
+			WithAcknowledge    bool   `toml:"with-acknowledge"`
+			AckTimeoutInSec    uint32 `toml:"acknowledge-timeout-in-seconds"`
 		} `toml:"web-socket"`
 		ElasticCluster struct {
 			UseKibana                 bool   `toml:"use-kibana"`
@@ -46,4 +52,21 @@ type ClusterConfig struct {
 			BulkRequestMaxSizeInBytes int    `toml:"bulk-request-max-size-in-bytes"`
 		} `toml:"elastic-cluster"`
 	} `toml:"config"`
+}
+
+// ApiRoutesConfig holds the configuration related to Rest API routes
+type ApiRoutesConfig struct {
+	RestApiInterface string                      `toml:"rest-api-interface"`
+	APIPackages      map[string]APIPackageConfig `toml:"api-packages"`
+}
+
+// APIPackageConfig holds the configuration for the routes of each package
+type APIPackageConfig struct {
+	Routes []RouteConfig `toml:"routes"`
+}
+
+// RouteConfig holds the configuration for a single route
+type RouteConfig struct {
+	Name string `toml:"name"`
+	Open bool   `toml:"open"`
 }

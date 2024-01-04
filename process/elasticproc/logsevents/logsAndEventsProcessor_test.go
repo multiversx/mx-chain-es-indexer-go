@@ -1,12 +1,13 @@
 package logsevents
 
 import (
+	"encoding/hex"
 	"math/big"
 	"testing"
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	coreData "github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/mock"
@@ -57,77 +58,85 @@ func TestNewLogsAndEventsProcessor(t *testing.T) {
 func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T) {
 	t.Parallel()
 
-	logsAndEvents := map[string]coreData.LogHandler{
-		"wrong": nil,
-		"h3": &transaction.Log{
-			Events: []*transaction.Event{
-				{
-					Address:    []byte("addr"),
-					Identifier: []byte(core.SCDeployIdentifier),
-					Topics:     [][]byte{[]byte("addr1"), []byte("addr2")},
+	logsAndEvents := []*outport.LogData{
+		nil,
+		{
+			TxHash: hex.EncodeToString([]byte("h3")),
+			Log: &transaction.Log{
+				Events: []*transaction.Event{
+					{
+						Address:    []byte("addr"),
+						Identifier: []byte(core.SCDeployIdentifier),
+						Topics:     [][]byte{[]byte("addr1"), []byte("addr2"), []byte("codeHash")},
+					},
 				},
 			},
 		},
-
-		"h1": &transaction.Log{
-			Address: []byte("address"),
-			Events: []*transaction.Event{
-				{
-					Address:    []byte("addr"),
-					Identifier: []byte(core.BuiltInFunctionESDTNFTTransfer),
-					Topics:     [][]byte{[]byte("my-token"), big.NewInt(0).SetUint64(1).Bytes(), big.NewInt(100).Bytes(), []byte("receiver")},
+		{
+			TxHash: hex.EncodeToString([]byte("h1")),
+			Log: &transaction.Log{
+				Address: []byte("address"),
+				Events: []*transaction.Event{
+					{
+						Address:    []byte("addr"),
+						Identifier: []byte(core.BuiltInFunctionESDTNFTTransfer),
+						Topics:     [][]byte{[]byte("my-token"), big.NewInt(0).SetUint64(1).Bytes(), big.NewInt(100).Bytes(), []byte("receiver")},
+					},
 				},
 			},
 		},
-
-		"h2": &transaction.Log{
-			Events: []*transaction.Event{
-				{
-					Address:    []byte("addr"),
-					Identifier: []byte(core.BuiltInFunctionESDTTransfer),
-					Topics:     [][]byte{[]byte("esdt"), big.NewInt(0).Bytes(), big.NewInt(0).SetUint64(100).Bytes(), []byte("receiver")},
-				},
-				nil,
-			},
-		},
-		"h4": &transaction.Log{
-			Events: []*transaction.Event{
-				{
-					Address:    []byte("addr"),
-					Identifier: []byte(issueSemiFungibleESDTFunc),
-					Topics:     [][]byte{[]byte("SEMI-abcd"), []byte("semi-token"), []byte("SEMI"), []byte(core.SemiFungibleESDT)},
-				},
-				nil,
-			},
-		},
-		"h5": &transaction.Log{
-			Address: []byte("contract"),
-			Events: []*transaction.Event{
-				{
-					Address:    []byte("addr"),
-					Identifier: []byte(delegateFunc),
-					Topics:     [][]byte{big.NewInt(1000).Bytes(), big.NewInt(1000000000).Bytes(), big.NewInt(10).Bytes(), big.NewInt(1000000000).Bytes()},
+		{
+			TxHash: hex.EncodeToString([]byte("h2")),
+			Log: &transaction.Log{
+				Events: []*transaction.Event{
+					{
+						Address:    []byte("addr"),
+						Identifier: []byte(core.BuiltInFunctionESDTTransfer),
+						Topics:     [][]byte{[]byte("esdt"), big.NewInt(0).Bytes(), big.NewInt(0).SetUint64(100).Bytes(), []byte("receiver")},
+					},
+					nil,
 				},
 			},
 		},
-		"h6": &transaction.Log{
-			Address: []byte("contract-second"),
-			Events: []*transaction.Event{
-				{
-					Address:    []byte("addr"),
-					Identifier: []byte(delegateFunc),
-					Topics:     [][]byte{big.NewInt(1000).Bytes(), big.NewInt(1000000000).Bytes(), big.NewInt(10).Bytes(), big.NewInt(1000000000).Bytes()},
+		{
+			TxHash: hex.EncodeToString([]byte("h4")),
+			Log: &transaction.Log{
+				Events: []*transaction.Event{
+					{
+						Address:    []byte("addr"),
+						Identifier: []byte(issueSemiFungibleESDTFunc),
+						Topics:     [][]byte{[]byte("SEMI-abcd"), []byte("semi-token"), []byte("SEMI"), []byte(core.SemiFungibleESDT)},
+					},
+					nil,
 				},
 			},
 		},
-	}
-
-	logsAndEventsSlice := make([]*coreData.LogData, 0)
-	for hash, val := range logsAndEvents {
-		logsAndEventsSlice = append(logsAndEventsSlice, &coreData.LogData{
-			TxHash:     hash,
-			LogHandler: val,
-		})
+		{
+			TxHash: hex.EncodeToString([]byte("h5")),
+			Log: &transaction.Log{
+				Address: []byte("contract"),
+				Events: []*transaction.Event{
+					{
+						Address:    []byte("addr"),
+						Identifier: []byte(delegateFunc),
+						Topics:     [][]byte{big.NewInt(1000).Bytes(), big.NewInt(1000000000).Bytes(), big.NewInt(10).Bytes(), big.NewInt(1000000000).Bytes()},
+					},
+				},
+			},
+		},
+		{
+			TxHash: hex.EncodeToString([]byte("h6")),
+			Log: &transaction.Log{
+				Address: []byte("contract-second"),
+				Events: []*transaction.Event{
+					{
+						Address:    []byte("addr"),
+						Identifier: []byte(delegateFunc),
+						Topics:     [][]byte{big.NewInt(1000).Bytes(), big.NewInt(1000000000).Bytes(), big.NewInt(10).Bytes(), big.NewInt(1000000000).Bytes()},
+					},
+				},
+			},
+		},
 	}
 
 	res := &data.PreparedResults{
@@ -148,7 +157,7 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 	args.BalanceConverter = balanceConverter
 	proc, _ := NewLogsAndEventsProcessor(args)
 
-	resLogs := proc.ExtractDataFromLogs(logsAndEventsSlice, res, 1000, core.MetachainShardId, 3)
+	resLogs := proc.ExtractDataFromLogs(logsAndEvents, res, 1000, core.MetachainShardId, 3)
 	require.NotNil(t, resLogs.Tokens)
 	require.True(t, res.Transactions[0].HasOperations)
 	require.True(t, res.ScResults[0].HasOperations)
@@ -156,9 +165,11 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 	require.True(t, res.ScResults[0].HasLogs)
 
 	require.Equal(t, &data.ScDeployInfo{
-		TxHash:    "6833",
-		Creator:   "6164647232",
-		Timestamp: uint64(1000),
+		TxHash:       "6833",
+		Creator:      "6164647232",
+		CurrentOwner: "6164647232",
+		Timestamp:    uint64(1000),
+		CodeHash:     []byte("codeHash"),
 	}, resLogs.ScDeploys["6164647231"])
 
 	require.Equal(t, &data.TokenInfo{
@@ -197,27 +208,22 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 	t.Parallel()
 
-	logsAndEvents := map[string]coreData.LogHandler{
-		"wrong": nil,
-
-		"txHash": &transaction.Log{
-			Address: []byte("address"),
-			Events: []*transaction.Event{
-				{
-					Address:    []byte("addr"),
-					Identifier: []byte(core.BuiltInFunctionESDTNFTTransfer),
-					Topics:     [][]byte{[]byte("my-token"), big.NewInt(0).SetUint64(1).Bytes(), []byte("receiver")},
+	logsAndEvents := []*outport.LogData{
+		nil,
+		{
+			TxHash: hex.EncodeToString([]byte("txHash")),
+			Log: &transaction.Log{
+				Address: []byte("address"),
+				Events: []*transaction.Event{
+					{
+						Address:        []byte("addr"),
+						Identifier:     []byte(core.BuiltInFunctionESDTNFTTransfer),
+						Topics:         [][]byte{[]byte("my-token"), big.NewInt(0).SetUint64(1).Bytes(), []byte("receiver")},
+						AdditionalData: [][]byte{[]byte("something")},
+					},
 				},
 			},
 		},
-	}
-
-	logsAndEventsSlice := make([]*coreData.LogData, 0)
-	for hash, val := range logsAndEvents {
-		logsAndEventsSlice = append(logsAndEventsSlice, &coreData.LogData{
-			TxHash:     hash,
-			LogHandler: val,
-		})
 	}
 
 	args := createMockArgs()
@@ -230,7 +236,7 @@ func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 		},
 	}}, 1234, 0, 3)
 
-	logsDB := proc.PrepareLogsForDB(logsAndEventsSlice, 1234)
+	logsDB := proc.PrepareLogsForDB(logsAndEvents, 1234)
 	require.Equal(t, &data.Logs{
 		ID:             "747848617368",
 		Address:        "61646472657373",
@@ -238,9 +244,10 @@ func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 		Timestamp:      time.Duration(1234),
 		Events: []*data.Event{
 			{
-				Address:    "61646472",
-				Identifier: core.BuiltInFunctionESDTNFTTransfer,
-				Topics:     [][]byte{[]byte("my-token"), big.NewInt(0).SetUint64(1).Bytes(), []byte("receiver")},
+				Address:        "61646472",
+				Identifier:     core.BuiltInFunctionESDTNFTTransfer,
+				Topics:         [][]byte{[]byte("my-token"), big.NewInt(0).SetUint64(1).Bytes(), []byte("receiver")},
+				AdditionalData: [][]byte{[]byte("something")},
 			},
 		},
 	}, logsDB[0])
@@ -249,9 +256,10 @@ func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 func TestLogsAndEventsProcessor_ExtractDataFromLogsNFTBurn(t *testing.T) {
 	t.Parallel()
 
-	logsAndEventsSlice := make([]*coreData.LogData, 1)
-	logsAndEventsSlice[0] = &coreData.LogData{
-		LogHandler: &transaction.Log{
+	logsAndEventsSlice := make([]*outport.LogData, 1)
+	logsAndEventsSlice[0] = &outport.LogData{
+		TxHash: "h1",
+		Log: &transaction.Log{
 			Address: []byte("address"),
 			Events: []*transaction.Event{
 				{
@@ -261,7 +269,6 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsNFTBurn(t *testing.T) {
 				},
 			},
 		},
-		TxHash: "h1",
 	}
 
 	res := &data.PreparedResults{

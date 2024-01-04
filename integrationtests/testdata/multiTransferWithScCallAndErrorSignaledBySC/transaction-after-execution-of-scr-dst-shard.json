@@ -18,7 +18,7 @@
   "initialPaidFee": "1904415000000000",
   "gasLimit": 150000000,
   "gasUsed": 150000000,
-  "miniBlockHash": "2ea5bfe2968c98f3fcb059c6dcb3b0b42863ebe957748649f566db12548d2091",
+  "miniBlockHash": "71a5272ba7198b74f8a59cb9db4a270d2cfb1a7aefacbe17a27d1aa6f0d60b57",
   "receivers": [
     "erd1qqqqqqqqqqqqqpgqt6ltx52ukss9d2qag2k67at28a36xc9lkp2sr06394",
     "erd1qqqqqqqqqqqqqpgqt6ltx52ukss9d2qag2k67at28a36xc9lkp2sr06394"
@@ -41,5 +41,6 @@
   "receiverShard": 0,
   "operation": "MultiESDTNFTTransfer",
   "status": "fail",
-  "searchOrder": 0
+  "searchOrder": 0,
+  "errorEvent": true
 }

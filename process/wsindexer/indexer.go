@@ -2,10 +2,14 @@ package wsindexer
 
 import (
 	"errors"
+	"fmt"
+	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-core-go/websocketOutportDriver/data"
+	"github.com/multiversx/mx-chain-es-indexer-go/core"
+	"github.com/multiversx/mx-chain-es-indexer-go/metrics"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	logger "github.com/multiversx/mx-chain-logger-go"
 )
@@ -15,102 +19,178 @@ var (
 	errNilDataIndexer = errors.New("nil data indexer")
 )
 
+// ArgsIndexer holds all the components needed to create a new instance of indexer
+type ArgsIndexer struct {
+	Marshaller    marshal.Marshalizer
+	DataIndexer   DataIndexer
+	StatusMetrics core.StatusMetricsHandler
+}
+
 type indexer struct {
-	marshaller marshal.Marshalizer
-	di         DataIndexer
+	marshaller    marshal.Marshalizer
+	di            DataIndexer
+	statusMetrics core.StatusMetricsHandler
+	actions       map[string]func(marshalledData []byte) error
 }
 
 // NewIndexer will create a new instance of *indexer
-func NewIndexer(marshaller marshal.Marshalizer, dataIndexer DataIndexer) (*indexer, error) {
-	if check.IfNil(marshaller) {
+func NewIndexer(args ArgsIndexer) (*indexer, error) {
+	if check.IfNil(args.Marshaller) {
 		return nil, dataindexer.ErrNilMarshalizer
 	}
-	if check.IfNil(dataIndexer) {
+	if check.IfNil(args.DataIndexer) {
 		return nil, errNilDataIndexer
 	}
+	if check.IfNil(args.StatusMetrics) {
+		return nil, core.ErrNilMetricsHandler
+	}
 
-	return &indexer{
-		marshaller: marshaller,
-		di:         dataIndexer,
-	}, nil
+	payloadIndexer := &indexer{
+		marshaller:    args.Marshaller,
+		di:            args.DataIndexer,
+		statusMetrics: args.StatusMetrics,
+	}
+	payloadIndexer.initActionsMap()
+
+	return payloadIndexer, nil
 }
 
 // GetOperationsMap returns the map with all the operations that will index data
-func (i *indexer) GetOperationsMap() map[data.OperationType]func(d []byte) error {
-	return map[data.OperationType]func(d []byte) error{
-		data.OperationSaveBlock:             i.saveBlock,
-		data.OperationRevertIndexedBlock:    i.revertIndexedBlock,
-		data.OperationSaveRoundsInfo:        i.saveRounds,
-		data.OperationSaveValidatorsRating:  i.saveValidatorsRating,
-		data.OperationSaveValidatorsPubKeys: i.saveValidatorsPubKeys,
-		data.OperationSaveAccounts:          i.saveAccounts,
-		data.OperationFinalizedBlock:        i.finalizedBlock,
+func (i *indexer) initActionsMap() {
+	i.actions = map[string]func(d []byte) error{
+		outport.TopicSaveBlock:             i.saveBlock,
+		outport.TopicRevertIndexedBlock:    i.revertIndexedBlock,
+		outport.TopicSaveRoundsInfo:        i.saveRounds,
+		outport.TopicSaveValidatorsRating:  i.saveValidatorsRating,
+		outport.TopicSaveValidatorsPubKeys: i.saveValidatorsPubKeys,
+		outport.TopicSaveAccounts:          i.saveAccounts,
+		outport.TopicFinalizedBlock:        i.finalizedBlock,
+		outport.TopicSettings:              i.setSettings,
 	}
+}
+
+// ProcessPayload will proces the provided payload based on the topic
+func (i *indexer) ProcessPayload(payload []byte, topic string, version uint32) error {
+	if version != 1 {
+		log.Warn("received a payload with a different version", "version", version)
+	}
+
+	payloadTypeAction, ok := i.actions[topic]
+	if !ok {
+		log.Warn("invalid payload type", "topic", topic)
+		return nil
+	}
+
+	shardID, err := i.getShardID(payload)
+	if err != nil {
+		log.Warn("indexer.ProcessPayload: cannot get shardID from payload", "error", err)
+	}
+
+	start := time.Now()
+	err = payloadTypeAction(payload)
+	duration := time.Since(start)
+
+	topicKey := fmt.Sprintf("%s_%d", topic, shardID)
+	i.statusMetrics.AddIndexingData(metrics.ArgsAddIndexingData{
+		GotError:   err != nil,
+		MessageLen: uint64(len(payload)),
+		Topic:      topicKey,
+		Duration:   duration,
+	})
+
+	return err
 }
 
 func (i *indexer) saveBlock(marshalledData []byte) error {
-	argsSaveBlockS, err := i.getArgsSaveBlock(marshalledData)
+	outportBlock := &outport.OutportBlock{}
+	err := i.marshaller.Unmarshal(outportBlock, marshalledData)
 	if err != nil {
 		return err
 	}
 
-	return i.di.SaveBlock(argsSaveBlockS)
+	return i.di.SaveBlock(outportBlock)
 }
 
 func (i *indexer) revertIndexedBlock(marshalledData []byte) error {
-	header, body, err := i.getHeaderAndBody(marshalledData)
+	blockData := &outport.BlockData{}
+	err := i.marshaller.Unmarshal(blockData, marshalledData)
 	if err != nil {
 		return err
 	}
 
-	return i.di.RevertIndexedBlock(header, body)
+	return i.di.RevertIndexedBlock(blockData)
 }
 
 func (i *indexer) saveRounds(marshalledData []byte) error {
-	argsRounds := &data.ArgsSaveRoundsInfo{}
-	err := i.marshaller.Unmarshal(argsRounds, marshalledData)
+	roundsInfo := &outport.RoundsInfo{}
+	err := i.marshaller.Unmarshal(roundsInfo, marshalledData)
 	if err != nil {
 		return err
 	}
 
-	return i.di.SaveRoundsInfo(argsRounds.RoundsInfos)
+	return i.di.SaveRoundsInfo(roundsInfo)
 }
 
 func (i *indexer) saveValidatorsRating(marshalledData []byte) error {
-	argsValidatorsRating := &data.ArgsSaveValidatorsRating{}
-	err := i.marshaller.Unmarshal(argsValidatorsRating, marshalledData)
+	ratingData := &outport.ValidatorsRating{}
+	err := i.marshaller.Unmarshal(ratingData, marshalledData)
 	if err != nil {
 		return err
 	}
 
-	return i.di.SaveValidatorsRating(argsValidatorsRating.IndexID, argsValidatorsRating.InfoRating)
+	return i.di.SaveValidatorsRating(ratingData)
 }
 
 func (i *indexer) saveValidatorsPubKeys(marshalledData []byte) error {
-	argsValidators := &data.ArgsSaveValidatorsPubKeys{}
-	err := i.marshaller.Unmarshal(argsValidators, marshalledData)
+	validatorsPubKeys := &outport.ValidatorsPubKeys{}
+	err := i.marshaller.Unmarshal(validatorsPubKeys, marshalledData)
 	if err != nil {
 		return err
 	}
 
-	return i.di.SaveValidatorsPubKeys(argsValidators.ValidatorsPubKeys, argsValidators.Epoch)
+	return i.di.SaveValidatorsPubKeys(validatorsPubKeys)
 }
 
 func (i *indexer) saveAccounts(marshalledData []byte) error {
-	argsSaveAccounts := &data.ArgsSaveAccounts{}
-	err := i.marshaller.Unmarshal(argsSaveAccounts, marshalledData)
+	accounts := &outport.Accounts{}
+	err := i.marshaller.Unmarshal(accounts, marshalledData)
 	if err != nil {
 		return err
 	}
 
-	return i.di.SaveAccounts(argsSaveAccounts.BlockTimestamp, argsSaveAccounts.Acc, argsSaveAccounts.ShardID)
+	return i.di.SaveAccounts(accounts)
 }
 
 func (i *indexer) finalizedBlock(_ []byte) error {
 	return nil
 }
 
+func (i *indexer) setSettings(marshalledData []byte) error {
+	settings := outport.OutportConfig{}
+	err := i.marshaller.Unmarshal(&settings, marshalledData)
+	if err != nil {
+		return err
+	}
+
+	return i.di.SetCurrentSettings(settings)
+}
+
 // Close will close the indexer
 func (i *indexer) Close() error {
 	return i.di.Close()
+}
+
+// IsInterfaceNil returns true if underlying object is nil
+func (i *indexer) IsInterfaceNil() bool {
+	return i == nil
+}
+
+func (i *indexer) getShardID(payload []byte) (uint32, error) {
+	shard := &outport.Shard{}
+	err := i.marshaller.Unmarshal(shard, payload)
+	if err != nil {
+		return 0, err
+	}
+
+	return shard.ShardID, nil
 }

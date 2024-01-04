@@ -2,21 +2,18 @@ package transactions
 
 import (
 	"encoding/hex"
-	"math/big"
 	"strconv"
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-core-go/data"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
-	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	indexerData "github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
-	datafield "github.com/multiversx/mx-chain-vm-common-go/parsers/dataField"
 )
 
 type smartContractResultsProcessor struct {
@@ -44,16 +41,16 @@ func newSmartContractResultsProcessor(
 }
 
 func (proc *smartContractResultsProcessor) processSCRs(
-	body *block.Body,
+	miniBlocks []*block.MiniBlock,
 	header coreData.HeaderHandler,
-	txsHandler map[string]data.TransactionHandlerWithGasUsedAndFee,
+	scrs map[string]*outport.SCRInfo,
 	numOfShards uint32,
 ) []*indexerData.ScResult {
-	allSCRs := make([]*indexerData.ScResult, 0, len(txsHandler))
+	allSCRs := make([]*indexerData.ScResult, 0, len(scrs))
 
 	// a copy of the SCRS map is needed because proc.processSCRsFromMiniblock would remove items from the original map
-	workingSCRSMap := copySCRSMap(txsHandler)
-	for _, mb := range body.MiniBlocks {
+	workingSCRSMap := copySCRSMap(scrs)
+	for _, mb := range miniBlocks {
 		if mb.Type != block.SmartContractResultBlock {
 			continue
 		}
@@ -64,13 +61,8 @@ func (proc *smartContractResultsProcessor) processSCRs(
 	}
 
 	selfShardID := header.GetShardID()
-	for scrHash, noMBScr := range workingSCRSMap {
-		scr, ok := noMBScr.GetTxHandler().(*smartContractResult.SmartContractResult)
-		if !ok {
-			continue
-		}
-
-		indexerScr := proc.prepareSmartContractResult([]byte(scrHash), nil, scr, header, selfShardID, selfShardID, noMBScr.GetFee(), noMBScr.GetGasUsed(), numOfShards)
+	for scrHashHex, noMBScrInfo := range workingSCRSMap {
+		indexerScr := proc.prepareSmartContractResult(scrHashHex, nil, noMBScrInfo, header, selfShardID, selfShardID, numOfShards)
 
 		allSCRs = append(allSCRs, indexerScr)
 	}
@@ -81,7 +73,7 @@ func (proc *smartContractResultsProcessor) processSCRs(
 func (proc *smartContractResultsProcessor) processSCRsFromMiniblock(
 	header coreData.HeaderHandler,
 	mb *block.MiniBlock,
-	scrs map[string]data.TransactionHandlerWithGasUsedAndFee,
+	scrs map[string]*outport.SCRInfo,
 	numOfShards uint32,
 ) []*indexerData.ScResult {
 	mbHash, err := core.CalculateHash(proc.marshalizer, proc.hasher, mb)
@@ -92,38 +84,34 @@ func (proc *smartContractResultsProcessor) processSCRsFromMiniblock(
 
 	indexerSCRs := make([]*indexerData.ScResult, 0, len(mb.TxHashes))
 	for _, scrHash := range mb.TxHashes {
-		scrHandler, ok := scrs[string(scrHash)]
+		scrHashHex := hex.EncodeToString(scrHash)
+		scrInfo, ok := scrs[scrHashHex]
 		if !ok {
 			log.Warn("smartContractResultsProcessor.processSCRsFromMiniblock scr not found in map",
-				"scr hash", hex.EncodeToString(scrHash),
+				"scr hash", scrHashHex,
 			)
 			continue
 		}
-		scr, ok := scrHandler.GetTxHandler().(*smartContractResult.SmartContractResult)
-		if !ok {
-			continue
-		}
 
-		indexerSCR := proc.prepareSmartContractResult(scrHash, mbHash, scr, header, mb.SenderShardID, mb.ReceiverShardID, scrHandler.GetFee(), scrHandler.GetGasUsed(), numOfShards)
+		indexerSCR := proc.prepareSmartContractResult(hex.EncodeToString(scrHash), mbHash, scrInfo, header, mb.SenderShardID, mb.ReceiverShardID, numOfShards)
 		indexerSCRs = append(indexerSCRs, indexerSCR)
 
-		delete(scrs, string(scrHash))
+		delete(scrs, scrHashHex)
 	}
 
 	return indexerSCRs
 }
 
 func (proc *smartContractResultsProcessor) prepareSmartContractResult(
-	scrHash []byte,
+	scrHashHex string,
 	mbHash []byte,
-	scr *smartContractResult.SmartContractResult,
+	scrInfo *outport.SCRInfo,
 	header coreData.HeaderHandler,
 	senderShard uint32,
 	receiverShard uint32,
-	initialTxFee *big.Int,
-	initialTxGasUsed uint64,
 	numOfShards uint32,
 ) *indexerData.ScResult {
+	scr := scrInfo.SmartContractResult
 	hexEncodedMBHash := ""
 	if len(mbHash) > 0 {
 		hexEncodedMBHash = hex.EncodeToString(mbHash)
@@ -131,7 +119,7 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 
 	relayerAddr := ""
 	if len(scr.RelayerAddr) > 0 {
-		relayerAddr = proc.pubKeyConverter.Encode(scr.RelayerAddr)
+		relayerAddr = proc.pubKeyConverter.SilentEncode(scr.RelayerAddr, log)
 	}
 
 	relayedValue := ""
@@ -140,21 +128,25 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 	}
 	originalSenderAddr := ""
 	if scr.OriginalSender != nil {
-		originalSenderAddr = proc.pubKeyConverter.Encode(scr.OriginalSender)
+		originalSenderAddr = proc.pubKeyConverter.SilentEncode(scr.OriginalSender, log)
 	}
 
 	res := proc.dataFieldParser.Parse(scr.Data, scr.SndAddr, scr.RcvAddr, numOfShards)
 
-	valueNum, err := proc.balanceConverter.ComputeESDTBalanceAsFloat(scr.Value)
+	senderAddr := proc.pubKeyConverter.SilentEncode(scr.SndAddr, log)
+	receiverAddr := proc.pubKeyConverter.SilentEncode(scr.RcvAddr, log)
+	receiversAddr, _ := proc.pubKeyConverter.EncodeSlice(res.Receivers)
+
+	valueNum, err := proc.balanceConverter.ConvertBigValueToFloat(scr.Value)
 	if err != nil {
 		log.Warn("smartContractResultsProcessor.prepareSmartContractResult cannot compute scr value as num",
-			"value", scr.Value, "hash", scrHash, "error", err)
+			"value", scr.Value, "hash", scrHashHex, "error", err)
 	}
 
 	esdtValuesNum, err := proc.balanceConverter.ComputeSliceOfStringsAsFloat(res.ESDTValues)
 	if err != nil {
 		log.Warn("smartContractResultsProcessor.prepareSmartContractResult cannot compute scr esdt values as num",
-			"esdt values", res.ESDTValues, "hash", scrHash, "error", err)
+			"esdt values", res.ESDTValues, "hash", scrHashHex, "error", err)
 	}
 
 	var esdtValues []string
@@ -162,16 +154,17 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 		esdtValues = res.ESDTValues
 	}
 
+	feeInfo := getFeeInfo(scrInfo)
 	return &indexerData.ScResult{
-		Hash:               hex.EncodeToString(scrHash),
+		Hash:               scrHashHex,
 		MBHash:             hexEncodedMBHash,
 		Nonce:              scr.Nonce,
 		GasLimit:           scr.GasLimit,
 		GasPrice:           scr.GasPrice,
 		Value:              scr.Value.String(),
 		ValueNum:           valueNum,
-		Sender:             proc.pubKeyConverter.Encode(scr.SndAddr),
-		Receiver:           proc.pubKeyConverter.Encode(scr.RcvAddr),
+		Sender:             senderAddr,
+		Receiver:           receiverAddr,
 		RelayerAddr:        relayerAddr,
 		RelayedValue:       relayedValue,
 		Code:               string(scr.Code),
@@ -190,17 +183,17 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 		ESDTValues:         esdtValues,
 		ESDTValuesNum:      esdtValuesNum,
 		Tokens:             converters.TruncateSliceElementsIfExceedsMaxLength(res.Tokens),
-		Receivers:          datafield.EncodeBytesSlice(proc.pubKeyConverter.Encode, res.Receivers),
+		Receivers:          receiversAddr,
 		ReceiversShardIDs:  res.ReceiversShardID,
 		IsRelayed:          res.IsRelayed,
 		OriginalSender:     originalSenderAddr,
-		InitialTxFee:       initialTxFee.String(),
-		InitialTxGasUsed:   initialTxGasUsed,
+		InitialTxFee:       feeInfo.Fee.String(),
+		InitialTxGasUsed:   feeInfo.GasUsed,
 	}
 }
 
-func copySCRSMap(initial map[string]data.TransactionHandlerWithGasUsedAndFee) map[string]data.TransactionHandlerWithGasUsedAndFee {
-	newMap := make(map[string]data.TransactionHandlerWithGasUsedAndFee)
+func copySCRSMap(initial map[string]*outport.SCRInfo) map[string]*outport.SCRInfo {
+	newMap := make(map[string]*outport.SCRInfo)
 	for key, value := range initial {
 		newMap[key] = value
 	}

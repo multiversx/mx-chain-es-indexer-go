@@ -9,15 +9,43 @@ from utils import *
 
 def update_toml_indexer(path, shard_id):
     # prefs.toml
+    is_indexer_server = os.getenv('INDEXER_BINARY_SERVER')
     path_prefs = path / "prefs.toml"
     prefs_data = toml.load(str(path_prefs))
-    prefs_data['config']['web-socket']['server-url'] = str(shard_id)
+
+    port = WS_PORT_BASE + shard_id
+    meta_port = WS_METACHAIN_PORT
+    if is_indexer_server:
+        port = WS_PORT_BASE
+        meta_port = WS_PORT_BASE
+        prefs_data['config']['web-socket']['mode'] = "server"
+
     if shard_id != METACHAIN:
-        prefs_data['config']['web-socket']['server-url'] = "localhost:" + str(WS_PORT_BASE + shard_id)
+        prefs_data['config']['web-socket']['url'] = f"localhost:{str(port)}"
     else:
-        prefs_data['config']['web-socket']['server-url'] = "localhost:" + str(WS_METACHAIN_PORT)
+        prefs_data['config']['web-socket']['url'] = f"localhost:{str(meta_port)}"
+    prefs_data['config']['web-socket']['data-marshaller-type'] = str(os.getenv('WS_MARSHALLER_TYPE'))
+    prefs_data['config']['web-socket']['acknowledge-timeout-in-seconds'] = int(os.getenv('ACK_TIMEOUT_IN_SECONDS'))
+
     f = open(path_prefs, 'w')
     toml.dump(prefs_data, f)
+    f.close()
+
+    # api.toml
+    path_api = path / "api.toml"
+    api_data = toml.load(str(path_api))
+
+    api_port = API_PORT_BASE + shard_id
+    api_meta_port = API_META_PORT
+    if is_indexer_server:
+        api_port = API_PORT_BASE
+        api_meta_port = API_PORT_BASE
+    if shard_id != METACHAIN:
+        api_data['rest-api-interface'] = f":{api_port}"
+    else:
+        api_data['rest-api-interface'] = f":{api_meta_port}"
+    f = open(path_api, 'w')
+    toml.dump(api_data, f)
     f.close()
 
 
@@ -30,14 +58,38 @@ def update_toml_node(path, shard_id):
     toml.dump(prefs_data, f)
     f.close()
 
+    # config.toml
+    num_of_shards = int(os.getenv('NUM_OF_SHARDS'))
+    path_config = path / "config.toml"
+    config_data = toml.load(path_config)
+    config_data['DbLookupExtensions']['Enabled'] = True
+    config_data['EpochStartConfig']['RoundsPerEpoch'] = 20
+    config_data['GeneralSettings']['GenesisMaxNumberOfShards'] = num_of_shards
+    f = open(path_config, 'w')
+    toml.dump(config_data, f)
+    f.close()
+
     # external.toml
     path_external = path / "external.toml"
     external_data = toml.load(str(path_external))
-    external_data['WebSocketConnector']['Enabled'] = True
+    external_data['HostDriversConfig'][0]['Enabled'] = True
+
+    port = WS_PORT_BASE + shard_id
+    meta_port = WS_METACHAIN_PORT
+
+    is_indexer_server = os.getenv('INDEXER_BINARY_SERVER')
+    if is_indexer_server:
+        external_data['HostDriversConfig'][0]['Mode'] = "client"
+        port = WS_PORT_BASE
+        meta_port = WS_PORT_BASE
+
     if shard_id != METACHAIN:
-        external_data['WebSocketConnector']['URL'] = "localhost:" + str(WS_PORT_BASE + shard_id)
+        external_data['HostDriversConfig'][0]['URL'] = f"localhost:{str(port)}"
     else:
-        external_data['WebSocketConnector']['URL'] = "localhost:" + str(WS_METACHAIN_PORT)
+        external_data['HostDriversConfig'][0]['URL'] = f"localhost:{str(meta_port)}"
+
+    external_data['HostDriversConfig'][0]['MarshallerType'] = str(os.getenv('WS_MARSHALLER_TYPE'))
+    external_data['HostDriversConfig'][0]['AcknowledgeTimeoutInSec'] = int(os.getenv('ACK_TIMEOUT_IN_SECONDS'))
     f = open(path_external, 'w')
     toml.dump(external_data, f)
     f.close()
@@ -72,26 +124,35 @@ def prepare_observer(shard_id, working_dir, config_folder):
     update_toml_indexer(indexer_config, shard_id)
 
 
-def main():
-    load_dotenv()
-    working_dir = get_working_dir()
-    try:
-        os.makedirs(working_dir)
-    except FileExistsError:
-        print(f"working directory {working_dir} already exists")
-        print("use `python3 clean.py` command first")
-        sys.exit()
+def prepare_indexer_server(meta_id, working_dir):
+    is_indexer_server = os.getenv('INDEXER_BINARY_SERVER')
+    if not is_indexer_server:
+        return
 
-    # CLONE config
-    print("cloning config....")
-    config_folder = working_dir / "config"
-    if not os.path.isdir(config_folder):
-        Repo.clone_from(os.getenv('NODE_CONFIG_URL'), config_folder)
+    current_observer = str(os.getenv('OBSERVER_DIR_PREFIX')) + str(meta_id)
+    working_dir_observer = working_dir / current_observer
+    shutil.copytree(working_dir_observer / "indexer", working_dir / "indexer")
 
-    repo_cfg = Repo(config_folder)
-    repo_cfg.git.checkout(os.getenv('NODE_CONFIG_BRANCH'))
 
-    # CLONE mx-chain-go
+def generate_new_config(working_dir):
+    mx_chain_go_folder = working_dir / "mx-chain-go" / "scripts" / "testnet"
+    num_of_shards = str(os.getenv('NUM_OF_SHARDS'))
+
+    with open(mx_chain_go_folder / "local.sh", "w") as file:
+        file.write(f'export SHARDCOUNT={num_of_shards}\n')
+        file.write("export SHARD_VALIDATORCOUNT=1\n")
+        file.write("export SHARD_OBSERVERCOUNT=0\n")
+        file.write("export SHARD_CONSENSUS_SIZE=1\n")
+        file.write("export META_VALIDATORCOUNT=1\n")
+        file.write("export META_OBSERVERCOUNT=0\n")
+        file.write("export META_CONSENSUS_SIZE=1\n")
+        file.write('export LOGLEVEL="*:DEBUG"\n')
+        file.write('export OBSERVERS_ANTIFLOOD_DISABLE=0\n')
+        file.write('export USETMUX=0\n')
+        file.write('export USE_PROXY=0\n')
+
+
+def clone_mx_chain_go(working_dir):
     print("cloning mx-chain-go....")
     mx_chain_go_folder = working_dir / "mx-chain-go"
     if not os.path.isdir(mx_chain_go_folder):
@@ -100,20 +161,128 @@ def main():
     repo_mx_chain_go = Repo(mx_chain_go_folder)
     repo_mx_chain_go.git.checkout(os.getenv('NODE_GO_BRANCH'))
 
+
+def clone_dependencies(working_dir):
+    print("cloning dependencies")
+    mx_chain_deploy_folder = working_dir / "mx-chain-deploy-go"
+    if not os.path.isdir(mx_chain_deploy_folder):
+        Repo.clone_from(os.getenv('MX_CHAIN_DEPLOY_GO_URL'), mx_chain_deploy_folder)
+
+    mx_chain_proxy_folder = working_dir / "mx-chain-proxy-go"
+    if not os.path.isdir(mx_chain_proxy_folder):
+        Repo.clone_from(os.getenv('MX_CHAIN_PROXY_URL'), mx_chain_proxy_folder)
+
+
+def prepare_seed_node(working_dir):
+    print("preparing seed node")
+    seed_node = Path.home() / "MultiversX/testnet/seednode"
+    shutil.copytree(seed_node, working_dir / "seednode")
+
+    mx_chain_go_folder = working_dir / "mx-chain-go"
+    subprocess.check_call(["go", "build"], cwd=mx_chain_go_folder / "cmd/seednode")
+
+    seed_node_exec = mx_chain_go_folder / "cmd/seednode/seednode"
+    shutil.copyfile(seed_node_exec, working_dir / "seednode/seednode")
+
+    st = os.stat(working_dir / "seednode/seednode")
+    os.chmod(working_dir / "seednode/seednode", st.st_mode | stat.S_IEXEC)
+
+
+def prepare_proxy(working_dir):
+    print("preparing proxy")
+    mx_chain_proxy_go_folder = working_dir / "mx-chain-proxy-go"
+    subprocess.check_call(["go", "build"], cwd=mx_chain_proxy_go_folder / "cmd/proxy")
+
+    mx_chain_proxy_go_binary_folder = mx_chain_proxy_go_folder / "cmd/proxy"
+    st = os.stat(mx_chain_proxy_go_binary_folder / "proxy")
+    os.chmod(mx_chain_proxy_go_binary_folder / "proxy", st.st_mode | stat.S_IEXEC)
+
+    # config.toml
+    path_config = mx_chain_proxy_go_binary_folder / "config/config.toml"
+    config_data = toml.load(str(path_config))
+
+    proxy_port = int(os.getenv('PROXY_PORT'))
+    config_data['GeneralSettings']['ServerPort'] = proxy_port
+    del config_data['Observers']
+    del config_data['FullHistoryNodes']
+
+    config_data['Observers'] = []
+
+    observers_start_port = int(os.getenv('OBSERVERS_START_PORT'))
+    meta_observer = {
+        'ShardId': 4294967295,
+        'Address': f'http://127.0.0.1:{observers_start_port}',
+    }
+    config_data['Observers'].append(meta_observer)
+
+    num_of_shards = int(os.getenv('NUM_OF_SHARDS'))
+    for shard_id in range(num_of_shards):
+        shard_observer_port = observers_start_port + shard_id + 1
+        meta_observer = {
+            'ShardId': shard_id,
+            'Address': f'http://127.0.0.1:{shard_observer_port}',
+        }
+        config_data['Observers'].append(meta_observer)
+
+    f = open(path_config, 'w')
+    toml.dump(config_data, f)
+    f.close()
+
+
+def generate_config_for_local_testnet(working_dir):
+    mx_chain_local_testnet_scripts = working_dir / "mx-chain-go/scripts/testnet"
+    subprocess.check_call(["./clean.sh"], cwd=mx_chain_local_testnet_scripts)
+    subprocess.check_call(["./config.sh"], cwd=mx_chain_local_testnet_scripts)
+
+    config_folder = Path.home() / "MultiversX/testnet/node/config"
+    os.rename(config_folder / "config_validator.toml", config_folder / "config.toml")
+    shutil.copytree(config_folder, working_dir / "config")
+
+
+def main():
+    load_dotenv()
+    working_dir = get_working_dir()
+    try:
+        os.makedirs(working_dir)
+    except FileExistsError:
+        print("something")
+        print(f"working directory {working_dir} already exists")
+        print("use `python3 clean.py` command first")
+        sys.exit()
+
+    num_of_shards = int(os.getenv('NUM_OF_SHARDS'))
+    check_num_of_shards(num_of_shards)
+
+    # clone mx-chain-go
+    clone_mx_chain_go(working_dir)
+    # clone dependencies
+    clone_dependencies(working_dir)
+    # generate configs
+    generate_new_config(working_dir)
+    generate_config_for_local_testnet(working_dir)
+    # prepare seednode
+    prepare_seed_node(working_dir)
+    # prepare proxy
+    prepare_proxy(working_dir)
+
     # build binary mx-chain-go
     print("building node...")
-    subprocess.check_call(["go", "build"], cwd=mx_chain_go_folder / "cmd/node")
+    mx_chain_go_folder = working_dir / "mx-chain-go"
+    flags = '-gcflags=all=-N -l'
+    subprocess.check_call(["go", "build", flags], cwd=mx_chain_go_folder / "cmd/node")
 
     # build binary indexer
     print("building indexer...")
-    subprocess.check_call(["go", "build"], cwd="../../cmd/elasticindexer")
+    subprocess.check_call(["go", "build", flags], cwd="../../cmd/elasticindexer")
 
     # prepare observers
+    config_folder = working_dir / "config"
     print("preparing config...")
-    prepare_observer(0, working_dir, config_folder)
-    prepare_observer(1, working_dir, config_folder)
-    prepare_observer(2, working_dir, config_folder)
     prepare_observer(METACHAIN, working_dir, config_folder)
+    prepare_indexer_server(METACHAIN, working_dir)
+
+    for shard_id in range(num_of_shards):
+        prepare_observer(shard_id, working_dir, config_folder)
 
 
 if __name__ == "__main__":

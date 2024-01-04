@@ -80,10 +80,12 @@ func (dp *delegatorsProc) processEvent(args *argsProcessEvent) argOutputProcessE
 	// topics[5:] = unDelegate fund keys in case of withdrawal
 	activeStake := big.NewInt(0).SetBytes(topics[1])
 
-	contractAddr := dp.pubkeyConverter.Encode(args.logAddress)
+	contractAddr := dp.pubkeyConverter.SilentEncode(args.logAddress, log)
 	if len(topics) >= minNumTopicsDelegators+1 && eventIdentifierStr == delegateFunc {
-		contractAddr = dp.pubkeyConverter.Encode(topics[4])
+		contractAddr = dp.pubkeyConverter.SilentEncode(topics[4], log)
 	}
+
+	encodedAddr := dp.pubkeyConverter.SilentEncode(args.event.GetAddress(), log)
 
 	activeStakeNum, err := dp.balanceConverter.ComputeBalanceAsFloat(activeStake)
 	if err != nil {
@@ -92,7 +94,7 @@ func (dp *delegatorsProc) processEvent(args *argsProcessEvent) argOutputProcessE
 	}
 
 	delegator := &data.Delegator{
-		Address:        dp.pubkeyConverter.Encode(args.event.GetAddress()),
+		Address:        encodedAddr,
 		Contract:       contractAddr,
 		ActiveStake:    activeStake.String(),
 		ActiveStakeNum: activeStakeNum,
@@ -145,9 +147,12 @@ func (dp *delegatorsProc) getDelegatorFromClaimRewardsEvent(args *argsProcessEve
 		return nil
 	}
 
+	encodedAddr := dp.pubkeyConverter.SilentEncode(args.event.GetAddress(), log)
+	encodedContractAddr := dp.pubkeyConverter.SilentEncode(args.logAddress, log)
+
 	return &data.Delegator{
-		Address:      dp.pubkeyConverter.Encode(args.event.GetAddress()),
-		Contract:     dp.pubkeyConverter.Encode(args.logAddress),
+		Address:      encodedAddr,
+		Contract:     encodedContractAddr,
 		ShouldDelete: shouldDelete,
 	}
 }

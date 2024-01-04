@@ -32,3 +32,13 @@ integration-tests-open-search:
 	go test -v ./integrationtests -tags integrationtests
 	cd scripts && /bin/bash script.sh delete
 	cd scripts && /bin/bash script.sh stop_open_search
+
+INDEXER_IMAGE_NAME="elasticindexer"
+INDEXER_IMAGE_TAG="latest"
+DOCKER_FILE=Dockerfile
+
+docker-build:
+	docker build \
+		 -t ${INDEXER_IMAGE_NAME}:${INDEXER_IMAGE_TAG} \
+		 -f ${DOCKER_FILE} \
+		 .

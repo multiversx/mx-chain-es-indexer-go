@@ -39,14 +39,12 @@ func TestSerializeAccounts(t *testing.T) {
 
 	accs := map[string]*data.AccountInfo{
 		"addr1": {
-			Address:                  "addr1",
-			Nonce:                    1,
-			Balance:                  "50",
-			BalanceNum:               0.1,
-			TotalBalanceWithStake:    "50",
-			TotalBalanceWithStakeNum: 0.1,
-			IsSmartContract:          true,
-			IsSender:                 true,
+			Address:         "addr1",
+			Nonce:           1,
+			Balance:         "50",
+			BalanceNum:      0.1,
+			IsSmartContract: true,
+			IsSender:        true,
 		},
 	}
 
@@ -56,7 +54,7 @@ func TestSerializeAccounts(t *testing.T) {
 	require.Equal(t, 1, len(buffSlice.Buffers()))
 
 	expectedRes := `{ "update" : {"_index": "accounts", "_id" : "addr1" } }
-{"scripted_upsert": true, "script": {"source": "if ('create' == ctx.op) {ctx._source = params.account} else {if (ctx._source.containsKey('timestamp')) {if (ctx._source.timestamp <= params.account.timestamp) {ctx._source = params.account}} else {ctx._source = params.account}}","lang": "painless","params": { "account": {"address":"addr1","nonce":1,"balance":"50","balanceNum":0.1,"totalBalanceWithStake":"50","totalBalanceWithStakeNum":0.1,"shardID":0} }},"upsert": {}}
+{"scripted_upsert": true, "script": {"source": "if ('create' == ctx.op) {ctx._source = params.account} else {if (ctx._source.containsKey('timestamp')) {if (ctx._source.timestamp <= params.account.timestamp) {ctx._source = params.account}} else {ctx._source = params.account}}","lang": "painless","params": { "account": {"address":"addr1","nonce":1,"balance":"50","balanceNum":0.1,"shardID":0} }},"upsert": {}}
 `
 	require.Equal(t, expectedRes, buffSlice.Buffers()[0].String())
 }

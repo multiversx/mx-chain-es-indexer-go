@@ -70,6 +70,7 @@ type TokenProperties struct {
 
 // OwnerData is a structure that is needed to store information about an owner
 type OwnerData struct {
+	TxHash    string        `json:"txHash,omitempty"`
 	Address   string        `json:"address"`
 	Timestamp time.Duration `json:"timestamp"`
 }

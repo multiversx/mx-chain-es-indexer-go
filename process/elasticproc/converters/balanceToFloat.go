@@ -46,8 +46,8 @@ func (bc *balanceConverter) ComputeBalanceAsFloat(balance *big.Int) (float64, er
 	return bc.computeBalanceAsFloat(balance, bc.balancePrecision)
 }
 
-// ComputeESDTBalanceAsFloat will compute ESDT balance as float
-func (bc *balanceConverter) ComputeESDTBalanceAsFloat(balance *big.Int) (float64, error) {
+// ConvertBigValueToFloat will convert big value to float
+func (bc *balanceConverter) ConvertBigValueToFloat(balance *big.Int) (float64, error) {
 	return bc.computeBalanceAsFloat(balance, bc.balancePrecisionESDT)
 }
 
@@ -61,7 +61,7 @@ func (bc *balanceConverter) ComputeSliceOfStringsAsFloat(values []string) ([]flo
 			return nil, errCastStringToBigInt
 		}
 
-		valueNum, err := bc.ComputeESDTBalanceAsFloat(valueBig)
+		valueNum, err := bc.ConvertBigValueToFloat(valueBig)
 		if err != nil {
 			return nil, err
 		}

@@ -22,9 +22,10 @@ import (
 
 var (
 	log                = logger.GetOrCreate("integration-tests")
-	pubKeyConverter, _ = pubkeyConverter.NewBech32PubkeyConverter(32, log)
+	pubKeyConverter, _ = pubkeyConverter.NewBech32PubkeyConverter(32, addressPrefix)
 )
 
+//nolint
 func setLogLevelDebug() {
 	_ = logger.SetLogLevel("process:DEBUG")
 }
@@ -57,13 +58,14 @@ func CreateElasticProcessor(
 		DBClient:                 esClient,
 		EnabledIndexes: []string{dataindexer.TransactionsIndex, dataindexer.LogsIndex, dataindexer.AccountsESDTIndex, dataindexer.ScResultsIndex,
 			dataindexer.ReceiptsIndex, dataindexer.BlockIndex, dataindexer.AccountsIndex, dataindexer.TokensIndex, dataindexer.TagsIndex,
-			dataindexer.OperationsIndex, dataindexer.DelegatorsIndex, dataindexer.ESDTsIndex},
+			dataindexer.OperationsIndex, dataindexer.DelegatorsIndex, dataindexer.ESDTsIndex, dataindexer.SCDeploysIndex, dataindexer.MiniblocksIndex},
 		Denomination: 18,
 	}
 
 	return factory.CreateElasticProcessor(args)
 }
 
+//nolint
 func readExpectedResult(path string) string {
 	jsonFile, _ := os.Open(path)
 	byteValue, _ := ioutil.ReadAll(jsonFile)
@@ -71,6 +73,7 @@ func readExpectedResult(path string) string {
 	return string(byteValue)
 }
 
+//nolint
 func getElementFromSlice(path string, index int) string {
 	fileBytes := readExpectedResult(path)
 	slice := make([]map[string]interface{}, 0)

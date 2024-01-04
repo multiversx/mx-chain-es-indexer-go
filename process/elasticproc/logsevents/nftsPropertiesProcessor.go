@@ -30,13 +30,14 @@ func newNFTsPropertiesProcessor(pubKeyConverter core.PubkeyConverter) *nftsPrope
 }
 
 func (npp *nftsPropertiesProc) processEvent(args *argsProcessEvent) argOutputProcessEvent {
+	//nolint
 	eventIdentifier := string(args.event.GetIdentifier())
 	_, ok := npp.propertiesChangeOperations[eventIdentifier]
 	if !ok {
 		return argOutputProcessEvent{}
 	}
 
-	callerAddress := npp.pubKeyConverter.Encode(args.event.GetAddress())
+	callerAddress := npp.pubKeyConverter.SilentEncode(args.event.GetAddress(), log)
 	if callerAddress == "" {
 		return argOutputProcessEvent{
 			processed: true,
@@ -54,6 +55,13 @@ func (npp *nftsPropertiesProc) processEvent(args *argsProcessEvent) argOutputPro
 	// [2] --> value
 	// [3:] --> modified data
 	if len(topics) < minTopicsUpdate {
+		return argOutputProcessEvent{
+			processed: true,
+		}
+	}
+
+	callerAddress = npp.pubKeyConverter.SilentEncode(args.event.GetAddress(), log)
+	if callerAddress == "" {
 		return argOutputProcessEvent{
 			processed: true,
 		}

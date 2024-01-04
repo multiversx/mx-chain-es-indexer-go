@@ -5,6 +5,9 @@ import (
 )
 
 const (
+	// MaxIDSize is the maximum size of a document id
+	MaxIDSize = 512
+
 	attributesSeparator = ";"
 	keyValuesSeparator  = ":"
 	valuesSeparator     = ","

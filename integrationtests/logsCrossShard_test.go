@@ -3,12 +3,13 @@
 package integrationtests
 
 import (
+	"context"
 	"encoding/hex"
 	"math/big"
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	coreData "github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/alteredAccount"
 	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
@@ -37,10 +38,11 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 	logID := hex.EncodeToString([]byte("cross-log"))
 
 	// index on source
-	pool := &outport.Pool{
-		Logs: []*coreData.LogData{
+	pool := &outport.TransactionPool{
+		Logs: []*outport.LogData{
 			{
-				LogHandler: &transaction.Log{
+				TxHash: logID,
+				Log: &transaction.Log{
 					Address: decodeAddress(address1),
 					Events: []*transaction.Event{
 						{
@@ -51,16 +53,15 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 						nil,
 					},
 				},
-				TxHash: "cross-log",
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, map[string]*alteredAccount.AlteredAccount{}, testNumOfShards))
 	require.Nil(t, err)
 
 	ids := []string{logID}
 	genericResponse := &GenericResponse{}
-	err = esClient.DoMultiGet(ids, indexerdata.LogsIndex, true, genericResponse)
+	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.LogsIndex, true, genericResponse)
 	require.Nil(t, err)
 	require.JSONEq(t,
 		readExpectedResult("./testdata/logsCrossShard/log-at-source.json"),
@@ -72,10 +73,11 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 		Round:     50,
 		TimeStamp: 6040,
 	}
-	pool = &outport.Pool{
-		Logs: []*coreData.LogData{
+	pool = &outport.TransactionPool{
+		Logs: []*outport.LogData{
 			{
-				LogHandler: &transaction.Log{
+				TxHash: logID,
+				Log: &transaction.Log{
 					Address: decodeAddress(address1),
 					Events: []*transaction.Event{
 						{
@@ -92,14 +94,13 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 						nil,
 					},
 				},
-				TxHash: "cross-log",
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, map[string]*alteredAccount.AlteredAccount{}, testNumOfShards))
 	require.Nil(t, err)
 
-	err = esClient.DoMultiGet(ids, indexerdata.LogsIndex, true, genericResponse)
+	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.LogsIndex, true, genericResponse)
 	require.Nil(t, err)
 	require.JSONEq(t,
 		readExpectedResult("./testdata/logsCrossShard/log-at-destination.json"),
@@ -111,10 +112,11 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 		Round:     50,
 		TimeStamp: 5000,
 	}
-	pool = &outport.Pool{
-		Logs: []*coreData.LogData{
+	pool = &outport.TransactionPool{
+		Logs: []*outport.LogData{
 			{
-				LogHandler: &transaction.Log{
+				TxHash: logID,
+				Log: &transaction.Log{
 					Address: decodeAddress(address1),
 					Events: []*transaction.Event{
 						{
@@ -125,14 +127,13 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 						nil,
 					},
 				},
-				TxHash: "cross-log",
 			},
 		},
 	}
-	err = esProc.SaveTransactions(body, header, pool, map[string]*outport.AlteredAccount{}, false, testNumOfShards)
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, map[string]*alteredAccount.AlteredAccount{}, testNumOfShards))
 	require.Nil(t, err)
 
-	err = esClient.DoMultiGet(ids, indexerdata.LogsIndex, true, genericResponse)
+	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.LogsIndex, true, genericResponse)
 	require.Nil(t, err)
 	require.JSONEq(t,
 		readExpectedResult("./testdata/logsCrossShard/log-at-destination.json"),
@@ -158,7 +159,7 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 	err = esProc.RemoveTransactions(header, body)
 	require.Nil(t, err)
 
-	err = esClient.DoMultiGet(ids, indexerdata.LogsIndex, true, genericResponse)
+	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.LogsIndex, true, genericResponse)
 	require.Nil(t, err)
 
 	require.False(t, genericResponse.Docs[0].Found)
