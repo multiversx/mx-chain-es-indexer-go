@@ -1,0 +1,22 @@
+{
+  "miniBlockHash": "",
+  "nonce": 0,
+  "round": 0,
+  "value": "",
+  "valueNum": 0,
+  "receiver": "",
+  "sender": "",
+  "receiverShard": 0,
+  "senderShard": 0,
+  "gasPrice": 0,
+  "gasLimit": 0,
+  "gasUsed": 0,
+  "fee": "",
+  "feeNum": 0,
+  "data": null,
+  "signature": "",
+  "timestamp": 0,
+  "status": "",
+  "searchOrder": 0,
+  "completedEvent": true
+}

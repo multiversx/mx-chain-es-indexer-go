@@ -189,9 +189,18 @@ func prepareNFTESDTTransferOrMultiESDTTransfer(marshaledTx []byte) ([]byte, erro
 		} else {
 			def status = ctx._source.status;
 			def errorEvent = ctx._source.errorEvent;
+			def completedEvent = ctx._source.completedEvent;
+
 			ctx._source = params.tx;
-			ctx._source.status = status;
-			ctx._source.errorEvent = errorEvent;
+			if (!status.isEmpty()) {
+				ctx._source.status = status;
+			}
+			if (errorEvent != null) {
+				ctx._source.errorEvent = errorEvent;
+			}
+			if (completedEvent != null) {
+				ctx._source.completedEvent = completedEvent;
+			}
 		}
 `
 	serializedData := []byte(fmt.Sprintf(`{"scripted_upsert": true, "script":{"source":"%s","lang": "painless","params":{"tx": %s}},"upsert":{}}`,
