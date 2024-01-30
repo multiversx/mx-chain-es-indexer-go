@@ -160,6 +160,10 @@ func createBlockCreatorsContainer() (dataindexer.BlockContainerHandler, error) {
 	if err != nil {
 		return nil, err
 	}
+	err = container.Add(core.SovereignChainHeader, block.NewEmptySovereignHeaderCreator())
+	if err != nil {
+		return nil, err
+	}
 
 	return container, nil
 }
