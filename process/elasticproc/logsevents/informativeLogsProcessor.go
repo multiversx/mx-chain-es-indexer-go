@@ -72,15 +72,15 @@ func processEventNoTx(args *argsProcessEvent) argOutputProcessEvent {
 	case core.CompletedTxEventIdentifier:
 		{
 			record.CompletedEvent = true
+			args.txHashStatusInfoProc.addRecord(scr.OriginalTxHash, record)
 		}
 	case core.SignalErrorOperation, core.InternalVMErrorsOperation:
 		{
 			record.Status = transaction.TxStatusFail.String()
 			record.ErrorEvent = true
+			args.txHashStatusInfoProc.addRecord(scr.OriginalTxHash, record)
 		}
 	}
-
-	args.txHashStatusInfoProc.addRecord(scr.OriginalTxHash, record)
 
 	return argOutputProcessEvent{
 		processed: true,
