@@ -6,16 +6,16 @@ require (
 	github.com/elastic/go-elasticsearch/v7 v7.12.0
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.9.1
-	github.com/multiversx/mx-chain-communication-go v1.0.7
-	github.com/multiversx/mx-chain-core-go v1.2.17-0.20230929122110-e9bafb263bce
-	github.com/multiversx/mx-chain-logger-go v1.0.13
-	github.com/multiversx/mx-chain-vm-common-go v1.5.6-0.20230929122105-486b4b0c27fa
+	github.com/multiversx/mx-chain-communication-go v1.0.12
+	github.com/multiversx/mx-chain-core-go v1.2.19-0.20240118100536-661f5af64039
+	github.com/multiversx/mx-chain-logger-go v1.0.14-0.20231129101244-c44fa1c79b03
+	github.com/multiversx/mx-chain-vm-common-go v1.5.10-0.20240118100602-3d0d315083e8
 	github.com/prometheus/client_model v0.4.0
 	github.com/prometheus/common v0.37.0
 	github.com/stretchr/testify v1.8.4
 	github.com/tidwall/gjson v1.14.0
 	github.com/urfave/cli v1.22.10
-	google.golang.org/protobuf v1.30.0
+	google.golang.org/protobuf v1.31.0
 )
 
 require (
@@ -54,9 +54,9 @@ require (
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
 	golang.org/x/arch v0.3.0 // indirect
-	golang.org/x/crypto v0.9.0 // indirect
-	golang.org/x/net v0.10.0 // indirect
-	golang.org/x/sys v0.8.0 // indirect
-	golang.org/x/text v0.9.0 // indirect
+	golang.org/x/crypto v0.14.0 // indirect
+	golang.org/x/net v0.16.0 // indirect
+	golang.org/x/sys v0.13.0 // indirect
+	golang.org/x/text v0.13.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
