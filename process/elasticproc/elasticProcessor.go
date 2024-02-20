@@ -139,13 +139,17 @@ func (ei *elasticProcessor) init(useKibana bool, indexTemplates, _ map[string]*b
 }
 
 func (ei *elasticProcessor) indexVersion(version string) error {
-	id := fmt.Sprintf("%s", versionStr)
+	if version == "" {
+		log.Debug("ei.elasticProcessor indexer version is empty")
+		return nil
+	}
+
 	keyValueObj := &data.KeyValueObj{
 		Key:   versionStr,
 		Value: version,
 	}
 
-	meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s", "_id" : "%s" } }%s`, elasticIndexer.ValuesIndex, id, "\n"))
+	meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s", "_id" : "%s" } }%s`, elasticIndexer.ValuesIndex, versionStr, "\n"))
 	keyValueObjBytes, err := json.Marshal(keyValueObj)
 	if err != nil {
 		return err
