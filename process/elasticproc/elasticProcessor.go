@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"sync"
 
@@ -29,11 +30,11 @@ var (
 		elasticIndexer.TransactionsIndex, elasticIndexer.BlockIndex, elasticIndexer.MiniblocksIndex, elasticIndexer.RatingIndex, elasticIndexer.RoundsIndex, elasticIndexer.ValidatorsIndex,
 		elasticIndexer.AccountsIndex, elasticIndexer.AccountsHistoryIndex, elasticIndexer.ReceiptsIndex, elasticIndexer.ScResultsIndex, elasticIndexer.AccountsESDTHistoryIndex, elasticIndexer.AccountsESDTIndex,
 		elasticIndexer.EpochInfoIndex, elasticIndexer.SCDeploysIndex, elasticIndexer.TokensIndex, elasticIndexer.TagsIndex, elasticIndexer.LogsIndex, elasticIndexer.DelegatorsIndex, elasticIndexer.OperationsIndex,
-		elasticIndexer.ESDTsIndex,
+		elasticIndexer.ESDTsIndex, elasticIndexer.ValuesIndex,
 	}
 )
 
-type objectsMap = map[string]interface{}
+const versionStr = "indexer-version"
 
 // ArgElasticProcessor holds all dependencies required by the elasticProcessor in order to create
 // new instances
@@ -53,6 +54,7 @@ type ArgElasticProcessor struct {
 	DBClient           DatabaseClientHandler
 	LogsAndEventsProc  DBLogsAndEventsHandler
 	OperationsProc     OperationsHandler
+	Version            string
 }
 
 type elasticProcessor struct {
@@ -97,7 +99,9 @@ func NewElasticProcessor(arguments *ArgElasticProcessor) (*elasticProcessor, err
 		return nil, err
 	}
 
-	return ei, nil
+	err = ei.indexVersion(arguments.Version)
+
+	return ei, err
 }
 
 // TODO move all the index create part in a new component
@@ -132,6 +136,28 @@ func (ei *elasticProcessor) init(useKibana bool, indexTemplates, _ map[string]*b
 	}
 
 	return nil
+}
+
+func (ei *elasticProcessor) indexVersion(version string) error {
+	id := fmt.Sprintf("%s", versionStr)
+	keyValueObj := &data.KeyValueObj{
+		Key:   versionStr,
+		Value: version,
+	}
+
+	meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s", "_id" : "%s" } }%s`, elasticIndexer.ValuesIndex, id, "\n"))
+	keyValueObjBytes, err := json.Marshal(keyValueObj)
+	if err != nil {
+		return err
+	}
+
+	buffSlice := data.NewBufferSlice(0)
+	err = buffSlice.PutData(meta, keyValueObjBytes)
+	if err != nil {
+		return err
+	}
+
+	return ei.elasticClient.DoBulkRequest(context.Background(), buffSlice.Buffers()[0], "")
 }
 
 // nolint

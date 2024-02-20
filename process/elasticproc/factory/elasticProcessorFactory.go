@@ -26,6 +26,7 @@ type ArgElasticProcessorFactory struct {
 	ValidatorPubkeyConverter core.PubkeyConverter
 	DBClient                 elasticproc.DatabaseClientHandler
 	EnabledIndexes           []string
+	Version                  string
 	Denomination             int
 	BulkRequestMaxSize       int
 	UseKibana                bool
@@ -120,6 +121,7 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (dataindexer.E
 		IndexPolicies:      indexPolicies,
 		OperationsProc:     operationsProc,
 		ImportDB:           arguments.ImportDB,
+		Version:            arguments.Version,
 	}
 
 	return elasticproc.NewElasticProcessor(args)
