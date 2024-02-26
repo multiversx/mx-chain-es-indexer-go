@@ -47,10 +47,4 @@ var (
 		Name:  "disable-ansi-color",
 		Usage: "Boolean option for disabling ANSI colors in the logging system.",
 	}
-	importDB = cli.BoolFlag{
-		Name: "import-db",
-		Usage: "This flag, when enabled, triggers the indexer to operate in import database mode. In this mode," +
-			" the indexer excludes the indexing of cross shard transactions received from the source shard. " +
-			"This flag must be enabled when the observers are in import database mode.",
-	}
 )
