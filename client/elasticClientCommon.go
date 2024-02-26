@@ -96,7 +96,7 @@ func elasticBulkRequestResponseHandler(res *esapi.Response) error {
 		return fmt.Errorf("%s", res.String())
 	}
 
-	bodyBytes, err := ioutil.ReadAll(res.Body)
+	bodyBytes, err := io.ReadAll(res.Body)
 	if err != nil {
 		return fmt.Errorf("%w cannot read elastic response body bytes", err)
 	}

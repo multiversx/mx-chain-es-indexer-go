@@ -54,7 +54,7 @@ func TestSerializeAccounts(t *testing.T) {
 	require.Equal(t, 1, len(buffSlice.Buffers()))
 
 	expectedRes := `{ "update" : {"_index": "accounts", "_id" : "addr1" } }
-{"scripted_upsert": true, "script": {"source": "if ('create' == ctx.op) {ctx._source = params.account} else {if (ctx._source.containsKey('timestamp')) {if (ctx._source.timestamp <= params.account.timestamp) {ctx._source = params.account}} else {ctx._source = params.account}}","lang": "painless","params": { "account": {"address":"addr1","nonce":1,"balance":"50","balanceNum":0.1,"shardID":0} }},"upsert": {}}
+{"scripted_upsert": true, "script": {"source": "if ('create' == ctx.op) {ctx._source = params.account} else {if ((!ctx._source.containsKey('timestamp')) || (ctx._source.timestamp <= params.account.timestamp) ) {params.account.forEach((key, value) -> {ctx._source[key] = value;});}}","lang": "painless","params": { "account": {"address":"addr1","nonce":1,"balance":"50","balanceNum":0.1,"shardID":0} }},"upsert": {}}
 `
 	require.Equal(t, expectedRes, buffSlice.Buffers()[0].String())
 }
@@ -81,7 +81,7 @@ func TestSerializeAccountsESDTNonceZero(t *testing.T) {
 	require.Equal(t, 1, len(buffSlice.Buffers()))
 
 	expectedRes := `{ "update" : {"_index": "accountsesdt", "_id" : "addr1-token-abcd-00" } }
-{"scripted_upsert": true, "script": {"source": "if ('create' == ctx.op) {ctx._source = params.account} else {if (ctx._source.containsKey('timestamp')) {if (ctx._source.timestamp <= params.account.timestamp) {ctx._source = params.account}} else {ctx._source = params.account}}","lang": "painless","params": { "account": {"address":"addr1","nonce":1,"balance":"10000000000000","balanceNum":1,"token":"token-abcd","properties":"000","timestamp":123,"shardID":0} }},"upsert": {}}
+{"scripted_upsert": true, "script": {"source": "if ('create' == ctx.op) {ctx._source = params.account} else {if ((!ctx._source.containsKey('timestamp')) || (ctx._source.timestamp <= params.account.timestamp) ) {params.account.forEach((key, value) -> {ctx._source[key] = value;});}}","lang": "painless","params": { "account": {"address":"addr1","nonce":1,"balance":"10000000000000","balanceNum":1,"token":"token-abcd","properties":"000","timestamp":123,"shardID":0} }},"upsert": {}}
 `
 	require.Equal(t, expectedRes, buffSlice.Buffers()[0].String())
 }
@@ -107,7 +107,7 @@ func TestSerializeAccountsESDT(t *testing.T) {
 	require.Equal(t, 1, len(buffSlice.Buffers()))
 
 	expectedRes := `{ "update" : {"_index": "accountsesdt", "_id" : "addr1-token-0001-05" } }
-{"scripted_upsert": true, "script": {"source": "if ('create' == ctx.op) {ctx._source = params.account} else {if (ctx._source.containsKey('timestamp')) {if (ctx._source.timestamp <= params.account.timestamp) {ctx._source = params.account}} else {ctx._source = params.account}}","lang": "painless","params": { "account": {"address":"addr1","nonce":1,"balance":"10000000000000","balanceNum":1,"token":"token-0001","tokenNonce":5,"properties":"000","shardID":0} }},"upsert": {}}
+{"scripted_upsert": true, "script": {"source": "if ('create' == ctx.op) {ctx._source = params.account} else {if ((!ctx._source.containsKey('timestamp')) || (ctx._source.timestamp <= params.account.timestamp) ) {params.account.forEach((key, value) -> {ctx._source[key] = value;});}}","lang": "painless","params": { "account": {"address":"addr1","nonce":1,"balance":"10000000000000","balanceNum":1,"token":"token-0001","tokenNonce":5,"properties":"000","shardID":0} }},"upsert": {}}
 `
 	require.Equal(t, expectedRes, buffSlice.Buffers()[0].String())
 }
@@ -147,7 +147,7 @@ func TestSerializeAccountsNFTWithMedaData(t *testing.T) {
 	require.Equal(t, 1, len(buffSlice.Buffers()))
 
 	expectedRes := `{ "update" : {"_index": "accountsesdt", "_id" : "addr1-token-0001-16" } }
-{"scripted_upsert": true, "script": {"source": "if ('create' == ctx.op) {ctx._source = params.account} else {if (ctx._source.containsKey('timestamp')) {if (ctx._source.timestamp <= params.account.timestamp) {ctx._source = params.account}} else {ctx._source = params.account}}","lang": "painless","params": { "account": {"address":"addr1","nonce":1,"balance":"10000000000000","balanceNum":1,"token":"token-0001","identifier":"token-0001-5","tokenNonce":22,"properties":"000","data":{"name":"nft","creator":"010101","royalties":1,"hash":"aGFzaA==","uris":["dXJp"],"tags":["test","free","fun"],"attributes":"dGFnczp0ZXN0LGZyZWUsZnVuO2Rlc2NyaXB0aW9uOlRoaXMgaXMgYSB0ZXN0IGRlc2NyaXB0aW9uIGZvciBhbiBhd2Vzb21lIG5mdA==","metadata":"metadata-test","nonEmptyURIs":true,"whiteListedStorage":false},"shardID":0} }},"upsert": {}}
+{"scripted_upsert": true, "script": {"source": "if ('create' == ctx.op) {ctx._source = params.account} else {if ((!ctx._source.containsKey('timestamp')) || (ctx._source.timestamp <= params.account.timestamp) ) {params.account.forEach((key, value) -> {ctx._source[key] = value;});}}","lang": "painless","params": { "account": {"address":"addr1","nonce":1,"balance":"10000000000000","balanceNum":1,"token":"token-0001","identifier":"token-0001-5","tokenNonce":22,"properties":"000","data":{"name":"nft","creator":"010101","royalties":1,"hash":"aGFzaA==","uris":["dXJp"],"tags":["test","free","fun"],"attributes":"dGFnczp0ZXN0LGZyZWUsZnVuO2Rlc2NyaXB0aW9uOlRoaXMgaXMgYSB0ZXN0IGRlc2NyaXB0aW9uIGZvciBhbiBhd2Vzb21lIG5mdA==","metadata":"metadata-test","nonEmptyURIs":true,"whiteListedStorage":false},"shardID":0} }},"upsert": {}}
 `
 	require.Equal(t, expectedRes, buffSlice.Buffers()[0].String())
 }

@@ -4,7 +4,7 @@ PROMETHEUS_CONTAINER_NAME=prometheus_container
 GRAFANA_CONTAINER_NAME=grafana_container
 GRAFANA_VERSION=10.0.3
 PROMETHEUS_VERSION=v2.46.0
-INDICES_LIST=("rating" "transactions" "blocks" "validators" "miniblocks" "rounds" "accounts" "accountshistory" "receipts" "scresults" "accountsesdt" "accountsesdthistory" "epochinfo" "scdeploys" "tokens" "tags" "logs" "delegators" "operations" "esdts")
+INDICES_LIST=("rating" "transactions" "blocks" "validators" "miniblocks" "rounds" "accounts" "accountshistory" "receipts" "scresults" "accountsesdt" "accountsesdthistory" "epochinfo" "scdeploys" "tokens" "tags" "logs" "delegators" "operations" "esdts" "values")
 
 
 start() {
