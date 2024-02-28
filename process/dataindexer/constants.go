@@ -45,6 +45,8 @@ const (
 	OperationsIndex = "operations"
 	// ESDTsIndex is the Elasticsearch index for esdt tokens
 	ESDTsIndex = "esdts"
+	// ValuesIndex is the Elasticsearch index for extra indexer information
+	ValuesIndex = "values"
 
 	// TransactionsPolicy is the Elasticsearch policy for the transactions
 	TransactionsPolicy = "transactions_policy"
