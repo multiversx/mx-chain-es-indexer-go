@@ -2,7 +2,8 @@
   "procTypeD": "Processed",
   "receiverShard": 0,
   "senderShard": 2,
-  "receiverBlockHash": "b36435faaa72390772da84f418348ce0d477c74432579519bf0ffea1dc4c36e9",
+  "receiverBlockHash": "973e2f160d7d3bf8cacafcfd8c9cacf9b4a2c5e16285d1dbb6d5319a25975b6e",
   "type": "TxBlock",
-  "timestamp": 54321
+  "timestamp": 54321,
+  "receiverBlockNonce": 100
 }
