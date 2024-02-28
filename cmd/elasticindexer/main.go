@@ -43,7 +43,7 @@ VERSION:
 // Usage examples:
 // linux/mac:
 //
-//	go build -v -ldflags="-X main.appVersion=$(git describe --tags --long --dirty)"
+//	go build -v -ldflags="-X main.version=$(git describe --tags --long --dirty)"
 //
 // windows:
 //

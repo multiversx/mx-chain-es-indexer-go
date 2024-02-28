@@ -50,9 +50,11 @@ func (mp *miniblocksProcessor) prepareMiniblockData(miniblockDB *data.Miniblock,
 	} else {
 		if (params.npos) {
 			ctx._source.senderBlockHash = params.mb.senderBlockHash;
+			ctx._source.senderBlockNonce = params.mb.senderBlockNonce;
 			ctx._source.procTypeS = params.mb.procTypeS;
 		} else {
 			ctx._source.receiverBlockHash = params.mb.receiverBlockHash;
+			ctx._source.receiverBlockNonce = params.mb.receiverBlockNonce;
 			ctx._source.procTypeD = params.mb.procTypeD;
 		}
 	}
