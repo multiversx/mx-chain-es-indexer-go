@@ -10,6 +10,44 @@ import (
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/tokeninfo"
 )
 
+func (*logsAndEventsProcessor) SerializeEvents(events []*data.LogEvent, buffSlice *data.BufferSlice, index string) error {
+	for _, event := range events {
+		meta := []byte(fmt.Sprintf(`{ "update" : { "_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(event.ID), "\n"))
+		serializedData, errMarshal := json.Marshal(event)
+		if errMarshal != nil {
+			return errMarshal
+		}
+
+		codeToExecute := `
+		if ('create' == ctx.op) {
+			ctx._source = params.event
+		} else {
+			if (ctx._source.containsKey('timestamp')) {
+				if (ctx._source.timestamp <= params.event.timestamp) {
+					ctx._source = params.event
+				}
+			} else {
+				ctx._source = params.event
+			}
+		}
+`
+		serializedDataStr := fmt.Sprintf(`{"scripted_upsert": true, "script": {`+
+			`"source": "%s",`+
+			`"lang": "painless",`+
+			`"params": { "event": %s }},`+
+			`"upsert": {}}`,
+			converters.FormatPainlessSource(codeToExecute), serializedData,
+		)
+
+		err := buffSlice.PutData(meta, []byte(serializedDataStr))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // SerializeLogs will serialize the provided logs in a way that Elasticsearch expects a bulk request
 func (*logsAndEventsProcessor) SerializeLogs(logs []*data.Logs, buffSlice *data.BufferSlice, index string) error {
 	for _, lg := range logs {

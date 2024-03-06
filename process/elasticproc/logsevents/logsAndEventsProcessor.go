@@ -1,6 +1,7 @@
 package logsevents
 
 import (
+	"encoding/hex"
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
@@ -24,6 +25,7 @@ type ArgsLogsAndEventsProcessor struct {
 
 type logsAndEventsProcessor struct {
 	hasher           hashing.Hasher
+	marshaller       marshal.Marshalizer
 	pubKeyConverter  core.PubkeyConverter
 	eventsProcessors []eventsProcessor
 
@@ -43,6 +45,7 @@ func NewLogsAndEventsProcessor(args ArgsLogsAndEventsProcessor) (*logsAndEventsP
 		pubKeyConverter:  args.PubKeyConverter,
 		eventsProcessors: eventsProcessors,
 		hasher:           args.Hasher,
+		marshaller:       args.Marshalizer,
 	}, nil
 }
 
@@ -187,25 +190,30 @@ func (lep *logsAndEventsProcessor) processEvent(logHashHexEncoded string, logAdd
 func (lep *logsAndEventsProcessor) PrepareLogsForDB(
 	logsAndEvents []*outport.LogData,
 	timestamp uint64,
-) []*data.Logs {
+) ([]*data.Logs, []*data.LogEvent) {
 	logs := make([]*data.Logs, 0, len(logsAndEvents))
+	events := make([]*data.LogEvent, 0)
 
 	for _, txLog := range logsAndEvents {
 		if txLog == nil {
 			continue
 		}
 
-		logs = append(logs, lep.prepareLogsForDB(txLog.TxHash, txLog.Log, timestamp))
+		dbLog, logEvents := lep.prepareLogsForDB(txLog.TxHash, txLog.Log, timestamp)
+
+		logs = append(logs, dbLog)
+		events = append(events, logEvents...)
+
 	}
 
-	return logs
+	return logs, events
 }
 
 func (lep *logsAndEventsProcessor) prepareLogsForDB(
 	logHashHex string,
 	eventLogs *transaction.Log,
 	timestamp uint64,
-) *data.Logs {
+) (*data.Logs, []*data.LogEvent) {
 	originalTxHash := ""
 	scr, ok := lep.logsData.scrsMap[logHashHex]
 	if ok {
@@ -221,22 +229,61 @@ func (lep *logsAndEventsProcessor) prepareLogsForDB(
 		Events:         make([]*data.Event, 0, len(eventLogs.Events)),
 	}
 
+	dbEvents := make([]*data.LogEvent, 0, len(eventLogs.Events))
 	for idx, event := range eventLogs.Events {
 		if check.IfNil(event) {
 			continue
 		}
 
-		encodedAddress := lep.pubKeyConverter.SilentEncode(event.GetAddress(), log)
+		eventAddress := lep.pubKeyConverter.SilentEncode(event.GetAddress(), log)
 
 		logsDB.Events = append(logsDB.Events, &data.Event{
-			Address:        encodedAddress,
+			Address:        eventAddress,
 			Identifier:     string(event.GetIdentifier()),
 			Topics:         event.GetTopics(),
 			Data:           event.GetData(),
 			AdditionalData: event.GetAdditionalData(),
 			Order:          idx,
 		})
+
+		dbEvent := &data.LogEvent{
+			TxHash:         logHashHex,
+			OriginalTxHash: originalTxHash,
+			LogAddress:     encodedAddr,
+			Address:        eventAddress,
+			Identifier:     string(event.GetIdentifier()),
+			Data:           hex.EncodeToString(event.Data),
+			AdditionalData: hexEncodeSlice(event.AdditionalData),
+			Topics:         hexEncodeSlice(event.Topics),
+			Order:          idx,
+			Timestamp:      time.Duration(timestamp),
+		}
+
+		eventHash, err := core.CalculateHash(lep.marshaller, lep.hasher, dbEvent)
+		if err != nil {
+			log.Warn("cannot compute hash of event",
+				"txHash", logHashHex,
+				"order", idx,
+				"error", err,
+			)
+			continue
+		}
+
+		dbEvent.ID = hex.EncodeToString(eventHash)
+		dbEvents = append(dbEvents, dbEvent)
 	}
 
-	return logsDB
+	return logsDB, dbEvents
+}
+
+func hexEncodeSlice(input [][]byte) []string {
+	hexEncoded := make([]string, 0, len(input))
+	for idx := 0; idx < len(input); idx++ {
+		hexEncoded = append(hexEncoded, hex.EncodeToString(input[idx]))
+	}
+	if len(hexEncoded) == 0 {
+		return nil
+	}
+
+	return hexEncoded
 }
