@@ -298,3 +298,84 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsNFTBurn(t *testing.T) {
 	require.Equal(t, "MY-NFT", tokensSupply[0].Token)
 	require.Equal(t, "MY-NFT-02", tokensSupply[0].Identifier)
 }
+
+func TestPrepareLogsAndEvents_LogEvents(t *testing.T) {
+	t.Parallel()
+
+	logsAndEvents := []*outport.LogData{
+		nil,
+		{
+			TxHash: hex.EncodeToString([]byte("txHash")),
+			Log: &transaction.Log{
+				Address: []byte("address"),
+				Events: []*transaction.Event{
+					{
+						Address:        []byte("addr"),
+						Identifier:     []byte(core.BuiltInFunctionESDTNFTTransfer),
+						Topics:         [][]byte{[]byte("my-token"), big.NewInt(0).SetUint64(1).Bytes(), []byte("receiver")},
+						AdditionalData: [][]byte{[]byte("something")},
+					},
+					{
+						Address:        []byte("addr"),
+						Identifier:     []byte(core.SCDeployIdentifier),
+						Topics:         [][]byte{[]byte("my-token"), big.NewInt(0).SetUint64(1).Bytes()},
+						Data:           []byte("here"),
+						AdditionalData: [][]byte{[]byte("something")},
+					},
+				},
+			},
+		},
+	}
+
+	args := createMockArgs()
+	proc, _ := NewLogsAndEventsProcessor(args)
+
+	_ = proc.ExtractDataFromLogs(nil, &data.PreparedResults{ScResults: []*data.ScResult{
+		{
+			Hash:           "747848617368",
+			OriginalTxHash: "originalHash",
+		},
+	}}, 1234, 0, 3)
+
+	_, eventsDB := proc.PrepareLogsForDB(logsAndEvents, 1234, 1)
+	require.Equal(t, []*data.LogEvent{
+		{
+			ID:             "d403e6fbf269b6dcce8322d9ac13970fd3b0c5e4f09f71c161645f806fc80324",
+			TxHash:         "747848617368",
+			OriginalTxHash: "originalHash",
+			LogAddress:     "61646472657373",
+			Address:        "61646472",
+			Identifier:     "ESDTNFTTransfer",
+			Data:           "",
+			AdditionalData: []string{"736f6d657468696e67"},
+			Topics:         []string{"6d792d746f6b656e", "01", "7265636569766572"},
+			Order:          0,
+			ShardID:        1,
+			Timestamp:      1234,
+		},
+		{
+			ID:             "cd4f37eff9d15471034bbaf0886fcf62fa00eecf59410be9bdd2be8d36bab42a",
+			TxHash:         "747848617368",
+			OriginalTxHash: "originalHash",
+			LogAddress:     "61646472657373",
+			Address:        "61646472",
+			Identifier:     "SCDeploy",
+			Data:           "68657265",
+			AdditionalData: []string{"736f6d657468696e67"},
+			Topics:         []string{"6d792d746f6b656e", "01"},
+			Order:          1,
+			ShardID:        1,
+			Timestamp:      1234,
+		},
+	}, eventsDB)
+}
+
+func TestHexEncodeSlice(t *testing.T) {
+	t.Parallel()
+
+	require.Equal(t, []string(nil), hexEncodeSlice(nil))
+	require.Equal(t, []string(nil), hexEncodeSlice([][]byte{}))
+	require.Equal(t, []string{"61", ""}, hexEncodeSlice([][]byte{[]byte("a"), nil}))
+	require.Equal(t, []string{""}, hexEncodeSlice([][]byte{big.NewInt(0).Bytes()}))
+	require.Equal(t, []string{"61", "62"}, hexEncodeSlice([][]byte{[]byte("a"), []byte("b")}))
+}

@@ -284,6 +284,10 @@ func (lep *logsAndEventsProcessor) prepareLogEvent(dbLog *data.Logs, event *data
 }
 
 func (lep *logsAndEventsProcessor) getOriginalTxHash(logHashHex string) string {
+	if lep.logsData.scrsMap == nil {
+		return ""
+	}
+
 	scr, ok := lep.logsData.scrsMap[logHashHex]
 	if ok {
 		return scr.OriginalTxHash
