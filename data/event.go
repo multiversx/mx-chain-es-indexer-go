@@ -10,7 +10,7 @@ type LogEvent struct {
 	LogAddress     string        `json:"logAddress"`
 	Address        string        `json:"address"`
 	Identifier     string        `json:"identifier"`
-	Data           string        `json:"data"`
+	Data           string        `json:"data,omitempty"`
 	AdditionalData []string      `json:"additionalData,omitempty"`
 	Topics         []string      `json:"topics"`
 	Order          int           `json:"order"`
