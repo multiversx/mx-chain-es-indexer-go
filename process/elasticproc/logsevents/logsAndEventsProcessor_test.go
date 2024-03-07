@@ -340,7 +340,7 @@ func TestPrepareLogsAndEvents_LogEvents(t *testing.T) {
 	_, eventsDB := proc.PrepareLogsForDB(logsAndEvents, 1234, 1)
 	require.Equal(t, []*data.LogEvent{
 		{
-			ID:             "d403e6fbf269b6dcce8322d9ac13970fd3b0c5e4f09f71c161645f806fc80324",
+			ID:             "df358a19d2ed48f29c7fdba5132da589176cc6bb698cd8ee084b4efd6e8a86b3",
 			TxHash:         "747848617368",
 			OriginalTxHash: "originalHash",
 			LogAddress:     "61646472657373",
