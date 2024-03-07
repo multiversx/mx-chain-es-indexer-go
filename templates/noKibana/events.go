@@ -26,6 +26,9 @@ var Events = Object{
 			"identifier": Object{
 				"type": "keyword",
 			},
+			"shardID": Object{
+				"type": "long",
+			},
 			"data": Object{
 				"index": "false",
 				"type":  "text",
