@@ -236,7 +236,7 @@ func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 		},
 	}}, 1234, 0, 3)
 
-	logsDB, eventsDB := proc.PrepareLogsForDB(logsAndEvents, 1234)
+	logsDB, eventsDB := proc.PrepareLogsForDB(logsAndEvents, 1234, 0)
 	require.Equal(t, &data.Logs{
 		ID:             "747848617368",
 		Address:        "61646472657373",
