@@ -346,7 +346,6 @@ func TestPrepareLogsAndEvents_LogEvents(t *testing.T) {
 			LogAddress:     "61646472657373",
 			Address:        "61646472",
 			Identifier:     "ESDTNFTTransfer",
-			Data:           "",
 			AdditionalData: []string{"736f6d657468696e67"},
 			Topics:         []string{"6d792d746f6b656e", "01", "7265636569766572"},
 			Order:          0,
