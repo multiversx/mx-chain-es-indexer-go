@@ -424,7 +424,7 @@ func (ei *elasticProcessor) SaveTransactions(obh *outport.OutportBlockWithHeader
 		return err
 	}
 
-	err = ei.prepareAndIndexLogs(obh.TransactionPool.Logs, headerTimestamp, buffers)
+	err = ei.prepareAndIndexLogs(obh.TransactionPool.Logs, headerTimestamp, buffers, obh.ShardID)
 	if err != nil {
 		return err
 	}
@@ -511,12 +511,12 @@ func (ei *elasticProcessor) indexTransactionsFeeData(txsHashFeeData map[string]*
 	return ei.transactionsProc.SerializeTransactionsFeeData(txsHashFeeData, buffSlice, elasticIndexer.OperationsIndex)
 }
 
-func (ei *elasticProcessor) prepareAndIndexLogs(logsAndEvents []*outport.LogData, timestamp uint64, buffSlice *data.BufferSlice) error {
+func (ei *elasticProcessor) prepareAndIndexLogs(logsAndEvents []*outport.LogData, timestamp uint64, buffSlice *data.BufferSlice, shardID uint32) error {
 	if !ei.isIndexEnabled(elasticIndexer.LogsIndex) {
 		return nil
 	}
 
-	logsDB, eventsDB := ei.logsAndEventsProc.PrepareLogsForDB(logsAndEvents, timestamp)
+	logsDB, eventsDB := ei.logsAndEventsProc.PrepareLogsForDB(logsAndEvents, timestamp, shardID)
 
 	err := ei.logsAndEventsProc.SerializeEvents(eventsDB, buffSlice, elasticIndexer.EventsIndex)
 	if err != nil {

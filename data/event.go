@@ -14,5 +14,6 @@ type LogEvent struct {
 	AdditionalData []string      `json:"additionalData,omitempty"`
 	Topics         []string      `json:"topics"`
 	Order          int           `json:"order"`
+	ShardID        uint32        `json:"shardID"`
 	Timestamp      time.Duration `json:"timestamp,omitempty"`
 }

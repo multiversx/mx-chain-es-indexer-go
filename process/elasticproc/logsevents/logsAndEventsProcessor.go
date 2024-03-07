@@ -190,6 +190,7 @@ func (lep *logsAndEventsProcessor) processEvent(logHashHexEncoded string, logAdd
 func (lep *logsAndEventsProcessor) PrepareLogsForDB(
 	logsAndEvents []*outport.LogData,
 	timestamp uint64,
+	shardID uint32,
 ) ([]*data.Logs, []*data.LogEvent) {
 	logs := make([]*data.Logs, 0, len(logsAndEvents))
 	events := make([]*data.LogEvent, 0)
@@ -199,7 +200,7 @@ func (lep *logsAndEventsProcessor) PrepareLogsForDB(
 			continue
 		}
 
-		dbLog, logEvents := lep.prepareLogsForDB(txLog.TxHash, txLog.Log, timestamp)
+		dbLog, logEvents := lep.prepareLogsForDB(txLog.TxHash, txLog.Log, timestamp, shardID)
 
 		logs = append(logs, dbLog)
 		events = append(events, logEvents...)
@@ -213,13 +214,9 @@ func (lep *logsAndEventsProcessor) prepareLogsForDB(
 	logHashHex string,
 	eventLogs *transaction.Log,
 	timestamp uint64,
+	shardID uint32,
 ) (*data.Logs, []*data.LogEvent) {
-	originalTxHash := ""
-	scr, ok := lep.logsData.scrsMap[logHashHex]
-	if ok {
-		originalTxHash = scr.OriginalTxHash
-	}
-
+	originalTxHash := lep.getOriginalTxHash(logHashHex)
 	encodedAddr := lep.pubKeyConverter.SilentEncode(eventLogs.GetAddress(), log)
 	logsDB := &data.Logs{
 		ID:             logHashHex,
@@ -235,45 +232,64 @@ func (lep *logsAndEventsProcessor) prepareLogsForDB(
 			continue
 		}
 
-		eventAddress := lep.pubKeyConverter.SilentEncode(event.GetAddress(), log)
-
-		logsDB.Events = append(logsDB.Events, &data.Event{
-			Address:        eventAddress,
+		ev := &data.Event{
+			Address:        lep.pubKeyConverter.SilentEncode(event.GetAddress(), log),
 			Identifier:     string(event.GetIdentifier()),
 			Topics:         event.GetTopics(),
 			Data:           event.GetData(),
 			AdditionalData: event.GetAdditionalData(),
 			Order:          idx,
-		})
-
-		dbEvent := &data.LogEvent{
-			TxHash:         logHashHex,
-			OriginalTxHash: originalTxHash,
-			LogAddress:     encodedAddr,
-			Address:        eventAddress,
-			Identifier:     string(event.GetIdentifier()),
-			Data:           hex.EncodeToString(event.Data),
-			AdditionalData: hexEncodeSlice(event.AdditionalData),
-			Topics:         hexEncodeSlice(event.Topics),
-			Order:          idx,
-			Timestamp:      time.Duration(timestamp),
 		}
+		logsDB.Events = append(logsDB.Events, ev)
 
-		eventHash, err := core.CalculateHash(lep.marshaller, lep.hasher, dbEvent)
-		if err != nil {
-			log.Warn("cannot compute hash of event",
-				"txHash", logHashHex,
-				"order", idx,
-				"error", err,
-			)
+		dbEvent, ok := lep.prepareLogEvent(logsDB, ev, shardID)
+		if !ok {
 			continue
 		}
 
-		dbEvent.ID = hex.EncodeToString(eventHash)
 		dbEvents = append(dbEvents, dbEvent)
 	}
 
 	return logsDB, dbEvents
+}
+
+func (lep *logsAndEventsProcessor) prepareLogEvent(dbLog *data.Logs, event *data.Event, shardID uint32) (*data.LogEvent, bool) {
+	dbEvent := &data.LogEvent{
+		TxHash:         dbLog.ID,
+		LogAddress:     dbLog.Address,
+		Address:        event.Address,
+		Identifier:     event.Identifier,
+		Data:           hex.EncodeToString(event.Data),
+		AdditionalData: hexEncodeSlice(event.AdditionalData),
+		Topics:         hexEncodeSlice(event.Topics),
+		Order:          event.Order,
+		ShardID:        shardID,
+	}
+
+	eventHash, err := core.CalculateHash(lep.marshaller, lep.hasher, dbEvent)
+	if err != nil {
+		log.Warn("cannot compute hash of event",
+			"txHash", dbLog.ID,
+			"order", event.Order,
+			"error", err,
+		)
+		return nil, false
+	}
+
+	dbEvent.OriginalTxHash = dbLog.OriginalTxHash
+	dbEvent.Timestamp = dbLog.Timestamp
+	dbEvent.ID = hex.EncodeToString(eventHash)
+
+	return dbEvent, true
+}
+
+func (lep *logsAndEventsProcessor) getOriginalTxHash(logHashHex string) string {
+	scr, ok := lep.logsData.scrsMap[logHashHex]
+	if ok {
+		return scr.OriginalTxHash
+	}
+
+	return ""
 }
 
 func hexEncodeSlice(input [][]byte) []string {

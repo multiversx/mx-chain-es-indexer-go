@@ -72,6 +72,7 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 	header = &dataBlock.Header{
 		Round:     50,
 		TimeStamp: 6040,
+		ShardID:   1,
 	}
 	pool = &outport.TransactionPool{
 		Logs: []*outport.LogData{
