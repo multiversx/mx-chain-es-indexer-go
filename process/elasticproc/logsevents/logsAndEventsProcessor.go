@@ -2,6 +2,7 @@ package logsevents
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
@@ -266,19 +267,18 @@ func (lep *logsAndEventsProcessor) prepareLogEvent(dbLog *data.Logs, event *data
 		ShardID:        shardID,
 	}
 
-	eventHash, err := core.CalculateHash(lep.marshaller, lep.hasher, dbEvent)
+	dbEventBytes, err := json.Marshal(dbEvent)
 	if err != nil {
-		log.Warn("cannot compute hash of event",
+		log.Warn("cannot marshal event",
 			"txHash", dbLog.ID,
 			"order", event.Order,
 			"error", err,
 		)
-		return nil, false
 	}
 
 	dbEvent.OriginalTxHash = dbLog.OriginalTxHash
 	dbEvent.Timestamp = dbLog.Timestamp
-	dbEvent.ID = hex.EncodeToString(eventHash)
+	dbEvent.ID = hex.EncodeToString(lep.hasher.Compute(string(dbEventBytes)))
 
 	return dbEvent, true
 }
