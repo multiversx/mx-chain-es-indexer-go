@@ -10,6 +10,7 @@ import (
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/tokeninfo"
 )
 
+// SerializeEvents will serialize the provided events in a way that Elasticsearch expects a bulk request
 func (*logsAndEventsProcessor) SerializeEvents(events []*data.LogEvent, buffSlice *data.BufferSlice, index string) error {
 	for _, event := range events {
 		meta := []byte(fmt.Sprintf(`{ "update" : { "_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(event.ID), "\n"))
