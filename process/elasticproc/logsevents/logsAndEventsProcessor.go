@@ -233,7 +233,7 @@ func (lep *logsAndEventsProcessor) prepareLogsForDB(
 			continue
 		}
 
-		ev := &data.Event{
+		logEvent := &data.Event{
 			Address:        lep.pubKeyConverter.SilentEncode(event.GetAddress(), log),
 			Identifier:     string(event.GetIdentifier()),
 			Topics:         event.GetTopics(),
@@ -241,9 +241,9 @@ func (lep *logsAndEventsProcessor) prepareLogsForDB(
 			AdditionalData: event.GetAdditionalData(),
 			Order:          idx,
 		}
-		logsDB.Events = append(logsDB.Events, ev)
+		logsDB.Events = append(logsDB.Events, logEvent)
 
-		dbEvent, ok := lep.prepareLogEvent(logsDB, ev, shardID)
+		dbEvent, ok := lep.prepareLogEvent(logsDB, logEvent, shardID)
 		if !ok {
 			continue
 		}

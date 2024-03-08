@@ -236,7 +236,7 @@ func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 		},
 	}}, 1234, 0, 3)
 
-	logsDB, eventsDB := proc.PrepareLogsForDB(logsAndEvents, 1234, 0)
+	logsDB, _ := proc.PrepareLogsForDB(logsAndEvents, 1234, 0)
 	require.Equal(t, &data.Logs{
 		ID:             "747848617368",
 		Address:        "61646472657373",
@@ -251,8 +251,6 @@ func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 			},
 		},
 	}, logsDB[0])
-
-	_ = eventsDB
 }
 
 func TestLogsAndEventsProcessor_ExtractDataFromLogsNFTBurn(t *testing.T) {
