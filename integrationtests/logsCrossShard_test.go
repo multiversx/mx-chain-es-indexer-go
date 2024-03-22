@@ -68,10 +68,20 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 		string(genericResponse.Docs[0].Source),
 	)
 
+	event1ID := "75dcc2d7542c8a8be1006dd2d0f8e847c00cea5e55b6b8a53e0a5483e73f4431"
+	ids = []string{event1ID}
+	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.EventsIndex, true, genericResponse)
+	require.Nil(t, err)
+	require.JSONEq(t,
+		readExpectedResult("./testdata/logsCrossShard/event-transfer-source-first.json"),
+		string(genericResponse.Docs[0].Source),
+	)
+
 	// INDEX ON DESTINATION
 	header = &dataBlock.Header{
 		Round:     50,
 		TimeStamp: 6040,
+		ShardID:   1,
 	}
 	pool = &outport.TransactionPool{
 		Logs: []*outport.LogData{
@@ -100,11 +110,25 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, map[string]*alteredAccount.AlteredAccount{}, testNumOfShards))
 	require.Nil(t, err)
 
+	ids = []string{logID}
 	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.LogsIndex, true, genericResponse)
 	require.Nil(t, err)
 	require.JSONEq(t,
 		readExpectedResult("./testdata/logsCrossShard/log-at-destination.json"),
 		string(genericResponse.Docs[0].Source),
+	)
+
+	event2ID, event3ID := "c7d0e7abaaf188655537da1ed642b151182aa64bbe3fed316198208bf089713a", "3a6f93093be7b045938a2a03e45a059af602331602f63a45e5aec3866d3df126"
+	ids = []string{event2ID, event3ID}
+	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.EventsIndex, true, genericResponse)
+	require.Nil(t, err)
+	require.JSONEq(t,
+		readExpectedResult("./testdata/logsCrossShard/event-transfer-destination.json"),
+		string(genericResponse.Docs[0].Source),
+	)
+	require.JSONEq(t,
+		readExpectedResult("./testdata/logsCrossShard/event-do-something.json"),
+		string(genericResponse.Docs[1].Source),
 	)
 
 	// index on source again should not change the log
@@ -133,6 +157,7 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, map[string]*alteredAccount.AlteredAccount{}, testNumOfShards))
 	require.Nil(t, err)
 
+	ids = []string{logID}
 	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.LogsIndex, true, genericResponse)
 	require.Nil(t, err)
 	require.JSONEq(t,
@@ -147,6 +172,7 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 		MiniBlockHeaders: []dataBlock.MiniBlockHeader{
 			{},
 		},
+		ShardID: 1,
 	}
 	body = &dataBlock.Body{
 		MiniBlocks: []*dataBlock.MiniBlock{
@@ -163,4 +189,11 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 	require.Nil(t, err)
 
 	require.False(t, genericResponse.Docs[0].Found)
+
+	ids = []string{event2ID, event3ID}
+	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.EventsIndex, true, genericResponse)
+	require.Nil(t, err)
+
+	require.False(t, genericResponse.Docs[0].Found)
+	require.False(t, genericResponse.Docs[1].Found)
 }
