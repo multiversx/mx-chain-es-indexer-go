@@ -151,7 +151,7 @@ func (tg *txsGrouper) prepareRewardTxForDB(
 		return nil, false
 	}
 
-	dbTx := tg.txBuilder.prepareRewardTransaction(rtx.Reward, txHash, mbHash, mb, header, mbStatus)
+	dbTx := tg.txBuilder.prepareRewardTransaction(rtx, txHash, mbHash, mb, header, mbStatus)
 
 	return dbTx, true
 }

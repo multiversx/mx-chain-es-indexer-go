@@ -8,6 +8,7 @@
     "01"
   ],
   "shardID": 0,
+  "txOrder": 0,
   "txHash": "63726f73732d6c6f67",
   "order": 0,
   "timestamp": 5040

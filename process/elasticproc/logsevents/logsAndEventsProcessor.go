@@ -243,7 +243,8 @@ func (lep *logsAndEventsProcessor) prepareLogsForDB(
 		}
 		logsDB.Events = append(logsDB.Events, logEvent)
 
-		dbEvent, ok := lep.prepareLogEvent(logsDB, logEvent, shardID)
+		executionOrder := lep.getExecutionOrder(logHashHex)
+		dbEvent, ok := lep.prepareLogEvent(logsDB, logEvent, shardID, executionOrder)
 		if !ok {
 			continue
 		}
@@ -254,7 +255,7 @@ func (lep *logsAndEventsProcessor) prepareLogsForDB(
 	return logsDB, dbEvents
 }
 
-func (lep *logsAndEventsProcessor) prepareLogEvent(dbLog *data.Logs, event *data.Event, shardID uint32) (*data.LogEvent, bool) {
+func (lep *logsAndEventsProcessor) prepareLogEvent(dbLog *data.Logs, event *data.Event, shardID uint32, execOrder int) (*data.LogEvent, bool) {
 	dbEvent := &data.LogEvent{
 		TxHash:         dbLog.ID,
 		LogAddress:     dbLog.Address,
@@ -276,6 +277,7 @@ func (lep *logsAndEventsProcessor) prepareLogEvent(dbLog *data.Logs, event *data
 		)
 	}
 
+	dbEvent.TxOrder = execOrder
 	dbEvent.OriginalTxHash = dbLog.OriginalTxHash
 	dbEvent.Timestamp = dbLog.Timestamp
 	dbEvent.ID = hex.EncodeToString(lep.hasher.Compute(string(dbEventBytes)))
@@ -294,6 +296,20 @@ func (lep *logsAndEventsProcessor) getOriginalTxHash(logHashHex string) string {
 	}
 
 	return ""
+}
+
+func (lep *logsAndEventsProcessor) getExecutionOrder(logHashHex string) int {
+	tx, ok := lep.logsData.txsMap[logHashHex]
+	if ok {
+		return tx.ExecutionOrder
+	}
+
+	scr, ok := lep.logsData.scrsMap[logHashHex]
+	if ok {
+		return scr.ExecutionOrder
+	}
+
+	return 0
 }
 
 func hexEncodeSlice(input [][]byte) []string {

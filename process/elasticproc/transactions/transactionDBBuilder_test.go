@@ -116,7 +116,10 @@ func TestGetTransactionByType_RewardTx(t *testing.T) {
 	header := &block.Header{Nonce: 2}
 	status := "Success"
 
-	resultTx := cp.prepareRewardTransaction(rwdTx, txHash, mbHash, mb, header, status)
+	rewardInfo := &outport.RewardInfo{
+		Reward: rwdTx,
+	}
+	resultTx := cp.prepareRewardTransaction(rewardInfo, txHash, mbHash, mb, header, status)
 	expectedTx := &data.Transaction{
 		Hash:      hex.EncodeToString(txHash),
 		MBHash:    hex.EncodeToString(mbHash),

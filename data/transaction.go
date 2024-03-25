@@ -5,8 +5,9 @@ import (
 )
 
 // Transaction is a structure containing all the fields that need
-//  to be saved for a transaction. It has all the default fields
-//  plus some extra information for ease of search and filter
+//
+//	to be saved for a transaction. It has all the default fields
+//	plus some extra information for ease of search and filter
 type Transaction struct {
 	MBHash               string        `json:"miniBlockHash"`
 	Nonce                uint64        `json:"nonce"`
@@ -48,6 +49,7 @@ type Transaction struct {
 	GuardianSignature    string        `json:"guardianSignature,omitempty"`
 	ErrorEvent           bool          `json:"errorEvent,omitempty"`
 	CompletedEvent       bool          `json:"completedEvent,omitempty"`
+	ExecutionOrder       int           `json:"-"`
 	SmartContractResults []*ScResult   `json:"-"`
 	Hash                 string        `json:"-"`
 	BlockHash            string        `json:"-"`

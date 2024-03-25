@@ -11,7 +11,6 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/receipt"
-	"github.com/multiversx/mx-chain-core-go/data/rewardTx"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
@@ -122,17 +121,19 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		Version:           tx.Version,
 		GuardianAddress:   guardianAddress,
 		GuardianSignature: hex.EncodeToString(tx.GuardianSignature),
+		ExecutionOrder:    int(txInfo.ExecutionOrder),
 	}
 }
 
 func (dtb *dbTransactionBuilder) prepareRewardTransaction(
-	rTx *rewardTx.RewardTx,
+	rTxInfo *outport.RewardInfo,
 	txHash []byte,
 	mbHash []byte,
 	mb *block.MiniBlock,
 	header coreData.HeaderHandler,
 	txStatus string,
 ) *data.Transaction {
+	rTx := rTxInfo.Reward
 	valueNum, err := dtb.balanceConverter.ConvertBigValueToFloat(rTx.Value)
 	if err != nil {
 		log.Warn("dbTransactionBuilder.prepareRewardTransaction cannot compute value as num", "value", rTx.Value,
@@ -142,23 +143,24 @@ func (dtb *dbTransactionBuilder) prepareRewardTransaction(
 	receiverAddr := dtb.addressPubkeyConverter.SilentEncode(rTx.RcvAddr, log)
 
 	return &data.Transaction{
-		Hash:          hex.EncodeToString(txHash),
-		MBHash:        hex.EncodeToString(mbHash),
-		Nonce:         0,
-		Round:         rTx.Round,
-		Value:         rTx.Value.String(),
-		ValueNum:      valueNum,
-		Receiver:      receiverAddr,
-		Sender:        fmt.Sprintf("%d", core.MetachainShardId),
-		ReceiverShard: mb.ReceiverShardID,
-		SenderShard:   mb.SenderShardID,
-		GasPrice:      0,
-		GasLimit:      0,
-		Data:          make([]byte, 0),
-		Signature:     "",
-		Timestamp:     time.Duration(header.GetTimeStamp()),
-		Status:        txStatus,
-		Operation:     rewardsOperation,
+		Hash:           hex.EncodeToString(txHash),
+		MBHash:         hex.EncodeToString(mbHash),
+		Nonce:          0,
+		Round:          rTx.Round,
+		Value:          rTx.Value.String(),
+		ValueNum:       valueNum,
+		Receiver:       receiverAddr,
+		Sender:         fmt.Sprintf("%d", core.MetachainShardId),
+		ReceiverShard:  mb.ReceiverShardID,
+		SenderShard:    mb.SenderShardID,
+		GasPrice:       0,
+		GasLimit:       0,
+		Data:           make([]byte, 0),
+		Signature:      "",
+		Timestamp:      time.Duration(header.GetTimeStamp()),
+		Status:         txStatus,
+		Operation:      rewardsOperation,
+		ExecutionOrder: int(rTxInfo.ExecutionOrder),
 	}
 }
 
