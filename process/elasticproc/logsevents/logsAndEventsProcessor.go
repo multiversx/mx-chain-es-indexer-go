@@ -266,7 +266,6 @@ func (lep *logsAndEventsProcessor) prepareLogEvent(dbLog *data.Logs, event *data
 		Topics:         hexEncodeSlice(event.Topics),
 		Order:          event.Order,
 		ShardID:        shardID,
-		TxOrder:        execOrder,
 	}
 
 	dbEventBytes, err := json.Marshal(dbEvent)
@@ -278,6 +277,7 @@ func (lep *logsAndEventsProcessor) prepareLogEvent(dbLog *data.Logs, event *data
 		)
 	}
 
+	dbEvent.TxOrder = execOrder
 	dbEvent.OriginalTxHash = dbLog.OriginalTxHash
 	dbEvent.Timestamp = dbLog.Timestamp
 	dbEvent.ID = hex.EncodeToString(lep.hasher.Compute(string(dbEventBytes)))
