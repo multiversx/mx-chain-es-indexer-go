@@ -42,6 +42,9 @@ var Events = Object{
 			"order": Object{
 				"type": "long",
 			},
+			"txOrder": Object{
+				"type": "long",
+			},
 			"timestamp": Object{
 				"type":   "date",
 				"format": "epoch_second",
