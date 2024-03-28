@@ -34,6 +34,7 @@ func createOutportBlockWithHeader(
 			TransactionPool: pool,
 			AlteredAccounts: coreAlteredAccounts,
 			NumberOfShards:  numOfShards,
+			ShardID:         header.GetShardID(),
 		},
 		Header: header,
 	}

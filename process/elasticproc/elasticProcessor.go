@@ -30,7 +30,7 @@ var (
 		elasticIndexer.TransactionsIndex, elasticIndexer.BlockIndex, elasticIndexer.MiniblocksIndex, elasticIndexer.RatingIndex, elasticIndexer.RoundsIndex, elasticIndexer.ValidatorsIndex,
 		elasticIndexer.AccountsIndex, elasticIndexer.AccountsHistoryIndex, elasticIndexer.ReceiptsIndex, elasticIndexer.ScResultsIndex, elasticIndexer.AccountsESDTHistoryIndex, elasticIndexer.AccountsESDTIndex,
 		elasticIndexer.EpochInfoIndex, elasticIndexer.SCDeploysIndex, elasticIndexer.TokensIndex, elasticIndexer.TagsIndex, elasticIndexer.LogsIndex, elasticIndexer.DelegatorsIndex, elasticIndexer.OperationsIndex,
-		elasticIndexer.ESDTsIndex, elasticIndexer.ValuesIndex,
+		elasticIndexer.ESDTsIndex, elasticIndexer.ValuesIndex, elasticIndexer.EventsIndex,
 	}
 )
 
@@ -328,6 +328,11 @@ func (ei *elasticProcessor) RemoveTransactions(header coreData.HeaderHandler, bo
 		return err
 	}
 
+	err = ei.removeFromIndexByTimestampAndShardID(header.GetTimeStamp(), header.GetShardID(), elasticIndexer.EventsIndex)
+	if err != nil {
+		return err
+	}
+
 	return ei.updateDelegatorsInCaseOfRevert(header, body)
 }
 
@@ -360,20 +365,21 @@ func (ei *elasticProcessor) removeIfHashesNotEmpty(index string, hashes []string
 
 // RemoveAccountsESDT will remove data from accountsesdt index and accountsesdthistory
 func (ei *elasticProcessor) RemoveAccountsESDT(headerTimestamp uint64, shardID uint32) error {
-	ctxWithValue := context.WithValue(context.Background(), request.ContextKey, request.ExtendTopicWithShardID(request.RemoveTopic, shardID))
-	query := fmt.Sprintf(`{"query": {"bool": {"must": [{"match": {"shardID": {"query": %d,"operator": "AND"}}},{"match": {"timestamp": {"query": "%d","operator": "AND"}}}]}}}`, shardID, headerTimestamp)
-	err := ei.elasticClient.DoQueryRemove(
-		ctxWithValue,
-		elasticIndexer.AccountsESDTIndex,
-		bytes.NewBuffer([]byte(query)),
-	)
+	err := ei.removeFromIndexByTimestampAndShardID(headerTimestamp, shardID, elasticIndexer.AccountsESDTIndex)
 	if err != nil {
 		return err
 	}
 
+	return ei.removeFromIndexByTimestampAndShardID(headerTimestamp, shardID, elasticIndexer.AccountsESDTHistoryIndex)
+}
+
+func (ei *elasticProcessor) removeFromIndexByTimestampAndShardID(headerTimestamp uint64, shardID uint32, index string) error {
+	ctxWithValue := context.WithValue(context.Background(), request.ContextKey, request.ExtendTopicWithShardID(request.RemoveTopic, shardID))
+	query := fmt.Sprintf(`{"query": {"bool": {"must": [{"match": {"shardID": {"query": %d,"operator": "AND"}}},{"match": {"timestamp": {"query": "%d","operator": "AND"}}}]}}}`, shardID, headerTimestamp)
+
 	return ei.elasticClient.DoQueryRemove(
 		ctxWithValue,
-		elasticIndexer.AccountsESDTHistoryIndex,
+		index,
 		bytes.NewBuffer([]byte(query)),
 	)
 }
@@ -424,7 +430,7 @@ func (ei *elasticProcessor) SaveTransactions(obh *outport.OutportBlockWithHeader
 		return err
 	}
 
-	err = ei.prepareAndIndexLogs(obh.TransactionPool.Logs, headerTimestamp, buffers)
+	err = ei.prepareAndIndexLogs(obh.TransactionPool.Logs, headerTimestamp, buffers, obh.ShardID)
 	if err != nil {
 		return err
 	}
@@ -511,12 +517,17 @@ func (ei *elasticProcessor) indexTransactionsFeeData(txsHashFeeData map[string]*
 	return ei.transactionsProc.SerializeTransactionsFeeData(txsHashFeeData, buffSlice, elasticIndexer.OperationsIndex)
 }
 
-func (ei *elasticProcessor) prepareAndIndexLogs(logsAndEvents []*outport.LogData, timestamp uint64, buffSlice *data.BufferSlice) error {
+func (ei *elasticProcessor) prepareAndIndexLogs(logsAndEvents []*outport.LogData, timestamp uint64, buffSlice *data.BufferSlice, shardID uint32) error {
 	if !ei.isIndexEnabled(elasticIndexer.LogsIndex) {
 		return nil
 	}
 
-	logsDB := ei.logsAndEventsProc.PrepareLogsForDB(logsAndEvents, timestamp)
+	logsDB, eventsDB := ei.logsAndEventsProc.PrepareLogsForDB(logsAndEvents, timestamp, shardID)
+
+	err := ei.logsAndEventsProc.SerializeEvents(eventsDB, buffSlice, elasticIndexer.EventsIndex)
+	if err != nil {
+		return err
+	}
 
 	return ei.logsAndEventsProc.SerializeLogs(logsDB, buffSlice, elasticIndexer.LogsIndex)
 }

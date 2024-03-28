@@ -36,8 +36,8 @@ func getAllSortTimestampASC(withSource bool, start, stop int) []byte {
 		"query": object{
 			"range": object{
 				"timestamp": object{
-					"gte": start,
-					"lte": stop,
+					"gte": fmt.Sprintf("%d", start),
+					"lte": fmt.Sprintf("%d", stop),
 				},
 			},
 		},
@@ -45,7 +45,7 @@ func getAllSortTimestampASC(withSource bool, start, stop int) []byte {
 		"sort": []interface{}{
 			object{
 				"timestamp": object{
-					"order": "asc",
+					"order": "desc",
 				},
 			},
 		},
