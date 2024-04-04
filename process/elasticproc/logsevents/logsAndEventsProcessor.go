@@ -2,7 +2,7 @@ package logsevents
 
 import (
 	"encoding/hex"
-	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
@@ -46,7 +46,6 @@ func NewLogsAndEventsProcessor(args ArgsLogsAndEventsProcessor) (*logsAndEventsP
 		pubKeyConverter:  args.PubKeyConverter,
 		eventsProcessors: eventsProcessors,
 		hasher:           args.Hasher,
-		marshaller:       args.Marshalizer,
 	}, nil
 }
 
@@ -244,18 +243,13 @@ func (lep *logsAndEventsProcessor) prepareLogsForDB(
 		logsDB.Events = append(logsDB.Events, logEvent)
 
 		executionOrder := lep.getExecutionOrder(logHashHex)
-		dbEvent, ok := lep.prepareLogEvent(logsDB, logEvent, shardID, executionOrder)
-		if !ok {
-			continue
-		}
-
-		dbEvents = append(dbEvents, dbEvent)
+		dbEvents = append(dbEvents, lep.prepareLogEvent(logsDB, logEvent, shardID, executionOrder))
 	}
 
 	return logsDB, dbEvents
 }
 
-func (lep *logsAndEventsProcessor) prepareLogEvent(dbLog *data.Logs, event *data.Event, shardID uint32, execOrder int) (*data.LogEvent, bool) {
+func (lep *logsAndEventsProcessor) prepareLogEvent(dbLog *data.Logs, event *data.Event, shardID uint32, execOrder int) *data.LogEvent {
 	dbEvent := &data.LogEvent{
 		TxHash:         dbLog.ID,
 		LogAddress:     dbLog.Address,
@@ -266,23 +260,13 @@ func (lep *logsAndEventsProcessor) prepareLogEvent(dbLog *data.Logs, event *data
 		Topics:         hexEncodeSlice(event.Topics),
 		Order:          event.Order,
 		ShardID:        shardID,
+		TxOrder:        execOrder,
+		OriginalTxHash: dbLog.OriginalTxHash,
+		Timestamp:      dbLog.Timestamp,
+		ID:             fmt.Sprintf("%s-%d-%d", dbLog.ID, shardID, event.Order),
 	}
 
-	dbEventBytes, err := json.Marshal(dbEvent)
-	if err != nil {
-		log.Warn("cannot marshal event",
-			"txHash", dbLog.ID,
-			"order", event.Order,
-			"error", err,
-		)
-	}
-
-	dbEvent.TxOrder = execOrder
-	dbEvent.OriginalTxHash = dbLog.OriginalTxHash
-	dbEvent.Timestamp = dbLog.Timestamp
-	dbEvent.ID = hex.EncodeToString(lep.hasher.Compute(string(dbEventBytes)))
-
-	return dbEvent, true
+	return dbEvent
 }
 
 func (lep *logsAndEventsProcessor) getOriginalTxHash(logHashHex string) string {
