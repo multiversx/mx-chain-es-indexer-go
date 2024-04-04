@@ -68,7 +68,7 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 		string(genericResponse.Docs[0].Source),
 	)
 
-	event1ID := "91a3aefb559162e4ef87b8f018540f884c104c9ff5fc8cf6d7482f5dd1ba74bf"
+	event1ID := logID + "-0-0"
 	ids = []string{event1ID}
 	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.EventsIndex, true, genericResponse)
 	require.Nil(t, err)
@@ -118,7 +118,7 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 		string(genericResponse.Docs[0].Source),
 	)
 
-	event2ID, event3ID := "8239abb1014728f1a8c3524994724d6ccf15c717109d59a7bf0fa72dcad880b7", "37d12045a3f872d81513a13417b41749c7cb4902887b3846bfa47b9013f59575"
+	event2ID, event3ID := logID+"-1-0", logID+"-1-1"
 	ids = []string{event2ID, event3ID}
 	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.EventsIndex, true, genericResponse)
 	require.Nil(t, err)
