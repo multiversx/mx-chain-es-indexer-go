@@ -293,7 +293,9 @@ func (lep *logsAndEventsProcessor) getExecutionOrder(logHashHex string) int {
 		return scr.ExecutionOrder
 	}
 
-	return 0
+	log.Warn("cannot find hash in the txs map or scrs map", "hash", logHashHex)
+
+	return -1
 }
 
 func hexEncodeSlice(input [][]byte) []string {
