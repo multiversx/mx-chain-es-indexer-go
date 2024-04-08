@@ -5,7 +5,6 @@ import (
 )
 
 // Transaction is a structure containing all the fields that need
-//
 // to be saved for a transaction. It has all the default fields
 // plus some extra information for ease of search and filter
 type Transaction struct {
