@@ -126,7 +126,9 @@ func (bp *blockProcessor) PrepareBlockForDB(obh *outport.OutportBlockWithHeader)
 	}
 
 	bp.addEpochStartInfoForMeta(obh.Header, elasticBlock)
-	putMiniblocksDetailsInBlock(obh.Header, elasticBlock, obh.TransactionPool, obh.BlockData.Body, obh.BlockData.IntraShardMiniBlocks)
+
+	appendBlockDetailsFromHeaders(elasticBlock, obh.Header, obh.BlockData.Body, obh.TransactionPool)
+	appendBlockDetailsFromIntraShardMbs(elasticBlock, obh.BlockData.IntraShardMiniBlocks, obh.TransactionPool, len(obh.Header.GetMiniBlockHeaderHandlers()))
 
 	return elasticBlock, nil
 }
@@ -245,10 +247,8 @@ func (bp *blockProcessor) getEncodedMBSHashes(body *block.Body, intraShardMbs []
 	return miniblocksHashes
 }
 
-func putMiniblocksDetailsInBlock(header coreData.HeaderHandler, block *data.Block, pool *outport.TransactionPool, body *block.Body, intraShardMbs []*block.MiniBlock) {
-	mbHeaders := header.GetMiniBlockHeaderHandlers()
-
-	for idx, mbHeader := range mbHeaders {
+func appendBlockDetailsFromHeaders(block *data.Block, header coreData.HeaderHandler, body *block.Body, pool *outport.TransactionPool) {
+	for idx, mbHeader := range header.GetMiniBlockHeaderHandlers() {
 		mbType := nodeBlock.Type(mbHeader.GetTypeInt32())
 		if mbType == nodeBlock.PeerBlock {
 			continue
@@ -267,7 +267,9 @@ func putMiniblocksDetailsInBlock(header coreData.HeaderHandler, block *data.Bloc
 			ExecutionOrderTxsIndices: extractExecutionOrderIndicesFromPool(mbHeader, txsHashes, pool),
 		})
 	}
+}
 
+func appendBlockDetailsFromIntraShardMbs(block *data.Block, intraShardMbs []*block.MiniBlock, pool *outport.TransactionPool, offset int) {
 	for idx, intraMB := range intraShardMbs {
 		if intraMB.Type == nodeBlock.PeerBlock {
 			continue
@@ -278,7 +280,7 @@ func putMiniblocksDetailsInBlock(header coreData.HeaderHandler, block *data.Bloc
 			IndexLastProcessedTx:     int32(len(intraMB.GetTxHashes()) - 1),
 			SenderShardID:            intraMB.GetSenderShardID(),
 			ReceiverShardID:          intraMB.GetReceiverShardID(),
-			MBIndex:                  idx + len(mbHeaders),
+			MBIndex:                  idx + offset,
 			Type:                     intraMB.Type.String(),
 			ProcessingType:           nodeBlock.Normal.String(),
 			TxsHashes:                hexEncodeSlice(intraMB.TxHashes),
