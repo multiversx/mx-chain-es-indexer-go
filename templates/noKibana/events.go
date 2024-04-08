@@ -6,7 +6,7 @@ var Events = Object{
 		"events-*",
 	},
 	"settings": Object{
-		"number_of_shards":   3,
+		"number_of_shards":   5,
 		"number_of_replicas": 0,
 	},
 	"mappings": Object{
@@ -40,6 +40,9 @@ var Events = Object{
 				"type": "text",
 			},
 			"order": Object{
+				"type": "long",
+			},
+			"txOrder": Object{
 				"type": "long",
 			},
 			"timestamp": Object{
