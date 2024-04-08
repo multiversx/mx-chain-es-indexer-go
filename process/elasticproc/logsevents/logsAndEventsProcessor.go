@@ -16,6 +16,8 @@ import (
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 )
 
+const eventIDFormat = "%s-%d-%d"
+
 // ArgsLogsAndEventsProcessor  holds all dependencies required to create new instances of logsAndEventsProcessor
 type ArgsLogsAndEventsProcessor struct {
 	PubKeyConverter  core.PubkeyConverter
@@ -263,7 +265,7 @@ func (lep *logsAndEventsProcessor) prepareLogEvent(dbLog *data.Logs, event *data
 		TxOrder:        execOrder,
 		OriginalTxHash: dbLog.OriginalTxHash,
 		Timestamp:      dbLog.Timestamp,
-		ID:             fmt.Sprintf("%s-%d-%d", dbLog.ID, shardID, event.Order),
+		ID:             fmt.Sprintf(eventIDFormat, dbLog.ID, shardID, event.Order),
 	}
 
 	return dbEvent
