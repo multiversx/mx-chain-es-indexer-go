@@ -518,18 +518,25 @@ func (ei *elasticProcessor) indexTransactionsFeeData(txsHashFeeData map[string]*
 }
 
 func (ei *elasticProcessor) prepareAndIndexLogs(logsAndEvents []*outport.LogData, timestamp uint64, buffSlice *data.BufferSlice, shardID uint32) error {
-	if !ei.isIndexEnabled(elasticIndexer.LogsIndex) {
-		return nil
-	}
-
 	logsDB, eventsDB := ei.logsAndEventsProc.PrepareLogsForDB(logsAndEvents, timestamp, shardID)
-
-	err := ei.logsAndEventsProc.SerializeEvents(eventsDB, buffSlice, elasticIndexer.EventsIndex)
+	err := ei.indexEvents(eventsDB, buffSlice)
 	if err != nil {
 		return err
 	}
 
+	if !ei.isIndexEnabled(elasticIndexer.LogsIndex) {
+		return nil
+	}
+
 	return ei.logsAndEventsProc.SerializeLogs(logsDB, buffSlice, elasticIndexer.LogsIndex)
+}
+
+func (ei *elasticProcessor) indexEvents(eventsDB []*data.LogEvent, buffSlice *data.BufferSlice) error {
+	if !ei.isIndexEnabled(elasticIndexer.EventsIndex) {
+		return nil
+	}
+
+	return ei.logsAndEventsProc.SerializeEvents(eventsDB, buffSlice, elasticIndexer.EventsIndex)
 }
 
 func (ei *elasticProcessor) indexScDeploys(deployData map[string]*data.ScDeployInfo, changeOwnerOperation map[string]*data.OwnerData, buffSlice *data.BufferSlice) error {

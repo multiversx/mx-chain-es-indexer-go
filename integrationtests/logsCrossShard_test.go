@@ -30,12 +30,20 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 		Round:     50,
 		TimeStamp: 5040,
 	}
-	body := &dataBlock.Body{}
+
+	txHash := []byte("cross-log")
+	logID := hex.EncodeToString(txHash)
+
+	body := &dataBlock.Body{
+		MiniBlocks: []*dataBlock.MiniBlock{
+			{
+				TxHashes: [][]byte{txHash},
+			},
+		},
+	}
 
 	address1 := "erd1ju8pkvg57cwdmjsjx58jlmnuf4l9yspstrhr9tgsrt98n9edpm2qtlgy99"
 	address2 := "erd1w7jyzuj6cv4ngw8luhlkakatjpmjh3ql95lmxphd3vssc4vpymks6k5th7"
-
-	logID := hex.EncodeToString([]byte("cross-log"))
 
 	// index on source
 	pool := &outport.TransactionPool{
@@ -55,6 +63,12 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 				},
 			},
 		},
+		Transactions: map[string]*outport.TxInfo{
+			logID: {
+				Transaction:    &transaction.Transaction{},
+				ExecutionOrder: 0,
+			},
+		},
 	}
 	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, map[string]*alteredAccount.AlteredAccount{}, testNumOfShards))
 	require.Nil(t, err)
@@ -68,7 +82,7 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 		string(genericResponse.Docs[0].Source),
 	)
 
-	event1ID := "75dcc2d7542c8a8be1006dd2d0f8e847c00cea5e55b6b8a53e0a5483e73f4431"
+	event1ID := logID + "-0-0"
 	ids = []string{event1ID}
 	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.EventsIndex, true, genericResponse)
 	require.Nil(t, err)
@@ -106,6 +120,12 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 				},
 			},
 		},
+		Transactions: map[string]*outport.TxInfo{
+			logID: {
+				Transaction:    &transaction.Transaction{},
+				ExecutionOrder: 0,
+			},
+		},
 	}
 	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, map[string]*alteredAccount.AlteredAccount{}, testNumOfShards))
 	require.Nil(t, err)
@@ -118,7 +138,7 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 		string(genericResponse.Docs[0].Source),
 	)
 
-	event2ID, event3ID := "c7d0e7abaaf188655537da1ed642b151182aa64bbe3fed316198208bf089713a", "3a6f93093be7b045938a2a03e45a059af602331602f63a45e5aec3866d3df126"
+	event2ID, event3ID := logID+"-1-0", logID+"-1-1"
 	ids = []string{event2ID, event3ID}
 	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.EventsIndex, true, genericResponse)
 	require.Nil(t, err)
@@ -151,6 +171,12 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 						nil,
 					},
 				},
+			},
+		},
+		Transactions: map[string]*outport.TxInfo{
+			logID: {
+				Transaction:    &transaction.Transaction{},
+				ExecutionOrder: 0,
 			},
 		},
 	}
