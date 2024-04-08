@@ -1,6 +1,8 @@
 package logsevents
 
 import (
+	"encoding/hex"
+	"fmt"
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
@@ -14,6 +16,8 @@ import (
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 )
 
+const eventIDFormat = "%s-%d-%d"
+
 // ArgsLogsAndEventsProcessor  holds all dependencies required to create new instances of logsAndEventsProcessor
 type ArgsLogsAndEventsProcessor struct {
 	PubKeyConverter  core.PubkeyConverter
@@ -24,6 +28,7 @@ type ArgsLogsAndEventsProcessor struct {
 
 type logsAndEventsProcessor struct {
 	hasher           hashing.Hasher
+	marshaller       marshal.Marshalizer
 	pubKeyConverter  core.PubkeyConverter
 	eventsProcessors []eventsProcessor
 
@@ -187,31 +192,33 @@ func (lep *logsAndEventsProcessor) processEvent(logHashHexEncoded string, logAdd
 func (lep *logsAndEventsProcessor) PrepareLogsForDB(
 	logsAndEvents []*outport.LogData,
 	timestamp uint64,
-) []*data.Logs {
+	shardID uint32,
+) ([]*data.Logs, []*data.LogEvent) {
 	logs := make([]*data.Logs, 0, len(logsAndEvents))
+	events := make([]*data.LogEvent, 0)
 
 	for _, txLog := range logsAndEvents {
 		if txLog == nil {
 			continue
 		}
 
-		logs = append(logs, lep.prepareLogsForDB(txLog.TxHash, txLog.Log, timestamp))
+		dbLog, logEvents := lep.prepareLogsForDB(txLog.TxHash, txLog.Log, timestamp, shardID)
+
+		logs = append(logs, dbLog)
+		events = append(events, logEvents...)
+
 	}
 
-	return logs
+	return logs, events
 }
 
 func (lep *logsAndEventsProcessor) prepareLogsForDB(
 	logHashHex string,
 	eventLogs *transaction.Log,
 	timestamp uint64,
-) *data.Logs {
-	originalTxHash := ""
-	scr, ok := lep.logsData.scrsMap[logHashHex]
-	if ok {
-		originalTxHash = scr.OriginalTxHash
-	}
-
+	shardID uint32,
+) (*data.Logs, []*data.LogEvent) {
+	originalTxHash := lep.getOriginalTxHash(logHashHex)
 	encodedAddr := lep.pubKeyConverter.SilentEncode(eventLogs.GetAddress(), log)
 	logsDB := &data.Logs{
 		ID:             logHashHex,
@@ -221,22 +228,86 @@ func (lep *logsAndEventsProcessor) prepareLogsForDB(
 		Events:         make([]*data.Event, 0, len(eventLogs.Events)),
 	}
 
+	dbEvents := make([]*data.LogEvent, 0, len(eventLogs.Events))
 	for idx, event := range eventLogs.Events {
 		if check.IfNil(event) {
 			continue
 		}
 
-		encodedAddress := lep.pubKeyConverter.SilentEncode(event.GetAddress(), log)
-
-		logsDB.Events = append(logsDB.Events, &data.Event{
-			Address:        encodedAddress,
+		logEvent := &data.Event{
+			Address:        lep.pubKeyConverter.SilentEncode(event.GetAddress(), log),
 			Identifier:     string(event.GetIdentifier()),
 			Topics:         event.GetTopics(),
 			Data:           event.GetData(),
 			AdditionalData: event.GetAdditionalData(),
 			Order:          idx,
-		})
+		}
+		logsDB.Events = append(logsDB.Events, logEvent)
+
+		executionOrder := lep.getExecutionOrder(logHashHex)
+		dbEvents = append(dbEvents, lep.prepareLogEvent(logsDB, logEvent, shardID, executionOrder))
 	}
 
-	return logsDB
+	return logsDB, dbEvents
+}
+
+func (lep *logsAndEventsProcessor) prepareLogEvent(dbLog *data.Logs, event *data.Event, shardID uint32, execOrder int) *data.LogEvent {
+	dbEvent := &data.LogEvent{
+		TxHash:         dbLog.ID,
+		LogAddress:     dbLog.Address,
+		Address:        event.Address,
+		Identifier:     event.Identifier,
+		Data:           hex.EncodeToString(event.Data),
+		AdditionalData: hexEncodeSlice(event.AdditionalData),
+		Topics:         hexEncodeSlice(event.Topics),
+		Order:          event.Order,
+		ShardID:        shardID,
+		TxOrder:        execOrder,
+		OriginalTxHash: dbLog.OriginalTxHash,
+		Timestamp:      dbLog.Timestamp,
+		ID:             fmt.Sprintf(eventIDFormat, dbLog.ID, shardID, event.Order),
+	}
+
+	return dbEvent
+}
+
+func (lep *logsAndEventsProcessor) getOriginalTxHash(logHashHex string) string {
+	if lep.logsData.scrsMap == nil {
+		return ""
+	}
+
+	scr, ok := lep.logsData.scrsMap[logHashHex]
+	if ok {
+		return scr.OriginalTxHash
+	}
+
+	return ""
+}
+
+func (lep *logsAndEventsProcessor) getExecutionOrder(logHashHex string) int {
+	tx, ok := lep.logsData.txsMap[logHashHex]
+	if ok {
+		return tx.ExecutionOrder
+	}
+
+	scr, ok := lep.logsData.scrsMap[logHashHex]
+	if ok {
+		return scr.ExecutionOrder
+	}
+
+	log.Warn("cannot find hash in the txs map or scrs map", "hash", logHashHex)
+
+	return -1
+}
+
+func hexEncodeSlice(input [][]byte) []string {
+	hexEncoded := make([]string, 0, len(input))
+	for idx := 0; idx < len(input); idx++ {
+		hexEncoded = append(hexEncoded, hex.EncodeToString(input[idx]))
+	}
+	if len(hexEncoded) == 0 {
+		return nil
+	}
+
+	return hexEncoded
 }

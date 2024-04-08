@@ -47,6 +47,8 @@ const (
 	ESDTsIndex = "esdts"
 	// ValuesIndex is the Elasticsearch index for extra indexer information
 	ValuesIndex = "values"
+	// EventsIndex is the Elasticsearch index for log events
+	EventsIndex = "events"
 
 	// TransactionsPolicy is the Elasticsearch policy for the transactions
 	TransactionsPolicy = "transactions_policy"
