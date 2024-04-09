@@ -153,8 +153,14 @@ func (ec *elasticClient) DoQueryRemove(ctx context.Context, index string, body *
 		log.Warn("elasticClient.doRefresh", "cannot do refresh", err)
 	}
 
+	writeIndex, err := ec.getWriteIndex(index)
+	if err != nil {
+		log.Warn("elasticClient.getWriteIndex", "cannot do get write index", err)
+		return err
+	}
+
 	res, err := ec.client.DeleteByQuery(
-		[]string{index},
+		[]string{writeIndex},
 		body,
 		ec.client.DeleteByQuery.WithIgnoreUnavailable(true),
 		ec.client.DeleteByQuery.WithConflicts(esConflictsPolicy),
@@ -321,6 +327,45 @@ func (ec *elasticClient) createAlias(alias string, index string) error {
 	}
 
 	return parseResponse(res, nil, elasticDefaultErrorResponseHandler)
+}
+
+func (ec *elasticClient) getWriteIndex(alias string) (string, error) {
+	res, err := ec.client.Indices.GetAlias(
+		ec.client.Indices.GetAlias.WithIndex(alias),
+	)
+	if err != nil {
+		return "", err
+	}
+
+	var indexData map[string]struct {
+		Aliases map[string]struct {
+			IsWriteIndex bool `json:"is_write_index"`
+		} `json:"aliases"`
+	}
+
+	err = parseResponse(res, &indexData, elasticDefaultErrorResponseHandler)
+	if err != nil {
+		return "", err
+	}
+
+	// Iterate over the map and find the write index
+	var writeIndex string
+	for index, details := range indexData {
+		if len(indexData) == 1 {
+			return index, nil
+		}
+
+		for _, indexAlias := range details.Aliases {
+			if indexAlias.IsWriteIndex {
+				writeIndex = index
+				break
+			}
+		}
+		if writeIndex != "" {
+			break
+		}
+	}
+	return writeIndex, nil
 }
 
 // UpdateByQuery will update all the documents that match the provided query from the provided index

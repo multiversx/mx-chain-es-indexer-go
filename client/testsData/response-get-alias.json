@@ -1,0 +1,30 @@
+{
+  "blocks-000003": {
+    "aliases": {
+      "blocks": {
+        "is_write_index": false
+      }
+    }
+  },
+  "blocks-000004": {
+    "aliases": {
+      "blocks": {
+        "is_write_index": true
+      }
+    }
+  },
+  "blocks-000002": {
+    "aliases": {
+      "blocks": {
+        "is_write_index": false
+      }
+    }
+  },
+  "blocks-000001": {
+    "aliases": {
+      "blocks": {
+        "is_write_index": false
+      }
+    }
+  }
+}
