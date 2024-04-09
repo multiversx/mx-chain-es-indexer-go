@@ -342,14 +342,11 @@ func (ec *elasticClient) getWriteIndex(alias string) (string, error) {
 			IsWriteIndex bool `json:"is_write_index"`
 		} `json:"aliases"`
 	}
-
 	err = parseResponse(res, &indexData, elasticDefaultErrorResponseHandler)
 	if err != nil {
 		return "", err
 	}
 
-	// Iterate over the map and find the write index
-	var writeIndex string
 	for index, details := range indexData {
 		if len(indexData) == 1 {
 			return index, nil
@@ -357,15 +354,12 @@ func (ec *elasticClient) getWriteIndex(alias string) (string, error) {
 
 		for _, indexAlias := range details.Aliases {
 			if indexAlias.IsWriteIndex {
-				writeIndex = index
-				break
+				return index, nil
 			}
 		}
-		if writeIndex != "" {
-			break
-		}
 	}
-	return writeIndex, nil
+
+	return alias, nil
 }
 
 // UpdateByQuery will update all the documents that match the provided query from the provided index
