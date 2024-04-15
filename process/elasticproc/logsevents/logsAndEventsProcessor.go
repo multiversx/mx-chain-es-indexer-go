@@ -117,6 +117,8 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 		}
 	}
 
+	dbLogs, dbEvents := lep.prepareLogsForDB(lgData, logsAndEvents, timestamp, shardID)
+
 	return &data.PreparedLogsResults{
 		Tokens:                  lgData.tokens,
 		ScDeploys:               lgData.scDeploys,
@@ -127,7 +129,8 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 		TokenRolesAndProperties: lgData.tokenRolesAndProperties,
 		TxHashStatusInfo:        lgData.txHashStatusInfoProc.getAllRecords(),
 		ChangeOwnerOperations:   lgData.changeOwnerOperations,
-		DBLogs:                  lep.prepareLogsForDB(lgData, logsAndEvents, timestamp),
+		DBLogs:                  dbLogs,
+		DBEvents:                dbEvents,
 	}
 }
 
@@ -200,11 +203,10 @@ func (lep *logsAndEventsProcessor) prepareLogsForDB(
 			continue
 		}
 
-		dbLog, logEvents := lep.prepareLogsForDB(txLog.TxHash, txLog.Log, timestamp, shardID)
+		dbLog, logEvents := lep.prepareLog(lgData, txLog.TxHash, txLog.Log, timestamp, shardID)
 
 		logs = append(logs, dbLog)
 		events = append(events, logEvents...)
-
 	}
 
 	return logs, events
@@ -215,8 +217,9 @@ func (lep *logsAndEventsProcessor) prepareLog(
 	logHashHex string,
 	eventLogs *transaction.Log,
 	timestamp uint64,
+	shardID uint32,
 ) (*data.Logs, []*data.LogEvent) {
-	originalTxHash := lep.getOriginalTxHash(logHashHex)
+	originalTxHash := lep.getOriginalTxHash(lgData, logHashHex)
 	encodedAddr := lep.pubKeyConverter.SilentEncode(eventLogs.GetAddress(), log)
 	logsDB := &data.Logs{
 		ID:             logHashHex,
@@ -242,7 +245,7 @@ func (lep *logsAndEventsProcessor) prepareLog(
 		}
 		logsDB.Events = append(logsDB.Events, logEvent)
 
-		executionOrder := lep.getExecutionOrder(logHashHex)
+		executionOrder := lep.getExecutionOrder(lgData, logHashHex)
 		dbEvents = append(dbEvents, lep.prepareLogEvent(logsDB, logEvent, shardID, executionOrder))
 	}
 
@@ -269,12 +272,12 @@ func (lep *logsAndEventsProcessor) prepareLogEvent(dbLog *data.Logs, event *data
 	return dbEvent
 }
 
-func (lep *logsAndEventsProcessor) getOriginalTxHash(logHashHex string) string {
-	if lep.logsData.scrsMap == nil {
+func (lep *logsAndEventsProcessor) getOriginalTxHash(lgData *logsData, logHashHex string) string {
+	if lgData.scrsMap == nil {
 		return ""
 	}
 
-	scr, ok := lep.logsData.scrsMap[logHashHex]
+	scr, ok := lgData.scrsMap[logHashHex]
 	if ok {
 		return scr.OriginalTxHash
 	}
@@ -282,13 +285,13 @@ func (lep *logsAndEventsProcessor) getOriginalTxHash(logHashHex string) string {
 	return ""
 }
 
-func (lep *logsAndEventsProcessor) getExecutionOrder(logHashHex string) int {
-	tx, ok := lep.logsData.txsMap[logHashHex]
+func (lep *logsAndEventsProcessor) getExecutionOrder(lgData *logsData, logHashHex string) int {
+	tx, ok := lgData.txsMap[logHashHex]
 	if ok {
 		return tx.ExecutionOrder
 	}
 
-	scr, ok := lep.logsData.scrsMap[logHashHex]
+	scr, ok := lgData.scrsMap[logHashHex]
 	if ok {
 		return scr.ExecutionOrder
 	}

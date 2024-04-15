@@ -38,4 +38,5 @@ type PreparedLogsResults struct {
 	NFTsDataUpdates         []*NFTDataUpdate
 	TokenRolesAndProperties *tokeninfo.TokenRolesAndProperties
 	DBLogs                  []*Logs
+	DBEvents                []*LogEvent
 }

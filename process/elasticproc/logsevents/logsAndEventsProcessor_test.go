@@ -236,7 +236,6 @@ func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 		},
 	}}, 1234, 0, 3)
 
-	logsDB, _ := proc.PrepareLogsForDB(logsAndEvents, 1234, 0)
 	require.Equal(t, &data.Logs{
 		ID:             "747848617368",
 		Address:        "61646472657373",
@@ -301,7 +300,6 @@ func TestPrepareLogsAndEvents_LogEvents(t *testing.T) {
 	t.Parallel()
 
 	logsAndEvents := []*outport.LogData{
-		nil,
 		{
 			TxHash: hex.EncodeToString([]byte("txHash")),
 			Log: &transaction.Log{
@@ -328,14 +326,13 @@ func TestPrepareLogsAndEvents_LogEvents(t *testing.T) {
 	args := createMockArgs()
 	proc, _ := NewLogsAndEventsProcessor(args)
 
-	_ = proc.ExtractDataFromLogs(nil, &data.PreparedResults{ScResults: []*data.ScResult{
+	results := proc.ExtractDataFromLogs(logsAndEvents, &data.PreparedResults{ScResults: []*data.ScResult{
 		{
 			Hash:           "747848617368",
 			OriginalTxHash: "originalHash",
 		},
-	}}, 1234, 0, 3)
+	}}, 1234, 1, 3)
 
-	_, eventsDB := proc.PrepareLogsForDB(logsAndEvents, 1234, 1)
 	require.Equal(t, []*data.LogEvent{
 		{
 			ID:             "747848617368-1-0",
@@ -366,7 +363,7 @@ func TestPrepareLogsAndEvents_LogEvents(t *testing.T) {
 			Timestamp:      1234,
 			TxOrder:        0,
 		},
-	}, eventsDB)
+	}, results.DBEvents)
 }
 
 func TestHexEncodeSlice(t *testing.T) {
