@@ -229,7 +229,7 @@ func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 	args := createMockArgs()
 	proc, _ := NewLogsAndEventsProcessor(args)
 
-	_ = proc.ExtractDataFromLogs(nil, &data.PreparedResults{ScResults: []*data.ScResult{
+	result := proc.ExtractDataFromLogs(logsAndEvents, &data.PreparedResults{ScResults: []*data.ScResult{
 		{
 			Hash:           "747848617368",
 			OriginalTxHash: "orignalHash",
@@ -250,7 +250,7 @@ func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 				AdditionalData: [][]byte{[]byte("something")},
 			},
 		},
-	}, logsDB[0])
+	}, result.DBLogs[0])
 }
 
 func TestLogsAndEventsProcessor_ExtractDataFromLogsNFTBurn(t *testing.T) {

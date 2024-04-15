@@ -31,8 +31,6 @@ type logsAndEventsProcessor struct {
 	marshaller       marshal.Marshalizer
 	pubKeyConverter  core.PubkeyConverter
 	eventsProcessors []eventsProcessor
-
-	logsData *logsData
 }
 
 // NewLogsAndEventsProcessor will create a new instance for the logsAndEventsProcessor
@@ -98,22 +96,21 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 	shardID uint32,
 	numOfShards uint32,
 ) *data.PreparedLogsResults {
-	lep.logsData = newLogsData(timestamp, preparedResults.Transactions, preparedResults.ScResults)
-
+	lgData := newLogsData(timestamp, preparedResults.Transactions, preparedResults.ScResults)
 	for _, txLog := range logsAndEvents {
 		if txLog == nil {
 			continue
 		}
 
 		events := txLog.Log.Events
-		lep.processEvents(txLog.TxHash, txLog.Log.Address, events, shardID, numOfShards)
+		lep.processEvents(lgData, txLog.TxHash, txLog.Log.Address, events, shardID, numOfShards)
 
-		tx, ok := lep.logsData.txsMap[txLog.TxHash]
+		tx, ok := lgData.txsMap[txLog.TxHash]
 		if ok {
 			tx.HasLogs = true
 			continue
 		}
-		scr, ok := lep.logsData.scrsMap[txLog.TxHash]
+		scr, ok := lgData.scrsMap[txLog.TxHash]
 		if ok {
 			scr.HasLogs = true
 			continue
@@ -121,62 +118,63 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 	}
 
 	return &data.PreparedLogsResults{
-		Tokens:                  lep.logsData.tokens,
-		ScDeploys:               lep.logsData.scDeploys,
-		TokensInfo:              lep.logsData.tokensInfo,
-		TokensSupply:            lep.logsData.tokensSupply,
-		Delegators:              lep.logsData.delegators,
-		NFTsDataUpdates:         lep.logsData.nftsDataUpdates,
-		TokenRolesAndProperties: lep.logsData.tokenRolesAndProperties,
-		TxHashStatusInfo:        lep.logsData.txHashStatusInfoProc.getAllRecords(),
-		ChangeOwnerOperations:   lep.logsData.changeOwnerOperations,
+		Tokens:                  lgData.tokens,
+		ScDeploys:               lgData.scDeploys,
+		TokensInfo:              lgData.tokensInfo,
+		TokensSupply:            lgData.tokensSupply,
+		Delegators:              lgData.delegators,
+		NFTsDataUpdates:         lgData.nftsDataUpdates,
+		TokenRolesAndProperties: lgData.tokenRolesAndProperties,
+		TxHashStatusInfo:        lgData.txHashStatusInfoProc.getAllRecords(),
+		ChangeOwnerOperations:   lgData.changeOwnerOperations,
+		DBLogs:                  lep.prepareLogsForDB(lgData, logsAndEvents, timestamp),
 	}
 }
 
-func (lep *logsAndEventsProcessor) processEvents(logHashHexEncoded string, logAddress []byte, events []*transaction.Event, shardID uint32, numOfShards uint32) {
+func (lep *logsAndEventsProcessor) processEvents(lgData *logsData, logHashHexEncoded string, logAddress []byte, events []*transaction.Event, shardID uint32, numOfShards uint32) {
 	for _, event := range events {
 		if check.IfNil(event) {
 			continue
 		}
 
-		lep.processEvent(logHashHexEncoded, logAddress, event, shardID, numOfShards)
+		lep.processEvent(lgData, logHashHexEncoded, logAddress, event, shardID, numOfShards)
 	}
 }
 
-func (lep *logsAndEventsProcessor) processEvent(logHashHexEncoded string, logAddress []byte, event coreData.EventHandler, shardID uint32, numOfShards uint32) {
+func (lep *logsAndEventsProcessor) processEvent(lgData *logsData, logHashHexEncoded string, logAddress []byte, event coreData.EventHandler, shardID uint32, numOfShards uint32) {
 	for _, proc := range lep.eventsProcessors {
 		res := proc.processEvent(&argsProcessEvent{
 			event:                   event,
 			txHashHexEncoded:        logHashHexEncoded,
 			logAddress:              logAddress,
-			tokens:                  lep.logsData.tokens,
-			tokensSupply:            lep.logsData.tokensSupply,
-			timestamp:               lep.logsData.timestamp,
-			scDeploys:               lep.logsData.scDeploys,
-			txs:                     lep.logsData.txsMap,
-			scrs:                    lep.logsData.scrsMap,
-			tokenRolesAndProperties: lep.logsData.tokenRolesAndProperties,
-			txHashStatusInfoProc:    lep.logsData.txHashStatusInfoProc,
-			changeOwnerOperations:   lep.logsData.changeOwnerOperations,
+			tokens:                  lgData.tokens,
+			tokensSupply:            lgData.tokensSupply,
+			timestamp:               lgData.timestamp,
+			scDeploys:               lgData.scDeploys,
+			txs:                     lgData.txsMap,
+			scrs:                    lgData.scrsMap,
+			tokenRolesAndProperties: lgData.tokenRolesAndProperties,
+			txHashStatusInfoProc:    lgData.txHashStatusInfoProc,
+			changeOwnerOperations:   lgData.changeOwnerOperations,
 			selfShardID:             shardID,
 			numOfShards:             numOfShards,
 		})
 		if res.tokenInfo != nil {
-			lep.logsData.tokensInfo = append(lep.logsData.tokensInfo, res.tokenInfo)
+			lgData.tokensInfo = append(lgData.tokensInfo, res.tokenInfo)
 		}
 		if res.delegator != nil {
-			lep.logsData.delegators[res.delegator.Address+res.delegator.Contract] = res.delegator
+			lgData.delegators[res.delegator.Address+res.delegator.Contract] = res.delegator
 		}
 		if res.updatePropNFT != nil {
-			lep.logsData.nftsDataUpdates = append(lep.logsData.nftsDataUpdates, res.updatePropNFT)
+			lgData.nftsDataUpdates = append(lgData.nftsDataUpdates, res.updatePropNFT)
 		}
 
-		tx, ok := lep.logsData.txsMap[logHashHexEncoded]
+		tx, ok := lgData.txsMap[logHashHexEncoded]
 		if ok {
 			tx.HasOperations = true
 			continue
 		}
-		scr, ok := lep.logsData.scrsMap[logHashHexEncoded]
+		scr, ok := lgData.scrsMap[logHashHexEncoded]
 		if ok {
 			scr.HasOperations = true
 			continue
@@ -188,8 +186,8 @@ func (lep *logsAndEventsProcessor) processEvent(logHashHexEncoded string, logAdd
 	}
 }
 
-// PrepareLogsForDB will prepare logs for database
-func (lep *logsAndEventsProcessor) PrepareLogsForDB(
+func (lep *logsAndEventsProcessor) prepareLogsForDB(
+	lgData *logsData,
 	logsAndEvents []*outport.LogData,
 	timestamp uint64,
 	shardID uint32,
@@ -212,11 +210,11 @@ func (lep *logsAndEventsProcessor) PrepareLogsForDB(
 	return logs, events
 }
 
-func (lep *logsAndEventsProcessor) prepareLogsForDB(
+func (lep *logsAndEventsProcessor) prepareLog(
+	lgData *logsData,
 	logHashHex string,
 	eventLogs *transaction.Log,
 	timestamp uint64,
-	shardID uint32,
 ) (*data.Logs, []*data.LogEvent) {
 	originalTxHash := lep.getOriginalTxHash(logHashHex)
 	encodedAddr := lep.pubKeyConverter.SilentEncode(eventLogs.GetAddress(), log)
