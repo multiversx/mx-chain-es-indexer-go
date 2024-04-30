@@ -47,3 +47,8 @@ func (e *eventsMigration) DoMigration(migration config.Migration) error {
 
 	return e.eventsProc.SplitLogIndexInEvents(migration.Name, migration.SourceIndex, migration.DestinationIndex)
 }
+
+// IsInterfaceNil returns true if there is no value under the interface
+func (e *eventsMigration) IsInterfaceNil() bool {
+	return e == nil
+}

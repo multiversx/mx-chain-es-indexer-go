@@ -4,8 +4,10 @@ import "github.com/multiversx/mx-chain-es-indexer-go/config"
 
 type MigrationHandler interface {
 	DoMigration(migrationInfo config.Migration) error
+	IsInterfaceNil() bool
 }
 
 type MigrationProcessor interface {
-	StartMigrations(migrationNames []string) error
+	StartMigrations() error
+	AddMigrationHandler(handler MigrationHandler, migrationInfo config.Migration) error
 }
