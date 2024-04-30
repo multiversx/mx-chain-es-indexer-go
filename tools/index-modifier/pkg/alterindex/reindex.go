@@ -55,7 +55,7 @@ func CreateIndexModifier(scrollClientAddress, bulkClientAddress string) (*indexM
 	}, nil
 }
 
-// AlterIndex will alter provided index based on the modifier function
+// AlterIndex will split provided index based on the modifier function
 func (im *indexModifier) AlterIndex(indexRead, indexWrite string, modifier func(responseBytes []byte) ([]*bytes.Buffer, error)) error {
 	count := 0
 	handlerFunc := func(responseBytes []byte) error {

@@ -39,6 +39,7 @@ delete() {
   echo
 }
 
+curl -XDELETE http://localhost:9200/values
 
 IMAGE_OPEN_SEARCH=open-container
 DEFAULT_OPEN_SEARCH_VERSION=1.2.4

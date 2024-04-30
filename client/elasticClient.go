@@ -146,6 +146,26 @@ func (ec *elasticClient) DoMultiGet(ctx context.Context, ids []string, index str
 	return nil
 }
 
+func (ec *elasticClient) DoSearchRequest(ctx context.Context, index string, buff *bytes.Buffer, resBody interface{}) error {
+	res, err := ec.client.Search(
+		ec.client.Search.WithContext(ctx),
+		ec.client.Search.WithIndex(index),
+		ec.client.Search.WithBody(buff),
+	)
+	if err != nil {
+		return err
+	}
+
+	err = parseResponse(res, &resBody, elasticDefaultErrorResponseHandler)
+	if err != nil {
+		log.Warn("elasticClient.DoSearchRequest",
+			"error parsing response", err.Error())
+		return err
+	}
+
+	return nil
+}
+
 // DoQueryRemove will do a query remove to elasticsearch server
 func (ec *elasticClient) DoQueryRemove(ctx context.Context, index string, body *bytes.Buffer) error {
 	err := ec.doRefresh(index)
