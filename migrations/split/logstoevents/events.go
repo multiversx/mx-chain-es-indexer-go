@@ -6,11 +6,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-core-go/core/pubkeyConverter"
 	"github.com/multiversx/mx-chain-core-go/core/sharding"
-	"github.com/multiversx/mx-chain-es-indexer-go/client"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/migrations/dtos"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
@@ -20,11 +17,6 @@ import (
 
 var log = logger.GetOrCreate("split-logs")
 
-type ArgsEventsProc struct {
-	SourceCluster      dtos.ClusterSettings
-	DestinationCluster dtos.ClusterSettings
-}
-
 type eventsProcessor struct {
 	sourceESClient      EsClient
 	destinationESClient EsClient
@@ -33,28 +25,10 @@ type eventsProcessor struct {
 	addressConverter core.PubkeyConverter
 }
 
-func NewEventsProcessor(args ArgsEventsProc) (*eventsProcessor, error) {
-	sourceClient, err := client.NewElasticClient(elasticsearch.Config{
-		Addresses: []string{args.SourceCluster.URL},
-		Username:  args.SourceCluster.User,
-		Password:  args.SourceCluster.Password,
-	})
-	if err != nil {
-		return nil, err
-	}
-	destinationClient, err := client.NewElasticClient(elasticsearch.Config{
-		Addresses: []string{args.DestinationCluster.URL},
-		Username:  args.DestinationCluster.User,
-		Password:  args.DestinationCluster.Password,
-	})
-
-	pubKeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(32, "erd")
-	if err != nil {
-		return nil, err
-	}
+func NewEventsProcessor(sourceESClient, destinationESClient EsClient, pubKeyConverter core.PubkeyConverter) (*eventsProcessor, error) {
 	return &eventsProcessor{
-		sourceESClient:      sourceClient,
-		destinationESClient: destinationClient,
+		sourceESClient:      sourceESClient,
+		destinationESClient: destinationESClient,
 		addressConverter:    pubKeyConverter,
 	}, nil
 }
@@ -63,6 +37,10 @@ func (ep *eventsProcessor) SplitLogIndexInEvents(migrationID, sourceIndex, desti
 	migrationInfo, err := ep.checkStatusOfSplit(migrationID)
 	if err != nil {
 		return err
+	}
+
+	if migrationInfo.Status != "" {
+		log.Info("migration", migrationID, "is already started", "status", migrationInfo.Status)
 	}
 
 	lastTimestamp := migrationInfo.Timestamp
@@ -85,6 +63,8 @@ func (ep *eventsProcessor) SplitLogIndexInEvents(migrationID, sourceIndex, desti
 		log.Info("indexing events", "bulk-count", ep.count, "current-timestamp", lastTimestamp)
 
 	}
+
+	log.Info("migration done", "name", migrationID)
 
 	return nil
 }
