@@ -1,0 +1,16 @@
+# source cluster can be the same cluster in like the one configurated in prefs.toml
+[source-cluster]
+    url = "localhost:9200"
+    user = ""
+    password = ""
+
+[[migrations]]
+    start = false
+    name = "split_logs_in_events"
+    description = """
+                     This migration will split the logs index in a new index events.
+                     This migration will take few days and will increase the size of the Elasticsearch cluster.
+                     DON'T START this migration if the events index already is populated with documents.
+                  """
+    source-index = "logs"
+    destination-index = "events"

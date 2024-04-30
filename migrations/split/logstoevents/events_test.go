@@ -1,4 +1,4 @@
-package split
+package logstoevents
 
 import (
 	"github.com/multiversx/mx-chain-es-indexer-go/migrations/dtos"

@@ -1,4 +1,4 @@
-package split
+package logstoevents
 
 import (
 	"encoding/json"
