@@ -73,7 +73,7 @@ func (bp *blockProcessor) PrepareBlockForDB(obh *outport.OutportBlockWithHeader)
 	}
 
 	sizeTxs := computeSizeOfTransactions(obh.TransactionPool)
-	miniblocksHashes := bp.getEncodedMBSHashes(obh.BlockData.Body)
+	miniblocksHashes := bp.getEncodedMBSHashes(obh.BlockData.Body, obh.BlockData.IntraShardMiniBlocks)
 	leaderIndex := bp.getLeaderIndex(obh.SignersIndexes)
 
 	numTxs, notarizedTxs := getTxsCount(obh.Header)
@@ -126,7 +126,9 @@ func (bp *blockProcessor) PrepareBlockForDB(obh *outport.OutportBlockWithHeader)
 	}
 
 	bp.addEpochStartInfoForMeta(obh.Header, elasticBlock)
-	putMiniblocksDetailsInBlock(obh.Header, elasticBlock, obh.TransactionPool, obh.BlockData.Body)
+
+	appendBlockDetailsFromHeaders(elasticBlock, obh.Header, obh.BlockData.Body, obh.TransactionPool)
+	appendBlockDetailsFromIntraShardMbs(elasticBlock, obh.BlockData.IntraShardMiniBlocks, obh.TransactionPool, len(obh.Header.GetMiniBlockHeaderHandlers()))
 
 	return elasticBlock, nil
 }
@@ -227,9 +229,10 @@ func (bp *blockProcessor) addEpochStartShardDataForMeta(epochStartShardData node
 	block.EpochStartShardsData = append(block.EpochStartShardsData, shardData)
 }
 
-func (bp *blockProcessor) getEncodedMBSHashes(body *block.Body) []string {
+func (bp *blockProcessor) getEncodedMBSHashes(body *block.Body, intraShardMbs []*nodeBlock.MiniBlock) []string {
 	miniblocksHashes := make([]string, 0)
-	for _, miniblock := range body.MiniBlocks {
+	mbs := append(body.MiniBlocks, intraShardMbs...)
+	for _, miniblock := range mbs {
 		mbHash, errComputeHash := core.CalculateHash(bp.marshalizer, bp.hasher, miniblock)
 		if errComputeHash != nil {
 			log.Warn("internal error computing hash", "error", errComputeHash)
@@ -244,10 +247,8 @@ func (bp *blockProcessor) getEncodedMBSHashes(body *block.Body) []string {
 	return miniblocksHashes
 }
 
-func putMiniblocksDetailsInBlock(header coreData.HeaderHandler, block *data.Block, pool *outport.TransactionPool, body *block.Body) {
-	mbHeaders := header.GetMiniBlockHeaderHandlers()
-
-	for idx, mbHeader := range mbHeaders {
+func appendBlockDetailsFromHeaders(block *data.Block, header coreData.HeaderHandler, body *block.Body, pool *outport.TransactionPool) {
+	for idx, mbHeader := range header.GetMiniBlockHeaderHandlers() {
 		mbType := nodeBlock.Type(mbHeader.GetTypeInt32())
 		if mbType == nodeBlock.PeerBlock {
 			continue
@@ -266,6 +267,42 @@ func putMiniblocksDetailsInBlock(header coreData.HeaderHandler, block *data.Bloc
 			ExecutionOrderTxsIndices: extractExecutionOrderIndicesFromPool(mbHeader, txsHashes, pool),
 		})
 	}
+}
+
+func appendBlockDetailsFromIntraShardMbs(block *data.Block, intraShardMbs []*block.MiniBlock, pool *outport.TransactionPool, offset int) {
+	for idx, intraMB := range intraShardMbs {
+		if intraMB.Type == nodeBlock.PeerBlock || intraMB.Type == nodeBlock.ReceiptBlock {
+			continue
+		}
+
+		block.MiniBlocksDetails = append(block.MiniBlocksDetails, &data.MiniBlocksDetails{
+			IndexFirstProcessedTx:    0,
+			IndexLastProcessedTx:     int32(len(intraMB.GetTxHashes()) - 1),
+			SenderShardID:            intraMB.GetSenderShardID(),
+			ReceiverShardID:          intraMB.GetReceiverShardID(),
+			MBIndex:                  idx + offset,
+			Type:                     intraMB.Type.String(),
+			ProcessingType:           nodeBlock.Normal.String(),
+			TxsHashes:                hexEncodeSlice(intraMB.TxHashes),
+			ExecutionOrderTxsIndices: extractExecutionOrderIntraShardMBUnsigned(intraMB, pool),
+		})
+	}
+}
+
+func extractExecutionOrderIntraShardMBUnsigned(mb *block.MiniBlock, pool *outport.TransactionPool) []int {
+	executionOrderTxsIndices := make([]int, len(mb.TxHashes))
+	for idx, txHash := range mb.TxHashes {
+		executionOrder, found := getExecutionOrderForTx(txHash, int32(mb.Type), pool)
+		if !found {
+			log.Warn("blockProcessor.extractExecutionOrderIntraShardMBUnsigned cannot find tx in pool", "txHash", hex.EncodeToString(txHash))
+			executionOrderTxsIndices[idx] = notFound
+			continue
+		}
+
+		executionOrderTxsIndices[idx] = int(executionOrder)
+	}
+
+	return executionOrderTxsIndices
 }
 
 func extractExecutionOrderIndicesFromPool(mbHeader coreData.MiniBlockHeaderHandler, txsHashes [][]byte, pool *outport.TransactionPool) []int {

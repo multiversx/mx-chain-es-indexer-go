@@ -2,7 +2,7 @@ package client
 
 import (
 	"context"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -53,7 +53,7 @@ func TestElasticClient_DoMultiGet(t *testing.T) {
 		jsonFile, err := os.Open("./testsData/response-multi-get.json")
 		require.Nil(t, err)
 
-		byteValue, _ := ioutil.ReadAll(jsonFile)
+		byteValue, _ := io.ReadAll(jsonFile)
 		_, _ = w.Write(byteValue)
 	}
 
@@ -74,4 +74,52 @@ func TestElasticClient_DoMultiGet(t *testing.T) {
 
 	_, ok := resMap["docs"]
 	require.True(t, ok)
+}
+
+func TestElasticClient_GetWriteIndexMultipleIndicesBehind(t *testing.T) {
+	handler := http.NotFound
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		handler(w, r)
+	}))
+	defer ts.Close()
+
+	handler = func(w http.ResponseWriter, r *http.Request) {
+		jsonFile, err := os.Open("./testsData/response-get-alias.json")
+		require.Nil(t, err)
+
+		byteValue, _ := io.ReadAll(jsonFile)
+		_, _ = w.Write(byteValue)
+	}
+
+	esClient, _ := NewElasticClient(elasticsearch.Config{
+		Addresses: []string{ts.URL},
+		Logger:    &logging.CustomLogger{},
+	})
+	res, err := esClient.getWriteIndex("blocks")
+	require.Nil(t, err)
+	require.Equal(t, "blocks-000004", res)
+}
+
+func TestElasticClient_GetWriteIndexOneIndex(t *testing.T) {
+	handler := http.NotFound
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		handler(w, r)
+	}))
+	defer ts.Close()
+
+	handler = func(w http.ResponseWriter, r *http.Request) {
+		jsonFile, err := os.Open("./testsData/response-get-alias-only-one-index.json")
+		require.Nil(t, err)
+
+		byteValue, _ := io.ReadAll(jsonFile)
+		_, _ = w.Write(byteValue)
+	}
+
+	esClient, _ := NewElasticClient(elasticsearch.Config{
+		Addresses: []string{ts.URL},
+		Logger:    &logging.CustomLogger{},
+	})
+	res, err := esClient.getWriteIndex("delegators")
+	require.Nil(t, err)
+	require.Equal(t, "delegators-000001", res)
 }

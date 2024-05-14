@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"sync"
 
@@ -29,11 +30,11 @@ var (
 		elasticIndexer.TransactionsIndex, elasticIndexer.BlockIndex, elasticIndexer.MiniblocksIndex, elasticIndexer.RatingIndex, elasticIndexer.RoundsIndex, elasticIndexer.ValidatorsIndex,
 		elasticIndexer.AccountsIndex, elasticIndexer.AccountsHistoryIndex, elasticIndexer.ReceiptsIndex, elasticIndexer.ScResultsIndex, elasticIndexer.AccountsESDTHistoryIndex, elasticIndexer.AccountsESDTIndex,
 		elasticIndexer.EpochInfoIndex, elasticIndexer.SCDeploysIndex, elasticIndexer.TokensIndex, elasticIndexer.TagsIndex, elasticIndexer.LogsIndex, elasticIndexer.DelegatorsIndex, elasticIndexer.OperationsIndex,
-		elasticIndexer.ESDTsIndex,
+		elasticIndexer.ESDTsIndex, elasticIndexer.ValuesIndex, elasticIndexer.EventsIndex,
 	}
 )
 
-type objectsMap = map[string]interface{}
+const versionStr = "indexer-version"
 
 // ArgElasticProcessor holds all dependencies required by the elasticProcessor in order to create
 // new instances
@@ -53,6 +54,7 @@ type ArgElasticProcessor struct {
 	DBClient           DatabaseClientHandler
 	LogsAndEventsProc  DBLogsAndEventsHandler
 	OperationsProc     OperationsHandler
+	Version            string
 }
 
 type elasticProcessor struct {
@@ -97,7 +99,9 @@ func NewElasticProcessor(arguments *ArgElasticProcessor) (*elasticProcessor, err
 		return nil, err
 	}
 
-	return ei, nil
+	err = ei.indexVersion(arguments.Version)
+
+	return ei, err
 }
 
 // TODO move all the index create part in a new component
@@ -132,6 +136,32 @@ func (ei *elasticProcessor) init(useKibana bool, indexTemplates, _ map[string]*b
 	}
 
 	return nil
+}
+
+func (ei *elasticProcessor) indexVersion(version string) error {
+	if version == "" {
+		log.Debug("ei.elasticProcessor indexer version is empty")
+		return nil
+	}
+
+	keyValueObj := &data.KeyValueObj{
+		Key:   versionStr,
+		Value: version,
+	}
+
+	meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s", "_id" : "%s" } }%s`, elasticIndexer.ValuesIndex, versionStr, "\n"))
+	keyValueObjBytes, err := json.Marshal(keyValueObj)
+	if err != nil {
+		return err
+	}
+
+	buffSlice := data.NewBufferSlice(0)
+	err = buffSlice.PutData(meta, keyValueObjBytes)
+	if err != nil {
+		return err
+	}
+
+	return ei.elasticClient.DoBulkRequest(context.Background(), buffSlice.Buffers()[0], "")
 }
 
 // nolint
@@ -298,6 +328,11 @@ func (ei *elasticProcessor) RemoveTransactions(header coreData.HeaderHandler, bo
 		return err
 	}
 
+	err = ei.removeFromIndexByTimestampAndShardID(header.GetTimeStamp(), header.GetShardID(), elasticIndexer.EventsIndex)
+	if err != nil {
+		return err
+	}
+
 	return ei.updateDelegatorsInCaseOfRevert(header, body)
 }
 
@@ -330,20 +365,21 @@ func (ei *elasticProcessor) removeIfHashesNotEmpty(index string, hashes []string
 
 // RemoveAccountsESDT will remove data from accountsesdt index and accountsesdthistory
 func (ei *elasticProcessor) RemoveAccountsESDT(headerTimestamp uint64, shardID uint32) error {
-	ctxWithValue := context.WithValue(context.Background(), request.ContextKey, request.ExtendTopicWithShardID(request.RemoveTopic, shardID))
-	query := fmt.Sprintf(`{"query": {"bool": {"must": [{"match": {"shardID": {"query": %d,"operator": "AND"}}},{"match": {"timestamp": {"query": "%d","operator": "AND"}}}]}}}`, shardID, headerTimestamp)
-	err := ei.elasticClient.DoQueryRemove(
-		ctxWithValue,
-		elasticIndexer.AccountsESDTIndex,
-		bytes.NewBuffer([]byte(query)),
-	)
+	err := ei.removeFromIndexByTimestampAndShardID(headerTimestamp, shardID, elasticIndexer.AccountsESDTIndex)
 	if err != nil {
 		return err
 	}
 
+	return ei.removeFromIndexByTimestampAndShardID(headerTimestamp, shardID, elasticIndexer.AccountsESDTHistoryIndex)
+}
+
+func (ei *elasticProcessor) removeFromIndexByTimestampAndShardID(headerTimestamp uint64, shardID uint32, index string) error {
+	ctxWithValue := context.WithValue(context.Background(), request.ContextKey, request.ExtendTopicWithShardID(request.RemoveTopic, shardID))
+	query := fmt.Sprintf(`{"query": {"bool": {"must": [{"match": {"shardID": {"query": %d,"operator": "AND"}}},{"match": {"timestamp": {"query": "%d","operator": "AND"}}}]}}}`, shardID, headerTimestamp)
+
 	return ei.elasticClient.DoQueryRemove(
 		ctxWithValue,
-		elasticIndexer.AccountsESDTHistoryIndex,
+		index,
 		bytes.NewBuffer([]byte(query)),
 	)
 }
@@ -394,7 +430,12 @@ func (ei *elasticProcessor) SaveTransactions(obh *outport.OutportBlockWithHeader
 		return err
 	}
 
-	err = ei.prepareAndIndexLogs(obh.TransactionPool.Logs, headerTimestamp, buffers)
+	err = ei.indexLogs(logsData.DBLogs, buffers)
+	if err != nil {
+		return err
+	}
+
+	err = ei.indexEvents(logsData.DBEvents, buffers)
 	if err != nil {
 		return err
 	}
@@ -481,14 +522,20 @@ func (ei *elasticProcessor) indexTransactionsFeeData(txsHashFeeData map[string]*
 	return ei.transactionsProc.SerializeTransactionsFeeData(txsHashFeeData, buffSlice, elasticIndexer.OperationsIndex)
 }
 
-func (ei *elasticProcessor) prepareAndIndexLogs(logsAndEvents []*outport.LogData, timestamp uint64, buffSlice *data.BufferSlice) error {
+func (ei *elasticProcessor) indexLogs(logsDB []*data.Logs, buffSlice *data.BufferSlice) error {
 	if !ei.isIndexEnabled(elasticIndexer.LogsIndex) {
 		return nil
 	}
 
-	logsDB := ei.logsAndEventsProc.PrepareLogsForDB(logsAndEvents, timestamp)
-
 	return ei.logsAndEventsProc.SerializeLogs(logsDB, buffSlice, elasticIndexer.LogsIndex)
+}
+
+func (ei *elasticProcessor) indexEvents(eventsDB []*data.LogEvent, buffSlice *data.BufferSlice) error {
+	if !ei.isIndexEnabled(elasticIndexer.EventsIndex) {
+		return nil
+	}
+
+	return ei.logsAndEventsProc.SerializeEvents(eventsDB, buffSlice, elasticIndexer.EventsIndex)
 }
 
 func (ei *elasticProcessor) indexScDeploys(deployData map[string]*data.ScDeployInfo, changeOwnerOperation map[string]*data.OwnerData, buffSlice *data.BufferSlice) error {
