@@ -28,7 +28,6 @@ type ArgsLogsAndEventsProcessor struct {
 
 type logsAndEventsProcessor struct {
 	hasher           hashing.Hasher
-	marshaller       marshal.Marshalizer
 	pubKeyConverter  core.PubkeyConverter
 	eventsProcessors []eventsProcessor
 }
