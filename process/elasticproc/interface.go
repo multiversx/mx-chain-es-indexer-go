@@ -99,6 +99,7 @@ type DBLogsAndEventsHandler interface {
 		numOfShards uint32,
 	) *data.PreparedLogsResults
 
+	SerializeEvents(events []*data.LogEvent, buffSlice *data.BufferSlice, index string) error
 	SerializeLogs(logs []*data.Logs, buffSlice *data.BufferSlice, index string) error
 	SerializeSCDeploys(deploysInfo map[string]*data.ScDeployInfo, buffSlice *data.BufferSlice, index string) error
 	SerializeChangeOwnerOperations(changeOwnerOperations map[string]*data.OwnerData, buffSlice *data.BufferSlice, index string) error
