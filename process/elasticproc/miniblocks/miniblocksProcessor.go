@@ -101,6 +101,7 @@ func (mp *miniblocksProcessor) prepareMiniblockForDB(
 
 	processingType, _ := mp.computeProcessingTypeAndConstructionState(mbIndex, header)
 	dbMiniblock.ProcessingTypeOnDestination = processingType
+	dbMiniblock.ReceiverBlockNonce = header.GetNonce()
 	dbMiniblock.ReceiverBlockHash = encodedHeaderHash
 
 	return dbMiniblock, nil
@@ -114,7 +115,7 @@ func (mp *miniblocksProcessor) setFieldsMBIntraShardAndCrossFromMe(
 	isIntraShard bool,
 ) {
 	processingType, constructionState := mp.computeProcessingTypeAndConstructionState(mbIndex, header)
-
+	dbMiniblock.SenderBlockNonce = header.GetNonce()
 	dbMiniblock.ProcessingTypeOnSource = processingType
 	switch {
 	case constructionState == int32(block.Final) && processingType == block.Normal.String():
@@ -122,6 +123,7 @@ func (mp *miniblocksProcessor) setFieldsMBIntraShardAndCrossFromMe(
 		dbMiniblock.ProcessingTypeOnSource = processingType
 		if isIntraShard {
 			dbMiniblock.ReceiverBlockHash = headerHash
+			dbMiniblock.ReceiverBlockNonce = header.GetNonce()
 			dbMiniblock.ProcessingTypeOnDestination = processingType
 		}
 	case constructionState == int32(block.Proposed) && processingType == block.Scheduled.String():
@@ -129,6 +131,7 @@ func (mp *miniblocksProcessor) setFieldsMBIntraShardAndCrossFromMe(
 		dbMiniblock.ProcessingTypeOnSource = processingType
 	case constructionState == int32(block.Final) && processingType == block.Processed.String():
 		dbMiniblock.ReceiverBlockHash = headerHash
+		dbMiniblock.ReceiverBlockNonce = header.GetNonce()
 		dbMiniblock.ProcessingTypeOnDestination = processingType
 	}
 }

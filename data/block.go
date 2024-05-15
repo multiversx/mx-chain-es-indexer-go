@@ -102,6 +102,8 @@ type Miniblock struct {
 	Hash                        string        `json:"hash,omitempty"`
 	SenderShardID               uint32        `json:"senderShard"`
 	ReceiverShardID             uint32        `json:"receiverShard"`
+	SenderBlockNonce            uint64        `json:"senderBlockNonce,omitempty"`
+	ReceiverBlockNonce          uint64        `json:"receiverBlockNonce,omitempty"`
 	SenderBlockHash             string        `json:"senderBlockHash,omitempty"`
 	ReceiverBlockHash           string        `json:"receiverBlockHash,omitempty"`
 	Type                        string        `json:"type"`

@@ -82,6 +82,7 @@ func TestMiniblocksProcessor_PrepareScheduledMB(t *testing.T) {
 	mbhrBytes, _ := marshalizer.Marshal(mbhr)
 
 	header := &dataBlock.Header{
+		Nonce: 100,
 		MiniBlockHeaders: []dataBlock.MiniBlockHeader{
 			{
 				Reserved: []byte{0},
@@ -114,11 +115,13 @@ func TestMiniblocksProcessor_PrepareScheduledMB(t *testing.T) {
 		Hash:                        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 		SenderShardID:               0,
 		ReceiverShardID:             0,
-		SenderBlockHash:             "84b80cbf612d067201b5260b4c6f90fa7b5c11e898fa9c1c65f4c75e61e41619",
-		ReceiverBlockHash:           "84b80cbf612d067201b5260b4c6f90fa7b5c11e898fa9c1c65f4c75e61e41619",
+		SenderBlockHash:             "3e8098a9a58ec272b1a400d155b04d9e9488539ff93b1f746b410c3e07e1c6a4",
+		ReceiverBlockHash:           "3e8098a9a58ec272b1a400d155b04d9e9488539ff93b1f746b410c3e07e1c6a4",
 		ProcessingTypeOnSource:      dataBlock.Normal.String(),
 		ProcessingTypeOnDestination: dataBlock.Normal.String(),
 		Type:                        dataBlock.TxBlock.String(),
+		SenderBlockNonce:            100,
+		ReceiverBlockNonce:          100,
 	}, miniblocks[2])
 }
 
