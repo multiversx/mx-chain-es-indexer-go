@@ -25,12 +25,12 @@ var (
 	pubKeyConverter, _ = pubkeyConverter.NewBech32PubkeyConverter(32, addressPrefix)
 )
 
-//nolint
+// nolint
 func setLogLevelDebug() {
 	_ = logger.SetLogLevel("process:DEBUG")
 }
 
-//nolint
+// nolint
 func createESClient(url string) (elasticproc.DatabaseClientHandler, error) {
 	return client.NewElasticClient(elasticsearch.Config{
 		Addresses: []string{url},
@@ -38,7 +38,7 @@ func createESClient(url string) (elasticproc.DatabaseClientHandler, error) {
 	})
 }
 
-//nolint
+// nolint
 func decodeAddress(address string) []byte {
 	decoded, err := pubKeyConverter.Decode(address)
 	log.LogIfError(err, "address", address)
@@ -57,15 +57,15 @@ func CreateElasticProcessor(
 		ValidatorPubkeyConverter: mock.NewPubkeyConverterMock(32),
 		DBClient:                 esClient,
 		EnabledIndexes: []string{dataindexer.TransactionsIndex, dataindexer.LogsIndex, dataindexer.AccountsESDTIndex, dataindexer.ScResultsIndex,
-			dataindexer.ReceiptsIndex, dataindexer.BlockIndex, dataindexer.AccountsIndex, dataindexer.TokensIndex, dataindexer.TagsIndex,
-			dataindexer.OperationsIndex, dataindexer.DelegatorsIndex, dataindexer.ESDTsIndex, dataindexer.SCDeploysIndex, dataindexer.MiniblocksIndex},
+			dataindexer.ReceiptsIndex, dataindexer.BlockIndex, dataindexer.AccountsIndex, dataindexer.TokensIndex, dataindexer.TagsIndex, dataindexer.EventsIndex,
+			dataindexer.OperationsIndex, dataindexer.DelegatorsIndex, dataindexer.ESDTsIndex, dataindexer.SCDeploysIndex, dataindexer.MiniblocksIndex, dataindexer.ValuesIndex},
 		Denomination: 18,
 	}
 
 	return factory.CreateElasticProcessor(args)
 }
 
-//nolint
+// nolint
 func readExpectedResult(path string) string {
 	jsonFile, _ := os.Open(path)
 	byteValue, _ := ioutil.ReadAll(jsonFile)
@@ -73,7 +73,7 @@ func readExpectedResult(path string) string {
 	return string(byteValue)
 }
 
-//nolint
+// nolint
 func getElementFromSlice(path string, index int) string {
 	fileBytes := readExpectedResult(path)
 	slice := make([]map[string]interface{}, 0)
@@ -83,7 +83,7 @@ func getElementFromSlice(path string, index int) string {
 	return string(res)
 }
 
-//nolint
+// nolint
 func getIndexMappings(index string) (string, error) {
 	u, _ := url.Parse(esURL)
 	u.Path = path.Join(u.Path, index, "_mappings")

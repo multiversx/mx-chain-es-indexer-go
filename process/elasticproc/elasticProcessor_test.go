@@ -463,10 +463,18 @@ func TestElasticProcessor_RemoveTransactions(t *testing.T) {
 	dbWriter := &mock.DatabaseWriterStub{
 		DoQueryRemoveCalled: func(index string, body *bytes.Buffer) error {
 			bodyStr := body.String()
-			require.Contains(t, []string{dataindexer.TransactionsIndex, dataindexer.OperationsIndex, dataindexer.LogsIndex}, index)
-			require.True(t, strings.Contains(bodyStr, expectedHashes[0]))
-			require.True(t, strings.Contains(bodyStr, expectedHashes[1]))
-			called = true
+			require.Contains(t, []string{dataindexer.TransactionsIndex, dataindexer.OperationsIndex, dataindexer.LogsIndex, dataindexer.EventsIndex}, index)
+			if index != dataindexer.EventsIndex {
+				require.True(t, strings.Contains(bodyStr, expectedHashes[0]))
+				require.True(t, strings.Contains(bodyStr, expectedHashes[1]))
+				called = true
+			} else {
+				require.Equal(t,
+					`{"query": {"bool": {"must": [{"match": {"shardID": {"query": 4294967295,"operator": "AND"}}},{"match": {"timestamp": {"query": "0","operator": "AND"}}}]}}}`,
+					body.String(),
+				)
+			}
+
 			return nil
 		},
 	}
