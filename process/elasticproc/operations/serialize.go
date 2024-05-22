@@ -1,8 +1,9 @@
 package operations
 
 import (
-	"encoding/json"
 	"fmt"
+
+	"github.com/goccy/go-json"
 
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"

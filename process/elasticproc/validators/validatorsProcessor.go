@@ -2,8 +2,9 @@ package validators
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
+
+	"github.com/goccy/go-json"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"

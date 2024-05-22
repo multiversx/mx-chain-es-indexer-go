@@ -1,6 +1,8 @@
 package data
 
-import "bytes"
+import (
+	"bytes"
+)
 
 // DefaultMaxBulkSize is the constant for the maximum size of one bulk request that is sent to the Elasticsearch database
 const DefaultMaxBulkSize = 4194304 // 4MB
@@ -20,6 +22,18 @@ func NewBufferSlice(bulkSizeThreshold int) *BufferSlice {
 
 	return &BufferSlice{
 		buffSlice:         make([]*bytes.Buffer, 0),
+		bulkSizeThreshold: bulkSizeThreshold,
+		idx:               0,
+	}
+}
+
+func NewBufferSliceWithCapacity(bulkSizeThreshold int, capacity int) *BufferSlice {
+	if bulkSizeThreshold == 0 {
+		bulkSizeThreshold = DefaultMaxBulkSize
+	}
+
+	return &BufferSlice{
+		buffSlice:         make([]*bytes.Buffer, 0, capacity),
 		bulkSizeThreshold: bulkSizeThreshold,
 		idx:               0,
 	}

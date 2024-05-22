@@ -1,8 +1,9 @@
 package block
 
 import (
-	"encoding/json"
 	"fmt"
+
+	"github.com/goccy/go-json"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	coreData "github.com/multiversx/mx-chain-core-go/data"

@@ -60,9 +60,7 @@ func (tg *txsGrouper) groupNormalTxs(
 			continue
 		}
 
-		if tg.shouldIndex(mb.ReceiverShardID, isImportDB, selfShardID) {
-			transactions[string(txHash)] = dbTx
-		}
+		transactions[string(txHash)] = dbTx
 	}
 
 	return transactions, nil

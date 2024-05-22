@@ -1,9 +1,10 @@
 package transactions
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
+
+	"github.com/goccy/go-json"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
@@ -152,32 +153,12 @@ func prepareSerializedDataForATransaction(
 	selfShardID uint32,
 	index string,
 ) ([]byte, []byte, error) {
-	metaData := []byte(fmt.Sprintf(`{"update":{ "_index":"%s", "_id":"%s"}}%s`, index, converters.JsonEscape(tx.Hash), "\n"))
 	marshaledTx, err := json.Marshal(tx)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	if isCrossShardOnSourceShard(tx, selfShardID) {
-		// if transaction is cross-shard and current shard ID is source, use upsert without updating anything
-		serializedData :=
-			[]byte(fmt.Sprintf(`{"script":{"source":"return"},"upsert":%s}`,
-				string(marshaledTx)))
-
-		return metaData, serializedData, nil
-	}
-
-	if isNFTTransferOrMultiTransfer(tx) {
-		serializedData, errPrep := prepareNFTESDTTransferOrMultiESDTTransfer(marshaledTx)
-		if errPrep != nil {
-			return nil, nil, err
-		}
-
-		return metaData, serializedData, nil
-	}
-
-	// transaction is intra-shard, invalid or cross-shard destination me
-	meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(tx.Hash), "\n"))
+	meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s", "_id" : "%s" } }%s`, index, tx.Hash, "\n"))
 
 	return meta, marshaledTx, nil
 }

@@ -1,8 +1,9 @@
 package miniblocks
 
 import (
-	"encoding/json"
 	"fmt"
+
+	"github.com/goccy/go-json"
 
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"

@@ -5,8 +5,6 @@ import (
 	"math"
 	"math/big"
 
-	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	indexer "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 )
 
@@ -55,44 +53,45 @@ func (bc *balanceConverter) ConvertBigValueToFloat(balance *big.Int) (float64, e
 func (bc *balanceConverter) ComputeSliceOfStringsAsFloat(values []string) ([]float64, error) {
 	floatValues := make([]float64, 0, len(values))
 
-	for _, value := range values {
-		valueBig, ok := big.NewInt(0).SetString(value, 10)
-		if !ok {
-			return nil, errCastStringToBigInt
-		}
+	// for _, value := range values {
+	// 	valueBig, ok := big.NewInt(0).SetString(value, 10)
+	// 	if !ok {
+	// 		return nil, errCastStringToBigInt
+	// 	}
 
-		valueNum, err := bc.ConvertBigValueToFloat(valueBig)
-		if err != nil {
-			return nil, err
-		}
+	// 	valueNum, err := bc.ConvertBigValueToFloat(valueBig)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
 
-		floatValues = append(floatValues, valueNum)
-	}
+	// 	floatValues = append(floatValues, valueNum)
+	// }
 
 	return floatValues, nil
 }
 
 func (bc *balanceConverter) computeBalanceAsFloat(balance *big.Int, balancePrecision float64) (float64, error) {
-	if balance == nil || balance.Cmp(zero) == 0 {
-		return 0, nil
-	}
-	if len(balance.Bytes()) > data.MaxESDTValueLength {
-		return 0, errValueTooBig
-	}
+	return 0, nil
+	// if balance == nil || balance.Cmp(zero) == 0 {
+	// 	return 0, nil
+	// }
+	// if len(balance.Bytes()) > data.MaxESDTValueLength {
+	// 	return 0, errValueTooBig
+	// }
 
-	balanceBigFloat := big.NewFloat(0).SetInt(balance)
-	balanceFloat64, _ := balanceBigFloat.Float64()
+	// balanceBigFloat := big.NewFloat(0).SetInt(balance)
+	// balanceFloat64, _ := balanceBigFloat.Float64()
 
-	bal := balanceFloat64 / bc.dividerForDenomination
+	// bal := balanceFloat64 / bc.dividerForDenomination
 
-	balanceFloatWithDecimals := math.Round(bal*balancePrecision) / balancePrecision
+	// balanceFloatWithDecimals := math.Round(bal*balancePrecision) / balancePrecision
 
-	value := core.MaxFloat64(balanceFloatWithDecimals, 0)
-	if math.IsInf(value, +1) || math.IsInf(value, -1) {
-		return 0, errValueTooBig
-	}
+	// value := core.MaxFloat64(balanceFloatWithDecimals, 0)
+	// if math.IsInf(value, +1) || math.IsInf(value, -1) {
+	// 	return 0, errValueTooBig
+	// }
 
-	return value, nil
+	// return value, nil
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

@@ -2,9 +2,10 @@ package statistics
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"time"
+
+	"github.com/goccy/go-json"
 
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"

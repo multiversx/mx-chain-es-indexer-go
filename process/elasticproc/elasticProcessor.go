@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"context"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"sync"
+
+	"github.com/goccy/go-json"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
@@ -16,9 +17,9 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-es-indexer-go/core/request"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
+	"github.com/multiversx/mx-chain-es-indexer-go/demo"
 	elasticIndexer "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
-	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/tags"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/tokeninfo"
 	logger "github.com/multiversx/mx-chain-logger-go"
 )
@@ -409,7 +410,7 @@ func (ei *elasticProcessor) SaveTransactions(obh *outport.OutportBlockWithHeader
 	preparedResults := ei.transactionsProc.PrepareTransactionsForDatabase(miniBlocks, obh.Header, obh.TransactionPool, ei.isImportDB(), obh.NumberOfShards)
 	logsData := ei.logsAndEventsProc.ExtractDataFromLogs(obh.TransactionPool.Logs, preparedResults, headerTimestamp, obh.Header.GetShardID(), obh.NumberOfShards)
 
-	buffers := data.NewBufferSlice(ei.bulkRequestMaxSize)
+	buffers := data.NewBufferSliceWithCapacity(ei.bulkRequestMaxSize, demo.BigBuffersHolderCapacity)
 	err := ei.indexTransactions(preparedResults.Transactions, logsData.TxHashStatusInfo, obh.Header, buffers)
 	if err != nil {
 		return err
@@ -425,10 +426,10 @@ func (ei *elasticProcessor) SaveTransactions(obh *outport.OutportBlockWithHeader
 		return err
 	}
 
-	err = ei.indexNFTCreateInfo(logsData.Tokens, obh.AlteredAccounts, buffers, obh.ShardID)
-	if err != nil {
-		return err
-	}
+	// err = ei.indexNFTCreateInfo(logsData.Tokens, obh.AlteredAccounts, buffers, obh.ShardID)
+	// if err != nil {
+	// 	return err
+	// }
 
 	err = ei.indexLogs(logsData.DBLogs, buffers)
 	if err != nil {
@@ -440,55 +441,55 @@ func (ei *elasticProcessor) SaveTransactions(obh *outport.OutportBlockWithHeader
 		return err
 	}
 
-	err = ei.indexScResults(preparedResults.ScResults, buffers)
-	if err != nil {
-		return err
-	}
+	// err = ei.indexScResults(preparedResults.ScResults, buffers)
+	// if err != nil {
+	// 	return err
+	// }
 
-	err = ei.indexReceipts(preparedResults.Receipts, buffers)
-	if err != nil {
-		return err
-	}
+	// err = ei.indexReceipts(preparedResults.Receipts, buffers)
+	// if err != nil {
+	// 	return err
+	// }
 
-	tagsCount := tags.NewTagsCount()
-	err = ei.indexAlteredAccounts(headerTimestamp, logsData.NFTsDataUpdates, obh.AlteredAccounts, buffers, tagsCount, obh.Header.GetShardID())
-	if err != nil {
-		return err
-	}
+	// tagsCount := tags.NewTagsCount()
+	// err = ei.indexAlteredAccounts(headerTimestamp, logsData.NFTsDataUpdates, obh.AlteredAccounts, buffers, tagsCount, obh.Header.GetShardID())
+	// if err != nil {
+	// 	return err
+	// }
 
-	err = ei.prepareAndIndexTagsCount(tagsCount, buffers)
-	if err != nil {
-		return err
-	}
+	// err = ei.prepareAndIndexTagsCount(tagsCount, buffers)
+	// if err != nil {
+	// 	return err
+	// }
 
 	err = ei.indexTokens(logsData.TokensInfo, logsData.NFTsDataUpdates, buffers, obh.ShardID)
 	if err != nil {
 		return err
 	}
 
-	err = ei.prepareAndIndexDelegators(logsData.Delegators, buffers)
-	if err != nil {
-		return err
-	}
+	// err = ei.prepareAndIndexDelegators(logsData.Delegators, buffers)
+	// if err != nil {
+	// 	return err
+	// }
 
-	err = ei.indexNFTBurnInfo(logsData.TokensSupply, buffers, obh.ShardID)
-	if err != nil {
-		return err
-	}
+	// err = ei.indexNFTBurnInfo(logsData.TokensSupply, buffers, obh.ShardID)
+	// if err != nil {
+	// 	return err
+	// }
 
-	err = ei.prepareAndIndexRolesData(logsData.TokenRolesAndProperties, buffers, elasticIndexer.TokensIndex)
-	if err != nil {
-		return err
-	}
-	err = ei.prepareAndIndexRolesData(logsData.TokenRolesAndProperties, buffers, elasticIndexer.ESDTsIndex)
-	if err != nil {
-		return err
-	}
+	// err = ei.prepareAndIndexRolesData(logsData.TokenRolesAndProperties, buffers, elasticIndexer.TokensIndex)
+	// if err != nil {
+	// 	return err
+	// }
+	// err = ei.prepareAndIndexRolesData(logsData.TokenRolesAndProperties, buffers, elasticIndexer.ESDTsIndex)
+	// if err != nil {
+	// 	return err
+	// }
 
-	err = ei.indexScDeploys(logsData.ScDeploys, logsData.ChangeOwnerOperations, buffers)
-	if err != nil {
-		return err
-	}
+	// err = ei.indexScDeploys(logsData.ScDeploys, logsData.ChangeOwnerOperations, buffers)
+	// if err != nil {
+	// 	return err
+	// }
 
 	return ei.doBulkRequests("", buffers.Buffers(), obh.ShardID)
 }

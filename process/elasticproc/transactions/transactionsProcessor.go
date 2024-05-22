@@ -118,7 +118,7 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 		}
 	}
 
-	normalTxs = tdp.setTransactionSearchOrder(normalTxs)
+	//normalTxs = tdp.setTransactionSearchOrder(normalTxs)
 	dbReceipts := tdp.txsGrouper.groupReceipts(header, pool.Receipts)
 	dbSCResults := tdp.scrsProc.processSCRs(miniBlocks, header, pool.SmartContractResults, numOfShards)
 

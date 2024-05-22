@@ -40,11 +40,11 @@ func checkTxsProcessorArg(args *ArgsTransactionProcessor) error {
 }
 
 func areESDTValuesOK(values []string) bool {
-	for _, value := range values {
-		if len(value) > data.MaxESDTValueLength {
-			return false
-		}
-	}
+	// for _, value := range values {
+	// 	if len(value) > data.MaxESDTValueLength {
+	// 		return false
+	// 	}
+	// }
 
 	return true
 }

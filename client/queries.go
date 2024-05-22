@@ -2,8 +2,9 @@ package client
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
+
+	"github.com/goccy/go-json"
 )
 
 func encode(obj objectsMap) (bytes.Buffer, error) {

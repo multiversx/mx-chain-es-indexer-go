@@ -2,7 +2,8 @@ package templates
 
 import (
 	"bytes"
-	"encoding/json"
+
+	"github.com/goccy/go-json"
 )
 
 // Array type will rename type []interface{}

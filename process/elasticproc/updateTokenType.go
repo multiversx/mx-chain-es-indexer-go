@@ -2,9 +2,10 @@ package elasticproc
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"time"
+
+	"github.com/goccy/go-json"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-es-indexer-go/core/request"

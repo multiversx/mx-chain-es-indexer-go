@@ -256,15 +256,15 @@ func appendBlockDetailsFromHeaders(block *data.Block, header coreData.HeaderHand
 
 		txsHashes := body.MiniBlocks[idx].TxHashes
 		block.MiniBlocksDetails = append(block.MiniBlocksDetails, &data.MiniBlocksDetails{
-			IndexFirstProcessedTx:    mbHeader.GetIndexOfFirstTxProcessed(),
-			IndexLastProcessedTx:     mbHeader.GetIndexOfLastTxProcessed(),
-			MBIndex:                  idx,
-			ProcessingType:           nodeBlock.ProcessingType(mbHeader.GetProcessingType()).String(),
-			Type:                     mbType.String(),
-			SenderShardID:            mbHeader.GetSenderShardID(),
-			ReceiverShardID:          mbHeader.GetReceiverShardID(),
-			TxsHashes:                hexEncodeSlice(txsHashes),
-			ExecutionOrderTxsIndices: extractExecutionOrderIndicesFromPool(mbHeader, txsHashes, pool),
+			// IndexFirstProcessedTx:    mbHeader.GetIndexOfFirstTxProcessed(),
+			// IndexLastProcessedTx:     mbHeader.GetIndexOfLastTxProcessed(),
+			MBIndex:         idx,
+			ProcessingType:  nodeBlock.ProcessingType(mbHeader.GetProcessingType()).String(),
+			Type:            mbType.String(),
+			SenderShardID:   mbHeader.GetSenderShardID(),
+			ReceiverShardID: mbHeader.GetReceiverShardID(),
+			TxsHashes:       hexEncodeSlice(txsHashes),
+			//ExecutionOrderTxsIndices: extractExecutionOrderIndicesFromPool(mbHeader, txsHashes, pool),
 		})
 	}
 }
@@ -306,27 +306,28 @@ func extractExecutionOrderIntraShardMBUnsigned(mb *block.MiniBlock, pool *outpor
 }
 
 func extractExecutionOrderIndicesFromPool(mbHeader coreData.MiniBlockHeaderHandler, txsHashes [][]byte, pool *outport.TransactionPool) []int {
-	mbType := mbHeader.GetTypeInt32()
-	executionOrderTxsIndices := make([]int, len(txsHashes))
-	indexOfFirstTxProcessed, indexOfLastTxProcessed := mbHeader.GetIndexOfFirstTxProcessed(), mbHeader.GetIndexOfLastTxProcessed()
-	for idx, txHash := range txsHashes {
-		isExecutedInCurrentBlock := int32(idx) >= indexOfFirstTxProcessed && int32(idx) <= indexOfLastTxProcessed
-		if !isExecutedInCurrentBlock {
-			executionOrderTxsIndices[idx] = notExecutedInCurrentBlock
-			continue
-		}
+	return make([]int, len(txsHashes))
+	// mbType := mbHeader.GetTypeInt32()
+	// executionOrderTxsIndices := make([]int, len(txsHashes))
+	// indexOfFirstTxProcessed, indexOfLastTxProcessed := mbHeader.GetIndexOfFirstTxProcessed(), mbHeader.GetIndexOfLastTxProcessed()
+	// for idx, txHash := range txsHashes {
+	// 	isExecutedInCurrentBlock := int32(idx) >= indexOfFirstTxProcessed && int32(idx) <= indexOfLastTxProcessed
+	// 	if !isExecutedInCurrentBlock {
+	// 		executionOrderTxsIndices[idx] = notExecutedInCurrentBlock
+	// 		continue
+	// 	}
 
-		executionOrder, found := getExecutionOrderForTx(txHash, mbType, pool)
-		if !found {
-			log.Warn("blockProcessor.extractExecutionOrderIndicesFromPool cannot find tx in pool", "txHash", hex.EncodeToString(txHash))
-			executionOrderTxsIndices[idx] = notFound
-			continue
-		}
+	// 	executionOrder, found := getExecutionOrderForTx(txHash, mbType, pool)
+	// 	if !found {
+	// 		log.Warn("blockProcessor.extractExecutionOrderIndicesFromPool cannot find tx in pool", "txHash", hex.EncodeToString(txHash))
+	// 		executionOrderTxsIndices[idx] = notFound
+	// 		continue
+	// 	}
 
-		executionOrderTxsIndices[idx] = int(executionOrder)
-	}
+	// 	executionOrderTxsIndices[idx] = int(executionOrder)
+	// }
 
-	return executionOrderTxsIndices
+	// return executionOrderTxsIndices
 }
 
 type executionOrderHandler interface {
@@ -334,26 +335,7 @@ type executionOrderHandler interface {
 }
 
 func getExecutionOrderForTx(txHash []byte, mbType int32, pool *outport.TransactionPool) (uint32, bool) {
-	var tx executionOrderHandler
-	var found bool
-
-	switch nodeBlock.Type(mbType) {
-	case nodeBlock.TxBlock:
-		tx, found = pool.Transactions[hex.EncodeToString(txHash)]
-	case nodeBlock.InvalidBlock:
-		tx, found = pool.InvalidTxs[hex.EncodeToString(txHash)]
-	case nodeBlock.RewardsBlock:
-		tx, found = pool.Rewards[hex.EncodeToString(txHash)]
-	case nodeBlock.SmartContractResultBlock:
-		tx, found = pool.SmartContractResults[hex.EncodeToString(txHash)]
-	default:
-		return 0, false
-	}
-
-	if !found {
-		return 0, false
-	}
-	return tx.GetExecutionOrder(), true
+	return 0, false
 }
 
 func (bp *blockProcessor) computeBlockSize(headerBytes []byte, body *block.Body) (int, error) {

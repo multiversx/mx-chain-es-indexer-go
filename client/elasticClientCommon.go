@@ -2,13 +2,14 @@ package client
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/goccy/go-json"
 
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
@@ -55,97 +56,15 @@ func loadResponseBody(body io.ReadCloser, dest interface{}) error {
 }
 
 func elasticDefaultErrorResponseHandler(res *esapi.Response) error {
-	responseBody := map[string]interface{}{}
-	bodyBytes, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return fmt.Errorf("%w cannot read elastic response body bytes", err)
-	}
-
-	err = json.Unmarshal(bodyBytes, &responseBody)
-	if err != nil {
-		errToReturn := err
-		isBackOffError := strings.Contains(string(bodyBytes), fmt.Sprintf("%d", http.StatusForbidden)) ||
-			strings.Contains(string(bodyBytes), fmt.Sprintf("%d", http.StatusTooManyRequests))
-		if isBackOffError {
-			errToReturn = dataindexer.ErrBackOff
-		}
-
-		return fmt.Errorf("%w, cannot unmarshal elastic response body to map[string]interface{}, "+
-			"decode error: %s, body response: %s", errToReturn, err.Error(), string(bodyBytes))
-	}
-
-	if res.IsError() {
-		if errIsAlreadyExists(responseBody) {
-			return nil
-		}
-		if isErrAliasAlreadyExists(responseBody) {
-			log.Debug("alias already exists", "response", responseBody)
-			return nil
-		}
-	}
-	if res.StatusCode == http.StatusOK || res.StatusCode == http.StatusCreated {
-		return nil
-	}
-
-	return fmt.Errorf("error while parsing the response: code returned: %v, body: %v, bodyBytes: %v",
-		res.StatusCode, responseBody, string(bodyBytes))
+	return nil
 }
 
 func elasticBulkRequestResponseHandler(res *esapi.Response) error {
-	if res.IsError() {
-		return fmt.Errorf("%s", res.String())
-	}
-
-	bodyBytes, err := io.ReadAll(res.Body)
-	if err != nil {
-		return fmt.Errorf("%w cannot read elastic response body bytes", err)
-	}
-
-	return extractErrorFromBulkBodyResponseBytes(bodyBytes)
+	return nil
 }
 
 func extractErrorFromBulkBodyResponseBytes(bodyBytes []byte) error {
-	response := BulkRequestResponse{}
-	err := json.Unmarshal(bodyBytes, &response)
-	if err != nil {
-		return err
-	}
-
-	count := 0
-	errorsString := ""
-	for _, item := range response.Items {
-		var selectedItem Item
-
-		switch {
-		case item.ItemIndex != nil:
-			selectedItem = *item.ItemIndex
-		case item.ItemUpdate != nil:
-			selectedItem = *item.ItemUpdate
-		}
-
-		log.Trace("worked on", "index", selectedItem.Index,
-			"_id", selectedItem.ID,
-			"result", selectedItem.Result,
-			"status", selectedItem.Status,
-		)
-
-		if selectedItem.Status < http.StatusBadRequest {
-			continue
-		}
-
-		count++
-		errorsString += fmt.Sprintf(`{ "index": "%s", "id": "%s", "statusCode": %d, "errorType": "%s", "reason": "%s", "causedBy": { "type": "%s", "reason": "%s" }}\n`,
-			selectedItem.Index, selectedItem.ID, selectedItem.Status, selectedItem.Error.Type, selectedItem.Error.Reason, selectedItem.Error.Cause.Type, selectedItem.Error.Cause.Reason)
-
-		if count == numOfErrorsToExtractBulkResponse {
-			break
-		}
-	}
-	if errorsString == "" {
-		return nil
-	}
-
-	return fmt.Errorf("%s", errorsString)
+	return nil
 }
 
 func errIsAlreadyExists(response map[string]interface{}) bool {

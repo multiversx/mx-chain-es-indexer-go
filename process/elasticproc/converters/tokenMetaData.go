@@ -2,9 +2,10 @@ package converters
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"strings"
+
+	"github.com/goccy/go-json"
 
 	"github.com/multiversx/mx-chain-core-go/data/alteredAccount"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"

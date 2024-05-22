@@ -2,8 +2,9 @@ package converters
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
+
+	"github.com/goccy/go-json"
 
 	logger "github.com/multiversx/mx-chain-logger-go"
 )

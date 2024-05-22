@@ -1,8 +1,9 @@
 package data
 
 import (
-	"encoding/json"
 	"time"
+
+	"github.com/goccy/go-json"
 )
 
 // ValidatorsPublicKeys is a structure containing fields for validators public keys

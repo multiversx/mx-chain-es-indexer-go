@@ -6,12 +6,12 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-core-go/core/sharding"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/receipt"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
+	"github.com/multiversx/mx-chain-es-indexer-go/demo"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
 )
@@ -45,16 +45,15 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 ) *data.Transaction {
 	tx := txInfo.Transaction
 
-	isScCall := core.IsSmartContractAddress(tx.RcvAddr)
+	isScCall := false
 	res := dtb.dataFieldParser.Parse(tx.Data, tx.SndAddr, tx.RcvAddr, numOfShards)
 
 	receiverAddr := dtb.addressPubkeyConverter.SilentEncode(tx.RcvAddr, log)
 	senderAddr := dtb.addressPubkeyConverter.SilentEncode(tx.SndAddr, log)
-	receiversAddr, _ := dtb.addressPubkeyConverter.EncodeSlice(res.Receivers)
 
 	receiverShardID := mb.ReceiverShardID
 	if mb.Type == block.InvalidBlock {
-		receiverShardID = sharding.ComputeShardID(tx.RcvAddr, numOfShards)
+		receiverShardID = demo.ShardId
 	}
 
 	valueNum, err := dtb.balanceConverter.ConvertBigValueToFloat(tx.Value)
@@ -79,49 +78,33 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 	if areESDTValuesOK(res.ESDTValues) {
 		esdtValues = res.ESDTValues
 	}
-	guardianAddress := ""
-	if len(tx.GuardianAddr) > 0 {
-		guardianAddress = dtb.addressPubkeyConverter.SilentEncode(tx.GuardianAddr, log)
-	}
 
-	senderUserName := converters.TruncateFieldIfExceedsMaxLengthBase64(string(tx.SndUserName))
-	receiverUserName := converters.TruncateFieldIfExceedsMaxLengthBase64(string(tx.RcvUserName))
 	return &data.Transaction{
-		Hash:              hex.EncodeToString(txHash),
-		MBHash:            hex.EncodeToString(mbHash),
-		Nonce:             tx.Nonce,
-		Round:             header.GetRound(),
-		Value:             tx.Value.String(),
-		Receiver:          receiverAddr,
-		Sender:            senderAddr,
-		ValueNum:          valueNum,
-		ReceiverShard:     receiverShardID,
-		SenderShard:       mb.SenderShardID,
-		GasPrice:          tx.GasPrice,
-		GasLimit:          tx.GasLimit,
-		Data:              tx.Data,
-		Signature:         hex.EncodeToString(tx.Signature),
-		Timestamp:         time.Duration(header.GetTimeStamp()),
-		Status:            txStatus,
-		GasUsed:           feeInfo.GasUsed,
-		InitialPaidFee:    feeInfo.InitialPaidFee.String(),
-		Fee:               feeInfo.Fee.String(),
-		FeeNum:            feeNum,
-		ReceiverUserName:  []byte(receiverUserName),
-		SenderUserName:    []byte(senderUserName),
-		IsScCall:          isScCall,
-		Operation:         res.Operation,
-		Function:          converters.TruncateFieldIfExceedsMaxLength(res.Function),
-		ESDTValues:        esdtValues,
-		ESDTValuesNum:     esdtValuesNum,
-		Tokens:            converters.TruncateSliceElementsIfExceedsMaxLength(res.Tokens),
-		Receivers:         receiversAddr,
-		ReceiversShardIDs: res.ReceiversShardID,
-		IsRelayed:         res.IsRelayed,
-		Version:           tx.Version,
-		GuardianAddress:   guardianAddress,
-		GuardianSignature: hex.EncodeToString(tx.GuardianSignature),
-		ExecutionOrder:    int(txInfo.ExecutionOrder),
+		Hash:          hex.EncodeToString(txHash),
+		MBHash:        hex.EncodeToString(mbHash),
+		Nonce:         tx.Nonce,
+		Round:         header.GetRound(),
+		Value:         tx.Value.String(),
+		Receiver:      receiverAddr,
+		Sender:        senderAddr,
+		ValueNum:      valueNum,
+		ReceiverShard: receiverShardID,
+		SenderShard:   mb.SenderShardID,
+		GasPrice:      tx.GasPrice,
+		GasLimit:      tx.GasLimit,
+		Data:          tx.Data,
+		Signature:     hex.EncodeToString(tx.Signature),
+		Timestamp:     time.Duration(header.GetTimeStamp()),
+		Status:        txStatus,
+		GasUsed:       feeInfo.GasUsed,
+		Fee:           feeInfo.Fee.String(),
+		FeeNum:        feeNum,
+		IsScCall:      isScCall,
+		Operation:     res.Operation,
+		Function:      converters.TruncateFieldIfExceedsMaxLength(res.Function),
+		ESDTValues:    esdtValues,
+		ESDTValuesNum: esdtValuesNum,
+		Tokens:        converters.TruncateSliceElementsIfExceedsMaxLength(res.Tokens),
 	}
 }
 
