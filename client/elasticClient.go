@@ -95,6 +95,8 @@ func (ec *elasticClient) CheckAndCreateAlias(alias string, indexName string) err
 
 // DoBulkRequest will do a bulk of request to elastic server
 func (ec *elasticClient) DoBulkRequest(ctx context.Context, buff *bytes.Buffer, index string) error {
+	log.Debug("elasticClient.DoBulkRequest", "index", index)
+
 	reader := bytes.NewReader(buff.Bytes())
 
 	options := make([]func(*esapi.BulkRequest), 0)
@@ -104,21 +106,24 @@ func (ec *elasticClient) DoBulkRequest(ctx context.Context, buff *bytes.Buffer, 
 
 	options = append(options, ec.client.Bulk.WithContext(ctx))
 
-	res, err := ec.client.Bulk(
-		reader,
-		options...,
-	)
-	if err != nil {
-		log.Warn("elasticClient.DoBulkRequest",
-			"indexer do bulk request no response", err.Error())
-		return err
-	}
+	go func() {
+		_, err := ec.client.Bulk(
+			reader,
+			options...,
+		)
+		if err != nil {
+			log.Warn("elasticClient.DoBulkRequest",
+				"indexer do bulk request no response", err.Error())
+		}
+	}()
 
-	return elasticBulkRequestResponseHandler(res)
+	return nil
 }
 
 // DoMultiGet wil do a multi get request to Elasticsearch server
 func (ec *elasticClient) DoMultiGet(ctx context.Context, ids []string, index string, withSource bool, resBody interface{}) error {
+	log.Debug("elasticClient.DoMultiGet", "index", index)
+
 	obj := getDocumentsByIDsQuery(ids, withSource)
 	body, err := encode(obj)
 	if err != nil {
@@ -148,6 +153,8 @@ func (ec *elasticClient) DoMultiGet(ctx context.Context, ids []string, index str
 
 // DoQueryRemove will do a query remove to elasticsearch server
 func (ec *elasticClient) DoQueryRemove(ctx context.Context, index string, body *bytes.Buffer) error {
+	log.Debug("elasticClient.DoQueryRemove", "index", index)
+
 	err := ec.doRefresh(index)
 	if err != nil {
 		log.Warn("elasticClient.doRefresh", "cannot do refresh", err)
@@ -201,12 +208,16 @@ func (ec *elasticClient) templateExists(index string) bool {
 
 // IndexExists checks if a given index already exists
 func (ec *elasticClient) indexExists(index string) bool {
+	log.Debug("elasticClient.indexExists", "index", index)
+
 	res, err := ec.client.Indices.Exists([]string{index})
 	return exists(res, err)
 }
 
 // PolicyExists checks if a policy was already created
 func (ec *elasticClient) PolicyExists(policy string) bool {
+	log.Debug("elasticClient.PolicyExists", "policy", policy)
+
 	policyRoute := fmt.Sprintf(
 		"%s/%s/ism/policies/%s",
 		ec.elasticBaseUrl,
