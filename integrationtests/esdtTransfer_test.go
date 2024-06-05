@@ -121,14 +121,14 @@ func TestESDTTransferCrossShardWithRefundOnSourceShard(t *testing.T) {
 	esProc, err := CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
-	txHash := []byte("esdtTransfer")
+	txHash := []byte("esdtTransferCross")
 	header := &dataBlock.Header{
 		Round:     50,
 		TimeStamp: 10101,
 		ShardID:   2,
 	}
 
-	scrHash1 := []byte("scrHash1ESDTTransfer")
+	scrHash1 := []byte("scrHash1ESDTTransferOnSourceShard")
 	body := &dataBlock.Body{
 		MiniBlocks: dataBlock.MiniBlockSlice{
 			{
