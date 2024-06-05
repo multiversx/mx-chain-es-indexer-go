@@ -176,6 +176,25 @@ func prepareSerializedDataForATransaction(
 		return metaData, serializedData, nil
 	}
 
+	if isSimpleESDTTransferCrossShardOnDestination(tx, selfShardID) {
+		codeToExecute := `
+		if ('create' == ctx.op) {
+			ctx._source = params.tx;
+		} else {
+			def gasUsed = ctx._source.gasUsed;
+			def fee = ctx._source.fee;
+			def feeNum = ctx._source.feeNum;
+			ctx._source = params.tx;
+			ctx._source.gasUsed = gasUsed;
+			ctx._source.fee = fee;
+			ctx._source.feeNum = feeNum;
+		}
+`
+		serializedData := []byte(fmt.Sprintf(`{"scripted_upsert": true, "script":{"source":"%s","lang": "painless","params":{"tx": %s}},"upsert":{}}`,
+			converters.FormatPainlessSource(codeToExecute), string(marshaledTx)))
+		return metaData, serializedData, nil
+	}
+
 	// transaction is intra-shard, invalid or cross-shard destination me
 	meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(tx.Hash), "\n"))
 
@@ -220,4 +239,11 @@ func isNFTTransferOrMultiTransfer(tx *data.Transaction) bool {
 	}
 
 	return splitData[0] == core.BuiltInFunctionESDTNFTTransfer || splitData[0] == core.BuiltInFunctionMultiESDTNFTTransfer
+}
+
+func isSimpleESDTTransferCrossShardOnDestination(tx *data.Transaction, selfShard uint32) bool {
+	isSimpleESDT := tx.Operation == core.BuiltInFunctionESDTTransfer && tx.Function == ""
+	isCrossOnDestination := tx.SenderShard != tx.ReceiverShard && tx.ReceiverShard == selfShard
+
+	return isSimpleESDT && isCrossOnDestination
 }
