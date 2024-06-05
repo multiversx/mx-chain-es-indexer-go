@@ -159,10 +159,23 @@ func prepareSerializedDataForATransaction(
 	}
 
 	if isCrossShardOnSourceShard(tx, selfShardID) {
-		// if transaction is cross-shard and current shard ID is source, use upsert without updating anything
-		serializedData :=
-			[]byte(fmt.Sprintf(`{"script":{"source":"return"},"upsert":%s}`,
-				string(marshaledTx)))
+		if isSimpleESDTTransfer(tx) {
+			codeToExecute := `
+				if ('create' == ctx.op) {
+					ctx._source = params.tx;
+				} else {
+					ctx._source.gasUsed = params.tx.gasUsed;
+					ctx._source.fee = params.tx.fee;
+					ctx._source.feeNum = params.tx.feeNum;
+				}
+			`
+			serializedData := []byte(fmt.Sprintf(`{"scripted_upsert": true, "script":{"source":"%s","lang": "painless","params":{"tx": %s}},"upsert":{}}`,
+				converters.FormatPainlessSource(codeToExecute), string(marshaledTx)))
+
+			return metaData, serializedData, nil
+		}
+
+		serializedData := []byte(fmt.Sprintf(`{"script":{"source":"return"},"upsert":%s}`, string(marshaledTx)))
 
 		return metaData, serializedData, nil
 	}
@@ -177,7 +190,17 @@ func prepareSerializedDataForATransaction(
 	}
 
 	if isSimpleESDTTransferCrossShardOnDestination(tx, selfShardID) {
-		codeToExecute := `
+		return metaData, prepareSerializedDataForESDTTransferOnDestination(marshaledTx), nil
+	}
+
+	// transaction is intra-shard, invalid or cross-shard destination me
+	meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(tx.Hash), "\n"))
+
+	return meta, marshaledTx, nil
+}
+
+func prepareSerializedDataForESDTTransferOnDestination(marshaledTx []byte) []byte {
+	codeToExecute := `
 		if ('create' == ctx.op) {
 			ctx._source = params.tx;
 		} else {
@@ -190,15 +213,8 @@ func prepareSerializedDataForATransaction(
 			ctx._source.feeNum = feeNum;
 		}
 `
-		serializedData := []byte(fmt.Sprintf(`{"scripted_upsert": true, "script":{"source":"%s","lang": "painless","params":{"tx": %s}},"upsert":{}}`,
-			converters.FormatPainlessSource(codeToExecute), string(marshaledTx)))
-		return metaData, serializedData, nil
-	}
-
-	// transaction is intra-shard, invalid or cross-shard destination me
-	meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(tx.Hash), "\n"))
-
-	return meta, marshaledTx, nil
+	return []byte(fmt.Sprintf(`{"scripted_upsert": true, "script":{"source":"%s","lang": "painless","params":{"tx": %s}},"upsert":{}}`,
+		converters.FormatPainlessSource(codeToExecute), string(marshaledTx)))
 }
 
 func prepareNFTESDTTransferOrMultiESDTTransfer(marshaledTx []byte) ([]byte, error) {
@@ -242,8 +258,11 @@ func isNFTTransferOrMultiTransfer(tx *data.Transaction) bool {
 }
 
 func isSimpleESDTTransferCrossShardOnDestination(tx *data.Transaction, selfShard uint32) bool {
-	isSimpleESDT := tx.Operation == core.BuiltInFunctionESDTTransfer && tx.Function == ""
 	isCrossOnDestination := tx.SenderShard != tx.ReceiverShard && tx.ReceiverShard == selfShard
 
-	return isSimpleESDT && isCrossOnDestination
+	return isSimpleESDTTransfer(tx) && isCrossOnDestination
+}
+
+func isSimpleESDTTransfer(tx *data.Transaction) bool {
+	return tx.Operation == core.BuiltInFunctionESDTTransfer && tx.Function == ""
 }
