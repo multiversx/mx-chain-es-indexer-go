@@ -44,10 +44,6 @@ func newDelegatorsProcessor(
 }
 
 func (dp *delegatorsProc) processEvent(args *argsProcessEvent) argOutputProcessEvent {
-	if args.selfShardID != core.MetachainShardId {
-		return argOutputProcessEvent{}
-	}
-
 	eventIdentifierStr := string(args.event.GetIdentifier())
 	_, ok := dp.delegatorsOperations[eventIdentifierStr]
 	if !ok {
