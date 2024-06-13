@@ -51,6 +51,7 @@ type TokenInfo struct {
 	Data              *TokenMetaData   `json:"data,omitempty"`
 	OwnersHistory     []*OwnerData     `json:"ownersHistory,omitempty"`
 	TransferOwnership bool             `json:"-"`
+	ChangeToDynamic   bool             `json:"-"`
 	Properties        *TokenProperties `json:"properties,omitempty"`
 }
 
