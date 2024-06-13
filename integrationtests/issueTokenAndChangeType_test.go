@@ -44,12 +44,12 @@ func TestIssueTokenAndChangeToDynamic(t *testing.T) {
 						{
 							Address:    decodeAddress(address1),
 							Identifier: []byte("issueSemiFungible"),
-							Topics:     [][]byte{[]byte("NON-abcd"), []byte("semi-token"), []byte("SEMI"), []byte(core.SemiFungibleESDT)},
+							Topics:     [][]byte{[]byte("CON-abcd"), []byte("semi-token"), []byte("SEMI"), []byte(core.SemiFungibleESDT)},
 						},
 						{
 							Address:    decodeAddress(address1),
 							Identifier: []byte("upgradeProperties"),
-							Topics:     [][]byte{[]byte("NON-abcd"), big.NewInt(0).Bytes(), []byte("canUpgrade"), []byte("true")},
+							Topics:     [][]byte{[]byte("CON-abcd"), big.NewInt(0).Bytes(), []byte("canUpgrade"), []byte("true")},
 						},
 						nil,
 					},
@@ -61,7 +61,7 @@ func TestIssueTokenAndChangeToDynamic(t *testing.T) {
 	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, map[string]*alteredAccount.AlteredAccount{}, testNumOfShards))
 	require.Nil(t, err)
 
-	ids := []string{"NON-abcd"}
+	ids := []string{"CON-abcd"}
 	genericResponse := &GenericResponse{}
 	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.TokensIndex, true, genericResponse)
 	require.Nil(t, err)
@@ -78,7 +78,7 @@ func TestIssueTokenAndChangeToDynamic(t *testing.T) {
 						{
 							Address:    decodeAddress(address1),
 							Identifier: []byte("changeToDynamic"),
-							Topics:     [][]byte{[]byte("NON-abcd"), []byte("semi-token"), []byte("SEMI"), []byte(core.DynamicSFTESDT)},
+							Topics:     [][]byte{[]byte("CON-abcd"), []byte("semi-token"), []byte("SEMI"), []byte(core.DynamicSFTESDT)},
 						},
 						nil,
 					},
