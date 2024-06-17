@@ -89,6 +89,13 @@ func PrepareNFTUpdateData(buffSlice *data.BufferSlice, updateNFTData []*data.NFT
 		if pauseOrUnPauseTokenIndex {
 			return buffSlice.PutData(metaData, prepareSerializedDataForPauseAndUnPause(nftUpdate))
 		}
+		if nftUpdate.NewMetaData != nil {
+			serializedData, err := prepareSerializedDataFromMetaDataRecreate(nftUpdate)
+			if err != nil {
+				return err
+			}
+			return buffSlice.PutData(metaData, serializedData)
+		}
 
 		truncatedAttributes := TruncateFieldIfExceedsMaxLengthBase64(string(nftUpdate.NewAttributes))
 		base64Attr := base64.StdEncoding.EncodeToString([]byte(truncatedAttributes))
@@ -189,4 +196,20 @@ func prepareSerializedDataForPauseAndUnPause(nftUpdateData *data.NFTDataUpdate) 
 	)
 
 	return serializedData
+}
+
+func prepareSerializedDataFromMetaDataRecreate(nftUpdateData *data.NFTDataUpdate) ([]byte, error) {
+	tokenMetaDataBytes, err := json.Marshal(nftUpdateData.NewMetaData)
+	if err != nil {
+		return nil, err
+	}
+
+	codeToExecute := `
+			ctx._source.data = params.metaData
+`
+	serializedData := []byte(fmt.Sprintf(`{"script": {"source": "%s","lang": "painless","params": {"metaData": %s}}, "upsert": {}}`,
+		FormatPainlessSource(codeToExecute), tokenMetaDataBytes),
+	)
+
+	return serializedData, nil
 }

@@ -4,6 +4,8 @@ import (
 	"math/big"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/data/esdt"
+	"github.com/multiversx/mx-chain-core-go/marshal"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
 )
@@ -11,12 +13,14 @@ import (
 const minTopicsUpdate = 4
 
 type nftsPropertiesProc struct {
+	marshaller                 marshal.Marshalizer
 	pubKeyConverter            core.PubkeyConverter
 	propertiesChangeOperations map[string]struct{}
 }
 
-func newNFTsPropertiesProcessor(pubKeyConverter core.PubkeyConverter) *nftsPropertiesProc {
+func newNFTsPropertiesProcessor(pubKeyConverter core.PubkeyConverter, marshaller marshal.Marshalizer) *nftsPropertiesProc {
 	return &nftsPropertiesProc{
+		marshaller:      marshaller,
 		pubKeyConverter: pubKeyConverter,
 		propertiesChangeOperations: map[string]struct{}{
 			core.BuiltInFunctionESDTNFTAddURI:           {},
@@ -25,6 +29,7 @@ func newNFTsPropertiesProcessor(pubKeyConverter core.PubkeyConverter) *nftsPrope
 			core.BuiltInFunctionESDTUnFreeze:            {},
 			core.BuiltInFunctionESDTPause:               {},
 			core.BuiltInFunctionESDTUnPause:             {},
+			core.ESDTMetaDataRecreate:                   {},
 		},
 	}
 }
@@ -54,6 +59,7 @@ func (npp *nftsPropertiesProc) processEvent(args *argsProcessEvent) argOutputPro
 	// [1] --> nonce of the NFT (bytes)
 	// [2] --> value
 	// [3:] --> modified data
+	// [3] --> ESDT token data in case of ESDTMetaDataRecreate
 	if len(topics) < minTopicsUpdate {
 		return argOutputProcessEvent{
 			processed: true,
@@ -90,12 +96,28 @@ func (npp *nftsPropertiesProc) processEvent(args *argsProcessEvent) argOutputPro
 		updateNFT.Freeze = true
 	case core.BuiltInFunctionESDTUnFreeze:
 		updateNFT.UnFreeze = true
+	case core.ESDTMetaDataRecreate:
+		npp.processMetaDataRecreate(updateNFT, topics[3])
 	}
 
 	return argOutputProcessEvent{
 		processed:     true,
 		updatePropNFT: updateNFT,
 	}
+}
+
+func (npp *nftsPropertiesProc) processMetaDataRecreate(updateNFT *data.NFTDataUpdate, esdtTokenBytes []byte) {
+	esdtToken := &esdt.ESDigitalToken{}
+	err := npp.marshaller.Unmarshal(esdtToken, esdtTokenBytes)
+	if err != nil {
+		log.Warn("nftsPropertiesProc.processMetaDataRecreate() cannot urmarshal", "error", err.Error())
+		return
+	}
+
+	tokenMetaData := converters.PrepareTokenMetaData(convertMetaData(npp.pubKeyConverter, esdtToken.TokenMetaData))
+	updateNFT.NewMetaData = tokenMetaData
+
+	return
 }
 
 func (npp *nftsPropertiesProc) processPauseAndUnPauseEvent(eventIdentifier string, token string) argOutputProcessEvent {

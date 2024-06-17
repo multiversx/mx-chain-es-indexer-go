@@ -16,6 +16,7 @@ type NFTDataUpdate struct {
 	UnFreeze      bool
 	Pause         bool
 	UnPause       bool
+	NewMetaData   *TokenMetaData
 }
 
 // ResponseTokens is the structure for the tokens response
