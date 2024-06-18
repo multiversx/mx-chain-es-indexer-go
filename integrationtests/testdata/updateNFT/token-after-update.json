@@ -1,0 +1,16 @@
+{
+  "identifier": "NEW-abcd-64",
+  "token": "NEW-abcd",
+  "numDecimals": 0,
+  "nonce": 100,
+  "timestamp": 5040,
+  "data": {
+    "uris": [
+      "dXJp"
+    ],
+    "whiteListedStorage": false,
+    "name": "token-second",
+    "nonEmptyURIs": true,
+    "hash": "aGFzaA=="
+  }
+}

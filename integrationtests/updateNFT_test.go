@@ -225,6 +225,85 @@ func TestNFTUpdateMetadata(t *testing.T) {
 	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.TokensIndex, true, genericResponse)
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/updateNFT/token-after-un-freeze.json"), string(genericResponse.Docs[0].Source))
+
+	// Set new uris
+	pool = &outport.TransactionPool{
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address),
+							Identifier: []byte(core.ESDTSetNewURIs),
+							Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), []byte("uri"), []byte("uri"), []byte("uri"), []byte("uri"), []byte("uri")},
+						},
+						nil,
+					},
+				},
+			},
+		},
+	}
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
+	require.Nil(t, err)
+	ids = []string{"NFT-abcd-0e"}
+	genericResponse = &GenericResponse{}
+	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.TokensIndex, true, genericResponse)
+	require.Nil(t, err)
+	require.JSONEq(t, readExpectedResult("./testdata/updateNFT/token-after-set-new-uris.json"), string(genericResponse.Docs[0].Source))
+
+	// new creator
+	newCreator := "erd12m3x8jp6dl027pj5f2nw6ght2cyhhjfrs86cdwsa8xn83r375qfqrwpdx0"
+	pool = &outport.TransactionPool{
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(newCreator),
+							Identifier: []byte(core.ESDTModifyCreator),
+							Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes()},
+						},
+						nil,
+					},
+				},
+			},
+		},
+	}
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
+	require.Nil(t, err)
+	ids = []string{"NFT-abcd-0e"}
+	genericResponse = &GenericResponse{}
+	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.TokensIndex, true, genericResponse)
+	require.Nil(t, err)
+	require.JSONEq(t, readExpectedResult("./testdata/updateNFT/token-after-new-creator.json"), string(genericResponse.Docs[0].Source))
+
+	// new royalties
+	pool = &outport.TransactionPool{
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address),
+							Identifier: []byte(core.ESDTModifyRoyalties),
+							Topics:     [][]byte{[]byte("NFT-abcd"), big.NewInt(14).Bytes(), big.NewInt(0).Bytes(), big.NewInt(100).Bytes()},
+						},
+						nil,
+					},
+				},
+			},
+		},
+	}
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
+	require.Nil(t, err)
+	ids = []string{"NFT-abcd-0e"}
+	genericResponse = &GenericResponse{}
+	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.TokensIndex, true, genericResponse)
+	require.Nil(t, err)
+	require.JSONEq(t, readExpectedResult("./testdata/updateNFT/token-after-new-royalties.json"), string(genericResponse.Docs[0].Source))
 }
 
 func TestCreateNFTAndMetaDataRecreate(t *testing.T) {
@@ -298,7 +377,7 @@ func TestCreateNFTAndMetaDataRecreate(t *testing.T) {
 						{
 							Address:    decodeAddress(address),
 							Identifier: []byte(core.ESDTMetaDataRecreate),
-							Topics:     [][]byte{[]byte("NEW-abcd"), big.NewInt(100).Bytes(), big.NewInt(1).Bytes(), marshalizedReCreate},
+							Topics:     [][]byte{[]byte("NEW-abcd"), big.NewInt(100).Bytes(), big.NewInt(0).Bytes(), marshalizedReCreate},
 						},
 						nil,
 					},
@@ -313,4 +392,39 @@ func TestCreateNFTAndMetaDataRecreate(t *testing.T) {
 	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.TokensIndex, true, genericResponse)
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/updateNFT/token-after-recreate.json"), string(genericResponse.Docs[0].Source))
+
+	// UPDATE
+	update := &esdt.ESDigitalToken{
+		TokenMetaData: &esdt.MetaData{
+			Name: []byte("token-second"),
+			URIs: [][]byte{[]byte("uri")},
+			Hash: []byte("hash"),
+		},
+	}
+	marshalizedUpdate, _ := json.Marshal(update)
+
+	pool = &outport.TransactionPool{
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address),
+							Identifier: []byte(core.ESDTMetaDataUpdate),
+							Topics:     [][]byte{[]byte("NEW-abcd"), big.NewInt(100).Bytes(), big.NewInt(0).Bytes(), marshalizedUpdate},
+						},
+						nil,
+					},
+				},
+			},
+		},
+	}
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
+	require.Nil(t, err)
+
+	genericResponse = &GenericResponse{}
+	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.TokensIndex, true, genericResponse)
+	require.Nil(t, err)
+	require.JSONEq(t, readExpectedResult("./testdata/updateNFT/token-after-update.json"), string(genericResponse.Docs[0].Source))
 }

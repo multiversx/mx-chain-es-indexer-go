@@ -30,6 +30,10 @@ func newNFTsPropertiesProcessor(pubKeyConverter core.PubkeyConverter, marshaller
 			core.BuiltInFunctionESDTPause:               {},
 			core.BuiltInFunctionESDTUnPause:             {},
 			core.ESDTMetaDataRecreate:                   {},
+			core.ESDTMetaDataUpdate:                     {},
+			core.ESDTSetNewURIs:                         {},
+			core.ESDTModifyCreator:                      {},
+			core.ESDTModifyRoyalties:                    {},
 		},
 	}
 }
@@ -60,7 +64,9 @@ func (npp *nftsPropertiesProc) processEvent(args *argsProcessEvent) argOutputPro
 	// [2] --> value
 	// [3:] --> modified data
 	// [3] --> ESDT token data in case of ESDTMetaDataRecreate
-	if len(topics) < minTopicsUpdate {
+
+	isModifyCreator := len(topics) == minTopicsUpdate-1 && eventIdentifier == core.ESDTModifyCreator
+	if len(topics) < minTopicsUpdate && !isModifyCreator {
 		return argOutputProcessEvent{
 			processed: true,
 		}
@@ -92,12 +98,23 @@ func (npp *nftsPropertiesProc) processEvent(args *argsProcessEvent) argOutputPro
 		updateNFT.NewAttributes = topics[3]
 	case core.BuiltInFunctionESDTNFTAddURI:
 		updateNFT.URIsToAdd = topics[3:]
+	case core.ESDTSetNewURIs:
+		updateNFT.SetURIs = true
+		updateNFT.URIsToAdd = topics[3:]
 	case core.BuiltInFunctionESDTFreeze:
 		updateNFT.Freeze = true
 	case core.BuiltInFunctionESDTUnFreeze:
 		updateNFT.UnFreeze = true
-	case core.ESDTMetaDataRecreate:
-		npp.processMetaDataRecreate(updateNFT, topics[3])
+	case core.ESDTMetaDataRecreate, core.ESDTMetaDataUpdate:
+		npp.processMetaDataUpdate(updateNFT, topics[3])
+	case core.ESDTModifyCreator:
+		updateNFT.NewCreator = callerAddress
+	case core.ESDTModifyRoyalties:
+		newRoyalties := uint32(big.NewInt(0).SetBytes(topics[3]).Uint64())
+		updateNFT.NewRoyalties = core.OptionalUint32{
+			Value:    newRoyalties,
+			HasValue: true,
+		}
 	}
 
 	return argOutputProcessEvent{
@@ -106,7 +123,7 @@ func (npp *nftsPropertiesProc) processEvent(args *argsProcessEvent) argOutputPro
 	}
 }
 
-func (npp *nftsPropertiesProc) processMetaDataRecreate(updateNFT *data.NFTDataUpdate, esdtTokenBytes []byte) {
+func (npp *nftsPropertiesProc) processMetaDataUpdate(updateNFT *data.NFTDataUpdate, esdtTokenBytes []byte) {
 	esdtToken := &esdt.ESDigitalToken{}
 	err := npp.marshaller.Unmarshal(esdtToken, esdtTokenBytes)
 	if err != nil {
