@@ -202,6 +202,9 @@ func serializeToken(tokenData *data.TokenInfo, index string) ([]byte, []byte, er
 	if tokenData.TransferOwnership {
 		return serializeTokenTransferOwnership(tokenData, index)
 	}
+	if tokenData.ChangeToDynamic {
+		return serializeTokenChangeType(tokenData, index)
+	}
 
 	meta := []byte(fmt.Sprintf(`{ "update" : { "_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(tokenData.Token), "\n"))
 	serializedTokenData, err := json.Marshal(tokenData)
@@ -222,6 +225,23 @@ func serializeToken(tokenData *data.TokenInfo, index string) ([]byte, []byte, er
 		`"params": {"token": %s}},`+
 		`"upsert": %s}`,
 		converters.FormatPainlessSource(codeToExecute), string(serializedTokenData), string(serializedTokenData))
+
+	return meta, []byte(serializedDataStr), nil
+}
+
+func serializeTokenChangeType(tokenData *data.TokenInfo, index string) ([]byte, []byte, error) {
+	meta := []byte(fmt.Sprintf(`{ "update" : { "_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(tokenData.Token), "\n"))
+
+	codeToExecute := `
+		ctx._source.type = params.type;
+		ctx._source.changedToDynamicTimestamp = params.timestamp;
+`
+	serializedDataStr := fmt.Sprintf(`{"script": {`+
+		`"source": "%s",`+
+		`"lang": "painless",`+
+		`"params": {"type": "%s", "timestamp": %d }},`+
+		`"upsert": {}}`,
+		converters.FormatPainlessSource(codeToExecute), tokenData.Type, tokenData.Timestamp)
 
 	return meta, []byte(serializedDataStr), nil
 }

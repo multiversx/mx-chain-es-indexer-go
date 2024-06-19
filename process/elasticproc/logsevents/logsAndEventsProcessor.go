@@ -69,7 +69,7 @@ func createEventsProcessors(args ArgsLogsAndEventsProcessor) []eventsProcessor {
 	nftsProc := newNFTsProcessor(args.PubKeyConverter, args.Marshalizer)
 	scDeploysProc := newSCDeploysProcessor(args.PubKeyConverter)
 	informativeProc := newInformativeLogsProcessor()
-	updateNFTProc := newNFTsPropertiesProcessor(args.PubKeyConverter)
+	updateNFTProc := newNFTsPropertiesProcessor(args.PubKeyConverter, args.Marshalizer)
 	esdtPropProc := newEsdtPropertiesProcessor(args.PubKeyConverter)
 	esdtIssueProc := newESDTIssueProcessor(args.PubKeyConverter)
 	delegatorsProcessor := newDelegatorsProcessor(args.PubKeyConverter, args.BalanceConverter)
