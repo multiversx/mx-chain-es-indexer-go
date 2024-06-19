@@ -133,8 +133,6 @@ func (npp *nftsPropertiesProc) processMetaDataUpdate(updateNFT *data.NFTDataUpda
 
 	tokenMetaData := converters.PrepareTokenMetaData(convertMetaData(npp.pubKeyConverter, esdtToken.TokenMetaData))
 	updateNFT.NewMetaData = tokenMetaData
-
-	return
 }
 
 func (npp *nftsPropertiesProc) processPauseAndUnPauseEvent(eventIdentifier string, token string) argOutputProcessEvent {
