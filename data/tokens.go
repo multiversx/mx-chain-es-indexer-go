@@ -2,6 +2,8 @@ package data
 
 import (
 	"time"
+
+	"github.com/multiversx/mx-chain-core-go/core"
 )
 
 const metaESDT = "MetaESDT"
@@ -9,13 +11,17 @@ const metaESDT = "MetaESDT"
 // NFTDataUpdate will contain the update information for an NFT or SFT
 type NFTDataUpdate struct {
 	Identifier    string
+	Address       string
+	NewCreator    string
 	URIsToAdd     [][]byte
 	NewAttributes []byte
-	Address       string
 	Freeze        bool
 	UnFreeze      bool
 	Pause         bool
 	UnPause       bool
+	SetURIs       bool
+	NewRoyalties  core.OptionalUint32
+	NewMetaData   *TokenMetaData
 }
 
 // ResponseTokens is the structure for the tokens response
@@ -51,6 +57,7 @@ type TokenInfo struct {
 	Data              *TokenMetaData   `json:"data,omitempty"`
 	OwnersHistory     []*OwnerData     `json:"ownersHistory,omitempty"`
 	TransferOwnership bool             `json:"-"`
+	ChangeToDynamic   bool             `json:"-"`
 	Properties        *TokenProperties `json:"properties,omitempty"`
 }
 
