@@ -23,6 +23,7 @@ func (tr *templatesAndPolicyReaderWithKibana) GetElasticTemplatesAndPolicies() (
 	return indexTemplates, indexPolicies, nil
 }
 
+// GetExtraMappings will return an array of indices extra mappings
 func (tr *templatesAndPolicyReaderWithKibana) GetExtraMappings() ([]templates.ExtraMapping, error) {
 	return []templates.ExtraMapping{}, nil
 }

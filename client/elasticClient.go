@@ -85,6 +85,7 @@ func (ec *elasticClient) CheckAndCreateIndex(indexName string) error {
 	return ec.createIndex(indexName)
 }
 
+// PutMappings will put the provided mappings to a given index
 func (ec *elasticClient) PutMappings(indexName string, mappings *bytes.Buffer) error {
 	res, err := ec.client.Indices.PutMapping(
 		mappings,
