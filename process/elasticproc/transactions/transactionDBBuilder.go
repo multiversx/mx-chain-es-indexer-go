@@ -182,8 +182,6 @@ func (dtb *dbTransactionBuilder) addRelayedV3InfoInIndexerTx(tx *transaction.Tra
 	indexerTx.IsRelayed = true
 	indexerTx.Receivers = receivers
 	indexerTx.ReceiversShardIDs = receiversShardIDs
-
-	return
 }
 
 func (dtb *dbTransactionBuilder) prepareRewardTransaction(
