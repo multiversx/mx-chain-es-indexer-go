@@ -3,6 +3,7 @@ package client
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -82,6 +83,22 @@ func (ec *elasticClient) CheckAndCreateIndex(indexName string) error {
 	}
 
 	return ec.createIndex(indexName)
+}
+
+func (ec *elasticClient) PutMappings(indexName string, mappings *bytes.Buffer) error {
+	res, err := ec.client.Indices.PutMapping(
+		mappings,
+		ec.client.Indices.PutMapping.WithIndex(indexName),
+	)
+	if err != nil {
+		return err
+	}
+
+	if res.IsError() {
+		return errors.New(res.String())
+	}
+
+	return nil
 }
 
 // CheckAndCreateAlias creates a new alias if it does not already exist

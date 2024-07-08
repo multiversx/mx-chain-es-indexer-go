@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	indexer "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
+	"github.com/multiversx/mx-chain-es-indexer-go/templates"
 	"github.com/multiversx/mx-chain-es-indexer-go/templates/withKibana"
 )
 
@@ -20,6 +21,10 @@ func (tr *templatesAndPolicyReaderWithKibana) GetElasticTemplatesAndPolicies() (
 	indexPolicies := getPolicies()
 
 	return indexTemplates, indexPolicies, nil
+}
+
+func (tr *templatesAndPolicyReaderWithKibana) GetExtraMappings() ([]templates.ExtraMapping, error) {
+	return []templates.ExtraMapping{}, nil
 }
 
 func getTemplatesKibana() map[string]*bytes.Buffer {
