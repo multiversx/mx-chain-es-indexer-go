@@ -119,17 +119,16 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		GuardianAddress:   guardianAddress,
 		GuardianSignature: hex.EncodeToString(tx.GuardianSignature),
 		ExecutionOrder:    int(txInfo.ExecutionOrder),
+		Operation:         res.Operation,
 	}
 
 	isRelayedV3 := len(tx.InnerTransactions) > 0
 	if isRelayedV3 {
-		eTx.Operation = res.Operation
 		dtb.addRelayedV3InfoInIndexerTx(tx, eTx, numOfShards)
 
 		return eTx
 	}
 
-	eTx.Operation = res.Operation
 	eTx.Function = converters.TruncateFieldIfExceedsMaxLength(res.Function)
 	eTx.Tokens = converters.TruncateSliceElementsIfExceedsMaxLength(res.Tokens)
 	eTx.ReceiversShardIDs = res.ReceiversShardID
