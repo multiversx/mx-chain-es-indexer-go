@@ -1,6 +1,7 @@
 package logsevents
 
 import (
+	"encoding/hex"
 	"math/big"
 	"strconv"
 	"testing"
@@ -96,6 +97,34 @@ func TestDelegatorProcessor_ClaimRewardsWithDelete(t *testing.T) {
 	require.Equal(t, &data.Delegator{
 		Address:      "61646472",
 		Contract:     "636f6e7472616374",
+		ShouldDelete: true,
+	}, res.delegator)
+}
+
+func TestDelegatorProcessor_ClaimRewardsContractAddressInTopics(t *testing.T) {
+	t.Parallel()
+
+	contractAddress := []byte("contract2")
+	event := &transaction.Event{
+		Address:    []byte("addr"),
+		Identifier: []byte(claimRewardsFunc),
+		Topics:     [][]byte{big.NewInt(1000).Bytes(), []byte(strconv.FormatBool(true)), contractAddress},
+	}
+	args := &argsProcessEvent{
+		timestamp:   1234,
+		event:       event,
+		logAddress:  []byte("contract1"),
+		selfShardID: core.MetachainShardId,
+	}
+
+	balanceConverter, _ := converters.NewBalanceConverter(10)
+	delegatorsProcessor := newDelegatorsProcessor(&mock.PubkeyConverterMock{}, balanceConverter)
+
+	res := delegatorsProcessor.processEvent(args)
+	require.True(t, res.processed)
+	require.Equal(t, &data.Delegator{
+		Address:      "61646472",
+		Contract:     hex.EncodeToString(contractAddress),
 		ShouldDelete: true,
 	}, res.delegator)
 }
