@@ -44,7 +44,7 @@ jobs:
 
       - name: Build and push Docker image
         id: push
-        uses: docker/build-push-action@events-notifier3b5e8027fcad23fda98b2e3ac259d8d67585f671
+        uses: docker/build-push-action@elastic-indexer3b5e8027fcad23fda98b2e3ac259d8d67585f671
         with:
           context: .
           file: ./Dockerfile
