@@ -21,6 +21,7 @@ type DatabaseClientHandler interface {
 	DoCountRequest(ctx context.Context, index string, body []byte) (uint64, error)
 	UpdateByQuery(ctx context.Context, index string, buff *bytes.Buffer) error
 
+	PutMappings(indexName string, mappings *bytes.Buffer) error
 	CheckAndCreateIndex(index string) error
 	CheckAndCreateAlias(alias string, index string) error
 	CheckAndCreateTemplate(templateName string, template *bytes.Buffer) error
