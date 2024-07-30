@@ -39,6 +39,18 @@ VERSION:
 `
 )
 
+// appVersion should be populated at build time using ldflags
+// Usage examples:
+// linux/mac:
+//
+//	go build -v -ldflags="-X main.appVersion=$(git describe --tags --long --dirty)"
+//
+// windows:
+//
+//	for /f %i in ('git describe --tags --long --dirty') do set VERS=%i
+//	go build -v -ldflags="-X main.version=%VERS%"
+var version = "undefined"
+
 func main() {
 	app := cli.NewApp()
 	cli.AppHelpTemplate = helpTemplate
@@ -51,7 +63,6 @@ func main() {
 		logLevel,
 		logSaveFile,
 		disableAnsiColor,
-		importDB,
 	}
 	app.Authors = []cli.Author{
 		{
@@ -60,6 +71,7 @@ func main() {
 		},
 	}
 
+	app.Version = version
 	app.Action = startIndexer
 
 	err := app.Run(os.Args)
@@ -85,9 +97,8 @@ func startIndexer(ctx *cli.Context) error {
 		return fmt.Errorf("%w while initializing the logger", err)
 	}
 
-	importDBMode := ctx.GlobalBool(importDB.Name)
 	statusMetrics := metrics.NewStatusMetrics()
-	wsHost, err := factory.CreateWsIndexer(cfg, clusterCfg, importDBMode, statusMetrics)
+	wsHost, err := factory.CreateWsIndexer(cfg, clusterCfg, statusMetrics, ctx.App.Version)
 	if err != nil {
 		return fmt.Errorf("%w while creating the indexer", err)
 	}

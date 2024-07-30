@@ -133,12 +133,10 @@ func prepareSerializedAccountInfo(
 		if ('create' == ctx.op) {
 			ctx._source = params.account
 		} else {
-			if (ctx._source.containsKey('timestamp')) {
-				if (ctx._source.timestamp <= params.account.timestamp) {
-					ctx._source = params.account
-				}
-			} else {
-				ctx._source = params.account
+			if ((!ctx._source.containsKey('timestamp')) || (ctx._source.timestamp <= params.account.timestamp) ) {
+				params.account.forEach((key, value) -> {
+					ctx._source[key] = value;
+				});
 			}
 		}
 `

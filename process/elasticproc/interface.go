@@ -91,7 +91,6 @@ type DBValidatorsHandler interface {
 
 // DBLogsAndEventsHandler defines the actions that a logs and events handler should do
 type DBLogsAndEventsHandler interface {
-	PrepareLogsForDB(logsAndEvents []*outport.LogData, timestamp uint64) []*data.Logs
 	ExtractDataFromLogs(
 		logsAndEvents []*outport.LogData,
 		preparedResults *data.PreparedResults,
@@ -100,6 +99,7 @@ type DBLogsAndEventsHandler interface {
 		numOfShards uint32,
 	) *data.PreparedLogsResults
 
+	SerializeEvents(events []*data.LogEvent, buffSlice *data.BufferSlice, index string) error
 	SerializeLogs(logs []*data.Logs, buffSlice *data.BufferSlice, index string) error
 	SerializeSCDeploys(deploysInfo map[string]*data.ScDeployInfo, buffSlice *data.BufferSlice, index string) error
 	SerializeChangeOwnerOperations(changeOwnerOperations map[string]*data.OwnerData, buffSlice *data.BufferSlice, index string) error

@@ -36,6 +36,7 @@ type ArgsIndexerFactory struct {
 	UserName                 string
 	Password                 string
 	TemplatesPath            string
+	Version                  string
 	EnabledIndexes           []string
 	HeaderMarshaller         marshal.Marshalizer
 	Marshalizer              marshal.Marshalizer
@@ -95,6 +96,7 @@ func createElasticProcessor(args ArgsIndexerFactory) (dataindexer.ElasticProcess
 		EnabledIndexes:           args.EnabledIndexes,
 		BulkRequestMaxSize:       args.BulkRequestMaxSize,
 		ImportDB:                 args.ImportDB,
+		Version:                  args.Version,
 	}
 
 	return factory.CreateElasticProcessor(argsElasticProcFac)

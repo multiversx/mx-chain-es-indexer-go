@@ -47,3 +47,9 @@ type ResponseScroll struct {
 		} `json:"hits"`
 	} `json:"hits"`
 }
+
+// KeyValueObj is the dto for values index
+type KeyValueObj struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}

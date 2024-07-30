@@ -17,13 +17,13 @@ import (
 var log = logger.GetOrCreate("elasticindexer")
 
 // CreateWsIndexer will create a new instance of wsindexer.WSClient
-func CreateWsIndexer(cfg config.Config, clusterCfg config.ClusterConfig, importDB bool, statusMetrics core.StatusMetricsHandler) (wsindexer.WSClient, error) {
+func CreateWsIndexer(cfg config.Config, clusterCfg config.ClusterConfig, statusMetrics core.StatusMetricsHandler, version string) (wsindexer.WSClient, error) {
 	wsMarshaller, err := factoryMarshaller.NewMarshalizer(clusterCfg.Config.WebSocket.DataMarshallerType)
 	if err != nil {
 		return nil, err
 	}
 
-	dataIndexer, err := createDataIndexer(cfg, clusterCfg, wsMarshaller, importDB, statusMetrics)
+	dataIndexer, err := createDataIndexer(cfg, clusterCfg, wsMarshaller, statusMetrics, version)
 	if err != nil {
 		return nil, err
 	}
@@ -55,8 +55,8 @@ func createDataIndexer(
 	cfg config.Config,
 	clusterCfg config.ClusterConfig,
 	wsMarshaller marshal.Marshalizer,
-	importDB bool,
 	statusMetrics core.StatusMetricsHandler,
+	version string,
 ) (wsindexer.DataIndexer, error) {
 	marshaller, err := factoryMarshaller.NewMarshalizer(cfg.Config.Marshaller.Type)
 	if err != nil {
@@ -88,8 +88,8 @@ func createDataIndexer(
 		AddressPubkeyConverter:   addressPubkeyConverter,
 		ValidatorPubkeyConverter: validatorPubkeyConverter,
 		HeaderMarshaller:         wsMarshaller,
-		ImportDB:                 importDB,
 		StatusMetrics:            statusMetrics,
+		Version:                  version,
 	})
 }
 

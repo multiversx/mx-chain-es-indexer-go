@@ -368,7 +368,7 @@ func TestBlockProcessor_PrepareBlockForDBMiniBlocksDetails(t *testing.T) {
 	}
 	mbhrBytes, _ := gogoMarshaller.Marshal(mbhr)
 
-	txHash, notExecutedTxHash, notFoundTxHash, invalidTxHash, rewardsTxHash, scrHash := "tx", "notExecuted", "notFound", "invalid", "reward", "scr"
+	txHash, notExecutedTxHash, notFoundTxHash, invalidTxHash, rewardsTxHash, scrHash, intraSCR := "tx", "notExecuted", "notFound", "invalid", "reward", "scr", "intraSCR"
 
 	header := &dataBlock.Header{
 		TxCount: 5,
@@ -397,6 +397,12 @@ func TestBlockProcessor_PrepareBlockForDBMiniBlocksDetails(t *testing.T) {
 		Header: header,
 		OutportBlock: &outport.OutportBlock{
 			BlockData: &outport.BlockData{
+				IntraShardMiniBlocks: []*dataBlock.MiniBlock{
+					{
+						Type:     dataBlock.SmartContractResultBlock,
+						TxHashes: [][]byte{[]byte(intraSCR)},
+					},
+				},
 				HeaderBytes: headerBytes,
 				HeaderHash:  []byte("hash"),
 				Body: &dataBlock.Body{
@@ -446,6 +452,10 @@ func TestBlockProcessor_PrepareBlockForDBMiniBlocksDetails(t *testing.T) {
 						SmartContractResult: &smartContractResult.SmartContractResult{},
 						ExecutionOrder:      0,
 					},
+					hex.EncodeToString([]byte(intraSCR)): {
+						SmartContractResult: &smartContractResult.SmartContractResult{},
+						ExecutionOrder:      4,
+					},
 				},
 			},
 			HeaderGasConsumption: &outport.HeaderGasConsumption{},
@@ -458,7 +468,7 @@ func TestBlockProcessor_PrepareBlockForDBMiniBlocksDetails(t *testing.T) {
 	require.Equal(t, &data.Block{
 		Hash:            "68617368",
 		Size:            int64(723),
-		SizeTxs:         15,
+		SizeTxs:         21,
 		AccumulatedFees: "0",
 		DeveloperFees:   "0",
 		TxCount:         uint32(5),
@@ -468,6 +478,7 @@ func TestBlockProcessor_PrepareBlockForDBMiniBlocksDetails(t *testing.T) {
 			"1183f422a5b76c3cb7b439334f1fe7235c8d09f577e0f1e15e62cd05b9a81950",
 			"b24e307f3917e84603d3ebfb9c03c8fc651b62cb68ca884c3ff015b66a610a79",
 			"c0a855563172b2f72be569963d26d4fae38d4371342e2bf3ded93466a72f36f3",
+			"381b0f52b35781ddce70dc7ee08907a29f49ed9c46ea0b7b59e5833ba3213d10",
 		},
 		MiniBlocksDetails: []*data.MiniBlocksDetails{
 			{
@@ -502,6 +513,13 @@ func TestBlockProcessor_PrepareBlockForDBMiniBlocksDetails(t *testing.T) {
 				ProcessingType:           dataBlock.Normal.String(),
 				ExecutionOrderTxsIndices: []int{0},
 				TxsHashes:                []string{"736372"}},
+			{IndexFirstProcessedTx: 0,
+				IndexLastProcessedTx:     0,
+				MBIndex:                  4,
+				Type:                     dataBlock.SmartContractResultBlock.String(),
+				ProcessingType:           dataBlock.Normal.String(),
+				ExecutionOrderTxsIndices: []int{4},
+				TxsHashes:                []string{"696e747261534352"}},
 		},
 	}, dbBlock)
 }
