@@ -137,7 +137,7 @@ func serializeTxHashStatus(buffSlice *data.BufferSlice, txHashStatusInfo map[str
 				ctx._source.errorEvent = params.statusInfo.errorEvent;
 			}
 			
-			if ((ctx._source.completedEvent) && (ctx._source.errorEvent)) {
+			if ((ctx._source.completedEvent != null && ctx._source.completedEvent) && (ctx._source.errorEvent != null && ctx._source.errorEvent)) {
 				ctx._source.status = 'success';
 			}
 `
