@@ -1,0 +1,70 @@
+{
+  "miniBlockHash": "2b8a2e2b21d1cf1c5e3d782552810a07818e6b179dd196e901466bb588fc387a",
+  "nonce": 1000,
+  "round": 50,
+  "value": "0",
+  "valueNum": 0,
+  "receiver": "erd1ykqd64fxxpp4wsz0v7sjqem038wfpzlljhx4mhwx8w9lcxmdzcfszrp64a",
+  "sender": "erd1ykqd64fxxpp4wsz0v7sjqem038wfpzlljhx4mhwx8w9lcxmdzcfszrp64a",
+  "receiverShard": 0,
+  "senderShard": 0,
+  "gasPrice": 1000000000,
+  "gasLimit": 300000,
+  "gasUsed": 10556000,
+  "fee": "2257820000000000",
+  "feeNum": 0.00225782,
+  "initialPaidFee": "2306320000000000",
+  "data": null,
+  "signature": "",
+  "timestamp": 5040,
+  "status": "success",
+  "searchOrder": 0,
+  "hasOperations": true,
+  "hasLogs": true,
+  "receivers": [
+    "erd1aduqqezzw0u3j7tywlq3mrl0yn4z6f6vytdju8gg0neq38fauyzsa5yy6r",
+    "erd1aduqqezzw0u3j7tywlq3mrl0yn4z6f6vytdju8gg0neq38fauyzsa5yy6r",
+    "erd1aduqqezzw0u3j7tywlq3mrl0yn4z6f6vytdju8gg0neq38fauyzsa5yy6r"
+  ],
+  "receiversShardIDs": [
+    1,
+    1,
+    1
+  ],
+  "operation": "transfer",
+  "isRelayed": true,
+  "errorEvent": true,
+  "completedEvent": true,
+  "innerTransactions": [
+    {
+      "nonce": 5,
+      "value": "10000000000000000",
+      "receiver": "erd1aduqqezzw0u3j7tywlq3mrl0yn4z6f6vytdju8gg0neq38fauyzsa5yy6r",
+      "sender": "erd10ksryjr065ad5475jcg82pnjfg9j9qtszjsrp24anl6ym7cmeddshwnru8",
+      "gasPrice": 1000000000,
+      "gasLimit": 50000,
+      "chainID": "",
+      "version": 0
+    },
+    {
+      "nonce": 3,
+      "value": "10000000000000000",
+      "receiver": "erd1aduqqezzw0u3j7tywlq3mrl0yn4z6f6vytdju8gg0neq38fauyzsa5yy6r",
+      "sender": "erd10ksryjr065ad5475jcg82pnjfg9j9qtszjsrp24anl6ym7cmeddshwnru8",
+      "gasPrice": 1000000000,
+      "gasLimit": 50000,
+      "chainID": "",
+      "version": 0
+    },
+    {
+      "nonce": 4,
+      "value": "10000000000000000",
+      "receiver": "erd1aduqqezzw0u3j7tywlq3mrl0yn4z6f6vytdju8gg0neq38fauyzsa5yy6r",
+      "sender": "erd10ksryjr065ad5475jcg82pnjfg9j9qtszjsrp24anl6ym7cmeddshwnru8",
+      "gasPrice": 1000000000,
+      "gasLimit": 50000,
+      "chainID": "",
+      "version": 0
+    }
+  ]
+}
