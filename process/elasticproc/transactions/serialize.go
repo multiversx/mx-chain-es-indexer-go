@@ -136,6 +136,10 @@ func serializeTxHashStatus(buffSlice *data.BufferSlice, txHashStatusInfo map[str
 			if (params.statusInfo.errorEvent) {
 				ctx._source.errorEvent = params.statusInfo.errorEvent;
 			}
+			
+			if ((ctx._source.completedEvent) && (ctx._source.errorEvent)) {
+				ctx._source.status = 'success';
+			}
 `
 		serializedData := []byte(fmt.Sprintf(`{"script": {"source": "%s","lang": "painless","params": {"statusInfo": %s}}, "upsert": %s }`, converters.FormatPainlessSource(codeToExecute), string(marshaledStatusInfo), string(marshaledTx)))
 		err = buffSlice.PutData(metaData, serializedData)
