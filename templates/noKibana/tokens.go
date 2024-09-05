@@ -162,7 +162,7 @@ var Tokens = Object{
 				"format": "epoch_second",
 			},
 			"token": Object{
-				"type": "text",
+				"type": "keyword",
 			},
 			"type": Object{
 				"type": "keyword",
