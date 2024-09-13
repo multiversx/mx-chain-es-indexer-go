@@ -1,10 +1,12 @@
 {
   "procTypeS": "Normal",
-  "senderBlockHash": "3fede8a9a3c4f2ba6d7e6e01541813606cd61c4d3af2940f8e089827b5d94e50",
+  "senderBlockHash": "ef2151306f3ca2e3df6315ee236fada727849348d3660dd9900a28462f77561e",
   "receiverShard": 2,
   "senderShard": 1,
   "type": "TxBlock",
   "timestamp": 1234,
-  "receiverBlockHash": "d7f1e8003a45c7adbd87bbbb269cb4af3d1f4aedd0c214973bfc096dd0f3b65e",
-  "procTypeD": "Scheduled"
+  "receiverBlockHash": "796e8ecf22c47a224af7447336f39b389f4f9a7c09d61188ee7cb295599a2ce6",
+  "procTypeD": "Scheduled",
+  "senderBlockNonce":112,
+  "receiverBlockNonce": 911
 }

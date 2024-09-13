@@ -22,6 +22,7 @@ func TestIndexMiniBlocksOnSourceAndDestination(t *testing.T) {
 
 	// index on the source shard
 	header := &dataBlock.Header{
+		Nonce:     112,
 		ShardID:   1,
 		TimeStamp: 1234,
 	}
@@ -48,6 +49,7 @@ func TestIndexMiniBlocksOnSourceAndDestination(t *testing.T) {
 	marshaller := &marshal.GogoProtoMarshalizer{}
 	mbhrBytes, _ := marshaller.Marshal(mbhr)
 	header = &dataBlock.Header{
+		Nonce:     911,
 		ShardID:   2,
 		TimeStamp: 1234,
 		MiniBlockHeaders: []dataBlock.MiniBlockHeader{
@@ -82,6 +84,7 @@ func TestIndexMiniBlockFirstOnDestinationAndAfterSource(t *testing.T) {
 	mbhrBytes, _ := marshaller.Marshal(mbhr)
 	header := &dataBlock.Header{
 		ShardID:   0,
+		Nonce:     100,
 		TimeStamp: 54321,
 		MiniBlockHeaders: []dataBlock.MiniBlockHeader{
 			{
@@ -111,6 +114,7 @@ func TestIndexMiniBlockFirstOnDestinationAndAfterSource(t *testing.T) {
 	}
 	mbhrBytes, _ = marshaller.Marshal(mbhr)
 	header.ShardID = 2
+	header.Nonce = 200
 	header.MiniBlockHeaders = []dataBlock.MiniBlockHeader{
 		{
 			Reserved: mbhrBytes,
