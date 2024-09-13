@@ -271,7 +271,7 @@ func appendBlockDetailsFromHeaders(block *data.Block, header coreData.HeaderHand
 
 func appendBlockDetailsFromIntraShardMbs(block *data.Block, intraShardMbs []*block.MiniBlock, pool *outport.TransactionPool, offset int) {
 	for idx, intraMB := range intraShardMbs {
-		if intraMB.Type == nodeBlock.PeerBlock {
+		if intraMB.Type == nodeBlock.PeerBlock || intraMB.Type == nodeBlock.ReceiptBlock {
 			continue
 		}
 
