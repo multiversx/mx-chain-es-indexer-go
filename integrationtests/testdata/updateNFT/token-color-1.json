@@ -1,0 +1,16 @@
+{
+  "identifier": "COLORS-df0e82-01",
+  "token": "COLORS-df0e82",
+  "numDecimals": 0,
+  "nonce": 1,
+  "timestamp": 5040,
+  "data": {
+    "uris": [
+      "dXJp"
+    ],
+    "whiteListedStorage": false,
+    "name": "GREEN",
+    "nonEmptyURIs": true,
+    "hash": "aGFzaA=="
+  }
+}

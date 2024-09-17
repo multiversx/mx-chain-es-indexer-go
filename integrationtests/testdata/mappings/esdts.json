@@ -110,6 +110,10 @@
           "type": "date",
           "format": "epoch_second"
         },
+        "changedToDynamicTimestamp": {
+          "type": "date",
+          "format": "epoch_second"
+        },
         "token": {
           "type": "text"
         },

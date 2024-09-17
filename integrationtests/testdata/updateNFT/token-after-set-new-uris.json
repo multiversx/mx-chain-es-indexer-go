@@ -1,0 +1,20 @@
+{
+  "identifier": "NFT-abcd-0e",
+  "token": "NFT-abcd",
+  "numDecimals": 0,
+  "nonce": 14,
+  "timestamp": 5040,
+  "data": {
+    "uris": [
+      "dXJp",
+      "dXJp",
+      "dXJp",
+      "dXJp",
+      "dXJp"
+    ],
+    "nonEmptyURIs": true,
+    "whiteListedStorage": false,
+    "attributes": "c29tZXRoaW5n"
+  },
+  "frozen": false
+}

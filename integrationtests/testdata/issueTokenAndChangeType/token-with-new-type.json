@@ -1,0 +1,29 @@
+{
+  "name": "semi-token",
+  "ticker": "SEMI",
+  "token": "CON-abcd",
+  "issuer": "erd1k04pxr6c0gvlcx4rd5fje0a4uy33axqxwz0fpcrgtfdy3nrqauqqgvxprv",
+  "currentOwner": "erd1k04pxr6c0gvlcx4rd5fje0a4uy33axqxwz0fpcrgtfdy3nrqauqqgvxprv",
+  "numDecimals": 0,
+  "type": "DynamicSemiFungibleESDT",
+  "timestamp": 5040,
+  "ownersHistory": [
+    {
+      "address": "erd1k04pxr6c0gvlcx4rd5fje0a4uy33axqxwz0fpcrgtfdy3nrqauqqgvxprv",
+      "timestamp": 5040
+    }
+  ],
+  "properties": {
+    "canMint": false,
+    "canBurn": false,
+    "canUpgrade": true,
+    "canTransferNFTCreateRole": false,
+    "canAddSpecialRoles": false,
+    "canPause": false,
+    "canFreeze": false,
+    "canWipe": false,
+    "canChangeOwner": false,
+    "canCreateMultiShard": false
+  },
+  "changedToDynamicTimestamp": 10000
+}

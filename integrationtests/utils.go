@@ -3,6 +3,7 @@ package integrationtests
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -68,7 +69,7 @@ func CreateElasticProcessor(
 // nolint
 func readExpectedResult(path string) string {
 	jsonFile, _ := os.Open(path)
-	byteValue, _ := ioutil.ReadAll(jsonFile)
+	byteValue, _ := io.ReadAll(jsonFile)
 
 	return string(byteValue)
 }

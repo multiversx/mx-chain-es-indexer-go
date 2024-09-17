@@ -1,10 +1,13 @@
 package logsevents
 
 import (
+	"encoding/hex"
+	"encoding/json"
 	"math/big"
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/data/esdt"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/mock"
@@ -24,7 +27,7 @@ func TestProcessNFTProperties_Update(t *testing.T) {
 		event:     event,
 	}
 
-	nftsPropertiesP := newNFTsPropertiesProcessor(&mock.PubkeyConverterMock{})
+	nftsPropertiesP := newNFTsPropertiesProcessor(&mock.PubkeyConverterMock{}, &mock.MarshalizerMock{})
 
 	res := nftsPropertiesP.processEvent(args)
 	require.True(t, res.processed)
@@ -48,7 +51,7 @@ func TestProcessNFTProperties_AddUris(t *testing.T) {
 		event:     event,
 	}
 
-	nftsPropertiesP := newNFTsPropertiesProcessor(&mock.PubkeyConverterMock{})
+	nftsPropertiesP := newNFTsPropertiesProcessor(&mock.PubkeyConverterMock{}, &mock.MarshalizerMock{})
 
 	res := nftsPropertiesP.processEvent(args)
 	require.True(t, res.processed)
@@ -57,6 +60,33 @@ func TestProcessNFTProperties_AddUris(t *testing.T) {
 		URIsToAdd:  [][]byte{[]byte("uri1"), []byte("uri2")},
 		Address:    "61646472",
 	}, res.updatePropNFT)
+}
+
+func TestProcessNFTMetaDataRecreate(t *testing.T) {
+	nftsPropertiesP := newNFTsPropertiesProcessor(&mock.PubkeyConverterMock{}, &mock.MarshalizerMock{})
+
+	esdtData := &esdt.ESDigitalToken{
+		TokenMetaData: &esdt.MetaData{
+			Creator: []byte("creator"),
+		},
+	}
+	esdtDataBytes, _ := json.Marshal(esdtData)
+
+	nonce := uint64(19)
+	event := &transaction.Event{
+		Address:    []byte("addr"),
+		Identifier: []byte(core.ESDTMetaDataRecreate),
+		Topics:     [][]byte{[]byte("my-token"), big.NewInt(0).SetUint64(nonce).Bytes(), big.NewInt(1).Bytes(), esdtDataBytes},
+	}
+	args := &argsProcessEvent{
+		timestamp: 1234,
+		event:     event,
+	}
+
+	res := nftsPropertiesP.processEvent(args)
+	require.True(t, res.processed)
+	require.NotNil(t, res.updatePropNFT.NewMetaData)
+	require.Equal(t, hex.EncodeToString([]byte("creator")), res.updatePropNFT.NewMetaData.Creator)
 }
 
 func TestProcessNFTProperties_FreezeAndUnFreeze(t *testing.T) {
@@ -73,7 +103,7 @@ func TestProcessNFTProperties_FreezeAndUnFreeze(t *testing.T) {
 		event:     event,
 	}
 
-	nftsPropertiesP := newNFTsPropertiesProcessor(&mock.PubkeyConverterMock{})
+	nftsPropertiesP := newNFTsPropertiesProcessor(&mock.PubkeyConverterMock{}, &mock.MarshalizerMock{})
 
 	res := nftsPropertiesP.processEvent(args)
 	require.True(t, res.processed)

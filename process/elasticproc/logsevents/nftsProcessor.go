@@ -144,7 +144,7 @@ func (np *nftsProcessor) processNFTEventOnSender(
 		return
 	}
 
-	tokenMetaData := converters.PrepareTokenMetaData(np.convertMetaData(esdtToken.TokenMetaData))
+	tokenMetaData := converters.PrepareTokenMetaData(convertMetaData(np.pubKeyConverter, esdtToken.TokenMetaData))
 	tokensCreateInfo.Add(&data.TokenInfo{
 		Token:      token,
 		Identifier: converters.ComputeTokenIdentifier(token, nonceBig.Uint64()),
@@ -154,11 +154,11 @@ func (np *nftsProcessor) processNFTEventOnSender(
 	})
 }
 
-func (np *nftsProcessor) convertMetaData(metaData *esdt.MetaData) *alteredAccount.TokenMetaData {
+func convertMetaData(pubKeyConverter core.PubkeyConverter, metaData *esdt.MetaData) *alteredAccount.TokenMetaData {
 	if metaData == nil {
 		return nil
 	}
-	encodedCreatorAddr, err := np.pubKeyConverter.Encode(metaData.Creator)
+	encodedCreatorAddr, err := pubKeyConverter.Encode(metaData.Creator)
 	if err != nil {
 		log.Warn("nftsProcessor.convertMetaData", "cannot encode creator address", "error", err, "address", metaData.Creator)
 	}

@@ -11,6 +11,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/receipt"
+	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
@@ -86,7 +87,8 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 
 	senderUserName := converters.TruncateFieldIfExceedsMaxLengthBase64(string(tx.SndUserName))
 	receiverUserName := converters.TruncateFieldIfExceedsMaxLengthBase64(string(tx.RcvUserName))
-	return &data.Transaction{
+
+	eTx := &data.Transaction{
 		Hash:              hex.EncodeToString(txHash),
 		MBHash:            hex.EncodeToString(mbHash),
 		Nonce:             tx.Nonce,
@@ -110,19 +112,75 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		ReceiverUserName:  []byte(receiverUserName),
 		SenderUserName:    []byte(senderUserName),
 		IsScCall:          isScCall,
-		Operation:         res.Operation,
-		Function:          converters.TruncateFieldIfExceedsMaxLength(res.Function),
 		ESDTValues:        esdtValues,
 		ESDTValuesNum:     esdtValuesNum,
-		Tokens:            converters.TruncateSliceElementsIfExceedsMaxLength(res.Tokens),
 		Receivers:         receiversAddr,
-		ReceiversShardIDs: res.ReceiversShardID,
-		IsRelayed:         res.IsRelayed,
 		Version:           tx.Version,
 		GuardianAddress:   guardianAddress,
 		GuardianSignature: hex.EncodeToString(tx.GuardianSignature),
 		ExecutionOrder:    int(txInfo.ExecutionOrder),
+		Operation:         res.Operation,
 	}
+
+	isRelayedV3 := len(tx.InnerTransactions) > 0
+	if isRelayedV3 {
+		dtb.addRelayedV3InfoInIndexerTx(tx, eTx, numOfShards)
+
+		return eTx
+	}
+
+	eTx.Function = converters.TruncateFieldIfExceedsMaxLength(res.Function)
+	eTx.Tokens = converters.TruncateSliceElementsIfExceedsMaxLength(res.Tokens)
+	eTx.ReceiversShardIDs = res.ReceiversShardID
+	eTx.IsRelayed = res.IsRelayed
+
+	return eTx
+}
+
+func (dtb *dbTransactionBuilder) addRelayedV3InfoInIndexerTx(tx *transaction.Transaction, indexerTx *data.Transaction, numOfShards uint32) {
+	if len(tx.InnerTransactions) == 0 {
+		return
+	}
+
+	innerTxs := make([]*transaction.FrontendTransaction, 0, len(tx.InnerTransactions))
+	receivers := make([]string, 0, len(tx.InnerTransactions))
+	receiversShardIDs := make([]uint32, 0, len(tx.InnerTransactions))
+	for _, innerTx := range tx.InnerTransactions {
+		frontEndTx := &transaction.FrontendTransaction{
+			Nonce:            innerTx.Nonce,
+			Value:            innerTx.Value.String(),
+			Receiver:         dtb.addressPubkeyConverter.SilentEncode(innerTx.RcvAddr, log),
+			Sender:           dtb.addressPubkeyConverter.SilentEncode(innerTx.SndAddr, log),
+			SenderUsername:   innerTx.SndUserName,
+			ReceiverUsername: innerTx.RcvUserName,
+			GasPrice:         innerTx.GasPrice,
+			GasLimit:         innerTx.GasLimit,
+			Data:             innerTx.Data,
+			Signature:        hex.EncodeToString(innerTx.Signature),
+			ChainID:          string(innerTx.ChainID),
+			Version:          innerTx.Version,
+			Options:          innerTx.Options,
+		}
+
+		if len(innerTx.GuardianAddr) > 0 {
+			frontEndTx.GuardianAddr = dtb.addressPubkeyConverter.SilentEncode(innerTx.GuardianAddr, log)
+			frontEndTx.GuardianSignature = hex.EncodeToString(innerTx.GuardianSignature)
+		}
+
+		if len(innerTx.RelayerAddr) > 0 {
+			frontEndTx.Relayer = dtb.addressPubkeyConverter.SilentEncode(innerTx.RelayerAddr, log)
+		}
+
+		receivers = append(receivers, frontEndTx.Receiver)
+		receiversShardIDs = append(receiversShardIDs, sharding.ComputeShardID(innerTx.RcvAddr, numOfShards))
+
+		innerTxs = append(innerTxs, frontEndTx)
+	}
+
+	indexerTx.InnerTransactions = innerTxs
+	indexerTx.IsRelayed = true
+	indexerTx.Receivers = receivers
+	indexerTx.ReceiversShardIDs = receiversShardIDs
 }
 
 func (dtb *dbTransactionBuilder) prepareRewardTransaction(

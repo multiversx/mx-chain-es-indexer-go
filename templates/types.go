@@ -5,6 +5,12 @@ import (
 	"encoding/json"
 )
 
+// ExtraMapping holds the tuple for the index and extra mappings
+type ExtraMapping struct {
+	Index    string
+	Mappings *bytes.Buffer
+}
+
 // Array type will rename type []interface{}
 type Array []interface{}
 

@@ -14,6 +14,11 @@ type DatabaseWriterStub struct {
 	DoScrollRequestCalled     func(index string, body []byte, withSource bool, handlerFunc func(responseBytes []byte) error) error
 }
 
+// PutMappings -
+func (dwm *DatabaseWriterStub) PutMappings(_ string, _ *bytes.Buffer) error {
+	return nil
+}
+
 // UpdateByQuery -
 func (dwm *DatabaseWriterStub) UpdateByQuery(_ context.Context, _ string, _ *bytes.Buffer) error {
 	return nil
