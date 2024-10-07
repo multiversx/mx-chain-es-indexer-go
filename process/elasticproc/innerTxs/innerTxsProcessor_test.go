@@ -1,9 +1,10 @@
 package innerTxs
 
 import (
+	"testing"
+
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestInnerTxsProcessor_ExtractInnerTxsNoTransactions(t *testing.T) {
