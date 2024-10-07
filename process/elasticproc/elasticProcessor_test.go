@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/hex"
 	"errors"
-	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/innerTxs"
 	"strings"
 	"testing"
 
@@ -19,6 +18,7 @@ import (
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/accounts"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/block"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/innerTxs"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/logsevents"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/miniblocks"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/operations"
