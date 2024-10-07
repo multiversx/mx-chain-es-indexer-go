@@ -37,6 +37,7 @@
   "completedEvent": true,
   "innerTransactions": [
     {
+      "hash": "0521127b7d727e5d5e82ce963870ac16dde71f438b5dc2a64bd476ad3b8e96c2",
       "nonce": 5,
       "value": "10000000000000000",
       "receiver": "erd1aduqqezzw0u3j7tywlq3mrl0yn4z6f6vytdju8gg0neq38fauyzsa5yy6r",
@@ -47,6 +48,7 @@
       "version": 0
     },
     {
+      "hash": "c4d7ee5288fb2f02789e36970a2b22d977870e506eb6df07e10aad12aaf67dbd",
       "nonce": 3,
       "value": "10000000000000000",
       "receiver": "erd1aduqqezzw0u3j7tywlq3mrl0yn4z6f6vytdju8gg0neq38fauyzsa5yy6r",
@@ -57,6 +59,7 @@
       "version": 0
     },
     {
+      "hash": "5ab08906cd2d05abaca912fa450df5fb6f9cf64481f649d118f8fd14aa81b1be",
       "nonce": 4,
       "value": "10000000000000000",
       "receiver": "erd1aduqqezzw0u3j7tywlq3mrl0yn4z6f6vytdju8gg0neq38fauyzsa5yy6r",

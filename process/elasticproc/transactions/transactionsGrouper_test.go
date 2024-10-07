@@ -19,7 +19,7 @@ func TestGroupNormalTxs(t *testing.T) {
 
 	parser := createDataFieldParserMock()
 	ap, _ := converters.NewBalanceConverter(18)
-	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, parser, ap)
+	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, parser, ap, &mock.HasherMock{}, &mock.MarshalizerMock{})
 	grouper := newTxsGrouper(txBuilder, &mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	txHash1 := []byte("txHash1")
@@ -55,7 +55,7 @@ func TestGroupRewardsTxs(t *testing.T) {
 
 	parser := createDataFieldParserMock()
 	ap, _ := converters.NewBalanceConverter(18)
-	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, parser, ap)
+	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, parser, ap, &mock.HasherMock{}, &mock.MarshalizerMock{})
 	grouper := newTxsGrouper(txBuilder, &mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	txHash1 := []byte("txHash1")
@@ -83,7 +83,7 @@ func TestGroupInvalidTxs(t *testing.T) {
 
 	parser := createDataFieldParserMock()
 	ap, _ := converters.NewBalanceConverter(18)
-	txBuilder := newTransactionDBBuilder(mock.NewPubkeyConverterMock(32), parser, ap)
+	txBuilder := newTransactionDBBuilder(mock.NewPubkeyConverterMock(32), parser, ap, &mock.HasherMock{}, &mock.MarshalizerMock{})
 	grouper := newTxsGrouper(txBuilder, &mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	txHash1 := []byte("txHash1")
@@ -115,7 +115,7 @@ func TestGroupReceipts(t *testing.T) {
 
 	parser := createDataFieldParserMock()
 	ap, _ := converters.NewBalanceConverter(18)
-	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, parser, ap)
+	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, parser, ap, &mock.HasherMock{}, &mock.MarshalizerMock{})
 	grouper := newTxsGrouper(txBuilder, &mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	txHash1 := []byte("txHash1")

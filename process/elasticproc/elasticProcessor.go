@@ -56,6 +56,7 @@ type ArgElasticProcessor struct {
 	DBClient           DatabaseClientHandler
 	LogsAndEventsProc  DBLogsAndEventsHandler
 	OperationsProc     OperationsHandler
+	InnerTxsHandler    InnerTxsHandler
 	Version            string
 }
 
@@ -73,6 +74,7 @@ type elasticProcessor struct {
 	validatorsProc     DBValidatorsHandler
 	logsAndEventsProc  DBLogsAndEventsHandler
 	operationsProc     OperationsHandler
+	innerTxsHandler    InnerTxsHandler
 }
 
 // NewElasticProcessor handles Elasticsearch operations such as initialization, adding, modifying or removing data
@@ -94,6 +96,7 @@ func NewElasticProcessor(arguments *ArgElasticProcessor) (*elasticProcessor, err
 		logsAndEventsProc:  arguments.LogsAndEventsProc,
 		operationsProc:     arguments.OperationsProc,
 		bulkRequestMaxSize: arguments.BulkRequestMaxSize,
+		innerTxsHandler:    arguments.InnerTxsHandler,
 	}
 
 	err = ei.init(arguments.UseKibana, arguments.IndexTemplates, arguments.IndexPolicies, arguments.ExtraMappings)
@@ -584,9 +587,15 @@ func (ei *elasticProcessor) prepareAndIndexOperations(
 		return nil
 	}
 
+	innerTxs := ei.innerTxsHandler.ExtractInnerTxs(txs)
+	err := ei.innerTxsHandler.SerializeInnerTxs(innerTxs, buffSlice, elasticIndexer.OperationsIndex)
+	if err != nil {
+		return err
+	}
+
 	processedTxs, processedSCRs := ei.operationsProc.ProcessTransactionsAndSCRs(txs, scrs, isImportDB, header.GetShardID())
 
-	err := ei.transactionsProc.SerializeTransactions(processedTxs, txHashStatusInfo, header.GetShardID(), buffSlice, elasticIndexer.OperationsIndex)
+	err = ei.transactionsProc.SerializeTransactions(processedTxs, txHashStatusInfo, header.GetShardID(), buffSlice, elasticIndexer.OperationsIndex)
 	if err != nil {
 		return err
 	}

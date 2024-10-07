@@ -1,0 +1,12 @@
+{
+  "type": "innerTx",
+  "nonce": 20,
+  "value": "1000",
+  "receiver": "erd14eyayfrvlrhzfrwg5zwleua25mkzgncggn35nvc6xhv5yxwml2es0f3dht",
+  "sender": "erd1k7j6ewjsla4zsgv8v6f6fe3dvrkgv3d0d9jerczw45hzedhyed8sh2u34u",
+  "gasPrice": 1000000000,
+  "gasLimit": 15406000,
+  "chainID": "",
+  "version": 0,
+  "relayedTxHash": "72656c6179656454785633"
+}

@@ -120,3 +120,9 @@ type OperationsHandler interface {
 	ProcessTransactionsAndSCRs(txs []*data.Transaction, scrs []*data.ScResult, isImportDB bool, shardID uint32) ([]*data.Transaction, []*data.ScResult)
 	SerializeSCRs(scrs []*data.ScResult, buffSlice *data.BufferSlice, index string, shardID uint32) error
 }
+
+// InnerTxsHandler defines the actions that an inner transactions handler should do
+type InnerTxsHandler interface {
+	ExtractInnerTxs(txs []*data.Transaction) []*data.InnerTransaction
+	SerializeInnerTxs(innerTxs []*data.InnerTransaction, buffSlice *data.BufferSlice, index string) error
+}

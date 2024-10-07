@@ -3,6 +3,8 @@ package transactions
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/multiversx/mx-chain-core-go/hashing"
+	"github.com/multiversx/mx-chain-core-go/marshal"
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
@@ -21,17 +23,23 @@ type dbTransactionBuilder struct {
 	addressPubkeyConverter core.PubkeyConverter
 	dataFieldParser        DataFieldParser
 	balanceConverter       dataindexer.BalanceConverter
+	hasher                 hashing.Hasher
+	marshaller             marshal.Marshalizer
 }
 
 func newTransactionDBBuilder(
 	addressPubkeyConverter core.PubkeyConverter,
 	dataFieldParser DataFieldParser,
 	balanceConverter dataindexer.BalanceConverter,
+	hasher hashing.Hasher,
+	marshaller marshal.Marshalizer,
 ) *dbTransactionBuilder {
 	return &dbTransactionBuilder{
 		addressPubkeyConverter: addressPubkeyConverter,
 		dataFieldParser:        dataFieldParser,
 		balanceConverter:       balanceConverter,
+		hasher:                 hasher,
+		marshaller:             marshaller,
 	}
 }
 
@@ -124,7 +132,7 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 
 	isRelayedV3 := len(tx.InnerTransactions) > 0
 	if isRelayedV3 {
-		dtb.addRelayedV3InfoInIndexerTx(tx, eTx, numOfShards)
+		dtb.addRelayedV3InfoInIndexerTx(txHash, tx, eTx, numOfShards)
 
 		return eTx
 	}
@@ -137,16 +145,23 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 	return eTx
 }
 
-func (dtb *dbTransactionBuilder) addRelayedV3InfoInIndexerTx(tx *transaction.Transaction, indexerTx *data.Transaction, numOfShards uint32) {
+func (dtb *dbTransactionBuilder) addRelayedV3InfoInIndexerTx(txHash []byte, tx *transaction.Transaction, indexerTx *data.Transaction, numOfShards uint32) {
 	if len(tx.InnerTransactions) == 0 {
 		return
 	}
 
-	innerTxs := make([]*transaction.FrontendTransaction, 0, len(tx.InnerTransactions))
+	innerTxs := make([]*data.InnerTransaction, 0, len(tx.InnerTransactions))
 	receivers := make([]string, 0, len(tx.InnerTransactions))
 	receiversShardIDs := make([]uint32, 0, len(tx.InnerTransactions))
-	for _, innerTx := range tx.InnerTransactions {
-		frontEndTx := &transaction.FrontendTransaction{
+	for idx, innerTx := range tx.InnerTransactions {
+		innerTxHash, err := core.CalculateHash(dtb.marshaller, dtb.hasher, innerTx)
+		if err != nil {
+			log.Warn("dbTransactionBuilder.addRelayedV3InfoInIndexerTx: cannot compute inner tx hash",
+				"index inner tx", idx, "hash", txHash, "error", err)
+		}
+
+		frontEndTx := &data.InnerTransaction{
+			Hash:             hex.EncodeToString(innerTxHash),
 			Nonce:            innerTx.Nonce,
 			Value:            innerTx.Value.String(),
 			Receiver:         dtb.addressPubkeyConverter.SilentEncode(innerTx.RcvAddr, log),

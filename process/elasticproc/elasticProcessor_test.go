@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"errors"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/innerTxs"
 	"strings"
 	"testing"
 
@@ -73,6 +74,7 @@ func createMockElasticProcessorArgs() *ArgElasticProcessor {
 	}
 	lp, _ := logsevents.NewLogsAndEventsProcessor(args)
 	op, _ := operations.NewOperationsProcessor()
+	ip := innerTxs.NewInnerTxsProcessor()
 
 	return &ArgElasticProcessor{
 		DBClient: &mock.DatabaseWriterStub{},
@@ -87,6 +89,7 @@ func createMockElasticProcessorArgs() *ArgElasticProcessor {
 		BlockProc:         bp,
 		LogsAndEventsProc: lp,
 		OperationsProc:    op,
+		InnerTxsHandler:   ip,
 	}
 }
 

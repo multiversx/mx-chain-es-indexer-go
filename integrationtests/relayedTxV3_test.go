@@ -99,6 +99,19 @@ func TestRelayedTxV3(t *testing.T) {
 		readExpectedResult("./testdata/relayedTxV3/relayed-tx-v3.json"),
 		string(genericResponse.Docs[0].Source),
 	)
+
+	ids = []string{"13b41efddcb2c01dbaba26ebc387a7f58a4ea0757a73420267818224f939e77a", "f8b8b93e42afb737a59dd622af054e34d970663b09b90138e7dc2712565ca8db"}
+	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.OperationsIndex, true, genericResponse)
+	require.Nil(t, err)
+
+	require.JSONEq(t,
+		readExpectedResult("./testdata/relayedTxV3/innerTx1.json"),
+		string(genericResponse.Docs[0].Source),
+	)
+	require.JSONEq(t,
+		readExpectedResult("./testdata/relayedTxV3/innerTx2.json"),
+		string(genericResponse.Docs[1].Source),
+	)
 }
 
 func TestRelayedTxV3WithSignalErrorAndCompletedEvent(t *testing.T) {
