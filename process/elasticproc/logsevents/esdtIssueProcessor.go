@@ -11,13 +11,16 @@ import (
 const (
 	numIssueLogTopics = 4
 
-	issueFungibleESDTFunc     = "issue"
-	issueSemiFungibleESDTFunc = "issueSemiFungible"
-	issueNonFungibleESDTFunc  = "issueNonFungible"
-	registerMetaESDTFunc      = "registerMetaESDT"
-	changeSFTToMetaESDTFunc   = "changeSFTToMetaESDT"
-	transferOwnershipFunc     = "transferOwnership"
-	registerAndSetRolesFunc   = "registerAndSetAllRoles"
+	issueFungibleESDTFunc          = "issue"
+	issueSemiFungibleESDTFunc      = "issueSemiFungible"
+	issueNonFungibleESDTFunc       = "issueNonFungible"
+	registerMetaESDTFunc           = "registerMetaESDT"
+	changeSFTToMetaESDTFunc        = "changeSFTToMetaESDT"
+	changeToDynamicESDTFunc        = "changeToDynamic"
+	transferOwnershipFunc          = "transferOwnership"
+	registerAndSetRolesFunc        = "registerAndSetAllRoles"
+	registerDynamicFunc            = "registerDynamic"
+	registerAndSetRolesDynamicFunc = "registerAndSetAllRolesDynamic"
 )
 
 type esdtIssueProcessor struct {
@@ -29,13 +32,16 @@ func newESDTIssueProcessor(pubkeyConverter core.PubkeyConverter) *esdtIssueProce
 	return &esdtIssueProcessor{
 		pubkeyConverter: pubkeyConverter,
 		issueOperationsIdentifiers: map[string]struct{}{
-			issueFungibleESDTFunc:     {},
-			issueSemiFungibleESDTFunc: {},
-			issueNonFungibleESDTFunc:  {},
-			registerMetaESDTFunc:      {},
-			changeSFTToMetaESDTFunc:   {},
-			transferOwnershipFunc:     {},
-			registerAndSetRolesFunc:   {},
+			issueFungibleESDTFunc:          {},
+			issueSemiFungibleESDTFunc:      {},
+			issueNonFungibleESDTFunc:       {},
+			registerMetaESDTFunc:           {},
+			changeSFTToMetaESDTFunc:        {},
+			transferOwnershipFunc:          {},
+			registerAndSetRolesFunc:        {},
+			registerDynamicFunc:            {},
+			registerAndSetRolesDynamicFunc: {},
+			changeToDynamicESDTFunc:        {},
 		},
 	}
 }
@@ -89,6 +95,10 @@ func (eip *esdtIssueProcessor) processEvent(args *argsProcessEvent) argOutputPro
 			},
 		},
 		Properties: &data.TokenProperties{},
+	}
+
+	if identifierStr == changeToDynamicESDTFunc {
+		tokenInfo.ChangeToDynamic = true
 	}
 
 	if identifierStr == transferOwnershipFunc && len(topics) >= numIssueLogTopics+1 {

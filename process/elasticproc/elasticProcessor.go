@@ -20,6 +20,7 @@ import (
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/tags"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/tokeninfo"
+	"github.com/multiversx/mx-chain-es-indexer-go/templates"
 	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
@@ -44,6 +45,7 @@ type ArgElasticProcessor struct {
 	ImportDB           bool
 	IndexTemplates     map[string]*bytes.Buffer
 	IndexPolicies      map[string]*bytes.Buffer
+	ExtraMappings      []templates.ExtraMapping
 	EnabledIndexes     map[string]struct{}
 	TransactionsProc   DBTransactionsHandler
 	AccountsProc       DBAccountHandler
@@ -94,7 +96,7 @@ func NewElasticProcessor(arguments *ArgElasticProcessor) (*elasticProcessor, err
 		bulkRequestMaxSize: arguments.BulkRequestMaxSize,
 	}
 
-	err = ei.init(arguments.UseKibana, arguments.IndexTemplates, arguments.IndexPolicies)
+	err = ei.init(arguments.UseKibana, arguments.IndexTemplates, arguments.IndexPolicies, arguments.ExtraMappings)
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +107,7 @@ func NewElasticProcessor(arguments *ArgElasticProcessor) (*elasticProcessor, err
 }
 
 // TODO move all the index create part in a new component
-func (ei *elasticProcessor) init(useKibana bool, indexTemplates, _ map[string]*bytes.Buffer) error {
+func (ei *elasticProcessor) init(useKibana bool, indexTemplates, _ map[string]*bytes.Buffer, extraMappings []templates.ExtraMapping) error {
 	err := ei.createOpenDistroTemplates(indexTemplates)
 	if err != nil {
 		return err
@@ -133,6 +135,17 @@ func (ei *elasticProcessor) init(useKibana bool, indexTemplates, _ map[string]*b
 	err = ei.createAliases()
 	if err != nil {
 		return err
+	}
+
+	return ei.addExtraMappings(extraMappings)
+}
+
+func (ei *elasticProcessor) addExtraMappings(extraMappings []templates.ExtraMapping) error {
+	for _, mappingsTuple := range extraMappings {
+		err := ei.elasticClient.PutMappings(mappingsTuple.Index, mappingsTuple.Mappings)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

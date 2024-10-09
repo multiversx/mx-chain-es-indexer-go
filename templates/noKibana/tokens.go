@@ -161,6 +161,10 @@ var Tokens = Object{
 				"type":   "date",
 				"format": "epoch_second",
 			},
+			"changedToDynamicTimestamp": Object{
+				"type":   "date",
+				"format": "epoch_second",
+			},
 			"token": Object{
 				"type": "keyword",
 			},

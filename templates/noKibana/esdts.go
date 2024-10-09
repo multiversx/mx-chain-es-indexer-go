@@ -36,6 +36,10 @@ var ESDTs = Object{
 				"type":   "date",
 				"format": "epoch_second",
 			},
+			"changedToDynamicTimestamp": Object{
+				"type":   "date",
+				"format": "epoch_second",
+			},
 			"ownersHistory": Object{
 				"type": "nested",
 				"properties": Object{

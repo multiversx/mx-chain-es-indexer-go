@@ -18,6 +18,9 @@ const (
 	withdrawFunc           = "withdraw"
 	reDelegateRewardsFunc  = "reDelegateRewards"
 	claimRewardsFunc       = "claimRewards"
+
+	minNumTopicsClaimRewards                 = 2
+	numTopicsClaimRewardsWithContractAddress = 3
 )
 
 type delegatorsProc struct {
@@ -133,18 +136,23 @@ func (dp *delegatorsProc) getDelegatorFromClaimRewardsEvent(args *argsProcessEve
 	// topics slice contains:
 	// topics[0] -- claimed rewards
 	// topics[1] -- true = if delegator was deleted
+	// topics[2] -- if is present will contain the contract address
 
-	if len(topics) < 2 {
+	if len(topics) < minNumTopicsClaimRewards {
 		return nil
 	}
 
-	shouldDelete := bytesToBool(topics[1])
+	shouldDelete := bytesToBool(topics[minNumTopicsClaimRewards-1])
 	if !shouldDelete {
 		return nil
 	}
 
 	encodedAddr := dp.pubkeyConverter.SilentEncode(args.event.GetAddress(), log)
+
 	encodedContractAddr := dp.pubkeyConverter.SilentEncode(args.logAddress, log)
+	if len(topics) == numTopicsClaimRewardsWithContractAddress {
+		encodedContractAddr = dp.pubkeyConverter.SilentEncode(topics[numTopicsClaimRewardsWithContractAddress-1], log)
+	}
 
 	return &data.Delegator{
 		Address:      encodedAddr,
