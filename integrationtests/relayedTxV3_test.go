@@ -100,7 +100,7 @@ func TestRelayedTxV3(t *testing.T) {
 		string(genericResponse.Docs[0].Source),
 	)
 
-	ids = []string{"59d001d2804b6b4f5d56223577b4469852743622521cd5081b9f49e5c791af44", "a37e88461df25c1989b912b6a451c4e7c703d3d9b02eb1b4fd964c6362e7cbd4"}
+	ids = []string{"90cb33aad72cca66ec5f6caace6bdd7a8eb5b36b6d4e02b2712d264a9c53d7b8", "33e70412cb96952914955ad0497e0a4505dfbc795917c4488632f0a53bd05c2a"}
 	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.OperationsIndex, true, genericResponse)
 	require.Nil(t, err)
 

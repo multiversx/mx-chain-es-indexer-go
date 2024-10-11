@@ -36,10 +36,11 @@ func (ip *innerTxsProcessor) ExtractInnerTxs(
 		for _, innerTx := range tx.InnerTransactions {
 			innerTxCopy := *innerTx
 
+			innerTxCopy.RelayedTxHash = tx.Hash
+
 			id := ip.hasher.Compute(innerTxCopy.Hash + innerTxCopy.RelayedTxHash)
 			innerTxCopy.ID = hex.EncodeToString(id)
 			innerTxCopy.Type = InnerTxType
-			innerTxCopy.RelayedTxHash = tx.Hash
 			innerTxs = append(innerTxs, &innerTxCopy)
 		}
 	}
