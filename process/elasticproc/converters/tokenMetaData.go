@@ -83,11 +83,49 @@ func PrepareNFTUpdateData(buffSlice *data.BufferSlice, updateNFTData []*data.NFT
 		metaData := []byte(fmt.Sprintf(`{"update":{ "_index":"%s","_id":"%s"}}%s`, index, id, "\n"))
 		freezeOrUnfreezeTokenIndex := (nftUpdate.Freeze || nftUpdate.UnFreeze) && !isAccountsESDTIndex
 		if freezeOrUnfreezeTokenIndex {
-			return buffSlice.PutData(metaData, prepareSerializeDataForFreezeAndUnFreeze(nftUpdate))
+			err := buffSlice.PutData(metaData, prepareSerializeDataForFreezeAndUnFreeze(nftUpdate))
+			if err != nil {
+				return err
+			}
+			continue
 		}
 		pauseOrUnPauseTokenIndex := (nftUpdate.Pause || nftUpdate.UnPause) && !isAccountsESDTIndex
 		if pauseOrUnPauseTokenIndex {
-			return buffSlice.PutData(metaData, prepareSerializedDataForPauseAndUnPause(nftUpdate))
+			err := buffSlice.PutData(metaData, prepareSerializedDataForPauseAndUnPause(nftUpdate))
+			if err != nil {
+				return err
+			}
+
+			continue
+		}
+		if nftUpdate.NewMetaData != nil {
+			serializedData, err := prepareSerializedDataForMetaDataRecreate(nftUpdate)
+			if err != nil {
+				return err
+			}
+			err = buffSlice.PutData(metaData, serializedData)
+			if err != nil {
+				return err
+			}
+
+			continue
+		}
+
+		if nftUpdate.NewCreator != "" {
+			err := buffSlice.PutData(metaData, prepareSerializeDataForNewCreator(nftUpdate))
+			if err != nil {
+				return err
+			}
+
+			continue
+		}
+		if nftUpdate.NewRoyalties.HasValue {
+			err := buffSlice.PutData(metaData, prepareSerializeDataForNewRoyalties(nftUpdate))
+			if err != nil {
+				return err
+			}
+
+			continue
 		}
 
 		truncatedAttributes := TruncateFieldIfExceedsMaxLengthBase64(string(nftUpdate.NewAttributes))
@@ -134,7 +172,7 @@ func PrepareNFTUpdateData(buffSlice *data.BufferSlice, updateNFTData []*data.NFT
 
 			codeToExecute = `
 				if (ctx._source.containsKey('data')) {
-					if (!ctx._source.data.containsKey('uris')) {
+					if ((!ctx._source.data.containsKey('uris')) || (params.set)) {
 						ctx._source.data.uris = params.uris;
 					} else {
 						int i;
@@ -155,7 +193,7 @@ func PrepareNFTUpdateData(buffSlice *data.BufferSlice, updateNFTData []*data.NFT
 					ctx._source.data.nonEmptyURIs = true;
 				}
 `
-			serializedData = []byte(fmt.Sprintf(`{"script": {"source": "%s","lang": "painless","params": {"uris": %s}},"upsert": {}}`, FormatPainlessSource(codeToExecute), marshalizedURIS))
+			serializedData = []byte(fmt.Sprintf(`{"script": {"source": "%s","lang": "painless","params": {"uris": %s, "set":%t}},"upsert": {}}`, FormatPainlessSource(codeToExecute), marshalizedURIS, nftUpdate.SetURIs))
 		}
 
 		err := buffSlice.PutData(metaData, serializedData)
@@ -186,6 +224,48 @@ func prepareSerializedDataForPauseAndUnPause(nftUpdateData *data.NFTDataUpdate) 
 `
 	serializedData := []byte(fmt.Sprintf(`{"script": {"source": "%s","lang": "painless","params": {"paused": %t}}, "upsert": {}}`,
 		FormatPainlessSource(codeToExecute), paused),
+	)
+
+	return serializedData
+}
+
+func prepareSerializedDataForMetaDataRecreate(nftUpdateData *data.NFTDataUpdate) ([]byte, error) {
+	tokenMetaDataBytes, err := json.Marshal(nftUpdateData.NewMetaData)
+	if err != nil {
+		return nil, err
+	}
+
+	codeToExecute := `
+			ctx._source.data = params.metaData;
+`
+	serializedData := []byte(fmt.Sprintf(`{"script": {"source": "%s","lang": "painless","params": {"metaData": %s}}, "upsert": {}}`,
+		FormatPainlessSource(codeToExecute), tokenMetaDataBytes),
+	)
+
+	return serializedData, nil
+}
+
+func prepareSerializeDataForNewRoyalties(nftUpdateData *data.NFTDataUpdate) []byte {
+	codeToExecute := `
+			if (ctx._source.containsKey('data')) {
+				ctx._source.data.royalties = params.royalties;
+			}
+`
+	serializedData := []byte(fmt.Sprintf(`{"script": {"source": "%s","lang": "painless","params": {"royalties": %d}}, "upsert": {}}`,
+		FormatPainlessSource(codeToExecute), nftUpdateData.NewRoyalties.Value),
+	)
+
+	return serializedData
+}
+
+func prepareSerializeDataForNewCreator(nftUpdateData *data.NFTDataUpdate) []byte {
+	codeToExecute := `
+			if (ctx._source.containsKey('data')) {
+				ctx._source.data.creator = params.creator;
+			}
+`
+	serializedData := []byte(fmt.Sprintf(`{"script": {"source": "%s","lang": "painless","params": {"creator": "%s"}}, "upsert": {}}`,
+		FormatPainlessSource(codeToExecute), nftUpdateData.NewCreator),
 	)
 
 	return serializedData

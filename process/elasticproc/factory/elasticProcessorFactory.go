@@ -40,6 +40,10 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (dataindexer.E
 	if err != nil {
 		return nil, err
 	}
+	extraMappings, err := templatesAndPoliciesReader.GetExtraMappings()
+	if err != nil {
+		return nil, err
+	}
 
 	enabledIndexesMap := make(map[string]struct{})
 	for _, index := range arguments.EnabledIndexes {
@@ -119,6 +123,7 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (dataindexer.E
 		UseKibana:          arguments.UseKibana,
 		IndexTemplates:     indexTemplates,
 		IndexPolicies:      indexPolicies,
+		ExtraMappings:      extraMappings,
 		OperationsProc:     operationsProc,
 		ImportDB:           arguments.ImportDB,
 		Version:            arguments.Version,
