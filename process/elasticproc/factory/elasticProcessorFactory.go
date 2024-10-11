@@ -110,6 +110,11 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (dataindexer.E
 		return nil, err
 	}
 
+	innerTxsProc, err := innerTxs.NewInnerTxsProcessor(arguments.Hasher)
+	if err != nil {
+		return nil, err
+	}
+
 	args := &elasticproc.ArgElasticProcessor{
 		BulkRequestMaxSize: arguments.BulkRequestMaxSize,
 		TransactionsProc:   txsProc,
@@ -128,7 +133,7 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (dataindexer.E
 		OperationsProc:     operationsProc,
 		ImportDB:           arguments.ImportDB,
 		Version:            arguments.Version,
-		InnerTxsHandler:    innerTxs.NewInnerTxsProcessor(),
+		InnerTxsHandler:    innerTxsProc,
 	}
 
 	return elasticproc.NewElasticProcessor(args)

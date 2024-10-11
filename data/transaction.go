@@ -97,6 +97,7 @@ type FeeData struct {
 
 // InnerTransaction is the structure that contains data about an inner transaction
 type InnerTransaction struct {
+	ID                string `json:"-"`
 	Hash              string `json:"hash,omitempty"`
 	Type              string `json:"type,omitempty"`
 	Nonce             uint64 `json:"nonce"`

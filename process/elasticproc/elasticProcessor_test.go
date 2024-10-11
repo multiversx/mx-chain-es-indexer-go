@@ -74,7 +74,7 @@ func createMockElasticProcessorArgs() *ArgElasticProcessor {
 	}
 	lp, _ := logsevents.NewLogsAndEventsProcessor(args)
 	op, _ := operations.NewOperationsProcessor()
-	ip := innerTxs.NewInnerTxsProcessor()
+	ip, _ := innerTxs.NewInnerTxsProcessor(args.Hasher)
 
 	return &ArgElasticProcessor{
 		DBClient: &mock.DatabaseWriterStub{},

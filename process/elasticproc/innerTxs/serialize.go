@@ -29,15 +29,12 @@ func prepareSerializedDataForAInnerTx(
 	innerTx *data.InnerTransaction,
 	index string,
 ) ([]byte, []byte, error) {
-	innerTxHash := innerTx.Hash
-	innerTx.Hash = ""
-
 	marshaledSCR, err := json.Marshal(innerTx)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s","_id" : "%s" } }%s`, index, converters.JsonEscape(innerTxHash), "\n"))
+	meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s","_id" : "%s" } }%s`, index, converters.JsonEscape(innerTx.ID), "\n"))
 
 	return meta, marshaledSCR, nil
 }
