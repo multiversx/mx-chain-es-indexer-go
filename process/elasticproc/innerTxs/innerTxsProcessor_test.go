@@ -40,13 +40,13 @@ func TestInnerTxsProcessor_ExtractInnerTxs(t *testing.T) {
 	require.Equal(t, 2, len(res))
 	require.Equal(t, []*data.InnerTransaction{
 		{
-			ID:            "054efde0c8bb1ee713c9fe5981340d7efbf23b7aa72abeab9a63b64c21000188",
+			ID:            "b0a05b65beb800084f80b9b5c7c5894378213cd58e09663aa99322597f86c23e",
 			Type:          InnerTxType,
 			Hash:          "inner1",
 			RelayedTxHash: "txHash",
 		},
 		{
-			ID:            "e50a3fd30c5c7bba673dd18a0b329760f1bff34342978821c5d341067da70fa1",
+			ID:            "a9188f77578a4b629c91a237e66f2e833d3f9b850f1b9341bbeab5c7e38a14d9",
 			Type:          InnerTxType,
 			Hash:          "inner2",
 			RelayedTxHash: "txHash",
