@@ -7,7 +7,7 @@ require (
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/multiversx/mx-chain-communication-go v1.1.0
-	github.com/multiversx/mx-chain-core-go v1.2.21
+	github.com/multiversx/mx-chain-core-go v1.2.23-0.20241017083841-5e7b1485b6a1
 	github.com/multiversx/mx-chain-logger-go v1.0.15
 	github.com/multiversx/mx-chain-vm-common-go v1.5.13
 	github.com/prometheus/client_model v0.4.0

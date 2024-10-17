@@ -39,6 +39,9 @@ func checkArguments(arguments *ArgElasticProcessor) error {
 	if check.IfNilReflect(arguments.OperationsProc) {
 		return elasticIndexer.ErrNilOperationsHandler
 	}
+	if check.IfNilReflect(arguments.InnerTxsHandler) {
+		return elasticIndexer.ErrNilInnerTxsHandler
+	}
 
 	return nil
 }
