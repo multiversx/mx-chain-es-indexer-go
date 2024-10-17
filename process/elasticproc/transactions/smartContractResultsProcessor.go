@@ -189,6 +189,7 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 		OriginalSender:     originalSenderAddr,
 		InitialTxFee:       feeInfo.Fee.String(),
 		InitialTxGasUsed:   feeInfo.GasUsed,
+		ForRelayed:         feeInfo.ForRelayed,
 		ExecutionOrder:     int(scrInfo.ExecutionOrder),
 	}
 }

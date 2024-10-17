@@ -70,10 +70,11 @@ func (st *scrsDataToTransactions) processSCRsWithoutTx(scrs []*data.ScResult) ma
 		}
 
 		txHashRefund[scr.OriginalTxHash] = &data.FeeData{
-			FeeNum:   feeNum,
-			Fee:      scr.InitialTxFee,
-			GasUsed:  scr.InitialTxGasUsed,
-			Receiver: scr.Receiver,
+			FeeNum:     feeNum,
+			Fee:        scr.InitialTxFee,
+			GasUsed:    scr.InitialTxGasUsed,
+			Receiver:   scr.Receiver,
+			ForRelayed: scr.ForRelayed,
 		}
 	}
 

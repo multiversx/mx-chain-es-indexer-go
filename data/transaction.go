@@ -89,10 +89,11 @@ type ResponseTransactionDB struct {
 
 // FeeData is the structure that contains data about transaction fee and gas used
 type FeeData struct {
-	FeeNum   float64
-	Fee      string
-	GasUsed  uint64
-	Receiver string
+	FeeNum     float64
+	Fee        string
+	GasUsed    uint64
+	Receiver   string
+	ForRelayed bool
 }
 
 // InnerTransaction is the structure that contains data about an inner transaction

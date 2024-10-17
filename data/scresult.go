@@ -43,4 +43,5 @@ type ScResult struct {
 	SenderAddressBytes []byte        `json:"-"`
 	InitialTxGasUsed   uint64        `json:"-"`
 	InitialTxFee       string        `json:"-"`
+	ForRelayed         bool          `json:"-"`
 }
