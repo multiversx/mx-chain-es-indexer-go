@@ -299,7 +299,7 @@ func TestTxsDatabaseProcessor_PrepareTransactionRelayedV3(t *testing.T) {
 		Version:           1,
 		Receivers:         []string{"72637631", "72637632"},
 		ReceiversShardIDs: []uint32{1, 2},
-		InnerTransactions: []*transaction.FrontendTransaction{
+		InnerTransactions: []*data.InnerTransaction{
 			{
 				Nonce:     2,
 				Value:     "1000",

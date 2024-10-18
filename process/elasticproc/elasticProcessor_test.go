@@ -18,6 +18,7 @@ import (
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/accounts"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/block"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/innerTxs"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/logsevents"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/miniblocks"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/operations"
@@ -73,6 +74,7 @@ func createMockElasticProcessorArgs() *ArgElasticProcessor {
 	}
 	lp, _ := logsevents.NewLogsAndEventsProcessor(args)
 	op, _ := operations.NewOperationsProcessor()
+	ip, _ := innerTxs.NewInnerTxsProcessor(args.Hasher)
 
 	return &ArgElasticProcessor{
 		DBClient: &mock.DatabaseWriterStub{},
@@ -87,6 +89,7 @@ func createMockElasticProcessorArgs() *ArgElasticProcessor {
 		BlockProc:         bp,
 		LogsAndEventsProc: lp,
 		OperationsProc:    op,
+		InnerTxsHandler:   ip,
 	}
 }
 

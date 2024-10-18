@@ -9,6 +9,7 @@ import (
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/accounts"
 	blockProc "github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/block"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/innerTxs"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/logsevents"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/miniblocks"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/operations"
@@ -109,6 +110,11 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (dataindexer.E
 		return nil, err
 	}
 
+	innerTxsProc, err := innerTxs.NewInnerTxsProcessor(arguments.Hasher)
+	if err != nil {
+		return nil, err
+	}
+
 	args := &elasticproc.ArgElasticProcessor{
 		BulkRequestMaxSize: arguments.BulkRequestMaxSize,
 		TransactionsProc:   txsProc,
@@ -127,6 +133,7 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (dataindexer.E
 		OperationsProc:     operationsProc,
 		ImportDB:           arguments.ImportDB,
 		Version:            arguments.Version,
+		InnerTxsHandler:    innerTxsProc,
 	}
 
 	return elasticproc.NewElasticProcessor(args)
