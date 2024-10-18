@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	indexer "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
-	"github.com/multiversx/mx-chain-es-indexer-go/templates"
 	"github.com/multiversx/mx-chain-es-indexer-go/templates/noKibana"
 )
 
@@ -45,21 +44,4 @@ func (tr *templatesAndPolicyReaderNoKibana) GetElasticTemplatesAndPolicies() (ma
 	indexTemplates[indexer.EventsIndex] = noKibana.Events.ToBuffer()
 
 	return indexTemplates, indexPolicies, nil
-}
-
-// GetExtraMappings will return an array of indices extra mappings
-func (tr *templatesAndPolicyReaderNoKibana) GetExtraMappings() ([]templates.ExtraMapping, error) {
-	transactionsExtraMappings := templates.ExtraMapping{
-		Index:    indexer.TransactionsIndex,
-		Mappings: noKibana.InnerTxs.ToBuffer(),
-	}
-	operationsExtraMappings := templates.ExtraMapping{
-		Index:    indexer.OperationsIndex,
-		Mappings: noKibana.InnerTxs.ToBuffer(),
-	}
-
-	return []templates.ExtraMapping{
-		transactionsExtraMappings,
-		operationsExtraMappings,
-	}, nil
 }
