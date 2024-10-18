@@ -53,7 +53,7 @@ func (tdp *txsDatabaseProcessor) SerializeTransactionsFeeData(txHashRefund map[s
 		meta := []byte(fmt.Sprintf(`{"update":{ "_index":"%s","_id":"%s"}}%s`, index, converters.JsonEscape(txHash), "\n"))
 
 		var codeToExecute string
-		if feeData.ForRelayed {
+		if feeData.GasRefunded > 0 {
 			codeToExecute = `
 			if ('create' == ctx.op) {
 				ctx.op = 'noop'
@@ -66,8 +66,8 @@ func (tdp *txsDatabaseProcessor) SerializeTransactionsFeeData(txHashRefund map[s
 				if (ctx._source.feeNum > params.feeNum) {
 					ctx._source.feeNum -= params.feeNum;	
 				}
-				if (ctx._source.gasUsed > params.gasUsed) {
-					ctx._source.gasUsed -= params.gasUsed;	
+				if (ctx._source.gasUsed > params.gasRefunded) {
+					ctx._source.gasUsed -= params.gasRefunded;	
 				}
 			}
 `
@@ -86,9 +86,9 @@ func (tdp *txsDatabaseProcessor) SerializeTransactionsFeeData(txHashRefund map[s
 		serializedDataStr := fmt.Sprintf(`{"scripted_upsert": true, "script": {`+
 			`"source": "%s",`+
 			`"lang": "painless",`+
-			`"params": {"fee": "%s", "gasUsed": %d, "feeNum": %g}},`+
+			`"params": {"fee": "%s", "gasUsed": %d, "feeNum": %g, "gasRefunded": %d}},`+
 			`"upsert": {}}`,
-			converters.FormatPainlessSource(codeToExecute), feeData.Fee, feeData.GasUsed, feeData.FeeNum,
+			converters.FormatPainlessSource(codeToExecute), feeData.Fee, feeData.GasUsed, feeData.FeeNum, feeData.GasRefunded,
 		)
 
 		err := buffSlice.PutData(meta, []byte(serializedDataStr))

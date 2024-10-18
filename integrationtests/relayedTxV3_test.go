@@ -472,9 +472,8 @@ func TestRelayedV3TransactionWithMultipleRefunds(t *testing.T) {
 					OriginalTxHash: txHash,
 				},
 				FeeInfo: &outport.FeeInfo{
-					ForRelayed: true,
-					GasUsed:    9_692_000,
-					Fee:        big.NewInt(96920000000000),
+					GasRefunded: 9_692_000,
+					Fee:         big.NewInt(96920000000000),
 				},
 			},
 		},
@@ -500,9 +499,8 @@ func TestRelayedV3TransactionWithMultipleRefunds(t *testing.T) {
 					OriginalTxHash: txHash,
 				},
 				FeeInfo: &outport.FeeInfo{
-					ForRelayed: true,
-					GasUsed:    9_692_000,
-					Fee:        big.NewInt(96920000000000),
+					GasRefunded: 9_692_000,
+					Fee:         big.NewInt(96920000000000),
 				},
 			},
 		},
