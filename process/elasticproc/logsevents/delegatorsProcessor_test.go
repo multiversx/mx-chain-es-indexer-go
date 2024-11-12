@@ -199,3 +199,61 @@ func TestDelegatorsProcessor_WithdrawalShouldWorkWithNewTopics(t *testing.T) {
 	require.True(t, res.delegator.ShouldDelete)
 	require.Equal(t, []string{"696431", "696432"}, res.delegator.WithdrawFundIDs)
 }
+
+func TestDelegatorProcessor_RemoveDelegationFromSource(t *testing.T) {
+	t.Parallel()
+
+	event := &transaction.Event{
+		Address:    []byte("addr"),
+		Identifier: []byte(removeDelegationFromSourceFunc),
+		Topics:     [][]byte{big.NewInt(1000).Bytes(), big.NewInt(100000000000).Bytes(), big.NewInt(10).Bytes(), big.NewInt(1000000000).Bytes()},
+	}
+	args := &argsProcessEvent{
+		timestamp:   1234,
+		event:       event,
+		logAddress:  []byte("contract"),
+		selfShardID: core.MetachainShardId,
+	}
+
+	balanceConverter, _ := converters.NewBalanceConverter(10)
+	delegatorsProcessor := newDelegatorsProcessor(&mock.PubkeyConverterMock{}, balanceConverter)
+
+	res := delegatorsProcessor.processEvent(args)
+	require.True(t, res.processed)
+	require.Equal(t, &data.Delegator{
+		Address:        "61646472",
+		Contract:       "636f6e7472616374",
+		ActiveStakeNum: 10.0,
+		ActiveStake:    "100000000000",
+		Timestamp:      1234,
+	}, res.delegator)
+}
+
+func TestDelegatorProcessor_MoveDelegationToDestination(t *testing.T) {
+	t.Parallel()
+
+	event := &transaction.Event{
+		Address:    []byte("addr"),
+		Identifier: []byte(moveDelegationToDestinationFunc),
+		Topics:     [][]byte{big.NewInt(1000).Bytes(), big.NewInt(1000000000000).Bytes(), big.NewInt(10).Bytes(), big.NewInt(1000000000).Bytes()},
+	}
+	args := &argsProcessEvent{
+		timestamp:   1234,
+		event:       event,
+		logAddress:  []byte("contract"),
+		selfShardID: core.MetachainShardId,
+	}
+
+	balanceConverter, _ := converters.NewBalanceConverter(10)
+	delegatorsProcessor := newDelegatorsProcessor(&mock.PubkeyConverterMock{}, balanceConverter)
+
+	res := delegatorsProcessor.processEvent(args)
+	require.True(t, res.processed)
+	require.Equal(t, &data.Delegator{
+		Address:        "61646472",
+		Contract:       "636f6e7472616374",
+		ActiveStakeNum: 100.0,
+		ActiveStake:    "1000000000000",
+		Timestamp:      1234,
+	}, res.delegator)
+}

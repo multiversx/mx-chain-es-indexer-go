@@ -12,12 +12,14 @@ import (
 )
 
 const (
-	minNumTopicsDelegators = 4
-	delegateFunc           = "delegate"
-	unDelegateFunc         = "unDelegate"
-	withdrawFunc           = "withdraw"
-	reDelegateRewardsFunc  = "reDelegateRewards"
-	claimRewardsFunc       = "claimRewards"
+	minNumTopicsDelegators          = 4
+	delegateFunc                    = "delegate"
+	unDelegateFunc                  = "unDelegate"
+	withdrawFunc                    = "withdraw"
+	reDelegateRewardsFunc           = "reDelegateRewards"
+	claimRewardsFunc                = "claimRewards"
+	removeDelegationFromSourceFunc  = "removeDelegationFromSource"
+	moveDelegationToDestinationFunc = "moveDelegationToDestination"
 
 	minNumTopicsClaimRewards                 = 2
 	numTopicsClaimRewardsWithContractAddress = 3
@@ -35,11 +37,13 @@ func newDelegatorsProcessor(
 ) *delegatorsProc {
 	return &delegatorsProc{
 		delegatorsOperations: map[string]struct{}{
-			delegateFunc:          {},
-			unDelegateFunc:        {},
-			withdrawFunc:          {},
-			reDelegateRewardsFunc: {},
-			claimRewardsFunc:      {},
+			delegateFunc:                    {},
+			unDelegateFunc:                  {},
+			withdrawFunc:                    {},
+			reDelegateRewardsFunc:           {},
+			claimRewardsFunc:                {},
+			removeDelegationFromSourceFunc:  {},
+			moveDelegationToDestinationFunc: {},
 		},
 		pubkeyConverter:  pubkeyConverter,
 		balanceConverter: balanceConverter,
