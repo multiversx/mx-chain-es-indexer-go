@@ -86,7 +86,8 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 
 	senderUserName := converters.TruncateFieldIfExceedsMaxLengthBase64(string(tx.SndUserName))
 	receiverUserName := converters.TruncateFieldIfExceedsMaxLengthBase64(string(tx.RcvUserName))
-	return &data.Transaction{
+
+	eTx := &data.Transaction{
 		Hash:              hex.EncodeToString(txHash),
 		MBHash:            hex.EncodeToString(mbHash),
 		Nonce:             tx.Nonce,
@@ -110,19 +111,22 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		ReceiverUserName:  []byte(receiverUserName),
 		SenderUserName:    []byte(senderUserName),
 		IsScCall:          isScCall,
-		Operation:         res.Operation,
-		Function:          converters.TruncateFieldIfExceedsMaxLength(res.Function),
 		ESDTValues:        esdtValues,
 		ESDTValuesNum:     esdtValuesNum,
-		Tokens:            converters.TruncateSliceElementsIfExceedsMaxLength(res.Tokens),
 		Receivers:         receiversAddr,
-		ReceiversShardIDs: res.ReceiversShardID,
-		IsRelayed:         res.IsRelayed,
 		Version:           tx.Version,
 		GuardianAddress:   guardianAddress,
 		GuardianSignature: hex.EncodeToString(tx.GuardianSignature),
 		ExecutionOrder:    int(txInfo.ExecutionOrder),
+		Operation:         res.Operation,
 	}
+
+	eTx.Function = converters.TruncateFieldIfExceedsMaxLength(res.Function)
+	eTx.Tokens = converters.TruncateSliceElementsIfExceedsMaxLength(res.Tokens)
+	eTx.ReceiversShardIDs = res.ReceiversShardID
+	eTx.IsRelayed = res.IsRelayed
+
+	return eTx
 }
 
 func (dtb *dbTransactionBuilder) prepareRewardTransaction(
