@@ -169,3 +169,112 @@ func TestDelegateUnDelegateAndWithdraw(t *testing.T) {
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/delegators/delegator-after-withdraw.json"), string(genericResponse.Docs[0].Source))
 }
+
+func TestDelegateAndMoveDelegationFromSp1ToSp2(t *testing.T) {
+	setLogLevelDebug()
+
+	esClient, err := createESClient(esURL)
+	require.Nil(t, err)
+
+	esProc, err := CreateElasticProcessor(esClient)
+	require.Nil(t, err)
+
+	body := &dataBlock.Body{
+		MiniBlocks: []*dataBlock.MiniBlock{
+			{},
+		},
+	}
+	header := &dataBlock.Header{
+		Round:     50,
+		TimeStamp: 5040,
+		ShardID:   core.MetachainShardId,
+	}
+
+	address1 := "erd1zmn5ujvgkwsr8jufg57mrhzv48z4vgf5yaskksqnsvdu444ye6jq4s95hs"
+
+	// delegate
+	delegatedValue, _ := big.NewInt(0).SetString("500000000000000000000", 10)
+	pool := &outport.TransactionPool{
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
+					Address: decodeAddress("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqhllllsajxzat"),
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address1),
+							Identifier: []byte("delegate"),
+							Topics:     [][]byte{delegatedValue.Bytes(), delegatedValue.Bytes(), big.NewInt(10).Bytes(), delegatedValue.Bytes()},
+						},
+						nil,
+					},
+				},
+			},
+		},
+	}
+
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
+	require.Nil(t, err)
+
+	ids := []string{"Au89waoRy1f09NfieNNh66eJoAOP+k1ij5GzTSsrHaI="}
+	genericResponse := &GenericResponse{}
+	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.DelegatorsIndex, true, genericResponse)
+	require.Nil(t, err)
+	require.JSONEq(t, readExpectedResult("./testdata/delegators/migrate-delegate.json"), string(genericResponse.Docs[0].Source))
+
+	// migrate delegation events
+	header = &dataBlock.Header{
+		Round:     60,
+		TimeStamp: 6040,
+		ShardID:   core.MetachainShardId,
+	}
+
+	valueToMigrate, _ := big.NewInt(0).SetString("100000000000000000000", 10)
+	delegatedValue.Sub(delegatedValue, valueToMigrate)
+	pool = &outport.TransactionPool{
+		Logs: []*outport.LogData{
+			{
+				TxHash: hex.EncodeToString([]byte("h1")),
+				Log: &transaction.Log{
+					Address: decodeAddress("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqhllllsajxzat"),
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address1),
+							Identifier: []byte("removeDelegationFromSource"),
+							Topics:     [][]byte{valueToMigrate.Bytes(), delegatedValue.Bytes(), big.NewInt(10).Bytes(), delegatedValue.Bytes()},
+						},
+						nil,
+					},
+				},
+			},
+
+			{
+				TxHash: hex.EncodeToString([]byte("h2")),
+				Log: &transaction.Log{
+					Address: decodeAddress("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqk8llllssp7z7y"),
+					Events: []*transaction.Event{
+						{
+							Address:    decodeAddress(address1),
+							Identifier: []byte("moveDelegationToDestination"),
+							Topics:     [][]byte{valueToMigrate.Bytes(), valueToMigrate.Bytes(), big.NewInt(1).Bytes(), valueToMigrate.Bytes()},
+						},
+						nil,
+					},
+				},
+			},
+		},
+	}
+
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
+	require.Nil(t, err)
+
+	ids = []string{"Au89waoRy1f09NfieNNh66eJoAOP+k1ij5GzTSsrHaI=", "BWXCf3gA7Z4anFYDk8eOQQMbG9r+hcjTdUqaxGiDxkk="}
+	genericResponse = &GenericResponse{}
+	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.DelegatorsIndex, true, genericResponse)
+	require.Nil(t, err)
+	require.JSONEq(t, readExpectedResult("./testdata/delegators/migrate-on-sp1.json"), string(genericResponse.Docs[0].Source))
+
+	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.DelegatorsIndex, true, genericResponse)
+	require.Nil(t, err)
+	require.JSONEq(t, readExpectedResult("./testdata/delegators/migrate-on-sp2.json"), string(genericResponse.Docs[1].Source))
+}
