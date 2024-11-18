@@ -83,6 +83,10 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 	if len(tx.GuardianAddr) > 0 {
 		guardianAddress = dtb.addressPubkeyConverter.SilentEncode(tx.GuardianAddr, log)
 	}
+	relayedAddress := ""
+	if len(tx.RelayerAddr) > 0 {
+		relayedAddress = dtb.addressPubkeyConverter.SilentEncode(tx.RelayerAddr, log)
+	}
 
 	senderUserName := converters.TruncateFieldIfExceedsMaxLengthBase64(string(tx.SndUserName))
 	receiverUserName := converters.TruncateFieldIfExceedsMaxLengthBase64(string(tx.RcvUserName))
@@ -119,6 +123,8 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		GuardianSignature: hex.EncodeToString(tx.GuardianSignature),
 		ExecutionOrder:    int(txInfo.ExecutionOrder),
 		Operation:         res.Operation,
+		RelayedSignature:  hex.EncodeToString(tx.RelayerSignature),
+		RelayedAddr:       relayedAddress,
 	}
 
 	eTx.Function = converters.TruncateFieldIfExceedsMaxLength(res.Function)
