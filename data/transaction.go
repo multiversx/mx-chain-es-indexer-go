@@ -48,7 +48,8 @@ type Transaction struct {
 	GuardianSignature    string        `json:"guardianSignature,omitempty"`
 	ErrorEvent           bool          `json:"errorEvent,omitempty"`
 	CompletedEvent       bool          `json:"completedEvent,omitempty"`
-	RelayedAddr          string        `json:"relayed,omitempty"`
+	RelayedAddr          string        `json:"relayer,omitempty"`
+	RelayedSignature     string        `json:"relayerSignature,omitempty"`
 	ExecutionOrder       int           `json:"-"`
 	SmartContractResults []*ScResult   `json:"-"`
 	Hash                 string        `json:"-"`
