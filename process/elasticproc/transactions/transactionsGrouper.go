@@ -68,26 +68,9 @@ func (tg *txsGrouper) groupNormalTxs(
 	return transactions, nil
 }
 
-func extractExecutedTxHashes(mbIndex int, mbTxHashes [][]byte, header coreData.HeaderHandler) [][]byte {
-	miniblockHeaders := header.GetMiniBlockHeaderHandlers()
-	if len(miniblockHeaders) <= mbIndex {
-		return mbTxHashes
-	}
+func extractExecutedTxHashes(_ int, mbTxHashes [][]byte, _ coreData.HeaderHandler) [][]byte {
 
-	firstProcessed := miniblockHeaders[mbIndex].GetIndexOfFirstTxProcessed()
-	lastProcessed := miniblockHeaders[mbIndex].GetIndexOfLastTxProcessed()
-
-	executedTxHashes := make([][]byte, 0)
-	for txIndex, txHash := range mbTxHashes {
-		if int32(txIndex) < firstProcessed || int32(txIndex) > lastProcessed {
-			log.Warn("transaction not executed, rewards miniblock", "hash", hex.EncodeToString(txHash), "indexFirst", firstProcessed, "indexLast", lastProcessed)
-			continue
-		}
-
-		executedTxHashes = append(executedTxHashes, txHash)
-	}
-
-	return executedTxHashes
+	return mbTxHashes
 }
 
 func (tg *txsGrouper) prepareNormalTxForDB(
