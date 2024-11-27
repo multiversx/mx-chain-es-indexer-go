@@ -80,6 +80,7 @@ func extractExecutedTxHashes(mbIndex int, mbTxHashes [][]byte, header coreData.H
 	executedTxHashes := make([][]byte, 0)
 	for txIndex, txHash := range mbTxHashes {
 		if int32(txIndex) < firstProcessed || int32(txIndex) > lastProcessed {
+			log.Warn("transaction not executed, rewards miniblock", "hash", hex.EncodeToString(txHash), "indexFirst", firstProcessed, "indexLast", lastProcessed)
 			continue
 		}
 
