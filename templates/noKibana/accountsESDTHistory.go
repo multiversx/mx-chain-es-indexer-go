@@ -34,7 +34,7 @@ var AccountsESDTHistory = Object{
 				"format": "epoch_second",
 			},
 			"token": Object{
-				"type": "text",
+				"type": "keyword",
 			},
 			"tokenNonce": Object{
 				"type": "double",
