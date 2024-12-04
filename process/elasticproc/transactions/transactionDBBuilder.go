@@ -2,7 +2,6 @@ package transactions
 
 import (
 	"encoding/hex"
-	"fmt"
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
@@ -147,14 +146,15 @@ func (dtb *dbTransactionBuilder) prepareRewardTransaction(
 	receiverAddr := dtb.addressPubkeyConverter.SilentEncode(rTx.RcvAddr, log)
 
 	return &data.Transaction{
-		Hash:           hex.EncodeToString(txHash),
-		MBHash:         hex.EncodeToString(mbHash),
-		Nonce:          0,
-		Round:          rTx.Round,
-		Value:          rTx.Value.String(),
-		ValueNum:       valueNum,
-		Receiver:       receiverAddr,
-		Sender:         fmt.Sprintf("%d", core.MetachainShardId),
+		Hash:     hex.EncodeToString(txHash),
+		MBHash:   hex.EncodeToString(mbHash),
+		Nonce:    0,
+		Round:    rTx.Round,
+		Value:    rTx.Value.String(),
+		ValueNum: valueNum,
+		Receiver: receiverAddr,
+		// TODO use runtype components for sovereign node
+		Sender:         "sovereign",
 		ReceiverShard:  mb.ReceiverShardID,
 		SenderShard:    mb.SenderShardID,
 		GasPrice:       0,
