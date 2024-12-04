@@ -9,18 +9,23 @@ import (
 	coreData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/mock"
 	elasticIndexer "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
-	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
-	"github.com/stretchr/testify/require"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
 )
 
 func createMockArgs() *ArgsTransactionProcessor {
+	bc, _ := converters.NewBalanceConverter(18)
 	return &ArgsTransactionProcessor{
 		AddressPubkeyConverter: &mock.PubkeyConverterMock{},
 		Hasher:                 &mock.HasherMock{},
 		Marshalizer:            &mock.MarshalizerMock{},
+		BalanceConverter:       bc,
+		TxHashExtractor:        &mock.TxHashExtractorMock{},
 	}
 }
 
@@ -58,6 +63,24 @@ func TestNewTransactionsProcessor(t *testing.T) {
 				return args
 			},
 			exErr: elasticIndexer.ErrNilHasher,
+		},
+		{
+			name: "NilBalanceConverter",
+			args: func() *ArgsTransactionProcessor {
+				args := createMockArgs()
+				args.BalanceConverter = nil
+				return args
+			},
+			exErr: elasticIndexer.ErrNilBalanceConverter,
+		},
+		{
+			name: "NilTxHashExtractor",
+			args: func() *ArgsTransactionProcessor {
+				args := createMockArgs()
+				args.TxHashExtractor = nil
+				return args
+			},
+			exErr: ErrNilTxHashExtractor,
 		},
 	}
 

@@ -4,11 +4,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
-	"github.com/multiversx/mx-chain-es-indexer-go/factory"
 )
 
-func createComponents() (factory.RunTypeComponentsHandler, error) {
+func createComponents() (RunTypeComponentsHandler, error) {
 	rtcf := NewRunTypeComponentsFactory()
 	return NewManagedRunTypeComponents(rtcf)
 }
@@ -38,8 +36,12 @@ func TestManagedRunTypeComponents_Create(t *testing.T) {
 		managedRunTypeComponents, err := createComponents()
 		require.NoError(t, err)
 
+		require.Nil(t, managedRunTypeComponents.TxHashExtractorCreator())
+
 		err = managedRunTypeComponents.Create()
 		require.NoError(t, err)
+
+		require.NotNil(t, managedRunTypeComponents.TxHashExtractorCreator())
 
 		require.Equal(t, runTypeComponentsName, managedRunTypeComponents.String())
 		require.NoError(t, managedRunTypeComponents.Close())
