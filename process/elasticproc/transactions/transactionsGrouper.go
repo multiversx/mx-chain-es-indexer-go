@@ -69,7 +69,6 @@ func (tg *txsGrouper) groupNormalTxs(
 }
 
 func extractExecutedTxHashes(_ int, mbTxHashes [][]byte, _ coreData.HeaderHandler) [][]byte {
-
 	return mbTxHashes
 }
 
@@ -132,6 +131,7 @@ func (tg *txsGrouper) prepareRewardTxForDB(
 ) (*data.Transaction, bool) {
 	rtx, okGet := txs[hex.EncodeToString(txHash)]
 	if !okGet {
+		log.Warn("cannot find tx hash", "hash", hex.EncodeToString(txHash))
 		return nil, false
 	}
 
