@@ -12,14 +12,16 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+	logger "github.com/multiversx/mx-chain-logger-go"
+
 	"github.com/multiversx/mx-chain-es-indexer-go/client"
 	"github.com/multiversx/mx-chain-es-indexer-go/client/logging"
 	"github.com/multiversx/mx-chain-es-indexer-go/client/transport"
 	indexerCore "github.com/multiversx/mx-chain-es-indexer-go/core"
+	"github.com/multiversx/mx-chain-es-indexer-go/factory/runType"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/factory"
-	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 var log = logger.GetOrCreate("indexer/factory")
@@ -30,6 +32,7 @@ type ArgsIndexerFactory struct {
 	Enabled                  bool
 	UseKibana                bool
 	ImportDB                 bool
+	SovereignConfig          bool
 	Denomination             int
 	BulkRequestMaxSize       int
 	Url                      string
@@ -44,11 +47,21 @@ type ArgsIndexerFactory struct {
 	AddressPubkeyConverter   core.PubkeyConverter
 	ValidatorPubkeyConverter core.PubkeyConverter
 	StatusMetrics            indexerCore.StatusMetricsHandler
+	RunTypeComponents        runType.RunTypeComponentsHandler
 }
 
 // NewIndexer will create a new instance of Indexer
 func NewIndexer(args ArgsIndexerFactory) (dataindexer.Indexer, error) {
 	err := checkDataIndexerParams(args)
+	if err != nil {
+		return nil, err
+	}
+
+	if args.SovereignConfig {
+		args.RunTypeComponents, err = createManagedRunTypeComponents(runType.NewSovereignRunTypeComponentsFactory())
+	} else {
+		args.RunTypeComponents, err = createManagedRunTypeComponents(runType.NewRunTypeComponentsFactory())
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -70,6 +83,20 @@ func NewIndexer(args ArgsIndexerFactory) (dataindexer.Indexer, error) {
 	}
 
 	return dataindexer.NewDataIndexer(arguments)
+}
+
+func createManagedRunTypeComponents(factory runType.RunTypeComponentsCreator) (runType.RunTypeComponentsHandler, error) {
+	managedRunTypeComponents, err := runType.NewManagedRunTypeComponents(factory)
+	if err != nil {
+		return nil, err
+	}
+
+	err = managedRunTypeComponents.Create()
+	if err != nil {
+		return nil, err
+	}
+
+	return managedRunTypeComponents, nil
 }
 
 func retryBackOff(attempt int) time.Duration {

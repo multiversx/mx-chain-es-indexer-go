@@ -11,13 +11,14 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/core/closing"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
+	logger "github.com/multiversx/mx-chain-logger-go"
+	"github.com/multiversx/mx-chain-logger-go/file"
+	"github.com/urfave/cli"
+
 	"github.com/multiversx/mx-chain-es-indexer-go/config"
 	"github.com/multiversx/mx-chain-es-indexer-go/factory"
 	"github.com/multiversx/mx-chain-es-indexer-go/metrics"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/wsindexer"
-	logger "github.com/multiversx/mx-chain-logger-go"
-	"github.com/multiversx/mx-chain-logger-go/file"
-	"github.com/urfave/cli"
 )
 
 var (
@@ -63,6 +64,7 @@ func main() {
 		logLevel,
 		logSaveFile,
 		disableAnsiColor,
+		sovereign,
 	}
 	app.Authors = []cli.Author{
 		{
@@ -98,7 +100,7 @@ func startIndexer(ctx *cli.Context) error {
 	}
 
 	statusMetrics := metrics.NewStatusMetrics()
-	wsHost, err := factory.CreateWsIndexer(cfg, clusterCfg, statusMetrics, ctx.App.Version)
+	wsHost, err := factory.CreateWsIndexer(cfg, clusterCfg, statusMetrics, ctx.App.Version, ctx.GlobalBool(sovereign.Name))
 	if err != nil {
 		return fmt.Errorf("%w while creating the indexer", err)
 	}
