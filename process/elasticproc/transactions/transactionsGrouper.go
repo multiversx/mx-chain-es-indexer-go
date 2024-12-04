@@ -131,7 +131,6 @@ func (tg *txsGrouper) prepareRewardTxForDB(
 ) (*data.Transaction, bool) {
 	rtx, okGet := txs[hex.EncodeToString(txHash)]
 	if !okGet {
-		log.Warn("cannot find tx hash", "hash", hex.EncodeToString(txHash))
 		return nil, false
 	}
 
