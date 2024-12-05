@@ -12,13 +12,15 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/multiversx/mx-chain-core-go/core/pubkeyConverter"
+	logger "github.com/multiversx/mx-chain-logger-go"
+
 	"github.com/multiversx/mx-chain-es-indexer-go/client"
 	"github.com/multiversx/mx-chain-es-indexer-go/client/logging"
 	"github.com/multiversx/mx-chain-es-indexer-go/mock"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/factory"
-	logger "github.com/multiversx/mx-chain-logger-go"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/transactions"
 )
 
 var (
@@ -60,7 +62,8 @@ func CreateElasticProcessor(
 		EnabledIndexes: []string{dataindexer.TransactionsIndex, dataindexer.LogsIndex, dataindexer.AccountsESDTIndex, dataindexer.ScResultsIndex,
 			dataindexer.ReceiptsIndex, dataindexer.BlockIndex, dataindexer.AccountsIndex, dataindexer.TokensIndex, dataindexer.TagsIndex, dataindexer.EventsIndex,
 			dataindexer.OperationsIndex, dataindexer.DelegatorsIndex, dataindexer.ESDTsIndex, dataindexer.SCDeploysIndex, dataindexer.MiniblocksIndex, dataindexer.ValuesIndex},
-		Denomination: 18,
+		Denomination:    18,
+		TxHashExtractor: transactions.NewTxHashExtractor(),
 	}
 
 	return factory.CreateElasticProcessor(args)
