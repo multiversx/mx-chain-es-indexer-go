@@ -28,7 +28,7 @@ func createMockArgsTxsDBProc() *ArgsTransactionProcessor {
 		Hasher:                 &mock.HasherMock{},
 		Marshalizer:            &mock.MarshalizerMock{},
 		BalanceConverter:       ap,
-		TxHashExtractor:        &mock.TxHashExtractorMock{},
+		TxHashExtractor:        NewTxHashExtractor(),
 	}
 	return args
 }
