@@ -6,7 +6,7 @@ import (
 
 type txHashExtractor struct{}
 
-// NewTxHashExtractor created a new tx hash extractor
+// NewTxHashExtractor creates a new tx hash extractor
 func NewTxHashExtractor() *txHashExtractor {
 	return &txHashExtractor{}
 }

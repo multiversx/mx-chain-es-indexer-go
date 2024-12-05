@@ -6,7 +6,7 @@ import (
 
 type sovereignTxHashExtractor struct{}
 
-// NewSovereignTxHashExtractor created a new sovereign tx hash extractor
+// NewSovereignTxHashExtractor creates a new sovereign tx hash extractor
 func NewSovereignTxHashExtractor() *sovereignTxHashExtractor {
 	return &sovereignTxHashExtractor{}
 }
