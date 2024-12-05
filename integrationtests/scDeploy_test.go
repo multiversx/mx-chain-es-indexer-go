@@ -261,12 +261,12 @@ func TestScDeployWithSignalErrorAndCompleteTxEvent(t *testing.T) {
 						{
 							Address:    decodeAddress(sndAddress),
 							Identifier: []byte(core.SignalErrorOperation),
-							Topics:     [][]byte{decodeAddress("h1"), decodeAddress("h1"), []byte("h1")},
+							Topics:     [][]byte{[]byte("h1"), []byte("h1"), []byte("h1")},
 						},
 						{
 							Address:    decodeAddress(sndAddress),
 							Identifier: []byte(core.CompletedTxEventIdentifier),
-							Topics:     [][]byte{decodeAddress("h2"), decodeAddress("h2"), []byte("h2")},
+							Topics:     [][]byte{[]byte("h2"), []byte("h2"), []byte("h2")},
 						},
 					},
 				},
