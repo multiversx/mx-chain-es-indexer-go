@@ -49,11 +49,6 @@ func (ilp *informativeLogsProcessor) processEvent(args *argsProcessEvent) argOut
 		}
 	}
 
-	setSuccess := tx.CompletedEvent && tx.ErrorEvent
-	if setSuccess {
-		tx.Status = transaction.TxStatusSuccess.String()
-	}
-
 	return argOutputProcessEvent{
 		processed: true,
 	}
