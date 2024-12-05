@@ -33,6 +33,7 @@ type ArgElasticProcessorFactory struct {
 	UseKibana                bool
 	ImportDB                 bool
 	TxHashExtractor          transactions.TxHashExtractor
+	RewardTxData             transactions.RewardTxData
 }
 
 // CreateElasticProcessor will create a new instance of ElasticProcessor
@@ -90,6 +91,7 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (dataindexer.E
 		Marshalizer:            arguments.Marshalizer,
 		BalanceConverter:       balanceConverter,
 		TxHashExtractor:        arguments.TxHashExtractor,
+		RewardTxData:           arguments.RewardTxData,
 	}
 	txsProc, err := transactions.NewTransactionsProcessor(argsTxsProc)
 	if err != nil {

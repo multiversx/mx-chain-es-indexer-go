@@ -20,6 +20,7 @@ func TestCreateElasticProcessor(t *testing.T) {
 		Denomination:             1,
 		UseKibana:                false,
 		TxHashExtractor:          &mock.TxHashExtractorMock{},
+		RewardTxData:             &mock.RewardTxDataMock{},
 	}
 
 	ep, err := CreateElasticProcessor(args)

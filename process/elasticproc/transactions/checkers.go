@@ -39,6 +39,9 @@ func checkTxsProcessorArg(args *ArgsTransactionProcessor) error {
 	if check.IfNil(args.TxHashExtractor) {
 		return ErrNilTxHashExtractor
 	}
+	if check.IfNil(args.RewardTxData) {
+		return ErrNilRewardTxData
+	}
 
 	return nil
 }
