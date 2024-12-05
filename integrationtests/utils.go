@@ -64,6 +64,7 @@ func CreateElasticProcessor(
 			dataindexer.OperationsIndex, dataindexer.DelegatorsIndex, dataindexer.ESDTsIndex, dataindexer.SCDeploysIndex, dataindexer.MiniblocksIndex, dataindexer.ValuesIndex},
 		Denomination:    18,
 		TxHashExtractor: transactions.NewTxHashExtractor(),
+		RewardTxData:    transactions.NewRewardTxData(),
 	}
 
 	return factory.CreateElasticProcessor(args)
