@@ -20,3 +20,9 @@ type TxHashExtractor interface {
 	ExtractExecutedTxHashes(mbIndex int, mbTxHashes [][]byte, header coreData.HeaderHandler) [][]byte
 	IsInterfaceNil() bool
 }
+
+// RewardTxData defines what rewards tx handler should be able to do
+type RewardTxData interface {
+	GetSender() string
+	IsInterfaceNil() bool
+}

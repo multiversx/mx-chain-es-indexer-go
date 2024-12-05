@@ -15,6 +15,7 @@ func NewSovereignRunTypeComponentsFactory() *sovereignRunTypeComponentsFactory {
 func (srtcf *sovereignRunTypeComponentsFactory) Create() *runTypeComponents {
 	return &runTypeComponents{
 		txHashExtractor: transactions.NewSovereignTxHashExtractor(),
+		rewardTxData:    transactions.NewSovereignRewardTxData(),
 	}
 }
 
