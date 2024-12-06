@@ -27,6 +27,7 @@ type RunTypeComponentsHandler interface {
 // RunTypeComponentsHolder holds the run type components
 type RunTypeComponentsHolder interface {
 	TxHashExtractorCreator() transactions.TxHashExtractor
+	RewardTxDataCreator() transactions.RewardTxDataHandler
 	Create() error
 	Close() error
 	CheckSubcomponents() error

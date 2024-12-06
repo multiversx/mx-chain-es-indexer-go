@@ -26,6 +26,7 @@ func createMockArgs() *ArgsTransactionProcessor {
 		Marshalizer:            &mock.MarshalizerMock{},
 		BalanceConverter:       bc,
 		TxHashExtractor:        &mock.TxHashExtractorMock{},
+		RewardTxData:           &mock.RewardTxDataMock{},
 	}
 }
 
@@ -81,6 +82,15 @@ func TestNewTransactionsProcessor(t *testing.T) {
 				return args
 			},
 			exErr: ErrNilTxHashExtractor,
+		},
+		{
+			name: "NilTxHashExtractor",
+			args: func() *ArgsTransactionProcessor {
+				args := createMockArgs()
+				args.RewardTxData = nil
+				return args
+			},
+			exErr: ErrNilRewardTxData,
 		},
 	}
 

@@ -28,6 +28,7 @@ type ArgsTransactionProcessor struct {
 	Marshalizer            marshal.Marshalizer
 	BalanceConverter       dataindexer.BalanceConverter
 	TxHashExtractor        TxHashExtractor
+	RewardTxData           RewardTxDataHandler
 }
 
 type txsDatabaseProcessor struct {
@@ -53,7 +54,7 @@ func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txsDatabaseProce
 		return nil, err
 	}
 
-	txBuilder := newTransactionDBBuilder(args.AddressPubkeyConverter, operationsDataParser, args.BalanceConverter)
+	txBuilder := newTransactionDBBuilder(args.AddressPubkeyConverter, operationsDataParser, args.BalanceConverter, args.RewardTxData)
 	txsDBGrouper := newTxsGrouper(txBuilder, args.Hasher, args.Marshalizer, args.TxHashExtractor)
 	scrProc := newSmartContractResultsProcessor(args.AddressPubkeyConverter, args.Marshalizer, args.Hasher, operationsDataParser, args.BalanceConverter)
 	scrsDataToTxs := newScrsDataToTransactions(args.BalanceConverter)

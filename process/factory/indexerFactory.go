@@ -125,6 +125,7 @@ func createElasticProcessor(args ArgsIndexerFactory) (dataindexer.ElasticProcess
 		ImportDB:                 args.ImportDB,
 		Version:                  args.Version,
 		TxHashExtractor:          args.RunTypeComponents.TxHashExtractorCreator(),
+		RewardTxData:             args.RunTypeComponents.RewardTxDataCreator(),
 	}
 
 	return factory.CreateElasticProcessor(argsElasticProcFac)
