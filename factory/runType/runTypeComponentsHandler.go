@@ -4,6 +4,8 @@ import (
 	"sync"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
+
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/transactions"
 )
 
 const runTypeComponentsName = "managedRunTypeComponents"
@@ -67,7 +69,22 @@ func (mrtc *managedRunTypeComponents) CheckSubcomponents() error {
 	if check.IfNil(mrtc.runTypeComponents) {
 		return errNilRunTypeComponents
 	}
+	if check.IfNil(mrtc.txHashExtractor) {
+		return transactions.ErrNilTxHashExtractor
+	}
 	return nil
+}
+
+// TxHashExtractorCreator returns tx hash extractor
+func (mrtc *managedRunTypeComponents) TxHashExtractorCreator() transactions.TxHashExtractor {
+	mrtc.mutRunTypeCoreComponents.Lock()
+	defer mrtc.mutRunTypeCoreComponents.Unlock()
+
+	if check.IfNil(mrtc.runTypeComponents) {
+		return nil
+	}
+
+	return mrtc.runTypeComponents.txHashExtractor
 }
 
 // IsInterfaceNil returns true if the interface is nil

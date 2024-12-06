@@ -1,6 +1,12 @@
 package runType
 
-type runTypeComponents struct{}
+import (
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/transactions"
+)
+
+type runTypeComponents struct {
+	txHashExtractor transactions.TxHashExtractor
+}
 
 // Close does nothing
 func (rtc *runTypeComponents) Close() error {

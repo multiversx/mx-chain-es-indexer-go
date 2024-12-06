@@ -3,8 +3,9 @@ package factory
 import (
 	"testing"
 
-	"github.com/multiversx/mx-chain-es-indexer-go/mock"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-es-indexer-go/mock"
 )
 
 func TestCreateElasticProcessor(t *testing.T) {
@@ -18,6 +19,7 @@ func TestCreateElasticProcessor(t *testing.T) {
 		EnabledIndexes:           []string{"blocks"},
 		Denomination:             1,
 		UseKibana:                false,
+		TxHashExtractor:          &mock.TxHashExtractorMock{},
 	}
 
 	ep, err := CreateElasticProcessor(args)

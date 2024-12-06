@@ -11,6 +11,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 )
 
@@ -19,20 +20,23 @@ const (
 )
 
 type txsGrouper struct {
-	txBuilder   *dbTransactionBuilder
-	hasher      hashing.Hasher
-	marshalizer marshal.Marshalizer
+	txBuilder       *dbTransactionBuilder
+	hasher          hashing.Hasher
+	marshalizer     marshal.Marshalizer
+	txHashExtractor TxHashExtractor
 }
 
 func newTxsGrouper(
 	txBuilder *dbTransactionBuilder,
 	hasher hashing.Hasher,
 	marshalizer marshal.Marshalizer,
+	txHashExtractor TxHashExtractor,
 ) *txsGrouper {
 	return &txsGrouper{
-		txBuilder:   txBuilder,
-		hasher:      hasher,
-		marshalizer: marshalizer,
+		txBuilder:       txBuilder,
+		hasher:          hasher,
+		marshalizer:     marshalizer,
+		txHashExtractor: txHashExtractor,
 	}
 }
 
@@ -52,7 +56,7 @@ func (tg *txsGrouper) groupNormalTxs(
 	}
 
 	selfShardID := header.GetShardID()
-	executedTxHashes := extractExecutedTxHashes(mbIndex, mb.TxHashes, header)
+	executedTxHashes := tg.txHashExtractor.ExtractExecutedTxHashes(mbIndex, mb.TxHashes, header)
 	mbStatus := computeStatus(selfShardID, mb.ReceiverShardID)
 	for _, txHash := range executedTxHashes {
 		dbTx, ok := tg.prepareNormalTxForDB(mbHash, mb, mbStatus, txHash, txs, header, numOfShards)
@@ -66,27 +70,6 @@ func (tg *txsGrouper) groupNormalTxs(
 	}
 
 	return transactions, nil
-}
-
-func extractExecutedTxHashes(mbIndex int, mbTxHashes [][]byte, header coreData.HeaderHandler) [][]byte {
-	miniblockHeaders := header.GetMiniBlockHeaderHandlers()
-	if len(miniblockHeaders) <= mbIndex {
-		return mbTxHashes
-	}
-
-	firstProcessed := miniblockHeaders[mbIndex].GetIndexOfFirstTxProcessed()
-	lastProcessed := miniblockHeaders[mbIndex].GetIndexOfLastTxProcessed()
-
-	executedTxHashes := make([][]byte, 0)
-	for txIndex, txHash := range mbTxHashes {
-		if int32(txIndex) < firstProcessed || int32(txIndex) > lastProcessed {
-			continue
-		}
-
-		executedTxHashes = append(executedTxHashes, txHash)
-	}
-
-	return executedTxHashes
 }
 
 func (tg *txsGrouper) prepareNormalTxForDB(
@@ -123,7 +106,7 @@ func (tg *txsGrouper) groupRewardsTxs(
 
 	selfShardID := header.GetShardID()
 	mbStatus := computeStatus(selfShardID, mb.ReceiverShardID)
-	executedTxHashes := extractExecutedTxHashes(mbIndex, mb.TxHashes, header)
+	executedTxHashes := tg.txHashExtractor.ExtractExecutedTxHashes(mbIndex, mb.TxHashes, header)
 	for _, txHash := range executedTxHashes {
 		rewardDBTx, ok := tg.prepareRewardTxForDB(mbHash, mb, mbStatus, txHash, txs, header)
 		if !ok {
@@ -169,7 +152,7 @@ func (tg *txsGrouper) groupInvalidTxs(
 		return nil, err
 	}
 
-	executedTxHashes := extractExecutedTxHashes(mbIndex, mb.TxHashes, header)
+	executedTxHashes := tg.txHashExtractor.ExtractExecutedTxHashes(mbIndex, mb.TxHashes, header)
 	for _, txHash := range executedTxHashes {
 		invalidDBTx, ok := tg.prepareInvalidTxForDB(mbHash, mb, txHash, txs, header, numOfShards)
 		if !ok {
