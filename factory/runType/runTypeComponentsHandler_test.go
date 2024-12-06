@@ -4,11 +4,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
-	"github.com/multiversx/mx-chain-es-indexer-go/factory"
 )
 
-func createComponents() (factory.RunTypeComponentsHandler, error) {
+func createComponents() (RunTypeComponentsHandler, error) {
 	rtcf := NewRunTypeComponentsFactory()
 	return NewManagedRunTypeComponents(rtcf)
 }

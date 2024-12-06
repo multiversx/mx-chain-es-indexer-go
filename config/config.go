@@ -29,6 +29,7 @@ type Config struct {
 			LogsPath             string `toml:"logs-path"`
 		} `toml:"logs"`
 	} `toml:"config"`
+	SovereignType bool
 }
 
 // ClusterConfig will hold the config for the Elasticsearch cluster

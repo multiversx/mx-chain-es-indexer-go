@@ -4,15 +4,13 @@ import (
 	"sync"
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
-
-	"github.com/multiversx/mx-chain-es-indexer-go/factory"
 )
 
 const runTypeComponentsName = "managedRunTypeComponents"
 
-var _ factory.ComponentHandler = (*managedRunTypeComponents)(nil)
-var _ factory.RunTypeComponentsHandler = (*managedRunTypeComponents)(nil)
-var _ factory.RunTypeComponentsHolder = (*managedRunTypeComponents)(nil)
+var _ ComponentHandler = (*managedRunTypeComponents)(nil)
+var _ RunTypeComponentsHandler = (*managedRunTypeComponents)(nil)
+var _ RunTypeComponentsHolder = (*managedRunTypeComponents)(nil)
 
 type managedRunTypeComponents struct {
 	*runTypeComponents
