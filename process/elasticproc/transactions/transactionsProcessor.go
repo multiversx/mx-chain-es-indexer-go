@@ -28,7 +28,7 @@ type ArgsTransactionProcessor struct {
 	Marshalizer            marshal.Marshalizer
 	BalanceConverter       dataindexer.BalanceConverter
 	TxHashExtractor        TxHashExtractor
-	RewardTxData           RewardTxData
+	RewardTxData           RewardTxDataHandler
 }
 
 type txsDatabaseProcessor struct {

@@ -13,7 +13,7 @@ func NewSovereignRewardTxData() *sovereignRewardTxData {
 	return &sovereignRewardTxData{}
 }
 
-// GetSender return the shard id as string
+// GetSender return the sovereign shard id as string
 func (srtd *sovereignRewardTxData) GetSender() string {
 	return fmt.Sprintf("%d", core.SovereignChainShardId)
 }

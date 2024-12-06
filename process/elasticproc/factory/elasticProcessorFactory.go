@@ -33,7 +33,7 @@ type ArgElasticProcessorFactory struct {
 	UseKibana                bool
 	ImportDB                 bool
 	TxHashExtractor          transactions.TxHashExtractor
-	RewardTxData             transactions.RewardTxData
+	RewardTxData             transactions.RewardTxDataHandler
 }
 
 // CreateElasticProcessor will create a new instance of ElasticProcessor

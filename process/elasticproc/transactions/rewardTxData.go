@@ -13,7 +13,7 @@ func NewRewardTxData() *rewardTxData {
 	return &rewardTxData{}
 }
 
-// GetSender return the shard id as string
+// GetSender return the metachain shard id as string
 func (rtd *rewardTxData) GetSender() string {
 	return fmt.Sprintf("%d", core.MetachainShardId)
 }

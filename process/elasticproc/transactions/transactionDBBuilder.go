@@ -20,14 +20,14 @@ type dbTransactionBuilder struct {
 	addressPubkeyConverter core.PubkeyConverter
 	dataFieldParser        DataFieldParser
 	balanceConverter       dataindexer.BalanceConverter
-	rewardTxData           RewardTxData
+	rewardTxData           RewardTxDataHandler
 }
 
 func newTransactionDBBuilder(
 	addressPubkeyConverter core.PubkeyConverter,
 	dataFieldParser DataFieldParser,
 	balanceConverter dataindexer.BalanceConverter,
-	rewardTxData RewardTxData,
+	rewardTxData RewardTxDataHandler,
 ) *dbTransactionBuilder {
 	return &dbTransactionBuilder{
 		addressPubkeyConverter: addressPubkeyConverter,

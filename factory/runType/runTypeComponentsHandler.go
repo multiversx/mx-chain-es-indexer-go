@@ -91,7 +91,7 @@ func (mrtc *managedRunTypeComponents) TxHashExtractorCreator() transactions.TxHa
 }
 
 // RewardTxDataCreator return reward tx handler
-func (mrtc *managedRunTypeComponents) RewardTxDataCreator() transactions.RewardTxData {
+func (mrtc *managedRunTypeComponents) RewardTxDataCreator() transactions.RewardTxDataHandler {
 	mrtc.mutRunTypeCoreComponents.Lock()
 	defer mrtc.mutRunTypeCoreComponents.Unlock()
 
