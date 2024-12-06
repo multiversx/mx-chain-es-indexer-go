@@ -47,9 +47,9 @@ var (
 		Name:  "disable-ansi-color",
 		Usage: "Boolean option for disabling ANSI colors in the logging system.",
 	}
-	// sovereign defines a flag that specifies if what run type components should use
+	// sovereign defines a flag that specifies if the es instance should run for a sovereign chain
 	sovereign = cli.BoolFlag{
-		Name:  "sovereign-config",
+		Name:  "sovereign",
 		Usage: "If set to true, will use sovereign run type components",
 	}
 )

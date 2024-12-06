@@ -88,6 +88,7 @@ func startIndexer(ctx *cli.Context) error {
 	if err != nil {
 		return fmt.Errorf("%w while loading the config file", err)
 	}
+	cfg.SovereignType = ctx.GlobalBool(sovereign.Name)
 
 	clusterCfg, err := loadClusterConfig(ctx.GlobalString(configurationPreferencesFile.Name))
 	if err != nil {
@@ -100,7 +101,7 @@ func startIndexer(ctx *cli.Context) error {
 	}
 
 	statusMetrics := metrics.NewStatusMetrics()
-	wsHost, err := factory.CreateWsIndexer(cfg, clusterCfg, statusMetrics, ctx.App.Version, ctx.GlobalBool(sovereign.Name))
+	wsHost, err := factory.CreateWsIndexer(cfg, clusterCfg, statusMetrics, ctx.App.Version)
 	if err != nil {
 		return fmt.Errorf("%w while creating the indexer", err)
 	}

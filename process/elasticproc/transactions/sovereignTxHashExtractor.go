@@ -11,7 +11,7 @@ func NewSovereignTxHashExtractor() *sovereignTxHashExtractor {
 	return &sovereignTxHashExtractor{}
 }
 
-// ExtractExecutedTxHashes returns executed tx hashes
+// ExtractExecutedTxHashes returns directly the provided mini block tx hashes
 func (the *sovereignTxHashExtractor) ExtractExecutedTxHashes(_ int, mbTxHashes [][]byte, _ coreData.HeaderHandler) [][]byte {
 	return mbTxHashes
 }

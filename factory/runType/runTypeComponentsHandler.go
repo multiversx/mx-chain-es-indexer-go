@@ -78,7 +78,7 @@ func (mrtc *managedRunTypeComponents) CheckSubcomponents() error {
 	return nil
 }
 
-// TxHashExtractorCreator return tx hash extractor
+// TxHashExtractorCreator returns tx hash extractor
 func (mrtc *managedRunTypeComponents) TxHashExtractorCreator() transactions.TxHashExtractor {
 	mrtc.mutRunTypeCoreComponents.Lock()
 	defer mrtc.mutRunTypeCoreComponents.Unlock()
