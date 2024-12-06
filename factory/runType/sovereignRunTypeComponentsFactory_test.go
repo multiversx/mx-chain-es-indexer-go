@@ -10,7 +10,7 @@ func TestSovereignRunTypeComponentsFactory_CreateAndClose(t *testing.T) {
 	t.Parallel()
 
 	srtcf := NewSovereignRunTypeComponentsFactory()
-	require.NotNil(t, srtcf)
+	require.False(t, srtcf.IsInterfaceNil())
 
 	srtc := srtcf.Create()
 	require.NotNil(t, srtc)
