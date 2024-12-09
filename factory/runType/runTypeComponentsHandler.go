@@ -72,6 +72,9 @@ func (mrtc *managedRunTypeComponents) CheckSubcomponents() error {
 	if check.IfNil(mrtc.txHashExtractor) {
 		return transactions.ErrNilTxHashExtractor
 	}
+	if check.IfNil(mrtc.rewardTxData) {
+		return transactions.ErrNilRewardTxDataHandler
+	}
 	return nil
 }
 
@@ -85,6 +88,18 @@ func (mrtc *managedRunTypeComponents) TxHashExtractorCreator() transactions.TxHa
 	}
 
 	return mrtc.runTypeComponents.txHashExtractor
+}
+
+// RewardTxDataCreator return reward tx handler
+func (mrtc *managedRunTypeComponents) RewardTxDataCreator() transactions.RewardTxDataHandler {
+	mrtc.mutRunTypeCoreComponents.Lock()
+	defer mrtc.mutRunTypeCoreComponents.Unlock()
+
+	if check.IfNil(mrtc.runTypeComponents) {
+		return nil
+	}
+
+	return mrtc.runTypeComponents.rewardTxData
 }
 
 // IsInterfaceNil returns true if the interface is nil

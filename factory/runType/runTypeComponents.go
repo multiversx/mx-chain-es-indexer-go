@@ -6,6 +6,7 @@ import (
 
 type runTypeComponents struct {
 	txHashExtractor transactions.TxHashExtractor
+	rewardTxData    transactions.RewardTxDataHandler
 }
 
 // Close does nothing

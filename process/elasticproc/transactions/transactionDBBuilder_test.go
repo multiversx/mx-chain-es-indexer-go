@@ -2,20 +2,19 @@ package transactions
 
 import (
 	"encoding/hex"
-	"fmt"
 	"math/big"
 	"testing"
 	"time"
 
-	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/rewardTx"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/mock"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
-	"github.com/stretchr/testify/require"
 )
 
 func createCommonProcessor() dbTransactionBuilder {
@@ -24,6 +23,7 @@ func createCommonProcessor() dbTransactionBuilder {
 		addressPubkeyConverter: mock.NewPubkeyConverterMock(32),
 		dataFieldParser:        createDataFieldParserMock(),
 		balanceConverter:       ap,
+		rewardTxData:           &mock.RewardTxDataMock{},
 	}
 }
 
@@ -105,7 +105,13 @@ func TestGetMoveBalanceTransaction(t *testing.T) {
 func TestGetTransactionByType_RewardTx(t *testing.T) {
 	t.Parallel()
 
+	sender := "sender"
 	cp := createCommonProcessor()
+	cp.rewardTxData = &mock.RewardTxDataMock{
+		GetSenderCalled: func() string {
+			return sender
+		},
+	}
 
 	round := uint64(10)
 	rcvAddr := []byte("receiver")
@@ -127,7 +133,7 @@ func TestGetTransactionByType_RewardTx(t *testing.T) {
 		Receiver:  hex.EncodeToString(rcvAddr),
 		Status:    status,
 		Value:     "<nil>",
-		Sender:    fmt.Sprintf("%d", core.MetachainShardId),
+		Sender:    sender,
 		Data:      make([]byte, 0),
 		Operation: rewardsOperation,
 	}

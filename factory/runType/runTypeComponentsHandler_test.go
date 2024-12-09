@@ -37,11 +37,13 @@ func TestManagedRunTypeComponents_Create(t *testing.T) {
 		require.NoError(t, err)
 
 		require.Nil(t, managedRunTypeComponents.TxHashExtractorCreator())
+		require.Nil(t, managedRunTypeComponents.RewardTxDataCreator())
 
 		err = managedRunTypeComponents.Create()
 		require.NoError(t, err)
 
 		require.NotNil(t, managedRunTypeComponents.TxHashExtractorCreator())
+		require.NotNil(t, managedRunTypeComponents.RewardTxDataCreator())
 
 		require.Equal(t, runTypeComponentsName, managedRunTypeComponents.String())
 		require.NoError(t, managedRunTypeComponents.Close())
