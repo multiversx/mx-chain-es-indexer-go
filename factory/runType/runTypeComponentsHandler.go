@@ -73,7 +73,7 @@ func (mrtc *managedRunTypeComponents) CheckSubcomponents() error {
 		return transactions.ErrNilTxHashExtractor
 	}
 	if check.IfNil(mrtc.rewardTxData) {
-		return transactions.ErrNilRewardTxData
+		return transactions.ErrNilRewardTxDataHandler
 	}
 	return nil
 }

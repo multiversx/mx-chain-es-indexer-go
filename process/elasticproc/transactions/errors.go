@@ -7,5 +7,5 @@ import (
 // ErrNilTxHashExtractor signals that a nil tx hash extractor has been provided
 var ErrNilTxHashExtractor = errors.New("nil tx hash extractor")
 
-// ErrNilRewardTxData signals that a nil rewards tx data handler has been provided
-var ErrNilRewardTxData = errors.New("nil reward tx data handler")
+// ErrNilRewardTxDataHandler signals that a nil rewards tx data handler has been provided
+var ErrNilRewardTxDataHandler = errors.New("nil reward tx data handler")

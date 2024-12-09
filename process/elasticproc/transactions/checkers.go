@@ -40,7 +40,7 @@ func checkTxsProcessorArg(args *ArgsTransactionProcessor) error {
 		return ErrNilTxHashExtractor
 	}
 	if check.IfNil(args.RewardTxData) {
-		return ErrNilRewardTxData
+		return ErrNilRewardTxDataHandler
 	}
 
 	return nil

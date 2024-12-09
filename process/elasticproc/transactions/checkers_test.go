@@ -84,13 +84,13 @@ func TestNewTransactionsProcessor(t *testing.T) {
 			exErr: ErrNilTxHashExtractor,
 		},
 		{
-			name: "NilTxHashExtractor",
+			name: "NilRewardTxDataHandler",
 			args: func() *ArgsTransactionProcessor {
 				args := createMockArgs()
 				args.RewardTxData = nil
 				return args
 			},
-			exErr: ErrNilRewardTxData,
+			exErr: ErrNilRewardTxDataHandler,
 		},
 	}
 
