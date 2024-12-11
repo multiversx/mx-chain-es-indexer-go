@@ -32,7 +32,7 @@ type ArgsIndexerFactory struct {
 	Enabled                  bool
 	UseKibana                bool
 	ImportDB                 bool
-	SovereignType            bool
+	Sovereign                bool
 	Denomination             int
 	BulkRequestMaxSize       int
 	Url                      string
@@ -57,7 +57,7 @@ func NewIndexer(args ArgsIndexerFactory) (dataindexer.Indexer, error) {
 		return nil, err
 	}
 
-	if args.SovereignType {
+	if args.Sovereign {
 		args.RunTypeComponents, err = createManagedRunTypeComponents(runType.NewSovereignRunTypeComponentsFactory())
 	} else {
 		args.RunTypeComponents, err = createManagedRunTypeComponents(runType.NewRunTypeComponentsFactory())

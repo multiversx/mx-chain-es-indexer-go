@@ -88,7 +88,7 @@ func startIndexer(ctx *cli.Context) error {
 	if err != nil {
 		return fmt.Errorf("%w while loading the config file", err)
 	}
-	cfg.SovereignType = ctx.GlobalBool(sovereign.Name)
+	cfg.Sovereign = ctx.GlobalBool(sovereign.Name)
 
 	clusterCfg, err := loadClusterConfig(ctx.GlobalString(configurationPreferencesFile.Name))
 	if err != nil {
