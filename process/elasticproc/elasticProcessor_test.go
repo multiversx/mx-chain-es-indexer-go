@@ -356,6 +356,7 @@ func TestElasticseachSaveTransactions(t *testing.T) {
 		Marshalizer:            &mock.MarshalizerMock{},
 		BalanceConverter:       bc,
 		TxHashExtractor:        transactions.NewTxHashExtractor(),
+		RewardTxData:           &mock.RewardTxDataMock{},
 	}
 	txDbProc, _ := transactions.NewTransactionsProcessor(args)
 	arguments.TransactionsProc = txDbProc

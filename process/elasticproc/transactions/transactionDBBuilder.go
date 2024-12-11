@@ -2,7 +2,6 @@ package transactions
 
 import (
 	"encoding/hex"
-	"fmt"
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
@@ -11,6 +10,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/receipt"
+
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
@@ -20,17 +20,20 @@ type dbTransactionBuilder struct {
 	addressPubkeyConverter core.PubkeyConverter
 	dataFieldParser        DataFieldParser
 	balanceConverter       dataindexer.BalanceConverter
+	rewardTxData           RewardTxDataHandler
 }
 
 func newTransactionDBBuilder(
 	addressPubkeyConverter core.PubkeyConverter,
 	dataFieldParser DataFieldParser,
 	balanceConverter dataindexer.BalanceConverter,
+	rewardTxData RewardTxDataHandler,
 ) *dbTransactionBuilder {
 	return &dbTransactionBuilder{
 		addressPubkeyConverter: addressPubkeyConverter,
 		dataFieldParser:        dataFieldParser,
 		balanceConverter:       balanceConverter,
+		rewardTxData:           rewardTxData,
 	}
 }
 
@@ -154,7 +157,7 @@ func (dtb *dbTransactionBuilder) prepareRewardTransaction(
 		Value:          rTx.Value.String(),
 		ValueNum:       valueNum,
 		Receiver:       receiverAddr,
-		Sender:         fmt.Sprintf("%d", core.MetachainShardId),
+		Sender:         dtb.rewardTxData.GetSender(),
 		ReceiverShard:  mb.ReceiverShardID,
 		SenderShard:    mb.SenderShardID,
 		GasPrice:       0,

@@ -15,6 +15,7 @@ func NewRunTypeComponentsFactory() *runTypeComponentsFactory {
 func (rtcf *runTypeComponentsFactory) Create() *runTypeComponents {
 	return &runTypeComponents{
 		txHashExtractor: transactions.NewTxHashExtractor(),
+		rewardTxData:    transactions.NewRewardTxData(),
 	}
 }
 

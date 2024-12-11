@@ -77,7 +77,7 @@ func createDataIndexer(
 	}
 
 	return factory.NewIndexer(factory.ArgsIndexerFactory{
-		SovereignType:            cfg.SovereignType,
+		Sovereign:                cfg.Sovereign,
 		UseKibana:                clusterCfg.Config.ElasticCluster.UseKibana,
 		Denomination:             cfg.Config.Economics.Denomination,
 		BulkRequestMaxSize:       clusterCfg.Config.ElasticCluster.BulkRequestMaxSizeInBytes,
