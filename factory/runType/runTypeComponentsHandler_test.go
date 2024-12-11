@@ -36,8 +36,12 @@ func TestManagedRunTypeComponents_Create(t *testing.T) {
 		managedRunTypeComponents, err := createComponents()
 		require.NoError(t, err)
 
+		require.Nil(t, managedRunTypeComponents.TxHashExtractorCreator())
+
 		err = managedRunTypeComponents.Create()
 		require.NoError(t, err)
+
+		require.NotNil(t, managedRunTypeComponents.TxHashExtractorCreator())
 
 		require.Equal(t, runTypeComponentsName, managedRunTypeComponents.String())
 		require.NoError(t, managedRunTypeComponents.Close())
