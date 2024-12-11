@@ -66,6 +66,11 @@ func processEventNoTx(args *argsProcessEvent) argOutputProcessEvent {
 			processed: true,
 		}
 	}
+	if scr.OriginalTxHash == "" {
+		return argOutputProcessEvent{
+			processed: true,
+		}
+	}
 
 	record := &outport.StatusInfo{}
 	switch string(args.event.GetIdentifier()) {

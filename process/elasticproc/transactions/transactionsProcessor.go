@@ -11,10 +11,11 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
-	"github.com/multiversx/mx-chain-es-indexer-go/data"
-	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	datafield "github.com/multiversx/mx-chain-vm-common-go/parsers/dataField"
+
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 )
 
 var log = logger.GetOrCreate("indexer/process/transactions")
@@ -26,6 +27,8 @@ type ArgsTransactionProcessor struct {
 	Hasher                 hashing.Hasher
 	Marshalizer            marshal.Marshalizer
 	BalanceConverter       dataindexer.BalanceConverter
+	TxHashExtractor        TxHashExtractor
+	RewardTxData           RewardTxDataHandler
 }
 
 type txsDatabaseProcessor struct {
@@ -51,8 +54,8 @@ func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txsDatabaseProce
 		return nil, err
 	}
 
-	txBuilder := newTransactionDBBuilder(args.AddressPubkeyConverter, operationsDataParser, args.BalanceConverter)
-	txsDBGrouper := newTxsGrouper(txBuilder, args.Hasher, args.Marshalizer)
+	txBuilder := newTransactionDBBuilder(args.AddressPubkeyConverter, operationsDataParser, args.BalanceConverter, args.RewardTxData)
+	txsDBGrouper := newTxsGrouper(txBuilder, args.Hasher, args.Marshalizer, args.TxHashExtractor)
 	scrProc := newSmartContractResultsProcessor(args.AddressPubkeyConverter, args.Marshalizer, args.Hasher, operationsDataParser, args.BalanceConverter)
 	scrsDataToTxs := newScrsDataToTransactions(args.BalanceConverter)
 

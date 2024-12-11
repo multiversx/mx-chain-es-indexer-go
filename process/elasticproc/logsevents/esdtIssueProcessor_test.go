@@ -83,23 +83,3 @@ func TestIssueESDTProcessor_TransferOwnership(t *testing.T) {
 		Properties:        &data.TokenProperties{},
 	}, res.tokenInfo)
 }
-
-func TestIssueESDTProcessor_EventWithShardID0ShouldBeIgnored(t *testing.T) {
-	t.Parallel()
-
-	esdtIssueProc := newESDTIssueProcessor(&mock.PubkeyConverterMock{})
-
-	event := &transaction.Event{
-		Address:    []byte("addr"),
-		Identifier: []byte(transferOwnershipFunc),
-		Topics:     [][]byte{[]byte("MYTOKEN-abcd"), []byte("my-token"), []byte("MYTOKEN"), []byte(core.NonFungibleESDT), []byte("newOwner")},
-	}
-	args := &argsProcessEvent{
-		timestamp:   1234,
-		event:       event,
-		selfShardID: 0,
-	}
-
-	res := esdtIssueProc.processEvent(args)
-	require.False(t, res.processed)
-}

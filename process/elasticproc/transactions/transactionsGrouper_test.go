@@ -4,14 +4,16 @@ import (
 	"encoding/hex"
 	"testing"
 
+	coreData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/receipt"
 	"github.com/multiversx/mx-chain-core-go/data/rewardTx"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-es-indexer-go/mock"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
-	"github.com/stretchr/testify/require"
 )
 
 func TestGroupNormalTxs(t *testing.T) {
@@ -19,8 +21,7 @@ func TestGroupNormalTxs(t *testing.T) {
 
 	parser := createDataFieldParserMock()
 	ap, _ := converters.NewBalanceConverter(18)
-	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, parser, ap)
-	grouper := newTxsGrouper(txBuilder, &mock.HasherMock{}, &mock.MarshalizerMock{})
+	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, parser, ap, &mock.RewardTxDataMock{})
 
 	txHash1 := []byte("txHash1")
 	txHash2 := []byte("txHash2")
@@ -46,6 +47,13 @@ func TestGroupNormalTxs(t *testing.T) {
 		},
 	}
 
+	txHashExtractor := &mock.TxHashExtractorMock{
+		ExtractExecutedTxHashesCalled: func(_ int, _ [][]byte, _ coreData.HeaderHandler) [][]byte {
+			return mb.TxHashes
+		},
+	}
+	grouper := newTxsGrouper(txBuilder, &mock.HasherMock{}, &mock.MarshalizerMock{}, txHashExtractor)
+
 	normalTxs, _ := grouper.groupNormalTxs(0, mb, header, txs, false, 3)
 	require.Len(t, normalTxs, 2)
 }
@@ -55,8 +63,7 @@ func TestGroupRewardsTxs(t *testing.T) {
 
 	parser := createDataFieldParserMock()
 	ap, _ := converters.NewBalanceConverter(18)
-	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, parser, ap)
-	grouper := newTxsGrouper(txBuilder, &mock.HasherMock{}, &mock.MarshalizerMock{})
+	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, parser, ap, &mock.RewardTxDataMock{})
 
 	txHash1 := []byte("txHash1")
 	txHash2 := []byte("txHash2")
@@ -74,6 +81,13 @@ func TestGroupRewardsTxs(t *testing.T) {
 		}},
 	}
 
+	txHashExtractor := &mock.TxHashExtractorMock{
+		ExtractExecutedTxHashesCalled: func(_ int, _ [][]byte, _ coreData.HeaderHandler) [][]byte {
+			return mb.TxHashes
+		},
+	}
+	grouper := newTxsGrouper(txBuilder, &mock.HasherMock{}, &mock.MarshalizerMock{}, txHashExtractor)
+
 	normalTxs, _ := grouper.groupRewardsTxs(0, mb, header, txs, false)
 	require.Len(t, normalTxs, 2)
 }
@@ -83,8 +97,7 @@ func TestGroupInvalidTxs(t *testing.T) {
 
 	parser := createDataFieldParserMock()
 	ap, _ := converters.NewBalanceConverter(18)
-	txBuilder := newTransactionDBBuilder(mock.NewPubkeyConverterMock(32), parser, ap)
-	grouper := newTxsGrouper(txBuilder, &mock.HasherMock{}, &mock.MarshalizerMock{})
+	txBuilder := newTransactionDBBuilder(mock.NewPubkeyConverterMock(32), parser, ap, &mock.RewardTxDataMock{})
 
 	txHash1 := []byte("txHash1")
 	txHash2 := []byte("txHash2")
@@ -106,6 +119,13 @@ func TestGroupInvalidTxs(t *testing.T) {
 			}, FeeInfo: &outport.FeeInfo{}},
 	}
 
+	txHashExtractor := &mock.TxHashExtractorMock{
+		ExtractExecutedTxHashesCalled: func(_ int, _ [][]byte, _ coreData.HeaderHandler) [][]byte {
+			return mb.TxHashes
+		},
+	}
+	grouper := newTxsGrouper(txBuilder, &mock.HasherMock{}, &mock.MarshalizerMock{}, txHashExtractor)
+
 	normalTxs, _ := grouper.groupInvalidTxs(0, mb, header, txs, 3)
 	require.Len(t, normalTxs, 2)
 }
@@ -115,8 +135,8 @@ func TestGroupReceipts(t *testing.T) {
 
 	parser := createDataFieldParserMock()
 	ap, _ := converters.NewBalanceConverter(18)
-	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, parser, ap)
-	grouper := newTxsGrouper(txBuilder, &mock.HasherMock{}, &mock.MarshalizerMock{})
+	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, parser, ap, &mock.RewardTxDataMock{})
+	grouper := newTxsGrouper(txBuilder, &mock.HasherMock{}, &mock.MarshalizerMock{}, &mock.TxHashExtractorMock{})
 
 	txHash1 := []byte("txHash1")
 	txHash2 := []byte("txHash2")
