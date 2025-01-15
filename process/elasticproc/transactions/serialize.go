@@ -51,7 +51,28 @@ func (tdp *txsDatabaseProcessor) SerializeReceipts(receipts []*data.Receipt, buf
 func (tdp *txsDatabaseProcessor) SerializeTransactionsFeeData(txHashRefund map[string]*data.FeeData, buffSlice *data.BufferSlice, index string) error {
 	for txHash, feeData := range txHashRefund {
 		meta := []byte(fmt.Sprintf(`{"update":{ "_index":"%s","_id":"%s"}}%s`, index, converters.JsonEscape(txHash), "\n"))
-		codeToExecute := `
+
+		var codeToExecute string
+		if feeData.GasRefunded != 0 {
+			codeToExecute = `
+ 			if ('create' == ctx.op) {
+ 				ctx.op = 'noop'
+ 			} else {
+ 				BigInteger feeFromSource = new BigInteger(ctx._source.fee);
+ 				BigInteger fee = new BigInteger(params.fee);
+ 				if (feeFromSource.compareTo(fee) > 0) {
+ 					ctx._source.fee = feeFromSource.subtract(fee).toString();	
+ 				}
+ 				if (ctx._source.feeNum > params.feeNum) {
+ 					ctx._source.feeNum -= params.feeNum;	
+ 				}
+ 				if (ctx._source.gasUsed > params.gasRefunded) {
+ 					ctx._source.gasUsed -= params.gasRefunded;	
+ 				}
+ 			}
+ `
+		} else {
+			codeToExecute = `
 			if ('create' == ctx.op) {
 				ctx.op = 'noop'
 			} else {
@@ -60,13 +81,14 @@ func (tdp *txsDatabaseProcessor) SerializeTransactionsFeeData(txHashRefund map[s
 				ctx._source.gasUsed = params.gasUsed;
 			}
 `
+		}
 
 		serializedDataStr := fmt.Sprintf(`{"scripted_upsert": true, "script": {`+
 			`"source": "%s",`+
 			`"lang": "painless",`+
-			`"params": {"fee": "%s", "gasUsed": %d, "feeNum": %g}},`+
+			`"params": {"fee": "%s", "gasUsed": %d, "feeNum": %g, "gasRefunded": %d}},`+
 			`"upsert": {}}`,
-			converters.FormatPainlessSource(codeToExecute), feeData.Fee, feeData.GasUsed, feeData.FeeNum,
+			converters.FormatPainlessSource(codeToExecute), feeData.Fee, feeData.GasUsed, feeData.FeeNum, feeData.GasRefunded,
 		)
 
 		err := buffSlice.PutData(meta, []byte(serializedDataStr))

@@ -127,10 +127,14 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		RelayedAddr:       relayedAddress,
 	}
 
+	hasValidRelayer := len(eTx.RelayedAddr) == len(eTx.Sender) && len(eTx.RelayedAddr) > 0
+	hasValidRelayerSignature := len(eTx.RelayedSignature) == len(eTx.Signature) && len(eTx.RelayedSignature) > 0
+	isRelayedV3 := hasValidRelayer && hasValidRelayerSignature
+
 	eTx.Function = converters.TruncateFieldIfExceedsMaxLength(res.Function)
 	eTx.Tokens = converters.TruncateSliceElementsIfExceedsMaxLength(res.Tokens)
 	eTx.ReceiversShardIDs = res.ReceiversShardID
-	eTx.IsRelayed = res.IsRelayed
+	eTx.IsRelayed = res.IsRelayed || isRelayedV3
 
 	return eTx
 }
