@@ -125,6 +125,7 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		Operation:         res.Operation,
 		RelayedSignature:  hex.EncodeToString(tx.RelayerSignature),
 		RelayedAddr:       relayedAddress,
+		HadRefund:         feeInfo.HadRefund,
 	}
 
 	hasValidRelayer := len(eTx.RelayedAddr) == len(eTx.Sender) && len(eTx.RelayedAddr) > 0

@@ -50,11 +50,11 @@ type Transaction struct {
 	CompletedEvent       bool          `json:"completedEvent,omitempty"`
 	RelayedAddr          string        `json:"relayer,omitempty"`
 	RelayedSignature     string        `json:"relayerSignature,omitempty"`
+	HadRefund            bool          `json:"hadRefund,omitempty"`
 	ExecutionOrder       int           `json:"-"`
 	SmartContractResults []*ScResult   `json:"-"`
 	Hash                 string        `json:"-"`
 	BlockHash            string        `json:"-"`
-	HadRefund            bool          `json:"-"`
 }
 
 // Receipt is a structure containing all the fields that need to be safe for a Receipt

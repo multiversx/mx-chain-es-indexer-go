@@ -24,5 +24,6 @@
   "function": "doSomething",
   "isRelayed": true,
   "relayer": "erd10ksryjr065ad5475jcg82pnjfg9j9qtszjsrp24anl6ym7cmeddshwnru8",
-  "relayerSignature": "61"
+  "relayerSignature": "61",
+  "hadRefund": true
 }
