@@ -190,6 +190,7 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 		InitialTxFee:       feeInfo.Fee.String(),
 		InitialTxGasUsed:   feeInfo.GasUsed,
 		ExecutionOrder:     int(scrInfo.ExecutionOrder),
+		UUID:               converters.GenerateBase64UUID(),
 	}
 }
 

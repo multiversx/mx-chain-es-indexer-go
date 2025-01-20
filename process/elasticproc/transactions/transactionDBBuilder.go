@@ -119,6 +119,7 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		GuardianSignature: hex.EncodeToString(tx.GuardianSignature),
 		ExecutionOrder:    int(txInfo.ExecutionOrder),
 		Operation:         res.Operation,
+		UUID:              converters.GenerateBase64UUID(),
 	}
 
 	eTx.Function = converters.TruncateFieldIfExceedsMaxLength(res.Function)
@@ -165,6 +166,7 @@ func (dtb *dbTransactionBuilder) prepareRewardTransaction(
 		Status:         txStatus,
 		Operation:      rewardsOperation,
 		ExecutionOrder: int(rTxInfo.ExecutionOrder),
+		UUID:           converters.GenerateBase64UUID(),
 	}
 }
 
