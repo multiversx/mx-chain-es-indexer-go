@@ -28,14 +28,11 @@ func (gr *GenericResponseDB) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	if gr.Source == nil {
+	var sourceMap map[string]interface{}
+	err := json.Unmarshal(aux.Source, &sourceMap)
+	if err != nil {
 		gr.Source = aux.Source
 		return nil
-	}
-
-	var sourceMap map[string]interface{}
-	if err := json.Unmarshal(aux.Source, &sourceMap); err != nil {
-		return err
 	}
 
 	delete(sourceMap, "uuid")
