@@ -5,18 +5,19 @@ var Values = Object{
 	"index_patterns": Array{
 		"values-*",
 	},
-	"settings": Object{
-		"number_of_shards":   1,
-		"number_of_replicas": 0,
-	},
-
-	"mappings": Object{
-		"properties": Object{
-			"key": Object{
-				"type": "keyword",
-			},
-			"value": Object{
-				"type": "keyword",
+	"template": Object{
+		"settings": Object{
+			"number_of_shards":   1,
+			"number_of_replicas": 0,
+		},
+		"mappings": Object{
+			"properties": Object{
+				"key": Object{
+					"type": "keyword",
+				},
+				"value": Object{
+					"type": "keyword",
+				},
 			},
 		},
 	},
