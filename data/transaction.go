@@ -50,6 +50,7 @@ type Transaction struct {
 	ErrorEvent           bool          `json:"errorEvent,omitempty"`
 	CompletedEvent       bool          `json:"completedEvent,omitempty"`
 	RelayedAddr          string        `json:"relayed,omitempty"`
+	Epoch                uint32        `json:"epoch"`
 	ExecutionOrder       int           `json:"-"`
 	SmartContractResults []*ScResult   `json:"-"`
 	Hash                 string        `json:"-"`

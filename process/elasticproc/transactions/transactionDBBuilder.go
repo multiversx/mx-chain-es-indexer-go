@@ -120,6 +120,7 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		ExecutionOrder:    int(txInfo.ExecutionOrder),
 		Operation:         res.Operation,
 		UUID:              converters.GenerateBase64UUID(),
+		Epoch:             header.GetEpoch(),
 	}
 
 	eTx.Function = converters.TruncateFieldIfExceedsMaxLength(res.Function)
@@ -167,6 +168,7 @@ func (dtb *dbTransactionBuilder) prepareRewardTransaction(
 		Operation:      rewardsOperation,
 		ExecutionOrder: int(rTxInfo.ExecutionOrder),
 		UUID:           converters.GenerateBase64UUID(),
+		Epoch:          header.GetEpoch(),
 	}
 }
 
