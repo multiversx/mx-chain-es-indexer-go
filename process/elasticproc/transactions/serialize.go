@@ -58,6 +58,11 @@ func (tdp *txsDatabaseProcessor) SerializeTransactionsFeeData(txHashRefund map[s
  			if ('create' == ctx.op) {
  				ctx.op = 'noop'
  			} else {
+				boolean ok1 = ((ctx._source.containsKey('initialPaidFee')) && (ctx._source.initialPaidFee != null) && (!ctx._source.initialPaidFee.isEmpty()));
+				boolean ok2 = ((ctx._source.containsKey('fee')) && (ctx._source.fee != null) && (!ctx._source.fee.isEmpty()));
+				if (!ok1 || !ok2) {
+					return
+				}
  				BigInteger feeFromSource;
 				if ((ctx._source.containsKey('hadRefund')) && (ctx._source.hadRefund)) {
 					feeFromSource = new BigInteger(ctx._source.fee);
