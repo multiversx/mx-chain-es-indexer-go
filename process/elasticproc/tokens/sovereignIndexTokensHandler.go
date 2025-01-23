@@ -83,6 +83,10 @@ func (sit *sovereignIndexTokensHandler) getTokensFromScrs(elasticClient elasticp
 		}
 	}
 
+	if len(receivedTokensIDs) == 0 {
+		return make([]string, 0), nil
+	}
+
 	responseTokens := &data.ResponseTokens{}
 	err := elasticClient.DoMultiGet(context.Background(), receivedTokensIDs, indexerdata.TokensIndex, true, responseTokens)
 	if err != nil {
