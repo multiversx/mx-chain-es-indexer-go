@@ -5,6 +5,7 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
 
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/transactions"
 )
 
@@ -34,7 +35,10 @@ func NewManagedRunTypeComponents(rtc RunTypeComponentsCreator) (*managedRunTypeC
 
 // Create will create the managed components
 func (mrtc *managedRunTypeComponents) Create() error {
-	rtc := mrtc.factory.Create()
+	rtc, err := mrtc.factory.Create()
+	if err != nil {
+		return err
+	}
 
 	mrtc.mutRunTypeCoreComponents.Lock()
 	mrtc.runTypeComponents = rtc
@@ -75,6 +79,9 @@ func (mrtc *managedRunTypeComponents) CheckSubcomponents() error {
 	if check.IfNil(mrtc.rewardTxData) {
 		return transactions.ErrNilRewardTxDataHandler
 	}
+	if check.IfNil(mrtc.indexTokensHandler) {
+		return transactions.ErrNilIndexTokensHandler
+	}
 	return nil
 }
 
@@ -100,6 +107,18 @@ func (mrtc *managedRunTypeComponents) RewardTxDataCreator() transactions.RewardT
 	}
 
 	return mrtc.runTypeComponents.rewardTxData
+}
+
+// IndexTokensHandlerCreator return index tokens handler
+func (mrtc *managedRunTypeComponents) IndexTokensHandlerCreator() elasticproc.IndexTokensHandler {
+	mrtc.mutRunTypeCoreComponents.Lock()
+	defer mrtc.mutRunTypeCoreComponents.Unlock()
+
+	if check.IfNil(mrtc.runTypeComponents) {
+		return nil
+	}
+
+	return mrtc.runTypeComponents.indexTokensHandler
 }
 
 // IsInterfaceNil returns true if the interface is nil

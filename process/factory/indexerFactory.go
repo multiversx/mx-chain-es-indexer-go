@@ -33,6 +33,8 @@ type ArgsIndexerFactory struct {
 	UseKibana                bool
 	ImportDB                 bool
 	Sovereign                bool
+	ESDTPrefix               string
+	MainChainElastic         factory.MainChainElastic
 	Denomination             int
 	BulkRequestMaxSize       int
 	Url                      string
@@ -58,7 +60,7 @@ func NewIndexer(args ArgsIndexerFactory) (dataindexer.Indexer, error) {
 	}
 
 	if args.Sovereign {
-		args.RunTypeComponents, err = createManagedRunTypeComponents(runType.NewSovereignRunTypeComponentsFactory())
+		args.RunTypeComponents, err = createManagedRunTypeComponents(runType.NewSovereignRunTypeComponentsFactory(args.MainChainElastic, args.ESDTPrefix))
 	} else {
 		args.RunTypeComponents, err = createManagedRunTypeComponents(runType.NewRunTypeComponentsFactory())
 	}
@@ -126,6 +128,7 @@ func createElasticProcessor(args ArgsIndexerFactory) (dataindexer.ElasticProcess
 		Version:                  args.Version,
 		TxHashExtractor:          args.RunTypeComponents.TxHashExtractorCreator(),
 		RewardTxData:             args.RunTypeComponents.RewardTxDataCreator(),
+		IndexTokensHandler:       args.RunTypeComponents.IndexTokensHandlerCreator(),
 	}
 
 	return factory.CreateElasticProcessor(argsElasticProcFac)

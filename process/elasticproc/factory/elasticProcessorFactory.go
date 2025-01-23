@@ -19,6 +19,15 @@ import (
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/validators"
 )
 
+// MainChainElastic holds the elastic search settings
+type MainChainElastic struct {
+	Enabled            bool
+	Url                string
+	UserName           string
+	Password           string
+	BulkRequestMaxSize int
+}
+
 // ArgElasticProcessorFactory is struct that is used to store all components that are needed to create an elastic processor factory
 type ArgElasticProcessorFactory struct {
 	Marshalizer              marshal.Marshalizer
@@ -34,6 +43,7 @@ type ArgElasticProcessorFactory struct {
 	ImportDB                 bool
 	TxHashExtractor          transactions.TxHashExtractor
 	RewardTxData             transactions.RewardTxDataHandler
+	IndexTokensHandler       elasticproc.IndexTokensHandler
 }
 
 // CreateElasticProcessor will create a new instance of ElasticProcessor
@@ -132,6 +142,7 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (dataindexer.E
 		OperationsProc:     operationsProc,
 		ImportDB:           arguments.ImportDB,
 		Version:            arguments.Version,
+		IndexTokensHandler: arguments.IndexTokensHandler,
 	}
 
 	return elasticproc.NewElasticProcessor(args)

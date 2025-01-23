@@ -8,6 +8,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/alteredAccount"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
+
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/tokeninfo"
 )
@@ -119,4 +120,10 @@ type DBLogsAndEventsHandler interface {
 type OperationsHandler interface {
 	ProcessTransactionsAndSCRs(txs []*data.Transaction, scrs []*data.ScResult, isImportDB bool, shardID uint32) ([]*data.Transaction, []*data.ScResult)
 	SerializeSCRs(scrs []*data.ScResult, buffSlice *data.BufferSlice, index string, shardID uint32) error
+}
+
+// IndexTokensHandler defines what index tokens handler should be able to do
+type IndexTokensHandler interface {
+	IndexCrossChainTokens(elasticClient DatabaseClientHandler, scrs []*data.ScResult, buffSlice *data.BufferSlice) error
+	IsInterfaceNil() bool
 }

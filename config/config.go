@@ -29,7 +29,8 @@ type Config struct {
 			LogsPath             string `toml:"logs-path"`
 		} `toml:"logs"`
 	} `toml:"config"`
-	Sovereign bool
+	Sovereign  bool
+	ESDTPrefix string
 }
 
 // ClusterConfig will hold the config for the Elasticsearch cluster
@@ -52,6 +53,13 @@ type ClusterConfig struct {
 			Password                  string `toml:"password"`
 			BulkRequestMaxSizeInBytes int    `toml:"bulk-request-max-size-in-bytes"`
 		} `toml:"elastic-cluster"`
+		MainChainCluster struct {
+			UseKibana                 bool   `toml:"use-kibana"`
+			URL                       string `toml:"url"`
+			UserName                  string `toml:"username"`
+			Password                  string `toml:"password"`
+			BulkRequestMaxSizeInBytes int    `toml:"bulk-request-max-size-in-bytes"`
+		} `toml:"main-elastic-cluster"`
 	} `toml:"config"`
 }
 

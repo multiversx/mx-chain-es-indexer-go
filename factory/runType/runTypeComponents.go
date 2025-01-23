@@ -1,12 +1,14 @@
 package runType
 
 import (
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/transactions"
 )
 
 type runTypeComponents struct {
-	txHashExtractor transactions.TxHashExtractor
-	rewardTxData    transactions.RewardTxDataHandler
+	txHashExtractor    transactions.TxHashExtractor
+	rewardTxData       transactions.RewardTxDataHandler
+	indexTokensHandler elasticproc.IndexTokensHandler
 }
 
 // Close does nothing

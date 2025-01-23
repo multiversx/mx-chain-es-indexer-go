@@ -1,0 +1,38 @@
+{
+  "miniBlockHash": "64b954ab72a867bf9866556c7aac3b80a51a69a1d53c640e78f53e5bfcdcc37d",
+  "nonce": 11,
+  "gasLimit": 0,
+  "gasPrice": 0,
+  "value": "0",
+  "valueNum": 0,
+  "sender": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u",
+  "receiver": "erd1kzrfl2tztgzjpeedwec37c8npcr0a2ulzh9lhmj7xufyg23zcxuqxcqz0s",
+  "senderShard": 4294967293,
+  "receiverShard": 0,
+  "data": "TXVsdGlFU0RUTkZUVHJhbnNmZXJAMDJANDE0NzQ1MmQ2MjY1MzIzNTM3MzFAQDdiQDQyNDc0NDMxMzYyZDYzMzQzNzY2MzQzNkBAMDE0ZA==",
+  "prevTxHash": "",
+  "originalTxHash": "",
+  "callType": "0",
+  "timestamp": 5040,
+  "tokens": [
+    "AGE-be2571",
+    "BGD16-c47f46"
+  ],
+  "esdtValues": [
+    "123",
+    "333"
+  ],
+  "esdtValuesNum": [
+    1.23e-16,
+    3.33e-16
+  ],
+  "receivers": [
+    "erd1kzrfl2tztgzjpeedwec37c8npcr0a2ulzh9lhmj7xufyg23zcxuqxcqz0s",
+    "erd1kzrfl2tztgzjpeedwec37c8npcr0a2ulzh9lhmj7xufyg23zcxuqxcqz0s"
+  ],
+  "receiversShardIDs": [
+    0,
+    0
+  ],
+  "operation": "MultiESDTNFTTransfer"
+}
