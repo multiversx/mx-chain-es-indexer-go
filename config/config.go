@@ -54,11 +54,9 @@ type ClusterConfig struct {
 			BulkRequestMaxSizeInBytes int    `toml:"bulk-request-max-size-in-bytes"`
 		} `toml:"elastic-cluster"`
 		MainChainCluster struct {
-			UseKibana                 bool   `toml:"use-kibana"`
-			URL                       string `toml:"url"`
-			UserName                  string `toml:"username"`
-			Password                  string `toml:"password"`
-			BulkRequestMaxSizeInBytes int    `toml:"bulk-request-max-size-in-bytes"`
+			URL      string `toml:"url"`
+			UserName string `toml:"username"`
+			Password string `toml:"password"`
 		} `toml:"main-elastic-cluster"`
 	} `toml:"config"`
 }

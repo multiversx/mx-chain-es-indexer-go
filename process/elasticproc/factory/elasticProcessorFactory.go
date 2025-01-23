@@ -21,11 +21,10 @@ import (
 
 // MainChainElastic holds the elastic search settings
 type MainChainElastic struct {
-	Enabled            bool
-	Url                string
-	UserName           string
-	Password           string
-	BulkRequestMaxSize int
+	Enabled  bool
+	Url      string
+	UserName string
+	Password string
 }
 
 // ArgElasticProcessorFactory is struct that is used to store all components that are needed to create an elastic processor factory

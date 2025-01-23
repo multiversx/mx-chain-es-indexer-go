@@ -23,7 +23,6 @@ import (
 
 type sovereignIndexTokensHandler struct {
 	mainChainElasticClient elasticproc.DatabaseClientHandler
-	bulkRequestMaxSize     int
 	esdtPrefix             string
 }
 
@@ -43,7 +42,6 @@ func NewSovereignIndexTokensHandler(mainChainElastic factory.MainChainElastic, e
 
 	return &sovereignIndexTokensHandler{
 		mainChainElasticClient: mainChainElasticClient,
-		bulkRequestMaxSize:     mainChainElastic.BulkRequestMaxSize,
 		esdtPrefix:             esdtPrefix,
 	}, nil
 }

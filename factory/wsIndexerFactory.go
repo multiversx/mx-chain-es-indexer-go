@@ -78,10 +78,9 @@ func createDataIndexer(
 	}
 
 	mainChainElastic := esFactory.MainChainElastic{
-		Url:                clusterCfg.Config.MainChainCluster.URL,
-		UserName:           clusterCfg.Config.MainChainCluster.UserName,
-		Password:           clusterCfg.Config.MainChainCluster.Password,
-		BulkRequestMaxSize: clusterCfg.Config.MainChainCluster.BulkRequestMaxSizeInBytes,
+		Url:      clusterCfg.Config.MainChainCluster.URL,
+		UserName: clusterCfg.Config.MainChainCluster.UserName,
+		Password: clusterCfg.Config.MainChainCluster.Password,
 	}
 
 	return factory.NewIndexer(factory.ArgsIndexerFactory{

@@ -25,8 +25,6 @@
         bulk-request-max-size-in-bytes = 4194304 # 4MB
 
     [config.main-elastic-cluster]
-        use-kibana = false
         url = "https://testnet-index.multiversx.com"
         username = ""
         password = ""
-        bulk-request-max-size-in-bytes = 4194304 # 4MB
