@@ -12,7 +12,7 @@ func NewIndexTokensHandler() *indexTokensHandler {
 	return &indexTokensHandler{}
 }
 
-// IndexCrossChainTokens returns no error
+// IndexCrossChainTokens should do nothing and return no error
 func (it *indexTokensHandler) IndexCrossChainTokens(_ elasticproc.DatabaseClientHandler, _ []*data.ScResult, _ *data.BufferSlice) error {
 	return nil
 }
