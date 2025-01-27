@@ -25,6 +25,7 @@
         bulk-request-max-size-in-bytes = 4194304 # 4MB
 
     [config.main-elastic-cluster]
-        url = "https://testnet-index.multiversx.com"
+        enabled = true
+        url = "http://localhost:9201"
         username = ""
         password = ""

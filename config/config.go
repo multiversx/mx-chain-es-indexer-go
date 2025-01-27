@@ -54,6 +54,7 @@ type ClusterConfig struct {
 			BulkRequestMaxSizeInBytes int    `toml:"bulk-request-max-size-in-bytes"`
 		} `toml:"elastic-cluster"`
 		MainChainCluster struct {
+			Enabled  bool   `toml:"enabled"`
 			URL      string `toml:"url"`
 			UserName string `toml:"username"`
 			Password string `toml:"password"`

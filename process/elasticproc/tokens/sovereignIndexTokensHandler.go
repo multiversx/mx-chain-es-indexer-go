@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v7"
@@ -22,25 +23,32 @@ import (
 )
 
 type sovereignIndexTokensHandler struct {
+	indexingEnabled        bool
 	mainChainElasticClient elasticproc.DatabaseClientHandler
 	esdtPrefix             string
 }
 
-func NewSovereignIndexTokensHandler(mainChainElastic factory.MainChainElastic, esdtPrefix string) (*sovereignIndexTokensHandler, error) {
-	argsEsClient := elasticsearch.Config{
-		Addresses:     []string{mainChainElastic.Url},
-		Username:      mainChainElastic.UserName,
-		Password:      mainChainElastic.Password,
-		Logger:        &logging.CustomLogger{},
-		RetryOnStatus: []int{http.StatusConflict},
-		RetryBackoff:  retryBackOff,
-	}
-	mainChainElasticClient, err := client.NewElasticClient(argsEsClient)
-	if err != nil {
-		return nil, err
+// NewSovereignIndexTokensHandler creates a new sovereign index tokens handler
+func NewSovereignIndexTokensHandler(mainChainElastic factory.ElasticConfig, esdtPrefix string) (*sovereignIndexTokensHandler, error) {
+	var mainChainElasticClient elasticproc.DatabaseClientHandler
+	if mainChainElastic.Enabled {
+		var err error
+		argsEsClient := elasticsearch.Config{
+			Addresses:     []string{mainChainElastic.Url},
+			Username:      mainChainElastic.UserName,
+			Password:      mainChainElastic.Password,
+			Logger:        &logging.CustomLogger{},
+			RetryOnStatus: []int{http.StatusConflict},
+			RetryBackoff:  retryBackOff,
+		}
+		mainChainElasticClient, err = client.NewElasticClient(argsEsClient)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &sovereignIndexTokensHandler{
+		indexingEnabled:        mainChainElastic.Enabled,
 		mainChainElasticClient: mainChainElasticClient,
 		esdtPrefix:             esdtPrefix,
 	}, nil
@@ -50,7 +58,12 @@ func retryBackOff(attempt int) time.Duration {
 	return time.Duration(math.Exp2(float64(attempt))) * time.Second
 }
 
+// IndexCrossChainTokens will index the new tokens properties
 func (sit *sovereignIndexTokensHandler) IndexCrossChainTokens(elasticClient elasticproc.DatabaseClientHandler, scrs []*data.ScResult, buffSlice *data.BufferSlice) error {
+	if !sit.indexingEnabled {
+		return nil
+	}
+
 	notFoundTokens, err := sit.getTokensFromScrs(elasticClient, scrs)
 	if err != nil {
 		return err
@@ -79,6 +92,9 @@ func (sit *sovereignIndexTokensHandler) getTokensFromScrs(elasticClient elasticp
 				if !hasPrefix || tokenPrefix != sit.esdtPrefix {
 					receivedTokensIDs = append(receivedTokensIDs, token)
 				}
+				if isEsdt, tokenCollection := getTokenCollection(hasPrefix, token); isEsdt {
+					receivedTokensIDs = append(receivedTokensIDs, tokenCollection)
+				}
 			}
 		}
 	}
@@ -101,6 +117,17 @@ func (sit *sovereignIndexTokensHandler) getTokensFromScrs(elasticClient elasticp
 	}
 
 	return newTokens, nil
+}
+
+func getTokenCollection(hasPrefix bool, tokenIdentifier string) (bool, string) {
+	tokenSplit := strings.Split(tokenIdentifier, "-")
+	if !hasPrefix && len(tokenSplit) == 3 {
+		return true, tokenSplit[0] + "-" + tokenSplit[1]
+	}
+	if hasPrefix && len(tokenSplit) == 4 {
+		return true, tokenSplit[1] + "-" + tokenSplit[2]
+	}
+	return false, ""
 }
 
 func (sit *sovereignIndexTokensHandler) indexNewTokens(responseTokensInfo []data.ResponseTokenInfoDB, buffSlice *data.BufferSlice) error {

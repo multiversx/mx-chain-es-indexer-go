@@ -19,8 +19,8 @@ import (
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/validators"
 )
 
-// MainChainElastic holds the elastic search settings
-type MainChainElastic struct {
+// ElasticConfig holds the elastic search settings
+type ElasticConfig struct {
 	Enabled  bool
 	Url      string
 	UserName string

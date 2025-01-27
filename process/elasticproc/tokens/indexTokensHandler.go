@@ -7,10 +7,12 @@ import (
 
 type indexTokensHandler struct{}
 
+// NewIndexTokensHandler creates a new index tokens handler
 func NewIndexTokensHandler() *indexTokensHandler {
 	return &indexTokensHandler{}
 }
 
+// IndexCrossChainTokens returns no error
 func (it *indexTokensHandler) IndexCrossChainTokens(_ elasticproc.DatabaseClientHandler, _ []*data.ScResult, _ *data.BufferSlice) error {
 	return nil
 }

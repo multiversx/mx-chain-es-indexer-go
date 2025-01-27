@@ -7,12 +7,12 @@ import (
 )
 
 type sovereignRunTypeComponentsFactory struct {
-	mainChainElastic factory.MainChainElastic
+	mainChainElastic factory.ElasticConfig
 	esdtPrefix       string
 }
 
 // NewSovereignRunTypeComponentsFactory will return a new instance of sovereign run type components factory
-func NewSovereignRunTypeComponentsFactory(mainChainElastic factory.MainChainElastic, esdtPrefix string) *sovereignRunTypeComponentsFactory {
+func NewSovereignRunTypeComponentsFactory(mainChainElastic factory.ElasticConfig, esdtPrefix string) *sovereignRunTypeComponentsFactory {
 	return &sovereignRunTypeComponentsFactory{
 		mainChainElastic: mainChainElastic,
 		esdtPrefix:       esdtPrefix,

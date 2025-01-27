@@ -77,7 +77,8 @@ func createDataIndexer(
 		return nil, err
 	}
 
-	mainChainElastic := esFactory.MainChainElastic{
+	mainChainElastic := esFactory.ElasticConfig{
+		Enabled:  clusterCfg.Config.MainChainCluster.Enabled,
 		Url:      clusterCfg.Config.MainChainCluster.URL,
 		UserName: clusterCfg.Config.MainChainCluster.UserName,
 		Password: clusterCfg.Config.MainChainCluster.Password,

@@ -76,7 +76,7 @@ func CreateElasticProcessor(
 // CreateSovereignElasticProcessor -
 func CreateSovereignElasticProcessor(
 	esClient elasticproc.DatabaseClientHandler,
-	mainChainEs factory.MainChainElastic,
+	mainChainEs factory.ElasticConfig,
 ) (dataindexer.ElasticProcessor, error) {
 	sovIndexTokens, _ := tokens.NewSovereignIndexTokensHandler(mainChainEs, sovEsdtPrefix)
 

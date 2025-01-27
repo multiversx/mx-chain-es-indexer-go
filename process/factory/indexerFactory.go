@@ -34,7 +34,7 @@ type ArgsIndexerFactory struct {
 	ImportDB                 bool
 	Sovereign                bool
 	ESDTPrefix               string
-	MainChainElastic         factory.MainChainElastic
+	MainChainElastic         factory.ElasticConfig
 	Denomination             int
 	BulkRequestMaxSize       int
 	Url                      string
