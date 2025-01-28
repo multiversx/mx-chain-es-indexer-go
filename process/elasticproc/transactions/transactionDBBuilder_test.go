@@ -208,6 +208,7 @@ func TestRelayedV3Transaction(t *testing.T) {
 	}
 
 	dbTx := cp.prepareTransaction(txInfo, txHash, mbHash, mb, header, status, 3)
+	dbTx.UUID = ""
 	require.Equal(t, expectedTx, dbTx)
 }
 
