@@ -21,8 +21,9 @@ func TestRunTypeComponentsFactory_Create(t *testing.T) {
 	rtcf := NewRunTypeComponentsFactory()
 	require.NotNil(t, rtcf)
 
-	rtc := rtcf.Create()
+	rtc, err := rtcf.Create()
 	require.NotNil(t, rtc)
+	require.NoError(t, err)
 }
 
 func TestRunTypeComponentsFactory_Close(t *testing.T) {
@@ -31,8 +32,9 @@ func TestRunTypeComponentsFactory_Close(t *testing.T) {
 	rtcf := NewRunTypeComponentsFactory()
 	require.NotNil(t, rtcf)
 
-	rtc := rtcf.Create()
+	rtc, err := rtcf.Create()
 	require.NotNil(t, rtc)
+	require.NoError(t, err)
 
 	require.NoError(t, rtc.Close())
 }

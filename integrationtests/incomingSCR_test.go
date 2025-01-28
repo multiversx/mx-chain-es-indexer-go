@@ -27,14 +27,13 @@ type esToken struct {
 	NumDecimals int64
 }
 
-type esEsdt struct {
-	Identifier string
+type esNft struct {
+	Collection string
 	Nonce      uint64
-	EsdtType   string
 	Data       esdt.ESDigitalToken
 }
 
-func createTokens() ([]esToken, []esEsdt) {
+func createTokens() ([]esToken, []esNft) {
 	tokens := []esToken{}
 	token1 := esToken{
 		Identifier:  "TKN18-1a2b3c",
@@ -49,18 +48,19 @@ func createTokens() ([]esToken, []esEsdt) {
 	}
 	tokens = append(tokens, token2)
 
-	nfts := []esEsdt{}
-	nft := esEsdt{
-		Identifier: "NFT-abc123",
+	nfts := []esNft{}
+	nft := esNft{
+		Collection: "NFT-abc123",
 		Nonce:      1,
-		EsdtType:   core.NonFungibleESDTv2,
 		Data: esdt.ESDigitalToken{
 			Type:       uint32(core.NonFungibleV2),
 			Value:      big.NewInt(1),
 			Properties: []byte("3032"),
 			TokenMetaData: &esdt.MetaData{
-				Nonce:   1,
-				Creator: []byte("creator"),
+				Nonce:     1,
+				Name:      []byte("NFT"),
+				Creator:   []byte("creator"),
+				Royalties: uint32(2500),
 			},
 		},
 	}
@@ -73,7 +73,8 @@ func TestCrossChainTokensIndexingFromMainChain(t *testing.T) {
 	setLogLevelDebug()
 
 	mainChainEs := factory.ElasticConfig{
-		Url: es2URL,
+		Enabled: true,
+		Url:     es2URL,
 	}
 
 	tokens, nfts := createTokens()
@@ -86,6 +87,7 @@ func TestCrossChainTokensIndexingFromMainChain(t *testing.T) {
 	require.Nil(t, err)
 
 	allTokens := getAllTokensIDs(tokens, nfts)
+	allTokens = append(allTokens, getAllNftIDs(nfts)...)
 	genericResponse := &GenericResponse{}
 	err = esClient.DoMultiGet(context.Background(), allTokens, indexerData.TokensIndex, true, genericResponse)
 	require.Nil(t, err)
@@ -141,7 +143,7 @@ func TestCrossChainTokensIndexingFromMainChain(t *testing.T) {
 	}
 }
 
-func createTokensInSourceEs(t *testing.T, es factory.ElasticConfig, tokens []esToken, nfts []esEsdt) {
+func createTokensInSourceEs(t *testing.T, es factory.ElasticConfig, tokens []esToken, nfts []esNft) {
 	esClient, err := createESClient(es.Url)
 	require.Nil(t, err)
 
@@ -170,7 +172,7 @@ func createTokensInSourceEs(t *testing.T, es factory.ElasticConfig, tokens []esT
 		events = append(events, &transaction.Event{
 			Address:    decodeAddress(address1),
 			Identifier: []byte("issueNonFungible"),
-			Topics:     [][]byte{[]byte(nft.Identifier), []byte("NFT"), []byte("NFT"), []byte(nft.EsdtType)},
+			Topics:     [][]byte{[]byte(nft.Collection), []byte("NFT"), []byte("NFT"), []byte(core.ESDTType(nft.Data.Type).String())},
 		})
 	}
 
@@ -205,7 +207,7 @@ func createTokensInSourceEs(t *testing.T, es factory.ElasticConfig, tokens []esT
 		events = append(events, &transaction.Event{
 			Address:    decodeAddress(address1),
 			Identifier: []byte(core.BuiltInFunctionESDTNFTCreate),
-			Topics:     [][]byte{[]byte(nft.Identifier), big.NewInt(int64(nft.Nonce)).Bytes(), nft.Data.Value.Bytes(), []byte(nftDataBytes)},
+			Topics:     [][]byte{[]byte(nft.Collection), big.NewInt(0).SetUint64(nft.Nonce).Bytes(), nft.Data.Value.Bytes(), []byte(nftDataBytes)},
 		})
 	}
 
@@ -230,10 +232,7 @@ func createTokensInSourceEs(t *testing.T, es factory.ElasticConfig, tokens []esT
 	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
 	require.Nil(t, err)
 
-	allNfts := make([]string, 0)
-	for _, nft := range nfts {
-		allNfts = append(allNfts, nft.Identifier+"-"+hex.EncodeToString(big.NewInt(int64(nft.Nonce)).Bytes()))
-	}
+	allNfts := getAllNftIDs(nfts)
 	err = esClient.DoMultiGet(context.Background(), allNfts, indexerData.TokensIndex, true, genericResponse)
 	require.Nil(t, err)
 	for _, token := range genericResponse.Docs {
@@ -241,18 +240,26 @@ func createTokensInSourceEs(t *testing.T, es factory.ElasticConfig, tokens []esT
 	}
 }
 
-func getAllTokensIDs(tokens []esToken, nfts []esEsdt) []string {
+func getAllTokensIDs(tokens []esToken, nfts []esNft) []string {
 	allTokens := make([]string, 0)
 	for _, token := range tokens {
 		allTokens = append(allTokens, token.Identifier)
 	}
 	for _, nft := range nfts {
-		allTokens = append(allTokens, nft.Identifier)
+		allTokens = append(allTokens, nft.Collection)
 	}
 	return allTokens
 }
 
-func createMultiEsdtTransferData(tokens []esToken, nfts []esEsdt) []byte {
+func getAllNftIDs(nfts []esNft) []string {
+	allNfts := make([]string, 0)
+	for _, nft := range nfts {
+		allNfts = append(allNfts, nft.Collection+"-"+hex.EncodeToString(big.NewInt(0).SetUint64(nft.Nonce).Bytes()))
+	}
+	return allNfts
+}
+
+func createMultiEsdtTransferData(tokens []esToken, nfts []esNft) []byte {
 	data := []byte(core.BuiltInFunctionMultiESDTNFTTransfer +
 		"@" + hex.EncodeToString(big.NewInt(int64(len(tokens)+len(nfts))).Bytes()))
 	for _, token := range tokens {
@@ -264,8 +271,8 @@ func createMultiEsdtTransferData(tokens []esToken, nfts []esEsdt) []byte {
 	for _, nft := range nfts {
 		nftDataBytes, _ := json.Marshal(nft.Data)
 		data = append(data, []byte(
-			"@"+hex.EncodeToString([]byte(nft.Identifier))+
-				"@"+hex.EncodeToString(big.NewInt(int64(nft.Nonce)).Bytes())+
+			"@"+hex.EncodeToString([]byte(nft.Collection))+
+				"@"+hex.EncodeToString(big.NewInt(0).SetUint64(nft.Nonce).Bytes())+
 				"@"+hex.EncodeToString(nftDataBytes))...)
 	}
 

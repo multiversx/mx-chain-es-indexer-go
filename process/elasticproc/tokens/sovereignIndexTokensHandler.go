@@ -111,7 +111,7 @@ func (sit *sovereignIndexTokensHandler) getTokensFromScrs(elasticClient elasticp
 
 	newTokens := make([]string, 0)
 	for _, token := range responseTokens.Docs {
-		if token.Found == false {
+		if !token.Found {
 			newTokens = append(newTokens, token.ID)
 		}
 	}
@@ -132,9 +132,9 @@ func getTokenCollection(hasPrefix bool, tokenIdentifier string) (bool, string) {
 
 func (sit *sovereignIndexTokensHandler) indexNewTokens(responseTokensInfo []data.ResponseTokenInfoDB, buffSlice *data.BufferSlice) error {
 	for _, responseToken := range responseTokensInfo {
-		token := formatToken(responseToken)
+		token, identifier := formatToken(responseToken)
 
-		meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s", "_id" : "%s" } }%s`, indexerdata.TokensIndex, converters.JsonEscape(token.Token), "\n"))
+		meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s", "_id" : "%s" } }%s`, indexerdata.TokensIndex, converters.JsonEscape(identifier), "\n"))
 		serializedTokenData, err := json.Marshal(token)
 		if err != nil {
 			return err
@@ -149,11 +149,15 @@ func (sit *sovereignIndexTokensHandler) indexNewTokens(responseTokensInfo []data
 	return nil
 }
 
-func formatToken(token data.ResponseTokenInfoDB) data.TokenInfo {
+func formatToken(token data.ResponseTokenInfoDB) (data.TokenInfo, string) {
 	token.Source.OwnersHistory = nil
 	token.Source.Properties = nil
 
-	return token.Source
+	identifier := token.Source.Identifier // for NFTs
+	if identifier == "" {
+		identifier = token.Source.Token // for tokens/collections
+	}
+	return token.Source, identifier
 }
 
 // IsInterfaceNil returns true if there is no value under the interface
