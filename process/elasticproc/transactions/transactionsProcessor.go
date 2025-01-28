@@ -157,7 +157,11 @@ func (tdp *txsDatabaseProcessor) GetHexEncodedHashesForRemove(header coreData.He
 	selfShardID := header.GetShardID()
 	encodedTxsHashes := make([]string, 0)
 	encodedScrsHashes := make([]string, 0)
-	for _, miniblock := range body.MiniBlocks {
+	for mbIndex, miniblock := range body.MiniBlocks {
+		if shouldIgnoreProcessedMBScheduled(header, mbIndex) {
+			continue
+		}
+
 		shouldIgnore := isCrossShardAtSourceNormalTx(selfShardID, miniblock)
 		if shouldIgnore {
 			// ignore cross-shard miniblocks at source with normal txs
