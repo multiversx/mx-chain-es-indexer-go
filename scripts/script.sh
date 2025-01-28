@@ -48,6 +48,7 @@ delete() {
 
 
 IMAGE_OPEN_SEARCH=open-container
+IMAGE_OPEN_SEARCH_2=open-container-2
 DEFAULT_OPEN_SEARCH_VERSION=1.2.4
 
 start_open_search() {
@@ -59,7 +60,11 @@ start_open_search() {
   docker pull opensearchproject/opensearch:${OPEN_VERSION}
 
   docker rm ${IMAGE_OPEN_SEARCH} 2> /dev/null
+  docker rm ${IMAGE_OPEN_SEARCH_2} 2> /dev/null
   docker run -d --name "${IMAGE_OPEN_SEARCH}" -p 9200:9200 -p 9600:9600 \
+   -e "discovery.type=single-node" -e "plugins.security.disabled=true" -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" \
+   opensearchproject/opensearch:${OPEN_VERSION}
+  docker run -d --name "${IMAGE_OPEN_SEARCH_2}" -p 9201:9200 -p 9601:9600 \
    -e "discovery.type=single-node" -e "plugins.security.disabled=true" -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" \
    opensearchproject/opensearch:${OPEN_VERSION}
 
