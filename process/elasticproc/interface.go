@@ -124,6 +124,6 @@ type OperationsHandler interface {
 
 // IndexTokensHandler defines what index tokens handler should be able to do
 type IndexTokensHandler interface {
-	IndexCrossChainTokens(elasticClient DatabaseClientHandler, scrs []*data.ScResult, buffSlice *data.BufferSlice) error
+	IndexCrossChainTokens(handler DatabaseClientHandler, scrs []*data.ScResult, buffSlice *data.BufferSlice) error
 	IsInterfaceNil() bool
 }
