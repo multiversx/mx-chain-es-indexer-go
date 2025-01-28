@@ -236,6 +236,8 @@ func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 		},
 	}}, 1234, 0, 3)
 
+	result.DBLogs[0].UUID = ""
+
 	require.Equal(t, &data.Logs{
 		ID:             "747848617368",
 		Address:        "61646472657373",
@@ -332,6 +334,9 @@ func TestPrepareLogsAndEvents_LogEvents(t *testing.T) {
 			OriginalTxHash: "originalHash",
 		},
 	}}, 1234, 1, 3)
+
+	results.DBEvents[0].UUID = ""
+	results.DBEvents[1].UUID = ""
 
 	require.Equal(t, []*data.LogEvent{
 		{

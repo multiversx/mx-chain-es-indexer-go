@@ -4,6 +4,7 @@ import "time"
 
 // ScResult is a structure containing all the fields that need to be saved for a smart contract result
 type ScResult struct {
+	UUID               string        `json:"uuid"`
 	Hash               string        `json:"-"`
 	MBHash             string        `json:"miniBlockHash,omitempty"`
 	Nonce              uint64        `json:"nonce"`

@@ -8,6 +8,7 @@ import (
 // to be saved for a transaction. It has all the default fields
 // plus some extra information for ease of search and filter
 type Transaction struct {
+	UUID                 string        `json:"uuid"`
 	MBHash               string        `json:"miniBlockHash"`
 	Nonce                uint64        `json:"nonce"`
 	Round                uint64        `json:"round"`

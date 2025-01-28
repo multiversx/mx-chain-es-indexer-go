@@ -31,7 +31,7 @@ func TestBlockProcessor_SerializeBlock(t *testing.T) {
 	err := bp.SerializeBlock(&data.Block{Nonce: 1}, buffSlice, "blocks")
 	require.Nil(t, err)
 	require.Equal(t, `{ "index" : { "_index":"blocks", "_id" : "" } }
-{"nonce":1,"round":0,"epoch":0,"miniBlocksHashes":null,"notarizedBlocksHashes":null,"proposer":0,"validators":null,"pubKeyBitmap":"","size":0,"sizeTxs":0,"timestamp":0,"stateRootHash":"","prevHash":"","shardId":0,"txCount":0,"notarizedTxsCount":0,"accumulatedFees":"","developerFees":"","epochStartBlock":false,"searchOrder":0,"gasProvided":0,"gasRefunded":0,"gasPenalized":0,"maxGasLimit":0}
+{"uuid":"","nonce":1,"round":0,"epoch":0,"miniBlocksHashes":null,"notarizedBlocksHashes":null,"proposer":0,"validators":null,"pubKeyBitmap":"","size":0,"sizeTxs":0,"timestamp":0,"stateRootHash":"","prevHash":"","shardId":0,"txCount":0,"notarizedTxsCount":0,"accumulatedFees":"","developerFees":"","epochStartBlock":false,"searchOrder":0,"gasProvided":0,"gasRefunded":0,"gasPenalized":0,"maxGasLimit":0}
 `, buffSlice.Buffers()[0].String())
 }
 
@@ -103,6 +103,6 @@ func TestBlockProcessor_SerializeBlockEpochStartMeta(t *testing.T) {
 	}, buffSlice, "blocks")
 	require.Nil(t, err)
 	require.Equal(t, `{ "index" : { "_index":"blocks", "_id" : "11cb2a3a28522a11ae646a93aa4d50f87194cead7d6edeb333d502349407b61d" } }
-{"nonce":1,"round":2,"epoch":3,"miniBlocksHashes":["mb1Hash","mbHash2"],"notarizedBlocksHashes":["notarized1"],"proposer":5,"validators":[0,1,2,3,4,5],"pubKeyBitmap":"00000110","size":345,"sizeTxs":0,"timestamp":123456,"stateRootHash":"stateHash","prevHash":"prevHash","shardId":4294967295,"txCount":100,"notarizedTxsCount":120,"accumulatedFees":"1000","developerFees":"50","epochStartBlock":true,"searchOrder":1010,"epochStartInfo":{"totalSupply":"100","totalToDistribute":"55","totalNewlyMinted":"20","rewardsPerBlock":"15","rewardsForProtocolSustainability":"2","nodePrice":"10","prevEpochStartRound":222,"prevEpochStartHash":"7072657645706f6368"},"gasProvided":0,"gasRefunded":0,"gasPenalized":0,"maxGasLimit":0}
+{"uuid":"","nonce":1,"round":2,"epoch":3,"miniBlocksHashes":["mb1Hash","mbHash2"],"notarizedBlocksHashes":["notarized1"],"proposer":5,"validators":[0,1,2,3,4,5],"pubKeyBitmap":"00000110","size":345,"sizeTxs":0,"timestamp":123456,"stateRootHash":"stateHash","prevHash":"prevHash","shardId":4294967295,"txCount":100,"notarizedTxsCount":120,"accumulatedFees":"1000","developerFees":"50","epochStartBlock":true,"searchOrder":1010,"epochStartInfo":{"totalSupply":"100","totalToDistribute":"55","totalNewlyMinted":"20","rewardsPerBlock":"15","rewardsForProtocolSustainability":"2","nodePrice":"10","prevEpochStartRound":222,"prevEpochStartHash":"7072657645706f6368"},"gasProvided":0,"gasRefunded":0,"gasPenalized":0,"maxGasLimit":0}
 `, buffSlice.Buffers()[0].String())
 }

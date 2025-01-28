@@ -9,6 +9,7 @@ import (
 
 // Logs holds all the fields needed for a logs structure
 type Logs struct {
+	UUID           string        `json:"uuid"`
 	ID             string        `json:"-"`
 	OriginalTxHash string        `json:"originalTxHash,omitempty"`
 	Address        string        `json:"address"`
