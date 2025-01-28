@@ -54,7 +54,7 @@ func (st *scrsDataToTransactions) processTransactionsAfterSCRsWereAttached(trans
 func (st *scrsDataToTransactions) processSCRsWithoutTx(scrs []*data.ScResult) map[string]*data.FeeData {
 	txHashRefund := make(map[string]*data.FeeData)
 	for _, scr := range scrs {
-		if scr.InitialTxGasUsed == 0 {
+		if scr.InitialTxGasUsed == 0 && scr.GasRefunded == 0 {
 			continue
 		}
 
@@ -70,10 +70,11 @@ func (st *scrsDataToTransactions) processSCRsWithoutTx(scrs []*data.ScResult) ma
 		}
 
 		txHashRefund[scr.OriginalTxHash] = &data.FeeData{
-			FeeNum:   feeNum,
-			Fee:      scr.InitialTxFee,
-			GasUsed:  scr.InitialTxGasUsed,
-			Receiver: scr.Receiver,
+			FeeNum:      feeNum,
+			Fee:         scr.InitialTxFee,
+			GasUsed:     scr.InitialTxGasUsed,
+			Receiver:    scr.Receiver,
+			GasRefunded: scr.GasRefunded,
 		}
 	}
 
