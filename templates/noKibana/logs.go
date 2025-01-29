@@ -5,39 +5,41 @@ var Logs = Object{
 	"index_patterns": Array{
 		"logs-*",
 	},
-	"settings": Object{
-		"number_of_shards":   3,
-		"number_of_replicas": 0,
-	},
-	"mappings": Object{
-		"properties": Object{
-			"address": Object{
-				"type": "keyword",
-			},
-			"events": Object{
-				"type": "nested",
-				"properties": Object{
-					"address": Object{
-						"type": "keyword",
-					},
-					"data": Object{
-						"index": "false",
-						"type":  "text",
-					},
-					"identifier": Object{
-						"type": "keyword",
-					},
-					"topics": Object{
-						"type": "text",
+	"template": Object{
+		"settings": Object{
+			"number_of_shards":   3,
+			"number_of_replicas": 0,
+		},
+		"mappings": Object{
+			"properties": Object{
+				"address": Object{
+					"type": "keyword",
+				},
+				"events": Object{
+					"type": "nested",
+					"properties": Object{
+						"address": Object{
+							"type": "keyword",
+						},
+						"data": Object{
+							"index": "false",
+							"type":  "text",
+						},
+						"identifier": Object{
+							"type": "keyword",
+						},
+						"topics": Object{
+							"type": "text",
+						},
 					},
 				},
-			},
-			"originalTxHash": Object{
-				"type": "keyword",
-			},
-			"timestamp": Object{
-				"type":   "date",
-				"format": "epoch_second",
+				"originalTxHash": Object{
+					"type": "keyword",
+				},
+				"timestamp": Object{
+					"type":   "date",
+					"format": "epoch_second",
+				},
 			},
 		},
 	},

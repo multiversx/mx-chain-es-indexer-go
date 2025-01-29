@@ -111,6 +111,7 @@ func (bp *blockProcessor) PrepareBlockForDB(obh *outport.OutportBlockWithHeader)
 		SoftwareVersion:       hex.EncodeToString(obh.Header.GetSoftwareVersion()),
 		ReceiptsHash:          hex.EncodeToString(obh.Header.GetReceiptsHash()),
 		Reserved:              obh.Header.GetReserved(),
+		UUID:                  converters.GenerateBase64UUID(),
 	}
 
 	additionalData := obh.Header.GetAdditionalData()

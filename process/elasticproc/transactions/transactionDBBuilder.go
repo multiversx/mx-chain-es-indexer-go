@@ -86,6 +86,10 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 	if len(tx.GuardianAddr) > 0 {
 		guardianAddress = dtb.addressPubkeyConverter.SilentEncode(tx.GuardianAddr, log)
 	}
+	relayedAddress := ""
+	if len(tx.RelayerAddr) > 0 {
+		relayedAddress = dtb.addressPubkeyConverter.SilentEncode(tx.RelayerAddr, log)
+	}
 
 	senderUserName := converters.TruncateFieldIfExceedsMaxLengthBase64(string(tx.SndUserName))
 	receiverUserName := converters.TruncateFieldIfExceedsMaxLengthBase64(string(tx.RcvUserName))
@@ -122,12 +126,20 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		GuardianSignature: hex.EncodeToString(tx.GuardianSignature),
 		ExecutionOrder:    int(txInfo.ExecutionOrder),
 		Operation:         res.Operation,
+		RelayedSignature:  hex.EncodeToString(tx.RelayerSignature),
+		RelayedAddr:       relayedAddress,
+		HadRefund:         feeInfo.HadRefund,
+		UUID:              converters.GenerateBase64UUID(),
 	}
+
+	hasValidRelayer := len(eTx.RelayedAddr) == len(eTx.Sender) && len(eTx.RelayedAddr) > 0
+	hasValidRelayerSignature := len(eTx.RelayedSignature) == len(eTx.Signature) && len(eTx.RelayedSignature) > 0
+	isRelayedV3 := hasValidRelayer && hasValidRelayerSignature
 
 	eTx.Function = converters.TruncateFieldIfExceedsMaxLength(res.Function)
 	eTx.Tokens = converters.TruncateSliceElementsIfExceedsMaxLength(res.Tokens)
 	eTx.ReceiversShardIDs = res.ReceiversShardID
-	eTx.IsRelayed = res.IsRelayed
+	eTx.IsRelayed = res.IsRelayed || isRelayedV3
 
 	return eTx
 }
@@ -168,6 +180,7 @@ func (dtb *dbTransactionBuilder) prepareRewardTransaction(
 		Status:         txStatus,
 		Operation:      rewardsOperation,
 		ExecutionOrder: int(rTxInfo.ExecutionOrder),
+		UUID:           converters.GenerateBase64UUID(),
 	}
 }
 
