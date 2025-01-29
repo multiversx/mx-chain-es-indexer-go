@@ -7,10 +7,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-es-indexer-go/mock"
 	indexerData "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/factory"
-	"github.com/stretchr/testify/require"
 )
 
 func TestCheckVersionIsIndexer(t *testing.T) {
@@ -27,6 +28,8 @@ func TestCheckVersionIsIndexer(t *testing.T) {
 		Denomination:             18,
 		Version:                  version,
 		EnabledIndexes:           []string{indexerData.ValuesIndex},
+		TxHashExtractor:          &mock.TxHashExtractorMock{},
+		RewardTxData:             &mock.RewardTxDataMock{},
 	}
 
 	_, err = factory.CreateElasticProcessor(args)
