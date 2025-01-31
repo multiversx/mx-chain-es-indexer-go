@@ -9,6 +9,7 @@ import (
 //	to be saved for a block. It has all the default fields
 //	plus some extra information for ease of search and filter
 type Block struct {
+	UUID                  string                 `json:"uuid"`
 	Nonce                 uint64                 `json:"nonce"`
 	Round                 uint64                 `json:"round"`
 	Epoch                 uint32                 `json:"epoch"`

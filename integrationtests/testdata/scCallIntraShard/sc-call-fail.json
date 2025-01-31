@@ -25,5 +25,6 @@
   "function": "delegate",
   "errorEvent": true,
   "hasLogs": true,
-  "hasOperations": true
+  "hasOperations": true,
+  "epoch": 0
 }

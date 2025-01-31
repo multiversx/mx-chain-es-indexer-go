@@ -17,5 +17,6 @@
   "type": "unsigned",
   "status": "success",
   "operation": "transfer",
-  "function": "issueNonFungible"
+  "function": "issueNonFungible",
+  "epoch": 0
 }

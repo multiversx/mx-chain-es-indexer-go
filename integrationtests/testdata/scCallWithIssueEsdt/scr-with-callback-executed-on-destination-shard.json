@@ -18,5 +18,6 @@
   "type": "unsigned",
   "status": "success",
   "operation": "transfer",
-  "hasLogs": true
+  "hasLogs": true,
+  "epoch": 0
 }
