@@ -25,5 +25,6 @@
   "type": "normal",
   "operation": "scDeploy",
   "errorEvent": true,
-  "completedEvent": true
+  "completedEvent": true,
+  "epoch": 0
 }

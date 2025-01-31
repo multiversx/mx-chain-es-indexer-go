@@ -40,6 +40,7 @@ type ScResult struct {
 	CanBeIgnored       bool          `json:"canBeIgnored,omitempty"`
 	OriginalSender     string        `json:"originalSender,omitempty"`
 	HasLogs            bool          `json:"hasLogs,omitempty"`
+	Epoch              uint32        `json:"epoch"`
 	ExecutionOrder     int           `json:"-"`
 	SenderAddressBytes []byte        `json:"-"`
 	InitialTxGasUsed   uint64        `json:"-"`

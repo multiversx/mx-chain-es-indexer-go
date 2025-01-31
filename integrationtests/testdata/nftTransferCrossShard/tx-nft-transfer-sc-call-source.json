@@ -36,5 +36,6 @@
   "timestamp": 5040,
   "status": "success",
   "initialPaidFee": "1904415000000000",
-  "searchOrder": 0
+  "searchOrder": 0,
+  "epoch": 0
 }

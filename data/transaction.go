@@ -52,6 +52,7 @@ type Transaction struct {
 	RelayedAddr          string        `json:"relayer,omitempty"`
 	RelayedSignature     string        `json:"relayerSignature,omitempty"`
 	HadRefund            bool          `json:"hadRefund,omitempty"`
+	Epoch                uint32        `json:"epoch"`
 	ExecutionOrder       int           `json:"-"`
 	SmartContractResults []*ScResult   `json:"-"`
 	Hash                 string        `json:"-"`

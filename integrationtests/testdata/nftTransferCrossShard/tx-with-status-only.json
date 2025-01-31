@@ -18,5 +18,6 @@
   "timestamp": 0,
   "status": "fail",
   "searchOrder": 0,
-  "errorEvent": true
+  "errorEvent": true,
+  "epoch": 0
 }

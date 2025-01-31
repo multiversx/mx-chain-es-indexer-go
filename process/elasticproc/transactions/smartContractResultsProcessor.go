@@ -192,6 +192,7 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 		GasRefunded:        feeInfo.GasRefunded,
 		ExecutionOrder:     int(scrInfo.ExecutionOrder),
 		UUID:               converters.GenerateBase64UUID(),
+		Epoch:              header.GetEpoch(),
 	}
 }
 
