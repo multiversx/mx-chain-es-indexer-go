@@ -36,5 +36,6 @@
     1
   ],
   "operation": "ESDTNFTTransfer",
-  "function": "compoundRewardsProxy"
+  "function": "compoundRewardsProxy",
+  "epoch": 0
 }

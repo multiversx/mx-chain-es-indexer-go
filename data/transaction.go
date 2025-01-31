@@ -8,6 +8,7 @@ import (
 // to be saved for a transaction. It has all the default fields
 // plus some extra information for ease of search and filter
 type Transaction struct {
+	UUID                 string        `json:"uuid"`
 	MBHash               string        `json:"miniBlockHash"`
 	Nonce                uint64        `json:"nonce"`
 	Round                uint64        `json:"round"`
@@ -48,12 +49,14 @@ type Transaction struct {
 	GuardianSignature    string        `json:"guardianSignature,omitempty"`
 	ErrorEvent           bool          `json:"errorEvent,omitempty"`
 	CompletedEvent       bool          `json:"completedEvent,omitempty"`
-	RelayedAddr          string        `json:"relayed,omitempty"`
+	RelayedAddr          string        `json:"relayer,omitempty"`
+	RelayedSignature     string        `json:"relayerSignature,omitempty"`
+	HadRefund            bool          `json:"hadRefund,omitempty"`
+	Epoch                uint32        `json:"epoch"`
 	ExecutionOrder       int           `json:"-"`
 	SmartContractResults []*ScResult   `json:"-"`
 	Hash                 string        `json:"-"`
 	BlockHash            string        `json:"-"`
-	HadRefund            bool          `json:"-"`
 }
 
 // Receipt is a structure containing all the fields that need to be safe for a Receipt
@@ -88,8 +91,9 @@ type ResponseTransactionDB struct {
 
 // FeeData is the structure that contains data about transaction fee and gas used
 type FeeData struct {
-	FeeNum   float64
-	Fee      string
-	GasUsed  uint64
-	Receiver string
+	FeeNum      float64
+	Fee         string
+	GasUsed     uint64
+	Receiver    string
+	GasRefunded uint64
 }

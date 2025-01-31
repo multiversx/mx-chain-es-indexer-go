@@ -4,6 +4,7 @@ import "time"
 
 // ScResult is a structure containing all the fields that need to be saved for a smart contract result
 type ScResult struct {
+	UUID               string        `json:"uuid"`
 	Hash               string        `json:"-"`
 	MBHash             string        `json:"miniBlockHash,omitempty"`
 	Nonce              uint64        `json:"nonce"`
@@ -39,8 +40,10 @@ type ScResult struct {
 	CanBeIgnored       bool          `json:"canBeIgnored,omitempty"`
 	OriginalSender     string        `json:"originalSender,omitempty"`
 	HasLogs            bool          `json:"hasLogs,omitempty"`
+	Epoch              uint32        `json:"epoch"`
 	ExecutionOrder     int           `json:"-"`
 	SenderAddressBytes []byte        `json:"-"`
 	InitialTxGasUsed   uint64        `json:"-"`
 	InitialTxFee       string        `json:"-"`
+	GasRefunded        uint64        `json:"-"`
 }
