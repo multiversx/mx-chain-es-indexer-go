@@ -7,8 +7,8 @@ import (
 
 type indexTokensHandler struct{}
 
-// NewIndexTokensHandler creates a new index tokens handler
-func NewIndexTokensHandler() *indexTokensHandler {
+// NewDisabledIndexTokensHandler creates a new disabled index tokens handler
+func NewDisabledIndexTokensHandler() *indexTokensHandler {
 	return &indexTokensHandler{}
 }
 

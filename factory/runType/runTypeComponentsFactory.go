@@ -17,7 +17,7 @@ func (rtcf *runTypeComponentsFactory) Create() (*runTypeComponents, error) {
 	return &runTypeComponents{
 		txHashExtractor:    transactions.NewTxHashExtractor(),
 		rewardTxData:       transactions.NewRewardTxData(),
-		indexTokensHandler: tokens.NewIndexTokensHandler(),
+		indexTokensHandler: tokens.NewDisabledIndexTokensHandler(),
 	}, nil
 }
 

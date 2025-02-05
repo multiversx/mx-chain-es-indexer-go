@@ -45,7 +45,7 @@ type SourceToken struct {
 	CurrentOwner string `json:"currentOwner"`
 }
 
-// ResponseTokenInfo is the structure for the token info response
+// ResponseTokenInfo is the structure for the tokens info response
 type ResponseTokenInfo struct {
 	Docs []ResponseTokenInfoDB `json:"docs"`
 }

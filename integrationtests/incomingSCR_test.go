@@ -18,7 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	indexerData "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
-	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/factory"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc"
 )
 
 type esToken struct {
@@ -72,18 +72,16 @@ func createTokens() ([]esToken, []esNft) {
 func TestCrossChainTokensIndexingFromMainChain(t *testing.T) {
 	setLogLevelDebug()
 
-	mainChainEs := factory.ElasticConfig{
-		Enabled: true,
-		Url:     es2URL,
-	}
+	mainEsClient, err := createESClient(esMainURL)
+	require.Nil(t, err)
 
 	tokens, nfts := createTokens()
-	createTokensInSourceEs(t, mainChainEs, tokens, nfts)
+	createTokensInSourceEs(t, mainEsClient, tokens, nfts)
 
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	esProc, err := CreateSovereignElasticProcessor(esClient, mainChainEs)
+	esProc, err := CreateSovereignElasticProcessor(esClient, mainEsClient)
 	require.Nil(t, err)
 
 	allTokens := getAllTokensIDs(tokens, nfts)
@@ -143,10 +141,7 @@ func TestCrossChainTokensIndexingFromMainChain(t *testing.T) {
 	}
 }
 
-func createTokensInSourceEs(t *testing.T, es factory.ElasticConfig, tokens []esToken, nfts []esNft) {
-	esClient, err := createESClient(es.Url)
-	require.Nil(t, err)
-
+func createTokensInSourceEs(t *testing.T, esClient elasticproc.DatabaseClientHandler, tokens []esToken, nfts []esNft) {
 	esProc, err := CreateElasticProcessor(esClient)
 	require.Nil(t, err)
 
@@ -254,7 +249,12 @@ func getAllTokensIDs(tokens []esToken, nfts []esNft) []string {
 func getAllNftIDs(nfts []esNft) []string {
 	allNfts := make([]string, 0)
 	for _, nft := range nfts {
-		allNfts = append(allNfts, nft.Collection+"-"+hex.EncodeToString(big.NewInt(0).SetUint64(nft.Nonce).Bytes()))
+		nonceBytes := big.NewInt(0).SetUint64(nft.Nonce).Bytes()
+		nonceHex := hex.EncodeToString(nonceBytes)
+		nftIdentifier := nft.Collection + "-" + nonceHex
+
+		allNfts = append(allNfts, nftIdentifier)
+
 	}
 	return allNfts
 }

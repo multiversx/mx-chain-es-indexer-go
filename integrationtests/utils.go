@@ -67,7 +67,7 @@ func CreateElasticProcessor(
 		Denomination:       18,
 		TxHashExtractor:    transactions.NewTxHashExtractor(),
 		RewardTxData:       transactions.NewRewardTxData(),
-		IndexTokensHandler: tokens.NewIndexTokensHandler(),
+		IndexTokensHandler: tokens.NewDisabledIndexTokensHandler(),
 	}
 
 	return factory.CreateElasticProcessor(args)
@@ -76,9 +76,9 @@ func CreateElasticProcessor(
 // CreateSovereignElasticProcessor -
 func CreateSovereignElasticProcessor(
 	esClient elasticproc.DatabaseClientHandler,
-	mainChainEs factory.ElasticConfig,
+	mainEsClient elasticproc.DatabaseClientHandler,
 ) (dataindexer.ElasticProcessor, error) {
-	sovIndexTokens, _ := tokens.NewSovereignIndexTokensHandler(mainChainEs, sovEsdtPrefix)
+	sovIndexTokens, _ := tokens.NewSovereignIndexTokensHandler(true, mainEsClient, sovEsdtPrefix)
 
 	args := factory.ArgElasticProcessorFactory{
 		Marshalizer:              &mock.MarshalizerMock{},

@@ -109,7 +109,7 @@ func (mrtc *managedRunTypeComponents) RewardTxDataCreator() transactions.RewardT
 	return mrtc.runTypeComponents.rewardTxData
 }
 
-// IndexTokensHandlerCreator return index tokens handler
+// IndexTokensHandlerCreator returns the index tokens handler
 func (mrtc *managedRunTypeComponents) IndexTokensHandlerCreator() elasticproc.IndexTokensHandler {
 	mrtc.mutRunTypeCoreComponents.Lock()
 	defer mrtc.mutRunTypeCoreComponents.Unlock()

@@ -1,5 +1,5 @@
 IMAGE_NAME=elastic-container
-IMAGE_NAME_2=elastic-container-2
+MAIN_IMAGE_NAME=main-elastic-container
 DEFAULT_ES_VERSION=7.16.2
 PROMETHEUS_CONTAINER_NAME=prometheus_container
 GRAFANA_CONTAINER_NAME=grafana_container
@@ -17,12 +17,12 @@ start() {
   docker pull docker.elastic.co/elasticsearch/elasticsearch:${ES_VERSION}
 
   docker rm ${IMAGE_NAME} 2> /dev/null
-  docker rm ${IMAGE_NAME_2} 2> /dev/null
+  docker rm ${MAIN_IMAGE_NAME} 2> /dev/null
   docker run -d --name "${IMAGE_NAME}" -p 9200:9200  -p 9300:9300 \
    -e "discovery.type=single-node" -e "xpack.security.enabled=false" -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" \
     docker.elastic.co/elasticsearch/elasticsearch:${ES_VERSION}
 
-    docker run -d --name "${IMAGE_NAME_2}" -p 9201:9200  -p 9301:9300 \
+    docker run -d --name "${MAIN_IMAGE_NAME}" -p 9201:9200  -p 9301:9300 \
        -e "discovery.type=single-node" -e "xpack.security.enabled=false" -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" \
         docker.elastic.co/elasticsearch/elasticsearch:${ES_VERSION}
 
@@ -33,7 +33,7 @@ start() {
 
 stop() {
   docker stop "${IMAGE_NAME}"
-  docker stop "${IMAGE_NAME_2}"
+  docker stop "${MAIN_IMAGE_NAME}"
 }
 
 delete() {
@@ -48,7 +48,7 @@ delete() {
 
 
 IMAGE_OPEN_SEARCH=open-container
-IMAGE_OPEN_SEARCH_2=open-container-2
+MAIN_IMAGE_OPEN_SEARCH=main-open-container
 DEFAULT_OPEN_SEARCH_VERSION=1.2.4
 
 start_open_search() {
@@ -60,11 +60,11 @@ start_open_search() {
   docker pull opensearchproject/opensearch:${OPEN_VERSION}
 
   docker rm ${IMAGE_OPEN_SEARCH} 2> /dev/null
-  docker rm ${IMAGE_OPEN_SEARCH_2} 2> /dev/null
+  docker rm ${MAIN_IMAGE_OPEN_SEARCH} 2> /dev/null
   docker run -d --name "${IMAGE_OPEN_SEARCH}" -p 9200:9200 -p 9600:9600 \
    -e "discovery.type=single-node" -e "plugins.security.disabled=true" -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" \
    opensearchproject/opensearch:${OPEN_VERSION}
-  docker run -d --name "${IMAGE_OPEN_SEARCH_2}" -p 9201:9200 -p 9601:9600 \
+  docker run -d --name "${MAIN_IMAGE_OPEN_SEARCH}" -p 9201:9200 -p 9601:9600 \
    -e "discovery.type=single-node" -e "plugins.security.disabled=true" -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" \
    opensearchproject/opensearch:${OPEN_VERSION}
 

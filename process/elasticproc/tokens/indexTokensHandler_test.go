@@ -9,14 +9,14 @@ import (
 func TestNewIndexTokensHandler(t *testing.T) {
 	t.Parallel()
 
-	ith := NewIndexTokensHandler()
+	ith := NewDisabledIndexTokensHandler()
 	require.False(t, ith.IsInterfaceNil())
 }
 
 func TestIndexTokensHandler_IndexCrossChainTokens(t *testing.T) {
 	t.Parallel()
 
-	ith := NewIndexTokensHandler()
+	ith := NewDisabledIndexTokensHandler()
 	err := ith.IndexCrossChainTokens(nil, nil, nil)
 	require.NoError(t, err)
 }

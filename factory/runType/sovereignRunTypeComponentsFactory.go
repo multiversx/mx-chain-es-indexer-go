@@ -1,6 +1,16 @@
 package runType
 
 import (
+	"math"
+	"net/http"
+	"time"
+
+	"github.com/elastic/go-elasticsearch/v7"
+
+	"github.com/multiversx/mx-chain-es-indexer-go/client"
+	"github.com/multiversx/mx-chain-es-indexer-go/client/disabled"
+	"github.com/multiversx/mx-chain-es-indexer-go/client/logging"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/factory"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/tokens"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/transactions"
@@ -21,7 +31,12 @@ func NewSovereignRunTypeComponentsFactory(mainChainElastic factory.ElasticConfig
 
 // Create will create the run type components
 func (srtcf *sovereignRunTypeComponentsFactory) Create() (*runTypeComponents, error) {
-	sovIndexTokensHandler, err := tokens.NewSovereignIndexTokensHandler(srtcf.mainChainElastic, srtcf.esdtPrefix)
+	mainChainElasticClient, err := createMainChainElasticClient(srtcf.mainChainElastic)
+	if err != nil {
+		return nil, err
+	}
+
+	sovIndexTokensHandler, err := tokens.NewSovereignIndexTokensHandler(srtcf.mainChainElastic.Enabled, mainChainElasticClient, srtcf.esdtPrefix)
 	if err != nil {
 		return nil, err
 	}
@@ -31,6 +46,26 @@ func (srtcf *sovereignRunTypeComponentsFactory) Create() (*runTypeComponents, er
 		rewardTxData:       transactions.NewSovereignRewardTxData(),
 		indexTokensHandler: sovIndexTokensHandler,
 	}, nil
+}
+
+func createMainChainElasticClient(mainChainElastic factory.ElasticConfig) (elasticproc.DatabaseClientHandler, error) {
+	if mainChainElastic.Enabled {
+		argsEsClient := elasticsearch.Config{
+			Addresses:     []string{mainChainElastic.Url},
+			Username:      mainChainElastic.UserName,
+			Password:      mainChainElastic.Password,
+			Logger:        &logging.CustomLogger{},
+			RetryOnStatus: []int{http.StatusConflict},
+			RetryBackoff:  retryBackOff,
+		}
+		return client.NewElasticClient(argsEsClient)
+	} else {
+		return disabled.NewDisabledElasticClient(), nil
+	}
+}
+
+func retryBackOff(attempt int) time.Duration {
+	return time.Duration(math.Exp2(float64(attempt))) * time.Second
 }
 
 // IsInterfaceNil returns true if there is no value under the interface
