@@ -1,0 +1,14 @@
+{
+  "identifier": "NON-v2-02",
+  "token": "NON-v2",
+  "currentOwner": "erd1ju8pkvg57cwdmjsjx58jlmnuf4l9yspstrhr9tgsrt98n9edpm2qtlgy99",
+  "numDecimals": 0,
+  "type": "NonFungibleESDTv2",
+  "nonce": 2,
+  "timestamp": 5600,
+  "data": {
+    "creator": "erd1ju8pkvg57cwdmjsjx58jlmnuf4l9yspstrhr9tgsrt98n9edpm2qtlgy99",
+    "nonEmptyURIs": false,
+    "whiteListedStorage": false
+  }
+}
