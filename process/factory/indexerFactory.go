@@ -2,9 +2,7 @@ package factory
 
 import (
 	"fmt"
-	"math"
 	"net/http"
-	"time"
 
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/multiversx/mx-chain-core-go/core"
@@ -101,13 +99,6 @@ func createManagedRunTypeComponents(factory runType.RunTypeComponentsCreator) (r
 	return managedRunTypeComponents, nil
 }
 
-func retryBackOff(attempt int) time.Duration {
-	d := time.Duration(math.Exp2(float64(attempt))) * time.Second
-	log.Debug("elastic: retry backoff", "attempt", attempt, "sleep duration", d)
-
-	return d
-}
-
 func createElasticProcessor(args ArgsIndexerFactory) (dataindexer.ElasticProcessor, error) {
 	databaseClient, err := createElasticClient(args)
 	if err != nil {
@@ -141,7 +132,7 @@ func createElasticClient(args ArgsIndexerFactory) (elasticproc.DatabaseClientHan
 		Password:      args.Password,
 		Logger:        &logging.CustomLogger{},
 		RetryOnStatus: []int{http.StatusConflict},
-		RetryBackoff:  retryBackOff,
+		RetryBackoff:  client.RetryBackOff,
 	}
 
 	if check.IfNil(args.StatusMetrics) {

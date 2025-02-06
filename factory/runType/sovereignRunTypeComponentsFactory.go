@@ -1,9 +1,7 @@
 package runType
 
 import (
-	"math"
 	"net/http"
-	"time"
 
 	"github.com/elastic/go-elasticsearch/v7"
 
@@ -56,16 +54,12 @@ func createMainChainElasticClient(mainChainElastic factory.ElasticConfig) (elast
 			Password:      mainChainElastic.Password,
 			Logger:        &logging.CustomLogger{},
 			RetryOnStatus: []int{http.StatusConflict},
-			RetryBackoff:  retryBackOff,
+			RetryBackoff:  client.RetryBackOff,
 		}
 		return client.NewMainChainElasticClient(argsEsClient, mainChainElastic.Enabled)
 	} else {
 		return disabled.NewDisabledElasticClient(), nil
 	}
-}
-
-func retryBackOff(attempt int) time.Duration {
-	return time.Duration(math.Exp2(float64(attempt))) * time.Second
 }
 
 // IsInterfaceNil returns true if there is no value under the interface
