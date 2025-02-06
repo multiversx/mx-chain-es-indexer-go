@@ -24,7 +24,7 @@
         password = ""
         bulk-request-max-size-in-bytes = 4194304 # 4MB
 
-    [config.main-elastic-cluster]
+    [config.main-chain-elastic-cluster]
         enabled = true
         url = "http://localhost:9201"
         username = ""

@@ -6,7 +6,7 @@ const (
 	//nolint
 	esURL = "http://localhost:9200"
 	//nolint
-	esMainURL = "http://localhost:9201"
+	esMainChainURL = "http://localhost:9201"
 	//nolint
 	addressPrefix = "erd"
 )

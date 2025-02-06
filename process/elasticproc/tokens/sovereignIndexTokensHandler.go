@@ -16,15 +16,13 @@ import (
 )
 
 type sovereignIndexTokensHandler struct {
-	indexingEnabled        bool
-	mainChainElasticClient elasticproc.DatabaseClientHandler
+	mainChainElasticClient elasticproc.MainChainDatabaseClientHandler
 	esdtPrefix             string
 }
 
 // NewSovereignIndexTokensHandler creates a new sovereign index tokens handler
-func NewSovereignIndexTokensHandler(indexingEnabled bool, mainChainElasticClient elasticproc.DatabaseClientHandler, esdtPrefix string) (*sovereignIndexTokensHandler, error) {
+func NewSovereignIndexTokensHandler(mainChainElasticClient elasticproc.MainChainDatabaseClientHandler, esdtPrefix string) (*sovereignIndexTokensHandler, error) {
 	return &sovereignIndexTokensHandler{
-		indexingEnabled:        indexingEnabled,
 		mainChainElasticClient: mainChainElasticClient,
 		esdtPrefix:             esdtPrefix,
 	}, nil
@@ -32,7 +30,7 @@ func NewSovereignIndexTokensHandler(indexingEnabled bool, mainChainElasticClient
 
 // IndexCrossChainTokens will index the new tokens properties
 func (sit *sovereignIndexTokensHandler) IndexCrossChainTokens(elasticClient elasticproc.DatabaseClientHandler, scrs []*data.ScResult, buffSlice *data.BufferSlice) error {
-	if !sit.indexingEnabled {
+	if !sit.mainChainElasticClient.IsEnabled() {
 		return nil
 	}
 
@@ -59,7 +57,7 @@ func (sit *sovereignIndexTokensHandler) getNewTokensFromSCRs(elasticClient elast
 	receivedTokensIDs := make([]string, 0)
 	for _, scr := range scrs {
 		if scr.SenderShard == core.MainChainShardId {
-			receivedTokensIDs = append(receivedTokensIDs, sit.extractSovereignTokens(scr.Tokens)...)
+			receivedTokensIDs = append(receivedTokensIDs, sit.extractNewSovereignTokens(scr.Tokens)...)
 		}
 	}
 
@@ -83,7 +81,7 @@ func (sit *sovereignIndexTokensHandler) getNewTokensFromSCRs(elasticClient elast
 	return newTokens, nil
 }
 
-func (sit *sovereignIndexTokensHandler) extractSovereignTokens(tokens []string) []string {
+func (sit *sovereignIndexTokensHandler) extractNewSovereignTokens(tokens []string) []string {
 	receivedTokensIDs := make([]string, 0)
 	for _, token := range tokens {
 		tokenPrefix, hasPrefix := esdt.IsValidPrefixedToken(token)

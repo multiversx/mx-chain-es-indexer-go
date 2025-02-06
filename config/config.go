@@ -58,7 +58,7 @@ type ClusterConfig struct {
 			URL      string `toml:"url"`
 			UserName string `toml:"username"`
 			Password string `toml:"password"`
-		} `toml:"main-elastic-cluster"`
+		} `toml:"main-chain-elastic-cluster"`
 	} `toml:"config"`
 }
 

@@ -72,16 +72,16 @@ func createTokens() ([]esToken, []esNft) {
 func TestCrossChainTokensIndexingFromMainChain(t *testing.T) {
 	setLogLevelDebug()
 
-	mainEsClient, err := createESClient(esMainURL)
+	mainChainEsClient, err := createMainChainESClient(esMainChainURL, true)
 	require.Nil(t, err)
 
 	tokens, nfts := createTokens()
-	createTokensInSourceEs(t, mainEsClient, tokens, nfts)
+	createTokensInSourceEs(t, mainChainEsClient, tokens, nfts)
 
 	esClient, err := createESClient(esURL)
 	require.Nil(t, err)
 
-	esProc, err := CreateSovereignElasticProcessor(esClient, mainEsClient)
+	esProc, err := CreateSovereignElasticProcessor(esClient, mainChainEsClient)
 	require.Nil(t, err)
 
 	allTokens := getAllTokensIDs(tokens, nfts)

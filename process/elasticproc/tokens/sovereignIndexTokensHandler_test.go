@@ -19,12 +19,12 @@ func TestSovereignNewIndexTokensHandler(t *testing.T) {
 	t.Parallel()
 
 	t.Run("valid disabled config, should work", func(t *testing.T) {
-		sith, err := NewSovereignIndexTokensHandler(false, disabled.NewDisabledElasticClient(), prefix)
+		sith, err := NewSovereignIndexTokensHandler(disabled.NewDisabledElasticClient(), prefix)
 		require.NoError(t, err)
 		require.Equal(t, "*disabled.elasticClient", fmt.Sprintf("%T", sith.mainChainElasticClient))
 	})
 	t.Run("valid config, should work", func(t *testing.T) {
-		sith, err := NewSovereignIndexTokensHandler(true, &mock.DatabaseWriterStub{}, prefix)
+		sith, err := NewSovereignIndexTokensHandler(&mock.DatabaseWriterStub{}, prefix)
 		require.NoError(t, err)
 		require.Equal(t, "*mock.DatabaseWriterStub", fmt.Sprintf("%T", sith.mainChainElasticClient))
 	})
@@ -33,7 +33,7 @@ func TestSovereignNewIndexTokensHandler(t *testing.T) {
 func TestSovereignIndexTokensHandler_IndexCrossChainTokens(t *testing.T) {
 	t.Parallel()
 
-	sith, err := NewSovereignIndexTokensHandler(false, disabled.NewDisabledElasticClient(), prefix)
+	sith, err := NewSovereignIndexTokensHandler(disabled.NewDisabledElasticClient(), prefix)
 	require.NoError(t, err)
 	require.NotNil(t, sith)
 

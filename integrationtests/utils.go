@@ -44,6 +44,14 @@ func createESClient(url string) (elasticproc.DatabaseClientHandler, error) {
 }
 
 // nolint
+func createMainChainESClient(url string, enabled bool) (elasticproc.MainChainDatabaseClientHandler, error) {
+	return client.NewMainChainElasticClient(elasticsearch.Config{
+		Addresses: []string{url},
+		Logger:    &logging.CustomLogger{},
+	}, enabled)
+}
+
+// nolint
 func decodeAddress(address string) []byte {
 	decoded, err := pubKeyConverter.Decode(address)
 	log.LogIfError(err, "address", address)
@@ -76,9 +84,9 @@ func CreateElasticProcessor(
 // CreateSovereignElasticProcessor -
 func CreateSovereignElasticProcessor(
 	esClient elasticproc.DatabaseClientHandler,
-	mainEsClient elasticproc.DatabaseClientHandler,
+	mainEsClient elasticproc.MainChainDatabaseClientHandler,
 ) (dataindexer.ElasticProcessor, error) {
-	sovIndexTokens, _ := tokens.NewSovereignIndexTokensHandler(true, mainEsClient, sovEsdtPrefix)
+	sovIndexTokens, _ := tokens.NewSovereignIndexTokensHandler(mainEsClient, sovEsdtPrefix)
 
 	args := factory.ArgElasticProcessorFactory{
 		Marshalizer:              &mock.MarshalizerMock{},

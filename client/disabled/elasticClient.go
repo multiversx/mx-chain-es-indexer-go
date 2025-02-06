@@ -67,6 +67,11 @@ func (ec *elasticClient) CheckAndCreatePolicy(_ string, _ *bytes.Buffer) error {
 	return nil
 }
 
+// IsEnabled -
+func (ec *elasticClient) IsEnabled() bool {
+	return false
+}
+
 // IsInterfaceNil - returns true if there is no value under the interface
 func (ec *elasticClient) IsInterfaceNil() bool {
 	return ec == nil

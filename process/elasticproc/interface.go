@@ -13,6 +13,12 @@ import (
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/tokeninfo"
 )
 
+// MainChainDatabaseClientHandler defines the actions that sovereign database client handler should do
+type MainChainDatabaseClientHandler interface {
+	DatabaseClientHandler
+	IsEnabled() bool
+}
+
 // DatabaseClientHandler defines the actions that a component that handles requests should do
 type DatabaseClientHandler interface {
 	DoBulkRequest(ctx context.Context, buff *bytes.Buffer, index string) error

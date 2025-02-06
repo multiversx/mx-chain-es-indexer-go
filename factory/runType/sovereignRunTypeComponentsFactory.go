@@ -36,7 +36,7 @@ func (srtcf *sovereignRunTypeComponentsFactory) Create() (*runTypeComponents, er
 		return nil, err
 	}
 
-	sovIndexTokensHandler, err := tokens.NewSovereignIndexTokensHandler(srtcf.mainChainElastic.Enabled, mainChainElasticClient, srtcf.esdtPrefix)
+	sovIndexTokensHandler, err := tokens.NewSovereignIndexTokensHandler(mainChainElasticClient, srtcf.esdtPrefix)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func (srtcf *sovereignRunTypeComponentsFactory) Create() (*runTypeComponents, er
 	}, nil
 }
 
-func createMainChainElasticClient(mainChainElastic factory.ElasticConfig) (elasticproc.DatabaseClientHandler, error) {
+func createMainChainElasticClient(mainChainElastic factory.ElasticConfig) (elasticproc.MainChainDatabaseClientHandler, error) {
 	if mainChainElastic.Enabled {
 		argsEsClient := elasticsearch.Config{
 			Addresses:     []string{mainChainElastic.Url},
@@ -58,7 +58,7 @@ func createMainChainElasticClient(mainChainElastic factory.ElasticConfig) (elast
 			RetryOnStatus: []int{http.StatusConflict},
 			RetryBackoff:  retryBackOff,
 		}
-		return client.NewElasticClient(argsEsClient)
+		return client.NewMainChainElasticClient(argsEsClient, mainChainElastic.Enabled)
 	} else {
 		return disabled.NewDisabledElasticClient(), nil
 	}
