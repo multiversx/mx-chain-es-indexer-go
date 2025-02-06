@@ -284,7 +284,7 @@ func serializeTokenTransferOwnership(tokenData *data.TokenInfo, index string) ([
 // SerializeSupplyData will serialize the provided supply data
 func (lep *logsAndEventsProcessor) SerializeSupplyData(tokensSupply data.TokensHandler, buffSlice *data.BufferSlice, index string) error {
 	for _, supplyData := range tokensSupply.GetAll() {
-		if supplyData.Type != core.NonFungibleESDT {
+		if supplyData.Type != core.NonFungibleESDT && supplyData.Type != core.NonFungibleESDTv2 {
 			continue
 		}
 
