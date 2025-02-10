@@ -4,6 +4,7 @@
         "receipts", "scresults", "accountsesdt", "accountsesdthistory", "epochinfo", "scdeploys", "tokens", "tags",
         "logs", "delegators", "operations", "esdts", "values", "events"
     ]
+    esdt-prefix = ""
     [config.address-converter]
         length = 32
         type = "bech32"

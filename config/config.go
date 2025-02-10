@@ -4,6 +4,7 @@ package config
 type Config struct {
 	Config struct {
 		AvailableIndices []string `toml:"available-indices"`
+		ESDTPrefix       string   `toml:"esdt-prefix"`
 		AddressConverter struct {
 			Length int    `toml:"length"`
 			Type   string `toml:"type"`
@@ -29,8 +30,7 @@ type Config struct {
 			LogsPath             string `toml:"logs-path"`
 		} `toml:"logs"`
 	} `toml:"config"`
-	Sovereign  bool
-	ESDTPrefix string
+	Sovereign bool
 }
 
 // ClusterConfig will hold the config for the Elasticsearch cluster

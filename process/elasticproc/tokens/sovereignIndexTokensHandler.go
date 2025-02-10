@@ -50,7 +50,7 @@ func (sit *sovereignIndexTokensHandler) IndexCrossChainTokens(elasticClient elas
 		return err
 	}
 
-	return sit.indexNewTokens(mainChainTokens.Docs, buffSlice)
+	return sit.serializeNewTokens(mainChainTokens.Docs, buffSlice)
 }
 
 func (sit *sovereignIndexTokensHandler) getNewTokensFromSCRs(elasticClient elasticproc.DatabaseClientHandler, scrs []*data.ScResult) ([]string, error) {
@@ -107,7 +107,7 @@ func getTokenCollection(hasPrefix bool, tokenIdentifier string) string {
 	return ""
 }
 
-func (sit *sovereignIndexTokensHandler) indexNewTokens(responseTokensInfo []data.ResponseTokenInfoDB, buffSlice *data.BufferSlice) error {
+func (sit *sovereignIndexTokensHandler) serializeNewTokens(responseTokensInfo []data.ResponseTokenInfoDB, buffSlice *data.BufferSlice) error {
 	for _, responseToken := range responseTokensInfo {
 		token, identifier := formatToken(responseToken)
 
