@@ -5,6 +5,7 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
 
+	elasticIndexer "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/transactions"
 )
@@ -80,7 +81,7 @@ func (mrtc *managedRunTypeComponents) CheckSubcomponents() error {
 		return transactions.ErrNilRewardTxDataHandler
 	}
 	if check.IfNil(mrtc.indexTokensHandler) {
-		return transactions.ErrNilIndexTokensHandler
+		return elasticIndexer.ErrNilIndexTokensHandler
 	}
 	return nil
 }

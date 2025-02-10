@@ -4,7 +4,6 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 
 	elasticIndexer "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
-	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/transactions"
 )
 
 func checkArguments(arguments *ArgElasticProcessor) error {
@@ -42,7 +41,7 @@ func checkArguments(arguments *ArgElasticProcessor) error {
 		return elasticIndexer.ErrNilOperationsHandler
 	}
 	if check.IfNilReflect(arguments.IndexTokensHandler) {
-		return transactions.ErrNilIndexTokensHandler
+		return elasticIndexer.ErrNilIndexTokensHandler
 	}
 
 	return nil
