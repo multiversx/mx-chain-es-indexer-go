@@ -3,6 +3,7 @@ name: Publish Docker image
 on:
   release:
     types: [published]
+  pull_request:
 
 jobs:
   push_to_registry:
@@ -31,24 +32,25 @@ jobs:
           fi
 
       - name: Log in to Docker Hub
+        if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
         uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Extract metadata (tags, labels) for Docker
+        if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
         id: meta
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
-          images: multiversx/elastic-indexer
+          images: multiversx/sovereign-elastic-indexer
 
       - name: Build and push Docker image
         id: push
         uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
         with:
           context: .
-          file: ./Dockerfile
-          push: true
+          file: ./Dockerfile-sovereign
+          push: ${{ github.event_name == 'release' && github.event.action == 'published' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-
