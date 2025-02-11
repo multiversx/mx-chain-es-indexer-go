@@ -17,6 +17,7 @@ import (
 type MainChainDatabaseClientHandler interface {
 	DatabaseClientHandler
 	IsEnabled() bool
+	IsInterfaceNil() bool
 }
 
 // DatabaseClientHandler defines the actions that a component that handles requests should do

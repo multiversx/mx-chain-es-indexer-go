@@ -1,21 +1,16 @@
 package client
 
 import (
-	"github.com/elastic/go-elasticsearch/v7"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc"
 )
 
 type mainChainElasticClient struct {
-	*elasticClient
+	elasticproc.DatabaseClientHandler
 	indexingEnabled bool
 }
 
 // NewMainChainElasticClient creates a new sovereign elastic client
-func NewMainChainElasticClient(cfg elasticsearch.Config, indexingEnabled bool) (*mainChainElasticClient, error) {
-	esClient, err := NewElasticClient(cfg)
-	if err != nil {
-		return nil, err
-	}
-
+func NewMainChainElasticClient(esClient elasticproc.DatabaseClientHandler, indexingEnabled bool) (*mainChainElasticClient, error) {
 	return &mainChainElasticClient{
 		esClient,
 		indexingEnabled,
@@ -25,4 +20,9 @@ func NewMainChainElasticClient(cfg elasticsearch.Config, indexingEnabled bool) (
 // IsEnabled returns true if main chain elastic client is enabled
 func (mcec *mainChainElasticClient) IsEnabled() bool {
 	return mcec.indexingEnabled
+}
+
+// IsInterfaceNil returns true if there is no value under the interface
+func (mcec *mainChainElasticClient) IsInterfaceNil() bool {
+	return mcec == nil
 }

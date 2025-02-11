@@ -45,10 +45,8 @@ func createESClient(url string) (elasticproc.DatabaseClientHandler, error) {
 
 // nolint
 func createMainChainESClient(url string, enabled bool) (elasticproc.MainChainDatabaseClientHandler, error) {
-	return client.NewMainChainElasticClient(elasticsearch.Config{
-		Addresses: []string{url},
-		Logger:    &logging.CustomLogger{},
-	}, enabled)
+	esClient, _ := createESClient(url)
+	return client.NewMainChainElasticClient(esClient, enabled)
 }
 
 // nolint

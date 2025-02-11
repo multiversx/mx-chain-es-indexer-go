@@ -56,7 +56,12 @@ func createMainChainElasticClient(mainChainElastic factory.ElasticConfig) (elast
 			RetryOnStatus: []int{http.StatusConflict},
 			RetryBackoff:  client.RetryBackOff,
 		}
-		return client.NewMainChainElasticClient(argsEsClient, mainChainElastic.Enabled)
+		esClient, err := client.NewElasticClient(argsEsClient)
+		if err != nil {
+			return nil, err
+		}
+
+		return client.NewMainChainElasticClient(esClient, mainChainElastic.Enabled)
 	} else {
 		return disabled.NewDisabledElasticClient(), nil
 	}
