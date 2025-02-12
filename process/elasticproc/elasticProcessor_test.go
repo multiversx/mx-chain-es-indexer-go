@@ -12,6 +12,8 @@ import (
 	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/mock"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
@@ -25,20 +27,20 @@ import (
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/tags"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/transactions"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/validators"
-	"github.com/stretchr/testify/require"
 )
 
 func newElasticsearchProcessor(elasticsearchWriter DatabaseClientHandler, arguments *ArgElasticProcessor) *elasticProcessor {
 	return &elasticProcessor{
-		elasticClient:     elasticsearchWriter,
-		enabledIndexes:    arguments.EnabledIndexes,
-		blockProc:         arguments.BlockProc,
-		transactionsProc:  arguments.TransactionsProc,
-		miniblocksProc:    arguments.MiniblocksProc,
-		accountsProc:      arguments.AccountsProc,
-		validatorsProc:    arguments.ValidatorsProc,
-		statisticsProc:    arguments.StatisticsProc,
-		logsAndEventsProc: arguments.LogsAndEventsProc,
+		elasticClient:      elasticsearchWriter,
+		enabledIndexes:     arguments.EnabledIndexes,
+		blockProc:          arguments.BlockProc,
+		transactionsProc:   arguments.TransactionsProc,
+		miniblocksProc:     arguments.MiniblocksProc,
+		accountsProc:       arguments.AccountsProc,
+		validatorsProc:     arguments.ValidatorsProc,
+		statisticsProc:     arguments.StatisticsProc,
+		logsAndEventsProc:  arguments.LogsAndEventsProc,
+		indexTokensHandler: arguments.IndexTokensHandler,
 	}
 }
 
@@ -79,14 +81,15 @@ func createMockElasticProcessorArgs() *ArgElasticProcessor {
 		EnabledIndexes: map[string]struct{}{
 			dataindexer.BlockIndex: {}, dataindexer.TransactionsIndex: {}, dataindexer.MiniblocksIndex: {}, dataindexer.ValidatorsIndex: {}, dataindexer.RoundsIndex: {}, dataindexer.AccountsIndex: {}, dataindexer.RatingIndex: {}, dataindexer.AccountsHistoryIndex: {},
 		},
-		ValidatorsProc:    vp,
-		StatisticsProc:    statistics.NewStatisticsProcessor(),
-		TransactionsProc:  &mock.DBTransactionProcessorStub{},
-		MiniblocksProc:    mp,
-		AccountsProc:      acp,
-		BlockProc:         bp,
-		LogsAndEventsProc: lp,
-		OperationsProc:    op,
+		ValidatorsProc:     vp,
+		StatisticsProc:     statistics.NewStatisticsProcessor(),
+		TransactionsProc:   &mock.DBTransactionProcessorStub{},
+		MiniblocksProc:     mp,
+		AccountsProc:       acp,
+		BlockProc:          bp,
+		LogsAndEventsProc:  lp,
+		OperationsProc:     op,
+		IndexTokensHandler: &IndexTokenHandlerMock{},
 	}
 }
 
@@ -354,6 +357,8 @@ func TestElasticseachSaveTransactions(t *testing.T) {
 		Hasher:                 &mock.HasherMock{},
 		Marshalizer:            &mock.MarshalizerMock{},
 		BalanceConverter:       bc,
+		TxHashExtractor:        transactions.NewTxHashExtractor(),
+		RewardTxData:           &mock.RewardTxDataMock{},
 	}
 	txDbProc, _ := transactions.NewTransactionsProcessor(args)
 	arguments.TransactionsProc = txDbProc

@@ -2,7 +2,6 @@ package transactions
 
 import (
 	"encoding/hex"
-	"fmt"
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
@@ -11,6 +10,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/receipt"
+
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
@@ -20,17 +20,20 @@ type dbTransactionBuilder struct {
 	addressPubkeyConverter core.PubkeyConverter
 	dataFieldParser        DataFieldParser
 	balanceConverter       dataindexer.BalanceConverter
+	rewardTxData           RewardTxDataHandler
 }
 
 func newTransactionDBBuilder(
 	addressPubkeyConverter core.PubkeyConverter,
 	dataFieldParser DataFieldParser,
 	balanceConverter dataindexer.BalanceConverter,
+	rewardTxData RewardTxDataHandler,
 ) *dbTransactionBuilder {
 	return &dbTransactionBuilder{
 		addressPubkeyConverter: addressPubkeyConverter,
 		dataFieldParser:        dataFieldParser,
 		balanceConverter:       balanceConverter,
+		rewardTxData:           rewardTxData,
 	}
 }
 
@@ -83,6 +86,10 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 	if len(tx.GuardianAddr) > 0 {
 		guardianAddress = dtb.addressPubkeyConverter.SilentEncode(tx.GuardianAddr, log)
 	}
+	relayedAddress := ""
+	if len(tx.RelayerAddr) > 0 {
+		relayedAddress = dtb.addressPubkeyConverter.SilentEncode(tx.RelayerAddr, log)
+	}
 
 	senderUserName := converters.TruncateFieldIfExceedsMaxLengthBase64(string(tx.SndUserName))
 	receiverUserName := converters.TruncateFieldIfExceedsMaxLengthBase64(string(tx.RcvUserName))
@@ -119,12 +126,19 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		GuardianSignature: hex.EncodeToString(tx.GuardianSignature),
 		ExecutionOrder:    int(txInfo.ExecutionOrder),
 		Operation:         res.Operation,
+		RelayedSignature:  hex.EncodeToString(tx.RelayerSignature),
+		RelayedAddr:       relayedAddress,
+		HadRefund:         feeInfo.HadRefund,
 	}
+
+	hasValidRelayer := len(eTx.RelayedAddr) == len(eTx.Sender) && len(eTx.RelayedAddr) > 0
+	hasValidRelayerSignature := len(eTx.RelayedSignature) == len(eTx.Signature) && len(eTx.RelayedSignature) > 0
+	isRelayedV3 := hasValidRelayer && hasValidRelayerSignature
 
 	eTx.Function = converters.TruncateFieldIfExceedsMaxLength(res.Function)
 	eTx.Tokens = converters.TruncateSliceElementsIfExceedsMaxLength(res.Tokens)
 	eTx.ReceiversShardIDs = res.ReceiversShardID
-	eTx.IsRelayed = res.IsRelayed
+	eTx.IsRelayed = res.IsRelayed || isRelayedV3
 
 	return eTx
 }
@@ -154,7 +168,7 @@ func (dtb *dbTransactionBuilder) prepareRewardTransaction(
 		Value:          rTx.Value.String(),
 		ValueNum:       valueNum,
 		Receiver:       receiverAddr,
-		Sender:         fmt.Sprintf("%d", core.MetachainShardId),
+		Sender:         dtb.rewardTxData.GetSender(),
 		ReceiverShard:  mb.ReceiverShardID,
 		SenderShard:    mb.SenderShardID,
 		GasPrice:       0,

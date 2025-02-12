@@ -7,11 +7,13 @@ import (
 	factoryHasher "github.com/multiversx/mx-chain-core-go/hashing/factory"
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	factoryMarshaller "github.com/multiversx/mx-chain-core-go/marshal/factory"
+	logger "github.com/multiversx/mx-chain-logger-go"
+
 	"github.com/multiversx/mx-chain-es-indexer-go/config"
 	"github.com/multiversx/mx-chain-es-indexer-go/core"
+	esFactory "github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/factory"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/factory"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/wsindexer"
-	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 var log = logger.GetOrCreate("elasticindexer")
@@ -75,7 +77,16 @@ func createDataIndexer(
 		return nil, err
 	}
 
+	mainChainElastic := esFactory.ElasticConfig{
+		Enabled:  clusterCfg.Config.MainChainCluster.Enabled,
+		Url:      clusterCfg.Config.MainChainCluster.URL,
+		UserName: clusterCfg.Config.MainChainCluster.UserName,
+		Password: clusterCfg.Config.MainChainCluster.Password,
+	}
+
 	return factory.NewIndexer(factory.ArgsIndexerFactory{
+		Sovereign:                cfg.Sovereign,
+		MainChainElastic:         mainChainElastic,
 		UseKibana:                clusterCfg.Config.ElasticCluster.UseKibana,
 		Denomination:             cfg.Config.Economics.Denomination,
 		BulkRequestMaxSize:       clusterCfg.Config.ElasticCluster.BulkRequestMaxSizeInBytes,

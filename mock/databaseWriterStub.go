@@ -86,6 +86,11 @@ func (dwm *DatabaseWriterStub) CheckAndCreatePolicy(_ string, _ *bytes.Buffer) e
 	return nil
 }
 
+// IsEnabled -
+func (dwm *DatabaseWriterStub) IsEnabled() bool {
+	return false
+}
+
 // IsInterfaceNil returns true if there is no value under the interface
 func (dwm *DatabaseWriterStub) IsInterfaceNil() bool {
 	return dwm == nil

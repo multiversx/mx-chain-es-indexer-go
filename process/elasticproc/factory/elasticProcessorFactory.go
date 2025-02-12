@@ -4,6 +4,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/accounts"
@@ -18,6 +19,14 @@ import (
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/validators"
 )
 
+// ElasticConfig holds the elastic search settings
+type ElasticConfig struct {
+	Enabled  bool
+	Url      string
+	UserName string
+	Password string
+}
+
 // ArgElasticProcessorFactory is struct that is used to store all components that are needed to create an elastic processor factory
 type ArgElasticProcessorFactory struct {
 	Marshalizer              marshal.Marshalizer
@@ -31,6 +40,9 @@ type ArgElasticProcessorFactory struct {
 	BulkRequestMaxSize       int
 	UseKibana                bool
 	ImportDB                 bool
+	TxHashExtractor          transactions.TxHashExtractor
+	RewardTxData             transactions.RewardTxDataHandler
+	IndexTokensHandler       elasticproc.IndexTokensHandler
 }
 
 // CreateElasticProcessor will create a new instance of ElasticProcessor
@@ -87,6 +99,8 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (dataindexer.E
 		Hasher:                 arguments.Hasher,
 		Marshalizer:            arguments.Marshalizer,
 		BalanceConverter:       balanceConverter,
+		TxHashExtractor:        arguments.TxHashExtractor,
+		RewardTxData:           arguments.RewardTxData,
 	}
 	txsProc, err := transactions.NewTransactionsProcessor(argsTxsProc)
 	if err != nil {
@@ -127,6 +141,7 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (dataindexer.E
 		OperationsProc:     operationsProc,
 		ImportDB:           arguments.ImportDB,
 		Version:            arguments.Version,
+		IndexTokensHandler: arguments.IndexTokensHandler,
 	}
 
 	return elasticproc.NewElasticProcessor(args)

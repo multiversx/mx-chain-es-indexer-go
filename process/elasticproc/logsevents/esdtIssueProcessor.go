@@ -47,10 +47,6 @@ func newESDTIssueProcessor(pubkeyConverter core.PubkeyConverter) *esdtIssueProce
 }
 
 func (eip *esdtIssueProcessor) processEvent(args *argsProcessEvent) argOutputProcessEvent {
-	if args.selfShardID != core.MetachainShardId {
-		return argOutputProcessEvent{}
-	}
-
 	identifierStr := string(args.event.GetIdentifier())
 	_, ok := eip.issueOperationsIdentifiers[identifierStr]
 	if !ok {

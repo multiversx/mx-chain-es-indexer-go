@@ -13,11 +13,12 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/rewardTx"
 	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/mock"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func createMockArgsTxsDBProc() *ArgsTransactionProcessor {
@@ -27,6 +28,8 @@ func createMockArgsTxsDBProc() *ArgsTransactionProcessor {
 		Hasher:                 &mock.HasherMock{},
 		Marshalizer:            &mock.MarshalizerMock{},
 		BalanceConverter:       ap,
+		TxHashExtractor:        NewTxHashExtractor(),
+		RewardTxData:           &mock.RewardTxDataMock{},
 	}
 	return args
 }

@@ -6,7 +6,10 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 )
 
-const metaESDT = "MetaESDT"
+const (
+	metaESDT        = "MetaESDT"
+	dynamicMetaESDT = "DynamicMetaESDT"
+)
 
 // NFTDataUpdate will contain the update information for an NFT or SFT
 type NFTDataUpdate struct {
@@ -40,6 +43,18 @@ type ResponseTokenDB struct {
 type SourceToken struct {
 	Type         string `json:"type"`
 	CurrentOwner string `json:"currentOwner"`
+}
+
+// ResponseTokenInfo is the structure for the tokens info response
+type ResponseTokenInfo struct {
+	Docs []ResponseTokenInfoDB `json:"docs"`
+}
+
+// ResponseTokenInfoDB is the structure for the token info response
+type ResponseTokenInfoDB struct {
+	Found  bool      `json:"found"`
+	ID     string    `json:"_id"`
+	Source TokenInfo `json:"_source"`
 }
 
 // TokenInfo is a structure that is needed to store information about a token
@@ -129,7 +144,7 @@ func (ti *tokensInfo) GetAll() []*TokenInfo {
 func (ti *tokensInfo) GetAllWithoutMetaESDT() []*TokenInfo {
 	tokens := make([]*TokenInfo, 0)
 	for _, tokenData := range ti.tokensInfo {
-		if tokenData.Type == metaESDT {
+		if tokenData.Type == metaESDT || tokenData.Type == dynamicMetaESDT {
 			continue
 		}
 

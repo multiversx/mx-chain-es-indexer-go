@@ -49,11 +49,6 @@ func (ilp *informativeLogsProcessor) processEvent(args *argsProcessEvent) argOut
 		}
 	}
 
-	setSuccess := tx.CompletedEvent && tx.ErrorEvent
-	if setSuccess {
-		tx.Status = transaction.TxStatusSuccess.String()
-	}
-
 	return argOutputProcessEvent{
 		processed: true,
 	}
@@ -62,6 +57,11 @@ func (ilp *informativeLogsProcessor) processEvent(args *argsProcessEvent) argOut
 func processEventNoTx(args *argsProcessEvent) argOutputProcessEvent {
 	scr, ok := args.scrs[args.txHashHexEncoded]
 	if !ok {
+		return argOutputProcessEvent{
+			processed: true,
+		}
+	}
+	if scr.OriginalTxHash == "" {
 		return argOutputProcessEvent{
 			processed: true,
 		}

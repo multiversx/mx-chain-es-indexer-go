@@ -36,9 +36,16 @@ integration-tests-open-search:
 INDEXER_IMAGE_NAME="elasticindexer"
 INDEXER_IMAGE_TAG="latest"
 DOCKER_FILE=Dockerfile
+SOVEREIGN_DOCKER_FILE=Dockerfile-sovereign
 
 docker-build:
 	docker build \
 		 -t ${INDEXER_IMAGE_NAME}:${INDEXER_IMAGE_TAG} \
 		 -f ${DOCKER_FILE} \
+		 .
+
+docker-sovereign-build:
+	docker build \
+		 -t ${INDEXER_IMAGE_NAME}:${INDEXER_IMAGE_TAG} \
+		 -f ${SOVEREIGN_DOCKER_FILE} \
 		 .

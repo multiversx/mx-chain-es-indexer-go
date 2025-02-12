@@ -14,6 +14,8 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/alteredAccount"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
+	logger "github.com/multiversx/mx-chain-logger-go"
+
 	"github.com/multiversx/mx-chain-es-indexer-go/core/request"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	elasticIndexer "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
@@ -21,7 +23,6 @@ import (
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/tags"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/tokeninfo"
 	"github.com/multiversx/mx-chain-es-indexer-go/templates"
-	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 var (
@@ -57,6 +58,7 @@ type ArgElasticProcessor struct {
 	LogsAndEventsProc  DBLogsAndEventsHandler
 	OperationsProc     OperationsHandler
 	Version            string
+	IndexTokensHandler IndexTokensHandler
 }
 
 type elasticProcessor struct {
@@ -73,6 +75,7 @@ type elasticProcessor struct {
 	validatorsProc     DBValidatorsHandler
 	logsAndEventsProc  DBLogsAndEventsHandler
 	operationsProc     OperationsHandler
+	indexTokensHandler IndexTokensHandler
 }
 
 // NewElasticProcessor handles Elasticsearch operations such as initialization, adding, modifying or removing data
@@ -94,6 +97,7 @@ func NewElasticProcessor(arguments *ArgElasticProcessor) (*elasticProcessor, err
 		logsAndEventsProc:  arguments.LogsAndEventsProc,
 		operationsProc:     arguments.OperationsProc,
 		bulkRequestMaxSize: arguments.BulkRequestMaxSize,
+		indexTokensHandler: arguments.IndexTokensHandler,
 	}
 
 	err = ei.init(arguments.UseKibana, arguments.IndexTemplates, arguments.IndexPolicies, arguments.ExtraMappings)
@@ -499,6 +503,11 @@ func (ei *elasticProcessor) SaveTransactions(obh *outport.OutportBlockWithHeader
 	}
 
 	err = ei.indexScDeploys(logsData.ScDeploys, logsData.ChangeOwnerOperations, buffers)
+	if err != nil {
+		return err
+	}
+
+	err = ei.indexTokensHandler.IndexCrossChainTokens(ei.elasticClient, preparedResults.ScResults, buffers)
 	if err != nil {
 		return err
 	}

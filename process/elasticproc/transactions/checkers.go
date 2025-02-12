@@ -10,9 +10,10 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
+	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
+
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	elasticIndexer "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
-	vmcommon "github.com/multiversx/mx-chain-vm-common-go"
 )
 
 const (
@@ -34,6 +35,12 @@ func checkTxsProcessorArg(args *ArgsTransactionProcessor) error {
 	}
 	if check.IfNil(args.BalanceConverter) {
 		return elasticIndexer.ErrNilBalanceConverter
+	}
+	if check.IfNil(args.TxHashExtractor) {
+		return ErrNilTxHashExtractor
+	}
+	if check.IfNil(args.RewardTxData) {
+		return ErrNilRewardTxDataHandler
 	}
 
 	return nil

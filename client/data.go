@@ -28,8 +28,10 @@ type Item struct {
 		Type   string `json:"type"`
 		Reason string `json:"reason"`
 		Cause  struct {
-			Type   string `json:"type"`
-			Reason string `json:"reason"`
+			Type        string   `json:"type"`
+			Reason      string   `json:"reason"`
+			ScriptStack []string `json:"script_stack"`
+			Script      string   `json:"script"`
 		} `json:"caused_by"`
 	} `json:"error"`
 }

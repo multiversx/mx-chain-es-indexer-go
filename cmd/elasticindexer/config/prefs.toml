@@ -23,3 +23,11 @@
         username = ""
         password = ""
         bulk-request-max-size-in-bytes = 4194304 # 4MB
+
+    # Configuration for main chain elastic cluster
+    # Used by the sovereign chain indexer to index incoming new tokens properties
+    [config.main-chain-elastic-cluster]
+        enabled = true
+        url = "http://localhost:9201"
+        username = ""
+        password = ""

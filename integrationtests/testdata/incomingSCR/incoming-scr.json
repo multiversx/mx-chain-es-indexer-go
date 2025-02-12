@@ -1,0 +1,43 @@
+{
+  "miniBlockHash": "71e255368d7a6686a57a1acb8845953fc54e5a1cfde395acd09df58cb61d5abb",
+  "nonce": 11,
+  "gasLimit": 0,
+  "gasPrice": 0,
+  "value": "0",
+  "valueNum": 0,
+  "sender": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u",
+  "receiver": "erd1kzrfl2tztgzjpeedwec37c8npcr0a2ulzh9lhmj7xufyg23zcxuqxcqz0s",
+  "senderShard": 4294967293,
+  "receiverShard": 0,
+  "data": "TXVsdGlFU0RUTkZUVHJhbnNmZXJAMDNANTQ0YjRlMzEzODJkMzE2MTMyNjIzMzYzQEA3YkA1NDRiNGUzMTMyMmQzMTYzMzI2MjMzNjFAQDAxNGRANGU0NjU0MmQ2MTYyNjMzMTMyMzNAMDFAN2IyMjU0Nzk3MDY1MjIzYTMyMmMyMjU2NjE2Yzc1NjUyMjNhMzEyYzIyNTA3MjZmNzA2NTcyNzQ2OTY1NzMyMjNhMjI0ZDdhNDE3YTRkNjczZDNkMjIyYzIyNGQ2NTc0NjE0NDYxNzQ2MTIyM2E3YjIyNGU2ZjZlNjM2NTIyM2EzMTJjMjI0ZTYxNmQ2NTIyM2EyMjU0NmI1YTU1MjIyYzIyNDM3MjY1NjE3NDZmNzIyMjNhMjI1OTMzNGE2YzU5NTg1Mjc2NjM2NzNkM2QyMjJjMjI1MjZmNzk2MTZjNzQ2OTY1NzMyMjNhMzIzNTMwMzAyYzIyNDg2MTczNjgyMjNhNmU3NTZjNmMyYzIyNTU1MjQ5NzMyMjNhNmU3NTZjNmMyYzIyNDE3NDc0NzI2OTYyNzU3NDY1NzMyMjNhNmU3NTZjNmM3ZDJjMjI1MjY1NzM2NTcyNzY2NTY0MjIzYTZlNzU2YzZjN2Q=",
+  "prevTxHash": "",
+  "originalTxHash": "",
+  "callType": "0",
+  "timestamp": 2500,
+  "tokens": [
+    "TKN18-1a2b3c",
+    "TKN12-1c2b3a",
+    "NFT-abc123-01"
+  ],
+  "esdtValues": [
+    "123",
+    "333",
+    "1"
+  ],
+  "esdtValuesNum": [
+    1.23e-16,
+    3.33e-16,
+    1e-18
+  ],
+  "receivers": [
+    "erd1kzrfl2tztgzjpeedwec37c8npcr0a2ulzh9lhmj7xufyg23zcxuqxcqz0s",
+    "erd1kzrfl2tztgzjpeedwec37c8npcr0a2ulzh9lhmj7xufyg23zcxuqxcqz0s",
+    "erd1kzrfl2tztgzjpeedwec37c8npcr0a2ulzh9lhmj7xufyg23zcxuqxcqz0s"
+  ],
+  "receiversShardIDs": [
+    0,
+    0,
+    0
+  ],
+  "operation": "MultiESDTNFTTransfer"
+}

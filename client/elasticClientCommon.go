@@ -6,11 +6,14 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math"
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/elastic/go-elasticsearch/v7/esapi"
+
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 )
@@ -134,8 +137,8 @@ func extractErrorFromBulkBodyResponseBytes(bodyBytes []byte) error {
 		}
 
 		count++
-		errorsString += fmt.Sprintf(`{ "index": "%s", "id": "%s", "statusCode": %d, "errorType": "%s", "reason": "%s", "causedBy": { "type": "%s", "reason": "%s" }}\n`,
-			selectedItem.Index, selectedItem.ID, selectedItem.Status, selectedItem.Error.Type, selectedItem.Error.Reason, selectedItem.Error.Cause.Type, selectedItem.Error.Cause.Reason)
+		errorsString += fmt.Sprintf(`{ "index": "%s", "id": "%s", "statusCode": %d, "errorType": "%s", "reason": "%s", "causedBy": { "type": "%s", "reason": "%s", "script_stack":"%s", "script":"%s" }}\n`,
+			selectedItem.Index, selectedItem.ID, selectedItem.Status, selectedItem.Error.Type, selectedItem.Error.Reason, selectedItem.Error.Cause.Type, selectedItem.Error.Cause.Reason, selectedItem.Error.Cause.ScriptStack, selectedItem.Error.Cause.Script)
 
 		if count == numOfErrorsToExtractBulkResponse {
 			break
@@ -267,4 +270,12 @@ func parseResponse(res *esapi.Response, dest interface{}, errorHandler responseE
 	}
 
 	return nil
+}
+
+// RetryBackOff returns elastic retry backoff duration
+func RetryBackOff(attempt int) time.Duration {
+	d := time.Duration(math.Exp2(float64(attempt))) * time.Second
+	log.Debug("elastic: retry backoff", "attempt", attempt, "sleep duration", d)
+
+	return d
 }
