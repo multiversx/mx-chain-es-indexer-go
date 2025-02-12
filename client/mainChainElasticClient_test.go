@@ -6,18 +6,27 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/stretchr/testify/require"
+
+	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 )
 
 func TestNewMainChainElasticClient(t *testing.T) {
-	esClient, err := NewElasticClient(elasticsearch.Config{
-		Addresses: []string{"http://localhost:9200"},
+	t.Run("nil elastic client, should error", func(t *testing.T) {
+		mainChainESClient, err := NewMainChainElasticClient(nil, true)
+		require.Error(t, err, dataindexer.ErrNilDatabaseClient)
+		require.True(t, mainChainESClient.IsInterfaceNil())
 	})
-	require.Nil(t, err)
-	require.NotNil(t, esClient)
+	t.Run("valid elastic client, should work", func(t *testing.T) {
+		esClient, err := NewElasticClient(elasticsearch.Config{
+			Addresses: []string{"http://localhost:9200"},
+		})
+		require.Nil(t, err)
+		require.NotNil(t, esClient)
 
-	mainChainESClient, err := NewMainChainElasticClient(esClient, true)
-	require.NoError(t, err)
-	require.Equal(t, "*client.mainChainElasticClient", fmt.Sprintf("%T", mainChainESClient))
+		mainChainESClient, err := NewMainChainElasticClient(esClient, true)
+		require.NoError(t, err)
+		require.Equal(t, "*client.mainChainElasticClient", fmt.Sprintf("%T", mainChainESClient))
+	})
 }
 
 func TestMainChainElasticClient_IsEnabled(t *testing.T) {

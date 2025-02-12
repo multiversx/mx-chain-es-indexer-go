@@ -1,6 +1,9 @@
 package client
 
 import (
+	"github.com/multiversx/mx-chain-core-go/core/check"
+
+	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc"
 )
 
@@ -11,6 +14,10 @@ type mainChainElasticClient struct {
 
 // NewMainChainElasticClient creates a new sovereign elastic client
 func NewMainChainElasticClient(esClient elasticproc.DatabaseClientHandler, indexingEnabled bool) (*mainChainElasticClient, error) {
+	if check.IfNil(esClient) {
+		return nil, dataindexer.ErrNilDatabaseClient
+	}
+
 	return &mainChainElasticClient{
 		esClient,
 		indexingEnabled,
