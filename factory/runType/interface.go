@@ -1,12 +1,13 @@
 package runType
 
 import (
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/transactions"
 )
 
 // RunTypeComponentsCreator is the interface for creating run type components
 type RunTypeComponentsCreator interface {
-	Create() *runTypeComponents
+	Create() (*runTypeComponents, error)
 	IsInterfaceNil() bool
 }
 
@@ -28,6 +29,7 @@ type RunTypeComponentsHandler interface {
 type RunTypeComponentsHolder interface {
 	TxHashExtractorCreator() transactions.TxHashExtractor
 	RewardTxDataCreator() transactions.RewardTxDataHandler
+	IndexTokensHandlerCreator() elasticproc.IndexTokensHandler
 	Create() error
 	Close() error
 	CheckSubcomponents() error

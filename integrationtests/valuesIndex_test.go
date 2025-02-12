@@ -11,6 +11,7 @@ import (
 
 	"github.com/multiversx/mx-chain-es-indexer-go/mock"
 	indexerData "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/factory"
 )
 
@@ -30,6 +31,7 @@ func TestCheckVersionIsIndexer(t *testing.T) {
 		EnabledIndexes:           []string{indexerData.ValuesIndex},
 		TxHashExtractor:          &mock.TxHashExtractorMock{},
 		RewardTxData:             &mock.RewardTxDataMock{},
+		IndexTokensHandler:       &elasticproc.IndexTokenHandlerMock{},
 	}
 
 	_, err = factory.CreateElasticProcessor(args)

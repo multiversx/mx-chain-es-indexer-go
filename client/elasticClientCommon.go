@@ -6,11 +6,14 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math"
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/elastic/go-elasticsearch/v7/esapi"
+
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 )
@@ -267,4 +270,12 @@ func parseResponse(res *esapi.Response, dest interface{}, errorHandler responseE
 	}
 
 	return nil
+}
+
+// RetryBackOff returns elastic retry backoff duration
+func RetryBackOff(attempt int) time.Duration {
+	d := time.Duration(math.Exp2(float64(attempt))) * time.Second
+	log.Debug("elastic: retry backoff", "attempt", attempt, "sleep duration", d)
+
+	return d
 }

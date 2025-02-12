@@ -1,6 +1,7 @@
 package runType
 
 import (
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/tokens"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/transactions"
 )
 
@@ -12,11 +13,12 @@ func NewRunTypeComponentsFactory() *runTypeComponentsFactory {
 }
 
 // Create will create the run type components
-func (rtcf *runTypeComponentsFactory) Create() *runTypeComponents {
+func (rtcf *runTypeComponentsFactory) Create() (*runTypeComponents, error) {
 	return &runTypeComponents{
-		txHashExtractor: transactions.NewTxHashExtractor(),
-		rewardTxData:    transactions.NewRewardTxData(),
-	}
+		txHashExtractor:    transactions.NewTxHashExtractor(),
+		rewardTxData:       transactions.NewRewardTxData(),
+		indexTokensHandler: tokens.NewDisabledIndexTokensHandler(),
+	}, nil
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

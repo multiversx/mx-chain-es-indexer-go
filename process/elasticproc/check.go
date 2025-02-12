@@ -2,6 +2,7 @@ package elasticproc
 
 import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
+
 	elasticIndexer "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 )
 
@@ -38,6 +39,9 @@ func checkArguments(arguments *ArgElasticProcessor) error {
 	}
 	if check.IfNilReflect(arguments.OperationsProc) {
 		return elasticIndexer.ErrNilOperationsHandler
+	}
+	if check.IfNilReflect(arguments.IndexTokensHandler) {
+		return elasticIndexer.ErrNilIndexTokensHandler
 	}
 
 	return nil

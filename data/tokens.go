@@ -45,6 +45,18 @@ type SourceToken struct {
 	CurrentOwner string `json:"currentOwner"`
 }
 
+// ResponseTokenInfo is the structure for the tokens info response
+type ResponseTokenInfo struct {
+	Docs []ResponseTokenInfoDB `json:"docs"`
+}
+
+// ResponseTokenInfoDB is the structure for the token info response
+type ResponseTokenInfoDB struct {
+	Found  bool      `json:"found"`
+	ID     string    `json:"_id"`
+	Source TokenInfo `json:"_source"`
+}
+
 // TokenInfo is a structure that is needed to store information about a token
 type TokenInfo struct {
 	Name              string           `json:"name,omitempty"`

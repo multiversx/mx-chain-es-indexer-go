@@ -88,3 +88,6 @@ var ErrNilOperationsHandler = errors.New("nil operations handler")
 
 // ErrNilBlockContainerHandler signals that a nil block container handler has been provided
 var ErrNilBlockContainerHandler = errors.New("nil bock container handler")
+
+// ErrNilIndexTokensHandler signals that a nil index tokens handler has been provided
+var ErrNilIndexTokensHandler = errors.New("nil index tokens handler")

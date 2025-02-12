@@ -4,6 +4,7 @@ package config
 type Config struct {
 	Config struct {
 		AvailableIndices []string `toml:"available-indices"`
+		ESDTPrefix       string   `toml:"esdt-prefix"`
 		AddressConverter struct {
 			Length int    `toml:"length"`
 			Type   string `toml:"type"`
@@ -52,6 +53,12 @@ type ClusterConfig struct {
 			Password                  string `toml:"password"`
 			BulkRequestMaxSizeInBytes int    `toml:"bulk-request-max-size-in-bytes"`
 		} `toml:"elastic-cluster"`
+		MainChainCluster struct {
+			Enabled  bool   `toml:"enabled"`
+			URL      string `toml:"url"`
+			UserName string `toml:"username"`
+			Password string `toml:"password"`
+		} `toml:"main-chain-elastic-cluster"`
 	} `toml:"config"`
 }
 

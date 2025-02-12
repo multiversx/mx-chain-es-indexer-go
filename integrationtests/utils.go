@@ -20,12 +20,14 @@ import (
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/factory"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/tokens"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/transactions"
 )
 
 var (
 	log                = logger.GetOrCreate("integration-tests")
 	pubKeyConverter, _ = pubkeyConverter.NewBech32PubkeyConverter(32, addressPrefix)
+	sovEsdtPrefix      = "sov"
 )
 
 // nolint
@@ -39,6 +41,12 @@ func createESClient(url string) (elasticproc.DatabaseClientHandler, error) {
 		Addresses: []string{url},
 		Logger:    &logging.CustomLogger{},
 	})
+}
+
+// nolint
+func createMainChainESClient(url string, enabled bool) (elasticproc.MainChainDatabaseClientHandler, error) {
+	esClient, _ := createESClient(url)
+	return client.NewMainChainElasticClient(esClient, enabled)
 }
 
 // nolint
@@ -62,9 +70,35 @@ func CreateElasticProcessor(
 		EnabledIndexes: []string{dataindexer.TransactionsIndex, dataindexer.LogsIndex, dataindexer.AccountsESDTIndex, dataindexer.ScResultsIndex,
 			dataindexer.ReceiptsIndex, dataindexer.BlockIndex, dataindexer.AccountsIndex, dataindexer.TokensIndex, dataindexer.TagsIndex, dataindexer.EventsIndex,
 			dataindexer.OperationsIndex, dataindexer.DelegatorsIndex, dataindexer.ESDTsIndex, dataindexer.SCDeploysIndex, dataindexer.MiniblocksIndex, dataindexer.ValuesIndex},
-		Denomination:    18,
-		TxHashExtractor: transactions.NewTxHashExtractor(),
-		RewardTxData:    transactions.NewRewardTxData(),
+		Denomination:       18,
+		TxHashExtractor:    transactions.NewTxHashExtractor(),
+		RewardTxData:       transactions.NewRewardTxData(),
+		IndexTokensHandler: tokens.NewDisabledIndexTokensHandler(),
+	}
+
+	return factory.CreateElasticProcessor(args)
+}
+
+// CreateSovereignElasticProcessor -
+func CreateSovereignElasticProcessor(
+	esClient elasticproc.DatabaseClientHandler,
+	mainEsClient elasticproc.MainChainDatabaseClientHandler,
+) (dataindexer.ElasticProcessor, error) {
+	sovIndexTokens, _ := tokens.NewSovereignIndexTokensHandler(mainEsClient, sovEsdtPrefix)
+
+	args := factory.ArgElasticProcessorFactory{
+		Marshalizer:              &mock.MarshalizerMock{},
+		Hasher:                   &mock.HasherMock{},
+		AddressPubkeyConverter:   pubKeyConverter,
+		ValidatorPubkeyConverter: mock.NewPubkeyConverterMock(32),
+		DBClient:                 esClient,
+		EnabledIndexes: []string{dataindexer.TransactionsIndex, dataindexer.LogsIndex, dataindexer.AccountsESDTIndex, dataindexer.ScResultsIndex,
+			dataindexer.ReceiptsIndex, dataindexer.BlockIndex, dataindexer.AccountsIndex, dataindexer.TokensIndex, dataindexer.TagsIndex, dataindexer.EventsIndex,
+			dataindexer.OperationsIndex, dataindexer.DelegatorsIndex, dataindexer.ESDTsIndex, dataindexer.SCDeploysIndex, dataindexer.MiniblocksIndex, dataindexer.ValuesIndex},
+		Denomination:       18,
+		TxHashExtractor:    transactions.NewSovereignTxHashExtractor(),
+		RewardTxData:       transactions.NewSovereignRewardTxData(),
+		IndexTokensHandler: sovIndexTokens,
 	}
 
 	return factory.CreateElasticProcessor(args)
