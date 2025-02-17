@@ -4,6 +4,7 @@ import "time"
 
 // LogEvent is the dto for the log event structure
 type LogEvent struct {
+	UUID           string        `json:"uuid"`
 	ID             string        `json:"-"`
 	TxHash         string        `json:"txHash"`
 	OriginalTxHash string        `json:"originalTxHash,omitempty"`

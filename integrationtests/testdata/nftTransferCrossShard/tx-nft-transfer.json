@@ -35,5 +35,6 @@
   "gasPrice": 1000000000,
   "timestamp": 5040,
   "status": "success",
-  "searchOrder": 0
+  "searchOrder": 0,
+  "epoch": 0
 }

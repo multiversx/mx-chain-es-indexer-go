@@ -24,5 +24,6 @@
   "operation": "transfer",
   "function": "claimRewards",
   "isScCall": true,
-  "hasLogs": true
+  "hasLogs": true,
+  "epoch": 0
 }
