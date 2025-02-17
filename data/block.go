@@ -2,6 +2,8 @@ package data
 
 import (
 	"time"
+
+	"github.com/multiversx/mx-chain-core-go/data/api"
 )
 
 // Block is a structure containing all the fields that need
@@ -39,6 +41,7 @@ type Block struct {
 	MaxGasLimit           uint64                 `json:"maxGasLimit"`
 	ScheduledData         *ScheduledData         `json:"scheduledData,omitempty"`
 	EpochStartShardsData  []*EpochStartShardData `json:"epochStartShardsData,omitempty"`
+	PreviousHeaderProof   *api.HeaderProof       `json:"previousHeaderProof,omitempty"`
 	RandSeed              string                 `json:"randSeed,omitempty"`
 	PrevRandSeed          string                 `json:"prevRandSeed,omitempty"`
 	Signature             string                 `json:"signature,omitempty"`

@@ -3,6 +3,7 @@ package block
 import (
 	"encoding/hex"
 	"errors"
+	"github.com/multiversx/mx-chain-core-go/data/api"
 	"math/big"
 	"testing"
 
@@ -258,6 +259,16 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 				TxCount: 120,
 			},
 		},
+		PreviousHeaderProof: &dataBlock.HeaderProof{
+			PubKeysBitmap:       []byte("bitmap"),
+			AggregatedSignature: []byte("sig"),
+			HeaderHash:          []byte("hash"),
+			HeaderEpoch:         1,
+			HeaderNonce:         3,
+			HeaderShardId:       2,
+			HeaderRound:         4,
+			IsStartOfEpoch:      true,
+		},
 	}
 
 	headerBytes, _ := bp.marshalizer.Marshal(header)
@@ -293,7 +304,7 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 		Proposer:              0,
 		Validators:            nil,
 		PubKeyBitmap:          "",
-		Size:                  898,
+		Size:                  1090,
 		SizeTxs:               0,
 		Timestamp:             0,
 		StateRootHash:         "",
@@ -330,6 +341,16 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 				ExecutionOrderTxsIndices: []int{},
 				TxsHashes:                []string{},
 			},
+		},
+		PreviousHeaderProof: &api.HeaderProof{
+			PubKeysBitmap:       "6269746d6170",
+			AggregatedSignature: "736967",
+			HeaderHash:          "68617368",
+			HeaderEpoch:         1,
+			HeaderNonce:         3,
+			HeaderShardId:       2,
+			HeaderRound:         4,
+			IsStartOfEpoch:      true,
 		},
 		EpochStartShardsData: []*data.EpochStartShardData{
 			{

@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/multiversx/mx-chain-core-go/data/api"
 	"strconv"
 	"time"
 
@@ -131,7 +132,27 @@ func (bp *blockProcessor) PrepareBlockForDB(obh *outport.OutportBlockWithHeader)
 	appendBlockDetailsFromHeaders(elasticBlock, obh.Header, obh.BlockData.Body, obh.TransactionPool)
 	appendBlockDetailsFromIntraShardMbs(elasticBlock, obh.BlockData.IntraShardMiniBlocks, obh.TransactionPool, len(obh.Header.GetMiniBlockHeaderHandlers()))
 
+	appendPreviousHeaderProof(elasticBlock, obh.Header)
+
 	return elasticBlock, nil
+}
+
+func appendPreviousHeaderProof(elasticBlock *data.Block, header coreData.HeaderHandler) {
+	prevHeaderProof := header.GetPreviousProof()
+	if prevHeaderProof == nil {
+		return
+	}
+
+	elasticBlock.PreviousHeaderProof = &api.HeaderProof{
+		PubKeysBitmap:       hex.EncodeToString(prevHeaderProof.GetPubKeysBitmap()),
+		AggregatedSignature: hex.EncodeToString(prevHeaderProof.GetAggregatedSignature()),
+		HeaderHash:          hex.EncodeToString(prevHeaderProof.GetHeaderHash()),
+		HeaderEpoch:         prevHeaderProof.GetHeaderEpoch(),
+		HeaderNonce:         prevHeaderProof.GetHeaderNonce(),
+		HeaderShardId:       prevHeaderProof.GetHeaderShardId(),
+		HeaderRound:         prevHeaderProof.GetHeaderRound(),
+		IsStartOfEpoch:      prevHeaderProof.GetIsStartOfEpoch(),
+	}
 }
 
 func getTxsCount(header coreData.HeaderHandler) (numTxs, notarizedTxs uint32) {
