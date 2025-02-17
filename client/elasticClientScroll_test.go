@@ -2,7 +2,7 @@ package client
 
 import (
 	"context"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -24,7 +24,7 @@ func TestElasticClient_DoCountRequest(t *testing.T) {
 		jsonFile, err := os.Open("./testsData/response-count-request.json")
 		require.Nil(t, err)
 
-		byteValue, _ := ioutil.ReadAll(jsonFile)
+		byteValue, _ := io.ReadAll(jsonFile)
 		_, _ = w.Write(byteValue)
 	}
 
