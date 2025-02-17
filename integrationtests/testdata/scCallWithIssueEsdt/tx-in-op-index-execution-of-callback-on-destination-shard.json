@@ -24,5 +24,6 @@
   "operation": "transfer",
   "function": "issueToken",
   "errorEvent": true,
-  "type": "normal"
+  "type": "normal",
+  "epoch": 0
 }

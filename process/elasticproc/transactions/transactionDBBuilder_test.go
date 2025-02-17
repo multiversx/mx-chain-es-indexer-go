@@ -99,6 +99,7 @@ func TestGetMoveBalanceTransaction(t *testing.T) {
 	}
 
 	dbTx := cp.prepareTransaction(txInfo, txHash, mbHash, mb, header, status, 3)
+	dbTx.UUID = ""
 	require.Equal(t, expectedTx, dbTx)
 }
 
@@ -120,6 +121,7 @@ func TestGetTransactionByType_RewardTx(t *testing.T) {
 		Reward: rwdTx,
 	}
 	resultTx := cp.prepareRewardTransaction(rewardInfo, txHash, mbHash, mb, header, status)
+	resultTx.UUID = ""
 	expectedTx := &data.Transaction{
 		Hash:      hex.EncodeToString(txHash),
 		MBHash:    hex.EncodeToString(mbHash),
@@ -206,6 +208,7 @@ func TestRelayedV3Transaction(t *testing.T) {
 	}
 
 	dbTx := cp.prepareTransaction(txInfo, txHash, mbHash, mb, header, status, 3)
+	dbTx.UUID = ""
 	require.Equal(t, expectedTx, dbTx)
 }
 
@@ -276,5 +279,6 @@ func TestGetMoveBalanceTransactionInvalid(t *testing.T) {
 	}
 
 	dbTx := cp.prepareTransaction(txInfo, txHash, mbHash, mb, header, status, 3)
+	dbTx.UUID = ""
 	require.Equal(t, expectedTx, dbTx)
 }

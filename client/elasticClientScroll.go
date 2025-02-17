@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strconv"
 	"time"
@@ -20,9 +20,6 @@ func (ec *elasticClient) DoCountRequest(ctx context.Context, index string, body 
 		ec.client.Count.WithBody(bytes.NewBuffer(body)),
 		ec.client.Count.WithContext(ctx),
 	)
-	if err != nil {
-		return 0, err
-	}
 	if err != nil {
 		return 0, err
 	}
@@ -139,7 +136,7 @@ func getBytesFromResponse(res *esapi.Response) ([]byte, error) {
 	}
 	defer closeBody(res)
 
-	bodyBytes, err := ioutil.ReadAll(res.Body)
+	bodyBytes, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
 	}

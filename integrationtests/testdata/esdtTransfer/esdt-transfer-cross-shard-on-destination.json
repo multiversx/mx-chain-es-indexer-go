@@ -30,5 +30,6 @@
     1e-17
   ],
   "type": "normal",
-  "operation": "ESDTTransfer"
+  "operation": "ESDTTransfer",
+  "epoch": 0
 }
