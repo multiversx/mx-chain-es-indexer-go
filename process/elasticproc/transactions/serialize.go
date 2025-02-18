@@ -51,7 +51,40 @@ func (tdp *txsDatabaseProcessor) SerializeReceipts(receipts []*data.Receipt, buf
 func (tdp *txsDatabaseProcessor) SerializeTransactionsFeeData(txHashRefund map[string]*data.FeeData, buffSlice *data.BufferSlice, index string) error {
 	for txHash, feeData := range txHashRefund {
 		meta := []byte(fmt.Sprintf(`{"update":{ "_index":"%s","_id":"%s"}}%s`, index, converters.JsonEscape(txHash), "\n"))
-		codeToExecute := `
+
+		var codeToExecute string
+		if feeData.GasRefunded != 0 {
+			codeToExecute = `
+ 			if ('create' == ctx.op) {
+ 				ctx.op = 'noop'
+ 			} else {
+				boolean ok1 = ((ctx._source.containsKey('initialPaidFee')) && (ctx._source.initialPaidFee != null) && (!ctx._source.initialPaidFee.isEmpty()));
+				boolean ok2 = ((ctx._source.containsKey('fee')) && (ctx._source.fee != null) && (!ctx._source.fee.isEmpty()));
+				if (!ok1 || !ok2) {
+					return
+				}
+ 				BigInteger feeFromSource;
+				if ((ctx._source.containsKey('hadRefund')) && (ctx._source.hadRefund)) {
+					feeFromSource = new BigInteger(ctx._source.fee);
+				} else {
+					feeFromSource = new BigInteger(ctx._source.initialPaidFee);
+					ctx._source.hadRefund = true;
+				}
+
+ 				BigInteger fee = new BigInteger(params.fee);
+ 				if (feeFromSource.compareTo(fee) > 0) {
+ 					ctx._source.fee = feeFromSource.subtract(fee).toString();	
+ 				}
+ 				if (ctx._source.feeNum > params.feeNum) {
+ 					ctx._source.feeNum -= params.feeNum;	
+ 				}
+ 				if (ctx._source.gasUsed > params.gasRefunded) {
+ 					ctx._source.gasUsed -= params.gasRefunded;	
+ 				}
+ 			}
+ `
+		} else {
+			codeToExecute = `
 			if ('create' == ctx.op) {
 				ctx.op = 'noop'
 			} else {
@@ -60,13 +93,14 @@ func (tdp *txsDatabaseProcessor) SerializeTransactionsFeeData(txHashRefund map[s
 				ctx._source.gasUsed = params.gasUsed;
 			}
 `
+		}
 
 		serializedDataStr := fmt.Sprintf(`{"scripted_upsert": true, "script": {`+
 			`"source": "%s",`+
 			`"lang": "painless",`+
-			`"params": {"fee": "%s", "gasUsed": %d, "feeNum": %g}},`+
+			`"params": {"fee": "%s", "gasUsed": %d, "feeNum": %g, "gasRefunded": %d}},`+
 			`"upsert": {}}`,
-			converters.FormatPainlessSource(codeToExecute), feeData.Fee, feeData.GasUsed, feeData.FeeNum,
+			converters.FormatPainlessSource(codeToExecute), feeData.Fee, feeData.GasUsed, feeData.FeeNum, feeData.GasRefunded,
 		)
 
 		err := buffSlice.PutData(meta, []byte(serializedDataStr))
@@ -159,10 +193,23 @@ func prepareSerializedDataForATransaction(
 	}
 
 	if isCrossShardOnSourceShard(tx, selfShardID) {
-		// if transaction is cross-shard and current shard ID is source, use upsert without updating anything
-		serializedData :=
-			[]byte(fmt.Sprintf(`{"script":{"source":"return"},"upsert":%s}`,
-				string(marshaledTx)))
+		if isSimpleESDTTransfer(tx) {
+			codeToExecute := `
+				if ('create' == ctx.op) {
+					ctx._source = params.tx;
+				} else {
+					ctx._source.gasUsed = params.tx.gasUsed;
+					ctx._source.fee = params.tx.fee;
+					ctx._source.feeNum = params.tx.feeNum;
+				}
+			`
+			serializedData := []byte(fmt.Sprintf(`{"scripted_upsert": true, "script":{"source":"%s","lang": "painless","params":{"tx": %s}},"upsert":{}}`,
+				converters.FormatPainlessSource(codeToExecute), string(marshaledTx)))
+
+			return metaData, serializedData, nil
+		}
+
+		serializedData := []byte(fmt.Sprintf(`{"script":{"source":"return"},"upsert":%s}`, string(marshaledTx)))
 
 		return metaData, serializedData, nil
 	}
@@ -176,10 +223,32 @@ func prepareSerializedDataForATransaction(
 		return metaData, serializedData, nil
 	}
 
+	if isSimpleESDTTransferCrossShardOnDestination(tx, selfShardID) {
+		return metaData, prepareSerializedDataForESDTTransferOnDestination(marshaledTx), nil
+	}
+
 	// transaction is intra-shard, invalid or cross-shard destination me
 	meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(tx.Hash), "\n"))
 
 	return meta, marshaledTx, nil
+}
+
+func prepareSerializedDataForESDTTransferOnDestination(marshaledTx []byte) []byte {
+	codeToExecute := `
+		if ('create' == ctx.op) {
+			ctx._source = params.tx;
+		} else {
+			def gasUsed = ctx._source.gasUsed;
+			def fee = ctx._source.fee;
+			def feeNum = ctx._source.feeNum;
+			ctx._source = params.tx;
+			ctx._source.gasUsed = gasUsed;
+			ctx._source.fee = fee;
+			ctx._source.feeNum = feeNum;
+		}
+`
+	return []byte(fmt.Sprintf(`{"scripted_upsert": true, "script":{"source":"%s","lang": "painless","params":{"tx": %s}},"upsert":{}}`,
+		converters.FormatPainlessSource(codeToExecute), string(marshaledTx)))
 }
 
 func prepareNFTESDTTransferOrMultiESDTTransfer(marshaledTx []byte) ([]byte, error) {
@@ -220,4 +289,14 @@ func isNFTTransferOrMultiTransfer(tx *data.Transaction) bool {
 	}
 
 	return splitData[0] == core.BuiltInFunctionESDTNFTTransfer || splitData[0] == core.BuiltInFunctionMultiESDTNFTTransfer
+}
+
+func isSimpleESDTTransferCrossShardOnDestination(tx *data.Transaction, selfShard uint32) bool {
+	isCrossOnDestination := tx.SenderShard != tx.ReceiverShard && tx.ReceiverShard == selfShard
+
+	return isSimpleESDTTransfer(tx) && isCrossOnDestination
+}
+
+func isSimpleESDTTransfer(tx *data.Transaction) bool {
+	return tx.Operation == core.BuiltInFunctionESDTTransfer && tx.Function == ""
 }

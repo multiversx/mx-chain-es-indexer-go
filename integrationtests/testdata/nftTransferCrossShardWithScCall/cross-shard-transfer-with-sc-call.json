@@ -36,5 +36,6 @@
     2
   ],
   "operation": "ESDTNFTTransfer",
-  "function": "claimRewards"
+  "function": "claimRewards",
+  "epoch": 0
 }

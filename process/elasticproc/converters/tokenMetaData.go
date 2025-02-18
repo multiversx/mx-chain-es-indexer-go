@@ -83,25 +83,49 @@ func PrepareNFTUpdateData(buffSlice *data.BufferSlice, updateNFTData []*data.NFT
 		metaData := []byte(fmt.Sprintf(`{"update":{ "_index":"%s","_id":"%s"}}%s`, index, id, "\n"))
 		freezeOrUnfreezeTokenIndex := (nftUpdate.Freeze || nftUpdate.UnFreeze) && !isAccountsESDTIndex
 		if freezeOrUnfreezeTokenIndex {
-			return buffSlice.PutData(metaData, prepareSerializeDataForFreezeAndUnFreeze(nftUpdate))
+			err := buffSlice.PutData(metaData, prepareSerializeDataForFreezeAndUnFreeze(nftUpdate))
+			if err != nil {
+				return err
+			}
+			continue
 		}
 		pauseOrUnPauseTokenIndex := (nftUpdate.Pause || nftUpdate.UnPause) && !isAccountsESDTIndex
 		if pauseOrUnPauseTokenIndex {
-			return buffSlice.PutData(metaData, prepareSerializedDataForPauseAndUnPause(nftUpdate))
+			err := buffSlice.PutData(metaData, prepareSerializedDataForPauseAndUnPause(nftUpdate))
+			if err != nil {
+				return err
+			}
+
+			continue
 		}
 		if nftUpdate.NewMetaData != nil {
 			serializedData, err := prepareSerializedDataForMetaDataRecreate(nftUpdate)
 			if err != nil {
 				return err
 			}
-			return buffSlice.PutData(metaData, serializedData)
+			err = buffSlice.PutData(metaData, serializedData)
+			if err != nil {
+				return err
+			}
+
+			continue
 		}
 
 		if nftUpdate.NewCreator != "" {
-			return buffSlice.PutData(metaData, prepareSerializeDataForNewCreator(nftUpdate))
+			err := buffSlice.PutData(metaData, prepareSerializeDataForNewCreator(nftUpdate))
+			if err != nil {
+				return err
+			}
+
+			continue
 		}
 		if nftUpdate.NewRoyalties.HasValue {
-			return buffSlice.PutData(metaData, prepareSerializeDataForNewRoyalties(nftUpdate))
+			err := buffSlice.PutData(metaData, prepareSerializeDataForNewRoyalties(nftUpdate))
+			if err != nil {
+				return err
+			}
+
+			continue
 		}
 
 		truncatedAttributes := TruncateFieldIfExceedsMaxLengthBase64(string(nftUpdate.NewAttributes))

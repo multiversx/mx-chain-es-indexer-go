@@ -36,5 +36,6 @@
     2
   ],
   "operation": "ESDTNFTTransfer",
-  "errorEvent": true
+  "errorEvent": true,
+  "epoch": 0
 }

@@ -134,8 +134,8 @@ func extractErrorFromBulkBodyResponseBytes(bodyBytes []byte) error {
 		}
 
 		count++
-		errorsString += fmt.Sprintf(`{ "index": "%s", "id": "%s", "statusCode": %d, "errorType": "%s", "reason": "%s", "causedBy": { "type": "%s", "reason": "%s" }}\n`,
-			selectedItem.Index, selectedItem.ID, selectedItem.Status, selectedItem.Error.Type, selectedItem.Error.Reason, selectedItem.Error.Cause.Type, selectedItem.Error.Cause.Reason)
+		errorsString += fmt.Sprintf(`{ "index": "%s", "id": "%s", "statusCode": %d, "errorType": "%s", "reason": "%s", "causedBy": { "type": "%s", "reason": "%s", "script_stack":"%s", "script":"%s" }}\n`,
+			selectedItem.Index, selectedItem.ID, selectedItem.Status, selectedItem.Error.Type, selectedItem.Error.Reason, selectedItem.Error.Cause.Type, selectedItem.Error.Cause.Reason, selectedItem.Error.Cause.ScriptStack, selectedItem.Error.Cause.Script)
 
 		if count == numOfErrorsToExtractBulkResponse {
 			break

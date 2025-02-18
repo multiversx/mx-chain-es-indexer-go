@@ -1,0 +1,35 @@
+{
+  "data": "RVNEVFRyYW5zZmVyQDU0NDc0ZTJkMzgzODYyMzgzMzY2QDBh",
+  "signature": "",
+  "fee": "137660000000000",
+  "esdtValues": [
+    "10"
+  ],
+  "initialPaidFee": "137660000000000",
+  "type": "normal",
+  "gasLimit": 500000,
+  "esdtValuesNum": [
+    1e-17
+  ],
+  "gasUsed": 500000,
+  "miniBlockHash": "d0f273198e773465908be139872605d93e86115b6320f9b34edb6a5e38668989",
+  "senderShard": 2,
+  "tokens": [
+    "TGN-88b83f"
+  ],
+  "value": "0",
+  "gasPrice": 1000000000,
+  "timestamp": 10102,
+  "receiver": "erd13u7zyekzvdvzek8768r5gau9p6677ufppsjuklu9e6t7yx7rhg4s68e2ze",
+  "valueNum": 0,
+  "feeNum": 0.00013766,
+  "nonce": 1,
+  "round": 55,
+  "hasScResults": true,
+  "sender": "erd1ef6470tjdtlgpa9f6g3ae4nsedmjg0gv6w73v32xtvhkfff993hq750xl9",
+  "receiverShard": 1,
+  "operation": "ESDTTransfer",
+  "status": "success",
+  "searchOrder": 0,
+  "epoch": 0
+}

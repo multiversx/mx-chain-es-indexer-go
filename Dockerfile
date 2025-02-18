@@ -1,4 +1,4 @@
-FROM golang:1.20.5 as builder
+FROM golang:1.20.7 as builder
 
 RUN apt-get update && apt-get install -y
 
@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y
 RUN useradd -m -u 1000 appuser
 USER appuser
 
-COPY --from=builder /multiversx/cmd/elasticindexer /multiversx
+COPY --from=builder --chown=appuser /multiversx/cmd/elasticindexer /multiversx
 
 EXPOSE 22111
 

@@ -95,6 +95,8 @@ func TestBlockProcessor_PrepareBlockForDBShouldWork(t *testing.T) {
 	dbBlock, err := bp.PrepareBlockForDB(outportBlockWithHeader)
 	require.Nil(t, err)
 
+	dbBlock.UUID = ""
+
 	expectedBlock := &data.Block{
 		Hash:                  "68617368",
 		Validators:            []uint64{0x0, 0x1, 0x2},
@@ -278,6 +280,8 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 	}
 
 	dbBlock, err := bp.PrepareBlockForDB(outportBlockWithHeader)
+	dbBlock.UUID = ""
+
 	require.Equal(t, nil, err)
 	require.Equal(t, &data.Block{
 		Nonce:                 0,
@@ -464,6 +468,7 @@ func TestBlockProcessor_PrepareBlockForDBMiniBlocksDetails(t *testing.T) {
 
 	dbBlock, err := bp.PrepareBlockForDB(outportBlockWithHeader)
 	require.Nil(t, err)
+	dbBlock.UUID = ""
 
 	require.Equal(t, &data.Block{
 		Hash:            "68617368",

@@ -3,6 +3,7 @@ package client
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -82,6 +83,23 @@ func (ec *elasticClient) CheckAndCreateIndex(indexName string) error {
 	}
 
 	return ec.createIndex(indexName)
+}
+
+// PutMappings will put the provided mappings to a given index
+func (ec *elasticClient) PutMappings(indexName string, mappings *bytes.Buffer) error {
+	res, err := ec.client.Indices.PutMapping(
+		mappings,
+		ec.client.Indices.PutMapping.WithIndex(indexName),
+	)
+	if err != nil {
+		return err
+	}
+
+	if res.IsError() {
+		return errors.New(res.String())
+	}
+
+	return nil
 }
 
 // CheckAndCreateAlias creates a new alias if it does not already exist
@@ -311,7 +329,7 @@ func (ec *elasticClient) createPolicy(policyName string, policy *bytes.Buffer) e
 
 // CreateIndexTemplate creates an elasticsearch index template
 func (ec *elasticClient) createIndexTemplate(templateName string, template io.Reader) error {
-	res, err := ec.client.Indices.PutTemplate(templateName, template, ec.client.Indices.PutTemplate.WithContext(context.Background()))
+	res, err := ec.client.Indices.PutIndexTemplate(templateName, template)
 	if err != nil {
 		return err
 	}

@@ -39,9 +39,9 @@ func TestSerializeScResults(t *testing.T) {
 	require.Equal(t, 1, len(buffSlice.Buffers()))
 
 	expectedRes := `{ "index" : { "_index": "transactions", "_id" : "hash1" } }
-{"nonce":1,"gasLimit":50,"gasPrice":10,"value":"100","valueNum":1e-16,"sender":"","receiver":"","senderShard":0,"receiverShard":1,"prevTxHash":"","originalTxHash":"","callType":"","timestamp":0}
+{"uuid":"","nonce":1,"gasLimit":50,"gasPrice":10,"value":"100","valueNum":1e-16,"sender":"","receiver":"","senderShard":0,"receiverShard":1,"prevTxHash":"","originalTxHash":"","callType":"","timestamp":0,"epoch":0}
 { "index" : { "_index": "transactions", "_id" : "hash2" } }
-{"nonce":2,"gasLimit":50,"gasPrice":10,"value":"20","valueNum":2e-17,"sender":"","receiver":"","senderShard":2,"receiverShard":3,"prevTxHash":"","originalTxHash":"","callType":"","timestamp":0}
+{"uuid":"","nonce":2,"gasLimit":50,"gasPrice":10,"value":"20","valueNum":2e-17,"sender":"","receiver":"","senderShard":2,"receiverShard":3,"prevTxHash":"","originalTxHash":"","callType":"","timestamp":0,"epoch":0}
 `
 	require.Equal(t, expectedRes, buffSlice.Buffers()[0].String())
 }
@@ -86,7 +86,7 @@ func TestSerializeTransactionsIntraShardTx(t *testing.T) {
 	require.Nil(t, err)
 
 	expectedBuff := `{ "index" : { "_index":"transactions", "_id" : "txHash" } }
-{"miniBlockHash":"","nonce":0,"round":0,"value":"","valueNum":0,"receiver":"","sender":"","receiverShard":0,"senderShard":0,"gasPrice":0,"gasLimit":0,"gasUsed":0,"fee":"","feeNum":0,"data":null,"signature":"","timestamp":0,"status":"","searchOrder":0}
+{"uuid":"","miniBlockHash":"","nonce":0,"round":0,"value":"","valueNum":0,"receiver":"","sender":"","receiverShard":0,"senderShard":0,"gasPrice":0,"gasLimit":0,"gasUsed":0,"fee":"","feeNum":0,"data":null,"signature":"","timestamp":0,"status":"","searchOrder":0,"epoch":0}
 `
 	require.Equal(t, expectedBuff, buffSlice.Buffers()[0].String())
 }
@@ -105,7 +105,7 @@ func TestSerializeTransactionCrossShardTxSource(t *testing.T) {
 	require.Nil(t, err)
 
 	expectedBuff := `{"update":{ "_index":"transactions", "_id":"txHash"}}
-{"script":{"source":"return"},"upsert":{"miniBlockHash":"","nonce":0,"round":0,"value":"","valueNum":0,"receiver":"","sender":"","receiverShard":1,"senderShard":0,"gasPrice":0,"gasLimit":0,"gasUsed":0,"fee":"","feeNum":0,"data":null,"signature":"","timestamp":0,"status":"","searchOrder":0,"version":1}}
+{"script":{"source":"return"},"upsert":{"uuid":"","miniBlockHash":"","nonce":0,"round":0,"value":"","valueNum":0,"receiver":"","sender":"","receiverShard":1,"senderShard":0,"gasPrice":0,"gasLimit":0,"gasUsed":0,"fee":"","feeNum":0,"data":null,"signature":"","timestamp":0,"status":"","searchOrder":0,"version":1,"epoch":0}}
 `
 	require.Equal(t, expectedBuff, buffSlice.Buffers()[0].String())
 }
@@ -124,7 +124,7 @@ func TestSerializeTransactionsCrossShardTxDestination(t *testing.T) {
 	require.Nil(t, err)
 
 	expectedBuff := `{ "index" : { "_index":"transactions", "_id" : "txHash" } }
-{"miniBlockHash":"","nonce":0,"round":0,"value":"","valueNum":0,"receiver":"","sender":"","receiverShard":0,"senderShard":1,"gasPrice":0,"gasLimit":0,"gasUsed":0,"fee":"","feeNum":0,"data":null,"signature":"","timestamp":0,"status":"","searchOrder":0,"version":1}
+{"uuid":"","miniBlockHash":"","nonce":0,"round":0,"value":"","valueNum":0,"receiver":"","sender":"","receiverShard":0,"senderShard":1,"gasPrice":0,"gasLimit":0,"gasUsed":0,"fee":"","feeNum":0,"data":null,"signature":"","timestamp":0,"status":"","searchOrder":0,"version":1,"epoch":0}
 `
 	require.Equal(t, expectedBuff, buffSlice.Buffers()[0].String())
 }
@@ -146,7 +146,7 @@ func TestTxsDatabaseProcessor_SerializeTransactionWithRefund(t *testing.T) {
 	require.Nil(t, err)
 
 	expectedBuff := `{"update":{ "_index":"transactions","_id":"txHash"}}
-{"scripted_upsert": true, "script": {"source": "if ('create' == ctx.op) {ctx.op = 'noop'} else {ctx._source.fee = params.fee;ctx._source.feeNum = params.feeNum;ctx._source.gasUsed = params.gasUsed;}","lang": "painless","params": {"fee": "100000", "gasUsed": 5000, "feeNum": 5e-15}},"upsert": {}}
+{"scripted_upsert": true, "script": {"source": "if ('create' == ctx.op) {ctx.op = 'noop'} else {ctx._source.fee = params.fee;ctx._source.feeNum = params.feeNum;ctx._source.gasUsed = params.gasUsed;}","lang": "painless","params": {"fee": "100000", "gasUsed": 5000, "feeNum": 5e-15, "gasRefunded": 0}},"upsert": {}}
 `
 	require.Equal(t, expectedBuff, buffSlice.Buffers()[0].String())
 }
