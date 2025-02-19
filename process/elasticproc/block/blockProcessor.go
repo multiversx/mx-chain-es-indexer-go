@@ -132,26 +132,33 @@ func (bp *blockProcessor) PrepareBlockForDB(obh *outport.OutportBlockWithHeader)
 	appendBlockDetailsFromHeaders(elasticBlock, obh.Header, obh.BlockData.Body, obh.TransactionPool)
 	appendBlockDetailsFromIntraShardMbs(elasticBlock, obh.BlockData.IntraShardMiniBlocks, obh.TransactionPool, len(obh.Header.GetMiniBlockHeaderHandlers()))
 
-	appendPreviousHeaderProof(elasticBlock, obh.Header)
+	addProofs(elasticBlock, obh)
 
 	return elasticBlock, nil
 }
 
-func appendPreviousHeaderProof(elasticBlock *data.Block, header coreData.HeaderHandler) {
-	prevHeaderProof := header.GetPreviousProof()
-	if prevHeaderProof == nil {
-		return
+func addProofs(elasticBlock *data.Block, obh *outport.OutportBlockWithHeader) {
+	if obh.BlockData.HeaderProof != nil {
+		elasticBlock.Proof = proofToAPIProof(obh.BlockData.HeaderProof)
 	}
 
-	elasticBlock.PreviousHeaderProof = &api.HeaderProof{
-		PubKeysBitmap:       hex.EncodeToString(prevHeaderProof.GetPubKeysBitmap()),
-		AggregatedSignature: hex.EncodeToString(prevHeaderProof.GetAggregatedSignature()),
-		HeaderHash:          hex.EncodeToString(prevHeaderProof.GetHeaderHash()),
-		HeaderEpoch:         prevHeaderProof.GetHeaderEpoch(),
-		HeaderNonce:         prevHeaderProof.GetHeaderNonce(),
-		HeaderShardId:       prevHeaderProof.GetHeaderShardId(),
-		HeaderRound:         prevHeaderProof.GetHeaderRound(),
-		IsStartOfEpoch:      prevHeaderProof.GetIsStartOfEpoch(),
+	prevHeaderProof := obh.Header.GetPreviousProof()
+	if check.IfNilReflect(prevHeaderProof) {
+		return
+	}
+	elasticBlock.PreviousHeaderProof = proofToAPIProof(prevHeaderProof)
+}
+
+func proofToAPIProof(headerProof coreData.HeaderProofHandler) *api.HeaderProof {
+	return &api.HeaderProof{
+		PubKeysBitmap:       hex.EncodeToString(headerProof.GetPubKeysBitmap()),
+		AggregatedSignature: hex.EncodeToString(headerProof.GetAggregatedSignature()),
+		HeaderHash:          hex.EncodeToString(headerProof.GetHeaderHash()),
+		HeaderEpoch:         headerProof.GetHeaderEpoch(),
+		HeaderNonce:         headerProof.GetHeaderNonce(),
+		HeaderShardId:       headerProof.GetHeaderShardId(),
+		HeaderRound:         headerProof.GetHeaderRound(),
+		IsStartOfEpoch:      headerProof.GetIsStartOfEpoch(),
 	}
 }
 
