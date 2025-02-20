@@ -29,5 +29,6 @@
   "esdtValuesNum": [
     1e-17
   ],
-  "operation": "ESDTTransfer"
+  "operation": "ESDTTransfer",
+  "epoch": 0
 }

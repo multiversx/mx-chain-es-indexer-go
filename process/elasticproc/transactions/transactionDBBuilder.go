@@ -129,6 +129,8 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		RelayedSignature:  hex.EncodeToString(tx.RelayerSignature),
 		RelayedAddr:       relayedAddress,
 		HadRefund:         feeInfo.HadRefund,
+		UUID:              converters.GenerateBase64UUID(),
+		Epoch:             header.GetEpoch(),
 	}
 
 	hasValidRelayer := len(eTx.RelayedAddr) == len(eTx.Sender) && len(eTx.RelayedAddr) > 0
@@ -179,6 +181,8 @@ func (dtb *dbTransactionBuilder) prepareRewardTransaction(
 		Status:         txStatus,
 		Operation:      rewardsOperation,
 		ExecutionOrder: int(rTxInfo.ExecutionOrder),
+		UUID:           converters.GenerateBase64UUID(),
+		Epoch:          header.GetEpoch(),
 	}
 }
 

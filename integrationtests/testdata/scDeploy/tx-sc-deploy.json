@@ -20,5 +20,6 @@
   "status": "success",
   "searchOrder": 0,
   "isScCall": true,
-  "operation": "scDeploy"
+  "operation": "scDeploy",
+  "epoch": 0
 }

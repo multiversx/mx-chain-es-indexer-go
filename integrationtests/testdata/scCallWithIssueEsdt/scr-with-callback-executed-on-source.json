@@ -16,5 +16,6 @@
   "timestamp": 5040,
   "type": "unsigned",
   "status": "pending",
-  "operation": "transfer"
+  "operation": "transfer",
+  "epoch": 0
 }

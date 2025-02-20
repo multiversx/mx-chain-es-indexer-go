@@ -5,15 +5,16 @@ var Rating = Object{
 	"index_patterns": Array{
 		"rating-*",
 	},
-	"settings": Object{
-		"number_of_shards":   1,
-		"number_of_replicas": 0,
-	},
-
-	"mappings": Object{
-		"properties": Object{
-			"rating": Object{
-				"type": "double",
+	"template": Object{
+		"settings": Object{
+			"number_of_shards":   1,
+			"number_of_replicas": 0,
+		},
+		"mappings": Object{
+			"properties": Object{
+				"rating": Object{
+					"type": "double",
+				},
 			},
 		},
 	},

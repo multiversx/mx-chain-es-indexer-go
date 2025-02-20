@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -25,6 +24,7 @@ import (
 )
 
 var (
+	// nolint
 	log                = logger.GetOrCreate("integration-tests")
 	pubKeyConverter, _ = pubkeyConverter.NewBech32PubkeyConverter(32, addressPrefix)
 	sovEsdtPrefix      = "sov"
@@ -131,7 +131,7 @@ func getIndexMappings(index string) (string, error) {
 		return "", err
 	}
 
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return "", err
 	}

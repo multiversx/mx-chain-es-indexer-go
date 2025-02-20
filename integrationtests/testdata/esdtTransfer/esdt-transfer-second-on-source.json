@@ -30,5 +30,6 @@
   "receiverShard": 1,
   "operation": "ESDTTransfer",
   "status": "success",
-  "searchOrder": 0
+  "searchOrder": 0,
+  "epoch": 0
 }

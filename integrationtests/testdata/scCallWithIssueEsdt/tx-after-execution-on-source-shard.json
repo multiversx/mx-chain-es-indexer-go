@@ -22,6 +22,7 @@
   "hasScResults": true,
   "isScCall": true,
   "operation": "transfer",
-  "function": "issueToken"
+  "function": "issueToken",
+  "epoch": 0
 }
 

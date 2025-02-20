@@ -8,6 +8,7 @@ import (
 // to be saved for a transaction. It has all the default fields
 // plus some extra information for ease of search and filter
 type Transaction struct {
+	UUID                 string        `json:"uuid"`
 	MBHash               string        `json:"miniBlockHash"`
 	Nonce                uint64        `json:"nonce"`
 	Round                uint64        `json:"round"`
@@ -51,6 +52,7 @@ type Transaction struct {
 	RelayedAddr          string        `json:"relayer,omitempty"`
 	RelayedSignature     string        `json:"relayerSignature,omitempty"`
 	HadRefund            bool          `json:"hadRefund,omitempty"`
+	Epoch                uint32        `json:"epoch"`
 	ExecutionOrder       int           `json:"-"`
 	SmartContractResults []*ScResult   `json:"-"`
 	Hash                 string        `json:"-"`

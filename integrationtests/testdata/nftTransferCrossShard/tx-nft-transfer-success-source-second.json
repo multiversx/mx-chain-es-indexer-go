@@ -36,5 +36,6 @@
   "receiverShard": 0,
   "operation": "ESDTNFTTransfer",
   "status": "success",
-  "searchOrder": 0
+  "searchOrder": 0,
+  "epoch": 0
 }
