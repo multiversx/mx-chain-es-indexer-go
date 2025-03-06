@@ -3,6 +3,7 @@ package block
 import (
 	"encoding/hex"
 	"errors"
+	"github.com/multiversx/mx-chain-core-go/data/api"
 	"math/big"
 	"testing"
 
@@ -258,6 +259,16 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 				TxCount: 120,
 			},
 		},
+		PreviousHeaderProof: &dataBlock.HeaderProof{
+			PubKeysBitmap:       []byte("bitmap"),
+			AggregatedSignature: []byte("sig"),
+			HeaderHash:          []byte("hash"),
+			HeaderEpoch:         1,
+			HeaderNonce:         3,
+			HeaderShardId:       2,
+			HeaderRound:         4,
+			IsStartOfEpoch:      true,
+		},
 	}
 
 	headerBytes, _ := bp.marshalizer.Marshal(header)
@@ -265,6 +276,16 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 		Header: header,
 		OutportBlock: &outport.OutportBlock{
 			BlockData: &outport.BlockData{
+				HeaderProof: &dataBlock.HeaderProof{
+					PubKeysBitmap:       []byte("bitmap1"),
+					AggregatedSignature: []byte("sig1"),
+					HeaderHash:          []byte("hash1"),
+					HeaderEpoch:         2,
+					HeaderNonce:         2,
+					HeaderShardId:       2,
+					HeaderRound:         2,
+					IsStartOfEpoch:      false,
+				},
 				HeaderBytes: headerBytes,
 				HeaderHash:  []byte("hash"),
 				Body: &dataBlock.Body{
@@ -293,7 +314,7 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 		Proposer:              0,
 		Validators:            nil,
 		PubKeyBitmap:          "",
-		Size:                  898,
+		Size:                  1090,
 		SizeTxs:               0,
 		Timestamp:             0,
 		StateRootHash:         "",
@@ -330,6 +351,26 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 				ExecutionOrderTxsIndices: []int{},
 				TxsHashes:                []string{},
 			},
+		},
+		Proof: &api.HeaderProof{
+			PubKeysBitmap:       "6269746d617031",
+			AggregatedSignature: "73696731",
+			HeaderHash:          "6861736831",
+			HeaderEpoch:         2,
+			HeaderNonce:         2,
+			HeaderShardId:       2,
+			HeaderRound:         2,
+			IsStartOfEpoch:      false,
+		},
+		PreviousHeaderProof: &api.HeaderProof{
+			PubKeysBitmap:       "6269746d6170",
+			AggregatedSignature: "736967",
+			HeaderHash:          "68617368",
+			HeaderEpoch:         1,
+			HeaderNonce:         3,
+			HeaderShardId:       2,
+			HeaderRound:         4,
+			IsStartOfEpoch:      true,
 		},
 		EpochStartShardsData: []*data.EpochStartShardData{
 			{
