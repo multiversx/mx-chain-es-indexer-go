@@ -34,22 +34,27 @@ var (
 )
 
 type blockProcessor struct {
-	hasher      hashing.Hasher
-	marshalizer marshal.Marshalizer
+	hasher                    hashing.Hasher
+	marshalizer               marshal.Marshalizer
+	validatorsPubKeyConverter core.PubkeyConverter
 }
 
 // NewBlockProcessor will create a new instance of block processor
-func NewBlockProcessor(hasher hashing.Hasher, marshalizer marshal.Marshalizer) (*blockProcessor, error) {
+func NewBlockProcessor(hasher hashing.Hasher, marshalizer marshal.Marshalizer, validatorsPubKeyConverter core.PubkeyConverter) (*blockProcessor, error) {
 	if check.IfNil(hasher) {
 		return nil, indexer.ErrNilHasher
 	}
 	if check.IfNil(marshalizer) {
 		return nil, indexer.ErrNilMarshalizer
 	}
+	if check.IfNil(validatorsPubKeyConverter) {
+		return nil, indexer.ErrNilPubkeyConverter
+	}
 
 	return &blockProcessor{
-		hasher:      hasher,
-		marshalizer: marshalizer,
+		hasher:                    hasher,
+		marshalizer:               marshalizer,
+		validatorsPubKeyConverter: validatorsPubKeyConverter,
 	}, nil
 }
 
@@ -75,7 +80,6 @@ func (bp *blockProcessor) PrepareBlockForDB(obh *outport.OutportBlockWithHeader)
 
 	sizeTxs := computeSizeOfTransactions(obh.TransactionPool)
 	miniblocksHashes := bp.getEncodedMBSHashes(obh.BlockData.Body, obh.BlockData.IntraShardMiniBlocks)
-	leaderIndex := bp.getLeaderIndex(obh.SignersIndexes)
 
 	numTxs, notarizedTxs := getTxsCount(obh.Header)
 	elasticBlock := &data.Block{
@@ -86,7 +90,8 @@ func (bp *blockProcessor) PrepareBlockForDB(obh *outport.OutportBlockWithHeader)
 		Hash:                  hex.EncodeToString(obh.BlockData.HeaderHash),
 		MiniBlocksHashes:      miniblocksHashes,
 		NotarizedBlocksHashes: obh.NotarizedHeadersHashes,
-		Proposer:              leaderIndex,
+		Proposer:              obh.LeaderIndex,
+		LeaderBLSKey:          hex.EncodeToString([]byte(obh.LeaderBLSKey)),
 		Validators:            obh.SignersIndexes,
 		PubKeyBitmap:          hex.EncodeToString(obh.Header.GetPubKeysBitmap()),
 		Size:                  int64(blockSizeInBytes),
@@ -394,14 +399,6 @@ func (bp *blockProcessor) computeBlockSize(headerBytes []byte, body *block.Body)
 	blockSize := len(headerBytes) + len(bodyBytes)
 
 	return blockSize, nil
-}
-
-func (bp *blockProcessor) getLeaderIndex(signersIndexes []uint64) uint64 {
-	if len(signersIndexes) > 0 {
-		return signersIndexes[0]
-	}
-
-	return 0
 }
 
 func computeBlockSearchOrder(header coreData.HeaderHandler) uint64 {
