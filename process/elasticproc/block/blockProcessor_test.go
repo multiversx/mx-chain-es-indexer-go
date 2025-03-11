@@ -320,7 +320,7 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 		NotarizedBlocksHashes: nil,
 		Proposer:              0,
 		Validators:            nil,
-		PubKeyBitmap:          "",
+		PubKeyBitmap:          "6269746d617031",
 		Size:                  1090,
 		SizeTxs:               0,
 		Timestamp:             0,

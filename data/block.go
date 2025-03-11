@@ -51,7 +51,7 @@ type Block struct {
 	SoftwareVersion       string                 `json:"softwareVersion,omitempty"`
 	ReceiptsHash          string                 `json:"receiptsHash,omitempty"`
 	Reserved              []byte                 `json:"reserved,omitempty"`
-	LeaderBLSKey          string                 `json:"leaderBlsKey,omitempty"`
+	ProposerBlsKey        string                 `json:"proposerBlsKey,omitempty"`
 }
 
 // MiniBlocksDetails is a structure that hold information about mini-blocks execution details

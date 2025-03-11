@@ -91,7 +91,7 @@ func (bp *blockProcessor) PrepareBlockForDB(obh *outport.OutportBlockWithHeader)
 		MiniBlocksHashes:      miniblocksHashes,
 		NotarizedBlocksHashes: obh.NotarizedHeadersHashes,
 		Proposer:              obh.LeaderIndex,
-		LeaderBLSKey:          hex.EncodeToString([]byte(obh.LeaderBLSKey)),
+		ProposerBlsKey:        hex.EncodeToString(obh.LeaderBLSKey),
 		Validators:            obh.SignersIndexes,
 		PubKeyBitmap:          hex.EncodeToString(obh.Header.GetPubKeysBitmap()),
 		Size:                  int64(blockSizeInBytes),
@@ -145,6 +145,7 @@ func (bp *blockProcessor) PrepareBlockForDB(obh *outport.OutportBlockWithHeader)
 func addProofs(elasticBlock *data.Block, obh *outport.OutportBlockWithHeader) {
 	if obh.BlockData.HeaderProof != nil {
 		elasticBlock.Proof = proofToAPIProof(obh.BlockData.HeaderProof)
+		elasticBlock.PubKeyBitmap = elasticBlock.Proof.PubKeysBitmap
 	}
 
 	prevHeaderProof := obh.Header.GetPreviousProof()
@@ -152,6 +153,7 @@ func addProofs(elasticBlock *data.Block, obh *outport.OutportBlockWithHeader) {
 		return
 	}
 	elasticBlock.PreviousHeaderProof = proofToAPIProof(prevHeaderProof)
+
 }
 
 func proofToAPIProof(headerProof coreData.HeaderProofHandler) *api.HeaderProof {
