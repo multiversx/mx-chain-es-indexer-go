@@ -251,10 +251,10 @@ github.com/modern-go/reflect2 v1.0.2 h1:xBagoLtFs94CBntxluKeaWgTMpvLxC4ur3nMaC9G
 github.com/modern-go/reflect2 v1.0.2/go.mod h1:yWuevngMOJpCy52FWWMvUC8ws7m/LJsjYzDa0/r8luk=
 github.com/mr-tron/base58 v1.2.0 h1:T/HDJBh4ZCPbU39/+c3rRvE0uKBQlU27+QI8LJ4t64o=
 github.com/mr-tron/base58 v1.2.0/go.mod h1:BinMc/sQntlIE1frQmRFPUoPA1Zkr8VRgBdjWI2mNwc=
-github.com/multiversx/mx-chain-communication-go v1.1.1 h1:y4DoQeQOJTaSUsRzczQFazf8JYQmInddypApqA3AkwM=
-github.com/multiversx/mx-chain-communication-go v1.1.1/go.mod h1:WK6bP4pGEHGDDna/AYRIMtl6G9OA0NByI1Lw8PmOnRM=
-github.com/multiversx/mx-chain-core-go v1.2.25-0.20250306125819-46a071b85ade h1:jLSSdm/X8T2H+I9/+wHvFuS9FBbXjTfNPJYZpzDdj/I=
-github.com/multiversx/mx-chain-core-go v1.2.25-0.20250306125819-46a071b85ade/go.mod h1:B5zU4MFyJezmEzCsAHE9YNULmGCm2zbPHvl9hazNxmE=
+github.com/multiversx/mx-chain-communication-go v1.2.0 h1:0wOoLldiRbvaOPxwICbnRCqCpLqPewg8M/FMbC/0OXY=
+github.com/multiversx/mx-chain-communication-go v1.2.0/go.mod h1:wS3aAwkmHbC9mlzQdvL6p7l8Rqw3vmzhj7WZW1dTveA=
+github.com/multiversx/mx-chain-core-go v1.3.0 h1:GhDlvwHAhG5AabgCoGxwdtTEzVCa0KPkGAKB+BtIgQ0=
+github.com/multiversx/mx-chain-core-go v1.3.0/go.mod h1:B5zU4MFyJezmEzCsAHE9YNULmGCm2zbPHvl9hazNxmE=
 github.com/multiversx/mx-chain-crypto-go v1.2.12 h1:zWip7rpUS4CGthJxfKn5MZfMfYPjVjIiCID6uX5BSOk=
 github.com/multiversx/mx-chain-logger-go v1.0.15 h1:HlNdK8etyJyL9NQ+6mIXyKPEBo+wRqOwi3n+m2QIHXc=
 github.com/multiversx/mx-chain-logger-go v1.0.15/go.mod h1:t3PRKaWB1M+i6gUfD27KXgzLJJC+mAQiN+FLlL1yoGQ=
