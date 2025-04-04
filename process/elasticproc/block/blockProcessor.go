@@ -147,13 +147,6 @@ func addProofs(elasticBlock *data.Block, obh *outport.OutportBlockWithHeader) {
 		elasticBlock.Proof = proofToAPIProof(obh.BlockData.HeaderProof)
 		elasticBlock.PubKeyBitmap = elasticBlock.Proof.PubKeysBitmap
 	}
-
-	prevHeaderProof := obh.Header.GetPreviousProof()
-	if check.IfNilReflect(prevHeaderProof) {
-		return
-	}
-	elasticBlock.PreviousHeaderProof = proofToAPIProof(prevHeaderProof)
-
 }
 
 func proofToAPIProof(headerProof coreData.HeaderProofHandler) *api.HeaderProof {

@@ -42,7 +42,6 @@ type Block struct {
 	ScheduledData         *ScheduledData         `json:"scheduledData,omitempty"`
 	EpochStartShardsData  []*EpochStartShardData `json:"epochStartShardsData,omitempty"`
 	Proof                 *api.HeaderProof       `json:"proof,omitempty"`
-	PreviousHeaderProof   *api.HeaderProof       `json:"previousHeaderProof,omitempty"`
 	RandSeed              string                 `json:"randSeed,omitempty"`
 	PrevRandSeed          string                 `json:"prevRandSeed,omitempty"`
 	Signature             string                 `json:"signature,omitempty"`
