@@ -8,7 +8,7 @@ require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/google/uuid v1.6.0
 	github.com/multiversx/mx-chain-communication-go v1.2.0
-	github.com/multiversx/mx-chain-core-go v1.3.1-0.20250404072410-a7e6e011c70f
+	github.com/multiversx/mx-chain-core-go v1.3.1
 	github.com/multiversx/mx-chain-logger-go v1.0.15
 	github.com/multiversx/mx-chain-vm-common-go v1.5.16
 	github.com/prometheus/client_model v0.4.0
