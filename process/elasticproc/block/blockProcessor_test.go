@@ -311,7 +311,7 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 		Proposer:              0,
 		Validators:            nil,
 		PubKeyBitmap:          "6269746d617031",
-		Size:                  925,
+		Size:                  898,
 		SizeTxs:               0,
 		Timestamp:             0,
 		StateRootHash:         "",
