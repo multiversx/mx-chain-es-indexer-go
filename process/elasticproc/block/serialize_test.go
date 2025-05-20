@@ -16,7 +16,7 @@ import (
 func TestBlockProcessor_SerializeBlockNilElasticBlockErrors(t *testing.T) {
 	t.Parallel()
 
-	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
+	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{})
 
 	err := bp.SerializeBlock(nil, nil, "")
 	require.True(t, errors.Is(err, dataindexer.ErrNilElasticBlock))
@@ -25,20 +25,20 @@ func TestBlockProcessor_SerializeBlockNilElasticBlockErrors(t *testing.T) {
 func TestBlockProcessor_SerializeBlock(t *testing.T) {
 	t.Parallel()
 
-	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
+	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{})
 
 	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
 	err := bp.SerializeBlock(&data.Block{Nonce: 1}, buffSlice, "blocks")
 	require.Nil(t, err)
 	require.Equal(t, `{ "index" : { "_index":"blocks", "_id" : "" } }
-{"uuid":"","nonce":1,"round":0,"epoch":0,"miniBlocksHashes":null,"notarizedBlocksHashes":null,"proposer":0,"validators":null,"pubKeyBitmap":"","size":0,"sizeTxs":0,"timestamp":0,"stateRootHash":"","prevHash":"","shardId":0,"txCount":0,"notarizedTxsCount":0,"accumulatedFees":"","developerFees":"","epochStartBlock":false,"searchOrder":0,"gasProvided":0,"gasRefunded":0,"gasPenalized":0,"maxGasLimit":0}
+{"uuid":"","nonce":1,"round":0,"epoch":0,"miniBlocksHashes":null,"notarizedBlocksHashes":null,"proposer":0,"pubKeyBitmap":"","size":0,"sizeTxs":0,"timestamp":0,"stateRootHash":"","prevHash":"","shardId":0,"txCount":0,"notarizedTxsCount":0,"accumulatedFees":"","developerFees":"","epochStartBlock":false,"searchOrder":0,"gasProvided":0,"gasRefunded":0,"gasPenalized":0,"maxGasLimit":0}
 `, buffSlice.Buffers()[0].String())
 }
 
 func TestBlockProcessor_SerializeEpochInfoDataErrors(t *testing.T) {
 	t.Parallel()
 
-	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
+	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{})
 
 	err := bp.SerializeEpochInfoData(nil, nil, "")
 	require.Equal(t, dataindexer.ErrNilHeaderHandler, err)
@@ -50,7 +50,7 @@ func TestBlockProcessor_SerializeEpochInfoDataErrors(t *testing.T) {
 func TestBlockProcessor_SerializeEpochInfoData(t *testing.T) {
 	t.Parallel()
 
-	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
+	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{})
 
 	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
 	err := bp.SerializeEpochInfoData(&dataBlock.MetaBlock{
@@ -66,7 +66,7 @@ func TestBlockProcessor_SerializeEpochInfoData(t *testing.T) {
 func TestBlockProcessor_SerializeBlockEpochStartMeta(t *testing.T) {
 	t.Parallel()
 
-	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
+	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{})
 
 	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
 	err := bp.SerializeBlock(&data.Block{
