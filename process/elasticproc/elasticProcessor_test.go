@@ -62,7 +62,7 @@ func createMockElasticProcessorArgs() *ArgElasticProcessor {
 	balanceConverter, _ := converters.NewBalanceConverter(10)
 
 	acp, _ := accounts.NewAccountsProcessor(&mock.PubkeyConverterMock{}, balanceConverter)
-	bp, _ := block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
+	bp, _ := block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{})
 	mp, _ := miniblocks.NewMiniblocksProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
 	vp, _ := validators.NewValidatorsProcessor(mock.NewPubkeyConverterMock(32), 0)
 	args := logsevents.ArgsLogsAndEventsProcessor{
@@ -244,7 +244,7 @@ func TestElasticProcessor_RemoveHeader(t *testing.T) {
 		},
 	}
 
-	args.BlockProc, _ = block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
+	args.BlockProc, _ = block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{})
 
 	elasticProc, err := NewElasticProcessor(args)
 	require.NoError(t, err)
@@ -329,7 +329,7 @@ func TestElasticseachDatabaseSaveHeader_RequestError(t *testing.T) {
 			return localErr
 		},
 	}
-	arguments.BlockProc, _ = block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
+	arguments.BlockProc, _ = block.NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{})
 	elasticDatabase := newElasticsearchProcessor(dbWriter, arguments)
 
 	err := elasticDatabase.SaveHeader(createEmptyOutportBlockWithHeader())

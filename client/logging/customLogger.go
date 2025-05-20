@@ -2,7 +2,6 @@ package logging
 
 import (
 	"io"
-	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -28,10 +27,10 @@ func (cl *CustomLogger) LogRoundTrip(
 	)
 
 	if req != nil && req.Body != nil && req.Body != http.NoBody {
-		reqSize, _ = io.Copy(ioutil.Discard, req.Body)
+		reqSize, _ = io.Copy(io.Discard, req.Body)
 	}
 	if res != nil && res.Body != nil && res.Body != http.NoBody {
-		resSize, _ = io.Copy(ioutil.Discard, res.Body)
+		resSize, _ = io.Copy(io.Discard, res.Body)
 	}
 
 	if err != nil {

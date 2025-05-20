@@ -279,7 +279,7 @@ func prepareNFTESDTTransferOrMultiESDTTransfer(marshaledTx []byte) ([]byte, erro
 }
 
 func isNFTTransferOrMultiTransfer(tx *data.Transaction) bool {
-	if len(tx.SmartContractResults) < 0 || tx.SenderShard != tx.ReceiverShard {
+	if tx.SenderShard != tx.ReceiverShard {
 		return false
 	}
 
