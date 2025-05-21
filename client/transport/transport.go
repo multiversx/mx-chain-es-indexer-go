@@ -1,6 +1,7 @@
 package transport
 
 import (
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"net/http"
@@ -23,6 +24,14 @@ type metricsTransport struct {
 func NewMetricsTransport(statusMetrics core.StatusMetricsHandler) (*metricsTransport, error) {
 	if check.IfNil(statusMetrics) {
 		return nil, core.ErrNilMetricsHandler
+	}
+
+	defaultTransport, ok := http.DefaultTransport.(*http.Transport)
+	if !ok {
+		return nil, errors.New("metricsTransport.NewMetricsTransport cannot cast RoundTripper to *http.Transport")
+	}
+	defaultTransport.TLSClientConfig = &tls.Config{
+		InsecureSkipVerify: true,
 	}
 
 	return &metricsTransport{
