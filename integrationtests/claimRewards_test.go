@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"math/big"
 	"testing"
+	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
@@ -29,7 +30,7 @@ func TestTransactionWithClaimRewardsGasRefund(t *testing.T) {
 	txHash := []byte("claimRewards")
 	header := &dataBlock.Header{
 		Round:     50,
-		TimeStamp: 5040,
+		TimeStamp: uint64(time.Now().Unix()),
 		ShardID:   core.MetachainShardId,
 	}
 
