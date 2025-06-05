@@ -14,6 +14,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
 )
 
 const eventIDFormat = "%s-%d-%d"
@@ -221,6 +222,7 @@ func (lep *logsAndEventsProcessor) prepareLog(
 	originalTxHash := lep.getOriginalTxHash(lgData, logHashHex)
 	encodedAddr := lep.pubKeyConverter.SilentEncode(eventLogs.GetAddress(), log)
 	logsDB := &data.Logs{
+		UUID:           converters.GenerateBase64UUID(),
 		ID:             logHashHex,
 		OriginalTxHash: originalTxHash,
 		Address:        encodedAddr,
@@ -253,6 +255,7 @@ func (lep *logsAndEventsProcessor) prepareLog(
 
 func (lep *logsAndEventsProcessor) prepareLogEvent(dbLog *data.Logs, event *data.Event, shardID uint32, execOrder int) *data.LogEvent {
 	dbEvent := &data.LogEvent{
+		UUID:           converters.GenerateBase64UUID(),
 		TxHash:         dbLog.ID,
 		LogAddress:     dbLog.Address,
 		Address:        event.Address,

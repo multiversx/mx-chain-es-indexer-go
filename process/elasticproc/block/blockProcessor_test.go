@@ -3,6 +3,7 @@ package block
 import (
 	"encoding/hex"
 	"errors"
+	"github.com/multiversx/mx-chain-core-go/data/api"
 	"math/big"
 	"testing"
 
@@ -25,27 +26,34 @@ func TestNewBlockProcessor(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		argsFunc func() (hashing.Hasher, marshal.Marshalizer)
+		argsFunc func() (hashing.Hasher, marshal.Marshalizer, core.PubkeyConverter)
 		exErr    error
 	}{
 		{
 			name: "NilMarshalizer",
-			argsFunc: func() (hashing.Hasher, marshal.Marshalizer) {
-				return &mock.HasherMock{}, nil
+			argsFunc: func() (hashing.Hasher, marshal.Marshalizer, core.PubkeyConverter) {
+				return &mock.HasherMock{}, nil, nil
 			},
 			exErr: indexer.ErrNilMarshalizer,
 		},
 		{
 			name: "NilHasher",
-			argsFunc: func() (hashing.Hasher, marshal.Marshalizer) {
-				return nil, &mock.MarshalizerMock{}
+			argsFunc: func() (hashing.Hasher, marshal.Marshalizer, core.PubkeyConverter) {
+				return nil, &mock.MarshalizerMock{}, nil
 			},
 			exErr: indexer.ErrNilHasher,
 		},
 		{
+			name: "NilValidatorPubKeyConverter",
+			argsFunc: func() (hashing.Hasher, marshal.Marshalizer, core.PubkeyConverter) {
+				return &mock.HasherMock{}, &mock.MarshalizerMock{}, nil
+			},
+			exErr: indexer.ErrNilPubkeyConverter,
+		},
+		{
 			name: "ShouldWork",
-			argsFunc: func() (hashing.Hasher, marshal.Marshalizer) {
-				return &mock.HasherMock{}, &mock.MarshalizerMock{}
+			argsFunc: func() (hashing.Hasher, marshal.Marshalizer, core.PubkeyConverter) {
+				return &mock.HasherMock{}, &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{}
 			},
 			exErr: nil,
 		},
@@ -60,7 +68,7 @@ func TestNewBlockProcessor(t *testing.T) {
 func TestBlockProcessor_PrepareBlockForDBShouldWork(t *testing.T) {
 	t.Parallel()
 
-	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
+	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{})
 
 	outportBlockWithHeader := &outport.OutportBlockWithHeader{
 		Header: &dataBlock.Header{
@@ -95,6 +103,8 @@ func TestBlockProcessor_PrepareBlockForDBShouldWork(t *testing.T) {
 	dbBlock, err := bp.PrepareBlockForDB(outportBlockWithHeader)
 	require.Nil(t, err)
 
+	dbBlock.UUID = ""
+
 	expectedBlock := &data.Block{
 		Hash:                  "68617368",
 		Validators:            []uint64{0x0, 0x1, 0x2},
@@ -120,7 +130,7 @@ func TestBlockProcessor_PrepareBlockForDBShouldWork(t *testing.T) {
 func TestBlockProcessor_PrepareBlockForDBNilHeader(t *testing.T) {
 	t.Parallel()
 
-	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
+	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{})
 
 	outportBlockWithHeader := &outport.OutportBlockWithHeader{}
 	dbBlock, err := bp.PrepareBlockForDB(outportBlockWithHeader)
@@ -131,7 +141,7 @@ func TestBlockProcessor_PrepareBlockForDBNilHeader(t *testing.T) {
 func TestBlockProcessor_PrepareBlockForDBNilBody(t *testing.T) {
 	t.Parallel()
 
-	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
+	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{})
 
 	outportBlockWithHeader := &outport.OutportBlockWithHeader{
 		Header: &dataBlock.MetaBlock{},
@@ -152,7 +162,7 @@ func TestBlockProcessor_PrepareBlockForDBMarshalFailHeader(t *testing.T) {
 		MarshalCalled: func(obj interface{}) ([]byte, error) {
 			return nil, expectedErr
 		},
-	})
+	}, &mock.PubkeyConverterMock{})
 
 	outportBlockWithHeader := &outport.OutportBlockWithHeader{
 		Header: &dataBlock.Header{},
@@ -179,7 +189,7 @@ func TestBlockProcessor_PrepareBlockForDBMarshalFailBlock(t *testing.T) {
 		MarshalCalled: func(obj interface{}) ([]byte, error) {
 			return nil, expectedErr
 		},
-	})
+	}, &mock.PubkeyConverterMock{})
 
 	outportBlockWithHeader := &outport.OutportBlockWithHeader{
 		Header: &dataBlock.Header{},
@@ -201,7 +211,7 @@ func TestBlockProcessor_PrepareBlockForDBMarshalFailBlock(t *testing.T) {
 func TestBlockProcessor_ComputeHeaderHash(t *testing.T) {
 	t.Parallel()
 
-	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
+	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{})
 
 	header := &dataBlock.Header{}
 	hashBytes, err := bp.ComputeHeaderHash(header)
@@ -212,7 +222,7 @@ func TestBlockProcessor_ComputeHeaderHash(t *testing.T) {
 func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 	t.Parallel()
 
-	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
+	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{})
 
 	header := &dataBlock.MetaBlock{
 		TxCount: 1000,
@@ -263,6 +273,16 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 		Header: header,
 		OutportBlock: &outport.OutportBlock{
 			BlockData: &outport.BlockData{
+				HeaderProof: &dataBlock.HeaderProof{
+					PubKeysBitmap:       []byte("bitmap1"),
+					AggregatedSignature: []byte("sig1"),
+					HeaderHash:          []byte("hash1"),
+					HeaderEpoch:         2,
+					HeaderNonce:         2,
+					HeaderShardId:       2,
+					HeaderRound:         2,
+					IsStartOfEpoch:      false,
+				},
 				HeaderBytes: headerBytes,
 				HeaderHash:  []byte("hash"),
 				Body: &dataBlock.Body{
@@ -278,6 +298,8 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 	}
 
 	dbBlock, err := bp.PrepareBlockForDB(outportBlockWithHeader)
+	dbBlock.UUID = ""
+
 	require.Equal(t, nil, err)
 	require.Equal(t, &data.Block{
 		Nonce:                 0,
@@ -288,7 +310,7 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 		NotarizedBlocksHashes: nil,
 		Proposer:              0,
 		Validators:            nil,
-		PubKeyBitmap:          "",
+		PubKeyBitmap:          "6269746d617031",
 		Size:                  898,
 		SizeTxs:               0,
 		Timestamp:             0,
@@ -327,6 +349,16 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 				TxsHashes:                []string{},
 			},
 		},
+		Proof: &api.HeaderProof{
+			PubKeysBitmap:       "6269746d617031",
+			AggregatedSignature: "73696731",
+			HeaderHash:          "6861736831",
+			HeaderEpoch:         2,
+			HeaderNonce:         2,
+			HeaderShardId:       2,
+			HeaderRound:         2,
+			IsStartOfEpoch:      false,
+		},
 		EpochStartShardsData: []*data.EpochStartShardData{
 			{
 				ShardID:               1,
@@ -360,7 +392,7 @@ func TestBlockProcessor_PrepareBlockForDBMiniBlocksDetails(t *testing.T) {
 	t.Parallel()
 
 	gogoMarshaller := &marshal.GogoProtoMarshalizer{}
-	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{})
+	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{})
 
 	mbhr := &dataBlock.MiniBlockHeaderReserved{
 		IndexOfFirstTxProcessed: 0,
@@ -464,6 +496,7 @@ func TestBlockProcessor_PrepareBlockForDBMiniBlocksDetails(t *testing.T) {
 
 	dbBlock, err := bp.PrepareBlockForDB(outportBlockWithHeader)
 	require.Nil(t, err)
+	dbBlock.UUID = ""
 
 	require.Equal(t, &data.Block{
 		Hash:            "68617368",

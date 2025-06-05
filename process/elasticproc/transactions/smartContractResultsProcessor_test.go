@@ -61,6 +61,7 @@ func TestPrepareSmartContractResult(t *testing.T) {
 
 	mbHash := []byte("hash")
 	scRes := scrsProc.prepareSmartContractResult(scHash, mbHash, scrInfo, header, 0, 1, 3)
+	scRes.UUID = ""
 
 	senderAddr, err := pubKeyConverter.Encode(sndAddr)
 	require.Nil(t, err)

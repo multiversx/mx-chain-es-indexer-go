@@ -18,5 +18,6 @@
   "timestamp": 0,
   "status": "",
   "searchOrder": 0,
-  "completedEvent": true
+  "completedEvent": true,
+  "epoch": 0
 }

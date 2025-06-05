@@ -2,6 +2,8 @@ package data
 
 import (
 	"time"
+
+	"github.com/multiversx/mx-chain-core-go/data/api"
 )
 
 // Block is a structure containing all the fields that need
@@ -9,6 +11,7 @@ import (
 //	to be saved for a block. It has all the default fields
 //	plus some extra information for ease of search and filter
 type Block struct {
+	UUID                  string                 `json:"uuid"`
 	Nonce                 uint64                 `json:"nonce"`
 	Round                 uint64                 `json:"round"`
 	Epoch                 uint32                 `json:"epoch"`
@@ -17,7 +20,7 @@ type Block struct {
 	MiniBlocksDetails     []*MiniBlocksDetails   `json:"miniBlocksDetails,omitempty"`
 	NotarizedBlocksHashes []string               `json:"notarizedBlocksHashes"`
 	Proposer              uint64                 `json:"proposer"`
-	Validators            []uint64               `json:"validators"`
+	Validators            []uint64               `json:"validators,omitempty"`
 	PubKeyBitmap          string                 `json:"pubKeyBitmap"`
 	Size                  int64                  `json:"size"`
 	SizeTxs               int64                  `json:"sizeTxs"`
@@ -38,6 +41,7 @@ type Block struct {
 	MaxGasLimit           uint64                 `json:"maxGasLimit"`
 	ScheduledData         *ScheduledData         `json:"scheduledData,omitempty"`
 	EpochStartShardsData  []*EpochStartShardData `json:"epochStartShardsData,omitempty"`
+	Proof                 *api.HeaderProof       `json:"proof,omitempty"`
 	RandSeed              string                 `json:"randSeed,omitempty"`
 	PrevRandSeed          string                 `json:"prevRandSeed,omitempty"`
 	Signature             string                 `json:"signature,omitempty"`
@@ -46,6 +50,7 @@ type Block struct {
 	SoftwareVersion       string                 `json:"softwareVersion,omitempty"`
 	ReceiptsHash          string                 `json:"receiptsHash,omitempty"`
 	Reserved              []byte                 `json:"reserved,omitempty"`
+	ProposerBlsKey        string                 `json:"proposerBlsKey,omitempty"`
 }
 
 // MiniBlocksDetails is a structure that hold information about mini-blocks execution details

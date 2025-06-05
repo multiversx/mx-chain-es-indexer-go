@@ -6,7 +6,10 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 )
 
-const metaESDT = "MetaESDT"
+const (
+	metaESDT        = "MetaESDT"
+	dynamicMetaESDT = "DynamicMetaESDT"
+)
 
 // NFTDataUpdate will contain the update information for an NFT or SFT
 type NFTDataUpdate struct {
@@ -129,7 +132,7 @@ func (ti *tokensInfo) GetAll() []*TokenInfo {
 func (ti *tokensInfo) GetAllWithoutMetaESDT() []*TokenInfo {
 	tokens := make([]*TokenInfo, 0)
 	for _, tokenData := range ti.tokensInfo {
-		if tokenData.Type == metaESDT {
+		if tokenData.Type == metaESDT || tokenData.Type == dynamicMetaESDT {
 			continue
 		}
 

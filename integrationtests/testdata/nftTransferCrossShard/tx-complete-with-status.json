@@ -36,5 +36,6 @@
   "status": "fail",
   "initialPaidFee": "595490000000000",
   "searchOrder": 0,
-  "errorEvent": true
+  "errorEvent": true,
+  "epoch": 0
 }

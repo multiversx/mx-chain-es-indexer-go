@@ -46,7 +46,7 @@ func loadResponseBody(body io.ReadCloser, dest interface{}) error {
 		return nil
 	}
 	if dest == nil {
-		_, err := io.Copy(ioutil.Discard, body)
+		_, err := io.Copy(io.Discard, body)
 		return err
 	}
 
@@ -56,7 +56,7 @@ func loadResponseBody(body io.ReadCloser, dest interface{}) error {
 
 func elasticDefaultErrorResponseHandler(res *esapi.Response) error {
 	responseBody := map[string]interface{}{}
-	bodyBytes, err := ioutil.ReadAll(res.Body)
+	bodyBytes, err := io.ReadAll(res.Body)
 	if err != nil {
 		return fmt.Errorf("%w cannot read elastic response body bytes", err)
 	}
@@ -134,8 +134,8 @@ func extractErrorFromBulkBodyResponseBytes(bodyBytes []byte) error {
 		}
 
 		count++
-		errorsString += fmt.Sprintf(`{ "index": "%s", "id": "%s", "statusCode": %d, "errorType": "%s", "reason": "%s", "causedBy": { "type": "%s", "reason": "%s" }}\n`,
-			selectedItem.Index, selectedItem.ID, selectedItem.Status, selectedItem.Error.Type, selectedItem.Error.Reason, selectedItem.Error.Cause.Type, selectedItem.Error.Cause.Reason)
+		errorsString += fmt.Sprintf(`{ "index": "%s", "id": "%s", "statusCode": %d, "errorType": "%s", "reason": "%s", "causedBy": { "type": "%s", "reason": "%s", "script_stack":"%s", "script":"%s" }}\n`,
+			selectedItem.Index, selectedItem.ID, selectedItem.Status, selectedItem.Error.Type, selectedItem.Error.Reason, selectedItem.Error.Cause.Type, selectedItem.Error.Cause.Reason, selectedItem.Error.Cause.ScriptStack, selectedItem.Error.Cause.Script)
 
 		if count == numOfErrorsToExtractBulkResponse {
 			break
