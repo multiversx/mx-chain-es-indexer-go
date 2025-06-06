@@ -6,10 +6,12 @@
   "currentOwner": "erd1v7e552pz9py4hv6raan0c4jflez3e6csdmzcgrncg0qrnk4tywvsqx0h5j",
   "type": "SemiFungibleESDT",
   "timestamp": 5040,
+  "timestampMs": 5040000,
   "ownersHistory": [
     {
       "address": "erd1v7e552pz9py4hv6raan0c4jflez3e6csdmzcgrncg0qrnk4tywvsqx0h5j",
-      "timestamp": 5040
+      "timestamp": 5040,
+      "timestampMs": 5040000
     }
   ],
   "numDecimals": 18,

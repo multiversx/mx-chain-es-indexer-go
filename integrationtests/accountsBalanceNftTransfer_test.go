@@ -29,7 +29,8 @@ func createOutportBlockWithHeader(
 	return &outport.OutportBlockWithHeader{
 		OutportBlock: &outport.OutportBlock{
 			BlockData: &outport.BlockData{
-				Body: body,
+				Body:        body,
+				TimestampMs: header.GetTimeStamp() * 1000,
 			},
 			TransactionPool: pool,
 			AlteredAccounts: coreAlteredAccounts,

@@ -4,5 +4,6 @@
   "senderShard": 2,
   "receiverBlockHash": "b36435faaa72390772da84f418348ce0d477c74432579519bf0ffea1dc4c36e9",
   "type": "TxBlock",
-  "timestamp": 54321
+  "timestamp": 54321,
+  "timestampMs": 54321000
 }

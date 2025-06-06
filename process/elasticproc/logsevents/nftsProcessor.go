@@ -149,11 +149,12 @@ func (np *nftsProcessor) processNFTEventOnSender(
 
 	tokenMetaData := converters.PrepareTokenMetaData(convertMetaData(np.pubKeyConverter, esdtToken.TokenMetaData))
 	tokensCreateInfo.Add(&data.TokenInfo{
-		Token:      token,
-		Identifier: converters.ComputeTokenIdentifier(token, nonceBig.Uint64()),
-		Timestamp:  time.Duration(timestamp),
-		Data:       tokenMetaData,
-		Nonce:      nonceBig.Uint64(),
+		Token:       token,
+		Identifier:  converters.ComputeTokenIdentifier(token, nonceBig.Uint64()),
+		Timestamp:   time.Duration(timestamp),
+		TimestampMs: time.Duration(timestampMs),
+		Data:        tokenMetaData,
+		Nonce:       nonceBig.Uint64(),
 	})
 }
 

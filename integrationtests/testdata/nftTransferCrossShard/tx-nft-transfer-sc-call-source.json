@@ -34,6 +34,7 @@
   "operation": "ESDTNFTTransfer",
   "gasPrice": 1000000000,
   "timestamp": 5040,
+  "timestampMs": 5040000,
   "status": "success",
   "initialPaidFee": "1904415000000000",
   "searchOrder": 0,
