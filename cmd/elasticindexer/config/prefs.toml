@@ -18,7 +18,6 @@
         acknowledge-timeout-in-seconds = 50
 
     [config.elastic-cluster]
-        use-kibana = false
         url = "http://localhost:9200"
         username = ""
         password = ""
