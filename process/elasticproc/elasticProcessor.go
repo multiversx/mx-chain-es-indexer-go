@@ -96,7 +96,7 @@ func NewElasticProcessor(arguments *ArgElasticProcessor) (*elasticProcessor, err
 		bulkRequestMaxSize: arguments.BulkRequestMaxSize,
 	}
 
-	err = ei.init(arguments.UseKibana, arguments.IndexTemplates, arguments.IndexPolicies, arguments.ExtraMappings)
+	err = ei.init(arguments.IndexTemplates, arguments.IndexPolicies, arguments.ExtraMappings)
 	if err != nil {
 		return nil, err
 	}
@@ -107,19 +107,10 @@ func NewElasticProcessor(arguments *ArgElasticProcessor) (*elasticProcessor, err
 }
 
 // TODO move all the index create part in a new component
-func (ei *elasticProcessor) init(useKibana bool, indexTemplates, _ map[string]*bytes.Buffer, extraMappings []templates.ExtraMapping) error {
+func (ei *elasticProcessor) init(indexTemplates, _ map[string]*bytes.Buffer, extraMappings []templates.ExtraMapping) error {
 	err := ei.createOpenDistroTemplates(indexTemplates)
 	if err != nil {
 		return err
-	}
-
-	//nolint
-	if useKibana {
-		// TODO: Re-activate after we think of a solid way to handle forks+rotating indexes
-		// err = ei.createIndexPolicies(indexPolicies)
-		// if err != nil {
-		//	return err
-		// }
 	}
 
 	err = ei.createIndexTemplates(indexTemplates)

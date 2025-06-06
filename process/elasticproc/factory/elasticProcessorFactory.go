@@ -35,7 +35,7 @@ type ArgElasticProcessorFactory struct {
 
 // CreateElasticProcessor will create a new instance of ElasticProcessor
 func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (dataindexer.ElasticProcessor, error) {
-	templatesAndPoliciesReader := templatesAndPolicies.CreateTemplatesAndPoliciesReader(arguments.UseKibana)
+	templatesAndPoliciesReader := templatesAndPolicies.NewTemplatesAndPolicyReader()
 	indexTemplates, indexPolicies, err := templatesAndPoliciesReader.GetElasticTemplatesAndPolicies()
 	if err != nil {
 		return nil, err
