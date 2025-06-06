@@ -10,7 +10,7 @@ import (
 
 type templatesAndPolicyReader struct{}
 
-// NewTemplatesAndPolicyReader will create a new instance of templatesAndPolicyReaderNoKibana
+// NewTemplatesAndPolicyReader will create a new instance of templatesAndPolicyReader
 func NewTemplatesAndPolicyReader() *templatesAndPolicyReader {
 	return new(templatesAndPolicyReader)
 }
