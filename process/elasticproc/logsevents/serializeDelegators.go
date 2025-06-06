@@ -78,6 +78,7 @@ func (lep *logsAndEventsProcessor) prepareSerializedDelegator(delegator *data.De
 }
 
 func prepareSerializedDataForDelegator(delegatorSerialized []byte) []byte {
+	// TODO add timestampMs
 	codeToExecute := `
 		if ('create' == ctx.op) {
 			ctx._source = params.delegator
@@ -104,6 +105,7 @@ func prepareSerializedDataForUnDelegate(delegator *data.Delegator, delegatorSeri
 		return nil, err
 	}
 
+	// TODO add timestampMs
 	codeToExecute := `
 		if ('create' == ctx.op) {
 			ctx._source = params.delegator
