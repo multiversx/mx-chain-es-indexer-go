@@ -115,7 +115,7 @@ func (di *dataIndexer) saveBlockData(outportBlock *outport.OutportBlock, header 
 	}
 
 	miniBlocks := append(outportBlock.BlockData.Body.MiniBlocks, outportBlock.BlockData.IntraShardMiniBlocks...)
-	err = di.elasticProcessor.SaveMiniblocks(header, miniBlocks)
+	err = di.elasticProcessor.SaveMiniblocks(header, miniBlocks, outportBlock.BlockData.TimestampMs)
 	if err != nil {
 		return fmt.Errorf("%w when saving miniblocks, block hash %s, nonce %d",
 			err, hex.EncodeToString(headerHash), headerNonce)
