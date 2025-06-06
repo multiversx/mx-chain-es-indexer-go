@@ -33,9 +33,9 @@ type DatabaseClientHandler interface {
 // DBAccountHandler defines the actions that an accounts' handler should do
 type DBAccountHandler interface {
 	GetAccounts(coreAlteredAccounts map[string]*alteredAccount.AlteredAccount) ([]*data.Account, []*data.AccountESDT)
-	PrepareRegularAccountsMap(timestamp uint64, accounts []*data.Account, shardID uint32) map[string]*data.AccountInfo
-	PrepareAccountsMapESDT(timestamp uint64, accounts []*data.AccountESDT, tagsCount data.CountTags, shardID uint32) (map[string]*data.AccountInfo, data.TokensHandler)
-	PrepareAccountsHistory(timestamp uint64, accounts map[string]*data.AccountInfo, shardID uint32) map[string]*data.AccountBalanceHistory
+	PrepareRegularAccountsMap(timestamp uint64, accounts []*data.Account, shardID uint32, timestampMs uint64) map[string]*data.AccountInfo
+	PrepareAccountsMapESDT(timestamp uint64, accounts []*data.AccountESDT, tagsCount data.CountTags, shardID uint32, timestampMs uint64) (map[string]*data.AccountInfo, data.TokensHandler)
+	PrepareAccountsHistory(timestamp uint64, accounts map[string]*data.AccountInfo, shardID uint32, timestampMs uint64) map[string]*data.AccountBalanceHistory
 	PutTokenMedataDataInTokens(tokensData []*data.TokenInfo, coreAlteredAccounts map[string]*alteredAccount.AlteredAccount)
 
 	SerializeAccountsHistory(accounts map[string]*data.AccountBalanceHistory, buffSlice *data.BufferSlice, index string) error
@@ -62,6 +62,7 @@ type DBTransactionsHandler interface {
 		pool *outport.TransactionPool,
 		isImportDB bool,
 		numOfShards uint32,
+		timestampMS uint64,
 	) *data.PreparedResults
 	GetHexEncodedHashesForRemove(header coreData.HeaderHandler, body *block.Body) ([]string, []string)
 
@@ -73,7 +74,7 @@ type DBTransactionsHandler interface {
 
 // DBMiniblocksHandler defines the actions that a miniblocks handler should do
 type DBMiniblocksHandler interface {
-	PrepareDBMiniblocks(header coreData.HeaderHandler, miniBlocks []*block.MiniBlock) []*data.Miniblock
+	PrepareDBMiniblocks(header coreData.HeaderHandler, miniBlocks []*block.MiniBlock, timestampMS uint64) []*data.Miniblock
 	GetMiniblocksHashesHexEncoded(header coreData.HeaderHandler, body *block.Body) []string
 
 	SerializeBulkMiniBlocks(bulkMbs []*data.Miniblock, buffSlice *data.BufferSlice, index string, shardID uint32)
@@ -98,6 +99,7 @@ type DBLogsAndEventsHandler interface {
 		timestamp uint64,
 		shardID uint32,
 		numOfShards uint32,
+		timestampMs uint64,
 	) *data.PreparedLogsResults
 
 	SerializeEvents(events []*data.LogEvent, buffSlice *data.BufferSlice, index string) error

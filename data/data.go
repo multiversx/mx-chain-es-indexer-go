@@ -30,6 +30,7 @@ type RoundInfo struct {
 	ShardId          uint32        `json:"shardId"`
 	Epoch            uint32        `json:"epoch"`
 	Timestamp        time.Duration `json:"timestamp"`
+	TimestampMs      time.Duration `json:"timestampMs,omitempty"`
 }
 
 // EpochInfo holds the information about epoch

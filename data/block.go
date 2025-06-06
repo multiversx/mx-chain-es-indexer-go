@@ -25,6 +25,7 @@ type Block struct {
 	Size                  int64                  `json:"size"`
 	SizeTxs               int64                  `json:"sizeTxs"`
 	Timestamp             time.Duration          `json:"timestamp"`
+	TimestampMs           time.Duration          `json:"timestampMs,omitempty"`
 	StateRootHash         string                 `json:"stateRootHash"`
 	PrevHash              string                 `json:"prevHash"`
 	ShardID               uint32                 `json:"shardId"`
@@ -113,5 +114,6 @@ type Miniblock struct {
 	ProcessingTypeOnSource      string        `json:"procTypeS,omitempty"`
 	ProcessingTypeOnDestination string        `json:"procTypeD,omitempty"`
 	Timestamp                   time.Duration `json:"timestamp"`
+	TimestampMs                 time.Duration `json:"timestampMs,omitempty"`
 	Reserved                    []byte        `json:"reserved,omitempty"`
 }

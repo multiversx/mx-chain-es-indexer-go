@@ -359,6 +359,8 @@ func (ei *elasticProcessor) updateDelegatorsInCaseOfRevert(header coreData.Heade
 	}
 
 	ctxWithValue := context.WithValue(context.Background(), request.ContextKey, request.ExtendTopicWithShardID(request.UpdateTopic, header.GetShardID()))
+
+	// TODO modify this to work with timestamp MS
 	delegatorsQuery := ei.logsAndEventsProc.PrepareDelegatorsQueryInCaseOfRevert(header.GetTimeStamp())
 	return ei.elasticClient.UpdateByQuery(ctxWithValue, elasticIndexer.DelegatorsIndex, delegatorsQuery)
 }
@@ -378,6 +380,8 @@ func (ei *elasticProcessor) removeIfHashesNotEmpty(index string, hashes []string
 
 // RemoveAccountsESDT will remove data from accountsesdt index and accountsesdthistory
 func (ei *elasticProcessor) RemoveAccountsESDT(headerTimestamp uint64, shardID uint32) error {
+
+	// TODO modify this to work with timestamp MS
 	err := ei.removeFromIndexByTimestampAndShardID(headerTimestamp, shardID, elasticIndexer.AccountsESDTIndex)
 	if err != nil {
 		return err
@@ -398,12 +402,12 @@ func (ei *elasticProcessor) removeFromIndexByTimestampAndShardID(headerTimestamp
 }
 
 // SaveMiniblocks will prepare and save information about miniblocks in elasticsearch server
-func (ei *elasticProcessor) SaveMiniblocks(header coreData.HeaderHandler, miniBlocks []*block.MiniBlock) error {
+func (ei *elasticProcessor) SaveMiniblocks(header coreData.HeaderHandler, miniBlocks []*block.MiniBlock, timestampMS uint64) error {
 	if !ei.isIndexEnabled(elasticIndexer.MiniblocksIndex) {
 		return nil
 	}
 
-	mbs := ei.miniblocksProc.PrepareDBMiniblocks(header, miniBlocks)
+	mbs := ei.miniblocksProc.PrepareDBMiniblocks(header, miniBlocks, timestampMS)
 	if len(mbs) == 0 {
 		return nil
 	}
@@ -419,8 +423,8 @@ func (ei *elasticProcessor) SaveTransactions(obh *outport.OutportBlockWithHeader
 	headerTimestamp := obh.Header.GetTimeStamp()
 
 	miniBlocks := append(obh.BlockData.Body.MiniBlocks, obh.BlockData.IntraShardMiniBlocks...)
-	preparedResults := ei.transactionsProc.PrepareTransactionsForDatabase(miniBlocks, obh.Header, obh.TransactionPool, ei.isImportDB(), obh.NumberOfShards)
-	logsData := ei.logsAndEventsProc.ExtractDataFromLogs(obh.TransactionPool.Logs, preparedResults, headerTimestamp, obh.Header.GetShardID(), obh.NumberOfShards)
+	preparedResults := ei.transactionsProc.PrepareTransactionsForDatabase(miniBlocks, obh.Header, obh.TransactionPool, ei.isImportDB(), obh.NumberOfShards, obh.BlockData.TimestampMs)
+	logsData := ei.logsAndEventsProc.ExtractDataFromLogs(obh.TransactionPool.Logs, preparedResults, headerTimestamp, obh.Header.GetShardID(), obh.NumberOfShards, obh.BlockData.TimestampMs)
 
 	buffers := data.NewBufferSlice(ei.bulkRequestMaxSize)
 	err := ei.indexTransactions(preparedResults.Transactions, logsData.TxHashStatusInfo, obh.Header, buffers)
@@ -464,7 +468,7 @@ func (ei *elasticProcessor) SaveTransactions(obh *outport.OutportBlockWithHeader
 	}
 
 	tagsCount := tags.NewTagsCount()
-	err = ei.indexAlteredAccounts(headerTimestamp, logsData.NFTsDataUpdates, obh.AlteredAccounts, buffers, tagsCount, obh.Header.GetShardID())
+	err = ei.indexAlteredAccounts(headerTimestamp, logsData.NFTsDataUpdates, obh.AlteredAccounts, buffers, tagsCount, obh.Header.GetShardID(), obh.BlockData.TimestampMs)
 	if err != nil {
 		return err
 	}
@@ -641,15 +645,16 @@ func (ei *elasticProcessor) indexAlteredAccounts(
 	buffSlice *data.BufferSlice,
 	tagsCount data.CountTags,
 	shardID uint32,
+	timestampMs uint64,
 ) error {
 	regularAccountsToIndex, accountsToIndexESDT := ei.accountsProc.GetAccounts(coreAlteredAccounts)
 
-	err := ei.saveAccounts(timestamp, regularAccountsToIndex, buffSlice, shardID)
+	err := ei.saveAccounts(timestamp, regularAccountsToIndex, buffSlice, shardID, timestampMs)
 	if err != nil {
 		return err
 	}
 
-	return ei.saveAccountsESDT(timestamp, accountsToIndexESDT, updatesNFTsData, buffSlice, tagsCount, shardID)
+	return ei.saveAccountsESDT(timestamp, accountsToIndexESDT, updatesNFTsData, buffSlice, tagsCount, shardID, timestampMs)
 }
 
 func (ei *elasticProcessor) saveAccountsESDT(
@@ -659,8 +664,9 @@ func (ei *elasticProcessor) saveAccountsESDT(
 	buffSlice *data.BufferSlice,
 	tagsCount data.CountTags,
 	shardID uint32,
+	timestampMs uint64,
 ) error {
-	accountsESDTMap, tokensData := ei.accountsProc.PrepareAccountsMapESDT(timestamp, wrappedAccounts, tagsCount, shardID)
+	accountsESDTMap, tokensData := ei.accountsProc.PrepareAccountsMapESDT(timestamp, wrappedAccounts, tagsCount, shardID, timestampMs)
 	err := ei.addTokenTypeAndCurrentOwnerInAccountsESDT(tokensData, accountsESDTMap, shardID)
 	if err != nil {
 		return err
@@ -671,7 +677,7 @@ func (ei *elasticProcessor) saveAccountsESDT(
 		return err
 	}
 
-	return ei.saveAccountsESDTHistory(timestamp, accountsESDTMap, buffSlice, shardID)
+	return ei.saveAccountsESDTHistory(timestamp, accountsESDTMap, buffSlice, shardID, timestampMs)
 }
 
 func (ei *elasticProcessor) addTokenTypeAndCurrentOwnerInAccountsESDT(tokensData data.TokensHandler, accountsESDTMap map[string]*data.AccountInfo, shardID uint32) error {
@@ -764,17 +770,17 @@ func (ei *elasticProcessor) SaveAccounts(accountsData *outport.Accounts) error {
 		})
 	}
 
-	return ei.saveAccounts(accountsData.BlockTimestamp, accounts, buffSlice, accountsData.ShardID)
+	return ei.saveAccounts(accountsData.BlockTimestamp, accounts, buffSlice, accountsData.ShardID, accountsData.BlockTimestampMs)
 }
 
-func (ei *elasticProcessor) saveAccounts(timestamp uint64, accts []*data.Account, buffSlice *data.BufferSlice, shardID uint32) error {
-	accountsMap := ei.accountsProc.PrepareRegularAccountsMap(timestamp, accts, shardID)
+func (ei *elasticProcessor) saveAccounts(timestamp uint64, accts []*data.Account, buffSlice *data.BufferSlice, shardID uint32, timestampMs uint64) error {
+	accountsMap := ei.accountsProc.PrepareRegularAccountsMap(timestamp, accts, shardID, timestampMs)
 	err := ei.indexAccounts(accountsMap, elasticIndexer.AccountsIndex, buffSlice)
 	if err != nil {
 		return err
 	}
 
-	return ei.saveAccountsHistory(timestamp, accountsMap, buffSlice, shardID)
+	return ei.saveAccountsHistory(timestamp, accountsMap, buffSlice, shardID, timestampMs)
 }
 
 func (ei *elasticProcessor) indexAccounts(accountsMap map[string]*data.AccountInfo, index string, buffSlice *data.BufferSlice) error {
@@ -789,22 +795,22 @@ func (ei *elasticProcessor) serializeAndIndexAccounts(accountsMap map[string]*da
 	return ei.accountsProc.SerializeAccounts(accountsMap, buffSlice, index)
 }
 
-func (ei *elasticProcessor) saveAccountsESDTHistory(timestamp uint64, accountsInfoMap map[string]*data.AccountInfo, buffSlice *data.BufferSlice, shardID uint32) error {
+func (ei *elasticProcessor) saveAccountsESDTHistory(timestamp uint64, accountsInfoMap map[string]*data.AccountInfo, buffSlice *data.BufferSlice, shardID uint32, timestampMs uint64) error {
 	if !ei.isIndexEnabled(elasticIndexer.AccountsESDTHistoryIndex) {
 		return nil
 	}
 
-	accountsMap := ei.accountsProc.PrepareAccountsHistory(timestamp, accountsInfoMap, shardID)
+	accountsMap := ei.accountsProc.PrepareAccountsHistory(timestamp, accountsInfoMap, shardID, timestamp)
 
 	return ei.serializeAndIndexAccountsHistory(accountsMap, elasticIndexer.AccountsESDTHistoryIndex, buffSlice)
 }
 
-func (ei *elasticProcessor) saveAccountsHistory(timestamp uint64, accountsInfoMap map[string]*data.AccountInfo, buffSlice *data.BufferSlice, shardID uint32) error {
+func (ei *elasticProcessor) saveAccountsHistory(timestamp uint64, accountsInfoMap map[string]*data.AccountInfo, buffSlice *data.BufferSlice, shardID uint32, timestampMS uint64) error {
 	if !ei.isIndexEnabled(elasticIndexer.AccountsHistoryIndex) {
 		return nil
 	}
 
-	accountsMap := ei.accountsProc.PrepareAccountsHistory(timestamp, accountsInfoMap, shardID)
+	accountsMap := ei.accountsProc.PrepareAccountsHistory(timestamp, accountsInfoMap, shardID, timestampMS)
 
 	return ei.serializeAndIndexAccountsHistory(accountsMap, elasticIndexer.AccountsHistoryIndex, buffSlice)
 }

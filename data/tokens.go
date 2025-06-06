@@ -57,6 +57,7 @@ type TokenInfo struct {
 	Type              string           `json:"type,omitempty"`
 	Nonce             uint64           `json:"nonce,omitempty"`
 	Timestamp         time.Duration    `json:"timestamp,omitempty"`
+	TimestampMs       time.Duration    `json:"timestampMs,omitempty"`
 	Data              *TokenMetaData   `json:"data,omitempty"`
 	OwnersHistory     []*OwnerData     `json:"ownersHistory,omitempty"`
 	TransferOwnership bool             `json:"-"`
@@ -80,9 +81,10 @@ type TokenProperties struct {
 
 // OwnerData is a structure that is needed to store information about an owner
 type OwnerData struct {
-	TxHash    string        `json:"txHash,omitempty"`
-	Address   string        `json:"address"`
-	Timestamp time.Duration `json:"timestamp"`
+	TxHash      string        `json:"txHash,omitempty"`
+	Address     string        `json:"address"`
+	Timestamp   time.Duration `json:"timestamp"`
+	TimestampMs time.Duration `json:"timestampMs,omitempty"`
 }
 
 // TokensHandler defines the actions that a tokens' handler should do

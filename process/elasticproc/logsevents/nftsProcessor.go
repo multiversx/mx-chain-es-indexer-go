@@ -65,7 +65,7 @@ func (np *nftsProcessor) processEvent(args *argsProcessEvent) argOutputProcessEv
 	sender := args.event.GetAddress()
 	senderShardID := sharding.ComputeShardID(sender, args.numOfShards)
 	if senderShardID == args.selfShardID {
-		np.processNFTEventOnSender(args.event, args.tokens, args.tokensSupply, args.timestamp)
+		np.processNFTEventOnSender(args.event, args.tokens, args.tokensSupply, args.timestamp, args.timestampMs)
 	}
 
 	token := string(topics[0])
@@ -87,10 +87,11 @@ func (np *nftsProcessor) processEvent(args *argsProcessEvent) argOutputProcessEv
 
 	if eventIdentifier == core.BuiltInFunctionESDTWipe {
 		args.tokensSupply.Add(&data.TokenInfo{
-			Token:      token,
-			Identifier: identifier,
-			Timestamp:  time.Duration(args.timestamp),
-			Nonce:      nonceBig.Uint64(),
+			Token:       token,
+			Identifier:  identifier,
+			Timestamp:   time.Duration(args.timestamp),
+			TimestampMs: time.Duration(args.timestampMs),
+			Nonce:       nonceBig.Uint64(),
 		})
 	}
 
@@ -116,6 +117,7 @@ func (np *nftsProcessor) processNFTEventOnSender(
 	tokensCreateInfo data.TokensHandler,
 	tokensSupply data.TokensHandler,
 	timestamp uint64,
+	timestampMs uint64,
 ) {
 	topics := event.GetTopics()
 	token := string(topics[0])
@@ -123,10 +125,11 @@ func (np *nftsProcessor) processNFTEventOnSender(
 	eventIdentifier := string(event.GetIdentifier())
 	if eventIdentifier == core.BuiltInFunctionESDTNFTBurn || eventIdentifier == core.BuiltInFunctionESDTWipe {
 		tokensSupply.Add(&data.TokenInfo{
-			Token:      token,
-			Identifier: converters.ComputeTokenIdentifier(token, nonceBig.Uint64()),
-			Timestamp:  time.Duration(timestamp),
-			Nonce:      nonceBig.Uint64(),
+			Token:       token,
+			Identifier:  converters.ComputeTokenIdentifier(token, nonceBig.Uint64()),
+			Timestamp:   time.Duration(timestamp),
+			TimestampMs: time.Duration(timestampMs),
+			Nonce:       nonceBig.Uint64(),
 		})
 	}
 

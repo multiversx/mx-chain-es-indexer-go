@@ -23,6 +23,7 @@ type AccountInfo struct {
 	DeveloperRewardsNum float64        `json:"developerRewardsNum,omitempty"`
 	Data                *TokenMetaData `json:"data,omitempty"`
 	Timestamp           time.Duration  `json:"timestamp,omitempty"`
+	TimestampMs         time.Duration  `json:"timestampMs,omitempty"`
 	Type                string         `json:"type,omitempty"`
 	CurrentOwner        string         `json:"currentOwner,omitempty"`
 	ShardID             uint32         `json:"shardID"`
@@ -52,6 +53,7 @@ type TokenMetaData struct {
 type AccountBalanceHistory struct {
 	Address         string        `json:"address"`
 	Timestamp       time.Duration `json:"timestamp"`
+	TimestampMs     time.Duration `json:"timestampMs,omitempty"`
 	Balance         string        `json:"balance"`
 	Token           string        `json:"token,omitempty"`
 	Identifier      string        `json:"identifier,omitempty"`

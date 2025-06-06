@@ -26,6 +26,7 @@ type ScResult struct {
 	CodeMetadata       []byte        `json:"codeMetaData,omitempty"`
 	ReturnMessage      string        `json:"returnMessage,omitempty"`
 	Timestamp          time.Duration `json:"timestamp"`
+	TimestampMs        time.Duration `json:"timestampMs,omitempty"`
 	HasOperations      bool          `json:"hasOperations,omitempty"`
 	Type               string        `json:"type,omitempty"`
 	Status             string        `json:"status,omitempty"`

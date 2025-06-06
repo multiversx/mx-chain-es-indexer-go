@@ -32,6 +32,7 @@ func (sp *statisticsProcessor) SerializeRoundsInfo(rounds *outport.RoundsInfo) *
 			ShardId:          info.ShardId,
 			Epoch:            info.Epoch,
 			Timestamp:        time.Duration(info.Timestamp),
+			TimestampMs:      time.Duration(info.TimestampMs),
 		})
 
 		buff.Grow(len(meta) + len(serializedRoundInfo))

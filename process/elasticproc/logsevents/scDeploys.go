@@ -56,6 +56,7 @@ func (sdp *scDeploysProcessor) processEvent(args *argsProcessEvent) argOutputPro
 		CurrentOwner: creatorAddress,
 		CodeHash:     topics[2],
 		Timestamp:    args.timestamp,
+		TimestampMs:  args.timestampMs,
 	}
 
 	return argOutputProcessEvent{
@@ -67,9 +68,10 @@ func (sdp *scDeploysProcessor) processChangeOwnerEvent(args *argsProcessEvent) a
 	scAddress := sdp.pubKeyConverter.SilentEncode(args.event.GetAddress(), log)
 	newOwner := sdp.pubKeyConverter.SilentEncode(args.event.GetTopics()[0], log)
 	args.changeOwnerOperations[scAddress] = &data.OwnerData{
-		TxHash:    args.txHashHexEncoded,
-		Address:   newOwner,
-		Timestamp: time.Duration(args.timestamp),
+		TxHash:      args.txHashHexEncoded,
+		Address:     newOwner,
+		Timestamp:   time.Duration(args.timestamp),
+		TimestampMs: time.Duration(args.timestampMs),
 	}
 
 	return argOutputProcessEvent{
