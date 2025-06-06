@@ -18,4 +18,5 @@ type LogEvent struct {
 	TxOrder        int           `json:"txOrder"`
 	ShardID        uint32        `json:"shardID"`
 	Timestamp      time.Duration `json:"timestamp,omitempty"`
+	TimestampMs    time.Duration `json:"timestampMs,omitempty"`
 }

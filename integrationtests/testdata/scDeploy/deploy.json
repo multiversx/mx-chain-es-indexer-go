@@ -3,6 +3,7 @@
   "deployer": "erd12m3x8jp6dl027pj5f2nw6ght2cyhhjfrs86cdwsa8xn83r375qfqrwpdx0",
   "currentOwner": "erd12m3x8jp6dl027pj5f2nw6ght2cyhhjfrs86cdwsa8xn83r375qfqrwpdx0",
   "timestamp": 5040,
+  "timestampMs": 5040000,
   "initialCodeHash": "Y29kZUhhc2g=",
   "upgrades": [],
   "owners": []

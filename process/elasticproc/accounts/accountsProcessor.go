@@ -101,7 +101,7 @@ func notZeroBalance(balance string) bool {
 }
 
 // PrepareRegularAccountsMap will prepare a map of regular accounts
-func (ap *accountsProcessor) PrepareRegularAccountsMap(timestamp uint64, accounts []*data.Account, shardID uint32) map[string]*data.AccountInfo {
+func (ap *accountsProcessor) PrepareRegularAccountsMap(timestamp uint64, accounts []*data.Account, shardID uint32, timestampMs uint64) map[string]*data.AccountInfo {
 	accountsMap := make(map[string]*data.AccountInfo)
 	for _, userAccount := range accounts {
 		address := userAccount.UserAccount.Address
@@ -131,6 +131,7 @@ func (ap *accountsProcessor) PrepareRegularAccountsMap(timestamp uint64, account
 			IsSmartContract: core.IsSmartContractAddress(addressBytes),
 			Timestamp:       time.Duration(timestamp),
 			ShardID:         shardID,
+			TimestampMs:     time.Duration(timestampMs),
 		}
 
 		ap.addAdditionalDataInAccount(userAccount.UserAccount.AdditionalData, acc)
@@ -183,6 +184,7 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(
 	accounts []*data.AccountESDT,
 	tagsCount data.CountTags,
 	shardID uint32,
+	timestampMs uint64,
 ) (map[string]*data.AccountInfo, data.TokensHandler) {
 	tokensData := data.NewTokensInfo()
 	accountsESDTMap := make(map[string]*data.AccountInfo)
@@ -226,6 +228,7 @@ func (ap *accountsProcessor) PrepareAccountsMapESDT(
 			Data:            tokenMetaData,
 			Timestamp:       time.Duration(timestamp),
 			ShardID:         shardID,
+			TimestampMs:     time.Duration(timestampMs),
 		}
 
 		if acc.TokenNonce == 0 {
@@ -253,6 +256,7 @@ func (ap *accountsProcessor) PrepareAccountsHistory(
 	timestamp uint64,
 	accounts map[string]*data.AccountInfo,
 	shardID uint32,
+	timestampMs uint64,
 ) map[string]*data.AccountBalanceHistory {
 	accountsMap := make(map[string]*data.AccountBalanceHistory)
 	for _, userAccount := range accounts {
@@ -266,6 +270,7 @@ func (ap *accountsProcessor) PrepareAccountsHistory(
 			IsSmartContract: userAccount.IsSmartContract,
 			Identifier:      converters.ComputeTokenIdentifier(userAccount.TokenName, userAccount.TokenNonce),
 			ShardID:         shardID,
+			TimestampMs:     time.Duration(timestampMs),
 		}
 		keyInMap := fmt.Sprintf("%s-%s-%d", acc.Address, acc.Token, acc.TokenNonce)
 		accountsMap[keyInMap] = acc

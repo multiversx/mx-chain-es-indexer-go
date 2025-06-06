@@ -411,7 +411,7 @@ func TestElasticProcessor_SaveMiniblocks(t *testing.T) {
 	body := &dataBlock.Body{MiniBlocks: dataBlock.MiniBlockSlice{
 		{SenderShardID: 0, ReceiverShardID: 1},
 	}}
-	err := elasticProc.SaveMiniblocks(header, body.MiniBlocks)
+	err := elasticProc.SaveMiniblocks(header, body.MiniBlocks, 0)
 	require.Equal(t, localErr, err)
 }
 
@@ -588,7 +588,7 @@ func TestElasticProcessor_IndexAlteredAccounts(t *testing.T) {
 
 	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
 	tagsCount := tags.NewTagsCount()
-	err := elasticSearchProc.indexAlteredAccounts(100, nil, nil, buffSlice, tagsCount, 0)
+	err := elasticSearchProc.indexAlteredAccounts(100, nil, nil, buffSlice, tagsCount, 0, 0)
 	require.Nil(t, err)
 	require.True(t, called)
 }

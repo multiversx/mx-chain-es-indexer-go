@@ -14,10 +14,12 @@
   "issuer": "erd1k04pxr6c0gvlcx4rd5fje0a4uy33axqxwz0fpcrgtfdy3nrqauqqgvxprv",
   "token": "TTT-abcd",
   "timestamp": 10000,
+  "timestampMs": 10000000,
   "ownersHistory": [
     {
       "address": "erd1k04pxr6c0gvlcx4rd5fje0a4uy33axqxwz0fpcrgtfdy3nrqauqqgvxprv",
-      "timestamp": 10000
+      "timestamp": 10000,
+      "timestampMs": 10000000
     }
   ],
   "properties": {

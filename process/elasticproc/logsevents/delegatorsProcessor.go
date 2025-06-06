@@ -102,6 +102,7 @@ func (dp *delegatorsProc) processEvent(args *argsProcessEvent) argOutputProcessE
 		ActiveStake:    activeStake.String(),
 		ActiveStakeNum: activeStakeNum,
 		Timestamp:      time.Duration(args.timestamp),
+		TimestampMs:    time.Duration(args.timestampMs),
 	}
 
 	if eventIdentifierStr == withdrawFunc && len(topics) >= minNumTopicsDelegators+1 {
@@ -121,10 +122,11 @@ func (dp *delegatorsProc) processEvent(args *argsProcessEvent) argOutputProcessE
 		}
 
 		delegator.UnDelegateInfo = &data.UnDelegate{
-			Timestamp: time.Duration(args.timestamp),
-			Value:     unDelegateValue.String(),
-			ValueNum:  unDelegatedValueNum,
-			ID:        hex.EncodeToString(topics[4]),
+			Timestamp:   time.Duration(args.timestamp),
+			TimestampMs: time.Duration(args.timestampMs),
+			Value:       unDelegateValue.String(),
+			ValueNum:    unDelegatedValueNum,
+			ID:          hex.EncodeToString(topics[4]),
 		}
 	}
 

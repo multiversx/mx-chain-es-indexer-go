@@ -15,6 +15,7 @@ type Logs struct {
 	Address        string        `json:"address"`
 	Events         []*Event      `json:"events"`
 	Timestamp      time.Duration `json:"timestamp,omitempty"`
+	TimestampMs    time.Duration `json:"timestampMs,omitempty"`
 }
 
 // Event holds all the fields needed for an event structure

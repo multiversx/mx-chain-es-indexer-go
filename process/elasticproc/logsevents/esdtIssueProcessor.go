@@ -92,10 +92,12 @@ func (eip *esdtIssueProcessor) processEvent(args *argsProcessEvent) argOutputPro
 		Issuer:       encodedAddr,
 		CurrentOwner: encodedAddr,
 		Timestamp:    time.Duration(args.timestamp),
+		TimestampMs:  time.Duration(args.timestampMs),
 		OwnersHistory: []*data.OwnerData{
 			{
-				Address:   encodedAddr,
-				Timestamp: time.Duration(args.timestamp),
+				Address:     encodedAddr,
+				Timestamp:   time.Duration(args.timestamp),
+				TimestampMs: time.Duration(args.timestampMs),
 			},
 		},
 		Properties: &data.TokenProperties{},

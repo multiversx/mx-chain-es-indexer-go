@@ -60,7 +60,7 @@ func TestPrepareSmartContractResult(t *testing.T) {
 	header := &block.Header{TimeStamp: 100}
 
 	mbHash := []byte("hash")
-	scRes := scrsProc.prepareSmartContractResult(scHash, mbHash, scrInfo, header, 0, 1, 3)
+	scRes := scrsProc.prepareSmartContractResult(scHash, mbHash, scrInfo, header, 0, 1, 3, 100000)
 	scRes.UUID = ""
 
 	senderAddr, err := pubKeyConverter.Encode(sndAddr)
@@ -80,6 +80,7 @@ func TestPrepareSmartContractResult(t *testing.T) {
 		Value:              "<nil>",
 		CallType:           "1",
 		Timestamp:          time.Duration(100),
+		TimestampMs:        time.Duration(100000),
 		SenderShard:        0,
 		ReceiverShard:      1,
 		Operation:          "transfer",
