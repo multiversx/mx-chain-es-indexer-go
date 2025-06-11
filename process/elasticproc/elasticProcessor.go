@@ -341,11 +341,7 @@ func (ei *elasticProcessor) RemoveTransactions(header coreData.HeaderHandler, bo
 		return err
 	}
 
-	timestamp := header.GetTimeStamp()
-	if timestampMs > 0 {
-		timestamp = timestampMs
-	}
-	err = ei.removeFromIndexByTimestampAndShardID(timestamp, header.GetShardID(), elasticIndexer.EventsIndex)
+	err = ei.removeFromIndexByTimestampAndShardID(header.GetShardID(), elasticIndexer.EventsIndex, timestampMs)
 	if err != nil {
 		return err
 	}
@@ -382,23 +378,18 @@ func (ei *elasticProcessor) removeIfHashesNotEmpty(index string, hashes []string
 }
 
 // RemoveAccountsESDT will remove data from accountsesdt index and accountsesdthistory
-func (ei *elasticProcessor) RemoveAccountsESDT(headerTimestamp uint64, shardID uint32, timestampMs uint64) error {
-	timestamp := headerTimestamp
-	if timestampMs > 0 {
-		timestamp = timestampMs
-	}
-
-	err := ei.removeFromIndexByTimestampAndShardID(timestamp, shardID, elasticIndexer.AccountsESDTIndex)
+func (ei *elasticProcessor) RemoveAccountsESDT(shardID uint32, timestampMs uint64) error {
+	err := ei.removeFromIndexByTimestampAndShardID(shardID, elasticIndexer.AccountsESDTIndex, timestampMs)
 	if err != nil {
 		return err
 	}
 
-	return ei.removeFromIndexByTimestampAndShardID(timestamp, shardID, elasticIndexer.AccountsESDTHistoryIndex)
+	return ei.removeFromIndexByTimestampAndShardID(shardID, elasticIndexer.AccountsESDTHistoryIndex, timestampMs)
 }
 
-func (ei *elasticProcessor) removeFromIndexByTimestampAndShardID(headerTimestamp uint64, shardID uint32, index string) error {
+func (ei *elasticProcessor) removeFromIndexByTimestampAndShardID(shardID uint32, index string, timestampMs uint64) error {
 	ctxWithValue := context.WithValue(context.Background(), request.ContextKey, request.ExtendTopicWithShardID(request.RemoveTopic, shardID))
-	query := fmt.Sprintf(`{"query": {"bool": {"must": [{"match": {"shardID": {"query": %d,"operator": "AND"}}},{"match": {"timestamp": {"query": "%d","operator": "AND"}}}]}}}`, shardID, headerTimestamp)
+	query := fmt.Sprintf(`{"query": {"bool": {"must": [{"match": {"shardID": {"query": %d,"operator": "AND"}}},{"match": {"timestampMs": {"query": "%d","operator": "AND"}}}]}}}`, shardID, timestampMs)
 
 	return ei.elasticClient.DoQueryRemove(
 		ctxWithValue,

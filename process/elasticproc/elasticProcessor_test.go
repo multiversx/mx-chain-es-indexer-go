@@ -481,7 +481,7 @@ func TestElasticProcessor_RemoveTransactions(t *testing.T) {
 				called = true
 			} else {
 				require.Equal(t,
-					`{"query": {"bool": {"must": [{"match": {"shardID": {"query": 4294967295,"operator": "AND"}}},{"match": {"timestamp": {"query": "0","operator": "AND"}}}]}}}`,
+					`{"query": {"bool": {"must": [{"match": {"shardID": {"query": 4294967295,"operator": "AND"}}},{"match": {"timestampMs": {"query": "0","operator": "AND"}}}]}}}`,
 					body.String(),
 				)
 			}

@@ -18,13 +18,13 @@ type ElasticProcessorStub struct {
 	SaveRoundsInfoCalled             func(infos *outport.RoundsInfo) error
 	SaveShardValidatorsPubKeysCalled func(validators *outport.ValidatorsPubKeys) error
 	SaveAccountsCalled               func(accountsData *outport.Accounts) error
-	RemoveAccountsESDTCalled         func(headerTimestamp uint64) error
+	RemoveAccountsESDTCalled         func(shardID uint32, timestampMS uint64) error
 }
 
 // RemoveAccountsESDT -
-func (eim *ElasticProcessorStub) RemoveAccountsESDT(headerTimestamp uint64, _ uint32, _ uint64) error {
+func (eim *ElasticProcessorStub) RemoveAccountsESDT(shardID uint32, timestampMS uint64) error {
 	if eim.RemoveAccountsESDTCalled != nil {
-		return eim.RemoveAccountsESDTCalled(headerTimestamp)
+		return eim.RemoveAccountsESDTCalled(shardID, timestampMS)
 	}
 
 	return nil
