@@ -6,8 +6,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"sync"
-
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
@@ -22,6 +20,7 @@ import (
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/tokeninfo"
 	"github.com/multiversx/mx-chain-es-indexer-go/templates"
 	logger "github.com/multiversx/mx-chain-logger-go"
+	"sync"
 )
 
 var (
@@ -318,7 +317,7 @@ func (ei *elasticProcessor) RemoveMiniblocks(header coreData.HeaderHandler, body
 }
 
 // RemoveTransactions will remove transaction that are in miniblock from the elasticsearch server
-func (ei *elasticProcessor) RemoveTransactions(header coreData.HeaderHandler, body *block.Body) error {
+func (ei *elasticProcessor) RemoveTransactions(header coreData.HeaderHandler, body *block.Body, timestampMs uint64) error {
 	encodedTxsHashes, encodedScrsHashes := ei.transactionsProc.GetHexEncodedHashesForRemove(header, body)
 	shardID := header.GetShardID()
 
@@ -342,15 +341,19 @@ func (ei *elasticProcessor) RemoveTransactions(header coreData.HeaderHandler, bo
 		return err
 	}
 
-	err = ei.removeFromIndexByTimestampAndShardID(header.GetTimeStamp(), header.GetShardID(), elasticIndexer.EventsIndex)
+	timestamp := header.GetTimeStamp()
+	if timestampMs > 0 {
+		timestamp = timestampMs
+	}
+	err = ei.removeFromIndexByTimestampAndShardID(timestamp, header.GetShardID(), elasticIndexer.EventsIndex)
 	if err != nil {
 		return err
 	}
 
-	return ei.updateDelegatorsInCaseOfRevert(header, body)
+	return ei.updateDelegatorsInCaseOfRevert(header, body, timestampMs)
 }
 
-func (ei *elasticProcessor) updateDelegatorsInCaseOfRevert(header coreData.HeaderHandler, body *block.Body) error {
+func (ei *elasticProcessor) updateDelegatorsInCaseOfRevert(header coreData.HeaderHandler, body *block.Body, timestampMs uint64) error {
 	// delegators index should be updated in case of revert only if the observer is in Metachain and the reverted block has miniblocks
 	isMeta := header.GetShardID() == core.MetachainShardId
 	hasMiniblocks := len(body.MiniBlocks) > 0
@@ -361,8 +364,7 @@ func (ei *elasticProcessor) updateDelegatorsInCaseOfRevert(header coreData.Heade
 
 	ctxWithValue := context.WithValue(context.Background(), request.ContextKey, request.ExtendTopicWithShardID(request.UpdateTopic, header.GetShardID()))
 
-	// TODO modify this to work with timestamp MS
-	delegatorsQuery := ei.logsAndEventsProc.PrepareDelegatorsQueryInCaseOfRevert(header.GetTimeStamp())
+	delegatorsQuery := ei.logsAndEventsProc.PrepareDelegatorsQueryInCaseOfRevert(timestampMs)
 	return ei.elasticClient.UpdateByQuery(ctxWithValue, elasticIndexer.DelegatorsIndex, delegatorsQuery)
 }
 
@@ -380,15 +382,18 @@ func (ei *elasticProcessor) removeIfHashesNotEmpty(index string, hashes []string
 }
 
 // RemoveAccountsESDT will remove data from accountsesdt index and accountsesdthistory
-func (ei *elasticProcessor) RemoveAccountsESDT(headerTimestamp uint64, shardID uint32) error {
+func (ei *elasticProcessor) RemoveAccountsESDT(headerTimestamp uint64, shardID uint32, timestampMs uint64) error {
+	timestamp := headerTimestamp
+	if timestampMs > 0 {
+		timestamp = timestampMs
+	}
 
-	// TODO modify this to work with timestamp MS
-	err := ei.removeFromIndexByTimestampAndShardID(headerTimestamp, shardID, elasticIndexer.AccountsESDTIndex)
+	err := ei.removeFromIndexByTimestampAndShardID(timestamp, shardID, elasticIndexer.AccountsESDTIndex)
 	if err != nil {
 		return err
 	}
 
-	return ei.removeFromIndexByTimestampAndShardID(headerTimestamp, shardID, elasticIndexer.AccountsESDTHistoryIndex)
+	return ei.removeFromIndexByTimestampAndShardID(timestamp, shardID, elasticIndexer.AccountsESDTHistoryIndex)
 }
 
 func (ei *elasticProcessor) removeFromIndexByTimestampAndShardID(headerTimestamp uint64, shardID uint32, index string) error {

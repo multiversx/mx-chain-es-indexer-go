@@ -516,7 +516,7 @@ func TestElasticProcessor_RemoveTransactions(t *testing.T) {
 		},
 	}
 
-	err := elasticSearchProc.RemoveTransactions(header, blk)
+	err := elasticSearchProc.RemoveTransactions(header, blk, 0)
 	require.Nil(t, err)
 	require.True(t, called)
 }

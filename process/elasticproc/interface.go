@@ -3,7 +3,6 @@ package elasticproc
 import (
 	"bytes"
 	"context"
-	"github.com/multiversx/mx-chain-es-indexer-go/templates"
 
 	coreData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/alteredAccount"
@@ -11,6 +10,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/tokeninfo"
+	"github.com/multiversx/mx-chain-es-indexer-go/templates"
 )
 
 // DatabaseClientHandler defines the actions that a component that handles requests should do
@@ -115,7 +115,7 @@ type DBLogsAndEventsHandler interface {
 		buffSlice *data.BufferSlice,
 		index string,
 	) error
-	PrepareDelegatorsQueryInCaseOfRevert(timestamp uint64) *bytes.Buffer
+	PrepareDelegatorsQueryInCaseOfRevert(timestampMs uint64) *bytes.Buffer
 }
 
 // OperationsHandler defines the actions that an operations' handler should do

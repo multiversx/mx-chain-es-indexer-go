@@ -22,7 +22,7 @@ type ElasticProcessorStub struct {
 }
 
 // RemoveAccountsESDT -
-func (eim *ElasticProcessorStub) RemoveAccountsESDT(headerTimestamp uint64, _ uint32) error {
+func (eim *ElasticProcessorStub) RemoveAccountsESDT(headerTimestamp uint64, _ uint32, _ uint64) error {
 	if eim.RemoveAccountsESDTCalled != nil {
 		return eim.RemoveAccountsESDTCalled(headerTimestamp)
 	}
@@ -55,7 +55,7 @@ func (eim *ElasticProcessorStub) RemoveMiniblocks(header coreData.HeaderHandler,
 }
 
 // RemoveTransactions -
-func (eim *ElasticProcessorStub) RemoveTransactions(header coreData.HeaderHandler, body *block.Body) error {
+func (eim *ElasticProcessorStub) RemoveTransactions(header coreData.HeaderHandler, body *block.Body, _ uint64) error {
 	if eim.RemoveMiniblocksCalled != nil {
 		return eim.RemoveTransactionsCalled(header, body)
 	}
