@@ -154,10 +154,11 @@ func serializeDeploy(deployInfo *data.ScDeployInfo) ([]byte, error) {
 	}
 
 	upgradeData := &data.Upgrade{
-		TxHash:    deployInfo.TxHash,
-		Upgrader:  deployInfo.Creator,
-		Timestamp: deployInfo.Timestamp,
-		CodeHash:  deployInfo.CodeHash,
+		TxHash:      deployInfo.TxHash,
+		Upgrader:    deployInfo.Creator,
+		Timestamp:   deployInfo.Timestamp,
+		CodeHash:    deployInfo.CodeHash,
+		TimestampMs: deployInfo.TimestampMs,
 	}
 	upgradeSerialized, errPrepareU := json.Marshal(upgradeData)
 	if errPrepareU != nil {

@@ -43,9 +43,6 @@ type ArgElasticProcessor struct {
 	BulkRequestMaxSize int
 	UseKibana          bool
 	ImportDB           bool
-	IndexTemplates     map[string]*bytes.Buffer
-	IndexPolicies      map[string]*bytes.Buffer
-	ExtraMappings      []templates.ExtraMapping
 	EnabledIndexes     map[string]struct{}
 	TransactionsProc   DBTransactionsHandler
 	AccountsProc       DBAccountHandler
@@ -56,6 +53,7 @@ type ArgElasticProcessor struct {
 	DBClient           DatabaseClientHandler
 	LogsAndEventsProc  DBLogsAndEventsHandler
 	OperationsProc     OperationsHandler
+	MappingsHandler    TemplatesAndPoliciesHandler
 	Version            string
 }
 
@@ -73,6 +71,7 @@ type elasticProcessor struct {
 	validatorsProc     DBValidatorsHandler
 	logsAndEventsProc  DBLogsAndEventsHandler
 	operationsProc     OperationsHandler
+	mappingsHandler    TemplatesAndPoliciesHandler
 }
 
 // NewElasticProcessor handles Elasticsearch operations such as initialization, adding, modifying or removing data
@@ -94,9 +93,10 @@ func NewElasticProcessor(arguments *ArgElasticProcessor) (*elasticProcessor, err
 		logsAndEventsProc:  arguments.LogsAndEventsProc,
 		operationsProc:     arguments.OperationsProc,
 		bulkRequestMaxSize: arguments.BulkRequestMaxSize,
+		mappingsHandler:    arguments.MappingsHandler,
 	}
 
-	err = ei.init(arguments.IndexTemplates, arguments.IndexPolicies, arguments.ExtraMappings)
+	err = ei.init()
 	if err != nil {
 		return nil, err
 	}
@@ -107,8 +107,13 @@ func NewElasticProcessor(arguments *ArgElasticProcessor) (*elasticProcessor, err
 }
 
 // TODO move all the index create part in a new component
-func (ei *elasticProcessor) init(indexTemplates, _ map[string]*bytes.Buffer, extraMappings []templates.ExtraMapping) error {
-	err := ei.createOpenDistroTemplates(indexTemplates)
+func (ei *elasticProcessor) init() error {
+	indexTemplates, _, err := ei.mappingsHandler.GetElasticTemplatesAndPolicies()
+	if err != nil {
+		return err
+	}
+
+	err = ei.createOpenDistroTemplates(indexTemplates)
 	if err != nil {
 		return err
 	}
@@ -124,6 +129,11 @@ func (ei *elasticProcessor) init(indexTemplates, _ map[string]*bytes.Buffer, ext
 	}
 
 	err = ei.createAliases()
+	if err != nil {
+		return err
+	}
+
+	extraMappings, err := ei.mappingsHandler.GetTimestampMsMappings()
 	if err != nil {
 		return err
 	}
@@ -791,7 +801,7 @@ func (ei *elasticProcessor) saveAccountsESDTHistory(timestamp uint64, accountsIn
 		return nil
 	}
 
-	accountsMap := ei.accountsProc.PrepareAccountsHistory(timestamp, accountsInfoMap, shardID, timestamp)
+	accountsMap := ei.accountsProc.PrepareAccountsHistory(timestamp, accountsInfoMap, shardID, timestampMs)
 
 	return ei.serializeAndIndexAccountsHistory(accountsMap, elasticIndexer.AccountsESDTHistoryIndex, buffSlice)
 }

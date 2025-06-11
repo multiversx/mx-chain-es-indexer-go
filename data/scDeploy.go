@@ -14,8 +14,9 @@ type ScDeployInfo struct {
 
 // Upgrade is the DTO that holds information about a smart contract upgrade
 type Upgrade struct {
-	TxHash    string `json:"upgradeTxHash"`
-	Upgrader  string `json:"upgrader"`
-	Timestamp uint64 `json:"timestamp"`
-	CodeHash  []byte `json:"codeHash"`
+	TxHash      string `json:"upgradeTxHash"`
+	Upgrader    string `json:"upgrader"`
+	Timestamp   uint64 `json:"timestamp"`
+	TimestampMs uint64 `json:"timestampMs"`
+	CodeHash    []byte `json:"codeHash"`
 }

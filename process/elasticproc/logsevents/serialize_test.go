@@ -46,9 +46,10 @@ func TestLogsAndEventsProcessor_SerializeSCDeploys(t *testing.T) {
 
 	scDeploys := map[string]*data.ScDeployInfo{
 		"scAddr": {
-			Creator:   "creator",
-			Timestamp: 123,
-			TxHash:    "hash",
+			Creator:     "creator",
+			Timestamp:   123,
+			TxHash:      "hash",
+			TimestampMs: 123000,
 		},
 	}
 
@@ -57,7 +58,7 @@ func TestLogsAndEventsProcessor_SerializeSCDeploys(t *testing.T) {
 	require.Nil(t, err)
 
 	expectedRes := `{ "update" : { "_index":"scdeploys", "_id" : "scAddr" } }
-{"script": {"source": "if (!ctx._source.containsKey('upgrades')) {ctx._source.upgrades = [params.elem];} else {ctx._source.upgrades.add(params.elem);}","lang": "painless","params": {"elem": {"upgradeTxHash":"hash","upgrader":"creator","timestamp":123,"codeHash":null}}},"upsert": {"deployTxHash":"hash","deployer":"creator","currentOwner":"","initialCodeHash":null,"timestamp":123,"upgrades":[],"owners":[]}}
+{"script": {"source": "if (!ctx._source.containsKey('upgrades')) {ctx._source.upgrades = [params.elem];} else {ctx._source.upgrades.add(params.elem);}","lang": "painless","params": {"elem": {"upgradeTxHash":"hash","upgrader":"creator","timestamp":123,"timestampMs":123000,"codeHash":null}}},"upsert": {"deployTxHash":"hash","deployer":"creator","currentOwner":"","initialCodeHash":null,"timestamp":123,"timestampMs":123000,"upgrades":[],"owners":[]}}
 `
 	require.Equal(t, expectedRes, buffSlice.Buffers()[0].String())
 }
@@ -134,7 +135,7 @@ func TestLogsAndEventsProcessor_SerializeDelegators(t *testing.T) {
 	require.Nil(t, err)
 
 	expectedRes := `{ "update" : { "_index":"delegators", "_id" : "/GeogJjDjtpxnceK9t6+BVBYWuuJHbjmsWK0/1BlH9c=" } }
-{"scripted_upsert": true, "script": {"source": "if ('create' == ctx.op) {ctx._source = params.delegator} else {ctx._source.activeStake = params.delegator.activeStake;ctx._source.activeStakeNum = params.delegator.activeStakeNum;ctx._source.timestamp = params.delegator.timestamp;}","lang": "painless","params": { "delegator": {"address":"addr1","contract":"contract1","timestamp":0,"activeStake":"100000000000000","activeStakeNum":0.1} }},"upsert": {}}
+{"scripted_upsert": true, "script": {"source": "if ('create' == ctx.op) {ctx._source = params.delegator} else {ctx._source.activeStake = params.delegator.activeStake;ctx._source.activeStakeNum = params.delegator.activeStakeNum;ctx._source.timestamp = params.delegator.timestamp;ctx._source.timestampMs = params.delegator.timestampMs;}","lang": "painless","params": { "delegator": {"address":"addr1","contract":"contract1","timestamp":0,"activeStake":"100000000000000","activeStakeNum":0.1} }},"upsert": {}}
 `
 	require.Equal(t, expectedRes, buffSlice.Buffers()[0].String())
 }

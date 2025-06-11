@@ -10,4 +10,5 @@ import (
 type TemplatesAndPoliciesHandler interface {
 	GetElasticTemplatesAndPolicies() (map[string]*bytes.Buffer, map[string]*bytes.Buffer, error)
 	GetExtraMappings() ([]templates.ExtraMapping, error)
+	GetTimestampMsMappings() ([]templates.ExtraMapping, error)
 }

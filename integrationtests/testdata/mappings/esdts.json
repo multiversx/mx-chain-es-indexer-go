@@ -30,7 +30,7 @@
             },
             "timestampMs": {
               "type": "date",
-              "format": "epoch_millisecond",
+              "format": "epoch_millis",
               "index": false
             }
           }
@@ -117,11 +117,15 @@
         },
         "timestampMs": {
           "type": "date",
-          "format": "epoch_millisecond"
+          "format": "epoch_millis"
         },
         "changedToDynamicTimestamp": {
           "type": "date",
           "format": "epoch_second"
+        },
+        "changedToDynamicTimestampMs": {
+          "type": "date",
+          "format": "epoch_millis"
         },
         "token": {
           "type": "text"

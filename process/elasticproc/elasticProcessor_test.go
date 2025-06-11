@@ -23,6 +23,7 @@ import (
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/operations"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/statistics"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/tags"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/templatesAndPolicies"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/transactions"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/validators"
 	"github.com/stretchr/testify/require"
@@ -87,6 +88,7 @@ func createMockElasticProcessorArgs() *ArgElasticProcessor {
 		BlockProc:         bp,
 		LogsAndEventsProc: lp,
 		OperationsProc:    op,
+		MappingsHandler:   templatesAndPolicies.NewTemplatesAndPolicyReader(),
 	}
 }
 
@@ -199,6 +201,15 @@ func TestNewElasticProcessor(t *testing.T) {
 				return arguments
 			},
 			exErr: dataindexer.ErrNilTransactionsHandler,
+		},
+		{
+			name: "NilMappingsHandler",
+			args: func() *ArgElasticProcessor {
+				arguments := createMockElasticProcessorArgs()
+				arguments.MappingsHandler = nil
+				return arguments
+			},
+			exErr: dataindexer.ErrNilMappingsHandler,
 		},
 		{
 			name: "InitError",

@@ -3,6 +3,7 @@ package elasticproc
 import (
 	"bytes"
 	"context"
+	"github.com/multiversx/mx-chain-es-indexer-go/templates"
 
 	coreData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/alteredAccount"
@@ -121,4 +122,11 @@ type DBLogsAndEventsHandler interface {
 type OperationsHandler interface {
 	ProcessTransactionsAndSCRs(txs []*data.Transaction, scrs []*data.ScResult, isImportDB bool, shardID uint32) ([]*data.Transaction, []*data.ScResult)
 	SerializeSCRs(scrs []*data.ScResult, buffSlice *data.BufferSlice, index string, shardID uint32) error
+}
+
+// TemplatesAndPoliciesHandler  defines the actions that a templates and policies handler should do
+type TemplatesAndPoliciesHandler interface {
+	GetElasticTemplatesAndPolicies() (map[string]*bytes.Buffer, map[string]*bytes.Buffer, error)
+	GetExtraMappings() ([]templates.ExtraMapping, error)
+	GetTimestampMsMappings() ([]templates.ExtraMapping, error)
 }
