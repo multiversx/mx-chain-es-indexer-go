@@ -27,6 +27,11 @@
               "type": "date",
               "format": "epoch_second",
               "index": false
+            },
+            "timestampMs": {
+              "type": "date",
+              "format": "epoch_millisecond",
+              "index": false
             }
           }
         },
@@ -109,6 +114,10 @@
         "timestamp": {
           "type": "date",
           "format": "epoch_second"
+        },
+        "timestampMs": {
+          "type": "date",
+          "format": "epoch_millisecond"
         },
         "changedToDynamicTimestamp": {
           "type": "date",

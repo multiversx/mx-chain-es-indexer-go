@@ -86,6 +86,7 @@ func prepareSerializedDataForDelegator(delegatorSerialized []byte) []byte {
 			ctx._source.activeStake = params.delegator.activeStake;
 			ctx._source.activeStakeNum = params.delegator.activeStakeNum;
 			ctx._source.timestamp = params.delegator.timestamp;
+			ctx._source.timestampMs = params.delegator.timestampMs;
 		}
 `
 	serializedDataStr := fmt.Sprintf(`{"scripted_upsert": true, "script": {`+
@@ -119,6 +120,7 @@ func prepareSerializedDataForUnDelegate(delegator *data.Delegator, delegatorSeri
 			ctx._source.activeStake = params.delegator.activeStake;
 			ctx._source.activeStakeNum = params.delegator.activeStakeNum;
 			ctx._source.timestamp = params.delegator.timestamp;
+			ctx._source.timestampMs = params.delegator.timestampMs;
 		}
 `
 	serializedDataStr := fmt.Sprintf(`{"scripted_upsert": true, "script": {`+
@@ -160,6 +162,7 @@ func prepareSerializedDataForWithdrawal(delegator *data.Delegator, delegatorSeri
 			ctx._source.activeStake = params.delegator.activeStake;
 			ctx._source.activeStakeNum = params.delegator.activeStakeNum;
 			ctx._source.timestamp = params.delegator.timestamp;
+			ctx._source.timestampMs = params.delegator.timestampMs;
 		}
 `
 	serializedDataStr := fmt.Sprintf(`{"scripted_upsert": true, "script": {`+

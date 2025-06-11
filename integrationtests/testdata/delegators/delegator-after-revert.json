@@ -10,7 +10,8 @@
       "valueNum": 50,
       "id": "31",
       "value": "50000000000000000000",
-      "timestamp": 5050
+      "timestamp": 5050,
+      "timestampMs": 5050000
     }
   ]
 }
