@@ -2,9 +2,6 @@ package transactions
 
 import (
 	"encoding/hex"
-	"strconv"
-	"time"
-
 	"github.com/multiversx/mx-chain-core-go/core"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
@@ -14,6 +11,7 @@ import (
 	indexerData "github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
+	"strconv"
 )
 
 type smartContractResultsProcessor struct {
@@ -45,6 +43,7 @@ func (proc *smartContractResultsProcessor) processSCRs(
 	header coreData.HeaderHandler,
 	scrs map[string]*outport.SCRInfo,
 	numOfShards uint32,
+	timestampMs uint64,
 ) []*indexerData.ScResult {
 	allSCRs := make([]*indexerData.ScResult, 0, len(scrs))
 
@@ -55,14 +54,14 @@ func (proc *smartContractResultsProcessor) processSCRs(
 			continue
 		}
 
-		indexerSCRs := proc.processSCRsFromMiniblock(header, mb, workingSCRSMap, numOfShards)
+		indexerSCRs := proc.processSCRsFromMiniblock(header, mb, workingSCRSMap, numOfShards, timestampMs)
 
 		allSCRs = append(allSCRs, indexerSCRs...)
 	}
 
 	selfShardID := header.GetShardID()
 	for scrHashHex, noMBScrInfo := range workingSCRSMap {
-		indexerScr := proc.prepareSmartContractResult(scrHashHex, nil, noMBScrInfo, header, selfShardID, selfShardID, numOfShards)
+		indexerScr := proc.prepareSmartContractResult(scrHashHex, nil, noMBScrInfo, header, selfShardID, selfShardID, numOfShards, timestampMs)
 
 		allSCRs = append(allSCRs, indexerScr)
 	}
@@ -75,6 +74,7 @@ func (proc *smartContractResultsProcessor) processSCRsFromMiniblock(
 	mb *block.MiniBlock,
 	scrs map[string]*outport.SCRInfo,
 	numOfShards uint32,
+	timestampMs uint64,
 ) []*indexerData.ScResult {
 	mbHash, err := core.CalculateHash(proc.marshalizer, proc.hasher, mb)
 	if err != nil {
@@ -93,7 +93,7 @@ func (proc *smartContractResultsProcessor) processSCRsFromMiniblock(
 			continue
 		}
 
-		indexerSCR := proc.prepareSmartContractResult(hex.EncodeToString(scrHash), mbHash, scrInfo, header, mb.SenderShardID, mb.ReceiverShardID, numOfShards)
+		indexerSCR := proc.prepareSmartContractResult(hex.EncodeToString(scrHash), mbHash, scrInfo, header, mb.SenderShardID, mb.ReceiverShardID, numOfShards, timestampMs)
 		indexerSCRs = append(indexerSCRs, indexerSCR)
 
 		delete(scrs, scrHashHex)
@@ -110,6 +110,7 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 	senderShard uint32,
 	receiverShard uint32,
 	numOfShards uint32,
+	timestampMs uint64,
 ) *indexerData.ScResult {
 	scr := scrInfo.SmartContractResult
 	hexEncodedMBHash := ""
@@ -174,7 +175,7 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 		CallType:           strconv.Itoa(int(scr.CallType)),
 		CodeMetadata:       scr.CodeMetadata,
 		ReturnMessage:      string(scr.ReturnMessage),
-		Timestamp:          time.Duration(header.GetTimeStamp()),
+		Timestamp:          header.GetTimeStamp(),
 		SenderAddressBytes: scr.SndAddr,
 		SenderShard:        senderShard,
 		ReceiverShard:      receiverShard,
@@ -193,6 +194,7 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 		ExecutionOrder:     int(scrInfo.ExecutionOrder),
 		UUID:               converters.GenerateBase64UUID(),
 		Epoch:              header.GetEpoch(),
+		TimestampMs:        timestampMs,
 	}
 }
 

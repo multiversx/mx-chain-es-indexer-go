@@ -36,14 +36,6 @@ type ArgElasticProcessorFactory struct {
 // CreateElasticProcessor will create a new instance of ElasticProcessor
 func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (dataindexer.ElasticProcessor, error) {
 	templatesAndPoliciesReader := templatesAndPolicies.NewTemplatesAndPolicyReader()
-	indexTemplates, indexPolicies, err := templatesAndPoliciesReader.GetElasticTemplatesAndPolicies()
-	if err != nil {
-		return nil, err
-	}
-	extraMappings, err := templatesAndPoliciesReader.GetExtraMappings()
-	if err != nil {
-		return nil, err
-	}
 
 	enabledIndexesMap := make(map[string]struct{})
 	for _, index := range arguments.EnabledIndexes {
@@ -121,12 +113,10 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (dataindexer.E
 		DBClient:           arguments.DBClient,
 		EnabledIndexes:     enabledIndexesMap,
 		UseKibana:          arguments.UseKibana,
-		IndexTemplates:     indexTemplates,
-		IndexPolicies:      indexPolicies,
-		ExtraMappings:      extraMappings,
 		OperationsProc:     operationsProc,
 		ImportDB:           arguments.ImportDB,
 		Version:            arguments.Version,
+		MappingsHandler:    templatesAndPoliciesReader,
 	}
 
 	return elasticproc.NewElasticProcessor(args)

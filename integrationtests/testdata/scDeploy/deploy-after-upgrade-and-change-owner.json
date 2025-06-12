@@ -4,19 +4,22 @@
   "currentOwner": "erd1d942l8w4yvgjffpqacs8vdwl0mndsv0zn0uxa80hxc3xmq4477eqnyw3dh",
   "initialCodeHash": "Y29kZUhhc2g=",
   "timestamp": 5040,
+  "timestampMs": 5040000,
   "upgrades": [
     {
       "upgradeTxHash": "6832",
       "codeHash": "c2Vjb25kQ29kZUhhc2g=",
       "upgrader": "erd12m3x8jp6dl027pj5f2nw6ght2cyhhjfrs86cdwsa8xn83r375qfqrwpdx0",
-      "timestamp": 6000
+      "timestamp": 6000,
+      "timestampMs": 6000000
     }
   ],
   "owners": [
     {
       "address": "erd1d942l8w4yvgjffpqacs8vdwl0mndsv0zn0uxa80hxc3xmq4477eqnyw3dh",
       "txHash": "6833",
-      "timestamp": 7000
+      "timestamp": 7000,
+      "timestampMs": 7000000
     }
   ]
 }
