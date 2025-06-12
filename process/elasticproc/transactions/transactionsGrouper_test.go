@@ -2,9 +2,6 @@ package transactions
 
 import (
 	"encoding/hex"
-	"testing"
-	"time"
-
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/receipt"
@@ -13,6 +10,7 @@ import (
 	"github.com/multiversx/mx-chain-es-indexer-go/mock"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
 	"github.com/stretchr/testify/require"
+	"testing"
 )
 
 func TestGroupNormalTxs(t *testing.T) {
@@ -139,6 +137,6 @@ func TestGroupReceipts(t *testing.T) {
 
 	receipts := grouper.groupReceipts(header, txs, 1234000)
 	require.Len(t, receipts, 2)
-	require.Equal(t, time.Duration(1234), receipts[0].Timestamp)
-	require.Equal(t, time.Duration(1234000), receipts[0].TimestampMs)
+	require.Equal(t, uint64(1234), receipts[0].Timestamp)
+	require.Equal(t, uint64(1234000), receipts[0].TimestampMs)
 }

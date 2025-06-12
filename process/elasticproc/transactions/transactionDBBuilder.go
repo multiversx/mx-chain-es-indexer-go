@@ -3,8 +3,6 @@ package transactions
 import (
 	"encoding/hex"
 	"fmt"
-	"time"
-
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/sharding"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
@@ -201,7 +199,7 @@ func (dtb *dbTransactionBuilder) prepareReceipt(
 		Sender:      senderAddr,
 		Data:        string(rec.Data),
 		TxHash:      hex.EncodeToString(rec.TxHash),
-		Timestamp:   time.Duration(header.GetTimeStamp()),
-		TimestampMs: time.Duration(timestampMs),
+		Timestamp:   header.GetTimeStamp(),
+		TimestampMs: timestampMs,
 	}
 }

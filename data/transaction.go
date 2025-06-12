@@ -1,9 +1,5 @@
 package data
 
-import (
-	"time"
-)
-
 // Transaction is a structure containing all the fields that need
 // to be saved for a transaction. It has all the default fields
 // plus some extra information for ease of search and filter
@@ -62,13 +58,13 @@ type Transaction struct {
 
 // Receipt is a structure containing all the fields that need to be safe for a Receipt
 type Receipt struct {
-	Hash        string        `json:"-"`
-	Value       string        `json:"value"`
-	Sender      string        `json:"sender"`
-	Data        string        `json:"data,omitempty"`
-	TxHash      string        `json:"txHash"`
-	Timestamp   time.Duration `json:"timestamp"`
-	TimestampMs time.Duration `json:"timestampMs,omitempty"`
+	Hash        string `json:"-"`
+	Value       string `json:"value"`
+	Sender      string `json:"sender"`
+	Data        string `json:"data,omitempty"`
+	TxHash      string `json:"txHash"`
+	Timestamp   uint64 `json:"timestamp"`
+	TimestampMs uint64 `json:"timestampMs,omitempty"`
 }
 
 // PreparedResults is the DTO that holds all the results after processing
