@@ -1,8 +1,6 @@
 package data
 
 import (
-	"time"
-
 	"github.com/multiversx/mx-chain-core-go/core"
 )
 
@@ -56,8 +54,8 @@ type TokenInfo struct {
 	NumDecimals       uint64           `json:"numDecimals"`
 	Type              string           `json:"type,omitempty"`
 	Nonce             uint64           `json:"nonce,omitempty"`
-	Timestamp         time.Duration    `json:"timestamp,omitempty"`
-	TimestampMs       time.Duration    `json:"timestampMs,omitempty"`
+	Timestamp         uint64           `json:"timestamp,omitempty"`
+	TimestampMs       uint64           `json:"timestampMs,omitempty"`
 	Data              *TokenMetaData   `json:"data,omitempty"`
 	OwnersHistory     []*OwnerData     `json:"ownersHistory,omitempty"`
 	TransferOwnership bool             `json:"-"`
@@ -81,10 +79,10 @@ type TokenProperties struct {
 
 // OwnerData is a structure that is needed to store information about an owner
 type OwnerData struct {
-	TxHash      string        `json:"txHash,omitempty"`
-	Address     string        `json:"address"`
-	Timestamp   time.Duration `json:"timestamp"`
-	TimestampMs time.Duration `json:"timestampMs,omitempty"`
+	TxHash      string `json:"txHash,omitempty"`
+	Address     string `json:"address"`
+	Timestamp   uint64 `json:"timestamp"`
+	TimestampMs uint64 `json:"timestampMs,omitempty"`
 }
 
 // TokensHandler defines the actions that a tokens' handler should do

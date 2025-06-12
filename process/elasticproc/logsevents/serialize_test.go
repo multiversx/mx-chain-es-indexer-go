@@ -1,14 +1,12 @@
 package logsevents
 
 import (
-	"math/big"
-	"testing"
-	"time"
-
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/mock"
 	"github.com/stretchr/testify/require"
+	"math/big"
+	"testing"
 )
 
 func TestLogsAndEventsProcessor_SerializeLogs(t *testing.T) {
@@ -18,7 +16,7 @@ func TestLogsAndEventsProcessor_SerializeLogs(t *testing.T) {
 		{
 			ID:        "747848617368",
 			Address:   "61646472657373",
-			Timestamp: time.Duration(1234),
+			Timestamp: 1234,
 			Events: []*data.Event{
 				{
 					Address:    "61646472",

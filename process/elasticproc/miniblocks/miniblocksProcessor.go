@@ -2,8 +2,6 @@ package miniblocks
 
 import (
 	"encoding/hex"
-	"time"
-
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
@@ -87,8 +85,8 @@ func (mp *miniblocksProcessor) prepareMiniblockForDB(
 		SenderShardID:   miniblock.SenderShardID,
 		ReceiverShardID: miniblock.ReceiverShardID,
 		Type:            miniblock.Type.String(),
-		Timestamp:       time.Duration(header.GetTimeStamp()),
-		TimestampMs:     time.Duration(timestampMS),
+		Timestamp:       header.GetTimeStamp(),
+		TimestampMs:     timestampMS,
 		Reserved:        miniblock.Reserved,
 	}
 

@@ -2,10 +2,6 @@ package transactions
 
 import (
 	"encoding/hex"
-	"math/big"
-	"testing"
-	"time"
-
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
@@ -14,6 +10,8 @@ import (
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
 	datafield "github.com/multiversx/mx-chain-vm-common-go/parsers/dataField"
 	"github.com/stretchr/testify/require"
+	"math/big"
+	"testing"
 )
 
 func createDataFieldParserMock() DataFieldParser {
@@ -79,8 +77,8 @@ func TestPrepareSmartContractResult(t *testing.T) {
 		Receiver:           receiverAddr,
 		Value:              "<nil>",
 		CallType:           "1",
-		Timestamp:          time.Duration(100),
-		TimestampMs:        time.Duration(100000),
+		Timestamp:          uint64(100),
+		TimestampMs:        uint64(100000),
 		SenderShard:        0,
 		ReceiverShard:      1,
 		Operation:          "transfer",

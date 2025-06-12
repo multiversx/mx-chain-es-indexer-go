@@ -1,11 +1,9 @@
 package logsevents
 
 import (
-	"math/big"
-	"time"
-
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
+	"math/big"
 )
 
 const (
@@ -91,13 +89,13 @@ func (eip *esdtIssueProcessor) processEvent(args *argsProcessEvent) argOutputPro
 		NumDecimals:  numDecimals,
 		Issuer:       encodedAddr,
 		CurrentOwner: encodedAddr,
-		Timestamp:    time.Duration(args.timestamp),
-		TimestampMs:  time.Duration(args.timestampMs),
+		Timestamp:    args.timestamp,
+		TimestampMs:  args.timestampMs,
 		OwnersHistory: []*data.OwnerData{
 			{
 				Address:     encodedAddr,
-				Timestamp:   time.Duration(args.timestamp),
-				TimestampMs: time.Duration(args.timestampMs),
+				Timestamp:   args.timestamp,
+				TimestampMs: args.timestampMs,
 			},
 		},
 		Properties: &data.TokenProperties{},

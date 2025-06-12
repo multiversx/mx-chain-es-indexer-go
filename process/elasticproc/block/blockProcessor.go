@@ -4,13 +4,10 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/multiversx/mx-chain-core-go/data/api"
-	"strconv"
-	"time"
-
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/api"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	nodeBlock "github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
@@ -20,6 +17,7 @@ import (
 	indexer "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
 	logger "github.com/multiversx/mx-chain-logger-go"
+	"strconv"
 )
 
 const (
@@ -96,8 +94,8 @@ func (bp *blockProcessor) PrepareBlockForDB(obh *outport.OutportBlockWithHeader)
 		PubKeyBitmap:          hex.EncodeToString(obh.Header.GetPubKeysBitmap()),
 		Size:                  int64(blockSizeInBytes),
 		SizeTxs:               int64(sizeTxs),
-		Timestamp:             time.Duration(obh.Header.GetTimeStamp()),
-		TimestampMs:           time.Duration(obh.OutportBlock.BlockData.TimestampMs),
+		Timestamp:             obh.Header.GetTimeStamp(),
+		TimestampMs:           obh.OutportBlock.BlockData.GetTimestampMs(),
 		TxCount:               numTxs,
 		NotarizedTxsCount:     notarizedTxs,
 		StateRootHash:         hex.EncodeToString(obh.Header.GetRootHash()),

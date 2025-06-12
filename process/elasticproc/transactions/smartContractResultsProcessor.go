@@ -2,9 +2,6 @@ package transactions
 
 import (
 	"encoding/hex"
-	"strconv"
-	"time"
-
 	"github.com/multiversx/mx-chain-core-go/core"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
@@ -14,6 +11,7 @@ import (
 	indexerData "github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
+	"strconv"
 )
 
 type smartContractResultsProcessor struct {
@@ -177,7 +175,7 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 		CallType:           strconv.Itoa(int(scr.CallType)),
 		CodeMetadata:       scr.CodeMetadata,
 		ReturnMessage:      string(scr.ReturnMessage),
-		Timestamp:          time.Duration(header.GetTimeStamp()),
+		Timestamp:          header.GetTimeStamp(),
 		SenderAddressBytes: scr.SndAddr,
 		SenderShard:        senderShard,
 		ReceiverShard:      receiverShard,
@@ -196,7 +194,7 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 		ExecutionOrder:     int(scrInfo.ExecutionOrder),
 		UUID:               converters.GenerateBase64UUID(),
 		Epoch:              header.GetEpoch(),
-		TimestampMs:        time.Duration(timestampMs),
+		TimestampMs:        timestampMs,
 	}
 }
 

@@ -34,9 +34,9 @@ type DatabaseClientHandler interface {
 // DBAccountHandler defines the actions that an accounts' handler should do
 type DBAccountHandler interface {
 	GetAccounts(coreAlteredAccounts map[string]*alteredAccount.AlteredAccount) ([]*data.Account, []*data.AccountESDT)
-	PrepareRegularAccountsMap(timestamp uint64, accounts []*data.Account, shardID uint32, timestampMs uint64) map[string]*data.AccountInfo
-	PrepareAccountsMapESDT(timestamp uint64, accounts []*data.AccountESDT, tagsCount data.CountTags, shardID uint32, timestampMs uint64) (map[string]*data.AccountInfo, data.TokensHandler)
-	PrepareAccountsHistory(timestamp uint64, accounts map[string]*data.AccountInfo, shardID uint32, timestampMs uint64) map[string]*data.AccountBalanceHistory
+	PrepareRegularAccountsMap(accounts []*data.Account, shardID uint32, timestampMs uint64) map[string]*data.AccountInfo
+	PrepareAccountsMapESDT(accounts []*data.AccountESDT, tagsCount data.CountTags, shardID uint32, timestampMs uint64) (map[string]*data.AccountInfo, data.TokensHandler)
+	PrepareAccountsHistory(accounts map[string]*data.AccountInfo, shardID uint32, timestampMs uint64) map[string]*data.AccountBalanceHistory
 	PutTokenMedataDataInTokens(tokensData []*data.TokenInfo, coreAlteredAccounts map[string]*alteredAccount.AlteredAccount)
 
 	SerializeAccountsHistory(accounts map[string]*data.AccountBalanceHistory, buffSlice *data.BufferSlice, index string) error
@@ -124,7 +124,7 @@ type OperationsHandler interface {
 	SerializeSCRs(scrs []*data.ScResult, buffSlice *data.BufferSlice, index string, shardID uint32) error
 }
 
-// TemplatesAndPoliciesHandler  defines the actions that a templates and policies handler should do
+// TemplatesAndPoliciesHandler defines the actions that a templates and policies handler should do
 type TemplatesAndPoliciesHandler interface {
 	GetElasticTemplatesAndPolicies() (map[string]*bytes.Buffer, map[string]*bytes.Buffer, error)
 	GetExtraMappings() ([]templates.ExtraMapping, error)

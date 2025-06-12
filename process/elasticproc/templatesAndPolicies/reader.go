@@ -103,7 +103,6 @@ func (tr *templatesAndPolicyReader) GetTimestampMsMappings() ([]templates.ExtraM
 			Index:    indexer.EventsIndex,
 			Mappings: indices.TimestampMs.ToBuffer(),
 		},
-
 		{
 			Index:    indexer.TokensIndex,
 			Mappings: indices.TokensTimestampMs.ToBuffer(),

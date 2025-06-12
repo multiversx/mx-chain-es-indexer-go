@@ -2,10 +2,6 @@ package logsevents
 
 import (
 	"encoding/hex"
-	"math/big"
-	"testing"
-	"time"
-
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
@@ -14,6 +10,8 @@ import (
 	elasticIndexer "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
 	"github.com/stretchr/testify/require"
+	"math/big"
+	"testing"
 )
 
 func createMockArgs() ArgsLogsAndEventsProcessor {
@@ -197,16 +195,16 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 		Contract:       "636f6e7472616374",
 		ActiveStakeNum: 0.1,
 		ActiveStake:    "1000000000",
-		Timestamp:      time.Duration(1000),
-		TimestampMs:    time.Duration(1000000),
+		Timestamp:      1000,
+		TimestampMs:    1000000,
 	}, resLogs.Delegators["61646472636f6e7472616374"])
 	require.Equal(t, &data.Delegator{
 		Address:        "61646472",
 		Contract:       "636f6e74726163742d7365636f6e64",
 		ActiveStakeNum: 0.1,
 		ActiveStake:    "1000000000",
-		Timestamp:      time.Duration(1000),
-		TimestampMs:    time.Duration(1000000),
+		Timestamp:      1000,
+		TimestampMs:    1000000,
 	}, resLogs.Delegators["61646472636f6e74726163742d7365636f6e64"])
 }
 
@@ -247,8 +245,8 @@ func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 		ID:             "747848617368",
 		Address:        "61646472657373",
 		OriginalTxHash: "orignalHash",
-		Timestamp:      time.Duration(1234),
-		TimestampMs:    time.Duration(1234000),
+		Timestamp:      1234,
+		TimestampMs:    1234000,
 		Events: []*data.Event{
 			{
 				Address:        "61646472",
@@ -302,8 +300,8 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsNFTBurn(t *testing.T) {
 	tokensSupply := resLogs.TokensSupply.GetAll()
 	require.Equal(t, "MY-NFT", tokensSupply[0].Token)
 	require.Equal(t, "MY-NFT-02", tokensSupply[0].Identifier)
-	require.Equal(t, time.Duration(1000), tokensSupply[0].Timestamp)
-	require.Equal(t, time.Duration(1000000), tokensSupply[0].TimestampMs)
+	require.Equal(t, uint64(1000), tokensSupply[0].Timestamp)
+	require.Equal(t, uint64(1000000), tokensSupply[0].TimestampMs)
 }
 
 func TestPrepareLogsAndEvents_LogEvents(t *testing.T) {

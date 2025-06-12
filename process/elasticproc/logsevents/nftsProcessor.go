@@ -1,9 +1,6 @@
 package logsevents
 
 import (
-	"math/big"
-	"time"
-
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/sharding"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
@@ -13,6 +10,7 @@ import (
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
 	logger "github.com/multiversx/mx-chain-logger-go"
+	"math/big"
 )
 
 const (
@@ -89,8 +87,8 @@ func (np *nftsProcessor) processEvent(args *argsProcessEvent) argOutputProcessEv
 		args.tokensSupply.Add(&data.TokenInfo{
 			Token:       token,
 			Identifier:  identifier,
-			Timestamp:   time.Duration(args.timestamp),
-			TimestampMs: time.Duration(args.timestampMs),
+			Timestamp:   args.timestamp,
+			TimestampMs: args.timestampMs,
 			Nonce:       nonceBig.Uint64(),
 		})
 	}
@@ -127,8 +125,8 @@ func (np *nftsProcessor) processNFTEventOnSender(
 		tokensSupply.Add(&data.TokenInfo{
 			Token:       token,
 			Identifier:  converters.ComputeTokenIdentifier(token, nonceBig.Uint64()),
-			Timestamp:   time.Duration(timestamp),
-			TimestampMs: time.Duration(timestampMs),
+			Timestamp:   timestamp,
+			TimestampMs: timestampMs,
 			Nonce:       nonceBig.Uint64(),
 		})
 	}
@@ -151,8 +149,8 @@ func (np *nftsProcessor) processNFTEventOnSender(
 	tokensCreateInfo.Add(&data.TokenInfo{
 		Token:       token,
 		Identifier:  converters.ComputeTokenIdentifier(token, nonceBig.Uint64()),
-		Timestamp:   time.Duration(timestamp),
-		TimestampMs: time.Duration(timestampMs),
+		Timestamp:   timestamp,
+		TimestampMs: timestampMs,
 		Data:        tokenMetaData,
 		Nonce:       nonceBig.Uint64(),
 	})

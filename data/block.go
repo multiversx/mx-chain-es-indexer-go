@@ -1,8 +1,6 @@
 package data
 
 import (
-	"time"
-
 	"github.com/multiversx/mx-chain-core-go/data/api"
 )
 
@@ -24,8 +22,8 @@ type Block struct {
 	PubKeyBitmap          string                 `json:"pubKeyBitmap"`
 	Size                  int64                  `json:"size"`
 	SizeTxs               int64                  `json:"sizeTxs"`
-	Timestamp             time.Duration          `json:"timestamp"`
-	TimestampMs           time.Duration          `json:"timestampMs,omitempty"`
+	Timestamp             uint64                 `json:"timestamp"`
+	TimestampMs           uint64                 `json:"timestampMs,omitempty"`
 	StateRootHash         string                 `json:"stateRootHash"`
 	PrevHash              string                 `json:"prevHash"`
 	ShardID               uint32                 `json:"shardId"`
@@ -105,15 +103,15 @@ type EpochStartShardData struct {
 
 // Miniblock is a structure containing miniblock information
 type Miniblock struct {
-	Hash                        string        `json:"hash,omitempty"`
-	SenderShardID               uint32        `json:"senderShard"`
-	ReceiverShardID             uint32        `json:"receiverShard"`
-	SenderBlockHash             string        `json:"senderBlockHash,omitempty"`
-	ReceiverBlockHash           string        `json:"receiverBlockHash,omitempty"`
-	Type                        string        `json:"type"`
-	ProcessingTypeOnSource      string        `json:"procTypeS,omitempty"`
-	ProcessingTypeOnDestination string        `json:"procTypeD,omitempty"`
-	Timestamp                   time.Duration `json:"timestamp"`
-	TimestampMs                 time.Duration `json:"timestampMs,omitempty"`
-	Reserved                    []byte        `json:"reserved,omitempty"`
+	Hash                        string `json:"hash,omitempty"`
+	SenderShardID               uint32 `json:"senderShard"`
+	ReceiverShardID             uint32 `json:"receiverShard"`
+	SenderBlockHash             string `json:"senderBlockHash,omitempty"`
+	ReceiverBlockHash           string `json:"receiverBlockHash,omitempty"`
+	Type                        string `json:"type"`
+	ProcessingTypeOnSource      string `json:"procTypeS,omitempty"`
+	ProcessingTypeOnDestination string `json:"procTypeD,omitempty"`
+	Timestamp                   uint64 `json:"timestamp"`
+	TimestampMs                 uint64 `json:"timestampMs,omitempty"`
+	Reserved                    []byte `json:"reserved,omitempty"`
 }

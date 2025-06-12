@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"time"
-
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	logger "github.com/multiversx/mx-chain-logger-go"
@@ -31,8 +29,8 @@ func (sp *statisticsProcessor) SerializeRoundsInfo(rounds *outport.RoundsInfo) *
 			BlockWasProposed: info.BlockWasProposed,
 			ShardId:          info.ShardId,
 			Epoch:            info.Epoch,
-			Timestamp:        time.Duration(info.Timestamp),
-			TimestampMs:      time.Duration(info.TimestampMs),
+			Timestamp:        info.Timestamp,
+			TimestampMs:      info.TimestampMs,
 		})
 
 		buff.Grow(len(meta) + len(serializedRoundInfo))

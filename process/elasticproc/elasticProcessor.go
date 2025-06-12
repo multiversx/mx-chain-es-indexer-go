@@ -465,7 +465,7 @@ func (ei *elasticProcessor) SaveTransactions(obh *outport.OutportBlockWithHeader
 	}
 
 	tagsCount := tags.NewTagsCount()
-	err = ei.indexAlteredAccounts(headerTimestamp, logsData.NFTsDataUpdates, obh.AlteredAccounts, buffers, tagsCount, obh.Header.GetShardID(), obh.BlockData.TimestampMs)
+	err = ei.indexAlteredAccounts(logsData.NFTsDataUpdates, obh.AlteredAccounts, buffers, tagsCount, obh.Header.GetShardID(), obh.BlockData.TimestampMs)
 	if err != nil {
 		return err
 	}
@@ -636,7 +636,6 @@ func (ei *elasticProcessor) SaveRoundsInfo(rounds *outport.RoundsInfo) error {
 }
 
 func (ei *elasticProcessor) indexAlteredAccounts(
-	timestamp uint64,
 	updatesNFTsData []*data.NFTDataUpdate,
 	coreAlteredAccounts map[string]*alteredAccount.AlteredAccount,
 	buffSlice *data.BufferSlice,
@@ -646,16 +645,15 @@ func (ei *elasticProcessor) indexAlteredAccounts(
 ) error {
 	regularAccountsToIndex, accountsToIndexESDT := ei.accountsProc.GetAccounts(coreAlteredAccounts)
 
-	err := ei.saveAccounts(timestamp, regularAccountsToIndex, buffSlice, shardID, timestampMs)
+	err := ei.saveAccounts(regularAccountsToIndex, buffSlice, shardID, timestampMs)
 	if err != nil {
 		return err
 	}
 
-	return ei.saveAccountsESDT(timestamp, accountsToIndexESDT, updatesNFTsData, buffSlice, tagsCount, shardID, timestampMs)
+	return ei.saveAccountsESDT(accountsToIndexESDT, updatesNFTsData, buffSlice, tagsCount, shardID, timestampMs)
 }
 
 func (ei *elasticProcessor) saveAccountsESDT(
-	timestamp uint64,
 	wrappedAccounts []*data.AccountESDT,
 	updatesNFTsData []*data.NFTDataUpdate,
 	buffSlice *data.BufferSlice,
@@ -663,7 +661,7 @@ func (ei *elasticProcessor) saveAccountsESDT(
 	shardID uint32,
 	timestampMs uint64,
 ) error {
-	accountsESDTMap, tokensData := ei.accountsProc.PrepareAccountsMapESDT(timestamp, wrappedAccounts, tagsCount, shardID, timestampMs)
+	accountsESDTMap, tokensData := ei.accountsProc.PrepareAccountsMapESDT(wrappedAccounts, tagsCount, shardID, timestampMs)
 	err := ei.addTokenTypeAndCurrentOwnerInAccountsESDT(tokensData, accountsESDTMap, shardID)
 	if err != nil {
 		return err
@@ -674,7 +672,7 @@ func (ei *elasticProcessor) saveAccountsESDT(
 		return err
 	}
 
-	return ei.saveAccountsESDTHistory(timestamp, accountsESDTMap, buffSlice, shardID, timestampMs)
+	return ei.saveAccountsESDTHistory(accountsESDTMap, buffSlice, shardID, timestampMs)
 }
 
 func (ei *elasticProcessor) addTokenTypeAndCurrentOwnerInAccountsESDT(tokensData data.TokensHandler, accountsESDTMap map[string]*data.AccountInfo, shardID uint32) error {
@@ -767,17 +765,17 @@ func (ei *elasticProcessor) SaveAccounts(accountsData *outport.Accounts) error {
 		})
 	}
 
-	return ei.saveAccounts(accountsData.BlockTimestamp, accounts, buffSlice, accountsData.ShardID, accountsData.BlockTimestampMs)
+	return ei.saveAccounts(accounts, buffSlice, accountsData.ShardID, accountsData.BlockTimestampMs)
 }
 
-func (ei *elasticProcessor) saveAccounts(timestamp uint64, accts []*data.Account, buffSlice *data.BufferSlice, shardID uint32, timestampMs uint64) error {
-	accountsMap := ei.accountsProc.PrepareRegularAccountsMap(timestamp, accts, shardID, timestampMs)
+func (ei *elasticProcessor) saveAccounts(accts []*data.Account, buffSlice *data.BufferSlice, shardID uint32, timestampMs uint64) error {
+	accountsMap := ei.accountsProc.PrepareRegularAccountsMap(accts, shardID, timestampMs)
 	err := ei.indexAccounts(accountsMap, elasticIndexer.AccountsIndex, buffSlice)
 	if err != nil {
 		return err
 	}
 
-	return ei.saveAccountsHistory(timestamp, accountsMap, buffSlice, shardID, timestampMs)
+	return ei.saveAccountsHistory(accountsMap, buffSlice, shardID, timestampMs)
 }
 
 func (ei *elasticProcessor) indexAccounts(accountsMap map[string]*data.AccountInfo, index string, buffSlice *data.BufferSlice) error {
@@ -792,22 +790,22 @@ func (ei *elasticProcessor) serializeAndIndexAccounts(accountsMap map[string]*da
 	return ei.accountsProc.SerializeAccounts(accountsMap, buffSlice, index)
 }
 
-func (ei *elasticProcessor) saveAccountsESDTHistory(timestamp uint64, accountsInfoMap map[string]*data.AccountInfo, buffSlice *data.BufferSlice, shardID uint32, timestampMs uint64) error {
+func (ei *elasticProcessor) saveAccountsESDTHistory(accountsInfoMap map[string]*data.AccountInfo, buffSlice *data.BufferSlice, shardID uint32, timestampMs uint64) error {
 	if !ei.isIndexEnabled(elasticIndexer.AccountsESDTHistoryIndex) {
 		return nil
 	}
 
-	accountsMap := ei.accountsProc.PrepareAccountsHistory(timestamp, accountsInfoMap, shardID, timestampMs)
+	accountsMap := ei.accountsProc.PrepareAccountsHistory(accountsInfoMap, shardID, timestampMs)
 
 	return ei.serializeAndIndexAccountsHistory(accountsMap, elasticIndexer.AccountsESDTHistoryIndex, buffSlice)
 }
 
-func (ei *elasticProcessor) saveAccountsHistory(timestamp uint64, accountsInfoMap map[string]*data.AccountInfo, buffSlice *data.BufferSlice, shardID uint32, timestampMS uint64) error {
+func (ei *elasticProcessor) saveAccountsHistory(accountsInfoMap map[string]*data.AccountInfo, buffSlice *data.BufferSlice, shardID uint32, timestampMS uint64) error {
 	if !ei.isIndexEnabled(elasticIndexer.AccountsHistoryIndex) {
 		return nil
 	}
 
-	accountsMap := ei.accountsProc.PrepareAccountsHistory(timestamp, accountsInfoMap, shardID, timestampMS)
+	accountsMap := ei.accountsProc.PrepareAccountsHistory(accountsInfoMap, shardID, timestampMS)
 
 	return ei.serializeAndIndexAccountsHistory(accountsMap, elasticIndexer.AccountsHistoryIndex, buffSlice)
 }

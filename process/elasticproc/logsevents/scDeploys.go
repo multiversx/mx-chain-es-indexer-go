@@ -1,8 +1,6 @@
 package logsevents
 
 import (
-	"time"
-
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 )
@@ -70,8 +68,8 @@ func (sdp *scDeploysProcessor) processChangeOwnerEvent(args *argsProcessEvent) a
 	args.changeOwnerOperations[scAddress] = &data.OwnerData{
 		TxHash:      args.txHashHexEncoded,
 		Address:     newOwner,
-		Timestamp:   time.Duration(args.timestamp),
-		TimestampMs: time.Duration(args.timestampMs),
+		Timestamp:   args.timestamp,
+		TimestampMs: args.timestampMs,
 	}
 
 	return argOutputProcessEvent{

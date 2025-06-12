@@ -49,8 +49,8 @@ func TestGroupNormalTxs(t *testing.T) {
 
 	normalTxs, _ := grouper.groupNormalTxs(0, mb, header, txs, false, 3, 1234000)
 	require.Len(t, normalTxs, 2)
-	require.Equal(t, time.Duration(1234), normalTxs[string(txHash1)].Timestamp)
-	require.Equal(t, time.Duration(1234000), normalTxs[string(txHash1)].TimestampMs)
+	require.Equal(t, uint64(1234), normalTxs[string(txHash1)].Timestamp)
+	require.Equal(t, uint64(1234000), normalTxs[string(txHash1)].TimestampMs)
 }
 
 func TestGroupRewardsTxs(t *testing.T) {
@@ -79,8 +79,8 @@ func TestGroupRewardsTxs(t *testing.T) {
 
 	normalTxs, _ := grouper.groupRewardsTxs(0, mb, header, txs, false, 1234000)
 	require.Len(t, normalTxs, 2)
-	require.Equal(t, time.Duration(1234), normalTxs[string(txHash1)].Timestamp)
-	require.Equal(t, time.Duration(1234000), normalTxs[string(txHash1)].TimestampMs)
+	require.Equal(t, uint64(1234), normalTxs[string(txHash1)].Timestamp)
+	require.Equal(t, uint64(1234000), normalTxs[string(txHash1)].TimestampMs)
 }
 
 func TestGroupInvalidTxs(t *testing.T) {
@@ -113,8 +113,8 @@ func TestGroupInvalidTxs(t *testing.T) {
 
 	normalTxs, _ := grouper.groupInvalidTxs(0, mb, header, txs, 3, 1234000)
 	require.Len(t, normalTxs, 2)
-	require.Equal(t, time.Duration(1234), normalTxs[string(txHash1)].Timestamp)
-	require.Equal(t, time.Duration(1234000), normalTxs[string(txHash1)].TimestampMs)
+	require.Equal(t, uint64(1234), normalTxs[string(txHash1)].Timestamp)
+	require.Equal(t, uint64(1234000), normalTxs[string(txHash1)].TimestampMs)
 }
 
 func TestGroupReceipts(t *testing.T) {

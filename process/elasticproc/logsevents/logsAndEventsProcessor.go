@@ -3,8 +3,6 @@ package logsevents
 import (
 	"encoding/hex"
 	"fmt"
-	"time"
-
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
@@ -230,9 +228,9 @@ func (lep *logsAndEventsProcessor) prepareLog(
 		ID:             logHashHex,
 		OriginalTxHash: originalTxHash,
 		Address:        encodedAddr,
-		Timestamp:      time.Duration(timestamp),
+		Timestamp:      timestamp,
 		Events:         make([]*data.Event, 0, len(eventLogs.Events)),
-		TimestampMs:    time.Duration(timestampMs),
+		TimestampMs:    timestampMs,
 	}
 
 	dbEvents := make([]*data.LogEvent, 0, len(eventLogs.Events))
@@ -274,7 +272,7 @@ func (lep *logsAndEventsProcessor) prepareLogEvent(dbLog *data.Logs, event *data
 		OriginalTxHash: dbLog.OriginalTxHash,
 		Timestamp:      dbLog.Timestamp,
 		ID:             fmt.Sprintf(eventIDFormat, dbLog.ID, shardID, event.Order),
-		TimestampMs:    time.Duration(timestampMs),
+		TimestampMs:    timestampMs,
 	}
 
 	return dbEvent

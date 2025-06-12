@@ -1,6 +1,6 @@
 package indices
 
-// TimestampMs will hold the configuration for the timestampMs field
+// TimestampMs holds the configuration for the timestampMs field
 var TimestampMs = Object{
 	"properties": Object{
 		"timestampMs": Object{
@@ -10,6 +10,7 @@ var TimestampMs = Object{
 	},
 }
 
+// TokensTimestampMs holds the configuration for the tokens index timestampMs fields
 var TokensTimestampMs = Object{
 	"properties": Object{
 		"timestampMs": Object{
@@ -33,6 +34,7 @@ var TokensTimestampMs = Object{
 	},
 }
 
+// DelegatorsTimestampMs holds the configuration for the delegators index timestampMs fields
 var DelegatorsTimestampMs = Object{
 	"properties": Object{
 		"timestampMs": Object{
@@ -51,6 +53,7 @@ var DelegatorsTimestampMs = Object{
 	},
 }
 
+// DeploysTimestampMs holds the configuration for the scdeploys index timestampMs fields
 var DeploysTimestampMs = Object{
 	"properties": Object{
 		"timestampMs": Object{

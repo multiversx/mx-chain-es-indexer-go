@@ -599,7 +599,7 @@ func TestElasticProcessor_IndexAlteredAccounts(t *testing.T) {
 
 	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
 	tagsCount := tags.NewTagsCount()
-	err := elasticSearchProc.indexAlteredAccounts(100, nil, nil, buffSlice, tagsCount, 0, 0)
+	err := elasticSearchProc.indexAlteredAccounts(nil, nil, buffSlice, tagsCount, 0, 0)
 	require.Nil(t, err)
 	require.True(t, called)
 }

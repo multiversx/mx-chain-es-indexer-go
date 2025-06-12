@@ -107,7 +107,7 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		GasLimit:          tx.GasLimit,
 		Data:              tx.Data,
 		Signature:         hex.EncodeToString(tx.Signature),
-		Timestamp:         time.Duration(header.GetTimeStamp()),
+		Timestamp:         header.GetTimeStamp(),
 		Status:            txStatus,
 		GasUsed:           feeInfo.GasUsed,
 		InitialPaidFee:    feeInfo.InitialPaidFee.String(),
@@ -129,7 +129,7 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		HadRefund:         feeInfo.HadRefund,
 		UUID:              converters.GenerateBase64UUID(),
 		Epoch:             header.GetEpoch(),
-		TimestampMs:       time.Duration(timestampMs),
+		TimestampMs:       timestampMs,
 	}
 
 	hasValidRelayer := len(eTx.RelayedAddr) == len(eTx.Sender) && len(eTx.RelayedAddr) > 0
@@ -177,13 +177,13 @@ func (dtb *dbTransactionBuilder) prepareRewardTransaction(
 		GasLimit:       0,
 		Data:           make([]byte, 0),
 		Signature:      "",
-		Timestamp:      time.Duration(header.GetTimeStamp()),
+		Timestamp:      header.GetTimeStamp(),
 		Status:         txStatus,
 		Operation:      rewardsOperation,
 		ExecutionOrder: int(rTxInfo.ExecutionOrder),
 		UUID:           converters.GenerateBase64UUID(),
 		Epoch:          header.GetEpoch(),
-		TimestampMs:    time.Duration(timestampMs),
+		TimestampMs:    timestampMs,
 	}
 }
 
