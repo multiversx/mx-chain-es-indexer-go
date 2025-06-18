@@ -22,5 +22,6 @@
   "properties": "3032",
   "token": "DESK-abcd",
   "timestamp": 5600,
+  "timestampMs": 5600000,
   "shardID": 2
 }

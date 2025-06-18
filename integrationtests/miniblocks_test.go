@@ -31,7 +31,7 @@ func TestIndexMiniBlocksOnSourceAndDestination(t *testing.T) {
 			ReceiverShardID: 2,
 		},
 	}
-	err = esProc.SaveMiniblocks(header, miniBlocks)
+	err = esProc.SaveMiniblocks(header, miniBlocks, 1234000)
 	require.Nil(t, err)
 	mbHash := "11a1bb4065e16a2e93b2b5ac5957b7b69f1cfba7579b170b24f30dab2d3162e0"
 	ids := []string{mbHash}
@@ -57,7 +57,7 @@ func TestIndexMiniBlocksOnSourceAndDestination(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveMiniblocks(header, miniBlocks)
+	err = esProc.SaveMiniblocks(header, miniBlocks, 1234000)
 	require.Nil(t, err)
 
 	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.MiniblocksIndex, true, genericResponse)
@@ -96,7 +96,7 @@ func TestIndexMiniBlockFirstOnDestinationAndAfterSource(t *testing.T) {
 		},
 	}
 
-	err = esProc.SaveMiniblocks(header, miniBlocks)
+	err = esProc.SaveMiniblocks(header, miniBlocks, 54321000)
 	require.Nil(t, err)
 	genericResponse := &GenericResponse{}
 
@@ -116,7 +116,7 @@ func TestIndexMiniBlockFirstOnDestinationAndAfterSource(t *testing.T) {
 			Reserved: mbhrBytes,
 		},
 	}
-	err = esProc.SaveMiniblocks(header, miniBlocks)
+	err = esProc.SaveMiniblocks(header, miniBlocks, 54321000)
 	require.Nil(t, err)
 	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.MiniblocksIndex, true, genericResponse)
 	require.Nil(t, err)

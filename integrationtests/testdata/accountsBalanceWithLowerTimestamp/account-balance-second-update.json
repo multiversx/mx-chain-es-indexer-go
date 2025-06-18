@@ -3,5 +3,6 @@
   "balance": "2000",
   "balanceNum": 0,
   "timestamp": 6000,
+  "timestampMs": 6000000,
   "shardID": 2
 }

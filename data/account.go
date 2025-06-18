@@ -1,8 +1,6 @@
 package data
 
 import (
-	"time"
-
 	"github.com/multiversx/mx-chain-core-go/data/alteredAccount"
 )
 
@@ -22,7 +20,8 @@ type AccountInfo struct {
 	DeveloperRewards    string         `json:"developerRewards,omitempty"`
 	DeveloperRewardsNum float64        `json:"developerRewardsNum,omitempty"`
 	Data                *TokenMetaData `json:"data,omitempty"`
-	Timestamp           time.Duration  `json:"timestamp,omitempty"`
+	Timestamp           uint64         `json:"timestamp,omitempty"`
+	TimestampMs         uint64         `json:"timestampMs,omitempty"`
 	Type                string         `json:"type,omitempty"`
 	CurrentOwner        string         `json:"currentOwner,omitempty"`
 	ShardID             uint32         `json:"shardID"`
@@ -50,15 +49,16 @@ type TokenMetaData struct {
 
 // AccountBalanceHistory represents an entry in the user accounts balances history
 type AccountBalanceHistory struct {
-	Address         string        `json:"address"`
-	Timestamp       time.Duration `json:"timestamp"`
-	Balance         string        `json:"balance"`
-	Token           string        `json:"token,omitempty"`
-	Identifier      string        `json:"identifier,omitempty"`
-	TokenNonce      uint64        `json:"tokenNonce,omitempty"`
-	IsSender        bool          `json:"isSender,omitempty"`
-	IsSmartContract bool          `json:"isSmartContract,omitempty"`
-	ShardID         uint32        `json:"shardID"`
+	Address         string `json:"address"`
+	Timestamp       uint64 `json:"timestamp"`
+	TimestampMs     uint64 `json:"timestampMs,omitempty"`
+	Balance         string `json:"balance"`
+	Token           string `json:"token,omitempty"`
+	Identifier      string `json:"identifier,omitempty"`
+	TokenNonce      uint64 `json:"tokenNonce,omitempty"`
+	IsSender        bool   `json:"isSender,omitempty"`
+	IsSmartContract bool   `json:"isSmartContract,omitempty"`
+	ShardID         uint32 `json:"shardID"`
 }
 
 // Account is a structure that is needed for regular accounts

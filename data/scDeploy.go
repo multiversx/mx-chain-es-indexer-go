@@ -7,14 +7,16 @@ type ScDeployInfo struct {
 	CurrentOwner  string       `json:"currentOwner"`
 	CodeHash      []byte       `json:"initialCodeHash"`
 	Timestamp     uint64       `json:"timestamp"`
+	TimestampMs   uint64       `json:"timestampMs,omitempty"`
 	Upgrades      []*Upgrade   `json:"upgrades"`
 	OwnersHistory []*OwnerData `json:"owners"`
 }
 
 // Upgrade is the DTO that holds information about a smart contract upgrade
 type Upgrade struct {
-	TxHash    string `json:"upgradeTxHash"`
-	Upgrader  string `json:"upgrader"`
-	Timestamp uint64 `json:"timestamp"`
-	CodeHash  []byte `json:"codeHash"`
+	TxHash      string `json:"upgradeTxHash"`
+	Upgrader    string `json:"upgrader"`
+	Timestamp   uint64 `json:"timestamp"`
+	TimestampMs uint64 `json:"timestampMs"`
+	CodeHash    []byte `json:"codeHash"`
 }
