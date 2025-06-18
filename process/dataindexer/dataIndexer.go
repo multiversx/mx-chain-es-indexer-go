@@ -115,7 +115,7 @@ func (di *dataIndexer) saveBlockData(outportBlock *outport.OutportBlock, header 
 	}
 
 	miniBlocks := append(outportBlock.BlockData.Body.MiniBlocks, outportBlock.BlockData.IntraShardMiniBlocks...)
-	err = di.elasticProcessor.SaveMiniblocks(header, miniBlocks)
+	err = di.elasticProcessor.SaveMiniblocks(header, miniBlocks, outportBlock.BlockData.GetTimestampMs())
 	if err != nil {
 		return fmt.Errorf("%w when saving miniblocks, block hash %s, nonce %d",
 			err, hex.EncodeToString(headerHash), headerNonce)
@@ -152,12 +152,12 @@ func (di *dataIndexer) RevertIndexedBlock(blockData *outport.BlockData) error {
 		return err
 	}
 
-	err = di.elasticProcessor.RemoveTransactions(header, blockData.Body)
+	err = di.elasticProcessor.RemoveTransactions(header, blockData.Body, blockData.TimestampMs)
 	if err != nil {
 		return err
 	}
 
-	return di.elasticProcessor.RemoveAccountsESDT(header.GetTimeStamp(), header.GetShardID())
+	return di.elasticProcessor.RemoveAccountsESDT(header.GetShardID(), blockData.TimestampMs)
 }
 
 // SaveRoundsInfo will save data about a slice of rounds in elasticsearch

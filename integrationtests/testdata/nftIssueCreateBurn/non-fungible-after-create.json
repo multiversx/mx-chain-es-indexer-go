@@ -4,6 +4,7 @@
   "type": "NonFungibleESDT",
   "nonce": 2,
   "timestamp": 5600,
+  "timestampMs": 5600000,
   "data": {
     "creator": "erd1ju8pkvg57cwdmjsjx58jlmnuf4l9yspstrhr9tgsrt98n9edpm2qtlgy99",
     "nonEmptyURIs": false,

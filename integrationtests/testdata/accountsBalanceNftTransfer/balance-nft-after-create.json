@@ -6,5 +6,6 @@
   "tokenNonce": 7440483,
   "token": "NFT-abcdef",
   "timestamp": 5600,
+  "timestampMs": 5600000,
   "shardID": 1
 }

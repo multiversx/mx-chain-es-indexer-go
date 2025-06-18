@@ -28,26 +28,26 @@ func (lep *logsAndEventsProcessor) SerializeDelegators(delegators map[string]*da
 }
 
 // PrepareDelegatorsQueryInCaseOfRevert will prepare the delegators query in case of revert
-func (lep *logsAndEventsProcessor) PrepareDelegatorsQueryInCaseOfRevert(timestamp uint64) *bytes.Buffer {
+func (lep *logsAndEventsProcessor) PrepareDelegatorsQueryInCaseOfRevert(timestampMs uint64) *bytes.Buffer {
 	codeToExecute := `
 	if ( !ctx._source.containsKey('unDelegateInfo') ) { return } 
 	if ( ctx._source.unDelegateInfo.length == 0 ) { return }
-	ctx._source.unDelegateInfo.removeIf(info -> info.timestamp.equals(params.timestamp));
+	ctx._source.unDelegateInfo.removeIf(info -> info.timestampMs.equals(params.timestampMs));
 `
 
 	query := fmt.Sprintf(`
 	{
 	  "query": {
 		"match": {
-		  "timestamp": "%d"
+		  "timestampMs": "%d"
 		}
 	  },
 	  "script": {
 		"source": "%s",
 		"lang": "painless",
-		"params": {"timestamp": %d}
+		"params": {"timestampMs": %d}
 	  }
-	}`, timestamp, converters.FormatPainlessSource(codeToExecute), timestamp)
+	}`, timestampMs, converters.FormatPainlessSource(codeToExecute), timestampMs)
 
 	return bytes.NewBuffer([]byte(query))
 }
@@ -85,6 +85,7 @@ func prepareSerializedDataForDelegator(delegatorSerialized []byte) []byte {
 			ctx._source.activeStake = params.delegator.activeStake;
 			ctx._source.activeStakeNum = params.delegator.activeStakeNum;
 			ctx._source.timestamp = params.delegator.timestamp;
+			ctx._source.timestampMs = params.delegator.timestampMs;
 		}
 `
 	serializedDataStr := fmt.Sprintf(`{"scripted_upsert": true, "script": {`+
@@ -117,6 +118,7 @@ func prepareSerializedDataForUnDelegate(delegator *data.Delegator, delegatorSeri
 			ctx._source.activeStake = params.delegator.activeStake;
 			ctx._source.activeStakeNum = params.delegator.activeStakeNum;
 			ctx._source.timestamp = params.delegator.timestamp;
+			ctx._source.timestampMs = params.delegator.timestampMs;
 		}
 `
 	serializedDataStr := fmt.Sprintf(`{"scripted_upsert": true, "script": {`+
@@ -158,6 +160,7 @@ func prepareSerializedDataForWithdrawal(delegator *data.Delegator, delegatorSeri
 			ctx._source.activeStake = params.delegator.activeStake;
 			ctx._source.activeStakeNum = params.delegator.activeStakeNum;
 			ctx._source.timestamp = params.delegator.timestamp;
+			ctx._source.timestampMs = params.delegator.timestampMs;
 		}
 `
 	serializedDataStr := fmt.Sprintf(`{"scripted_upsert": true, "script": {`+

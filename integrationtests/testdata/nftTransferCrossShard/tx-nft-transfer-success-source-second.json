@@ -26,6 +26,7 @@
   "value": "0",
   "gasPrice": 1000000000,
   "timestamp": 5040,
+  "timestampMs": 5040000,
   "receiver": "erd1ure7ea247clj6yqjg80unz6xzjhlj2zwm4gtg6sudcmtsd2cw3xs74hasv",
   "valueNum": 0,
   "feeNum": 0.00023882,

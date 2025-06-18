@@ -47,6 +47,81 @@ func (tr *templatesAndPolicyReader) GetElasticTemplatesAndPolicies() (map[string
 	return indexTemplates, indexPolicies, nil
 }
 
+// GetTimestampMsMappings will return the timestampMs field mappings for all indices
+func (tr *templatesAndPolicyReader) GetTimestampMsMappings() ([]templates.ExtraMapping, error) {
+	return []templates.ExtraMapping{
+		{
+			Index:    indexer.TransactionsIndex,
+			Mappings: indices.TimestampMs.ToBuffer(),
+		},
+		{
+			Index:    indexer.BlockIndex,
+			Mappings: indices.TimestampMs.ToBuffer(),
+		},
+		{
+			Index:    indexer.MiniblocksIndex,
+			Mappings: indices.TimestampMs.ToBuffer(),
+		},
+		{
+			Index:    indexer.RoundsIndex,
+			Mappings: indices.TimestampMs.ToBuffer(),
+		},
+		{
+			Index:    indexer.AccountsIndex,
+			Mappings: indices.TimestampMs.ToBuffer(),
+		},
+		{
+			Index:    indexer.AccountsESDTIndex,
+			Mappings: indices.TimestampMs.ToBuffer(),
+		},
+		{
+			Index:    indexer.AccountsHistoryIndex,
+			Mappings: indices.TimestampMs.ToBuffer(),
+		},
+		{
+			Index:    indexer.AccountsESDTHistoryIndex,
+			Mappings: indices.TimestampMs.ToBuffer(),
+		},
+		{
+			Index:    indexer.ReceiptsIndex,
+			Mappings: indices.TimestampMs.ToBuffer(),
+		},
+
+		{
+			Index:    indexer.ScResultsIndex,
+			Mappings: indices.TimestampMs.ToBuffer(),
+		},
+		{
+			Index:    indexer.LogsIndex,
+			Mappings: indices.TimestampMs.ToBuffer(),
+		},
+		{
+			Index:    indexer.OperationsIndex,
+			Mappings: indices.TimestampMs.ToBuffer(),
+		},
+		{
+			Index:    indexer.EventsIndex,
+			Mappings: indices.TimestampMs.ToBuffer(),
+		},
+		{
+			Index:    indexer.TokensIndex,
+			Mappings: indices.TokensTimestampMs.ToBuffer(),
+		},
+		{
+			Index:    indexer.ESDTsIndex,
+			Mappings: indices.TokensTimestampMs.ToBuffer(),
+		},
+		{
+			Index:    indexer.DelegatorsIndex,
+			Mappings: indices.DelegatorsTimestampMs.ToBuffer(),
+		},
+		{
+			Index:    indexer.SCDeploysIndex,
+			Mappings: indices.DeploysTimestampMs.ToBuffer(),
+		},
+	}, nil
+}
+
 // GetExtraMappings will return an array of indices extra mappings
 func (tr *templatesAndPolicyReader) GetExtraMappings() ([]templates.ExtraMapping, error) {
 	return []templates.ExtraMapping{}, nil

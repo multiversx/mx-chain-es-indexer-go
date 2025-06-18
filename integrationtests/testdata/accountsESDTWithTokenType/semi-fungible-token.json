@@ -6,10 +6,12 @@
   "currentOwner": "erd1l29zsl2dqq988kvr2y0xlfv9ydgnvhzkatfd8ccalpag265pje8qn8lslf",
   "type": "SemiFungibleESDT",
   "timestamp": 5040,
+  "timestampMs": 5040000,
   "ownersHistory": [
     {
       "address": "erd1l29zsl2dqq988kvr2y0xlfv9ydgnvhzkatfd8ccalpag265pje8qn8lslf",
-      "timestamp": 5040
+      "timestamp": 5040,
+      "timestampMs": 5040000
     }
   ],
   "properties": {
