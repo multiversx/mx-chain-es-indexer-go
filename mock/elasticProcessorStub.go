@@ -12,19 +12,19 @@ type ElasticProcessorStub struct {
 	RemoveHeaderCalled               func(header coreData.HeaderHandler) error
 	RemoveMiniblocksCalled           func(header coreData.HeaderHandler, body *block.Body) error
 	RemoveTransactionsCalled         func(header coreData.HeaderHandler, body *block.Body) error
-	SaveMiniblocksCalled             func(header coreData.HeaderHandler, miniBlocks []*block.MiniBlock) error
+	SaveMiniblocksCalled             func(header coreData.HeaderHandler, miniBlocks []*block.MiniBlock, timestampMs uint64) error
 	SaveTransactionsCalled           func(outportBlockWithHeader *outport.OutportBlockWithHeader) error
 	SaveValidatorsRatingCalled       func(validatorsRating *outport.ValidatorsRating) error
 	SaveRoundsInfoCalled             func(infos *outport.RoundsInfo) error
 	SaveShardValidatorsPubKeysCalled func(validators *outport.ValidatorsPubKeys) error
 	SaveAccountsCalled               func(accountsData *outport.Accounts) error
-	RemoveAccountsESDTCalled         func(headerTimestamp uint64) error
+	RemoveAccountsESDTCalled         func(shardID uint32, timestampMS uint64) error
 }
 
 // RemoveAccountsESDT -
-func (eim *ElasticProcessorStub) RemoveAccountsESDT(headerTimestamp uint64, _ uint32) error {
+func (eim *ElasticProcessorStub) RemoveAccountsESDT(shardID uint32, timestampMS uint64) error {
 	if eim.RemoveAccountsESDTCalled != nil {
-		return eim.RemoveAccountsESDTCalled(headerTimestamp)
+		return eim.RemoveAccountsESDTCalled(shardID, timestampMS)
 	}
 
 	return nil
@@ -55,7 +55,7 @@ func (eim *ElasticProcessorStub) RemoveMiniblocks(header coreData.HeaderHandler,
 }
 
 // RemoveTransactions -
-func (eim *ElasticProcessorStub) RemoveTransactions(header coreData.HeaderHandler, body *block.Body) error {
+func (eim *ElasticProcessorStub) RemoveTransactions(header coreData.HeaderHandler, body *block.Body, _ uint64) error {
 	if eim.RemoveMiniblocksCalled != nil {
 		return eim.RemoveTransactionsCalled(header, body)
 	}
@@ -63,9 +63,9 @@ func (eim *ElasticProcessorStub) RemoveTransactions(header coreData.HeaderHandle
 }
 
 // SaveMiniblocks -
-func (eim *ElasticProcessorStub) SaveMiniblocks(header coreData.HeaderHandler, miniBlocks []*block.MiniBlock) error {
+func (eim *ElasticProcessorStub) SaveMiniblocks(header coreData.HeaderHandler, miniBlocks []*block.MiniBlock, timestampMs uint64) error {
 	if eim.SaveMiniblocksCalled != nil {
-		return eim.SaveMiniblocksCalled(header, miniBlocks)
+		return eim.SaveMiniblocksCalled(header, miniBlocks, timestampMs)
 	}
 	return nil
 }

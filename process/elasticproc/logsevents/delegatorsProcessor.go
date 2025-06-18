@@ -2,13 +2,11 @@ package logsevents
 
 import (
 	"encoding/hex"
-	"math/big"
-	"strconv"
-	"time"
-
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	indexer "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
+	"math/big"
+	"strconv"
 )
 
 const (
@@ -101,7 +99,8 @@ func (dp *delegatorsProc) processEvent(args *argsProcessEvent) argOutputProcessE
 		Contract:       contractAddr,
 		ActiveStake:    activeStake.String(),
 		ActiveStakeNum: activeStakeNum,
-		Timestamp:      time.Duration(args.timestamp),
+		Timestamp:      args.timestamp,
+		TimestampMs:    args.timestampMs,
 	}
 
 	if eventIdentifierStr == withdrawFunc && len(topics) >= minNumTopicsDelegators+1 {
@@ -121,10 +120,11 @@ func (dp *delegatorsProc) processEvent(args *argsProcessEvent) argOutputProcessE
 		}
 
 		delegator.UnDelegateInfo = &data.UnDelegate{
-			Timestamp: time.Duration(args.timestamp),
-			Value:     unDelegateValue.String(),
-			ValueNum:  unDelegatedValueNum,
-			ID:        hex.EncodeToString(topics[4]),
+			Timestamp:   args.timestamp,
+			TimestampMs: args.timestampMs,
+			Value:       unDelegateValue.String(),
+			ValueNum:    unDelegatedValueNum,
+			ID:          hex.EncodeToString(topics[4]),
 		}
 	}
 

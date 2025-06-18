@@ -4,5 +4,6 @@
   "receiverShard": 2,
   "senderShard": 1,
   "type": "TxBlock",
-  "timestamp": 1234
+  "timestamp": 1234,
+  "timestampMs": 1234000
 }

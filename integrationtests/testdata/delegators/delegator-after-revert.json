@@ -4,12 +4,14 @@
   "activeStake": "124500000000000000000",
   "activeStakeNum": 124.5,
   "timestamp": 5060,
+  "timestampMs": 5060000,
   "unDelegateInfo": [
     {
       "valueNum": 50,
       "id": "31",
       "value": "50000000000000000000",
-      "timestamp": 5050
+      "timestamp": 5050,
+      "timestampMs": 5050000
     }
   ]
 }

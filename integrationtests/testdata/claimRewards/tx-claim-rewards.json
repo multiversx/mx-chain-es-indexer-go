@@ -18,6 +18,7 @@
   "data": "Y2xhaW1SZXdhcmRz",
   "signature": "",
   "timestamp": 5040,
+  "timestampMs": 5040000,
   "status": "success",
   "searchOrder": 0,
   "hasScResults": true,
