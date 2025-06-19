@@ -25,6 +25,7 @@ func TestScDeploysProcessor(t *testing.T) {
 	res := scDeploysProc.processEvent(&argsProcessEvent{
 		event:            event,
 		timestamp:        1000,
+		timestampMs:      1000000,
 		scDeploys:        scDeploys,
 		txHashHexEncoded: "01020304",
 	})
@@ -34,6 +35,7 @@ func TestScDeploysProcessor(t *testing.T) {
 		TxHash:       "01020304",
 		Creator:      "6164647232",
 		Timestamp:    uint64(1000),
+		TimestampMs:  uint64(1000000),
 		CurrentOwner: "6164647232",
 		CodeHash:     []byte("codeHash"),
 	}, scDeploys["6164647231"])
@@ -53,13 +55,15 @@ func TestScDeploysProcessorChangeOwner(t *testing.T) {
 		event:                 event,
 		changeOwnerOperations: changeOwnerOperations,
 		timestamp:             2000,
+		timestampMs:           2000000,
 		txHashHexEncoded:      "01020304",
 	})
 	require.True(t, res.processed)
 
 	require.Equal(t, &data.OwnerData{
-		TxHash:    "01020304",
-		Address:   "6e65774f776e6572",
-		Timestamp: 2000,
+		TxHash:      "01020304",
+		Address:     "6e65774f776e6572",
+		Timestamp:   2000,
+		TimestampMs: 2000000,
 	}, changeOwnerOperations["636f6e747261637441646472"])
 }

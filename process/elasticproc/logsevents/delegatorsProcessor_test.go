@@ -24,6 +24,7 @@ func TestDelegatorsProcessor_ProcessEvent(t *testing.T) {
 	}
 	args := &argsProcessEvent{
 		timestamp:   1234,
+		timestampMs: 1234000,
 		event:       event,
 		logAddress:  []byte("contract"),
 		selfShardID: core.MetachainShardId,
@@ -40,6 +41,7 @@ func TestDelegatorsProcessor_ProcessEvent(t *testing.T) {
 		ActiveStakeNum: 0.1,
 		ActiveStake:    "1000000000",
 		Timestamp:      1234,
+		TimestampMs:    1234000,
 	}, res.delegator)
 }
 
@@ -53,6 +55,7 @@ func TestDelegatorProcessor_WithdrawWithDelete(t *testing.T) {
 	}
 	args := &argsProcessEvent{
 		timestamp:   1234,
+		timestampMs: 1234000,
 		event:       event,
 		logAddress:  []byte("contract"),
 		selfShardID: core.MetachainShardId,
@@ -70,6 +73,7 @@ func TestDelegatorProcessor_WithdrawWithDelete(t *testing.T) {
 		ActiveStake:     "0",
 		ShouldDelete:    true,
 		Timestamp:       1234,
+		TimestampMs:     1234000,
 		WithdrawFundIDs: []string{"61"},
 	}, res.delegator)
 }

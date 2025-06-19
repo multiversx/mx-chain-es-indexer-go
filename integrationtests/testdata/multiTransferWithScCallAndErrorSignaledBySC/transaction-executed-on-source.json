@@ -33,6 +33,7 @@
   "valueNum": 0,
   "gasPrice": 1000000000,
   "timestamp": 5040,
+  "timestampMs": 5040000,
   "receiver": "erd1ju8pkvg57cwdmjsjx58jlmnuf4l9yspstrhr9tgsrt98n9edpm2qtlgy99",
   "nonce": 79,
   "round": 50,

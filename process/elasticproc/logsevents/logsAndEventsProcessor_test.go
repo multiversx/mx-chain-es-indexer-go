@@ -2,10 +2,6 @@ package logsevents
 
 import (
 	"encoding/hex"
-	"math/big"
-	"testing"
-	"time"
-
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
@@ -14,6 +10,8 @@ import (
 	elasticIndexer "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
 	"github.com/stretchr/testify/require"
+	"math/big"
+	"testing"
 )
 
 func createMockArgs() ArgsLogsAndEventsProcessor {
@@ -157,7 +155,7 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 	args.BalanceConverter = balanceConverter
 	proc, _ := NewLogsAndEventsProcessor(args)
 
-	resLogs := proc.ExtractDataFromLogs(logsAndEvents, res, 1000, core.MetachainShardId, 3)
+	resLogs := proc.ExtractDataFromLogs(logsAndEvents, res, 1000, core.MetachainShardId, 3, 1000000)
 	require.NotNil(t, resLogs.Tokens)
 	require.True(t, res.Transactions[0].HasOperations)
 	require.True(t, res.ScResults[0].HasOperations)
@@ -169,6 +167,7 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 		Creator:      "6164647232",
 		CurrentOwner: "6164647232",
 		Timestamp:    uint64(1000),
+		TimestampMs:  uint64(1000000),
 		CodeHash:     []byte("codeHash"),
 	}, resLogs.ScDeploys["6164647231"])
 
@@ -178,12 +177,14 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 		Token:        "SEMI-abcd",
 		Type:         core.SemiFungibleESDT,
 		Timestamp:    1000,
+		TimestampMs:  1000000,
 		Issuer:       "61646472",
 		CurrentOwner: "61646472",
 		OwnersHistory: []*data.OwnerData{
 			{
-				Address:   "61646472",
-				Timestamp: 1000,
+				Address:     "61646472",
+				Timestamp:   1000,
+				TimestampMs: 1000000,
 			},
 		},
 		Properties: &data.TokenProperties{},
@@ -194,14 +195,16 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 		Contract:       "636f6e7472616374",
 		ActiveStakeNum: 0.1,
 		ActiveStake:    "1000000000",
-		Timestamp:      time.Duration(1000),
+		Timestamp:      1000,
+		TimestampMs:    1000000,
 	}, resLogs.Delegators["61646472636f6e7472616374"])
 	require.Equal(t, &data.Delegator{
 		Address:        "61646472",
 		Contract:       "636f6e74726163742d7365636f6e64",
 		ActiveStakeNum: 0.1,
 		ActiveStake:    "1000000000",
-		Timestamp:      time.Duration(1000),
+		Timestamp:      1000,
+		TimestampMs:    1000000,
 	}, resLogs.Delegators["61646472636f6e74726163742d7365636f6e64"])
 }
 
@@ -234,7 +237,7 @@ func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 			Hash:           "747848617368",
 			OriginalTxHash: "orignalHash",
 		},
-	}}, 1234, 0, 3)
+	}}, 1234, 0, 3, 1234000)
 
 	result.DBLogs[0].UUID = ""
 
@@ -242,7 +245,8 @@ func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 		ID:             "747848617368",
 		Address:        "61646472657373",
 		OriginalTxHash: "orignalHash",
-		Timestamp:      time.Duration(1234),
+		Timestamp:      1234,
+		TimestampMs:    1234000,
 		Events: []*data.Event{
 			{
 				Address:        "61646472",
@@ -290,12 +294,14 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsNFTBurn(t *testing.T) {
 	args.BalanceConverter = balanceConverter
 	proc, _ := NewLogsAndEventsProcessor(args)
 
-	resLogs := proc.ExtractDataFromLogs(logsAndEventsSlice, res, 1000, 2, 3)
+	resLogs := proc.ExtractDataFromLogs(logsAndEventsSlice, res, 1000, 2, 3, 1000000)
 	require.Equal(t, 1, resLogs.TokensSupply.Len())
 
 	tokensSupply := resLogs.TokensSupply.GetAll()
 	require.Equal(t, "MY-NFT", tokensSupply[0].Token)
 	require.Equal(t, "MY-NFT-02", tokensSupply[0].Identifier)
+	require.Equal(t, uint64(1000), tokensSupply[0].Timestamp)
+	require.Equal(t, uint64(1000000), tokensSupply[0].TimestampMs)
 }
 
 func TestPrepareLogsAndEvents_LogEvents(t *testing.T) {
@@ -333,7 +339,7 @@ func TestPrepareLogsAndEvents_LogEvents(t *testing.T) {
 			Hash:           "747848617368",
 			OriginalTxHash: "originalHash",
 		},
-	}}, 1234, 1, 3)
+	}}, 1234, 1, 3, 1234000)
 
 	results.DBEvents[0].UUID = ""
 	results.DBEvents[1].UUID = ""
@@ -351,6 +357,7 @@ func TestPrepareLogsAndEvents_LogEvents(t *testing.T) {
 			Order:          0,
 			ShardID:        1,
 			Timestamp:      1234,
+			TimestampMs:    1234000,
 			TxOrder:        0,
 		},
 		{
@@ -366,6 +373,7 @@ func TestPrepareLogsAndEvents_LogEvents(t *testing.T) {
 			Order:          1,
 			ShardID:        1,
 			Timestamp:      1234,
+			TimestampMs:    1234000,
 			TxOrder:        0,
 		},
 	}, results.DBEvents)

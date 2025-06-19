@@ -8,6 +8,7 @@ import (
 
 type logsData struct {
 	timestamp               uint64
+	timestampMs             uint64
 	txHashStatusInfoProc    txHashStatusInfoHandler
 	tokens                  data.TokensHandler
 	tokensSupply            data.TokensHandler
@@ -25,6 +26,7 @@ func newLogsData(
 	timestamp uint64,
 	txs []*data.Transaction,
 	scrs []*data.ScResult,
+	timestampMs uint64,
 ) *logsData {
 	ld := &logsData{}
 
@@ -40,6 +42,7 @@ func newLogsData(
 	ld.nftsDataUpdates = make([]*data.NFTDataUpdate, 0)
 	ld.tokenRolesAndProperties = tokeninfo.NewTokenRolesAndProperties()
 	ld.txHashStatusInfoProc = newTxHashStatusInfoProcessor()
+	ld.timestampMs = timestampMs
 
 	return ld
 }
