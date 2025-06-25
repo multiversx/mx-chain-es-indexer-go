@@ -7,10 +7,10 @@ require (
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.10.0
 	github.com/google/uuid v1.6.0
-	github.com/multiversx/mx-chain-communication-go v1.2.1-0.20250520083403-3f2bad6d5476
-	github.com/multiversx/mx-chain-core-go v1.3.2-0.20250606113953-9e4dc87c16cb
-	github.com/multiversx/mx-chain-logger-go v1.0.16-0.20250520074859-b2faf3c90273
-	github.com/multiversx/mx-chain-vm-common-go v1.5.17-0.20250618152408-dbe5ad03bfc1
+	github.com/multiversx/mx-chain-communication-go v1.3.0
+	github.com/multiversx/mx-chain-core-go v1.4.0
+	github.com/multiversx/mx-chain-logger-go v1.1.0
+	github.com/multiversx/mx-chain-vm-common-go v1.6.0
 	github.com/prometheus/client_model v0.6.1
 	github.com/prometheus/common v0.62.0
 	github.com/stretchr/testify v1.10.0
