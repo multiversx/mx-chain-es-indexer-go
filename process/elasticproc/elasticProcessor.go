@@ -144,7 +144,7 @@ func (ei *elasticProcessor) addExtraMappings(extraMappings []templates.ExtraMapp
 	for _, mappingsTuple := range extraMappings {
 		err := ei.elasticClient.PutMappings(mappingsTuple.Index, mappingsTuple.Mappings)
 		if err != nil {
-			return err
+			log.Warn("cannot add extra mappings", "index", mappingsTuple.Index, "error", err)
 		}
 	}
 
