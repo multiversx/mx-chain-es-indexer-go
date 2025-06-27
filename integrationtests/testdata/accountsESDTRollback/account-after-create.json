@@ -12,5 +12,6 @@
   "tokenNonce": 2,
   "properties": "3032",
   "token": "TOKEN-eeee",
-  "timestamp": 5040
+  "timestamp": 5040,
+  "timestampMs": 5040000
 }

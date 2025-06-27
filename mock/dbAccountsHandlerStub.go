@@ -7,7 +7,7 @@ import (
 
 // DBAccountsHandlerStub -
 type DBAccountsHandlerStub struct {
-	PrepareAccountsHistoryCalled   func(timestamp uint64, accounts map[string]*data.AccountInfo) map[string]*data.AccountBalanceHistory
+	PrepareAccountsHistoryCalled   func(accounts map[string]*data.AccountInfo, timestampMS uint64) map[string]*data.AccountBalanceHistory
 	SerializeAccountsHistoryCalled func(accounts map[string]*data.AccountBalanceHistory, buffSlice *data.BufferSlice, index string) error
 }
 
@@ -17,19 +17,19 @@ func (dba *DBAccountsHandlerStub) GetAccounts(_ map[string]*alteredAccount.Alter
 }
 
 // PrepareRegularAccountsMap -
-func (dba *DBAccountsHandlerStub) PrepareRegularAccountsMap(_ uint64, _ []*data.Account, _ uint32) map[string]*data.AccountInfo {
+func (dba *DBAccountsHandlerStub) PrepareRegularAccountsMap(_ []*data.Account, _ uint32, _ uint64) map[string]*data.AccountInfo {
 	return nil
 }
 
 // PrepareAccountsMapESDT -
-func (dba *DBAccountsHandlerStub) PrepareAccountsMapESDT(_ uint64, _ []*data.AccountESDT, _ data.CountTags, _ uint32) (map[string]*data.AccountInfo, data.TokensHandler) {
+func (dba *DBAccountsHandlerStub) PrepareAccountsMapESDT(_ []*data.AccountESDT, _ data.CountTags, _ uint32, _ uint64) (map[string]*data.AccountInfo, data.TokensHandler) {
 	return nil, nil
 }
 
 // PrepareAccountsHistory -
-func (dba *DBAccountsHandlerStub) PrepareAccountsHistory(timestamp uint64, accounts map[string]*data.AccountInfo, _ uint32) map[string]*data.AccountBalanceHistory {
+func (dba *DBAccountsHandlerStub) PrepareAccountsHistory(accounts map[string]*data.AccountInfo, _ uint32, timestampMS uint64) map[string]*data.AccountBalanceHistory {
 	if dba.PrepareAccountsHistoryCalled != nil {
-		return dba.PrepareAccountsHistoryCalled(timestamp, accounts)
+		return dba.PrepareAccountsHistoryCalled(accounts, timestampMS)
 	}
 
 	return nil

@@ -65,7 +65,7 @@ func TestMiniblocksProcessor_PrepareDBMiniblocks(t *testing.T) {
 		},
 	}
 
-	miniblocks := mp.PrepareDBMiniblocks(header, body.MiniBlocks)
+	miniblocks := mp.PrepareDBMiniblocks(header, body.MiniBlocks, 1234000)
 	require.Len(t, miniblocks, 3)
 }
 
@@ -90,6 +90,7 @@ func TestMiniblocksProcessor_PrepareScheduledMB(t *testing.T) {
 				Reserved: mbhrBytes,
 			},
 		},
+		TimeStamp: 1234,
 	}
 	miniBlocks := []*dataBlock.MiniBlock{
 		{
@@ -106,7 +107,7 @@ func TestMiniblocksProcessor_PrepareScheduledMB(t *testing.T) {
 		},
 	}
 
-	miniblocks := mp.PrepareDBMiniblocks(header, miniBlocks)
+	miniblocks := mp.PrepareDBMiniblocks(header, miniBlocks, 1234000)
 	require.Len(t, miniblocks, 3)
 	require.Equal(t, dataBlock.Scheduled.String(), miniblocks[1].ProcessingTypeOnSource)
 
@@ -114,11 +115,13 @@ func TestMiniblocksProcessor_PrepareScheduledMB(t *testing.T) {
 		Hash:                        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 		SenderShardID:               0,
 		ReceiverShardID:             0,
-		SenderBlockHash:             "84b80cbf612d067201b5260b4c6f90fa7b5c11e898fa9c1c65f4c75e61e41619",
-		ReceiverBlockHash:           "84b80cbf612d067201b5260b4c6f90fa7b5c11e898fa9c1c65f4c75e61e41619",
+		SenderBlockHash:             "64ad61aaddb68f8d0b38ceda3b2b1f76a6749a0e848ed9e95bdaff46b4e73423",
+		ReceiverBlockHash:           "64ad61aaddb68f8d0b38ceda3b2b1f76a6749a0e848ed9e95bdaff46b4e73423",
 		ProcessingTypeOnSource:      dataBlock.Normal.String(),
 		ProcessingTypeOnDestination: dataBlock.Normal.String(),
 		Type:                        dataBlock.TxBlock.String(),
+		Timestamp:                   1234,
+		TimestampMs:                 1234000,
 	}, miniblocks[2])
 }
 
