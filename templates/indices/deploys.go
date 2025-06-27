@@ -47,7 +47,6 @@ var SCDeploys = Object{
 					},
 				},
 				"owners": Object{
-					"type": "nested",
 					"properties": Object{
 						"timestamp": Object{
 							"type":   "date",

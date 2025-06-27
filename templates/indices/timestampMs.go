@@ -70,7 +70,6 @@ var DeploysTimestampMs = Object{
 			},
 		},
 		"owners": Object{
-			"type": "nested",
 			"properties": Object{
 				"timestampMs": Object{
 					"type":   "date",
