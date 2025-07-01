@@ -32,6 +32,7 @@ type ArgsIndexerFactory struct {
 	ImportDB                 bool
 	Denomination             int
 	BulkRequestMaxSize       int
+	NumWritesInParallel      int
 	Url                      string
 	UserName                 string
 	Password                 string
