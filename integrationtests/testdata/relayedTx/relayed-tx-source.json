@@ -29,6 +29,6 @@
   ],
   "operation": "transfer",
   "function": "saveAttestation",
-  "isRelayed": true,
+  "isRelayed": false,
   "epoch": 0
 }
