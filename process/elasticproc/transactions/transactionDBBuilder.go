@@ -3,6 +3,7 @@ package transactions
 import (
 	"encoding/hex"
 	"fmt"
+
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/sharding"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
@@ -137,7 +138,7 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 	eTx.Function = converters.TruncateFieldIfExceedsMaxLength(res.Function)
 	eTx.Tokens = converters.TruncateSliceElementsIfExceedsMaxLength(res.Tokens)
 	eTx.ReceiversShardIDs = res.ReceiversShardID
-	eTx.IsRelayed = res.IsRelayed || isRelayedV3
+	eTx.IsRelayed = isRelayedV3
 
 	return eTx
 }

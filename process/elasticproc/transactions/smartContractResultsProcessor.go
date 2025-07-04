@@ -2,6 +2,8 @@ package transactions
 
 import (
 	"encoding/hex"
+	"strconv"
+
 	"github.com/multiversx/mx-chain-core-go/core"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
@@ -11,7 +13,6 @@ import (
 	indexerData "github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
-	"strconv"
 )
 
 type smartContractResultsProcessor struct {
@@ -186,7 +187,7 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 		Tokens:             converters.TruncateSliceElementsIfExceedsMaxLength(res.Tokens),
 		Receivers:          receiversAddr,
 		ReceiversShardIDs:  res.ReceiversShardID,
-		IsRelayed:          res.IsRelayed,
+		IsRelayed:          false,
 		OriginalSender:     originalSenderAddr,
 		InitialTxFee:       feeInfo.Fee.String(),
 		InitialTxGasUsed:   feeInfo.GasUsed,
