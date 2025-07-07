@@ -16,11 +16,12 @@ import (
 )
 
 type smartContractResultsProcessor struct {
-	pubKeyConverter  core.PubkeyConverter
-	hasher           hashing.Hasher
-	marshalizer      marshal.Marshalizer
-	dataFieldParser  DataFieldParser
-	balanceConverter dataindexer.BalanceConverter
+	pubKeyConverter         core.PubkeyConverter
+	hasher                  hashing.Hasher
+	marshalizer             marshal.Marshalizer
+	dataFieldParser         DataFieldParser
+	balanceConverter        dataindexer.BalanceConverter
+	relayedV1V2DisableEpoch uint32
 }
 
 func newSmartContractResultsProcessor(
@@ -29,13 +30,15 @@ func newSmartContractResultsProcessor(
 	hasher hashing.Hasher,
 	dataFieldParser DataFieldParser,
 	balanceConverter dataindexer.BalanceConverter,
+	relayedV1V2DisableEpoch uint32,
 ) *smartContractResultsProcessor {
 	return &smartContractResultsProcessor{
-		pubKeyConverter:  pubKeyConverter,
-		marshalizer:      marshalzier,
-		hasher:           hasher,
-		dataFieldParser:  dataFieldParser,
-		balanceConverter: balanceConverter,
+		pubKeyConverter:         pubKeyConverter,
+		marshalizer:             marshalzier,
+		hasher:                  hasher,
+		dataFieldParser:         dataFieldParser,
+		balanceConverter:        balanceConverter,
+		relayedV1V2DisableEpoch: relayedV1V2DisableEpoch,
 	}
 }
 
@@ -156,6 +159,8 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 		esdtValues = res.ESDTValues
 	}
 
+	isRelayed := res.IsRelayed && header.GetEpoch() < proc.relayedV1V2DisableEpoch
+
 	feeInfo := getFeeInfo(scrInfo)
 	return &indexerData.ScResult{
 		Hash:               scrHashHex,
@@ -187,7 +192,7 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 		Tokens:             converters.TruncateSliceElementsIfExceedsMaxLength(res.Tokens),
 		Receivers:          receiversAddr,
 		ReceiversShardIDs:  res.ReceiversShardID,
-		IsRelayed:          false,
+		IsRelayed:          isRelayed,
 		OriginalSender:     originalSenderAddr,
 		InitialTxFee:       feeInfo.Fee.String(),
 		InitialTxGasUsed:   feeInfo.GasUsed,

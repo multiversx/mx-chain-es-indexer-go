@@ -16,20 +16,23 @@ import (
 )
 
 type dbTransactionBuilder struct {
-	addressPubkeyConverter core.PubkeyConverter
-	dataFieldParser        DataFieldParser
-	balanceConverter       dataindexer.BalanceConverter
+	addressPubkeyConverter  core.PubkeyConverter
+	dataFieldParser         DataFieldParser
+	balanceConverter        dataindexer.BalanceConverter
+	relayedV1V2DisableEpoch uint32
 }
 
 func newTransactionDBBuilder(
 	addressPubkeyConverter core.PubkeyConverter,
 	dataFieldParser DataFieldParser,
 	balanceConverter dataindexer.BalanceConverter,
+	relayedV1V2DisableEpoch uint32,
 ) *dbTransactionBuilder {
 	return &dbTransactionBuilder{
-		addressPubkeyConverter: addressPubkeyConverter,
-		dataFieldParser:        dataFieldParser,
-		balanceConverter:       balanceConverter,
+		addressPubkeyConverter:  addressPubkeyConverter,
+		dataFieldParser:         dataFieldParser,
+		balanceConverter:        balanceConverter,
+		relayedV1V2DisableEpoch: relayedV1V2DisableEpoch,
 	}
 }
 
@@ -138,7 +141,11 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 	eTx.Function = converters.TruncateFieldIfExceedsMaxLength(res.Function)
 	eTx.Tokens = converters.TruncateSliceElementsIfExceedsMaxLength(res.Tokens)
 	eTx.ReceiversShardIDs = res.ReceiversShardID
-	eTx.IsRelayed = isRelayedV3
+	if header.GetEpoch() >= 1 {
+
+	}
+	isRelayedV1V2 := res.IsRelayed && header.GetEpoch() < dtb.relayedV1V2DisableEpoch
+	eTx.IsRelayed = isRelayedV1V2 || isRelayedV3
 
 	return eTx
 }
