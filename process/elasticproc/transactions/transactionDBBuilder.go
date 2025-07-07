@@ -141,9 +141,7 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 	eTx.Function = converters.TruncateFieldIfExceedsMaxLength(res.Function)
 	eTx.Tokens = converters.TruncateSliceElementsIfExceedsMaxLength(res.Tokens)
 	eTx.ReceiversShardIDs = res.ReceiversShardID
-	if header.GetEpoch() >= 1 {
 
-	}
 	isRelayedV1V2 := res.IsRelayed && header.GetEpoch() < dtb.relayedV1V2DisableEpoch
 	eTx.IsRelayed = isRelayedV1V2 || isRelayedV3
 
