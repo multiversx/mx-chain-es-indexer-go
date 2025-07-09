@@ -142,8 +142,18 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 	eTx.Tokens = converters.TruncateSliceElementsIfExceedsMaxLength(res.Tokens)
 	eTx.ReceiversShardIDs = res.ReceiversShardID
 
-	isRelayedV1V2 := res.IsRelayed && header.GetEpoch() < dtb.relayedV1V2DisableEpoch
-	eTx.IsRelayed = isRelayedV1V2 || isRelayedV3
+	relayedV1V2Enabled := header.GetEpoch() < dtb.relayedV1V2DisableEpoch
+	eTx.IsRelayed = res.IsRelayed || isRelayedV3
+
+	if res.IsRelayed && !relayedV1V2Enabled {
+		// will be treated as move balance, so reset some fields
+		eTx.IsRelayed = false
+		eTx.Function = ""
+		eTx.RelayedAddr = ""
+		eTx.RelayedSignature = ""
+		eTx.Receivers = []string{}
+		eTx.ReceiversShardIDs = []uint32{}
+	}
 
 	return eTx
 }
