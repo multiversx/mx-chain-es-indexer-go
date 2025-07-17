@@ -2,8 +2,6 @@ package miniblocks
 
 import (
 	"encoding/hex"
-	"time"
-
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
@@ -41,7 +39,7 @@ func NewMiniblocksProcessor(
 }
 
 // PrepareDBMiniblocks will prepare miniblocks
-func (mp *miniblocksProcessor) PrepareDBMiniblocks(header coreData.HeaderHandler, miniBlocks []*block.MiniBlock) []*data.Miniblock {
+func (mp *miniblocksProcessor) PrepareDBMiniblocks(header coreData.HeaderHandler, miniBlocks []*block.MiniBlock, timestampMS uint64) []*data.Miniblock {
 	headerHash, err := mp.calculateHash(header)
 	if err != nil {
 		log.Warn("indexer: could not calculate header hash", "error", err)
@@ -56,7 +54,7 @@ func (mp *miniblocksProcessor) PrepareDBMiniblocks(header coreData.HeaderHandler
 			continue
 		}
 
-		dbMiniBlock, errPrepareMiniBlock := mp.prepareMiniblockForDB(mbIndex, miniBlock, header, headerHash)
+		dbMiniBlock, errPrepareMiniBlock := mp.prepareMiniblockForDB(mbIndex, miniBlock, header, headerHash, timestampMS)
 		if errPrepareMiniBlock != nil {
 			log.Warn("miniblocksProcessor.PrepareDBMiniBlocks cannot prepare miniblock", "error", errPrepareMiniBlock)
 			continue
@@ -73,6 +71,7 @@ func (mp *miniblocksProcessor) prepareMiniblockForDB(
 	miniblock *block.MiniBlock,
 	header coreData.HeaderHandler,
 	headerHash []byte,
+	timestampMS uint64,
 ) (*data.Miniblock, error) {
 	mbHash, err := mp.calculateHash(miniblock)
 	if err != nil {
@@ -86,7 +85,8 @@ func (mp *miniblocksProcessor) prepareMiniblockForDB(
 		SenderShardID:   miniblock.SenderShardID,
 		ReceiverShardID: miniblock.ReceiverShardID,
 		Type:            miniblock.Type.String(),
-		Timestamp:       time.Duration(header.GetTimeStamp()),
+		Timestamp:       header.GetTimeStamp(),
+		TimestampMs:     timestampMS,
 		Reserved:        miniblock.Reserved,
 	}
 

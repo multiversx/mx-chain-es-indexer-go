@@ -12,6 +12,7 @@
 		"whiteListedStorage": false
 	},
 	"timestamp": 5600,
+	"timestampMs": 5600000,
 	"type": "SemiFungibleESDT",
 	"currentOwner":"erd1sqy2ywvswp09ef7qwjhv8zwr9kzz3xas6y2ye5nuryaz0wcnfzzsnq0am3",
 	"shardID": 2

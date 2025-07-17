@@ -3,5 +3,6 @@
   "contract": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqhllllsajxzat",
   "activeStake": "124500000000000000000",
   "activeStakeNum": 124.5,
-  "timestamp": 5070
+  "timestamp": 5070,
+  "timestampMs": 5070000
 }

@@ -6,10 +6,12 @@
   "currentOwner": "erd1ju8pkvg57cwdmjsjx58jlmnuf4l9yspstrhr9tgsrt98n9edpm2qtlgy99",
   "type": "NonFungibleESDT",
   "timestamp": 5040,
+  "timestampMs": 5040000,
   "ownersHistory": [
     {
       "address": "erd1ju8pkvg57cwdmjsjx58jlmnuf4l9yspstrhr9tgsrt98n9edpm2qtlgy99",
-      "timestamp": 5040
+      "timestamp": 5040,
+      "timestampMs": 5040000
     }
   ],
   "properties": {

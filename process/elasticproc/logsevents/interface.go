@@ -19,6 +19,7 @@ type argsProcessEvent struct {
 	tokenRolesAndProperties *tokeninfo.TokenRolesAndProperties
 	txHashStatusInfoProc    txHashStatusInfoHandler
 	timestamp               uint64
+	timestampMs             uint64
 	logAddress              []byte
 	selfShardID             uint32
 	numOfShards             uint32

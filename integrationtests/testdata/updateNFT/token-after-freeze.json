@@ -4,6 +4,7 @@
   "numDecimals": 0,
   "nonce": 14,
   "timestamp": 5040,
+  "timestampMs": 5040000,
   "data": {
     "uris": [
       "dXJp",

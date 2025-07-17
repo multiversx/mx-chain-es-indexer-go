@@ -5,6 +5,7 @@
   "senderShard": 1,
   "type": "TxBlock",
   "timestamp": 1234,
+  "timestampMs": 1234000,
   "receiverBlockHash": "d7f1e8003a45c7adbd87bbbb269cb4af3d1f4aedd0c214973bfc096dd0f3b65e",
   "procTypeD": "Scheduled"
 }

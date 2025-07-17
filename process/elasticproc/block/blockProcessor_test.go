@@ -266,6 +266,7 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 				TxCount: 120,
 			},
 		},
+		TimeStamp: 123,
 	}
 
 	headerBytes, _ := bp.marshalizer.Marshal(header)
@@ -273,6 +274,7 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 		Header: header,
 		OutportBlock: &outport.OutportBlock{
 			BlockData: &outport.BlockData{
+				TimestampMs: 123000,
 				HeaderProof: &dataBlock.HeaderProof{
 					PubKeysBitmap:       []byte("bitmap1"),
 					AggregatedSignature: []byte("sig1"),
@@ -311,9 +313,10 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 		Proposer:              0,
 		Validators:            nil,
 		PubKeyBitmap:          "6269746d617031",
-		Size:                  898,
+		Size:                  914,
 		SizeTxs:               0,
-		Timestamp:             0,
+		Timestamp:             123,
+		TimestampMs:           123000,
 		StateRootHash:         "",
 		PrevHash:              "",
 		ShardID:               core.MetachainShardId,

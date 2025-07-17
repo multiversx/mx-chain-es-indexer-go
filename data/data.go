@@ -2,7 +2,6 @@ package data
 
 import (
 	"encoding/json"
-	"time"
 )
 
 // ValidatorsPublicKeys is a structure containing fields for validators public keys
@@ -24,12 +23,13 @@ type ValidatorRatingInfo struct {
 
 // RoundInfo is a structure containing block signers and shard id
 type RoundInfo struct {
-	Round            uint64        `json:"round"`
-	SignersIndexes   []uint64      `json:"signersIndexes"`
-	BlockWasProposed bool          `json:"blockWasProposed"`
-	ShardId          uint32        `json:"shardId"`
-	Epoch            uint32        `json:"epoch"`
-	Timestamp        time.Duration `json:"timestamp"`
+	Round            uint64   `json:"round"`
+	SignersIndexes   []uint64 `json:"signersIndexes"`
+	BlockWasProposed bool     `json:"blockWasProposed"`
+	ShardId          uint32   `json:"shardId"`
+	Epoch            uint32   `json:"epoch"`
+	Timestamp        uint64   `json:"timestamp"`
+	TimestampMs      uint64   `json:"timestampMs,omitempty"`
 }
 
 // EpochInfo holds the information about epoch
