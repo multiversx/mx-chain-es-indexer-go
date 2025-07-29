@@ -698,7 +698,7 @@ func TestElasticProcessor_DoBulkRequests_DatabaseError(t *testing.T) {
 	arguments.NumWritesInParallel = 20
 
 	expectedErr := errors.New("database connection error")
-	processedBuffers := make(map[string]bool)
+	processedBuffers := make(map[string]int)
 	processedBuffersMutex := &sync.Mutex{}
 
 	arguments.DBClient = &mock.DatabaseWriterStub{
@@ -710,7 +710,7 @@ func TestElasticProcessor_DoBulkRequests_DatabaseError(t *testing.T) {
 			}
 
 			processedBuffersMutex.Lock()
-			processedBuffers[buff.String()] = true
+			processedBuffers[buff.String()]++
 			processedBuffersMutex.Unlock()
 			return nil
 		},
@@ -729,10 +729,10 @@ func TestElasticProcessor_DoBulkRequests_DatabaseError(t *testing.T) {
 	processedBuffersMutex.Lock()
 	defer processedBuffersMutex.Unlock()
 	require.True(t, len(processedBuffers) > 0)
-	require.True(t, processedBuffers["test-buffer-1"])
-	require.True(t, processedBuffers["test-buffer-2"])
-	require.False(t, processedBuffers["test-buffer-3"])
-	require.True(t, processedBuffers["test-buffer-4"])
-	require.True(t, processedBuffers["test-buffer-5"])
-	require.False(t, processedBuffers["test-buffer-6"])
+	require.Equal(t, 1, processedBuffers["test-buffer-1"])
+	require.Equal(t, 1, processedBuffers["test-buffer-2"])
+	require.Equal(t, 0, processedBuffers["test-buffer-3"])
+	require.Equal(t, 1, processedBuffers["test-buffer-4"])
+	require.Equal(t, 1, processedBuffers["test-buffer-5"])
+	require.Equal(t, 0, processedBuffers["test-buffer-6"])
 }

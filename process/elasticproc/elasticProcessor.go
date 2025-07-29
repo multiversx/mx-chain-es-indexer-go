@@ -36,7 +36,10 @@ var (
 	}
 )
 
-const versionStr = "indexer-version"
+const (
+	versionStr             = "indexer-version"
+	minNumWritesInParallel = 1
+)
 
 // ArgElasticProcessor holds all dependencies required by the elasticProcessor in order to create
 // new instances
@@ -84,9 +87,9 @@ func NewElasticProcessor(arguments *ArgElasticProcessor) (*elasticProcessor, err
 		return nil, err
 	}
 	numWritesInParallel := arguments.NumWritesInParallel
-	if numWritesInParallel <= 0 {
-		log.Warn("elasticProcessor.NewElasticProcessor: provided num writes in parallel is invalid, will set value to 1")
-		numWritesInParallel = 1
+	if numWritesInParallel < minNumWritesInParallel {
+		log.Warn("elasticProcessor.NewElasticProcessor: provided num writes in parallel is invalid, the minimum value will be set", "min value", minNumWritesInParallel)
+		numWritesInParallel = minNumWritesInParallel
 	}
 
 	ei := &elasticProcessor{
