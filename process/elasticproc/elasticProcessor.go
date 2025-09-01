@@ -5,7 +5,10 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"sync"
+
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
@@ -20,7 +23,6 @@ import (
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/tokeninfo"
 	"github.com/multiversx/mx-chain-es-indexer-go/templates"
 	logger "github.com/multiversx/mx-chain-logger-go"
-	"sync"
 )
 
 var (
@@ -34,43 +36,48 @@ var (
 	}
 )
 
-const versionStr = "indexer-version"
+const (
+	versionStr             = "indexer-version"
+	minNumWritesInParallel = 1
+)
 
 // ArgElasticProcessor holds all dependencies required by the elasticProcessor in order to create
 // new instances
 type ArgElasticProcessor struct {
-	BulkRequestMaxSize int
-	UseKibana          bool
-	ImportDB           bool
-	EnabledIndexes     map[string]struct{}
-	TransactionsProc   DBTransactionsHandler
-	AccountsProc       DBAccountHandler
-	BlockProc          DBBlockHandler
-	MiniblocksProc     DBMiniblocksHandler
-	StatisticsProc     DBStatisticsHandler
-	ValidatorsProc     DBValidatorsHandler
-	DBClient           DatabaseClientHandler
-	LogsAndEventsProc  DBLogsAndEventsHandler
-	OperationsProc     OperationsHandler
-	MappingsHandler    TemplatesAndPoliciesHandler
-	Version            string
+	NumWritesInParallel int
+	BulkRequestMaxSize  int
+	UseKibana           bool
+	ImportDB            bool
+	EnabledIndexes      map[string]struct{}
+	TransactionsProc    DBTransactionsHandler
+	AccountsProc        DBAccountHandler
+	BlockProc           DBBlockHandler
+	MiniblocksProc      DBMiniblocksHandler
+	StatisticsProc      DBStatisticsHandler
+	ValidatorsProc      DBValidatorsHandler
+	DBClient            DatabaseClientHandler
+	LogsAndEventsProc   DBLogsAndEventsHandler
+	OperationsProc      OperationsHandler
+	MappingsHandler     TemplatesAndPoliciesHandler
+	Version             string
 }
 
 type elasticProcessor struct {
-	bulkRequestMaxSize int
-	importDB           bool
-	enabledIndexes     map[string]struct{}
-	mutex              sync.RWMutex
-	elasticClient      DatabaseClientHandler
-	accountsProc       DBAccountHandler
-	blockProc          DBBlockHandler
-	transactionsProc   DBTransactionsHandler
-	miniblocksProc     DBMiniblocksHandler
-	statisticsProc     DBStatisticsHandler
-	validatorsProc     DBValidatorsHandler
-	logsAndEventsProc  DBLogsAndEventsHandler
-	operationsProc     OperationsHandler
-	mappingsHandler    TemplatesAndPoliciesHandler
+	numWritesInParallel int
+	bulkRequestMaxSize  int
+	importDB            bool
+	enabledIndexes      map[string]struct{}
+	mutex               sync.RWMutex
+	elasticClient       DatabaseClientHandler
+	accountsProc        DBAccountHandler
+	blockProc           DBBlockHandler
+	transactionsProc    DBTransactionsHandler
+	miniblocksProc      DBMiniblocksHandler
+	statisticsProc      DBStatisticsHandler
+	validatorsProc      DBValidatorsHandler
+	logsAndEventsProc   DBLogsAndEventsHandler
+	operationsProc      OperationsHandler
+	mappingsHandler     TemplatesAndPoliciesHandler
 }
 
 // NewElasticProcessor handles Elasticsearch operations such as initialization, adding, modifying or removing data
@@ -79,20 +86,26 @@ func NewElasticProcessor(arguments *ArgElasticProcessor) (*elasticProcessor, err
 	if err != nil {
 		return nil, err
 	}
+	numWritesInParallel := arguments.NumWritesInParallel
+	if numWritesInParallel < minNumWritesInParallel {
+		log.Warn("elasticProcessor.NewElasticProcessor: provided num writes in parallel is invalid, the minimum value will be set", "min value", minNumWritesInParallel)
+		numWritesInParallel = minNumWritesInParallel
+	}
 
 	ei := &elasticProcessor{
-		elasticClient:      arguments.DBClient,
-		enabledIndexes:     arguments.EnabledIndexes,
-		accountsProc:       arguments.AccountsProc,
-		blockProc:          arguments.BlockProc,
-		miniblocksProc:     arguments.MiniblocksProc,
-		transactionsProc:   arguments.TransactionsProc,
-		statisticsProc:     arguments.StatisticsProc,
-		validatorsProc:     arguments.ValidatorsProc,
-		logsAndEventsProc:  arguments.LogsAndEventsProc,
-		operationsProc:     arguments.OperationsProc,
-		bulkRequestMaxSize: arguments.BulkRequestMaxSize,
-		mappingsHandler:    arguments.MappingsHandler,
+		elasticClient:       arguments.DBClient,
+		enabledIndexes:      arguments.EnabledIndexes,
+		accountsProc:        arguments.AccountsProc,
+		blockProc:           arguments.BlockProc,
+		miniblocksProc:      arguments.MiniblocksProc,
+		transactionsProc:    arguments.TransactionsProc,
+		statisticsProc:      arguments.StatisticsProc,
+		validatorsProc:      arguments.ValidatorsProc,
+		logsAndEventsProc:   arguments.LogsAndEventsProc,
+		operationsProc:      arguments.OperationsProc,
+		bulkRequestMaxSize:  arguments.BulkRequestMaxSize,
+		mappingsHandler:     arguments.MappingsHandler,
+		numWritesInParallel: numWritesInParallel,
 	}
 
 	err = ei.init()
@@ -836,13 +849,41 @@ func (ei *elasticProcessor) isIndexEnabled(index string) bool {
 }
 
 func (ei *elasticProcessor) doBulkRequests(index string, buffSlice []*bytes.Buffer, shardID uint32) error {
-	var err error
-	for idx := range buffSlice {
-		ctxWithValue := context.WithValue(context.Background(), request.ContextKey, request.ExtendTopicWithShardID(request.BulkTopic, shardID))
-		err = ei.elasticClient.DoBulkRequest(ctxWithValue, buffSlice[idx], index)
-		if err != nil {
-			return err
+	jobs := make(chan *bytes.Buffer)
+	errCh := make(chan error, len(buffSlice))
+
+	var wg sync.WaitGroup
+
+	for i := 0; i < ei.numWritesInParallel; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for buf := range jobs {
+				ctx := context.WithValue(context.Background(), request.ContextKey, request.ExtendTopicWithShardID(request.BulkTopic, shardID))
+				err := ei.elasticClient.DoBulkRequest(ctx, buf, index)
+				if err != nil {
+					errCh <- err
+				}
+			}
+		}()
+	}
+
+	go func() {
+		for _, buf := range buffSlice {
+			jobs <- buf
 		}
+		close(jobs)
+	}()
+
+	wg.Wait()
+	close(errCh)
+
+	var errs []error
+	for err := range errCh {
+		errs = append(errs, err)
+	}
+	if len(errs) > 0 {
+		return errors.Join(errs...)
 	}
 
 	return nil

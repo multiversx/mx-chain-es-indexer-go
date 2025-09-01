@@ -90,6 +90,7 @@ func createDataIndexer(
 		HeaderMarshaller:         wsMarshaller,
 		StatusMetrics:            statusMetrics,
 		Version:                  version,
+		NumWritesInParallel:      clusterCfg.Config.ElasticCluster.NumWritesInParallel,
 	})
 }
 
