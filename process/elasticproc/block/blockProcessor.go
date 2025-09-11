@@ -4,11 +4,12 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"strconv"
+
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/api"
-	"github.com/multiversx/mx-chain-core-go/data/block"
 	nodeBlock "github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/hashing"
@@ -17,7 +18,6 @@ import (
 	indexer "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
 	logger "github.com/multiversx/mx-chain-logger-go"
-	"strconv"
 )
 
 const (
@@ -188,7 +188,7 @@ func getTxsCount(header coreData.HeaderHandler) (numTxs, notarizedTxs uint32) {
 	notarizedTxs = metaHeader.TxCount
 	numTxs = 0
 	for _, mb := range metaHeader.MiniBlockHeaders {
-		if mb.Type == block.PeerBlock {
+		if mb.Type == nodeBlock.PeerBlock {
 			continue
 		}
 
@@ -269,7 +269,7 @@ func (bp *blockProcessor) addEpochStartShardDataForMeta(epochStartShardData node
 	block.EpochStartShardsData = append(block.EpochStartShardsData, shardData)
 }
 
-func (bp *blockProcessor) getEncodedMBSHashes(body *block.Body, intraShardMbs []*nodeBlock.MiniBlock) []string {
+func (bp *blockProcessor) getEncodedMBSHashes(body *nodeBlock.Body, intraShardMbs []*nodeBlock.MiniBlock) []string {
 	miniblocksHashes := make([]string, 0)
 	mbs := append(body.MiniBlocks, intraShardMbs...)
 	for _, miniblock := range mbs {
@@ -287,7 +287,7 @@ func (bp *blockProcessor) getEncodedMBSHashes(body *block.Body, intraShardMbs []
 	return miniblocksHashes
 }
 
-func appendBlockDetailsFromHeaders(block *data.Block, header coreData.HeaderHandler, body *block.Body, pool *outport.TransactionPool) {
+func appendBlockDetailsFromHeaders(block *data.Block, header coreData.HeaderHandler, body *nodeBlock.Body, pool *outport.TransactionPool) {
 	for idx, mbHeader := range header.GetMiniBlockHeaderHandlers() {
 		mbType := nodeBlock.Type(mbHeader.GetTypeInt32())
 		if mbType == nodeBlock.PeerBlock {
@@ -309,7 +309,7 @@ func appendBlockDetailsFromHeaders(block *data.Block, header coreData.HeaderHand
 	}
 }
 
-func appendBlockDetailsFromIntraShardMbs(block *data.Block, intraShardMbs []*block.MiniBlock, pool *outport.TransactionPool, offset int) {
+func appendBlockDetailsFromIntraShardMbs(block *data.Block, intraShardMbs []*nodeBlock.MiniBlock, pool *outport.TransactionPool, offset int) {
 	for idx, intraMB := range intraShardMbs {
 		if intraMB.Type == nodeBlock.PeerBlock || intraMB.Type == nodeBlock.ReceiptBlock {
 			continue
@@ -329,7 +329,7 @@ func appendBlockDetailsFromIntraShardMbs(block *data.Block, intraShardMbs []*blo
 	}
 }
 
-func extractExecutionOrderIntraShardMBUnsigned(mb *block.MiniBlock, pool *outport.TransactionPool) []int {
+func extractExecutionOrderIntraShardMBUnsigned(mb *nodeBlock.MiniBlock, pool *outport.TransactionPool) []int {
 	executionOrderTxsIndices := make([]int, len(mb.TxHashes))
 	for idx, txHash := range mb.TxHashes {
 		executionOrder, found := getExecutionOrderForTx(txHash, int32(mb.Type), pool)
@@ -396,7 +396,7 @@ func getExecutionOrderForTx(txHash []byte, mbType int32, pool *outport.Transacti
 	return tx.GetExecutionOrder(), true
 }
 
-func (bp *blockProcessor) computeBlockSize(headerBytes []byte, body *block.Body) (int, error) {
+func (bp *blockProcessor) computeBlockSize(headerBytes []byte, body *nodeBlock.Body) (int, error) {
 	bodyBytes, err := bp.marshalizer.Marshal(body)
 	if err != nil {
 		return 0, err
