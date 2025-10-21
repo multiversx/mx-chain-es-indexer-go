@@ -3,6 +3,7 @@ package transactions
 import (
 	"encoding/hex"
 	"fmt"
+
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/sharding"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
@@ -15,20 +16,23 @@ import (
 )
 
 type dbTransactionBuilder struct {
-	addressPubkeyConverter core.PubkeyConverter
-	dataFieldParser        DataFieldParser
-	balanceConverter       dataindexer.BalanceConverter
+	addressPubkeyConverter  core.PubkeyConverter
+	dataFieldParser         DataFieldParser
+	balanceConverter        dataindexer.BalanceConverter
+	relayedV1V2DisableEpoch uint32
 }
 
 func newTransactionDBBuilder(
 	addressPubkeyConverter core.PubkeyConverter,
 	dataFieldParser DataFieldParser,
 	balanceConverter dataindexer.BalanceConverter,
+	relayedV1V2DisableEpoch uint32,
 ) *dbTransactionBuilder {
 	return &dbTransactionBuilder{
-		addressPubkeyConverter: addressPubkeyConverter,
-		dataFieldParser:        dataFieldParser,
-		balanceConverter:       balanceConverter,
+		addressPubkeyConverter:  addressPubkeyConverter,
+		dataFieldParser:         dataFieldParser,
+		balanceConverter:        balanceConverter,
+		relayedV1V2DisableEpoch: relayedV1V2DisableEpoch,
 	}
 }
 
@@ -137,7 +141,19 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 	eTx.Function = converters.TruncateFieldIfExceedsMaxLength(res.Function)
 	eTx.Tokens = converters.TruncateSliceElementsIfExceedsMaxLength(res.Tokens)
 	eTx.ReceiversShardIDs = res.ReceiversShardID
+
+	relayedV1V2Enabled := header.GetEpoch() < dtb.relayedV1V2DisableEpoch
 	eTx.IsRelayed = res.IsRelayed || isRelayedV3
+
+	if res.IsRelayed && !relayedV1V2Enabled {
+		// will be treated as move balance, so reset some fields
+		eTx.IsRelayed = false
+		eTx.Function = ""
+		eTx.RelayedAddr = ""
+		eTx.RelayedSignature = ""
+		eTx.Receivers = []string{}
+		eTx.ReceiversShardIDs = []uint32{}
+	}
 
 	return eTx
 }

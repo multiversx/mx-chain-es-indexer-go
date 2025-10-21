@@ -70,3 +70,8 @@ type RouteConfig struct {
 	Name string `toml:"name"`
 	Open bool   `toml:"open"`
 }
+
+// EnableEpochsConfig holds the configuration for activation epochs
+type EnableEpochsConfig struct {
+	RelayedTransactionsV1V2DisableEpoch uint32 `toml:"relayed-transactions-v1v2-disable-epoch"`
+}

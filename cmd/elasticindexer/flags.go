@@ -29,6 +29,11 @@ var (
 			"all available routes for Rest API and options to enable or disable them.",
 		Value: "config/api.toml",
 	}
+	configurationEnableEpochsFile = cli.StringFlag{
+		Name:  "config-enable-epochs",
+		Usage: "The configuration file for the activation epochs",
+		Value: "./config/enableEpochs.toml",
+	}
 
 	logLevel = cli.StringFlag{
 		Name: "log-level",
