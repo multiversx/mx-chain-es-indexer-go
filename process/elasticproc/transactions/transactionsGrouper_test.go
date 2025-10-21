@@ -2,6 +2,8 @@ package transactions
 
 import (
 	"encoding/hex"
+	"testing"
+
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/receipt"
@@ -10,7 +12,6 @@ import (
 	"github.com/multiversx/mx-chain-es-indexer-go/mock"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestGroupNormalTxs(t *testing.T) {
@@ -18,7 +19,7 @@ func TestGroupNormalTxs(t *testing.T) {
 
 	parser := createDataFieldParserMock()
 	ap, _ := converters.NewBalanceConverter(18)
-	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, parser, ap)
+	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, parser, ap, 0)
 	grouper := newTxsGrouper(txBuilder, &mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	txHash1 := []byte("txHash1")
@@ -56,7 +57,7 @@ func TestGroupRewardsTxs(t *testing.T) {
 
 	parser := createDataFieldParserMock()
 	ap, _ := converters.NewBalanceConverter(18)
-	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, parser, ap)
+	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, parser, ap, 0)
 	grouper := newTxsGrouper(txBuilder, &mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	txHash1 := []byte("txHash1")
@@ -86,7 +87,7 @@ func TestGroupInvalidTxs(t *testing.T) {
 
 	parser := createDataFieldParserMock()
 	ap, _ := converters.NewBalanceConverter(18)
-	txBuilder := newTransactionDBBuilder(mock.NewPubkeyConverterMock(32), parser, ap)
+	txBuilder := newTransactionDBBuilder(mock.NewPubkeyConverterMock(32), parser, ap, 0)
 	grouper := newTxsGrouper(txBuilder, &mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	txHash1 := []byte("txHash1")
@@ -120,7 +121,7 @@ func TestGroupReceipts(t *testing.T) {
 
 	parser := createDataFieldParserMock()
 	ap, _ := converters.NewBalanceConverter(18)
-	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, parser, ap)
+	txBuilder := newTransactionDBBuilder(&mock.PubkeyConverterMock{}, parser, ap, 0)
 	grouper := newTxsGrouper(txBuilder, &mock.HasherMock{}, &mock.MarshalizerMock{})
 
 	txHash1 := []byte("txHash1")

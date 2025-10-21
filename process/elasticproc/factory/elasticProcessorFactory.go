@@ -4,6 +4,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+	"github.com/multiversx/mx-chain-es-indexer-go/config"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/accounts"
@@ -32,6 +33,7 @@ type ArgElasticProcessorFactory struct {
 	NumWritesInParallel      int
 	UseKibana                bool
 	ImportDB                 bool
+	EnableEpochsConfig       config.EnableEpochsConfig
 }
 
 // CreateElasticProcessor will create a new instance of ElasticProcessor
@@ -80,6 +82,7 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (dataindexer.E
 		Hasher:                 arguments.Hasher,
 		Marshalizer:            arguments.Marshalizer,
 		BalanceConverter:       balanceConverter,
+		EnableEpochsConfig:     arguments.EnableEpochsConfig,
 	}
 	txsProc, err := transactions.NewTransactionsProcessor(argsTxsProc)
 	if err != nil {

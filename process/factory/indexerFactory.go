@@ -15,6 +15,7 @@ import (
 	"github.com/multiversx/mx-chain-es-indexer-go/client"
 	"github.com/multiversx/mx-chain-es-indexer-go/client/logging"
 	"github.com/multiversx/mx-chain-es-indexer-go/client/transport"
+	"github.com/multiversx/mx-chain-es-indexer-go/config"
 	indexerCore "github.com/multiversx/mx-chain-es-indexer-go/core"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc"
@@ -45,6 +46,7 @@ type ArgsIndexerFactory struct {
 	AddressPubkeyConverter   core.PubkeyConverter
 	ValidatorPubkeyConverter core.PubkeyConverter
 	StatusMetrics            indexerCore.StatusMetricsHandler
+	EnableEpochsConfig       config.EnableEpochsConfig
 }
 
 // NewIndexer will create a new instance of Indexer
@@ -98,6 +100,7 @@ func createElasticProcessor(args ArgsIndexerFactory) (dataindexer.ElasticProcess
 		BulkRequestMaxSize:       args.BulkRequestMaxSize,
 		ImportDB:                 args.ImportDB,
 		Version:                  args.Version,
+		EnableEpochsConfig:       args.EnableEpochsConfig,
 	}
 
 	return factory.CreateElasticProcessor(argsElasticProcFac)
