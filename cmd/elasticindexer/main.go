@@ -58,6 +58,7 @@ func main() {
 	app.Usage = "This tool will index data in an Elasticsearch database"
 	app.Flags = []cli.Flag{
 		configurationFile,
+		configurationEnableEpochsFile,
 		configurationPreferencesFile,
 		configurationApiFile,
 		logLevel,
@@ -97,8 +98,13 @@ func startIndexer(ctx *cli.Context) error {
 		return fmt.Errorf("%w while initializing the logger", err)
 	}
 
+	epochsCfg, err := loadEpochsConfig(ctx.GlobalString(configurationEnableEpochsFile.Name))
+	if err != nil {
+		return fmt.Errorf("%w while loading the enable epochs config file", err)
+	}
+
 	statusMetrics := metrics.NewStatusMetrics()
-	wsHost, err := factory.CreateWsIndexer(cfg, clusterCfg, statusMetrics, ctx.App.Version)
+	wsHost, err := factory.CreateWsIndexer(cfg, clusterCfg, epochsCfg, statusMetrics, ctx.App.Version)
 	if err != nil {
 		return fmt.Errorf("%w while creating the indexer", err)
 	}
@@ -168,6 +174,13 @@ func requestSettings(host wsindexer.WSClient, retryDuration time.Duration, close
 
 func loadMainConfig(filepath string) (config.Config, error) {
 	cfg := config.Config{}
+	err := core.LoadTomlFile(&cfg, filepath)
+
+	return cfg, err
+}
+
+func loadEpochsConfig(filepath string) (config.EnableEpochsConfig, error) {
+	cfg := config.EnableEpochsConfig{}
 	err := core.LoadTomlFile(&cfg, filepath)
 
 	return cfg, err
