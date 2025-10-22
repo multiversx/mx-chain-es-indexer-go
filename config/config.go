@@ -50,6 +50,7 @@ type ClusterConfig struct {
 			UserName                  string `toml:"username"`
 			Password                  string `toml:"password"`
 			BulkRequestMaxSizeInBytes int    `toml:"bulk-request-max-size-in-bytes"`
+			NumWritesInParallel       int    `toml:"num-writes-in-parallel"`
 		} `toml:"elastic-cluster"`
 	} `toml:"config"`
 }

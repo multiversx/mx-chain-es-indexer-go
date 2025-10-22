@@ -65,6 +65,7 @@ func CreateElasticProcessor(
 		EnableEpochsConfig: config.EnableEpochsConfig{
 			RelayedTransactionsV1V2DisableEpoch: 1,
 		},
+		NumWritesInParallel: 1,
 	}
 
 	return factory.CreateElasticProcessor(args)

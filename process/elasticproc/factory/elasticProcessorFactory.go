@@ -30,6 +30,7 @@ type ArgElasticProcessorFactory struct {
 	Version                  string
 	Denomination             int
 	BulkRequestMaxSize       int
+	NumWritesInParallel      int
 	UseKibana                bool
 	ImportDB                 bool
 	EnableEpochsConfig       config.EnableEpochsConfig
@@ -105,21 +106,22 @@ func CreateElasticProcessor(arguments ArgElasticProcessorFactory) (dataindexer.E
 	}
 
 	args := &elasticproc.ArgElasticProcessor{
-		BulkRequestMaxSize: arguments.BulkRequestMaxSize,
-		TransactionsProc:   txsProc,
-		AccountsProc:       accountsProc,
-		BlockProc:          blockProcHandler,
-		MiniblocksProc:     miniblocksProc,
-		ValidatorsProc:     validatorsProc,
-		StatisticsProc:     generalInfoProc,
-		LogsAndEventsProc:  logsAndEventsProc,
-		DBClient:           arguments.DBClient,
-		EnabledIndexes:     enabledIndexesMap,
-		UseKibana:          arguments.UseKibana,
-		OperationsProc:     operationsProc,
-		ImportDB:           arguments.ImportDB,
-		Version:            arguments.Version,
-		MappingsHandler:    templatesAndPoliciesReader,
+		BulkRequestMaxSize:  arguments.BulkRequestMaxSize,
+		TransactionsProc:    txsProc,
+		AccountsProc:        accountsProc,
+		BlockProc:           blockProcHandler,
+		MiniblocksProc:      miniblocksProc,
+		ValidatorsProc:      validatorsProc,
+		StatisticsProc:      generalInfoProc,
+		LogsAndEventsProc:   logsAndEventsProc,
+		DBClient:            arguments.DBClient,
+		EnabledIndexes:      enabledIndexesMap,
+		UseKibana:           arguments.UseKibana,
+		OperationsProc:      operationsProc,
+		ImportDB:            arguments.ImportDB,
+		Version:             arguments.Version,
+		MappingsHandler:     templatesAndPoliciesReader,
+		NumWritesInParallel: arguments.NumWritesInParallel,
 	}
 
 	return elasticproc.NewElasticProcessor(args)

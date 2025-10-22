@@ -22,3 +22,4 @@
         username = ""
         password = ""
         bulk-request-max-size-in-bytes = 4194304 # 4MB
+        num-writes-in-parallel = 1
