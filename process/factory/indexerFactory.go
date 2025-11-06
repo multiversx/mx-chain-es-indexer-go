@@ -162,7 +162,15 @@ func createBlockCreatorsContainer() (dataindexer.BlockContainerHandler, error) {
 	if err != nil {
 		return nil, err
 	}
+	err = container.Add(core.ShardHeaderV3, block.NewEmptyHeaderV3Creator())
+	if err != nil {
+		return nil, err
+	}
 	err = container.Add(core.MetaHeader, block.NewEmptyMetaBlockCreator())
+	if err != nil {
+		return nil, err
+	}
+	err = container.Add(core.MetaHeaderV3, block.NewEmptyMetaBlockV3Creator())
 	if err != nil {
 		return nil, err
 	}

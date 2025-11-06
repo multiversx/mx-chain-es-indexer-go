@@ -32,7 +32,7 @@ var (
 		elasticIndexer.TransactionsIndex, elasticIndexer.BlockIndex, elasticIndexer.MiniblocksIndex, elasticIndexer.RatingIndex, elasticIndexer.RoundsIndex, elasticIndexer.ValidatorsIndex,
 		elasticIndexer.AccountsIndex, elasticIndexer.AccountsHistoryIndex, elasticIndexer.ReceiptsIndex, elasticIndexer.ScResultsIndex, elasticIndexer.AccountsESDTHistoryIndex, elasticIndexer.AccountsESDTIndex,
 		elasticIndexer.EpochInfoIndex, elasticIndexer.SCDeploysIndex, elasticIndexer.TokensIndex, elasticIndexer.TagsIndex, elasticIndexer.LogsIndex, elasticIndexer.DelegatorsIndex, elasticIndexer.OperationsIndex,
-		elasticIndexer.ESDTsIndex, elasticIndexer.ValuesIndex, elasticIndexer.EventsIndex,
+		elasticIndexer.ESDTsIndex, elasticIndexer.ValuesIndex, elasticIndexer.EventsIndex, elasticIndexer.ExecutionResultsIndex,
 	}
 )
 
@@ -125,11 +125,6 @@ func (ei *elasticProcessor) init() error {
 		return err
 	}
 
-	err = ei.createOpenDistroTemplates(indexTemplates)
-	if err != nil {
-		return err
-	}
-
 	err = ei.createIndexTemplates(indexTemplates)
 	if err != nil {
 		return err
@@ -188,35 +183,6 @@ func (ei *elasticProcessor) indexVersion(version string) error {
 	}
 
 	return ei.elasticClient.DoBulkRequest(context.Background(), buffSlice.Buffers()[0], "")
-}
-
-// nolint
-func (ei *elasticProcessor) createIndexPolicies(indexPolicies map[string]*bytes.Buffer) error {
-	indexesPolicies := []string{elasticIndexer.TransactionsPolicy, elasticIndexer.BlockPolicy, elasticIndexer.MiniblocksPolicy, elasticIndexer.RatingPolicy, elasticIndexer.RoundsPolicy, elasticIndexer.ValidatorsPolicy,
-		elasticIndexer.AccountsPolicy, elasticIndexer.AccountsESDTPolicy, elasticIndexer.AccountsHistoryPolicy, elasticIndexer.AccountsESDTHistoryPolicy, elasticIndexer.AccountsESDTIndex, elasticIndexer.ReceiptsPolicy, elasticIndexer.ScResultsPolicy}
-	for _, indexPolicyName := range indexesPolicies {
-		indexPolicy := getTemplateByName(indexPolicyName, indexPolicies)
-		if indexPolicy != nil {
-			err := ei.elasticClient.CheckAndCreatePolicy(indexPolicyName, indexPolicy)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
-
-func (ei *elasticProcessor) createOpenDistroTemplates(indexTemplates map[string]*bytes.Buffer) error {
-	opendistroTemplate := getTemplateByName(elasticIndexer.OpenDistroIndex, indexTemplates)
-	if opendistroTemplate != nil {
-		err := ei.elasticClient.CheckAndCreateTemplate(elasticIndexer.OpenDistroIndex, opendistroTemplate)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 func (ei *elasticProcessor) createIndexTemplates(indexTemplates map[string]*bytes.Buffer) error {
