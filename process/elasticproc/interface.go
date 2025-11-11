@@ -53,6 +53,7 @@ type DBBlockHandler interface {
 
 	SerializeEpochInfoData(header coreData.HeaderHandler, buffSlice *data.BufferSlice, index string) error
 	SerializeBlock(elasticBlock *data.Block, buffSlice *data.BufferSlice, index string) error
+	SerializeExecutionResults(executionResults []*data.ExecutionResult, buffSlice *data.BufferSlice, index string) error
 }
 
 // DBTransactionsHandler defines the actions that a transactions handler should do

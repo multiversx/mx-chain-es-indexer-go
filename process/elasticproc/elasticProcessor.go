@@ -233,17 +233,13 @@ func getTemplateByName(templateName string, templateList map[string]*bytes.Buffe
 
 // SaveHeader will prepare and save information about a header in elasticsearch server
 func (ei *elasticProcessor) SaveHeader(outportBlockWithHeader *outport.OutportBlockWithHeader) error {
-	if !ei.isIndexEnabled(elasticIndexer.BlockIndex) {
-		return nil
-	}
-
 	blockResults, err := ei.blockProc.PrepareBlockForDB(outportBlockWithHeader)
 	if err != nil {
 		return err
 	}
 
 	buffSlice := data.NewBufferSlice(ei.bulkRequestMaxSize)
-	err = ei.blockProc.SerializeBlock(blockResults.Block, buffSlice, elasticIndexer.BlockIndex)
+	err = ei.indexBlock(blockResults.Block, buffSlice)
 	if err != nil {
 		return err
 	}
@@ -253,7 +249,28 @@ func (ei *elasticProcessor) SaveHeader(outportBlockWithHeader *outport.OutportBl
 		return err
 	}
 
+	err = ei.indexExecutionResults(blockResults.ExecutionResults, buffSlice)
+	if err != nil {
+		return err
+	}
+
 	return ei.doBulkRequests("", buffSlice.Buffers(), outportBlockWithHeader.ShardID)
+}
+
+func (ei *elasticProcessor) indexBlock(esBlock *data.Block, buffSlice *data.BufferSlice) error {
+	if !ei.isIndexEnabled(elasticIndexer.BlockIndex) {
+		return nil
+	}
+
+	return ei.blockProc.SerializeBlock(esBlock, buffSlice, elasticIndexer.BlockIndex)
+}
+
+func (ei *elasticProcessor) indexExecutionResults(executionResults []*data.ExecutionResult, buffSlice *data.BufferSlice) error {
+	if !ei.isIndexEnabled(elasticIndexer.ExecutionResultsIndex) {
+		return nil
+	}
+
+	return ei.blockProc.SerializeExecutionResults(executionResults, buffSlice, elasticIndexer.ExecutionResultsIndex)
 }
 
 func (ei *elasticProcessor) indexEpochInfoData(header coreData.HeaderHandler, buffSlice *data.BufferSlice) error {
@@ -273,10 +290,28 @@ func (ei *elasticProcessor) RemoveHeader(header coreData.HeaderHandler) error {
 	}
 
 	ctxWithValue := context.WithValue(context.Background(), request.ContextKey, request.ExtendTopicWithShardID(request.RemoveTopic, header.GetShardID()))
-	return ei.elasticClient.DoQueryRemove(
+	err = ei.elasticClient.DoQueryRemove(
 		ctxWithValue,
 		elasticIndexer.BlockIndex,
 		converters.PrepareHashesForQueryRemove([]string{hex.EncodeToString(headerHash)}),
+	)
+	if err != nil {
+		return err
+	}
+
+	if len(header.GetExecutionResultsHandlers()) == 0 {
+		return nil
+	}
+
+	executionResultsHashes := make([]string, 0)
+	for _, executonResult := range header.GetExecutionResultsHandlers() {
+		executionResultsHashes = append(executionResultsHashes, hex.EncodeToString(executonResult.GetHeaderHash()))
+	}
+
+	return ei.elasticClient.DoQueryRemove(
+		ctxWithValue,
+		elasticIndexer.ExecutionResultsIndex,
+		converters.PrepareHashesForQueryRemove(executionResultsHashes),
 	)
 }
 
