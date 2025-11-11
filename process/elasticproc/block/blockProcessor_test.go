@@ -3,9 +3,10 @@ package block
 import (
 	"encoding/hex"
 	"errors"
-	"github.com/multiversx/mx-chain-core-go/data/api"
 	"math/big"
 	"testing"
+
+	"github.com/multiversx/mx-chain-core-go/data/api"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
@@ -100,10 +101,10 @@ func TestBlockProcessor_PrepareBlockForDBShouldWork(t *testing.T) {
 			HeaderGasConsumption: &outport.HeaderGasConsumption{},
 		},
 	}
-	dbBlock, err := bp.PrepareBlockForDB(outportBlockWithHeader)
+	blockResults, err := bp.PrepareBlockForDB(outportBlockWithHeader)
 	require.Nil(t, err)
 
-	dbBlock.UUID = ""
+	blockResults.Block.UUID = ""
 
 	expectedBlock := &data.Block{
 		Hash:                  "68617368",
@@ -124,7 +125,7 @@ func TestBlockProcessor_PrepareBlockForDBShouldWork(t *testing.T) {
 		ReceiptsHash:          "68617368",
 		Reserved:              []byte("reserved"),
 	}
-	require.Equal(t, expectedBlock, dbBlock)
+	require.Equal(t, expectedBlock, blockResults.Block)
 }
 
 func TestBlockProcessor_PrepareBlockForDBNilHeader(t *testing.T) {
@@ -299,8 +300,9 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 		},
 	}
 
-	dbBlock, err := bp.PrepareBlockForDB(outportBlockWithHeader)
-	dbBlock.UUID = ""
+	blockResults, err := bp.PrepareBlockForDB(outportBlockWithHeader)
+	require.Nil(t, err)
+	blockResults.Block.UUID = ""
 
 	require.Equal(t, nil, err)
 	require.Equal(t, &data.Block{
@@ -388,7 +390,7 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 		TxCount:           170,
 		AccumulatedFees:   "0",
 		DeveloperFees:     "0",
-	}, dbBlock)
+	}, blockResults.Block)
 }
 
 func TestBlockProcessor_PrepareBlockForDBMiniBlocksDetails(t *testing.T) {
@@ -497,9 +499,9 @@ func TestBlockProcessor_PrepareBlockForDBMiniBlocksDetails(t *testing.T) {
 		},
 	}
 
-	dbBlock, err := bp.PrepareBlockForDB(outportBlockWithHeader)
+	blockResults, err := bp.PrepareBlockForDB(outportBlockWithHeader)
 	require.Nil(t, err)
-	dbBlock.UUID = ""
+	blockResults.Block.UUID = ""
 
 	require.Equal(t, &data.Block{
 		Hash:            "68617368",
@@ -557,5 +559,5 @@ func TestBlockProcessor_PrepareBlockForDBMiniBlocksDetails(t *testing.T) {
 				ExecutionOrderTxsIndices: []int{4},
 				TxsHashes:                []string{"696e747261534352"}},
 		},
-	}, dbBlock)
+	}, blockResults.Block)
 }

@@ -131,7 +131,6 @@ func (bp *blockProcessor) PrepareBlockForDB(obh *outport.OutportBlockWithHeader)
 		}
 	}
 
-	elasticBlock.ExecutionResultBlockHashes = make([]string, 0, len(obh.Header.GetExecutionResultsHandlers()))
 	for _, executionResult := range obh.Header.GetExecutionResultsHandlers() {
 		elasticBlock.ExecutionResultBlockHashes = append(elasticBlock.ExecutionResultBlockHashes, hex.EncodeToString(executionResult.GetHeaderHash()))
 	}
@@ -357,6 +356,10 @@ func (bp *blockProcessor) getEncodedMBSHashes(body *nodeBlock.Body, intraShardMb
 }
 
 func prepareMiniBlockDetails(mbHeaders []coreData.MiniBlockHeaderHandler, body *nodeBlock.Body, pool *outport.TransactionPool) []*data.MiniBlocksDetails {
+	if len(mbHeaders) == 0 {
+		return nil
+	}
+
 	mbsDetails := make([]*data.MiniBlocksDetails, 0, len(mbHeaders))
 	for idx, mbHeader := range mbHeaders {
 		mbType := nodeBlock.Type(mbHeader.GetTypeInt32())

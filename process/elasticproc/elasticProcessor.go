@@ -237,13 +237,13 @@ func (ei *elasticProcessor) SaveHeader(outportBlockWithHeader *outport.OutportBl
 		return nil
 	}
 
-	elasticBlock, err := ei.blockProc.PrepareBlockForDB(outportBlockWithHeader)
+	blockResults, err := ei.blockProc.PrepareBlockForDB(outportBlockWithHeader)
 	if err != nil {
 		return err
 	}
 
 	buffSlice := data.NewBufferSlice(ei.bulkRequestMaxSize)
-	err = ei.blockProc.SerializeBlock(elasticBlock, buffSlice, elasticIndexer.BlockIndex)
+	err = ei.blockProc.SerializeBlock(blockResults.Block, buffSlice, elasticIndexer.BlockIndex)
 	if err != nil {
 		return err
 	}

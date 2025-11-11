@@ -48,7 +48,7 @@ type DBAccountHandler interface {
 
 // DBBlockHandler defines the actions that a block handler should do
 type DBBlockHandler interface {
-	PrepareBlockForDB(obh *outport.OutportBlockWithHeader) (*data.Block, error)
+	PrepareBlockForDB(obh *outport.OutportBlockWithHeader) (*data.PreparedBlockResults, error)
 	ComputeHeaderHash(header coreData.HeaderHandler) ([]byte, error)
 
 	SerializeEpochInfoData(header coreData.HeaderHandler, buffSlice *data.BufferSlice, index string) error
