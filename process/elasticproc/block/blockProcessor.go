@@ -57,7 +57,7 @@ func NewBlockProcessor(hasher hashing.Hasher, marshalizer marshal.Marshalizer, v
 }
 
 // PrepareBlockForDB will prepare a database block and serialize it for database
-func (bp *blockProcessor) PrepareBlockForDB(obh *outport.OutportBlockWithHeader) (*data.Block, error) {
+func (bp *blockProcessor) PrepareBlockForDB(obh *outport.OutportBlockWithHeader) (*data.PreparedBlockResults, error) {
 	if check.IfNil(obh.Header) {
 		return nil, indexer.ErrNilHeaderHandler
 	}
@@ -131,14 +131,83 @@ func (bp *blockProcessor) PrepareBlockForDB(obh *outport.OutportBlockWithHeader)
 		}
 	}
 
+	elasticBlock.ExecutionResultBlockHashes = make([]string, 0, len(obh.Header.GetExecutionResultsHandlers()))
+	for _, executionResult := range obh.Header.GetExecutionResultsHandlers() {
+		elasticBlock.ExecutionResultBlockHashes = append(elasticBlock.ExecutionResultBlockHashes, hex.EncodeToString(executionResult.GetHeaderHash()))
+	}
+
 	bp.addEpochStartInfoForMeta(obh.Header, elasticBlock)
 
-	appendBlockDetailsFromHeaders(elasticBlock, obh.Header, obh.BlockData.Body, obh.TransactionPool)
+	elasticBlock.MiniBlocksDetails = prepareMiniBlockDetails(obh.Header.GetMiniBlockHeaderHandlers(), obh.BlockData.Body, obh.TransactionPool)
+
 	appendBlockDetailsFromIntraShardMbs(elasticBlock, obh.BlockData.IntraShardMiniBlocks, obh.TransactionPool, len(obh.Header.GetMiniBlockHeaderHandlers()))
 
 	addProofs(elasticBlock, obh)
 
-	return elasticBlock, nil
+	executionResultData, err := bp.prepareExecutionResults(obh)
+	if err != nil {
+		return nil, err
+	}
+
+	return &data.PreparedBlockResults{
+		Block:            elasticBlock,
+		ExecutionResults: executionResultData,
+	}, nil
+}
+
+func (bp *blockProcessor) prepareExecutionResults(obh *outport.OutportBlockWithHeader) ([]*data.ExecutionResult, error) {
+	if !obh.Header.IsHeaderV3() {
+		return []*data.ExecutionResult{}, nil
+	}
+
+	executionResults := make([]*data.ExecutionResult, 0)
+	for _, executionResultHandler := range obh.Header.GetExecutionResultsHandlers() {
+		executionResult := bp.prepareExecutionResult(executionResultHandler, obh)
+
+		executionResults = append(executionResults, executionResult)
+	}
+
+	return executionResults, nil
+}
+
+func (bp *blockProcessor) prepareExecutionResult(baseExecutionResult coreData.BaseExecutionResultHandler, obh *outport.OutportBlockWithHeader) *data.ExecutionResult {
+	miniblocksHashes := bp.getEncodedMBSHashes(obh.BlockData.Body, obh.BlockData.IntraShardMiniBlocks)
+
+	executionResultsHash := hex.EncodeToString(baseExecutionResult.GetHeaderHash())
+	executionResult := &data.ExecutionResult{
+		UUID:                 converters.GenerateBase64UUID(),
+		Hash:                 executionResultsHash,
+		RootHash:             hex.EncodeToString(baseExecutionResult.GetRootHash()),
+		NotarizedInBlockHash: hex.EncodeToString(obh.BlockData.GetHeaderHash()),
+		Nonce:                baseExecutionResult.GetHeaderNonce(),
+		Round:                baseExecutionResult.GetHeaderRound(),
+		Epoch:                baseExecutionResult.GetHeaderEpoch(),
+		MiniBlocksHashes:     miniblocksHashes,
+		GasUsed:              baseExecutionResult.GetGasUsed(),
+	}
+
+	executionResultData, found := obh.BlockData.Results[executionResultsHash]
+	if !found {
+		log.Warn("cannot find execution result data for execution result", "hash", executionResultsHash)
+		return executionResult
+	}
+
+	switch t := baseExecutionResult.(type) {
+	case *nodeBlock.MetaExecutionResult:
+		executionResult.MiniBlocksDetails = prepareMiniBlockDetails(t.GetMiniBlockHeadersHandlers(), executionResultData.Body, obh.TransactionPool)
+		executionResult.AccumulatedFees = t.AccumulatedFees.String()
+		executionResult.DeveloperFees = t.DeveloperFees.String()
+		executionResult.TxCount = t.ExecutedTxCount
+	case *nodeBlock.ExecutionResult:
+		executionResult.MiniBlocksDetails = prepareMiniBlockDetails(t.GetMiniBlockHeadersHandlers(), executionResultData.Body, obh.TransactionPool)
+		executionResult.AccumulatedFees = t.AccumulatedFees.String()
+		executionResult.DeveloperFees = t.DeveloperFees.String()
+		executionResult.TxCount = t.ExecutedTxCount
+	default:
+		return executionResult
+	}
+
+	return executionResult
 }
 
 func getLeaderIndex(obh *outport.OutportBlockWithHeader) uint64 {
@@ -287,15 +356,16 @@ func (bp *blockProcessor) getEncodedMBSHashes(body *nodeBlock.Body, intraShardMb
 	return miniblocksHashes
 }
 
-func appendBlockDetailsFromHeaders(block *data.Block, header coreData.HeaderHandler, body *nodeBlock.Body, pool *outport.TransactionPool) {
-	for idx, mbHeader := range header.GetMiniBlockHeaderHandlers() {
+func prepareMiniBlockDetails(mbHeaders []coreData.MiniBlockHeaderHandler, body *nodeBlock.Body, pool *outport.TransactionPool) []*data.MiniBlocksDetails {
+	mbsDetails := make([]*data.MiniBlocksDetails, 0, len(mbHeaders))
+	for idx, mbHeader := range mbHeaders {
 		mbType := nodeBlock.Type(mbHeader.GetTypeInt32())
 		if mbType == nodeBlock.PeerBlock {
 			continue
 		}
 
 		txsHashes := body.MiniBlocks[idx].TxHashes
-		block.MiniBlocksDetails = append(block.MiniBlocksDetails, &data.MiniBlocksDetails{
+		mbsDetails = append(mbsDetails, &data.MiniBlocksDetails{
 			IndexFirstProcessedTx:    mbHeader.GetIndexOfFirstTxProcessed(),
 			IndexLastProcessedTx:     mbHeader.GetIndexOfLastTxProcessed(),
 			MBIndex:                  idx,
@@ -307,6 +377,8 @@ func appendBlockDetailsFromHeaders(block *data.Block, header coreData.HeaderHand
 			ExecutionOrderTxsIndices: extractExecutionOrderIndicesFromPool(mbHeader, txsHashes, pool),
 		})
 	}
+
+	return mbsDetails
 }
 
 func appendBlockDetailsFromIntraShardMbs(block *data.Block, intraShardMbs []*nodeBlock.MiniBlock, pool *outport.TransactionPool, offset int) {

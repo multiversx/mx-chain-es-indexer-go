@@ -9,47 +9,73 @@ import (
 //	to be saved for a block. It has all the default fields
 //	plus some extra information for ease of search and filter
 type Block struct {
-	UUID                  string                 `json:"uuid"`
-	Nonce                 uint64                 `json:"nonce"`
-	Round                 uint64                 `json:"round"`
-	Epoch                 uint32                 `json:"epoch"`
-	Hash                  string                 `json:"-"`
-	MiniBlocksHashes      []string               `json:"miniBlocksHashes"`
-	MiniBlocksDetails     []*MiniBlocksDetails   `json:"miniBlocksDetails,omitempty"`
-	NotarizedBlocksHashes []string               `json:"notarizedBlocksHashes"`
-	Proposer              uint64                 `json:"proposer"`
-	Validators            []uint64               `json:"validators,omitempty"`
-	PubKeyBitmap          string                 `json:"pubKeyBitmap"`
-	Size                  int64                  `json:"size"`
-	SizeTxs               int64                  `json:"sizeTxs"`
-	Timestamp             uint64                 `json:"timestamp"`
-	TimestampMs           uint64                 `json:"timestampMs,omitempty"`
-	StateRootHash         string                 `json:"stateRootHash"`
-	PrevHash              string                 `json:"prevHash"`
-	ShardID               uint32                 `json:"shardId"`
-	TxCount               uint32                 `json:"txCount"`
-	NotarizedTxsCount     uint32                 `json:"notarizedTxsCount"`
-	AccumulatedFees       string                 `json:"accumulatedFees"`
-	DeveloperFees         string                 `json:"developerFees"`
-	EpochStartBlock       bool                   `json:"epochStartBlock"`
-	SearchOrder           uint64                 `json:"searchOrder"`
-	EpochStartInfo        *EpochStartInfo        `json:"epochStartInfo,omitempty"`
-	GasProvided           uint64                 `json:"gasProvided"`
-	GasRefunded           uint64                 `json:"gasRefunded"`
-	GasPenalized          uint64                 `json:"gasPenalized"`
-	MaxGasLimit           uint64                 `json:"maxGasLimit"`
-	ScheduledData         *ScheduledData         `json:"scheduledData,omitempty"`
-	EpochStartShardsData  []*EpochStartShardData `json:"epochStartShardsData,omitempty"`
-	Proof                 *api.HeaderProof       `json:"proof,omitempty"`
-	RandSeed              string                 `json:"randSeed,omitempty"`
-	PrevRandSeed          string                 `json:"prevRandSeed,omitempty"`
-	Signature             string                 `json:"signature,omitempty"`
-	LeaderSignature       string                 `json:"leaderSignature,omitempty"`
-	ChainID               string                 `json:"chainID,omitempty"`
-	SoftwareVersion       string                 `json:"softwareVersion,omitempty"`
-	ReceiptsHash          string                 `json:"receiptsHash,omitempty"`
-	Reserved              []byte                 `json:"reserved,omitempty"`
-	ProposerBlsKey        string                 `json:"proposerBlsKey,omitempty"`
+	UUID                       string                 `json:"uuid"`
+	Nonce                      uint64                 `json:"nonce"`
+	Round                      uint64                 `json:"round"`
+	Epoch                      uint32                 `json:"epoch"`
+	Hash                       string                 `json:"-"`
+	MiniBlocksHashes           []string               `json:"miniBlocksHashes"`
+	MiniBlocksDetails          []*MiniBlocksDetails   `json:"miniBlocksDetails,omitempty"`
+	NotarizedBlocksHashes      []string               `json:"notarizedBlocksHashes"`
+	Proposer                   uint64                 `json:"proposer"`
+	Validators                 []uint64               `json:"validators,omitempty"`
+	PubKeyBitmap               string                 `json:"pubKeyBitmap"`
+	Size                       int64                  `json:"size"`
+	SizeTxs                    int64                  `json:"sizeTxs"`
+	Timestamp                  uint64                 `json:"timestamp"`
+	TimestampMs                uint64                 `json:"timestampMs,omitempty"`
+	StateRootHash              string                 `json:"stateRootHash"`
+	PrevHash                   string                 `json:"prevHash"`
+	ShardID                    uint32                 `json:"shardId"`
+	TxCount                    uint32                 `json:"txCount"`
+	NotarizedTxsCount          uint32                 `json:"notarizedTxsCount"`
+	AccumulatedFees            string                 `json:"accumulatedFees"`
+	DeveloperFees              string                 `json:"developerFees"`
+	EpochStartBlock            bool                   `json:"epochStartBlock"`
+	SearchOrder                uint64                 `json:"searchOrder"`
+	EpochStartInfo             *EpochStartInfo        `json:"epochStartInfo,omitempty"`
+	GasProvided                uint64                 `json:"gasProvided"`
+	GasRefunded                uint64                 `json:"gasRefunded"`
+	GasPenalized               uint64                 `json:"gasPenalized"`
+	MaxGasLimit                uint64                 `json:"maxGasLimit"`
+	ScheduledData              *ScheduledData         `json:"scheduledData,omitempty"`
+	EpochStartShardsData       []*EpochStartShardData `json:"epochStartShardsData,omitempty"`
+	Proof                      *api.HeaderProof       `json:"proof,omitempty"`
+	RandSeed                   string                 `json:"randSeed,omitempty"`
+	PrevRandSeed               string                 `json:"prevRandSeed,omitempty"`
+	Signature                  string                 `json:"signature,omitempty"`
+	LeaderSignature            string                 `json:"leaderSignature,omitempty"`
+	ChainID                    string                 `json:"chainID,omitempty"`
+	SoftwareVersion            string                 `json:"softwareVersion,omitempty"`
+	ReceiptsHash               string                 `json:"receiptsHash,omitempty"`
+	Reserved                   []byte                 `json:"reserved,omitempty"`
+	ProposerBlsKey             string                 `json:"proposerBlsKey,omitempty"`
+	ExecutionResultBlockHashes []string               `json:"executionResultBlockHashes,omitempty"`
+}
+
+// ExecutionResult is a structure containing all the fields that need
+//
+// to be saved for an execution results.
+type ExecutionResult struct {
+	UUID                 string               `json:"uuid"`
+	Hash                 string               `json:"-"`
+	RootHash             string               `json:"rootHash"`
+	NotarizedInBlockHash string               `json:"notarizedInBlockHash"`
+	AccumulatedFees      string               `json:"accumulatedFees"`
+	DeveloperFees        string               `json:"developerFees"`
+	TxCount              uint64               `json:"txCount"`
+	GasUsed              uint64               `json:"gasUsed"`
+	Nonce                uint64               `json:"nonce"`
+	Round                uint64               `json:"round"`
+	Epoch                uint32               `json:"epoch"`
+	MiniBlocksHashes     []string             `json:"miniBlocksHashes"`
+	MiniBlocksDetails    []*MiniBlocksDetails `json:"miniBlocksDetails,omitempty"`
+}
+
+// PreparedBlockResults is the DTO that holds all the results after processing a block
+type PreparedBlockResults struct {
+	Block            *Block
+	ExecutionResults []*ExecutionResult
 }
 
 // MiniBlocksDetails is a structure that hold information about mini-blocks execution details
