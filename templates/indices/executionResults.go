@@ -11,7 +11,7 @@ var ExecutionResults = Object{
 			"number_of_replicas": 0,
 			"index": Object{
 				"sort.field": Array{
-					"timestamp", "nonce",
+					"timestampMs", "nonce",
 				},
 				"sort.order": Array{
 					"desc", "desc",
@@ -69,6 +69,10 @@ var ExecutionResults = Object{
 				"developerFees": Object{
 					"index": "false",
 					"type":  "keyword",
+				},
+				"timestampMs": Object{
+					"type":   "date",
+					"format": "epoch_millis",
 				},
 			},
 		},
