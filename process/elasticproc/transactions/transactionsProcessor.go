@@ -5,8 +5,6 @@ import (
 	"math/big"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-core-go/core/check"
-	coreData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/hashing"
@@ -69,13 +67,12 @@ func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txsDatabaseProce
 // PrepareTransactionsForDatabase will prepare transactions for database
 func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 	miniBlocks []*block.MiniBlock,
-	header coreData.HeaderHandler,
+	headerData *data.HeaderData,
 	pool *outport.TransactionPool,
 	isImportDB bool,
 	numOfShards uint32,
-	timestampMs uint64,
 ) *data.PreparedResults {
-	err := checkPrepareTransactionForDatabaseArguments(header, pool)
+	err := checkPrepareTransactionForDatabaseArguments(pool)
 	if err != nil {
 		log.Warn("checkPrepareTransactionForDatabaseArguments", "error", err)
 
@@ -92,25 +89,25 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 	for mbIndex, mb := range miniBlocks {
 		switch mb.Type {
 		case block.TxBlock:
-			if shouldIgnoreProcessedMBScheduled(header, mbIndex) {
+			if shouldIgnoreProcessedMBScheduled(headerData, mbIndex) {
 				continue
 			}
 
-			txs, errGroup := tdp.txsGrouper.groupNormalTxs(mbIndex, mb, header, pool.Transactions, isImportDB, numOfShards, timestampMs)
+			txs, errGroup := tdp.txsGrouper.groupNormalTxs(mbIndex, mb, headerData, pool.Transactions, isImportDB, numOfShards)
 			if errGroup != nil {
 				log.Warn("txsDatabaseProcessor.groupNormalTxs", "error", errGroup)
 				continue
 			}
 			mergeTxsMaps(normalTxs, txs)
 		case block.RewardsBlock:
-			txs, errGroup := tdp.txsGrouper.groupRewardsTxs(mbIndex, mb, header, pool.Rewards, isImportDB, timestampMs)
+			txs, errGroup := tdp.txsGrouper.groupRewardsTxs(mbIndex, mb, headerData, pool.Rewards, isImportDB)
 			if errGroup != nil {
 				log.Warn("txsDatabaseProcessor.groupRewardsTxs", "error", errGroup)
 				continue
 			}
 			mergeTxsMaps(rewardsTxs, txs)
 		case block.InvalidBlock:
-			txs, errGroup := tdp.txsGrouper.groupInvalidTxs(mbIndex, mb, header, pool.InvalidTxs, numOfShards, timestampMs)
+			txs, errGroup := tdp.txsGrouper.groupInvalidTxs(mbIndex, mb, headerData, pool.InvalidTxs, numOfShards)
 			if errGroup != nil {
 				log.Warn("txsDatabaseProcessor.groupInvalidTxs", "error", errGroup)
 				continue
@@ -122,8 +119,8 @@ func (tdp *txsDatabaseProcessor) PrepareTransactionsForDatabase(
 	}
 
 	normalTxs = tdp.setTransactionSearchOrder(normalTxs)
-	dbReceipts := tdp.txsGrouper.groupReceipts(header, pool.Receipts, timestampMs)
-	dbSCResults := tdp.scrsProc.processSCRs(miniBlocks, header, pool.SmartContractResults, numOfShards, timestampMs)
+	dbReceipts := tdp.txsGrouper.groupReceipts(headerData, pool.Receipts)
+	dbSCResults := tdp.scrsProc.processSCRs(miniBlocks, headerData, pool.SmartContractResults, numOfShards)
 
 	srcsNoTxInCurrentShard := tdp.scrsDataToTxs.attachSCRsToTransactionsAndReturnSCRsWithoutTx(normalTxs, dbSCResults)
 	tdp.scrsDataToTxs.processTransactionsAfterSCRsWereAttached(normalTxs)
@@ -152,20 +149,19 @@ func (tdp *txsDatabaseProcessor) setTransactionSearchOrder(transactions map[stri
 }
 
 // GetHexEncodedHashesForRemove will return hex encoded transaction hashes and smart contract result hashes from body
-func (tdp *txsDatabaseProcessor) GetHexEncodedHashesForRemove(header coreData.HeaderHandler, body *block.Body) ([]string, []string) {
-	if body == nil || check.IfNil(header) || len(header.GetMiniBlockHeadersHashes()) == 0 {
+func (tdp *txsDatabaseProcessor) GetHexEncodedHashesForRemove(headerData *data.HeaderData, body *block.Body) ([]string, []string) {
+	if body == nil || headerData == nil || len(headerData.MiniBlockHeaders) == 0 {
 		return nil, nil
 	}
 
-	selfShardID := header.GetShardID()
 	encodedTxsHashes := make([]string, 0)
 	encodedScrsHashes := make([]string, 0)
 	for mbIndex, miniblock := range body.MiniBlocks {
-		if shouldIgnoreProcessedMBScheduled(header, mbIndex) {
+		if shouldIgnoreProcessedMBScheduled(headerData, mbIndex) {
 			continue
 		}
 
-		shouldIgnore := isCrossShardAtSourceNormalTx(selfShardID, miniblock)
+		shouldIgnore := isCrossShardAtSourceNormalTx(headerData.ShardID, miniblock)
 		if shouldIgnore {
 			// ignore cross-shard miniblocks at source with normal txs
 			continue
@@ -190,8 +186,8 @@ func isCrossShardAtSourceNormalTx(selfShardID uint32, miniblock *block.MiniBlock
 	return isCrossShard && isAtSource && txBlock
 }
 
-func shouldIgnoreProcessedMBScheduled(header coreData.HeaderHandler, mbIndex int) bool {
-	miniBlockHeaders := header.GetMiniBlockHeaderHandlers()
+func shouldIgnoreProcessedMBScheduled(headerData *data.HeaderData, mbIndex int) bool {
+	miniBlockHeaders := headerData.MiniBlockHeaders
 	if len(miniBlockHeaders) <= mbIndex {
 		return false
 	}

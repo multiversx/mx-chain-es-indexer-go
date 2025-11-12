@@ -1,6 +1,7 @@
 package data
 
 import (
+	coreData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/api"
 )
 
@@ -70,6 +71,16 @@ type ExecutionResult struct {
 	Epoch                uint32               `json:"epoch"`
 	MiniBlocksHashes     []string             `json:"miniBlocksHashes"`
 	MiniBlocksDetails    []*MiniBlocksDetails `json:"miniBlocksDetails,omitempty"`
+}
+
+// HeaderData is the DTO that holds fields from header or execution result
+type HeaderData struct {
+	Timestamp        uint64
+	TimestampMs      uint64
+	Round            uint64
+	ShardID          uint32
+	Epoch            uint32
+	MiniBlockHeaders []coreData.MiniBlockHeaderHandler
 }
 
 // PreparedBlockResults is the DTO that holds all the results after processing a block

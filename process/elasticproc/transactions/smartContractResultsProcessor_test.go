@@ -5,7 +5,6 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
@@ -56,10 +55,12 @@ func TestPrepareSmartContractResult(t *testing.T) {
 		},
 	}
 
-	header := &block.Header{TimeStamp: 100}
-
 	mbHash := []byte("hash")
-	scRes := scrsProc.prepareSmartContractResult(scHash, mbHash, scrInfo, header, 0, 1, 3, 100000)
+	headerData := &data.HeaderData{
+		Timestamp:   100,
+		TimestampMs: 100000,
+	}
+	scRes := scrsProc.prepareSmartContractResult(scHash, mbHash, scrInfo, headerData, 0, 1, 3)
 	scRes.UUID = ""
 
 	senderAddr, err := pubKeyConverter.Encode(sndAddr)

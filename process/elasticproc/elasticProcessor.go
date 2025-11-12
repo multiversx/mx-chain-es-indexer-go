@@ -332,7 +332,15 @@ func (ei *elasticProcessor) RemoveMiniblocks(header coreData.HeaderHandler, body
 
 // RemoveTransactions will remove transaction that are in miniblock from the elasticsearch server
 func (ei *elasticProcessor) RemoveTransactions(header coreData.HeaderHandler, body *block.Body, timestampMs uint64) error {
-	encodedTxsHashes, encodedScrsHashes := ei.transactionsProc.GetHexEncodedHashesForRemove(header, body)
+	headerData := &data.HeaderData{
+		Timestamp:        header.GetTimeStamp(),
+		TimestampMs:      timestampMs,
+		Round:            header.GetRound(),
+		ShardID:          header.GetShardID(),
+		Epoch:            header.GetEpoch(),
+		MiniBlockHeaders: header.GetMiniBlockHeaderHandlers(),
+	}
+	encodedTxsHashes, encodedScrsHashes := ei.transactionsProc.GetHexEncodedHashesForRemove(headerData, body)
 	shardID := header.GetShardID()
 
 	err := ei.removeIfHashesNotEmpty(elasticIndexer.TransactionsIndex, encodedTxsHashes, shardID)
@@ -434,7 +442,16 @@ func (ei *elasticProcessor) SaveTransactions(obh *outport.OutportBlockWithHeader
 	headerTimestamp := obh.Header.GetTimeStamp()
 
 	miniBlocks := append(obh.BlockData.Body.MiniBlocks, obh.BlockData.IntraShardMiniBlocks...)
-	preparedResults := ei.transactionsProc.PrepareTransactionsForDatabase(miniBlocks, obh.Header, obh.TransactionPool, ei.isImportDB(), obh.NumberOfShards, obh.BlockData.TimestampMs)
+
+	headerData := &data.HeaderData{
+		Timestamp:        headerTimestamp,
+		TimestampMs:      obh.BlockData.TimestampMs,
+		Round:            obh.Header.GetRound(),
+		ShardID:          obh.Header.GetShardID(),
+		Epoch:            obh.Header.GetEpoch(),
+		MiniBlockHeaders: obh.Header.GetMiniBlockHeaderHandlers(),
+	}
+	preparedResults := ei.transactionsProc.PrepareTransactionsForDatabase(miniBlocks, headerData, obh.TransactionPool, ei.isImportDB(), obh.NumberOfShards)
 	logsData := ei.logsAndEventsProc.ExtractDataFromLogs(obh.TransactionPool.Logs, preparedResults, headerTimestamp, obh.Header.GetShardID(), obh.NumberOfShards, obh.BlockData.TimestampMs)
 
 	buffers := data.NewBufferSlice(ei.bulkRequestMaxSize)

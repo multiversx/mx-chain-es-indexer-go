@@ -60,13 +60,12 @@ type DBBlockHandler interface {
 type DBTransactionsHandler interface {
 	PrepareTransactionsForDatabase(
 		miniBlocks []*block.MiniBlock,
-		header coreData.HeaderHandler,
+		headerData *data.HeaderData,
 		pool *outport.TransactionPool,
 		isImportDB bool,
 		numOfShards uint32,
-		timestampMS uint64,
 	) *data.PreparedResults
-	GetHexEncodedHashesForRemove(header coreData.HeaderHandler, body *block.Body) ([]string, []string)
+	GetHexEncodedHashesForRemove(headerData *data.HeaderData, body *block.Body) ([]string, []string)
 
 	SerializeReceipts(receipts []*data.Receipt, buffSlice *data.BufferSlice, index string) error
 	SerializeTransactions(transactions []*data.Transaction, txHashStatusInfo map[string]*outport.StatusInfo, selfShardID uint32, buffSlice *data.BufferSlice, index string) error
