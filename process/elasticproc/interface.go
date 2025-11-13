@@ -97,7 +97,6 @@ type DBLogsAndEventsHandler interface {
 	ExtractDataFromLogs(
 		logsAndEvents []*outport.LogData,
 		preparedResults *data.PreparedResults,
-		timestamp uint64,
 		shardID uint32,
 		numOfShards uint32,
 		timestampMs uint64,

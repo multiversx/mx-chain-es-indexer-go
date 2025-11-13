@@ -3,6 +3,7 @@ package logsevents
 import (
 	"encoding/hex"
 	"fmt"
+
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
@@ -90,12 +91,11 @@ func createEventsProcessors(args ArgsLogsAndEventsProcessor) []eventsProcessor {
 func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 	logsAndEvents []*outport.LogData,
 	preparedResults *data.PreparedResults,
-	timestamp uint64,
 	shardID uint32,
 	numOfShards uint32,
 	timestampMs uint64,
 ) *data.PreparedLogsResults {
-	lgData := newLogsData(timestamp, preparedResults.Transactions, preparedResults.ScResults, timestampMs)
+	lgData := newLogsData(preparedResults.Transactions, preparedResults.ScResults, timestampMs)
 	for _, txLog := range logsAndEvents {
 		if txLog == nil {
 			continue
@@ -116,7 +116,7 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 		}
 	}
 
-	dbLogs, dbEvents := lep.prepareLogsForDB(lgData, logsAndEvents, timestamp, shardID, timestampMs)
+	dbLogs, dbEvents := lep.prepareLogsForDB(lgData, logsAndEvents, shardID, timestampMs)
 
 	return &data.PreparedLogsResults{
 		Tokens:                  lgData.tokens,
@@ -192,7 +192,6 @@ func (lep *logsAndEventsProcessor) processEvent(lgData *logsData, logHashHexEnco
 func (lep *logsAndEventsProcessor) prepareLogsForDB(
 	lgData *logsData,
 	logsAndEvents []*outport.LogData,
-	timestamp uint64,
 	shardID uint32,
 	timestampMs uint64,
 ) ([]*data.Logs, []*data.LogEvent) {
@@ -204,7 +203,7 @@ func (lep *logsAndEventsProcessor) prepareLogsForDB(
 			continue
 		}
 
-		dbLog, logEvents := lep.prepareLog(lgData, txLog.TxHash, txLog.Log, timestamp, shardID, timestampMs)
+		dbLog, logEvents := lep.prepareLog(lgData, txLog.TxHash, txLog.Log, shardID, timestampMs)
 
 		logs = append(logs, dbLog)
 		events = append(events, logEvents...)
@@ -217,7 +216,6 @@ func (lep *logsAndEventsProcessor) prepareLog(
 	lgData *logsData,
 	logHashHex string,
 	eventLogs *transaction.Log,
-	timestamp uint64,
 	shardID uint32,
 	timestampMs uint64,
 ) (*data.Logs, []*data.LogEvent) {
@@ -228,7 +226,7 @@ func (lep *logsAndEventsProcessor) prepareLog(
 		ID:             logHashHex,
 		OriginalTxHash: originalTxHash,
 		Address:        encodedAddr,
-		Timestamp:      timestamp,
+		Timestamp:      converters.MillisecondsToSeconds(timestampMs),
 		Events:         make([]*data.Event, 0, len(eventLogs.Events)),
 		TimestampMs:    timestampMs,
 	}

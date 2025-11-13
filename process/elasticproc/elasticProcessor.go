@@ -439,28 +439,67 @@ func (ei *elasticProcessor) SaveMiniblocks(header coreData.HeaderHandler, miniBl
 
 // SaveTransactions will prepare and save information about a transactions in elasticsearch server
 func (ei *elasticProcessor) SaveTransactions(obh *outport.OutportBlockWithHeader) error {
-	headerTimestamp := obh.Header.GetTimeStamp()
-
 	miniBlocks := append(obh.BlockData.Body.MiniBlocks, obh.BlockData.IntraShardMiniBlocks...)
-
 	headerData := &data.HeaderData{
-		Timestamp:        headerTimestamp,
+		Timestamp:        converters.MillisecondsToSeconds(obh.BlockData.TimestampMs),
 		TimestampMs:      obh.BlockData.TimestampMs,
 		Round:            obh.Header.GetRound(),
 		ShardID:          obh.Header.GetShardID(),
 		Epoch:            obh.Header.GetEpoch(),
 		MiniBlockHeaders: obh.Header.GetMiniBlockHeaderHandlers(),
+		NumberOfShards:   obh.NumberOfShards,
 	}
-	preparedResults := ei.transactionsProc.PrepareTransactionsForDatabase(miniBlocks, headerData, obh.TransactionPool, ei.isImportDB(), obh.NumberOfShards)
-	logsData := ei.logsAndEventsProc.ExtractDataFromLogs(obh.TransactionPool.Logs, preparedResults, headerTimestamp, obh.Header.GetShardID(), obh.NumberOfShards, obh.BlockData.TimestampMs)
 
 	buffers := data.NewBufferSlice(ei.bulkRequestMaxSize)
-	err := ei.indexTransactions(preparedResults.Transactions, logsData.TxHashStatusInfo, obh.Header, buffers)
+	err := ei.prepareAndSaveTransactionsData(headerData, miniBlocks, obh.TransactionPool, obh.AlteredAccounts, buffers)
 	if err != nil {
 		return err
 	}
 
-	err = ei.prepareAndIndexOperations(preparedResults.Transactions, logsData.TxHashStatusInfo, obh.Header, preparedResults.ScResults, buffers, ei.isImportDB())
+	for _, executionResult := range obh.Header.GetExecutionResultsHandlers() {
+		executionResulData, found := obh.BlockData.Results[hex.EncodeToString(executionResult.GetHeaderHash())]
+		if !found {
+			log.Warn("elasticProcessor.SaveTransactions: cannot find execution result data", "hash", executionResult.GetHeaderHash())
+			continue
+		}
+
+		headerData = &data.HeaderData{
+			Timestamp:        converters.MillisecondsToSeconds(executionResulData.TimestampMs),
+			TimestampMs:      executionResulData.TimestampMs,
+			Round:            executionResult.GetHeaderRound(),
+			ShardID:          obh.Header.GetShardID(),
+			NumberOfShards:   obh.NumberOfShards,
+			Epoch:            executionResult.GetHeaderEpoch(),
+			MiniBlockHeaders: converters.GetMiniBlocksHeaderHandlersFromExecResult(executionResult),
+		}
+
+		miniBlocks = append(executionResulData.Body.MiniBlocks, executionResulData.IntraShardMiniBlocks...)
+		err = ei.prepareAndSaveTransactionsData(headerData, miniBlocks, executionResulData.TransactionPool, executionResulData.AlteredAccounts, buffers)
+		if err != nil {
+			return err
+		}
+	}
+
+	return ei.doBulkRequests("", buffers.Buffers(), headerData.ShardID)
+}
+
+func (ei *elasticProcessor) prepareAndSaveTransactionsData(
+	headerData *data.HeaderData,
+	miniBlocks []*block.MiniBlock,
+	pool *outport.TransactionPool,
+	alteredAccounts map[string]*alteredAccount.AlteredAccount,
+	buffers *data.BufferSlice,
+) error {
+
+	preparedResults := ei.transactionsProc.PrepareTransactionsForDatabase(miniBlocks, headerData, pool, ei.isImportDB(), headerData.NumberOfShards)
+	logsData := ei.logsAndEventsProc.ExtractDataFromLogs(pool.Logs, preparedResults, headerData.ShardID, headerData.NumberOfShards, headerData.TimestampMs)
+
+	err := ei.indexTransactions(preparedResults.Transactions, logsData.TxHashStatusInfo, headerData.ShardID, buffers)
+	if err != nil {
+		return err
+	}
+
+	err = ei.prepareAndIndexOperations(preparedResults.Transactions, logsData.TxHashStatusInfo, headerData.ShardID, preparedResults.ScResults, buffers, ei.isImportDB())
 	if err != nil {
 		return err
 	}
@@ -470,7 +509,7 @@ func (ei *elasticProcessor) SaveTransactions(obh *outport.OutportBlockWithHeader
 		return err
 	}
 
-	err = ei.indexNFTCreateInfo(logsData.Tokens, obh.AlteredAccounts, buffers, obh.ShardID)
+	err = ei.indexNFTCreateInfo(logsData.Tokens, alteredAccounts, buffers, headerData.ShardID)
 	if err != nil {
 		return err
 	}
@@ -496,7 +535,7 @@ func (ei *elasticProcessor) SaveTransactions(obh *outport.OutportBlockWithHeader
 	}
 
 	tagsCount := tags.NewTagsCount()
-	err = ei.indexAlteredAccounts(logsData.NFTsDataUpdates, obh.AlteredAccounts, buffers, tagsCount, obh.Header.GetShardID(), obh.BlockData.TimestampMs)
+	err = ei.indexAlteredAccounts(logsData.NFTsDataUpdates, alteredAccounts, buffers, tagsCount, headerData.ShardID, headerData.TimestampMs)
 	if err != nil {
 		return err
 	}
@@ -506,7 +545,7 @@ func (ei *elasticProcessor) SaveTransactions(obh *outport.OutportBlockWithHeader
 		return err
 	}
 
-	err = ei.indexTokens(logsData.TokensInfo, logsData.NFTsDataUpdates, buffers, obh.ShardID)
+	err = ei.indexTokens(logsData.TokensInfo, logsData.NFTsDataUpdates, buffers, headerData.ShardID)
 	if err != nil {
 		return err
 	}
@@ -516,7 +555,7 @@ func (ei *elasticProcessor) SaveTransactions(obh *outport.OutportBlockWithHeader
 		return err
 	}
 
-	err = ei.indexNFTBurnInfo(logsData.TokensSupply, buffers, obh.ShardID)
+	err = ei.indexNFTBurnInfo(logsData.TokensSupply, buffers, headerData.ShardID)
 	if err != nil {
 		return err
 	}
@@ -530,12 +569,7 @@ func (ei *elasticProcessor) SaveTransactions(obh *outport.OutportBlockWithHeader
 		return err
 	}
 
-	err = ei.indexScDeploys(logsData.ScDeploys, logsData.ChangeOwnerOperations, buffers)
-	if err != nil {
-		return err
-	}
-
-	return ei.doBulkRequests("", buffers.Buffers(), obh.ShardID)
+	return ei.indexScDeploys(logsData.ScDeploys, logsData.ChangeOwnerOperations, buffers)
 }
 
 func (ei *elasticProcessor) prepareAndIndexRolesData(tokenRolesAndProperties *tokeninfo.TokenRolesAndProperties, buffSlice *data.BufferSlice, index string) error {
@@ -596,18 +630,18 @@ func (ei *elasticProcessor) indexScDeploys(deployData map[string]*data.ScDeployI
 	return ei.logsAndEventsProc.SerializeChangeOwnerOperations(changeOwnerOperation, buffSlice, elasticIndexer.SCDeploysIndex)
 }
 
-func (ei *elasticProcessor) indexTransactions(txs []*data.Transaction, txHashStatusInfo map[string]*outport.StatusInfo, header coreData.HeaderHandler, bytesBuff *data.BufferSlice) error {
+func (ei *elasticProcessor) indexTransactions(txs []*data.Transaction, txHashStatusInfo map[string]*outport.StatusInfo, shardID uint32, bytesBuff *data.BufferSlice) error {
 	if !ei.isIndexEnabled(elasticIndexer.TransactionsIndex) {
 		return nil
 	}
 
-	return ei.transactionsProc.SerializeTransactions(txs, txHashStatusInfo, header.GetShardID(), bytesBuff, elasticIndexer.TransactionsIndex)
+	return ei.transactionsProc.SerializeTransactions(txs, txHashStatusInfo, shardID, bytesBuff, elasticIndexer.TransactionsIndex)
 }
 
 func (ei *elasticProcessor) prepareAndIndexOperations(
 	txs []*data.Transaction,
 	txHashStatusInfo map[string]*outport.StatusInfo,
-	header coreData.HeaderHandler,
+	shardID uint32,
 	scrs []*data.ScResult,
 	buffSlice *data.BufferSlice,
 	isImportDB bool,
@@ -616,14 +650,14 @@ func (ei *elasticProcessor) prepareAndIndexOperations(
 		return nil
 	}
 
-	processedTxs, processedSCRs := ei.operationsProc.ProcessTransactionsAndSCRs(txs, scrs, isImportDB, header.GetShardID())
+	processedTxs, processedSCRs := ei.operationsProc.ProcessTransactionsAndSCRs(txs, scrs, isImportDB, shardID)
 
-	err := ei.transactionsProc.SerializeTransactions(processedTxs, txHashStatusInfo, header.GetShardID(), buffSlice, elasticIndexer.OperationsIndex)
+	err := ei.transactionsProc.SerializeTransactions(processedTxs, txHashStatusInfo, shardID, buffSlice, elasticIndexer.OperationsIndex)
 	if err != nil {
 		return err
 	}
 
-	return ei.operationsProc.SerializeSCRs(processedSCRs, buffSlice, elasticIndexer.OperationsIndex, header.GetShardID())
+	return ei.operationsProc.SerializeSCRs(processedSCRs, buffSlice, elasticIndexer.OperationsIndex, shardID)
 }
 
 // SaveValidatorsRating will save validators rating

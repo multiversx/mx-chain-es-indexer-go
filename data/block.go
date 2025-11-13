@@ -79,6 +79,7 @@ type HeaderData struct {
 	TimestampMs      uint64
 	Round            uint64
 	ShardID          uint32
+	NumberOfShards   uint32
 	Epoch            uint32
 	MiniBlockHeaders []coreData.MiniBlockHeaderHandler
 }
