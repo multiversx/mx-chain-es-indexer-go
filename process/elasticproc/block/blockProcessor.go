@@ -170,8 +170,6 @@ func (bp *blockProcessor) prepareExecutionResults(obh *outport.OutportBlockWithH
 }
 
 func (bp *blockProcessor) prepareExecutionResult(baseExecutionResult coreData.BaseExecutionResultHandler, obh *outport.OutportBlockWithHeader) *data.ExecutionResult {
-	miniblocksHashes := bp.getEncodedMBSHashes(obh.BlockData.Body, obh.BlockData.IntraShardMiniBlocks)
-
 	executionResultsHash := hex.EncodeToString(baseExecutionResult.GetHeaderHash())
 	executionResult := &data.ExecutionResult{
 		UUID:                 converters.GenerateBase64UUID(),
@@ -181,7 +179,6 @@ func (bp *blockProcessor) prepareExecutionResult(baseExecutionResult coreData.Ba
 		Nonce:                baseExecutionResult.GetHeaderNonce(),
 		Round:                baseExecutionResult.GetHeaderRound(),
 		Epoch:                baseExecutionResult.GetHeaderEpoch(),
-		MiniBlocksHashes:     miniblocksHashes,
 		GasUsed:              baseExecutionResult.GetGasUsed(),
 	}
 
@@ -191,14 +188,16 @@ func (bp *blockProcessor) prepareExecutionResult(baseExecutionResult coreData.Ba
 		return executionResult
 	}
 
+	executionResult.MiniBlocksHashes = bp.getEncodedMBSHashes(executionResultData.Body, executionResultData.IntraShardMiniBlocks)
+
 	switch t := baseExecutionResult.(type) {
 	case *nodeBlock.MetaExecutionResult:
-		executionResult.MiniBlocksDetails = prepareMiniBlockDetails(t.GetMiniBlockHeadersHandlers(), executionResultData.Body, obh.TransactionPool)
+		executionResult.MiniBlocksDetails = prepareMiniBlockDetails(t.GetMiniBlockHeadersHandlers(), executionResultData.Body, executionResultData.TransactionPool)
 		executionResult.AccumulatedFees = t.AccumulatedFees.String()
 		executionResult.DeveloperFees = t.DeveloperFees.String()
 		executionResult.TxCount = t.ExecutedTxCount
 	case *nodeBlock.ExecutionResult:
-		executionResult.MiniBlocksDetails = prepareMiniBlockDetails(t.GetMiniBlockHeadersHandlers(), executionResultData.Body, obh.TransactionPool)
+		executionResult.MiniBlocksDetails = prepareMiniBlockDetails(t.GetMiniBlockHeadersHandlers(), executionResultData.Body, executionResultData.TransactionPool)
 		executionResult.AccumulatedFees = t.AccumulatedFees.String()
 		executionResult.DeveloperFees = t.DeveloperFees.String()
 		executionResult.TxCount = t.ExecutedTxCount

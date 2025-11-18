@@ -561,3 +561,93 @@ func TestBlockProcessor_PrepareBlockForDBMiniBlocksDetails(t *testing.T) {
 		},
 	}, blockResults.Block)
 }
+
+func TestPrepareExecutionResult(t *testing.T) {
+	t.Parallel()
+
+	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{})
+
+	executionResultHeaderHash := []byte("h1")
+	mb1Hash := []byte("mb1")
+	txHash := []byte("tx1")
+
+	outportBlockWithHeader := &outport.OutportBlockWithHeader{
+		Header: &dataBlock.HeaderV3{
+			ExecutionResults: []*dataBlock.ExecutionResult{
+				{
+					BaseExecutionResult: &dataBlock.BaseExecutionResult{
+						HeaderHash:  executionResultHeaderHash,
+						HeaderNonce: 1,
+						HeaderRound: 2,
+						HeaderEpoch: 3,
+					},
+					MiniBlockHeaders: []dataBlock.MiniBlockHeader{
+						{
+							Hash:            mb1Hash,
+							SenderShardID:   0,
+							ReceiverShardID: 0,
+							Type:            dataBlock.TxBlock,
+							TxCount:         1,
+						},
+					},
+					AccumulatedFees: big.NewInt(1),
+					DeveloperFees:   big.NewInt(2),
+				},
+			},
+		},
+		OutportBlock: &outport.OutportBlock{
+			BlockData: &outport.BlockData{
+				Results: map[string]*outport.ExecutionResultData{
+					hex.EncodeToString(executionResultHeaderHash): {
+						Body: &dataBlock.Body{
+							MiniBlocks: []*dataBlock.MiniBlock{
+								{
+									SenderShardID:   0,
+									ReceiverShardID: 0,
+									Type:            dataBlock.TxBlock,
+									TxHashes:        [][]byte{txHash},
+								},
+							},
+						},
+						TransactionPool: &outport.TransactionPool{
+							Transactions: map[string]*outport.TxInfo{
+								hex.EncodeToString(txHash): {
+									Transaction:    &transaction.Transaction{},
+									ExecutionOrder: 2,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	results, err := bp.prepareExecutionResults(outportBlockWithHeader)
+	require.Nil(t, err)
+	require.Len(t, results, 1)
+	results[0].UUID = ""
+	require.Equal(t, &data.ExecutionResult{
+		Hash:                 "6831",
+		RootHash:             "",
+		NotarizedInBlockHash: "",
+		AccumulatedFees:      "1",
+		DeveloperFees:        "2",
+		TxCount:              0,
+		GasUsed:              0,
+		Nonce:                1,
+		Round:                2,
+		Epoch:                3,
+		MiniBlocksHashes:     []string{"2dae16da63bc04a18cf7609e0a79d7867b11463660dbab048b044b8434bf0a82"},
+		MiniBlocksDetails: []*data.MiniBlocksDetails{
+			{
+				IndexLastProcessedTx:     0,
+				IndexFirstProcessedTx:    0,
+				Type:                     dataBlock.TxBlock.String(),
+				ProcessingType:           dataBlock.Normal.String(),
+				TxsHashes:                []string{hex.EncodeToString(txHash)},
+				ExecutionOrderTxsIndices: []int{2},
+			},
+		},
+	}, results[0])
+}
