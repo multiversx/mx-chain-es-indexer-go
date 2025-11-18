@@ -8,5 +8,5 @@
   "nonce": 2,
   "round": 3,
   "epoch": 3,
-  "miniBlocksHashes": []
+  "miniBlocksHashes":null
 }
