@@ -42,12 +42,11 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 	mb *block.MiniBlock,
 	headerData *data.HeaderData,
 	txStatus string,
-	numOfShards uint32,
 ) *data.Transaction {
 	tx := txInfo.Transaction
 
 	isScCall := core.IsSmartContractAddress(tx.RcvAddr)
-	res := dtb.dataFieldParser.Parse(tx.Data, tx.SndAddr, tx.RcvAddr, numOfShards)
+	res := dtb.dataFieldParser.Parse(tx.Data, tx.SndAddr, tx.RcvAddr, headerData.NumberOfShards)
 
 	receiverAddr := dtb.addressPubkeyConverter.SilentEncode(tx.RcvAddr, log)
 	senderAddr := dtb.addressPubkeyConverter.SilentEncode(tx.SndAddr, log)
@@ -55,7 +54,7 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 
 	receiverShardID := mb.ReceiverShardID
 	if mb.Type == block.InvalidBlock {
-		receiverShardID = sharding.ComputeShardID(tx.RcvAddr, numOfShards)
+		receiverShardID = sharding.ComputeShardID(tx.RcvAddr, headerData.NumberOfShards)
 	}
 
 	valueNum, err := dtb.balanceConverter.ConvertBigValueToFloat(tx.Value)

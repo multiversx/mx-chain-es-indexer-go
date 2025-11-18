@@ -45,7 +45,6 @@ func (proc *smartContractResultsProcessor) processSCRs(
 	miniBlocks []*block.MiniBlock,
 	headerData *indexerData.HeaderData,
 	scrs map[string]*outport.SCRInfo,
-	numOfShards uint32,
 ) []*indexerData.ScResult {
 	allSCRs := make([]*indexerData.ScResult, 0, len(scrs))
 
@@ -56,13 +55,13 @@ func (proc *smartContractResultsProcessor) processSCRs(
 			continue
 		}
 
-		indexerSCRs := proc.processSCRsFromMiniblock(headerData, mb, workingSCRSMap, numOfShards)
+		indexerSCRs := proc.processSCRsFromMiniblock(headerData, mb, workingSCRSMap)
 
 		allSCRs = append(allSCRs, indexerSCRs...)
 	}
 
 	for scrHashHex, noMBScrInfo := range workingSCRSMap {
-		indexerScr := proc.prepareSmartContractResult(scrHashHex, nil, noMBScrInfo, headerData, headerData.ShardID, headerData.ShardID, numOfShards)
+		indexerScr := proc.prepareSmartContractResult(scrHashHex, nil, noMBScrInfo, headerData, headerData.ShardID, headerData.ShardID)
 
 		allSCRs = append(allSCRs, indexerScr)
 	}
@@ -74,7 +73,6 @@ func (proc *smartContractResultsProcessor) processSCRsFromMiniblock(
 	headerData *indexerData.HeaderData,
 	mb *block.MiniBlock,
 	scrs map[string]*outport.SCRInfo,
-	numOfShards uint32,
 ) []*indexerData.ScResult {
 	mbHash, err := core.CalculateHash(proc.marshalizer, proc.hasher, mb)
 	if err != nil {
@@ -93,7 +91,7 @@ func (proc *smartContractResultsProcessor) processSCRsFromMiniblock(
 			continue
 		}
 
-		indexerSCR := proc.prepareSmartContractResult(hex.EncodeToString(scrHash), mbHash, scrInfo, headerData, mb.SenderShardID, mb.ReceiverShardID, numOfShards)
+		indexerSCR := proc.prepareSmartContractResult(hex.EncodeToString(scrHash), mbHash, scrInfo, headerData, mb.SenderShardID, mb.ReceiverShardID)
 		indexerSCRs = append(indexerSCRs, indexerSCR)
 
 		delete(scrs, scrHashHex)
@@ -109,7 +107,6 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 	headerData *indexerData.HeaderData,
 	senderShard uint32,
 	receiverShard uint32,
-	numOfShards uint32,
 ) *indexerData.ScResult {
 	scr := scrInfo.SmartContractResult
 	hexEncodedMBHash := ""
@@ -131,7 +128,7 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 		originalSenderAddr = proc.pubKeyConverter.SilentEncode(scr.OriginalSender, log)
 	}
 
-	res := proc.dataFieldParser.Parse(scr.Data, scr.SndAddr, scr.RcvAddr, numOfShards)
+	res := proc.dataFieldParser.Parse(scr.Data, scr.SndAddr, scr.RcvAddr, headerData.NumberOfShards)
 
 	senderAddr := proc.pubKeyConverter.SilentEncode(scr.SndAddr, log)
 	receiverAddr := proc.pubKeyConverter.SilentEncode(scr.RcvAddr, log)

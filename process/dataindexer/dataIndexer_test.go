@@ -62,7 +62,7 @@ func TestDataIndexer_SaveBlock(t *testing.T) {
 			countMap[0]++
 			return nil
 		},
-		SaveMiniblocksCalled: func(header coreData.HeaderHandler, miniBlocks []*dataBlock.MiniBlock, timestampMs uint64) error {
+		SaveMiniblocksCalled: func(outportBlockWithHeader *outport.OutportBlockWithHeader) error {
 			countMap[1]++
 			return nil
 		},

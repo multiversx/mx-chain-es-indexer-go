@@ -63,7 +63,6 @@ type DBTransactionsHandler interface {
 		headerData *data.HeaderData,
 		pool *outport.TransactionPool,
 		isImportDB bool,
-		numOfShards uint32,
 	) *data.PreparedResults
 	GetHexEncodedHashesForRemove(headerData *data.HeaderData, body *block.Body) ([]string, []string)
 
@@ -75,7 +74,7 @@ type DBTransactionsHandler interface {
 
 // DBMiniblocksHandler defines the actions that a miniblocks handler should do
 type DBMiniblocksHandler interface {
-	PrepareDBMiniblocks(header coreData.HeaderHandler, miniBlocks []*block.MiniBlock, timestampMS uint64) []*data.Miniblock
+	PrepareDBMiniblocks(headerData *data.HeaderData, miniBlocks []*block.MiniBlock) []*data.Miniblock
 	GetMiniblocksHashesHexEncoded(header coreData.HeaderHandler, body *block.Body) []string
 
 	SerializeBulkMiniBlocks(bulkMbs []*data.Miniblock, buffSlice *data.BufferSlice, index string, shardID uint32)

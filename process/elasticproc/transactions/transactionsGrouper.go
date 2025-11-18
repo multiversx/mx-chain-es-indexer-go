@@ -41,7 +41,6 @@ func (tg *txsGrouper) groupNormalTxs(
 	headerData *data.HeaderData,
 	txs map[string]*outport.TxInfo,
 	isImportDB bool,
-	numOfShards uint32,
 ) (map[string]*data.Transaction, error) {
 	transactions := make(map[string]*data.Transaction)
 
@@ -53,7 +52,7 @@ func (tg *txsGrouper) groupNormalTxs(
 	executedTxHashes := extractExecutedTxHashes(mbIndex, mb.TxHashes, headerData)
 	mbStatus := computeStatus(headerData.ShardID, mb.ReceiverShardID)
 	for _, txHash := range executedTxHashes {
-		dbTx, ok := tg.prepareNormalTxForDB(mbHash, mb, mbStatus, txHash, txs, headerData, numOfShards)
+		dbTx, ok := tg.prepareNormalTxForDB(mbHash, mb, mbStatus, txHash, txs, headerData)
 		if !ok {
 			continue
 		}
@@ -94,14 +93,13 @@ func (tg *txsGrouper) prepareNormalTxForDB(
 	txHash []byte,
 	txs map[string]*outport.TxInfo,
 	headerData *data.HeaderData,
-	numOfShards uint32,
 ) (*data.Transaction, bool) {
 	txInfo, okGet := txs[hex.EncodeToString(txHash)]
 	if !okGet {
 		return nil, false
 	}
 
-	dbTx := tg.txBuilder.prepareTransaction(txInfo, txHash, mbHash, mb, headerData, mbStatus, numOfShards)
+	dbTx := tg.txBuilder.prepareTransaction(txInfo, txHash, mbHash, mb, headerData, mbStatus)
 
 	return dbTx, true
 }
@@ -158,7 +156,6 @@ func (tg *txsGrouper) groupInvalidTxs(
 	mb *block.MiniBlock,
 	headerData *data.HeaderData,
 	txs map[string]*outport.TxInfo,
-	numOfShards uint32,
 ) (map[string]*data.Transaction, error) {
 	transactions := make(map[string]*data.Transaction)
 	mbHash, err := core.CalculateHash(tg.marshalizer, tg.hasher, mb)
@@ -168,7 +165,7 @@ func (tg *txsGrouper) groupInvalidTxs(
 
 	executedTxHashes := extractExecutedTxHashes(mbIndex, mb.TxHashes, headerData)
 	for _, txHash := range executedTxHashes {
-		invalidDBTx, ok := tg.prepareInvalidTxForDB(mbHash, mb, txHash, txs, headerData, numOfShards)
+		invalidDBTx, ok := tg.prepareInvalidTxForDB(mbHash, mb, txHash, txs, headerData)
 		if !ok {
 			continue
 		}
@@ -185,14 +182,13 @@ func (tg *txsGrouper) prepareInvalidTxForDB(
 	txHash []byte,
 	txs map[string]*outport.TxInfo,
 	headerDta *data.HeaderData,
-	numOfShards uint32,
 ) (*data.Transaction, bool) {
 	txInfo, okGet := txs[hex.EncodeToString(txHash)]
 	if !okGet {
 		return nil, false
 	}
 
-	dbTx := tg.txBuilder.prepareTransaction(txInfo, txHash, mbHash, mb, headerDta, transaction.TxStatusInvalid.String(), numOfShards)
+	dbTx := tg.txBuilder.prepareTransaction(txInfo, txHash, mbHash, mb, headerDta, transaction.TxStatusInvalid.String())
 
 	return dbTx, true
 }

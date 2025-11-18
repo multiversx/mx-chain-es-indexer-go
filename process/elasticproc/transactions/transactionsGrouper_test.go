@@ -30,8 +30,9 @@ func TestGroupNormalTxs(t *testing.T) {
 		Type:     block.TxBlock,
 	}
 	headerData := &data.HeaderData{
-		Timestamp:   1234,
-		TimestampMs: 1234000,
+		Timestamp:      1234,
+		TimestampMs:    1234000,
+		NumberOfShards: 3,
 	}
 	txs := map[string]*outport.TxInfo{
 		hex.EncodeToString(txHash1): {
@@ -50,7 +51,7 @@ func TestGroupNormalTxs(t *testing.T) {
 		},
 	}
 
-	normalTxs, _ := grouper.groupNormalTxs(0, mb, headerData, txs, false, 3)
+	normalTxs, _ := grouper.groupNormalTxs(0, mb, headerData, txs, false)
 	require.Len(t, normalTxs, 2)
 	require.Equal(t, uint64(1234), normalTxs[string(txHash1)].Timestamp)
 	require.Equal(t, uint64(1234000), normalTxs[string(txHash1)].TimestampMs)
@@ -104,8 +105,9 @@ func TestGroupInvalidTxs(t *testing.T) {
 		Type:     block.InvalidBlock,
 	}
 	headerData := &data.HeaderData{
-		Timestamp:   1234,
-		TimestampMs: 1234000,
+		Timestamp:      1234,
+		TimestampMs:    1234000,
+		NumberOfShards: 3,
 	}
 	txs := map[string]*outport.TxInfo{
 		hex.EncodeToString(txHash1): {
@@ -120,7 +122,7 @@ func TestGroupInvalidTxs(t *testing.T) {
 			}, FeeInfo: &outport.FeeInfo{}},
 	}
 
-	normalTxs, _ := grouper.groupInvalidTxs(0, mb, headerData, txs, 3)
+	normalTxs, _ := grouper.groupInvalidTxs(0, mb, headerData, txs)
 	require.Len(t, normalTxs, 2)
 	require.Equal(t, uint64(1234), normalTxs[string(txHash1)].Timestamp)
 	require.Equal(t, uint64(1234000), normalTxs[string(txHash1)].TimestampMs)

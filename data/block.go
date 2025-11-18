@@ -81,6 +81,7 @@ type HeaderData struct {
 	ShardID          uint32
 	NumberOfShards   uint32
 	Epoch            uint32
+	HeaderHash       []byte
 	MiniBlockHeaders []coreData.MiniBlockHeaderHandler
 }
 

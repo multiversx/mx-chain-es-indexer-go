@@ -421,20 +421,52 @@ func (ei *elasticProcessor) removeFromIndexByTimestampAndShardID(shardID uint32,
 }
 
 // SaveMiniblocks will prepare and save information about miniblocks in elasticsearch server
-func (ei *elasticProcessor) SaveMiniblocks(header coreData.HeaderHandler, miniBlocks []*block.MiniBlock, timestampMS uint64) error {
+func (ei *elasticProcessor) SaveMiniblocks(obh *outport.OutportBlockWithHeader) error {
 	if !ei.isIndexEnabled(elasticIndexer.MiniblocksIndex) {
 		return nil
 	}
 
-	mbs := ei.miniblocksProc.PrepareDBMiniblocks(header, miniBlocks, timestampMS)
-	if len(mbs) == 0 {
-		return nil
+	buffSlice := data.NewBufferSlice(ei.bulkRequestMaxSize)
+
+	headerData := &data.HeaderData{
+		Timestamp:        converters.MillisecondsToSeconds(obh.BlockData.TimestampMs),
+		TimestampMs:      obh.BlockData.TimestampMs,
+		Round:            obh.Header.GetRound(),
+		ShardID:          obh.Header.GetShardID(),
+		Epoch:            obh.Header.GetEpoch(),
+		MiniBlockHeaders: obh.Header.GetMiniBlockHeaderHandlers(),
+		NumberOfShards:   obh.NumberOfShards,
+		HeaderHash:       obh.BlockData.HeaderHash,
+	}
+	miniBlocks := append(obh.BlockData.Body.MiniBlocks, obh.BlockData.Body.MiniBlocks...)
+	mbs := ei.miniblocksProc.PrepareDBMiniblocks(headerData, miniBlocks)
+	ei.miniblocksProc.SerializeBulkMiniBlocks(mbs, buffSlice, elasticIndexer.MiniblocksIndex, headerData.ShardID)
+
+	for _, executionResult := range obh.Header.GetExecutionResultsHandlers() {
+		executionResulData, found := obh.BlockData.Results[hex.EncodeToString(executionResult.GetHeaderHash())]
+		if !found {
+			log.Warn("elasticProcessor.SaveTransactions: cannot find execution result data", "hash", executionResult.GetHeaderHash())
+			continue
+		}
+
+		headerData = &data.HeaderData{
+			Timestamp:        converters.MillisecondsToSeconds(executionResulData.TimestampMs),
+			TimestampMs:      executionResulData.TimestampMs,
+			Round:            executionResult.GetHeaderRound(),
+			ShardID:          obh.Header.GetShardID(),
+			NumberOfShards:   obh.NumberOfShards,
+			Epoch:            executionResult.GetHeaderEpoch(),
+			MiniBlockHeaders: converters.GetMiniBlocksHeaderHandlersFromExecResult(executionResult),
+			HeaderHash:       executionResult.GetHeaderHash(),
+		}
+
+		miniBlocks = append(executionResulData.Body.MiniBlocks, executionResulData.IntraShardMiniBlocks...)
+		mbs = ei.miniblocksProc.PrepareDBMiniblocks(headerData, miniBlocks)
+		ei.miniblocksProc.SerializeBulkMiniBlocks(mbs, buffSlice, elasticIndexer.MiniblocksIndex, headerData.ShardID)
+
 	}
 
-	buffSlice := data.NewBufferSlice(ei.bulkRequestMaxSize)
-	ei.miniblocksProc.SerializeBulkMiniBlocks(mbs, buffSlice, elasticIndexer.MiniblocksIndex, header.GetShardID())
-
-	return ei.doBulkRequests("", buffSlice.Buffers(), header.GetShardID())
+	return ei.doBulkRequests("", buffSlice.Buffers(), headerData.ShardID)
 }
 
 // SaveTransactions will prepare and save information about a transactions in elasticsearch server
@@ -491,7 +523,7 @@ func (ei *elasticProcessor) prepareAndSaveTransactionsData(
 	buffers *data.BufferSlice,
 ) error {
 
-	preparedResults := ei.transactionsProc.PrepareTransactionsForDatabase(miniBlocks, headerData, pool, ei.isImportDB(), headerData.NumberOfShards)
+	preparedResults := ei.transactionsProc.PrepareTransactionsForDatabase(miniBlocks, headerData, pool, ei.isImportDB())
 	logsData := ei.logsAndEventsProc.ExtractDataFromLogs(pool.Logs, preparedResults, headerData.ShardID, headerData.NumberOfShards, headerData.TimestampMs)
 
 	err := ei.indexTransactions(preparedResults.Transactions, logsData.TxHashStatusInfo, headerData.ShardID, buffers)

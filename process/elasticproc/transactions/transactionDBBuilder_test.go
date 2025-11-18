@@ -33,8 +33,9 @@ func TestGetMoveBalanceTransaction(t *testing.T) {
 	mbHash := []byte("mbHash")
 	mb := &block.MiniBlock{TxHashes: [][]byte{txHash}}
 	headerData := &data.HeaderData{
-		Timestamp:   1234,
-		TimestampMs: 1234000,
+		Timestamp:      1234,
+		TimestampMs:    1234000,
+		NumberOfShards: 3,
 	}
 	status := "Success"
 	gasPrice := uint64(1000)
@@ -101,7 +102,7 @@ func TestGetMoveBalanceTransaction(t *testing.T) {
 		TimestampMs:      1234000,
 	}
 
-	dbTx := cp.prepareTransaction(txInfo, txHash, mbHash, mb, headerData, status, 3)
+	dbTx := cp.prepareTransaction(txInfo, txHash, mbHash, mb, headerData, status)
 	dbTx.UUID = ""
 	require.Equal(t, expectedTx, dbTx)
 }
@@ -152,8 +153,9 @@ func TestRelayedV3Transaction(t *testing.T) {
 	mbHash := []byte("mbHash")
 	mb := &block.MiniBlock{TxHashes: [][]byte{txHash}, Type: block.InvalidBlock}
 	headerData := &data.HeaderData{
-		Timestamp:   1234,
-		TimestampMs: 1234000,
+		Timestamp:      1234,
+		TimestampMs:    1234000,
+		NumberOfShards: 3,
 	}
 	status := transaction.TxStatusInvalid.String()
 	gasPrice := uint64(1000)
@@ -219,7 +221,7 @@ func TestRelayedV3Transaction(t *testing.T) {
 		ExecutionOrder: 0,
 	}
 
-	dbTx := cp.prepareTransaction(txInfo, txHash, mbHash, mb, headerData, status, 3)
+	dbTx := cp.prepareTransaction(txInfo, txHash, mbHash, mb, headerData, status)
 	dbTx.UUID = ""
 	require.Equal(t, expectedTx, dbTx)
 }
@@ -231,8 +233,9 @@ func TestGetMoveBalanceTransactionInvalid(t *testing.T) {
 	mbHash := []byte("mbHash")
 	mb := &block.MiniBlock{TxHashes: [][]byte{txHash}, Type: block.InvalidBlock}
 	headerData := &data.HeaderData{
-		Timestamp:   1234,
-		TimestampMs: 1234000,
+		Timestamp:      1234,
+		TimestampMs:    1234000,
+		NumberOfShards: 3,
 	}
 	status := transaction.TxStatusInvalid.String()
 	gasPrice := uint64(1000)
@@ -294,7 +297,7 @@ func TestGetMoveBalanceTransactionInvalid(t *testing.T) {
 		ExecutionOrder: 0,
 	}
 
-	dbTx := cp.prepareTransaction(txInfo, txHash, mbHash, mb, headerData, status, 3)
+	dbTx := cp.prepareTransaction(txInfo, txHash, mbHash, mb, headerData, status)
 	dbTx.UUID = ""
 	require.Equal(t, expectedTx, dbTx)
 }
