@@ -438,7 +438,7 @@ func (ei *elasticProcessor) SaveMiniblocks(obh *outport.OutportBlockWithHeader) 
 		NumberOfShards:   obh.NumberOfShards,
 		HeaderHash:       obh.BlockData.HeaderHash,
 	}
-	miniBlocks := append(obh.BlockData.Body.MiniBlocks, obh.BlockData.Body.MiniBlocks...)
+	miniBlocks := append(obh.BlockData.Body.MiniBlocks, obh.BlockData.IntraShardMiniBlocks...)
 	mbs := ei.miniblocksProc.PrepareDBMiniblocks(headerData, miniBlocks)
 	ei.miniblocksProc.SerializeBulkMiniBlocks(mbs, buffSlice, elasticIndexer.MiniblocksIndex, headerData.ShardID)
 
