@@ -75,7 +75,7 @@ type DBTransactionsHandler interface {
 // DBMiniblocksHandler defines the actions that a miniblocks handler should do
 type DBMiniblocksHandler interface {
 	PrepareDBMiniblocks(headerData *data.HeaderData, miniBlocks []*block.MiniBlock) []*data.Miniblock
-	GetMiniblocksHashesHexEncoded(header coreData.HeaderHandler, body *block.Body) []string
+	GetMiniblocksHashesHexEncoded(headerData *data.HeaderData) []string
 
 	SerializeBulkMiniBlocks(bulkMbs []*data.Miniblock, buffSlice *data.BufferSlice, index string, shardID uint32)
 }

@@ -5,7 +5,6 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	coreData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
@@ -146,31 +145,25 @@ func (mp *miniblocksProcessor) computeProcessingTypeAndConstructionState(mbIndex
 }
 
 // GetMiniblocksHashesHexEncoded will compute miniblocks hashes in a hexadecimal encoding
-func (mp *miniblocksProcessor) GetMiniblocksHashesHexEncoded(header coreData.HeaderHandler, body *block.Body) []string {
-	if body == nil || len(header.GetMiniBlockHeadersHashes()) == 0 {
+func (mp *miniblocksProcessor) GetMiniblocksHashesHexEncoded(headerData *data.HeaderData) []string {
+	if len(headerData.MiniBlockHeaders) == 0 {
 		return nil
 	}
 
 	encodedMiniblocksHashes := make([]string, 0)
-	selfShardID := header.GetShardID()
-	for _, miniblock := range body.MiniBlocks {
-		if miniblock.Type == block.PeerBlock {
+	selfShardID := headerData.ShardID
+	for _, miniblock := range headerData.MiniBlockHeaders {
+		if miniblock.GetTypeInt32() == int32(block.PeerBlock) {
 			continue
 		}
 
-		isCrossShard := miniblock.ReceiverShardID != miniblock.SenderShardID
-		isCrossShardOnDestination := selfShardID == miniblock.ReceiverShardID && isCrossShard
+		isCrossShard := miniblock.GetReceiverShardID() != miniblock.GetSenderShardID()
+		isCrossShardOnDestination := selfShardID == miniblock.GetReceiverShardID() && isCrossShard
 		if isCrossShardOnDestination {
 			continue
 		}
 
-		miniblockHash, err := mp.calculateHash(miniblock)
-		if err != nil {
-			log.Debug("miniblocksProcessor.GetMiniblocksHashesHexEncoded cannot calculate miniblock hash",
-				"error", err)
-			continue
-		}
-		encodedMiniblocksHashes = append(encodedMiniblocksHashes, hex.EncodeToString(miniblockHash))
+		encodedMiniblocksHashes = append(encodedMiniblocksHashes, hex.EncodeToString(miniblock.GetHash()))
 	}
 
 	return encodedMiniblocksHashes

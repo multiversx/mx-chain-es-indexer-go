@@ -14,7 +14,7 @@ import (
 type ElasticProcessor interface {
 	SaveHeader(outportBlockWithHeader *outport.OutportBlockWithHeader) error
 	RemoveHeader(header coreData.HeaderHandler) error
-	RemoveMiniblocks(header coreData.HeaderHandler, body *block.Body) error
+	RemoveMiniblocks(header coreData.HeaderHandler) error
 	RemoveTransactions(header coreData.HeaderHandler, body *block.Body, uint65 uint64) error
 	RemoveAccountsESDT(shardID uint32, timestampMS uint64) error
 	SaveMiniblocks(outportBlockWithHeader *outport.OutportBlockWithHeader) error

@@ -159,7 +159,7 @@ func TestDataIndexer_RevertIndexedBlock(t *testing.T) {
 			countMap[0]++
 			return nil
 		},
-		RemoveMiniblocksCalled: func(header coreData.HeaderHandler, body *dataBlock.Body) error {
+		RemoveMiniblocksCalled: func(header coreData.HeaderHandler) error {
 			countMap[1]++
 			return nil
 		},

@@ -10,7 +10,7 @@ import (
 type ElasticProcessorStub struct {
 	SaveHeaderCalled                 func(outportBlockWithHeader *outport.OutportBlockWithHeader) error
 	RemoveHeaderCalled               func(header coreData.HeaderHandler) error
-	RemoveMiniblocksCalled           func(header coreData.HeaderHandler, body *block.Body) error
+	RemoveMiniblocksCalled           func(header coreData.HeaderHandler) error
 	RemoveTransactionsCalled         func(header coreData.HeaderHandler, body *block.Body) error
 	SaveMiniblocksCalled             func(outportBlockWithHeader *outport.OutportBlockWithHeader) error
 	SaveTransactionsCalled           func(outportBlockWithHeader *outport.OutportBlockWithHeader) error
@@ -47,9 +47,9 @@ func (eim *ElasticProcessorStub) RemoveHeader(header coreData.HeaderHandler) err
 }
 
 // RemoveMiniblocks -
-func (eim *ElasticProcessorStub) RemoveMiniblocks(header coreData.HeaderHandler, body *block.Body) error {
+func (eim *ElasticProcessorStub) RemoveMiniblocks(header coreData.HeaderHandler) error {
 	if eim.RemoveMiniblocksCalled != nil {
-		return eim.RemoveMiniblocksCalled(header, body)
+		return eim.RemoveMiniblocksCalled(header)
 	}
 	return nil
 }

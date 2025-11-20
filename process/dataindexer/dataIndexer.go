@@ -142,7 +142,7 @@ func (di *dataIndexer) RevertIndexedBlock(blockData *outport.BlockData) error {
 		return err
 	}
 
-	err = di.elasticProcessor.RemoveMiniblocks(header, blockData.Body)
+	err = di.elasticProcessor.RemoveMiniblocks(header)
 	if err != nil {
 		return err
 	}

@@ -151,7 +151,7 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 		esdtValues = res.ESDTValues
 	}
 
-	isRelayed := res.IsRelayed && headerData.ShardID < proc.relayedV1V2DisableEpoch
+	isRelayed := res.IsRelayed && headerData.Epoch < proc.relayedV1V2DisableEpoch
 
 	feeInfo := getFeeInfo(scrInfo)
 	return &indexerData.ScResult{

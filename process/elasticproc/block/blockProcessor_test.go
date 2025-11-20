@@ -124,6 +124,7 @@ func TestBlockProcessor_PrepareBlockForDBShouldWork(t *testing.T) {
 		SoftwareVersion:       "31",
 		ReceiptsHash:          "68617368",
 		Reserved:              []byte("reserved"),
+		MiniBlocksDetails:     []*data.MiniBlocksDetails{},
 	}
 	require.Equal(t, expectedBlock, blockResults.Block)
 }
@@ -501,6 +502,7 @@ func TestBlockProcessor_PrepareBlockForDBMiniBlocksDetails(t *testing.T) {
 
 	blockResults, err := bp.PrepareBlockForDB(outportBlockWithHeader)
 	require.Nil(t, err)
+	require.Equal(t, 0, len(blockResults.ExecutionResults))
 	blockResults.Block.UUID = ""
 
 	require.Equal(t, &data.Block{
@@ -596,7 +598,9 @@ func TestPrepareExecutionResult(t *testing.T) {
 			},
 		},
 		OutportBlock: &outport.OutportBlock{
+			HeaderGasConsumption: &outport.HeaderGasConsumption{},
 			BlockData: &outport.BlockData{
+				Body: &dataBlock.Body{},
 				Results: map[string]*outport.ExecutionResultData{
 					hex.EncodeToString(executionResultHeaderHash): {
 						Body: &dataBlock.Body{
@@ -623,10 +627,11 @@ func TestPrepareExecutionResult(t *testing.T) {
 		},
 	}
 
-	results, err := bp.prepareExecutionResults(outportBlockWithHeader)
-	require.Nil(t, err)
-	require.Len(t, results, 1)
-	results[0].UUID = ""
+	results, err := bp.PrepareBlockForDB(outportBlockWithHeader)
+	require.NoError(t, err)
+
+	require.Equal(t, []string{"6831"}, results.Block.ExecutionResultBlockHashes)
+	results.ExecutionResults[0].UUID = ""
 	require.Equal(t, &data.ExecutionResult{
 		Hash:                 "6831",
 		RootHash:             "",
@@ -649,5 +654,5 @@ func TestPrepareExecutionResult(t *testing.T) {
 				ExecutionOrderTxsIndices: []int{2},
 			},
 		},
-	}, results[0])
+	}, results.ExecutionResults[0])
 }

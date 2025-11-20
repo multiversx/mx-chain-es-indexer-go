@@ -143,20 +143,15 @@ func (bp *blockProcessor) PrepareBlockForDB(obh *outport.OutportBlockWithHeader)
 
 	addProofs(elasticBlock, obh)
 
-	executionResultData, err := bp.prepareExecutionResults(obh)
-	if err != nil {
-		return nil, err
-	}
-
 	return &data.PreparedBlockResults{
 		Block:            elasticBlock,
-		ExecutionResults: executionResultData,
+		ExecutionResults: bp.prepareExecutionResults(obh),
 	}, nil
 }
 
-func (bp *blockProcessor) prepareExecutionResults(obh *outport.OutportBlockWithHeader) ([]*data.ExecutionResult, error) {
+func (bp *blockProcessor) prepareExecutionResults(obh *outport.OutportBlockWithHeader) []*data.ExecutionResult {
 	if !obh.Header.IsHeaderV3() {
-		return []*data.ExecutionResult{}, nil
+		return []*data.ExecutionResult{}
 	}
 
 	executionResults := make([]*data.ExecutionResult, 0)
@@ -166,7 +161,7 @@ func (bp *blockProcessor) prepareExecutionResults(obh *outport.OutportBlockWithH
 		executionResults = append(executionResults, executionResult)
 	}
 
-	return executionResults, nil
+	return executionResults
 }
 
 func (bp *blockProcessor) prepareExecutionResult(baseExecutionResult coreData.BaseExecutionResultHandler, obh *outport.OutportBlockWithHeader) *data.ExecutionResult {
@@ -355,10 +350,6 @@ func (bp *blockProcessor) getEncodedMBSHashes(body *nodeBlock.Body, intraShardMb
 }
 
 func prepareMiniBlockDetails(mbHeaders []coreData.MiniBlockHeaderHandler, body *nodeBlock.Body, pool *outport.TransactionPool) []*data.MiniBlocksDetails {
-	if len(mbHeaders) == 0 {
-		return nil
-	}
-
 	mbsDetails := make([]*data.MiniBlocksDetails, 0, len(mbHeaders))
 	for idx, mbHeader := range mbHeaders {
 		mbType := nodeBlock.Type(mbHeader.GetTypeInt32())

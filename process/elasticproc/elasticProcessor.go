@@ -316,11 +316,12 @@ func (ei *elasticProcessor) RemoveHeader(header coreData.HeaderHandler) error {
 }
 
 // RemoveMiniblocks will remove all miniblocks that are in header from elasticsearch server
-func (ei *elasticProcessor) RemoveMiniblocks(header coreData.HeaderHandler, body *block.Body) error {
-	encodedMiniblocksHashes := ei.miniblocksProc.GetMiniblocksHashesHexEncoded(header, body)
-	if len(encodedMiniblocksHashes) == 0 {
-		return nil
+func (ei *elasticProcessor) RemoveMiniblocks(header coreData.HeaderHandler) error {
+	headerData := &data.HeaderData{
+		ShardID:          header.GetShardID(),
+		MiniBlockHeaders: header.GetMiniBlockHeaderHandlers(),
 	}
+	encodedMiniblocksHashes := ei.miniblocksProc.GetMiniblocksHashesHexEncoded(headerData)
 
 	ctxWithValue := context.WithValue(context.Background(), request.ContextKey, request.ExtendTopicWithShardID(request.RemoveTopic, header.GetShardID()))
 	return ei.elasticClient.DoQueryRemove(
