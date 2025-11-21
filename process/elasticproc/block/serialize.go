@@ -27,6 +27,23 @@ func (bp *blockProcessor) SerializeBlock(elasticBlock *data.Block, buffSlice *da
 	return buffSlice.PutData(meta, serializedData)
 }
 
+// SerializeExecutionResults will serialize execution results slice for database
+func (bp *blockProcessor) SerializeExecutionResults(executionResults []*data.ExecutionResult, buffSlice *data.BufferSlice, index string) error {
+	for _, result := range executionResults {
+		meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(result.Hash), "\n"))
+		serializedData, err := json.Marshal(result)
+		if err != nil {
+			return err
+		}
+
+		err = buffSlice.PutData(meta, serializedData)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // SerializeEpochInfoData will serialize information about current epoch
 func (bp *blockProcessor) SerializeEpochInfoData(header coreData.HeaderHandler, buffSlice *data.BufferSlice, index string) error {
 	if check.IfNil(header) {

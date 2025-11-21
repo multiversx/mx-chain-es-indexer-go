@@ -11,7 +11,6 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	coreData "github.com/multiversx/mx-chain-core-go/data"
 	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
@@ -273,9 +272,6 @@ func TestElasticProcessor_RemoveHeader(t *testing.T) {
 func TestElasticProcessor_RemoveMiniblocks(t *testing.T) {
 	called := false
 
-	mb1 := &dataBlock.MiniBlock{
-		Type: dataBlock.PeerBlock,
-	}
 	mb2 := &dataBlock.MiniBlock{
 		ReceiverShardID: 0,
 		SenderShardID:   1,
@@ -284,10 +280,6 @@ func TestElasticProcessor_RemoveMiniblocks(t *testing.T) {
 		ReceiverShardID: 1,
 		SenderShardID:   1,
 	} // should be removed
-	mb4 := &dataBlock.MiniBlock{
-		ReceiverShardID: 1,
-		SenderShardID:   0,
-	} // should NOT be removed
 
 	args := createMockElasticProcessorArgs()
 
@@ -313,25 +305,27 @@ func TestElasticProcessor_RemoveMiniblocks(t *testing.T) {
 		ShardID: 1,
 		MiniBlockHeaders: []dataBlock.MiniBlockHeader{
 			{
+				Type: dataBlock.PeerBlock,
 				Hash: []byte("hash1"),
 			},
 			{
-				Hash: []byte("hash2"),
+				Hash:            mbHash2,
+				ReceiverShardID: 0,
+				SenderShardID:   1,
 			},
 			{
-				Hash: []byte("hash3"),
+				Hash:            mbHash3,
+				ReceiverShardID: 1,
+				SenderShardID:   1,
 			},
 			{
-				Hash: []byte("hash4"),
+				Hash:            []byte("hash4"),
+				ReceiverShardID: 1,
+				SenderShardID:   0,
 			},
 		},
 	}
-	body := &dataBlock.Body{
-		MiniBlocks: dataBlock.MiniBlockSlice{
-			mb1, mb2, mb3, mb4,
-		},
-	}
-	err = elasticProc.RemoveMiniblocks(header, body)
+	err = elasticProc.RemoveMiniblocks(header)
 	require.Nil(t, err)
 	require.True(t, called)
 }
@@ -430,7 +424,12 @@ func TestElasticProcessor_SaveMiniblocks(t *testing.T) {
 	body := &dataBlock.Body{MiniBlocks: dataBlock.MiniBlockSlice{
 		{SenderShardID: 0, ReceiverShardID: 1},
 	}}
-	err := elasticProc.SaveMiniblocks(header, body.MiniBlocks, 0)
+
+	ob := createEmptyOutportBlockWithHeader()
+	ob.Header = header
+	ob.BlockData.Body = body
+
+	err := elasticProc.SaveMiniblocks(ob)
 	require.NotNil(t, err)
 	require.Equal(t, localErr.Error(), err.Error())
 }
@@ -560,7 +559,7 @@ func TestElasticProcessor_SaveTransactionNoDataShouldNotDoRequest(t *testing.T) 
 	called := false
 	arguments := createMockElasticProcessorArgs()
 	arguments.TransactionsProc = &mock.DBTransactionProcessorStub{
-		PrepareTransactionsForDatabaseCalled: func(mbs []*dataBlock.MiniBlock, header coreData.HeaderHandler, pool *outport.TransactionPool) *data.PreparedResults {
+		PrepareTransactionsForDatabaseCalled: func(mbs []*dataBlock.MiniBlock, headerData *data.HeaderData, pool *outport.TransactionPool) *data.PreparedResults {
 			return &data.PreparedResults{
 				Transactions: nil,
 				ScResults:    nil,

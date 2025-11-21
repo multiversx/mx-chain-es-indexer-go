@@ -1,12 +1,13 @@
 package logsevents
 
 import (
+	"math/big"
+	"testing"
+
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/mock"
 	"github.com/stretchr/testify/require"
-	"math/big"
-	"testing"
 )
 
 func TestLogsAndEventsProcessor_SerializeLogs(t *testing.T) {

@@ -2,7 +2,7 @@
     available-indices =  [
         "rating", "transactions", "blocks", "validators", "miniblocks", "rounds", "accounts", "accountshistory",
         "receipts", "scresults", "accountsesdt", "accountsesdthistory", "epochinfo", "scdeploys", "tokens", "tags",
-        "logs", "delegators", "operations", "esdts", "values", "events"
+        "logs", "delegators", "operations", "esdts", "values", "events", "executionresults"
     ]
     [config.address-converter]
         length = 32

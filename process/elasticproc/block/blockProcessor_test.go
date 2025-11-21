@@ -3,9 +3,10 @@ package block
 import (
 	"encoding/hex"
 	"errors"
-	"github.com/multiversx/mx-chain-core-go/data/api"
 	"math/big"
 	"testing"
+
+	"github.com/multiversx/mx-chain-core-go/data/api"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
@@ -100,10 +101,10 @@ func TestBlockProcessor_PrepareBlockForDBShouldWork(t *testing.T) {
 			HeaderGasConsumption: &outport.HeaderGasConsumption{},
 		},
 	}
-	dbBlock, err := bp.PrepareBlockForDB(outportBlockWithHeader)
+	blockResults, err := bp.PrepareBlockForDB(outportBlockWithHeader)
 	require.Nil(t, err)
 
-	dbBlock.UUID = ""
+	blockResults.Block.UUID = ""
 
 	expectedBlock := &data.Block{
 		Hash:                  "68617368",
@@ -123,8 +124,9 @@ func TestBlockProcessor_PrepareBlockForDBShouldWork(t *testing.T) {
 		SoftwareVersion:       "31",
 		ReceiptsHash:          "68617368",
 		Reserved:              []byte("reserved"),
+		MiniBlocksDetails:     []*data.MiniBlocksDetails{},
 	}
-	require.Equal(t, expectedBlock, dbBlock)
+	require.Equal(t, expectedBlock, blockResults.Block)
 }
 
 func TestBlockProcessor_PrepareBlockForDBNilHeader(t *testing.T) {
@@ -299,8 +301,9 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 		},
 	}
 
-	dbBlock, err := bp.PrepareBlockForDB(outportBlockWithHeader)
-	dbBlock.UUID = ""
+	blockResults, err := bp.PrepareBlockForDB(outportBlockWithHeader)
+	require.Nil(t, err)
+	blockResults.Block.UUID = ""
 
 	require.Equal(t, nil, err)
 	require.Equal(t, &data.Block{
@@ -388,7 +391,7 @@ func TestBlockProcessor_PrepareBlockForDBEpochStartMeta(t *testing.T) {
 		TxCount:           170,
 		AccumulatedFees:   "0",
 		DeveloperFees:     "0",
-	}, dbBlock)
+	}, blockResults.Block)
 }
 
 func TestBlockProcessor_PrepareBlockForDBMiniBlocksDetails(t *testing.T) {
@@ -497,9 +500,10 @@ func TestBlockProcessor_PrepareBlockForDBMiniBlocksDetails(t *testing.T) {
 		},
 	}
 
-	dbBlock, err := bp.PrepareBlockForDB(outportBlockWithHeader)
+	blockResults, err := bp.PrepareBlockForDB(outportBlockWithHeader)
 	require.Nil(t, err)
-	dbBlock.UUID = ""
+	require.Equal(t, 0, len(blockResults.ExecutionResults))
+	blockResults.Block.UUID = ""
 
 	require.Equal(t, &data.Block{
 		Hash:            "68617368",
@@ -557,5 +561,98 @@ func TestBlockProcessor_PrepareBlockForDBMiniBlocksDetails(t *testing.T) {
 				ExecutionOrderTxsIndices: []int{4},
 				TxsHashes:                []string{"696e747261534352"}},
 		},
-	}, dbBlock)
+	}, blockResults.Block)
+}
+
+func TestPrepareExecutionResult(t *testing.T) {
+	t.Parallel()
+
+	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{})
+
+	executionResultHeaderHash := []byte("h1")
+	mb1Hash := []byte("mb1")
+	txHash := []byte("tx1")
+
+	outportBlockWithHeader := &outport.OutportBlockWithHeader{
+		Header: &dataBlock.HeaderV3{
+			ExecutionResults: []*dataBlock.ExecutionResult{
+				{
+					BaseExecutionResult: &dataBlock.BaseExecutionResult{
+						HeaderHash:  executionResultHeaderHash,
+						HeaderNonce: 1,
+						HeaderRound: 2,
+						HeaderEpoch: 3,
+					},
+					MiniBlockHeaders: []dataBlock.MiniBlockHeader{
+						{
+							Hash:            mb1Hash,
+							SenderShardID:   0,
+							ReceiverShardID: 0,
+							Type:            dataBlock.TxBlock,
+							TxCount:         1,
+						},
+					},
+					AccumulatedFees: big.NewInt(1),
+					DeveloperFees:   big.NewInt(2),
+				},
+			},
+		},
+		OutportBlock: &outport.OutportBlock{
+			HeaderGasConsumption: &outport.HeaderGasConsumption{},
+			BlockData: &outport.BlockData{
+				Body: &dataBlock.Body{},
+				Results: map[string]*outport.ExecutionResultData{
+					hex.EncodeToString(executionResultHeaderHash): {
+						Body: &dataBlock.Body{
+							MiniBlocks: []*dataBlock.MiniBlock{
+								{
+									SenderShardID:   0,
+									ReceiverShardID: 0,
+									Type:            dataBlock.TxBlock,
+									TxHashes:        [][]byte{txHash},
+								},
+							},
+						},
+						TransactionPool: &outport.TransactionPool{
+							Transactions: map[string]*outport.TxInfo{
+								hex.EncodeToString(txHash): {
+									Transaction:    &transaction.Transaction{},
+									ExecutionOrder: 2,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	results, err := bp.PrepareBlockForDB(outportBlockWithHeader)
+	require.NoError(t, err)
+
+	require.Equal(t, []string{"6831"}, results.Block.ExecutionResultBlockHashes)
+	results.ExecutionResults[0].UUID = ""
+	require.Equal(t, &data.ExecutionResult{
+		Hash:                 "6831",
+		RootHash:             "",
+		NotarizedInBlockHash: "",
+		AccumulatedFees:      "1",
+		DeveloperFees:        "2",
+		TxCount:              0,
+		GasUsed:              0,
+		Nonce:                1,
+		Round:                2,
+		Epoch:                3,
+		MiniBlocksHashes:     []string{"2dae16da63bc04a18cf7609e0a79d7867b11463660dbab048b044b8434bf0a82"},
+		MiniBlocksDetails: []*data.MiniBlocksDetails{
+			{
+				IndexLastProcessedTx:     0,
+				IndexFirstProcessedTx:    0,
+				Type:                     dataBlock.TxBlock.String(),
+				ProcessingType:           dataBlock.Normal.String(),
+				TxsHashes:                []string{hex.EncodeToString(txHash)},
+				ExecutionOrderTxsIndices: []int{2},
+			},
+		},
+	}, results.ExecutionResults[0])
 }

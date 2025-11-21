@@ -2,6 +2,9 @@ package logsevents
 
 import (
 	"encoding/hex"
+	"math/big"
+	"testing"
+
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
@@ -10,8 +13,6 @@ import (
 	elasticIndexer "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
 	"github.com/stretchr/testify/require"
-	"math/big"
-	"testing"
 )
 
 func createMockArgs() ArgsLogsAndEventsProcessor {
@@ -155,7 +156,7 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsAndPutInAltered(t *testing.T)
 	args.BalanceConverter = balanceConverter
 	proc, _ := NewLogsAndEventsProcessor(args)
 
-	resLogs := proc.ExtractDataFromLogs(logsAndEvents, res, 1000, core.MetachainShardId, 3, 1000000)
+	resLogs := proc.ExtractDataFromLogs(logsAndEvents, res, core.MetachainShardId, 3, 1000000)
 	require.NotNil(t, resLogs.Tokens)
 	require.True(t, res.Transactions[0].HasOperations)
 	require.True(t, res.ScResults[0].HasOperations)
@@ -237,7 +238,7 @@ func TestLogsAndEventsProcessor_PrepareLogsForDB(t *testing.T) {
 			Hash:           "747848617368",
 			OriginalTxHash: "orignalHash",
 		},
-	}}, 1234, 0, 3, 1234000)
+	}}, 0, 3, 1234000)
 
 	result.DBLogs[0].UUID = ""
 
@@ -294,7 +295,7 @@ func TestLogsAndEventsProcessor_ExtractDataFromLogsNFTBurn(t *testing.T) {
 	args.BalanceConverter = balanceConverter
 	proc, _ := NewLogsAndEventsProcessor(args)
 
-	resLogs := proc.ExtractDataFromLogs(logsAndEventsSlice, res, 1000, 2, 3, 1000000)
+	resLogs := proc.ExtractDataFromLogs(logsAndEventsSlice, res, 2, 3, 1000000)
 	require.Equal(t, 1, resLogs.TokensSupply.Len())
 
 	tokensSupply := resLogs.TokensSupply.GetAll()
@@ -339,7 +340,7 @@ func TestPrepareLogsAndEvents_LogEvents(t *testing.T) {
 			Hash:           "747848617368",
 			OriginalTxHash: "originalHash",
 		},
-	}}, 1234, 1, 3, 1234000)
+	}}, 1, 3, 1234000)
 
 	results.DBEvents[0].UUID = ""
 	results.DBEvents[1].UUID = ""

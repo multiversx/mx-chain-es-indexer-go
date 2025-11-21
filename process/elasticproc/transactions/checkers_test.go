@@ -6,8 +6,6 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	coreData "github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/mock"
@@ -72,20 +70,13 @@ func TestCheckTxsProcessorArg(t *testing.T) {
 
 	tests := []struct {
 		name  string
-		args  func() (header coreData.HeaderHandler, pool *outport.TransactionPool)
+		args  func() (pool *outport.TransactionPool)
 		exErr error
 	}{
 		{
-			name: "NilHeaderHandler",
-			args: func() (header coreData.HeaderHandler, pool *outport.TransactionPool) {
-				return nil, &outport.TransactionPool{}
-			},
-			exErr: elasticIndexer.ErrNilHeaderHandler,
-		},
-		{
 			name: "NilPool",
-			args: func() (header coreData.HeaderHandler, pool *outport.TransactionPool) {
-				return &block.Header{}, nil
+			args: func() (pool *outport.TransactionPool) {
+				return nil
 			},
 			exErr: elasticIndexer.ErrNilPool,
 		},

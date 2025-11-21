@@ -4,11 +4,11 @@ go 1.23
 
 require (
 	github.com/elastic/go-elasticsearch/v7 v7.12.0
-	github.com/gin-contrib/cors v1.4.0
+	github.com/gin-contrib/cors v1.6.0
 	github.com/gin-gonic/gin v1.10.0
 	github.com/google/uuid v1.6.0
 	github.com/multiversx/mx-chain-communication-go v1.3.0
-	github.com/multiversx/mx-chain-core-go v1.4.0
+	github.com/multiversx/mx-chain-core-go v1.4.2-0.20251113093212-347994c38d2d
 	github.com/multiversx/mx-chain-logger-go v1.1.0
 	github.com/multiversx/mx-chain-vm-common-go v1.6.0
 	github.com/prometheus/client_model v0.6.1
@@ -40,6 +40,7 @@ require (
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.9 // indirect
+	github.com/kr/text v0.2.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect

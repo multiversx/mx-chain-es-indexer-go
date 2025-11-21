@@ -2,11 +2,12 @@ package logsevents
 
 import (
 	"encoding/hex"
+	"math/big"
+	"strconv"
+
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	indexer "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
-	"math/big"
-	"strconv"
 )
 
 const (

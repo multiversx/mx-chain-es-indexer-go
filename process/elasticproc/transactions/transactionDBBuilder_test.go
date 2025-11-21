@@ -3,6 +3,9 @@ package transactions
 import (
 	"encoding/hex"
 	"fmt"
+	"math/big"
+	"testing"
+
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
@@ -12,8 +15,6 @@ import (
 	"github.com/multiversx/mx-chain-es-indexer-go/mock"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
 	"github.com/stretchr/testify/require"
-	"math/big"
-	"testing"
 )
 
 func createCommonProcessor() dbTransactionBuilder {
@@ -31,7 +32,11 @@ func TestGetMoveBalanceTransaction(t *testing.T) {
 	txHash := []byte("txHash")
 	mbHash := []byte("mbHash")
 	mb := &block.MiniBlock{TxHashes: [][]byte{txHash}}
-	header := &block.Header{Nonce: 2, TimeStamp: 1234}
+	headerData := &data.HeaderData{
+		Timestamp:      1234,
+		TimestampMs:    1234000,
+		NumberOfShards: 3,
+	}
 	status := "Success"
 	gasPrice := uint64(1000)
 	gasLimit := uint64(1000)
@@ -71,7 +76,7 @@ func TestGetMoveBalanceTransaction(t *testing.T) {
 		Hash:             hex.EncodeToString(txHash),
 		MBHash:           hex.EncodeToString(mbHash),
 		Nonce:            tx.Nonce,
-		Round:            header.Round,
+		Round:            headerData.Round,
 		Value:            tx.Value.String(),
 		ValueNum:         1e-15,
 		Receiver:         senderAddr,
@@ -97,7 +102,7 @@ func TestGetMoveBalanceTransaction(t *testing.T) {
 		TimestampMs:      1234000,
 	}
 
-	dbTx := cp.prepareTransaction(txInfo, txHash, mbHash, mb, header, status, 3, 1234000)
+	dbTx := cp.prepareTransaction(txInfo, txHash, mbHash, mb, headerData, status)
 	dbTx.UUID = ""
 	require.Equal(t, expectedTx, dbTx)
 }
@@ -113,13 +118,16 @@ func TestGetTransactionByType_RewardTx(t *testing.T) {
 	txHash := []byte("txHash")
 	mbHash := []byte("mbHash")
 	mb := &block.MiniBlock{TxHashes: [][]byte{txHash}}
-	header := &block.Header{Nonce: 2, TimeStamp: 1234}
+	headerData := &data.HeaderData{
+		Timestamp:   1234,
+		TimestampMs: 1234000,
+	}
 	status := "Success"
 
 	rewardInfo := &outport.RewardInfo{
 		Reward: rwdTx,
 	}
-	resultTx := cp.prepareRewardTransaction(rewardInfo, txHash, mbHash, mb, header, status, 1234000)
+	resultTx := cp.prepareRewardTransaction(rewardInfo, txHash, mbHash, mb, headerData, status)
 	resultTx.UUID = ""
 	expectedTx := &data.Transaction{
 		Hash:        hex.EncodeToString(txHash),
@@ -144,7 +152,11 @@ func TestRelayedV3Transaction(t *testing.T) {
 	txHash := []byte("txHash")
 	mbHash := []byte("mbHash")
 	mb := &block.MiniBlock{TxHashes: [][]byte{txHash}, Type: block.InvalidBlock}
-	header := &block.Header{Nonce: 2, TimeStamp: 1234}
+	headerData := &data.HeaderData{
+		Timestamp:      1234,
+		TimestampMs:    1234000,
+		NumberOfShards: 3,
+	}
 	status := transaction.TxStatusInvalid.String()
 	gasPrice := uint64(1000)
 	gasLimit := uint64(1000)
@@ -171,7 +183,7 @@ func TestRelayedV3Transaction(t *testing.T) {
 		Hash:             hex.EncodeToString(txHash),
 		MBHash:           hex.EncodeToString(mbHash),
 		Nonce:            tx.Nonce,
-		Round:            header.Round,
+		Round:            headerData.Round,
 		Value:            tx.Value.String(),
 		ValueNum:         1e-15,
 		Receiver:         cp.addressPubkeyConverter.SilentEncode(tx.RcvAddr, log),
@@ -209,7 +221,7 @@ func TestRelayedV3Transaction(t *testing.T) {
 		ExecutionOrder: 0,
 	}
 
-	dbTx := cp.prepareTransaction(txInfo, txHash, mbHash, mb, header, status, 3, 1234000)
+	dbTx := cp.prepareTransaction(txInfo, txHash, mbHash, mb, headerData, status)
 	dbTx.UUID = ""
 	require.Equal(t, expectedTx, dbTx)
 }
@@ -220,7 +232,11 @@ func TestGetMoveBalanceTransactionInvalid(t *testing.T) {
 	txHash := []byte("txHash")
 	mbHash := []byte("mbHash")
 	mb := &block.MiniBlock{TxHashes: [][]byte{txHash}, Type: block.InvalidBlock}
-	header := &block.Header{Nonce: 2, TimeStamp: 1234}
+	headerData := &data.HeaderData{
+		Timestamp:      1234,
+		TimestampMs:    1234000,
+		NumberOfShards: 3,
+	}
 	status := transaction.TxStatusInvalid.String()
 	gasPrice := uint64(1000)
 	gasLimit := uint64(1000)
@@ -245,7 +261,7 @@ func TestGetMoveBalanceTransactionInvalid(t *testing.T) {
 		Hash:             hex.EncodeToString(txHash),
 		MBHash:           hex.EncodeToString(mbHash),
 		Nonce:            tx.Nonce,
-		Round:            header.Round,
+		Round:            headerData.Round,
 		Value:            tx.Value.String(),
 		ValueNum:         1e-15,
 		Receiver:         cp.addressPubkeyConverter.SilentEncode(tx.RcvAddr, log),
@@ -281,7 +297,7 @@ func TestGetMoveBalanceTransactionInvalid(t *testing.T) {
 		ExecutionOrder: 0,
 	}
 
-	dbTx := cp.prepareTransaction(txInfo, txHash, mbHash, mb, header, status, 3, 1234000)
+	dbTx := cp.prepareTransaction(txInfo, txHash, mbHash, mb, headerData, status)
 	dbTx.UUID = ""
 	require.Equal(t, expectedTx, dbTx)
 }
