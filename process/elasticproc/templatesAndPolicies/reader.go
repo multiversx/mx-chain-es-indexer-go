@@ -43,6 +43,7 @@ func (tr *templatesAndPolicyReader) GetElasticTemplatesAndPolicies() (map[string
 	indexTemplates[indexer.ESDTsIndex] = indices.ESDTs.ToBuffer()
 	indexTemplates[indexer.ValuesIndex] = indices.Values.ToBuffer()
 	indexTemplates[indexer.EventsIndex] = indices.Events.ToBuffer()
+	indexTemplates[indexer.ExecutionResultsIndex] = indices.ExecutionResults.ToBuffer()
 
 	return indexTemplates, indexPolicies, nil
 }

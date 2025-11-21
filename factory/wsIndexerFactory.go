@@ -98,6 +98,7 @@ func createDataIndexer(
 		StatusMetrics:            statusMetrics,
 		Version:                  version,
 		EnableEpochsConfig:       enableEpochsCfg,
+		NumWritesInParallel:      clusterCfg.Config.ElasticCluster.NumWritesInParallel,
 	})
 }
 

@@ -1,6 +1,8 @@
 package logsevents
 
 import (
+	"math/big"
+
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/sharding"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
@@ -10,7 +12,6 @@ import (
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
 	logger "github.com/multiversx/mx-chain-logger-go"
-	"math/big"
 )
 
 const (

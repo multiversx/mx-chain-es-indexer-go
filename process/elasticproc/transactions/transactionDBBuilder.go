@@ -6,7 +6,6 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/sharding"
-	coreData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/receipt"
@@ -41,15 +40,13 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 	txHash []byte,
 	mbHash []byte,
 	mb *block.MiniBlock,
-	header coreData.HeaderHandler,
+	headerData *data.HeaderData,
 	txStatus string,
-	numOfShards uint32,
-	timestampMs uint64,
 ) *data.Transaction {
 	tx := txInfo.Transaction
 
 	isScCall := core.IsSmartContractAddress(tx.RcvAddr)
-	res := dtb.dataFieldParser.Parse(tx.Data, tx.SndAddr, tx.RcvAddr, numOfShards)
+	res := dtb.dataFieldParser.Parse(tx.Data, tx.SndAddr, tx.RcvAddr, headerData.NumberOfShards)
 
 	receiverAddr := dtb.addressPubkeyConverter.SilentEncode(tx.RcvAddr, log)
 	senderAddr := dtb.addressPubkeyConverter.SilentEncode(tx.SndAddr, log)
@@ -57,7 +54,7 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 
 	receiverShardID := mb.ReceiverShardID
 	if mb.Type == block.InvalidBlock {
-		receiverShardID = sharding.ComputeShardID(tx.RcvAddr, numOfShards)
+		receiverShardID = sharding.ComputeShardID(tx.RcvAddr, headerData.NumberOfShards)
 	}
 
 	valueNum, err := dtb.balanceConverter.ConvertBigValueToFloat(tx.Value)
@@ -98,7 +95,7 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		Hash:              hex.EncodeToString(txHash),
 		MBHash:            hex.EncodeToString(mbHash),
 		Nonce:             tx.Nonce,
-		Round:             header.GetRound(),
+		Round:             headerData.Round,
 		Value:             tx.Value.String(),
 		Receiver:          receiverAddr,
 		Sender:            senderAddr,
@@ -109,7 +106,7 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		GasLimit:          tx.GasLimit,
 		Data:              tx.Data,
 		Signature:         hex.EncodeToString(tx.Signature),
-		Timestamp:         header.GetTimeStamp(),
+		Timestamp:         headerData.Timestamp,
 		Status:            txStatus,
 		GasUsed:           feeInfo.GasUsed,
 		InitialPaidFee:    feeInfo.InitialPaidFee.String(),
@@ -130,8 +127,8 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 		RelayedAddr:       relayedAddress,
 		HadRefund:         feeInfo.HadRefund,
 		UUID:              converters.GenerateBase64UUID(),
-		Epoch:             header.GetEpoch(),
-		TimestampMs:       timestampMs,
+		Epoch:             headerData.Epoch,
+		TimestampMs:       headerData.TimestampMs,
 	}
 
 	hasValidRelayer := len(eTx.RelayedAddr) == len(eTx.Sender) && len(eTx.RelayedAddr) > 0
@@ -142,7 +139,7 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 	eTx.Tokens = converters.TruncateSliceElementsIfExceedsMaxLength(res.Tokens)
 	eTx.ReceiversShardIDs = res.ReceiversShardID
 
-	relayedV1V2Enabled := header.GetEpoch() < dtb.relayedV1V2DisableEpoch
+	relayedV1V2Enabled := headerData.Epoch < dtb.relayedV1V2DisableEpoch
 	eTx.IsRelayed = res.IsRelayed || isRelayedV3
 
 	if res.IsRelayed && !relayedV1V2Enabled {
@@ -163,9 +160,8 @@ func (dtb *dbTransactionBuilder) prepareRewardTransaction(
 	txHash []byte,
 	mbHash []byte,
 	mb *block.MiniBlock,
-	header coreData.HeaderHandler,
+	headerData *data.HeaderData,
 	txStatus string,
-	timestampMs uint64,
 ) *data.Transaction {
 	rTx := rTxInfo.Reward
 	valueNum, err := dtb.balanceConverter.ConvertBigValueToFloat(rTx.Value)
@@ -191,21 +187,20 @@ func (dtb *dbTransactionBuilder) prepareRewardTransaction(
 		GasLimit:       0,
 		Data:           make([]byte, 0),
 		Signature:      "",
-		Timestamp:      header.GetTimeStamp(),
+		Timestamp:      headerData.Timestamp,
 		Status:         txStatus,
 		Operation:      rewardsOperation,
 		ExecutionOrder: int(rTxInfo.ExecutionOrder),
 		UUID:           converters.GenerateBase64UUID(),
-		Epoch:          header.GetEpoch(),
-		TimestampMs:    timestampMs,
+		Epoch:          headerData.Epoch,
+		TimestampMs:    headerData.TimestampMs,
 	}
 }
 
 func (dtb *dbTransactionBuilder) prepareReceipt(
 	recHashHex string,
 	rec *receipt.Receipt,
-	header coreData.HeaderHandler,
-	timestampMs uint64,
+	headerData *data.HeaderData,
 ) *data.Receipt {
 	senderAddr := dtb.addressPubkeyConverter.SilentEncode(rec.SndAddr, log)
 
@@ -215,7 +210,7 @@ func (dtb *dbTransactionBuilder) prepareReceipt(
 		Sender:      senderAddr,
 		Data:        string(rec.Data),
 		TxHash:      hex.EncodeToString(rec.TxHash),
-		Timestamp:   header.GetTimeStamp(),
-		TimestampMs: timestampMs,
+		Timestamp:   headerData.Timestamp,
+		TimestampMs: headerData.TimestampMs,
 	}
 }

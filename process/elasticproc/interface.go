@@ -48,24 +48,23 @@ type DBAccountHandler interface {
 
 // DBBlockHandler defines the actions that a block handler should do
 type DBBlockHandler interface {
-	PrepareBlockForDB(obh *outport.OutportBlockWithHeader) (*data.Block, error)
+	PrepareBlockForDB(obh *outport.OutportBlockWithHeader) (*data.PreparedBlockResults, error)
 	ComputeHeaderHash(header coreData.HeaderHandler) ([]byte, error)
 
 	SerializeEpochInfoData(header coreData.HeaderHandler, buffSlice *data.BufferSlice, index string) error
 	SerializeBlock(elasticBlock *data.Block, buffSlice *data.BufferSlice, index string) error
+	SerializeExecutionResults(executionResults []*data.ExecutionResult, buffSlice *data.BufferSlice, index string) error
 }
 
 // DBTransactionsHandler defines the actions that a transactions handler should do
 type DBTransactionsHandler interface {
 	PrepareTransactionsForDatabase(
 		miniBlocks []*block.MiniBlock,
-		header coreData.HeaderHandler,
+		headerData *data.HeaderData,
 		pool *outport.TransactionPool,
 		isImportDB bool,
-		numOfShards uint32,
-		timestampMS uint64,
 	) *data.PreparedResults
-	GetHexEncodedHashesForRemove(header coreData.HeaderHandler, body *block.Body) ([]string, []string)
+	GetHexEncodedHashesForRemove(headerData *data.HeaderData, body *block.Body) ([]string, []string)
 
 	SerializeReceipts(receipts []*data.Receipt, buffSlice *data.BufferSlice, index string) error
 	SerializeTransactions(transactions []*data.Transaction, txHashStatusInfo map[string]*outport.StatusInfo, selfShardID uint32, buffSlice *data.BufferSlice, index string) error
@@ -75,8 +74,8 @@ type DBTransactionsHandler interface {
 
 // DBMiniblocksHandler defines the actions that a miniblocks handler should do
 type DBMiniblocksHandler interface {
-	PrepareDBMiniblocks(header coreData.HeaderHandler, miniBlocks []*block.MiniBlock, timestampMS uint64) []*data.Miniblock
-	GetMiniblocksHashesHexEncoded(header coreData.HeaderHandler, body *block.Body) []string
+	PrepareDBMiniblocks(headerData *data.HeaderData, miniBlocks []*block.MiniBlock) []*data.Miniblock
+	GetMiniblocksHashesHexEncoded(headerData *data.HeaderData) []string
 
 	SerializeBulkMiniBlocks(bulkMbs []*data.Miniblock, buffSlice *data.BufferSlice, index string, shardID uint32)
 }
@@ -97,7 +96,6 @@ type DBLogsAndEventsHandler interface {
 	ExtractDataFromLogs(
 		logsAndEvents []*outport.LogData,
 		preparedResults *data.PreparedResults,
-		timestamp uint64,
 		shardID uint32,
 		numOfShards uint32,
 		timestampMs uint64,
