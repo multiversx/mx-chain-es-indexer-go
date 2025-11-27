@@ -136,7 +136,7 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 		originalSenderAddr = proc.pubKeyConverter.SilentEncode(scr.OriginalSender, log)
 	}
 
-	res := proc.dataFieldParser.Parse(scr.Data, scr.SndAddr, scr.RcvAddr, numOfShards)
+	res := proc.dataFieldParser.Parse(scr.Data, scr.SndAddr, scr.RcvAddr, numOfShards, header.GetEpoch())
 
 	senderAddr := proc.pubKeyConverter.SilentEncode(scr.SndAddr, log)
 	receiverAddr := proc.pubKeyConverter.SilentEncode(scr.RcvAddr, log)

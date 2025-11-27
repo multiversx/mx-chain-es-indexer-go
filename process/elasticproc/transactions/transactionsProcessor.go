@@ -45,8 +45,9 @@ func NewTransactionsProcessor(args *ArgsTransactionProcessor) (*txsDatabaseProce
 	}
 
 	argsParser := &datafield.ArgsOperationDataFieldParser{
-		AddressLength: args.AddressPubkeyConverter.Len(),
-		Marshalizer:   args.Marshalizer,
+		AddressLength:                       args.AddressPubkeyConverter.Len(),
+		Marshalizer:                         args.Marshalizer,
+		RelayedTransactionsV1V2DisableEpoch: args.EnableEpochsConfig.RelayedTransactionsV1V2DisableEpoch,
 	}
 	operationsDataParser, err := datafield.NewOperationDataFieldParser(argsParser)
 	if err != nil {
