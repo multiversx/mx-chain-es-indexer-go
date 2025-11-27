@@ -49,7 +49,7 @@ func (dtb *dbTransactionBuilder) prepareTransaction(
 	tx := txInfo.Transaction
 
 	isScCall := core.IsSmartContractAddress(tx.RcvAddr)
-	res := dtb.dataFieldParser.Parse(tx.Data, tx.SndAddr, tx.RcvAddr, numOfShards)
+	res := dtb.dataFieldParser.Parse(tx.Data, tx.SndAddr, tx.RcvAddr, numOfShards, header.GetEpoch())
 
 	receiverAddr := dtb.addressPubkeyConverter.SilentEncode(tx.RcvAddr, log)
 	senderAddr := dtb.addressPubkeyConverter.SilentEncode(tx.SndAddr, log)
