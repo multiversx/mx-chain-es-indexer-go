@@ -4,12 +4,12 @@ import (
 	"context"
 	"time"
 
-	"github.com/multiversx/mx-chain-core-go/data/outport/grpc"
+	"github.com/multiversx/mx-chain-core-go/data/outport/grpcadapter"
 	factoryMarshaller "github.com/multiversx/mx-chain-core-go/marshal/factory"
 	"github.com/multiversx/mx-chain-es-indexer-go/config"
 	"github.com/multiversx/mx-chain-es-indexer-go/core"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/grpcAdapter"
-	grpc3 "google.golang.org/grpc"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/peer"
 )
 
@@ -37,10 +37,10 @@ func CreateGRPCIndexer(
 
 	adapter, err := grpcAdapter.NewGRPCAdapter(dataIndexer)
 
-	outportGRPCServer, err := grpc.NewOutportGRPCServerWithAdapter(
+	outportGRPCServer, err := grpcadapter.NewOutportGRPCServerWithAdapter(
 		clusterCfg.Config.GRPCConfig.URL,
 		adapter,
-		grpc3.UnaryInterceptor(requestLoggingInterceptor),
+		grpc.UnaryInterceptor(requestLoggingInterceptor),
 	)
 	if err != nil {
 		return nil, err
@@ -58,8 +58,8 @@ func CreateGRPCIndexer(
 func requestLoggingInterceptor(
 	ctx context.Context,
 	req interface{},
-	info *grpc3.UnaryServerInfo,
-	handler grpc3.UnaryHandler,
+	info *grpc.UnaryServerInfo,
+	handler grpc.UnaryHandler,
 ) (interface{}, error) {
 	start := time.Now()
 

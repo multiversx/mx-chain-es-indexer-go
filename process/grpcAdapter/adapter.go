@@ -6,7 +6,7 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
-	outportgrpc "github.com/multiversx/mx-chain-core-go/data/outport/grpc"
+	"github.com/multiversx/mx-chain-core-go/data/outport/grpcadapter"
 )
 
 type grpcAdapter struct {
@@ -15,7 +15,7 @@ type grpcAdapter struct {
 
 func NewGRPCAdapter(handler DataIndexer) (outport.OutportServiceServer, error) {
 	if check.IfNil(handler) {
-		return nil, outportgrpc.ErrNilOutportServiceHandler
+		return nil, grpcadapter.ErrNilOutportServiceHandler
 	}
 
 	return &grpcAdapter{
