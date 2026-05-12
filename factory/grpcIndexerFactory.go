@@ -36,6 +36,9 @@ func CreateGRPCIndexer(
 	}
 
 	adapter, err := grpcAdapter.NewGRPCAdapter(dataIndexer)
+	if err != nil {
+		return nil, err
+	}
 
 	outportGRPCServer, err := grpcadapter.NewOutportGRPCServerWithAdapter(
 		clusterCfg.Config.GRPCConfig.URL,
