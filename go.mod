@@ -10,7 +10,7 @@ require (
 	github.com/multiversx/mx-chain-communication-go v1.3.0
 	github.com/multiversx/mx-chain-core-go v1.5.0
 	github.com/multiversx/mx-chain-logger-go v1.1.0
-	github.com/multiversx/mx-chain-vm-common-go v1.6.1
+	github.com/multiversx/mx-chain-vm-common-go v1.6.7
 	github.com/prometheus/client_model v0.6.1
 	github.com/prometheus/common v0.62.0
 	github.com/stretchr/testify v1.10.0
