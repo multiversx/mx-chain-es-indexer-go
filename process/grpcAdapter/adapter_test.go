@@ -296,3 +296,21 @@ func TestGrpcAdapter_IsInterfaceNil(t *testing.T) {
 	ga = &grpcAdapter{}
 	require.False(t, ga.IsInterfaceNil())
 }
+
+func TestGrpcAdapter_SaveBlock_VerifyInput(t *testing.T) {
+	t.Parallel()
+
+	input := &outport.OutportBlock{}
+	var captured outport.OutportBlock
+	adapter, err := NewGRPCAdapter(&mock.DataIndexerStub{
+		SaveBlockCalled: func(outportBlock *outport.OutportBlock) error {
+			captured = *outportBlock
+			return nil
+		},
+	})
+	require.Nil(t, err)
+
+	_, err = adapter.SaveBlock(context.Background(), input)
+	require.Nil(t, err)
+	require.Equal(t, input, &captured)
+}
