@@ -12,8 +12,6 @@ import (
 	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
-// TODO add more unit tests
-
 const (
 	esConflictsPolicy = "proceed"
 )
