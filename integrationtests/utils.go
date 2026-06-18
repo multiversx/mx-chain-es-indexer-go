@@ -97,6 +97,9 @@ func getIndexMappings(index string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	defer func() {
+		_ = res.Body.Close()
+	}()
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
