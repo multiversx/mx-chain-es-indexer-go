@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"sync"
 
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
@@ -29,6 +30,7 @@ type elasticClient struct {
 	// countScroll is used to be incremented after each scroll so the scroll duration is different each time,
 	// bypassing any possible caching based on the same request
 	countScroll int
+	mutex       sync.Mutex
 }
 
 // NewElasticClient will create a new instance of elasticClient
