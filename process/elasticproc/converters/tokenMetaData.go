@@ -80,7 +80,7 @@ func PrepareNFTUpdateData(buffSlice *data.BufferSlice, updateNFTData []*data.NFT
 			id = fmt.Sprintf("%s-%s", nftUpdate.Address, nftUpdate.Identifier)
 		}
 
-		metaData := []byte(fmt.Sprintf(`{"update":{ "_index":"%s","_id":"%s"}}%s`, index, id, "\n"))
+		metaData := []byte(fmt.Sprintf(`{"update":{ "_index":"%s","_id":"%s"}}%s`, index, JsonEscape(id), "\n"))
 		freezeOrUnfreezeTokenIndex := (nftUpdate.Freeze || nftUpdate.UnFreeze) && !isAccountsESDTIndex
 		if freezeOrUnfreezeTokenIndex {
 			err := buffSlice.PutData(metaData, prepareSerializeDataForFreezeAndUnFreeze(nftUpdate))
@@ -158,7 +158,7 @@ func PrepareNFTUpdateData(buffSlice *data.BufferSlice, updateNFTData []*data.NFT
 			}
 `
 		serializedData := []byte(fmt.Sprintf(`{"script": {"source": "%s","lang": "painless","params": {"attributes": "%s", "metadata": "%s", "tags": %s}}, "upsert": {}}`,
-			FormatPainlessSource(codeToExecute), base64Attr, newMetadata, marshalizedTags),
+			FormatPainlessSource(codeToExecute), base64Attr, JsonEscape(newMetadata), marshalizedTags),
 		)
 		if len(nftUpdate.URIsToAdd) != 0 {
 			uris := make([]string, 0, len(nftUpdate.URIsToAdd))
@@ -265,7 +265,7 @@ func prepareSerializeDataForNewCreator(nftUpdateData *data.NFTDataUpdate) []byte
 			}
 `
 	serializedData := []byte(fmt.Sprintf(`{"script": {"source": "%s","lang": "painless","params": {"creator": "%s"}}, "upsert": {}}`,
-		FormatPainlessSource(codeToExecute), nftUpdateData.NewCreator),
+		FormatPainlessSource(codeToExecute), JsonEscape(nftUpdateData.NewCreator)),
 	)
 
 	return serializedData
