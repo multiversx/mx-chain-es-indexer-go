@@ -7,7 +7,7 @@ require (
 	github.com/gin-contrib/cors v1.7.7
 	github.com/gin-gonic/gin v1.12.0
 	github.com/google/uuid v1.6.0
-	github.com/multiversx/mx-chain-communication-go v1.3.3-0.20260713103838-006a4655289b
+	github.com/multiversx/mx-chain-communication-go v1.3.3-0.20260720093822-3c4b1bc46f62
 	github.com/multiversx/mx-chain-core-go v1.5.1-0.20260713100334-14d633236974
 	github.com/multiversx/mx-chain-logger-go v1.1.1-0.20260713100530-e85a16be3260
 	github.com/multiversx/mx-chain-vm-common-go v1.6.8-0.20260713100832-23aa4c20accd
