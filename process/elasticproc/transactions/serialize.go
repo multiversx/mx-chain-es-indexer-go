@@ -142,7 +142,7 @@ func (tdp *txsDatabaseProcessor) SerializeTransactions(
 
 func serializeTxHashStatus(buffSlice *data.BufferSlice, txHashStatusInfo map[string]*outport.StatusInfo, index string) error {
 	for txHash, statusInfo := range txHashStatusInfo {
-		metaData := []byte(fmt.Sprintf(`{"update":{ "_index":"%s","_id":"%s"}}%s`, index, txHash, "\n"))
+		metaData := []byte(fmt.Sprintf(`{"update":{ "_index":"%s","_id":"%s"}}%s`, index, converters.JsonEscape(txHash), "\n"))
 
 		newTx := &data.Transaction{
 			Status:         statusInfo.Status,
