@@ -94,17 +94,6 @@ func TestElasticDefaultErrorResponseHandler_AlreadyExistsShouldRetNil(t *testing
 	require.Nil(t, err)
 }
 
-func TestElasticDefaultErrorResponseHandler_StatusCodeOkShouldRetNil(t *testing.T) {
-	t.Parallel()
-
-	data := `{}`
-	resp := createMockEsapiResponseWithText(data)
-	resp.StatusCode = http.StatusOK
-	err := elasticDefaultErrorResponseHandler(resp)
-
-	require.Nil(t, err)
-}
-
 func TestElasticDefaultErrorResponseHandler_StatusCodeNotOkShouldErr(t *testing.T) {
 	t.Parallel()
 

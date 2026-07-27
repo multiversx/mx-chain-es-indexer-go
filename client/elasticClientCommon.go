@@ -79,21 +79,19 @@ func elasticDefaultErrorResponseHandler(res *esapi.Response) error {
 			return nil
 		}
 	}
-	if res.StatusCode == http.StatusOK || res.StatusCode == http.StatusCreated {
-		return nil
-	}
 
 	return fmt.Errorf("error while parsing the response: code returned: %v, body: %v, bodyBytes: %v",
 		res.StatusCode, responseBody, string(bodyBytes))
 }
 
 func elasticBulkRequestResponseHandler(res *esapi.Response) error {
+	defer func() {
+		closeBody(res)
+	}()
+
 	if res.IsError() {
 		return fmt.Errorf("%s", res.String())
 	}
-	defer func() {
-		_ = res.Body.Close()
-	}()
 
 	var response struct {
 		Errors bool            `json:"errors"`
@@ -227,7 +225,7 @@ func parseResponse(res *esapi.Response, dest interface{}, errorHandler responseE
 		errorHandler = elasticDefaultErrorResponseHandler
 	}
 
-	if res.StatusCode != http.StatusOK {
+	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusCreated {
 		return errorHandler(res)
 	}
 
