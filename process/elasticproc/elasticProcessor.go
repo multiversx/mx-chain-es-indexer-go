@@ -21,7 +21,6 @@ import (
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/converters"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/tags"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/tokeninfo"
-	"github.com/multiversx/mx-chain-es-indexer-go/templates"
 	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
@@ -70,7 +69,7 @@ type elasticProcessor struct {
 	validatorsProc      DBValidatorsHandler
 	logsAndEventsProc   DBLogsAndEventsHandler
 	operationsProc      OperationsHandler
-	mappingsHandler     TemplatesAndPoliciesHandler
+	indexCreator        IndexCreatorHandler
 }
 
 // NewElasticProcessor handles Elasticsearch operations such as initialization, adding, modifying or removing data
@@ -85,6 +84,11 @@ func NewElasticProcessor(arguments *ArgElasticProcessor) (*elasticProcessor, err
 		numWritesInParallel = minNumWritesInParallel
 	}
 
+	indexCreatorInstance, err := NewIndexCreator(arguments.DBClient, arguments.MappingsHandler)
+	if err != nil {
+		return nil, err
+	}
+
 	ei := &elasticProcessor{
 		elasticClient:       arguments.DBClient,
 		enabledIndexes:      arguments.EnabledIndexes,
@@ -97,11 +101,11 @@ func NewElasticProcessor(arguments *ArgElasticProcessor) (*elasticProcessor, err
 		logsAndEventsProc:   arguments.LogsAndEventsProc,
 		operationsProc:      arguments.OperationsProc,
 		bulkRequestMaxSize:  arguments.BulkRequestMaxSize,
-		mappingsHandler:     arguments.MappingsHandler,
+		indexCreator:        indexCreatorInstance,
 		numWritesInParallel: numWritesInParallel,
 	}
 
-	err = ei.init()
+	err = ei.indexCreator.CreateIndexes()
 	if err != nil {
 		return nil, err
 	}
@@ -109,42 +113,6 @@ func NewElasticProcessor(arguments *ArgElasticProcessor) (*elasticProcessor, err
 	err = ei.indexVersion(arguments.Version)
 
 	return ei, err
-}
-
-// TODO move all the index create part in a new component
-func (ei *elasticProcessor) init() error {
-	indexTemplates, indexPolices, err := ei.mappingsHandler.GetElasticTemplatesAndPolicies()
-	if err != nil {
-		return err
-	}
-
-	err = ei.createIndices(indexTemplates)
-	if err != nil {
-		return err
-	}
-
-	err = ei.createPolicies(indexPolices)
-	if err != nil {
-		return err
-	}
-
-	extraMappings, err := ei.mappingsHandler.GetTimestampMsMappings()
-	if err != nil {
-		return err
-	}
-
-	return ei.addExtraMappings(extraMappings)
-}
-
-func (ei *elasticProcessor) addExtraMappings(extraMappings []templates.ExtraMapping) error {
-	for _, mappingsTuple := range extraMappings {
-		err := ei.elasticClient.PutMappings(mappingsTuple.Index, mappingsTuple.Mappings)
-		if err != nil {
-			log.Warn("cannot add extra mappings", "index", mappingsTuple.Index, "error", err)
-		}
-	}
-
-	return nil
 }
 
 func (ei *elasticProcessor) indexVersion(version string) error {
@@ -171,53 +139,6 @@ func (ei *elasticProcessor) indexVersion(version string) error {
 	}
 
 	return ei.elasticClient.DoBulkRequest(context.Background(), buffSlice.Buffers()[0], "")
-}
-
-func (ei *elasticProcessor) createIndices(indexTemplateMap map[string]*bytes.Buffer) error {
-	for index, indexData := range indexTemplateMap {
-		err := ei.elasticClient.CheckAndCreateTemplate(index, indexData)
-		if err != nil {
-			return fmt.Errorf("elasticClient.CreateIndexWithMapping index: %s, error: %w", index, err)
-		}
-
-		indexWithSuffix := fmt.Sprintf("%s-%s", index, elasticIndexer.IndexSuffix)
-		err = ei.elasticClient.CheckAndCreateIndex(indexWithSuffix)
-		if err != nil {
-			return fmt.Errorf("elasticClient.CheckAndCreateIndex index: %s, error: %w", index, err)
-		}
-
-		err = ei.elasticClient.CheckAndCreateAlias(index, indexWithSuffix)
-		if err != nil {
-			return fmt.Errorf("elasticClient.CheckAndCreateAlias index: %s, error: %w", index, err)
-		}
-	}
-
-	return nil
-}
-
-func (ei *elasticProcessor) createPolicies(indexPolicyMap map[string]*bytes.Buffer) error {
-	for index, policy := range indexPolicyMap {
-		policyName := fmt.Sprintf("%s-%s", index, "policy")
-		if ei.elasticClient.PolicyExists(policyName) {
-			continue
-		}
-
-		indexWithSuffix := fmt.Sprintf("%s-%s", index, elasticIndexer.IndexSuffix)
-		err := ei.elasticClient.SetWriteIndexTrue(index, indexWithSuffix)
-		if err != nil {
-			return fmt.Errorf("elasticClient.SetWriteIndexTrue index: %s, error: %w", index, err)
-		}
-		log.Info("elasticClient.SetWriteIndexTrue", "index", index)
-
-		err = ei.elasticClient.CheckAndCreatePolicy(policyName, policy)
-		if err != nil {
-			return fmt.Errorf("databaseClient.PutPolicy index: %s, error: %w", index, err)
-		}
-
-		log.Info("databaseClient.PutPolicy", "index", index)
-	}
-
-	return nil
 }
 
 // SaveHeader will prepare and save information about a header in elasticsearch server

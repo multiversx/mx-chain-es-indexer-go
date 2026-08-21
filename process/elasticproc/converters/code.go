@@ -2,8 +2,6 @@ package converters
 
 import "strings"
 
-// TODO use FormatPainlessSource everywhere
-
 // FormatPainlessSource will clean all new lines and white spaces from the input
 // example:
 /*`

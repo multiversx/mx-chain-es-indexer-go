@@ -125,6 +125,12 @@ type OperationsHandler interface {
 	SerializeSCRs(scrs []*data.ScResult, buffSlice *data.BufferSlice, index string, shardID uint32) error
 }
 
+// IndexCreatorHandler defines the actions that an index creator component should do
+type IndexCreatorHandler interface {
+	CreateIndexes() error
+	IsInterfaceNil() bool
+}
+
 // TemplatesAndPoliciesHandler defines the actions that a templates and policies handler should do
 type TemplatesAndPoliciesHandler interface {
 	GetElasticTemplatesAndPolicies() (map[string]*bytes.Buffer, map[string]*bytes.Buffer, error)
