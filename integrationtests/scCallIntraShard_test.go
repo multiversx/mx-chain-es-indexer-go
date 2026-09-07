@@ -83,7 +83,7 @@ func TestTransactionWithSCCallFail(t *testing.T) {
 				ReturnMessage:  []byte("total delegation cap reached"),
 			}, FeeInfo: &outport.FeeInfo{}},
 		},
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: hex.EncodeToString(txHash),
 				Log: &transaction.Log{

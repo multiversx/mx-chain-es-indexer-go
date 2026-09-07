@@ -29,7 +29,7 @@ func (ec *elasticClient) DoCountRequest(ctx context.Context, index string, body 
 		return 0, err
 	}
 
-	countRes := gjson.Get(string(bodyBytes), "count")
+	countRes := gjson.GetBytes(bodyBytes, "count")
 
 	return countRes.Uint(), nil
 }
@@ -42,11 +42,14 @@ func (ec *elasticClient) DoScrollRequest(
 	withSource bool,
 	handlerFunc func(responseBytes []byte) error,
 ) error {
+	ec.mutex.Lock()
 	ec.countScroll++
+	scrollDuration := 10*time.Minute + time.Duration(ec.countScroll)*time.Millisecond
+	ec.mutex.Unlock()
+
 	res, err := ec.client.Search(
 		ec.client.Search.WithSize(9000),
-		ec.client.Search.WithScroll(10*time.Minute+time.Duration(ec.countScroll)*time.Millisecond),
-		ec.client.Search.WithContext(context.Background()),
+		ec.client.Search.WithScroll(scrollDuration),
 		ec.client.Search.WithIndex(index),
 		ec.client.Search.WithBody(bytes.NewBuffer(body)),
 		ec.client.Search.WithSource(strconv.FormatBool(withSource)),
@@ -66,7 +69,7 @@ func (ec *elasticClient) DoScrollRequest(
 		return err
 	}
 
-	scrollID := gjson.Get(string(bodyBytes), "_scroll_id")
+	scrollID := gjson.GetBytes(bodyBytes, "_scroll_id")
 	return ec.iterateScroll(scrollID.String(), handlerFunc)
 }
 
@@ -90,7 +93,7 @@ func (ec *elasticClient) iterateScroll(
 			return errScroll
 		}
 
-		numberOfHits := gjson.Get(string(scrollBodyBytes), "hits.hits.#")
+		numberOfHits := gjson.GetBytes(scrollBodyBytes, "hits.hits.#")
 		if numberOfHits.Int() < 1 {
 			return nil
 		}
@@ -102,10 +105,14 @@ func (ec *elasticClient) iterateScroll(
 }
 
 func (ec *elasticClient) getScrollResponse(scrollID string) ([]byte, error) {
+	ec.mutex.Lock()
 	ec.countScroll++
+	scrollDuration := 2*time.Minute + time.Duration(ec.countScroll)*time.Millisecond
+	ec.mutex.Unlock()
+
 	res, err := ec.client.Scroll(
 		ec.client.Scroll.WithScrollID(scrollID),
-		ec.client.Scroll.WithScroll(2*time.Minute+time.Duration(ec.countScroll)*time.Millisecond),
+		ec.client.Scroll.WithScroll(scrollDuration),
 	)
 	if err != nil {
 		return nil, err
@@ -131,10 +138,11 @@ func (ec *elasticClient) clearScroll(scrollID string) error {
 }
 
 func getBytesFromResponse(res *esapi.Response) ([]byte, error) {
+	defer closeBody(res)
+
 	if res.IsError() {
 		return nil, fmt.Errorf("error response: %s", res)
 	}
-	defer closeBody(res)
 
 	bodyBytes, err := io.ReadAll(res.Body)
 	if err != nil {

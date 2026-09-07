@@ -1,0 +1,18 @@
+{
+  "rootHash": "",
+  "notarizedInBlockHash": "686831",
+  "accumulatedFees": "0",
+  "developerFees": "0",
+  "txCount": 0,
+  "gasPenalized": 0,
+  "gasProvided": 0,
+  "gasRefunded": 0,
+  "gasUsed": 0,
+  "maxGasLimit": 0,
+  "nonce": 1,
+  "round": 2,
+  "epoch": 3,
+  "miniBlocksHashes":[],
+  "timestampMs": 1234567890,
+  "shardId": 0
+}

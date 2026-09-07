@@ -1,0 +1,265 @@
+{
+  "index_patterns": [
+    "blocks-*"
+  ],
+  "template": {
+    "settings": {
+      "index.lifecycle.name": "blocks-policy",
+      "index.lifecycle.rollover_alias": "blocks",
+      "index.sort.field": [
+        "timestamp",
+        "nonce"
+      ],
+      "index.sort.order": [
+        "desc",
+        "desc"
+      ],
+      "number_of_replicas": 1,
+      "number_of_shards": 5
+    },
+    "mappings": {
+      "properties": {
+        "accumulatedFees": {
+          "index": "false",
+          "type": "keyword"
+        },
+        "developerFees": {
+          "index": "false",
+          "type": "keyword"
+        },
+        "epoch": {
+          "type": "long"
+        },
+        "epochStartBlock": {
+          "type": "boolean"
+        },
+        "epochStartInfo": {
+          "properties": {
+            "nodePrice": {
+              "index": "false",
+              "type": "keyword"
+            },
+            "prevEpochStartHash": {
+              "index": "false",
+              "type": "keyword"
+            },
+            "prevEpochStartRound": {
+              "index": "false",
+              "type": "long"
+            },
+            "rewardsForProtocolSustainability": {
+              "index": "false",
+              "type": "keyword"
+            },
+            "rewardsPerBlock": {
+              "index": "false",
+              "type": "keyword"
+            },
+            "totalNewlyMinted": {
+              "index": "false",
+              "type": "keyword"
+            },
+            "totalSupply": {
+              "index": "false",
+              "type": "keyword"
+            },
+            "totalToDistribute": {
+              "index": "false",
+              "type": "keyword"
+            }
+          }
+        },
+        "epochStartShardsData": {
+          "properties": {
+            "epoch": {
+              "index": "false",
+              "type": "long"
+            },
+            "firstPendingMetaBlock": {
+              "index": "false",
+              "type": "keyword"
+            },
+            "headerHash": {
+              "index": "false",
+              "type": "keyword"
+            },
+            "lastFinishedMetaBlock": {
+              "index": "false",
+              "type": "keyword"
+            },
+            "nonce": {
+              "index": "false",
+              "type": "long"
+            },
+            "pendingMiniBlockHeaders": {
+              "properties": {
+                "hash": {
+                  "index": "false",
+                  "type": "keyword"
+                },
+                "receiverShard": {
+                  "index": "false",
+                  "type": "long"
+                },
+                "senderShard": {
+                  "index": "false",
+                  "type": "long"
+                },
+                "timestamp": {
+                  "format": "epoch_second",
+                  "index": "false",
+                  "type": "date"
+                },
+                "timestampMs": {
+                  "type":   "date",
+                  "format": "epoch_millis"
+                },
+                "type": {
+                  "index": "false",
+                  "type": "keyword"
+                }
+              }
+            },
+            "rootHash": {
+              "index": "false",
+              "type": "keyword"
+            },
+            "round": {
+              "index": "false",
+              "type": "long"
+            },
+            "scheduledRootHash": {
+              "index": "false",
+              "type": "keyword"
+            },
+            "shardID": {
+              "index": "false",
+              "type": "long"
+            }
+          }
+        },
+        "gasPenalized": {
+          "type": "double"
+        },
+        "gasProvided": {
+          "type": "double"
+        },
+        "gasRefunded": {
+          "type": "double"
+        },
+        "maxGasLimit": {
+          "type": "double"
+        },
+        "miniBlocksDetails": {
+          "properties": {
+            "firstProcessedTx": {
+              "index": "false",
+              "type": "long"
+            },
+            "lastProcessedTx": {
+              "index": "false",
+              "type": "long"
+            },
+            "mbIndex": {
+              "index": "false",
+              "type": "long"
+            }
+          }
+        },
+        "miniBlocksHashes": {
+          "type": "keyword"
+        },
+        "nonce": {
+          "type": "long"
+        },
+        "notarizedBlocksHashes": {
+          "type": "keyword"
+        },
+        "notarizedTxsCount": {
+          "index": "false",
+          "type": "long"
+        },
+        "prevHash": {
+          "type": "keyword"
+        },
+        "proposer": {
+          "type": "long"
+        },
+        "pubKeyBitmap": {
+          "index": "false",
+          "type": "keyword"
+        },
+        "round": {
+          "type": "long"
+        },
+        "scheduledData": {
+          "properties": {
+            "accumulatedFees": {
+              "index": "false",
+              "type": "keyword"
+            },
+            "developerFees": {
+              "index": "false",
+              "type": "keyword"
+            },
+            "gasProvided": {
+              "index": "false",
+              "type": "double"
+            },
+            "gasRefunded": {
+              "index": "false",
+              "type": "double"
+            },
+            "penalized": {
+              "index": "false",
+              "type": "double"
+            },
+            "rootHash": {
+              "index": "false",
+              "type": "keyword"
+            }
+          }
+        },
+        "searchOrder": {
+          "type": "long"
+        },
+        "shardId": {
+          "type": "long"
+        },
+        "size": {
+          "index": "false",
+          "type": "long"
+        },
+        "sizeTxs": {
+          "index": "false",
+          "type": "long"
+        },
+        "stateRootHash": {
+          "type": "keyword"
+        },
+        "timestamp": {
+          "format": "epoch_second",
+          "type": "date"
+        },
+        "timestampMs": {
+          "type":   "date",
+          "format": "epoch_millis"
+        },
+        "txCount": {
+          "index": "false",
+          "type": "long"
+        },
+        "validators": {
+          "index": "false",
+          "type": "long"
+        },
+        "lastExecutionResultHash": {
+          "type": "keyword"
+        },
+        "lastExecutionResultNonce": {
+          "type": "long"
+        }
+      }
+    }
+  }
+}

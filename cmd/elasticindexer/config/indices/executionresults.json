@@ -1,0 +1,96 @@
+{
+  "index_patterns": [
+    "executionresults-*"
+  ],
+  "template": {
+    "settings": {
+      "number_of_shards": 5,
+      "number_of_replicas": 1,
+      "index.lifecycle.name": "executionresults-policy",
+      "index.lifecycle.rollover_alias": "executionresults",
+      "index": {
+        "sort.field": [
+          "timestampMs",
+          "nonce"
+        ],
+        "sort.order": [
+          "desc",
+          "desc"
+        ]
+      }
+    },
+    "mappings": {
+      "properties": {
+        "miniBlocksDetails": {
+          "properties": {
+            "firstProcessedTx": {
+              "index": "false",
+              "type": "long"
+            },
+            "lastProcessedTx": {
+              "index": "false",
+              "type": "long"
+            },
+            "mbIndex": {
+              "index": "false",
+              "type": "long"
+            }
+          }
+        },
+        "miniBlocksHashes": {
+          "type": "keyword"
+        },
+        "nonce": {
+          "type": "double"
+        },
+        "round": {
+          "type": "double"
+        },
+        "rootHash": {
+          "index": "false",
+          "type": "keyword"
+        },
+        "notarizedInBlockHash": {
+          "type": "keyword"
+        },
+        "epoch": {
+          "type": "long"
+        },
+        "gasUsed": {
+          "type": "double"
+        },
+        "gasPenalized": {
+          "type": "double"
+        },
+        "gasProvided": {
+          "type": "double"
+        },
+        "gasRefunded": {
+          "type": "double"
+        },
+        "maxGasLimit": {
+          "type": "double"
+        },
+        "txCount": {
+          "index": "false",
+          "type": "long"
+        },
+        "accumulatedFees": {
+          "index": "false",
+          "type": "keyword"
+        },
+        "developerFees": {
+          "index": "false",
+          "type": "keyword"
+        },
+        "timestampMs": {
+          "type": "date",
+          "format": "epoch_millis"
+        },
+        "shardId": {
+          "type": "long"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "index_patterns": [
+    "delegators-*"
+  ],
+  "template": {
+    "settings": {
+      "index.lifecycle.name": "delegators-policy",
+      "index.lifecycle.rollover_alias": "delegators",
+      "number_of_replicas": 1,
+      "number_of_shards": 5
+    },
+    "mappings": {
+      "properties": {
+        "activeStake": {
+          "type": "keyword"
+        },
+        "activeStakeNum": {
+          "type": "double"
+        },
+        "address": {
+          "type": "keyword"
+        },
+        "contract": {
+          "type": "keyword"
+        },
+        "unDelegateInfo": {
+          "properties": {
+            "id": {
+              "type": "keyword"
+            },
+            "timestamp": {
+              "format": "epoch_second",
+              "type": "date"
+            },
+            "timestampMs": {
+              "type":   "date",
+              "index":  "false",
+              "format": "epoch_millis"
+            },
+            "value": {
+              "type": "keyword"
+            },
+            "valueNum": {
+              "type": "double"
+            }
+          }
+        }
+      }
+    }
+  }
+}

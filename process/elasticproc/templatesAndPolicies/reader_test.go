@@ -9,7 +9,7 @@ import (
 func TestTemplatesAndPolicyReaderNoKibana_GetElasticTemplatesAndPolicies(t *testing.T) {
 	t.Parallel()
 
-	reader := NewTemplatesAndPolicyReader()
+	reader := NewTemplatesAndPolicyReader(false, "", nil, nil)
 
 	templates, policies, err := reader.GetElasticTemplatesAndPolicies()
 	require.Nil(t, err)

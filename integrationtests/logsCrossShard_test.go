@@ -47,7 +47,7 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 
 	// index on source
 	pool := &outport.TransactionPool{
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: logID,
 				Log: &transaction.Log{
@@ -65,7 +65,10 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 		},
 		Transactions: map[string]*outport.TxInfo{
 			logID: {
-				Transaction:    &transaction.Transaction{},
+				Transaction: &transaction.Transaction{
+					SndAddr: decodeAddress(address1),
+					RcvAddr: decodeAddress(address1),
+				},
 				ExecutionOrder: 0,
 			},
 		},
@@ -98,7 +101,7 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 		ShardID:   1,
 	}
 	pool = &outport.TransactionPool{
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: logID,
 				Log: &transaction.Log{
@@ -122,7 +125,10 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 		},
 		Transactions: map[string]*outport.TxInfo{
 			logID: {
-				Transaction:    &transaction.Transaction{},
+				Transaction: &transaction.Transaction{
+					SndAddr: decodeAddress(address1),
+					RcvAddr: decodeAddress(address1),
+				},
 				ExecutionOrder: 0,
 			},
 		},
@@ -157,7 +163,7 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 		TimeStamp: 5000,
 	}
 	pool = &outport.TransactionPool{
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: logID,
 				Log: &transaction.Log{
@@ -175,7 +181,10 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 		},
 		Transactions: map[string]*outport.TxInfo{
 			logID: {
-				Transaction:    &transaction.Transaction{},
+				Transaction: &transaction.Transaction{
+					SndAddr: decodeAddress(address1),
+					RcvAddr: decodeAddress(address1),
+				},
 				ExecutionOrder: 0,
 			},
 		},

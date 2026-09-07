@@ -26,7 +26,7 @@ func TestOperationsProcessor_SerializeSCRS(t *testing.T) {
 	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
 	err := op.SerializeSCRs(scrs, buffSlice, "operations", 0)
 	require.Nil(t, err)
-	require.Equal(t, `{"update":{"_index":"operations","_id":""}}
+	require.Equal(t, `{"update":{"_index":"operations","_id":"", "retry_on_conflict":3 }}
 {"script":{"source":"return"},"upsert":{"uuid":"","nonce":0,"gasLimit":0,"gasPrice":0,"value":"","valueNum":0,"sender":"","receiver":"","senderShard":0,"receiverShard":1,"prevTxHash":"","originalTxHash":"","callType":"","timestamp":0,"epoch":0}}
 { "index" : { "_index":"operations","_id" : "" } }
 {"uuid":"","nonce":0,"gasLimit":0,"gasPrice":0,"value":"","valueNum":0,"sender":"","receiver":"","senderShard":2,"receiverShard":0,"prevTxHash":"","originalTxHash":"","callType":"","timestamp":0,"epoch":0}

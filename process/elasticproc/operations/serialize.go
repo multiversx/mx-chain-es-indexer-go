@@ -30,7 +30,7 @@ func (op *operationsProcessor) prepareSerializedDataForAScResult(
 	index string,
 	selfShardID uint32,
 ) ([]byte, []byte, error) {
-	metaData := []byte(fmt.Sprintf(`{"update":{"_index":"%s","_id":"%s"}}%s`, index, converters.JsonEscape(scr.Hash), "\n"))
+	metaData := []byte(fmt.Sprintf(`{"update":{"_index":"%s","_id":"%s", "retry_on_conflict":3 }}%s`, index, converters.JsonEscape(scr.Hash), "\n"))
 	marshaledSCR, err := json.Marshal(scr)
 	if err != nil {
 		return nil, nil, err

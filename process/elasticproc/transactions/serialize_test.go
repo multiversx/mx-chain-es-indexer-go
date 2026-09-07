@@ -104,7 +104,7 @@ func TestSerializeTransactionCrossShardTxSource(t *testing.T) {
 	}}, map[string]*outport.StatusInfo{}, 0, buffSlice, "transactions")
 	require.Nil(t, err)
 
-	expectedBuff := `{"update":{ "_index":"transactions", "_id":"txHash"}}
+	expectedBuff := `{"update":{ "_index":"transactions", "_id":"txHash", "retry_on_conflict":3}}
 {"script":{"source":"return"},"upsert":{"uuid":"","miniBlockHash":"","nonce":0,"round":0,"value":"","valueNum":0,"receiver":"","sender":"","receiverShard":1,"senderShard":0,"gasPrice":0,"gasLimit":0,"gasUsed":0,"fee":"","feeNum":0,"data":null,"signature":"","timestamp":0,"status":"","searchOrder":0,"version":1,"epoch":0}}
 `
 	require.Equal(t, expectedBuff, buffSlice.Buffers()[0].String())
@@ -145,7 +145,7 @@ func TestTxsDatabaseProcessor_SerializeTransactionWithRefund(t *testing.T) {
 	err := (&txsDatabaseProcessor{}).SerializeTransactionsFeeData(txHashRefund, buffSlice, "transactions")
 	require.Nil(t, err)
 
-	expectedBuff := `{"update":{ "_index":"transactions","_id":"txHash"}}
+	expectedBuff := `{"update":{ "_index":"transactions","_id":"txHash", "retry_on_conflict":3}}
 {"scripted_upsert": true, "script": {"source": "if ('create' == ctx.op) {ctx.op = 'noop'} else {ctx._source.fee = params.fee;ctx._source.feeNum = params.feeNum;ctx._source.gasUsed = params.gasUsed;}","lang": "painless","params": {"fee": "100000", "gasUsed": 5000, "feeNum": 5e-15, "gasRefunded": 0}},"upsert": {}}
 `
 	require.Equal(t, expectedBuff, buffSlice.Buffers()[0].String())

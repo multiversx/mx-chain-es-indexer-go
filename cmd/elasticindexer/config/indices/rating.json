@@ -1,0 +1,20 @@
+{
+  "index_patterns": [
+    "rating-*"
+  ],
+  "template": {
+    "settings": {
+      "index.lifecycle.name": "rating-policy",
+      "index.lifecycle.rollover_alias": "rating",
+      "number_of_replicas": 1,
+      "number_of_shards": 5
+    },
+    "mappings": {
+      "properties": {
+        "rating": {
+          "type": "double"
+        }
+      }
+    }
+  }
+}

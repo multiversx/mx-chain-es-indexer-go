@@ -1,0 +1,50 @@
+{
+  "index_patterns": [
+    "miniblocks-*"
+  ],
+  "template": {
+    "settings": {
+      "index.lifecycle.name": "miniblocks-policy",
+      "index.lifecycle.rollover_alias": "miniblocks",
+      "number_of_replicas": 1,
+      "number_of_shards": 5
+    },
+    "mappings": {
+      "properties": {
+        "procTypeD": {
+          "type": "keyword"
+        },
+        "procTypeS": {
+          "type": "keyword"
+        },
+        "receiverBlockHash": {
+          "type": "keyword"
+        },
+        "receiverShard": {
+          "type": "long"
+        },
+        "reserved": {
+          "index": "false",
+          "type": "keyword"
+        },
+        "senderBlockHash": {
+          "type": "keyword"
+        },
+        "senderShard": {
+          "type": "long"
+        },
+        "timestamp": {
+          "format": "epoch_second",
+          "type": "date"
+        },
+        "timestampMs": {
+          "type":   "date",
+          "format": "epoch_millis"
+        },
+        "type": {
+          "type": "keyword"
+        }
+      }
+    }
+  }
+}

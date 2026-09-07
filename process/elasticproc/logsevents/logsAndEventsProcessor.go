@@ -3,10 +3,10 @@ package logsevents
 import (
 	"encoding/hex"
 	"fmt"
+
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	coreData "github.com/multiversx/mx-chain-core-go/data"
-	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
@@ -88,14 +88,13 @@ func createEventsProcessors(args ArgsLogsAndEventsProcessor) []eventsProcessor {
 
 // ExtractDataFromLogs will extract data from the provided logs and events and put in altered addresses
 func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
-	logsAndEvents []*outport.LogData,
+	logsAndEvents []*transaction.LogData,
 	preparedResults *data.PreparedResults,
-	timestamp uint64,
 	shardID uint32,
 	numOfShards uint32,
 	timestampMs uint64,
 ) *data.PreparedLogsResults {
-	lgData := newLogsData(timestamp, preparedResults.Transactions, preparedResults.ScResults, timestampMs)
+	lgData := newLogsData(preparedResults.Transactions, preparedResults.ScResults, timestampMs)
 	for _, txLog := range logsAndEvents {
 		if txLog == nil {
 			continue
@@ -116,7 +115,7 @@ func (lep *logsAndEventsProcessor) ExtractDataFromLogs(
 		}
 	}
 
-	dbLogs, dbEvents := lep.prepareLogsForDB(lgData, logsAndEvents, timestamp, shardID, timestampMs)
+	dbLogs, dbEvents := lep.prepareLogsForDB(lgData, logsAndEvents, shardID)
 
 	return &data.PreparedLogsResults{
 		Tokens:                  lgData.tokens,
@@ -191,10 +190,8 @@ func (lep *logsAndEventsProcessor) processEvent(lgData *logsData, logHashHexEnco
 
 func (lep *logsAndEventsProcessor) prepareLogsForDB(
 	lgData *logsData,
-	logsAndEvents []*outport.LogData,
-	timestamp uint64,
+	logsAndEvents []*transaction.LogData,
 	shardID uint32,
-	timestampMs uint64,
 ) ([]*data.Logs, []*data.LogEvent) {
 	logs := make([]*data.Logs, 0, len(logsAndEvents))
 	events := make([]*data.LogEvent, 0)
@@ -204,7 +201,7 @@ func (lep *logsAndEventsProcessor) prepareLogsForDB(
 			continue
 		}
 
-		dbLog, logEvents := lep.prepareLog(lgData, txLog.TxHash, txLog.Log, timestamp, shardID, timestampMs)
+		dbLog, logEvents := lep.prepareLog(lgData, txLog.TxHash, txLog.Log, shardID)
 
 		logs = append(logs, dbLog)
 		events = append(events, logEvents...)
@@ -217,9 +214,7 @@ func (lep *logsAndEventsProcessor) prepareLog(
 	lgData *logsData,
 	logHashHex string,
 	eventLogs *transaction.Log,
-	timestamp uint64,
 	shardID uint32,
-	timestampMs uint64,
 ) (*data.Logs, []*data.LogEvent) {
 	originalTxHash := lep.getOriginalTxHash(lgData, logHashHex)
 	encodedAddr := lep.pubKeyConverter.SilentEncode(eventLogs.GetAddress(), log)
@@ -228,9 +223,9 @@ func (lep *logsAndEventsProcessor) prepareLog(
 		ID:             logHashHex,
 		OriginalTxHash: originalTxHash,
 		Address:        encodedAddr,
-		Timestamp:      timestamp,
+		Timestamp:      lgData.timestamp,
 		Events:         make([]*data.Event, 0, len(eventLogs.Events)),
-		TimestampMs:    timestampMs,
+		TimestampMs:    lgData.timestampMs,
 	}
 
 	dbEvents := make([]*data.LogEvent, 0, len(eventLogs.Events))
@@ -250,13 +245,13 @@ func (lep *logsAndEventsProcessor) prepareLog(
 		logsDB.Events = append(logsDB.Events, logEvent)
 
 		executionOrder := lep.getExecutionOrder(lgData, logHashHex)
-		dbEvents = append(dbEvents, lep.prepareLogEvent(logsDB, logEvent, shardID, executionOrder, timestampMs))
+		dbEvents = append(dbEvents, lep.prepareLogEvent(logsDB, logEvent, shardID, executionOrder))
 	}
 
 	return logsDB, dbEvents
 }
 
-func (lep *logsAndEventsProcessor) prepareLogEvent(dbLog *data.Logs, event *data.Event, shardID uint32, execOrder int, timestampMs uint64) *data.LogEvent {
+func (lep *logsAndEventsProcessor) prepareLogEvent(dbLog *data.Logs, event *data.Event, shardID uint32, execOrder int) *data.LogEvent {
 	dbEvent := &data.LogEvent{
 		UUID:           converters.GenerateBase64UUID(),
 		TxHash:         dbLog.ID,
@@ -272,7 +267,7 @@ func (lep *logsAndEventsProcessor) prepareLogEvent(dbLog *data.Logs, event *data
 		OriginalTxHash: dbLog.OriginalTxHash,
 		Timestamp:      dbLog.Timestamp,
 		ID:             fmt.Sprintf(eventIDFormat, dbLog.ID, shardID, event.Order),
-		TimestampMs:    timestampMs,
+		TimestampMs:    dbLog.TimestampMs,
 	}
 
 	return dbEvent

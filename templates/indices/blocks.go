@@ -90,7 +90,7 @@ var Blocks = Object{
 						},
 						"nonce": Object{
 							"index": "false",
-							"type":  "double",
+							"type":  "long",
 						},
 						"pendingMiniBlockHeaders": Object{
 							"properties": Object{
@@ -245,6 +245,12 @@ var Blocks = Object{
 				"validators": Object{
 					"index": "false",
 					"type":  "long",
+				},
+				"lastExecutionResultHash": Object{
+					"type": "keyword",
+				},
+				"lastExecutionResultNonce": Object{
+					"type": "long",
 				},
 			},
 		},

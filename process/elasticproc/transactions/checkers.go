@@ -8,7 +8,6 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
-	coreData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	elasticIndexer "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
@@ -50,13 +49,8 @@ func areESDTValuesOK(values []string) bool {
 }
 
 func checkPrepareTransactionForDatabaseArguments(
-	header coreData.HeaderHandler,
 	pool *outport.TransactionPool,
 ) error {
-
-	if check.IfNil(header) {
-		return elasticIndexer.ErrNilHeaderHandler
-	}
 	if pool == nil {
 		return elasticIndexer.ErrNilPool
 	}

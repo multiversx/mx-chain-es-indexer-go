@@ -1,0 +1,23 @@
+{
+  "index_patterns": [
+    "tags-*"
+  ],
+  "template": {
+    "settings": {
+      "index.lifecycle.name": "tags-policy",
+      "index.lifecycle.rollover_alias": "tags",
+      "number_of_replicas": 1,
+      "number_of_shards": 5
+    },
+    "mappings": {
+      "properties": {
+        "count": {
+          "type": "long"
+        },
+        "tag": {
+          "type": "keyword"
+        }
+      }
+    }
+  }
+}

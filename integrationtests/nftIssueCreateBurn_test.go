@@ -38,7 +38,7 @@ func TestIssueNFTCreateAndBurn(t *testing.T) {
 
 	address1 := "erd1ju8pkvg57cwdmjsjx58jlmnuf4l9yspstrhr9tgsrt98n9edpm2qtlgy99"
 	pool := &outport.TransactionPool{
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
@@ -83,7 +83,7 @@ func TestIssueNFTCreateAndBurn(t *testing.T) {
 	esdtDataBytes, _ := json.Marshal(esdtData)
 
 	pool = &outport.TransactionPool{
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
@@ -119,7 +119,7 @@ func TestIssueNFTCreateAndBurn(t *testing.T) {
 	}
 
 	pool = &outport.TransactionPool{
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
@@ -169,7 +169,7 @@ func TestIssueNFTCreateAndBurnNonFungibleV2(t *testing.T) {
 
 	address1 := "erd1ju8pkvg57cwdmjsjx58jlmnuf4l9yspstrhr9tgsrt98n9edpm2qtlgy99"
 	pool := &outport.TransactionPool{
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
@@ -208,7 +208,7 @@ func TestIssueNFTCreateAndBurnNonFungibleV2(t *testing.T) {
 	esdtDataBytes, _ := json.Marshal(esdtData)
 
 	pool = &outport.TransactionPool{
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
@@ -244,7 +244,7 @@ func TestIssueNFTCreateAndBurnNonFungibleV2(t *testing.T) {
 	}
 
 	pool = &outport.TransactionPool{
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{

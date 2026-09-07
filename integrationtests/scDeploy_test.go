@@ -66,7 +66,7 @@ func TestTransactionWithSCDeploy(t *testing.T) {
 		Transactions: map[string]*outport.TxInfo{
 			hex.EncodeToString(txHash): txInfo,
 		},
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
@@ -108,7 +108,7 @@ func TestTransactionWithSCDeploy(t *testing.T) {
 	// UPGRADE contract
 	header.TimeStamp = 6000
 	pool = &outport.TransactionPool{
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: hex.EncodeToString([]byte("h2")),
 				Log: &transaction.Log{
@@ -140,7 +140,7 @@ func TestTransactionWithSCDeploy(t *testing.T) {
 	// CHANGE owner first
 	header.TimeStamp = 7000
 	pool = &outport.TransactionPool{
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: hex.EncodeToString([]byte("h3")),
 				Log: &transaction.Log{
@@ -172,7 +172,7 @@ func TestTransactionWithSCDeploy(t *testing.T) {
 	// CHANGE owner second
 	header.TimeStamp = 8000
 	pool = &outport.TransactionPool{
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: hex.EncodeToString([]byte("h4")),
 				Log: &transaction.Log{
@@ -252,7 +252,7 @@ func TestScDeployWithSignalErrorAndCompleteTxEvent(t *testing.T) {
 		Transactions: map[string]*outport.TxInfo{
 			hex.EncodeToString(txHash): txInfo,
 		},
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: hex.EncodeToString(txHash),
 				Log: &transaction.Log{

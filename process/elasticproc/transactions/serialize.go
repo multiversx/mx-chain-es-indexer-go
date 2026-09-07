@@ -50,7 +50,7 @@ func (tdp *txsDatabaseProcessor) SerializeReceipts(receipts []*data.Receipt, buf
 // SerializeTransactionsFeeData will serialize transactions fee data
 func (tdp *txsDatabaseProcessor) SerializeTransactionsFeeData(txHashRefund map[string]*data.FeeData, buffSlice *data.BufferSlice, index string) error {
 	for txHash, feeData := range txHashRefund {
-		meta := []byte(fmt.Sprintf(`{"update":{ "_index":"%s","_id":"%s"}}%s`, index, converters.JsonEscape(txHash), "\n"))
+		meta := []byte(fmt.Sprintf(`{"update":{ "_index":"%s","_id":"%s", "retry_on_conflict":3}}%s`, index, converters.JsonEscape(txHash), "\n"))
 
 		var codeToExecute string
 		if feeData.GasRefunded != 0 {
@@ -142,7 +142,7 @@ func (tdp *txsDatabaseProcessor) SerializeTransactions(
 
 func serializeTxHashStatus(buffSlice *data.BufferSlice, txHashStatusInfo map[string]*outport.StatusInfo, index string) error {
 	for txHash, statusInfo := range txHashStatusInfo {
-		metaData := []byte(fmt.Sprintf(`{"update":{ "_index":"%s","_id":"%s"}}%s`, index, converters.JsonEscape(txHash), "\n"))
+		metaData := []byte(fmt.Sprintf(`{"update":{ "_index":"%s","_id":"%s", "retry_on_conflict":3}}%s`, index, converters.JsonEscape(txHash), "\n"))
 
 		newTx := &data.Transaction{
 			Status:         statusInfo.Status,
@@ -186,7 +186,7 @@ func prepareSerializedDataForATransaction(
 	selfShardID uint32,
 	index string,
 ) ([]byte, []byte, error) {
-	metaData := []byte(fmt.Sprintf(`{"update":{ "_index":"%s", "_id":"%s"}}%s`, index, converters.JsonEscape(tx.Hash), "\n"))
+	metaData := []byte(fmt.Sprintf(`{"update":{ "_index":"%s", "_id":"%s", "retry_on_conflict":3}}%s`, index, converters.JsonEscape(tx.Hash), "\n"))
 	marshaledTx, err := json.Marshal(tx)
 	if err != nil {
 		return nil, nil, err

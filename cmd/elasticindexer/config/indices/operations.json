@@ -1,0 +1,165 @@
+{
+  "index_patterns": [
+    "operations-*"
+  ],
+  "template": {
+    "settings": {
+      "index.sort.field": [
+        "timestamp",
+        "nonce"
+      ],
+      "index.sort.order": [
+        "desc",
+        "desc"
+      ],
+      "index.lifecycle.name": "operations-policy",
+      "index.lifecycle.rollover_alias": "operations",
+      "number_of_replicas": 1,
+      "number_of_shards": 5
+    },
+    "mappings": {
+      "properties": {
+        "callType": {
+          "index": "false",
+          "type": "keyword"
+        },
+        "canBeIgnored": {
+          "type": "boolean"
+        },
+        "code": {
+          "index": "false",
+          "type": "text"
+        },
+        "data": {
+          "type": "text"
+        },
+        "esdtValues": {
+          "type": "keyword"
+        },
+        "fee": {
+          "index": "false",
+          "type": "keyword"
+        },
+        "function": {
+          "type": "keyword"
+        },
+        "gasLimit": {
+          "index": "false",
+          "type": "double"
+        },
+        "gasPrice": {
+          "index": "false",
+          "type": "double"
+        },
+        "gasUsed": {
+          "index": "false",
+          "type": "double"
+        },
+        "hasOperations": {
+          "type": "boolean"
+        },
+        "hasScResults": {
+          "type": "boolean"
+        },
+        "initialPaidFee": {
+          "index": "false",
+          "type": "keyword"
+        },
+        "isRelayed": {
+          "type": "boolean"
+        },
+        "isScCall": {
+          "type": "boolean"
+        },
+        "miniBlockHash": {
+          "type": "keyword"
+        },
+        "nonce": {
+          "type": "long"
+        },
+        "operation": {
+          "type": "keyword"
+        },
+        "originalSender": {
+          "type": "keyword"
+        },
+        "originalTxHash": {
+          "type": "keyword"
+        },
+        "prevTxHash": {
+          "type": "keyword"
+        },
+        "receiver": {
+          "type": "keyword"
+        },
+        "receiverShard": {
+          "type": "long"
+        },
+        "receivers": {
+          "type": "keyword"
+        },
+        "receiversShardIDs": {
+          "type": "long"
+        },
+        "relayedValue": {
+          "index": "false",
+          "type": "keyword"
+        },
+        "relayerAddr": {
+          "type": "keyword"
+        },
+        "returnMessage": {
+          "type": "text"
+        },
+        "round": {
+          "type": "long"
+        },
+        "searchOrder": {
+          "type": "long"
+        },
+        "sender": {
+          "type": "keyword"
+        },
+        "senderShard": {
+          "type": "long"
+        },
+        "senderUserName": {
+          "type": "keyword"
+        },
+        "signature": {
+          "index": "false",
+          "type": "keyword"
+        },
+        "status": {
+          "type": "keyword"
+        },
+        "timestamp": {
+          "format": "epoch_second",
+          "type": "date"
+        },
+        "timestampMs": {
+          "type":   "date",
+          "format": "epoch_millis"
+        },
+        "tokens": {
+          "type": "text"
+        },
+        "type": {
+          "type": "keyword"
+        },
+        "value": {
+          "type": "keyword"
+        },
+        "version": {
+          "type": "long"
+        },
+        "valueNum": {
+          "type": "double"
+        },
+        "esdtValuesNum": {
+          "type": "double"
+        }
+      }
+    }
+  }
+}

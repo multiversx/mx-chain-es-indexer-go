@@ -7,11 +7,16 @@ import (
 
 // DatabaseWriterStub -
 type DatabaseWriterStub struct {
-	DoBulkRequestCalled       func(buff *bytes.Buffer, index string) error
-	DoQueryRemoveCalled       func(index string, body *bytes.Buffer) error
-	DoMultiGetCalled          func(ids []string, index string, withSource bool, response interface{}) error
-	CheckAndCreateIndexCalled func(index string) error
-	DoScrollRequestCalled     func(index string, body []byte, withSource bool, handlerFunc func(responseBytes []byte) error) error
+	DoBulkRequestCalled           func(buff *bytes.Buffer, index string) error
+	DoQueryRemoveCalled           func(index string, body *bytes.Buffer) error
+	DoMultiGetCalled              func(ids []string, index string, withSource bool, response interface{}) error
+	CheckAndCreateIndexCalled     func(index string) error
+	CheckAndCreateAliasCalled     func(alias string, index string) error
+	CheckAndCreateTemplateCalled  func(templateName string, template *bytes.Buffer) error
+	CheckAndCreatePolicyCalled    func(policyName string, policy *bytes.Buffer) error
+	SetWriteIndexTrueCalled       func(alias string, index string) error
+	PolicyExistsCalled            func(policy string) bool
+	DoScrollRequestCalled         func(index string, body []byte, withSource bool, handlerFunc func(responseBytes []byte) error) error
 }
 
 // PutMappings -
@@ -72,18 +77,43 @@ func (dwm *DatabaseWriterStub) CheckAndCreateIndex(index string) error {
 }
 
 // CheckAndCreateAlias -
-func (dwm *DatabaseWriterStub) CheckAndCreateAlias(_ string, _ string) error {
+func (dwm *DatabaseWriterStub) CheckAndCreateAlias(alias string, index string) error {
+	if dwm.CheckAndCreateAliasCalled != nil {
+		return dwm.CheckAndCreateAliasCalled(alias, index)
+	}
 	return nil
 }
 
 // CheckAndCreateTemplate -
-func (dwm *DatabaseWriterStub) CheckAndCreateTemplate(_ string, _ *bytes.Buffer) error {
+func (dwm *DatabaseWriterStub) CheckAndCreateTemplate(templateName string, template *bytes.Buffer) error {
+	if dwm.CheckAndCreateTemplateCalled != nil {
+		return dwm.CheckAndCreateTemplateCalled(templateName, template)
+	}
 	return nil
 }
 
 // CheckAndCreatePolicy -
-func (dwm *DatabaseWriterStub) CheckAndCreatePolicy(_ string, _ *bytes.Buffer) error {
+func (dwm *DatabaseWriterStub) CheckAndCreatePolicy(policyName string, policy *bytes.Buffer) error {
+	if dwm.CheckAndCreatePolicyCalled != nil {
+		return dwm.CheckAndCreatePolicyCalled(policyName, policy)
+	}
 	return nil
+}
+
+// SetWriteIndexTrue -
+func (dwm *DatabaseWriterStub) SetWriteIndexTrue(alias string, index string) error {
+	if dwm.SetWriteIndexTrueCalled != nil {
+		return dwm.SetWriteIndexTrueCalled(alias, index)
+	}
+	return nil
+}
+
+// PolicyExists -
+func (dwm *DatabaseWriterStub) PolicyExists(policy string) bool {
+	if dwm.PolicyExistsCalled != nil {
+		return dwm.PolicyExistsCalled(policy)
+	}
+	return false
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

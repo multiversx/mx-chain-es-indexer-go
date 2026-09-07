@@ -1,0 +1,91 @@
+{
+  "index_patterns": [
+    "accountsesdt-*"
+  ],
+  "template": {
+    "settings": {
+      "index.lifecycle.name": "accountsesdt-policy",
+      "index.lifecycle.rollover_alias": "accountsesdt",
+      "number_of_replicas": 1,
+      "number_of_shards": 5
+    },
+    "mappings": {
+      "properties": {
+        "address": {
+          "type": "keyword"
+        },
+        "balance": {
+          "type": "keyword"
+        },
+        "balanceNum": {
+          "type": "double"
+        },
+        "currentOwner": {
+          "type": "keyword"
+        },
+        "data": {
+          "properties": {
+            "attributes": {
+              "index": "false",
+              "type": "keyword"
+            },
+            "creator": {
+              "type": "keyword"
+            },
+            "hash": {
+              "index": "false",
+              "type": "keyword"
+            },
+            "metadata": {
+              "index": "false",
+              "type": "keyword"
+            },
+            "name": {
+              "type": "keyword"
+            },
+            "nonEmptyURIs": {
+              "type": "boolean"
+            },
+            "royalties": {
+              "index": "false",
+              "type": "long"
+            },
+            "tags": {
+              "type": "text"
+            },
+            "uris": {
+              "type": "text"
+            }
+          },
+          "type": "nested"
+        },
+        "identifier": {
+          "type": "text"
+        },
+        "properties": {
+          "type": "keyword"
+        },
+        "shardID": {
+          "type": "long"
+        },
+        "timestamp": {
+          "format": "epoch_second",
+          "type": "date"
+        },
+        "timestampMs": {
+          "type":   "date",
+          "format": "epoch_millis"
+        },
+        "token": {
+          "type": "keyword"
+        },
+        "tokenNonce": {
+          "type": "double"
+        },
+        "type": {
+          "type": "keyword"
+        }
+      }
+    }
+  }
+}

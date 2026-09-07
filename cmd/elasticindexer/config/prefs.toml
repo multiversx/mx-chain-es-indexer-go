@@ -15,10 +15,11 @@
         # After a message will be sent it will wait for an ack message if this flag is enabled
         with-acknowledge = true
         # The duration in seconds to wait for an acknowledgment message, after this time passes an error will be returned
-        acknowledge-timeout-in-seconds = 50
+        acknowledge-timeout-in-seconds = 5
 
     [config.elastic-cluster]
         url = "http://localhost:9200"
         username = ""
         password = ""
         bulk-request-max-size-in-bytes = 4194304 # 4MB
+        num-writes-in-parallel = 1

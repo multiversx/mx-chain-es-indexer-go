@@ -85,7 +85,7 @@ var Operations = Object{
 					"type": "keyword",
 				},
 				"nonce": Object{
-					"type": "double",
+					"type": "long",
 				},
 				"operation": Object{
 					"type": "keyword",

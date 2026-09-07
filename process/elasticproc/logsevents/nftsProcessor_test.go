@@ -3,14 +3,15 @@ package logsevents
 import (
 	"encoding/hex"
 	"encoding/json"
+	"math/big"
+	"testing"
+
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/esdt"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/mock"
 	"github.com/stretchr/testify/require"
-	"math/big"
-	"testing"
 )
 
 func TestNftsProcessor_processLogAndEventsNFTs(t *testing.T) {

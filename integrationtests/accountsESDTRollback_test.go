@@ -37,6 +37,7 @@ func TestAccountsESDTDeleteOnRollback(t *testing.T) {
 	coreAlteredAccounts := map[string]*alteredAccount.AlteredAccount{
 		addr: {
 			Address: addr,
+			Balance: "0",
 			Tokens: []*alteredAccount.AccountTokenData{
 				{
 					Identifier: "TOKEN-eeee",
@@ -57,10 +58,11 @@ func TestAccountsESDTDeleteOnRollback(t *testing.T) {
 	// CREATE SEMI-FUNGIBLE TOKEN
 	esdtDataBytes, _ := json.Marshal(esdtToken)
 	pool := &outport.TransactionPool{
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
+					Address: decodeAddress(addr),
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(addr),

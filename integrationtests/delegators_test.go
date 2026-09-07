@@ -42,7 +42,7 @@ func TestDelegateUnDelegateAndWithdraw(t *testing.T) {
 	// delegate
 	delegatedValue, _ := big.NewInt(0).SetString("200000000000000000000", 10)
 	pool := &outport.TransactionPool{
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
@@ -73,7 +73,7 @@ func TestDelegateUnDelegateAndWithdraw(t *testing.T) {
 	unDelegatedValue, _ := big.NewInt(0).SetString("50000000000000000000", 10)
 	totalDelegation, _ := big.NewInt(0).SetString("150000000000000000000", 10)
 	pool = &outport.TransactionPool{
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: hex.EncodeToString([]byte("h2")),
 				Log: &transaction.Log{
@@ -103,7 +103,7 @@ func TestDelegateUnDelegateAndWithdraw(t *testing.T) {
 	unDelegatedValue, _ = big.NewInt(0).SetString("25500000000000000000", 10)
 	totalDelegation, _ = big.NewInt(0).SetString("124500000000000000000", 10)
 	pool = &outport.TransactionPool{
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: hex.EncodeToString([]byte("h3")),
 				Log: &transaction.Log{
@@ -143,7 +143,7 @@ func TestDelegateUnDelegateAndWithdraw(t *testing.T) {
 	// withdraw
 	withdrawValue, _ := big.NewInt(0).SetString("725500000000000000000", 10)
 	pool = &outport.TransactionPool{
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: hex.EncodeToString([]byte("h4")),
 				Log: &transaction.Log{

@@ -17,7 +17,6 @@ func TestCreateElasticProcessor(t *testing.T) {
 		DBClient:                 &mock.DatabaseWriterStub{},
 		EnabledIndexes:           []string{"blocks"},
 		Denomination:             1,
-		UseKibana:                false,
 	}
 
 	ep, err := CreateElasticProcessor(args)

@@ -46,10 +46,11 @@ func TestNFTUpdateMetadata(t *testing.T) {
 	// CREATE NFT data
 	address := "erd1w7jyzuj6cv4ngw8luhlkakatjpmjh3ql95lmxphd3vssc4vpymks6k5th7"
 	pool := &outport.TransactionPool{
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
+					Address: decodeAddress(address),
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(address),
@@ -73,10 +74,11 @@ func TestNFTUpdateMetadata(t *testing.T) {
 
 	// Add URIS 1
 	pool = &outport.TransactionPool{
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
+					Address: decodeAddress(address),
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(address),
@@ -94,10 +96,11 @@ func TestNFTUpdateMetadata(t *testing.T) {
 
 	// Add URIS 2 --- results should be the same
 	pool = &outport.TransactionPool{
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
+					Address: decodeAddress(address),
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(address),
@@ -121,10 +124,11 @@ func TestNFTUpdateMetadata(t *testing.T) {
 	require.JSONEq(t, readExpectedResult("./testdata/updateNFT/token-after-add-uris.json"), string(genericResponse.Docs[0].Source))
 
 	pool = &outport.TransactionPool{
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
+					Address: decodeAddress(address),
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(address),
@@ -149,10 +153,11 @@ func TestNFTUpdateMetadata(t *testing.T) {
 	// Update attributes 2
 
 	pool = &outport.TransactionPool{
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
+					Address: decodeAddress(address),
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(address),
@@ -176,10 +181,11 @@ func TestNFTUpdateMetadata(t *testing.T) {
 
 	// Freeze nft
 	pool = &outport.TransactionPool{
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
+					Address: decodeAddress(address),
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(address),
@@ -202,10 +208,11 @@ func TestNFTUpdateMetadata(t *testing.T) {
 
 	// UnFreeze nft
 	pool = &outport.TransactionPool{
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
+					Address: decodeAddress(address),
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(address),
@@ -228,10 +235,11 @@ func TestNFTUpdateMetadata(t *testing.T) {
 
 	// Set new uris
 	pool = &outport.TransactionPool{
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
+					Address: decodeAddress(address),
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(address),
@@ -255,10 +263,11 @@ func TestNFTUpdateMetadata(t *testing.T) {
 	// new creator
 	newCreator := "erd12m3x8jp6dl027pj5f2nw6ght2cyhhjfrs86cdwsa8xn83r375qfqrwpdx0"
 	pool = &outport.TransactionPool{
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
+					Address: decodeAddress(address),
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(newCreator),
@@ -281,10 +290,11 @@ func TestNFTUpdateMetadata(t *testing.T) {
 
 	// new royalties
 	pool = &outport.TransactionPool{
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
+					Address: decodeAddress(address),
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(address),
@@ -333,10 +343,11 @@ func TestCreateNFTAndMetaDataRecreate(t *testing.T) {
 	// CREATE NFT data
 	address := "erd1w7jyzuj6cv4ngw8luhlkakatjpmjh3ql95lmxphd3vssc4vpymks6k5th7"
 	pool := &outport.TransactionPool{
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
+					Address: decodeAddress(address),
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(address),
@@ -369,10 +380,11 @@ func TestCreateNFTAndMetaDataRecreate(t *testing.T) {
 	marshalizedReCreate, _ := json.Marshal(reCreate)
 
 	pool = &outport.TransactionPool{
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
+					Address: decodeAddress(address),
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(address),
@@ -404,10 +416,11 @@ func TestCreateNFTAndMetaDataRecreate(t *testing.T) {
 	marshalizedUpdate, _ := json.Marshal(update)
 
 	pool = &outport.TransactionPool{
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
+					Address: decodeAddress(address),
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(address),
@@ -456,10 +469,11 @@ func TestMultipleESDTMetadataRecreate(t *testing.T) {
 	// CREATE NFT data
 	address := "erd1w7jyzuj6cv4ngw8luhlkakatjpmjh3ql95lmxphd3vssc4vpymks6k5th7"
 	pool := &outport.TransactionPool{
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
+					Address: decodeAddress(address),
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(address),
@@ -473,6 +487,7 @@ func TestMultipleESDTMetadataRecreate(t *testing.T) {
 			{
 				TxHash: hex.EncodeToString([]byte("h2")),
 				Log: &transaction.Log{
+					Address: decodeAddress(address),
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(address),
@@ -499,10 +514,11 @@ func TestMultipleESDTMetadataRecreate(t *testing.T) {
 	marshalizedReCreate, _ := json.Marshal(reCreate)
 
 	pool = &outport.TransactionPool{
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
+					Address: decodeAddress(address),
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(address),
@@ -516,6 +532,7 @@ func TestMultipleESDTMetadataRecreate(t *testing.T) {
 			{
 				TxHash: hex.EncodeToString([]byte("h2")),
 				Log: &transaction.Log{
+					Address: decodeAddress(address),
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(address),

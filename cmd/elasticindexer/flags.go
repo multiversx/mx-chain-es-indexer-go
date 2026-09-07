@@ -10,6 +10,13 @@ const (
 )
 
 var (
+	// defines the path to the config folder
+	configPath = cli.StringFlag{
+		Name:  "config-path",
+		Usage: "The path to the config folder",
+		Value: "./config/",
+	}
+
 	configurationFile = cli.StringFlag{
 		Name:  "config",
 		Usage: "The main configuration file to load",

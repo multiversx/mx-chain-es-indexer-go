@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	coreData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/receipt"
@@ -39,11 +38,9 @@ func newTxsGrouper(
 func (tg *txsGrouper) groupNormalTxs(
 	mbIndex int,
 	mb *block.MiniBlock,
-	header coreData.HeaderHandler,
+	headerData *data.HeaderData,
 	txs map[string]*outport.TxInfo,
 	isImportDB bool,
-	numOfShards uint32,
-	timestampMs uint64,
 ) (map[string]*data.Transaction, error) {
 	transactions := make(map[string]*data.Transaction)
 
@@ -52,16 +49,15 @@ func (tg *txsGrouper) groupNormalTxs(
 		return nil, err
 	}
 
-	selfShardID := header.GetShardID()
-	executedTxHashes := extractExecutedTxHashes(mbIndex, mb.TxHashes, header)
-	mbStatus := computeStatus(selfShardID, mb.ReceiverShardID)
+	executedTxHashes := extractExecutedTxHashes(mbIndex, mb.TxHashes, headerData)
+	mbStatus := computeStatus(headerData.ShardID, mb.ReceiverShardID)
 	for _, txHash := range executedTxHashes {
-		dbTx, ok := tg.prepareNormalTxForDB(mbHash, mb, mbStatus, txHash, txs, header, numOfShards, timestampMs)
+		dbTx, ok := tg.prepareNormalTxForDB(mbHash, mb, mbStatus, txHash, txs, headerData)
 		if !ok {
 			continue
 		}
 
-		if tg.shouldIndex(mb.ReceiverShardID, isImportDB, selfShardID) {
+		if tg.shouldIndex(mb.ReceiverShardID, isImportDB, headerData.ShardID) {
 			transactions[string(txHash)] = dbTx
 		}
 	}
@@ -69,8 +65,8 @@ func (tg *txsGrouper) groupNormalTxs(
 	return transactions, nil
 }
 
-func extractExecutedTxHashes(mbIndex int, mbTxHashes [][]byte, header coreData.HeaderHandler) [][]byte {
-	miniblockHeaders := header.GetMiniBlockHeaderHandlers()
+func extractExecutedTxHashes(mbIndex int, mbTxHashes [][]byte, headerData *data.HeaderData) [][]byte {
+	miniblockHeaders := headerData.MiniBlockHeaders
 	if len(miniblockHeaders) <= mbIndex {
 		return mbTxHashes
 	}
@@ -96,16 +92,14 @@ func (tg *txsGrouper) prepareNormalTxForDB(
 	mbStatus string,
 	txHash []byte,
 	txs map[string]*outport.TxInfo,
-	header coreData.HeaderHandler,
-	numOfShards uint32,
-	timestampMs uint64,
+	headerData *data.HeaderData,
 ) (*data.Transaction, bool) {
 	txInfo, okGet := txs[hex.EncodeToString(txHash)]
 	if !okGet {
 		return nil, false
 	}
 
-	dbTx := tg.txBuilder.prepareTransaction(txInfo, txHash, mbHash, mb, header, mbStatus, numOfShards, timestampMs)
+	dbTx := tg.txBuilder.prepareTransaction(txInfo, txHash, mbHash, mb, headerData, mbStatus)
 
 	return dbTx, true
 }
@@ -113,10 +107,9 @@ func (tg *txsGrouper) prepareNormalTxForDB(
 func (tg *txsGrouper) groupRewardsTxs(
 	mbIndex int,
 	mb *block.MiniBlock,
-	header coreData.HeaderHandler,
+	headerData *data.HeaderData,
 	txs map[string]*outport.RewardInfo,
 	isImportDB bool,
-	timestampMs uint64,
 ) (map[string]*data.Transaction, error) {
 	rewardsTxs := make(map[string]*data.Transaction)
 	mbHash, err := core.CalculateHash(tg.marshalizer, tg.hasher, mb)
@@ -124,16 +117,15 @@ func (tg *txsGrouper) groupRewardsTxs(
 		return nil, err
 	}
 
-	selfShardID := header.GetShardID()
-	mbStatus := computeStatus(selfShardID, mb.ReceiverShardID)
-	executedTxHashes := extractExecutedTxHashes(mbIndex, mb.TxHashes, header)
+	mbStatus := computeStatus(headerData.ShardID, mb.ReceiverShardID)
+	executedTxHashes := extractExecutedTxHashes(mbIndex, mb.TxHashes, headerData)
 	for _, txHash := range executedTxHashes {
-		rewardDBTx, ok := tg.prepareRewardTxForDB(mbHash, mb, mbStatus, txHash, txs, header, timestampMs)
+		rewardDBTx, ok := tg.prepareRewardTxForDB(mbHash, mb, mbStatus, txHash, txs, headerData)
 		if !ok {
 			continue
 		}
 
-		if tg.shouldIndex(mb.ReceiverShardID, isImportDB, selfShardID) {
+		if tg.shouldIndex(mb.ReceiverShardID, isImportDB, headerData.ShardID) {
 			rewardsTxs[string(txHash)] = rewardDBTx
 		}
 	}
@@ -147,15 +139,14 @@ func (tg *txsGrouper) prepareRewardTxForDB(
 	mbStatus string,
 	txHash []byte,
 	txs map[string]*outport.RewardInfo,
-	header coreData.HeaderHandler,
-	timestampMs uint64,
+	headerData *data.HeaderData,
 ) (*data.Transaction, bool) {
 	rtx, okGet := txs[hex.EncodeToString(txHash)]
 	if !okGet {
 		return nil, false
 	}
 
-	dbTx := tg.txBuilder.prepareRewardTransaction(rtx, txHash, mbHash, mb, header, mbStatus, timestampMs)
+	dbTx := tg.txBuilder.prepareRewardTransaction(rtx, txHash, mbHash, mb, headerData, mbStatus)
 
 	return dbTx, true
 }
@@ -163,10 +154,8 @@ func (tg *txsGrouper) prepareRewardTxForDB(
 func (tg *txsGrouper) groupInvalidTxs(
 	mbIndex int,
 	mb *block.MiniBlock,
-	header coreData.HeaderHandler,
+	headerData *data.HeaderData,
 	txs map[string]*outport.TxInfo,
-	numOfShards uint32,
-	timestampMs uint64,
 ) (map[string]*data.Transaction, error) {
 	transactions := make(map[string]*data.Transaction)
 	mbHash, err := core.CalculateHash(tg.marshalizer, tg.hasher, mb)
@@ -174,9 +163,9 @@ func (tg *txsGrouper) groupInvalidTxs(
 		return nil, err
 	}
 
-	executedTxHashes := extractExecutedTxHashes(mbIndex, mb.TxHashes, header)
+	executedTxHashes := extractExecutedTxHashes(mbIndex, mb.TxHashes, headerData)
 	for _, txHash := range executedTxHashes {
-		invalidDBTx, ok := tg.prepareInvalidTxForDB(mbHash, mb, txHash, txs, header, numOfShards, timestampMs)
+		invalidDBTx, ok := tg.prepareInvalidTxForDB(mbHash, mb, txHash, txs, headerData)
 		if !ok {
 			continue
 		}
@@ -192,16 +181,14 @@ func (tg *txsGrouper) prepareInvalidTxForDB(
 	mb *block.MiniBlock,
 	txHash []byte,
 	txs map[string]*outport.TxInfo,
-	header coreData.HeaderHandler,
-	numOfShards uint32,
-	timestampMs uint64,
+	headerDta *data.HeaderData,
 ) (*data.Transaction, bool) {
 	txInfo, okGet := txs[hex.EncodeToString(txHash)]
 	if !okGet {
 		return nil, false
 	}
 
-	dbTx := tg.txBuilder.prepareTransaction(txInfo, txHash, mbHash, mb, header, transaction.TxStatusInvalid.String(), numOfShards, timestampMs)
+	dbTx := tg.txBuilder.prepareTransaction(txInfo, txHash, mbHash, mb, headerDta, transaction.TxStatusInvalid.String())
 
 	return dbTx, true
 }
@@ -214,10 +201,10 @@ func (tg *txsGrouper) shouldIndex(destinationShardID uint32, isImportDB bool, se
 	return selfShardID == destinationShardID
 }
 
-func (tg *txsGrouper) groupReceipts(header coreData.HeaderHandler, txsPool map[string]*receipt.Receipt, timestampMs uint64) []*data.Receipt {
+func (tg *txsGrouper) groupReceipts(headerData *data.HeaderData, txsPool map[string]*receipt.Receipt) []*data.Receipt {
 	dbReceipts := make([]*data.Receipt, 0)
 	for hashHex, rec := range txsPool {
-		dbReceipts = append(dbReceipts, tg.txBuilder.prepareReceipt(hashHex, rec, header, timestampMs))
+		dbReceipts = append(dbReceipts, tg.txBuilder.prepareReceipt(hashHex, rec, headerData))
 	}
 
 	return dbReceipts

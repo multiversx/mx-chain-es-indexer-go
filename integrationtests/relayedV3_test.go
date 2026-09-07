@@ -42,9 +42,10 @@ func TestRelayedV3TransactionWithMultipleRefunds(t *testing.T) {
 		},
 	}
 
+	addr := "erd1ykqd64fxxpp4wsz0v7sjqem038wfpzlljhx4mhwx8w9lcxmdzcfszrp64a"
 	initialTx := &transaction.Transaction{
 		Nonce:            1000,
-		SndAddr:          decodeAddress("erd1ykqd64fxxpp4wsz0v7sjqem038wfpzlljhx4mhwx8w9lcxmdzcfszrp64a"),
+		SndAddr:          decodeAddress(addr),
 		RcvAddr:          decodeAddress("erd1qqqqqqqqqqqqqpgqak8zt22wl2ph4tswtyc39namqx6ysa2sd8ss4xmlj3"),
 		RelayerAddr:      decodeAddress("erd10ksryjr065ad5475jcg82pnjfg9j9qtszjsrp24anl6ym7cmeddshwnru8"),
 		Signature:        []byte("d"),
@@ -89,6 +90,8 @@ func TestRelayedV3TransactionWithMultipleRefunds(t *testing.T) {
 			"scrHash": {
 				SmartContractResult: &smartContractResult.SmartContractResult{
 					OriginalTxHash: txHash,
+					SndAddr:        decodeAddress(addr),
+					RcvAddr:        decodeAddress(addr),
 				},
 				FeeInfo: &outport.FeeInfo{
 					GasRefunded: 9_692_000,
@@ -116,6 +119,8 @@ func TestRelayedV3TransactionWithMultipleRefunds(t *testing.T) {
 			"scrHash": {
 				SmartContractResult: &smartContractResult.SmartContractResult{
 					OriginalTxHash: txHash,
+					SndAddr:        decodeAddress(addr),
+					RcvAddr:        decodeAddress(addr),
 				},
 				FeeInfo: &outport.FeeInfo{
 					GasRefunded: 9_692_000,

@@ -1,0 +1,116 @@
+{
+  "index_patterns": [
+    "scresults-*"
+  ],
+  "template": {
+    "settings": {
+      "index.sort.field": [
+        "timestamp"
+      ],
+      "index.sort.order": [
+        "desc"
+      ],
+      "index.lifecycle.name": "scresults-policy",
+      "index.lifecycle.rollover_alias": "scresults",
+      "number_of_replicas": 1,
+      "number_of_shards": 5
+    },
+    "mappings": {
+      "properties": {
+        "callType": {
+          "type": "keyword"
+        },
+        "code": {
+          "index": "false",
+          "type": "text"
+        },
+        "data": {
+          "type": "text"
+        },
+        "esdtValues": {
+          "type": "keyword"
+        },
+        "function": {
+          "type": "keyword"
+        },
+        "gasLimit": {
+          "index": "false",
+          "type": "double"
+        },
+        "gasPrice": {
+          "index": "false",
+          "type": "double"
+        },
+        "hasOperations": {
+          "type": "boolean"
+        },
+        "miniBlockHash": {
+          "type": "keyword"
+        },
+        "nonce": {
+          "type": "long"
+        },
+        "operation": {
+          "type": "keyword"
+        },
+        "originalSender": {
+          "type": "keyword"
+        },
+        "originalTxHash": {
+          "type": "keyword"
+        },
+        "prevTxHash": {
+          "type": "keyword"
+        },
+        "receiver": {
+          "type": "keyword"
+        },
+        "receiverShard": {
+          "type": "long"
+        },
+        "receivers": {
+          "type": "keyword"
+        },
+        "receiversShardIDs": {
+          "type": "long"
+        },
+        "relayedValue": {
+          "index": "false",
+          "type": "keyword"
+        },
+        "relayerAddr": {
+          "type": "keyword"
+        },
+        "returnMessage": {
+          "type": "text"
+        },
+        "sender": {
+          "type": "keyword"
+        },
+        "senderShard": {
+          "type": "long"
+        },
+        "timestamp": {
+          "format": "epoch_second",
+          "type": "date"
+        },
+        "timestampMs": {
+          "type":   "date",
+          "format": "epoch_millis"
+        },
+        "tokens": {
+          "type": "text"
+        },
+        "value": {
+          "type": "keyword"
+        },
+        "valueNum": {
+          "type": "double"
+        },
+        "esdtValuesNum": {
+          "type": "double"
+        }
+      }
+    }
+  }
+}

@@ -8,6 +8,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/alteredAccount"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
+	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/tokeninfo"
 	"github.com/multiversx/mx-chain-es-indexer-go/templates"
@@ -27,6 +28,8 @@ type DatabaseClientHandler interface {
 	CheckAndCreateAlias(alias string, index string) error
 	CheckAndCreateTemplate(templateName string, template *bytes.Buffer) error
 	CheckAndCreatePolicy(policyName string, policy *bytes.Buffer) error
+	SetWriteIndexTrue(alias string, index string) error
+	PolicyExists(policy string) bool
 
 	IsInterfaceNil() bool
 }
@@ -48,24 +51,23 @@ type DBAccountHandler interface {
 
 // DBBlockHandler defines the actions that a block handler should do
 type DBBlockHandler interface {
-	PrepareBlockForDB(obh *outport.OutportBlockWithHeader) (*data.Block, error)
+	PrepareBlockForDB(obh *outport.OutportBlockWithHeader) (*data.PreparedBlockResults, error)
 	ComputeHeaderHash(header coreData.HeaderHandler) ([]byte, error)
 
 	SerializeEpochInfoData(header coreData.HeaderHandler, buffSlice *data.BufferSlice, index string) error
 	SerializeBlock(elasticBlock *data.Block, buffSlice *data.BufferSlice, index string) error
+	SerializeExecutionResults(executionResults []*data.ExecutionResult, buffSlice *data.BufferSlice, index string) error
 }
 
 // DBTransactionsHandler defines the actions that a transactions handler should do
 type DBTransactionsHandler interface {
 	PrepareTransactionsForDatabase(
 		miniBlocks []*block.MiniBlock,
-		header coreData.HeaderHandler,
+		headerData *data.HeaderData,
 		pool *outport.TransactionPool,
 		isImportDB bool,
-		numOfShards uint32,
-		timestampMS uint64,
 	) *data.PreparedResults
-	GetHexEncodedHashesForRemove(header coreData.HeaderHandler, body *block.Body) ([]string, []string)
+	GetHexEncodedHashesForRemove(headerData *data.HeaderData, body *block.Body) ([]string, []string)
 
 	SerializeReceipts(receipts []*data.Receipt, buffSlice *data.BufferSlice, index string) error
 	SerializeTransactions(transactions []*data.Transaction, txHashStatusInfo map[string]*outport.StatusInfo, selfShardID uint32, buffSlice *data.BufferSlice, index string) error
@@ -75,8 +77,8 @@ type DBTransactionsHandler interface {
 
 // DBMiniblocksHandler defines the actions that a miniblocks handler should do
 type DBMiniblocksHandler interface {
-	PrepareDBMiniblocks(header coreData.HeaderHandler, miniBlocks []*block.MiniBlock, timestampMS uint64) []*data.Miniblock
-	GetMiniblocksHashesHexEncoded(header coreData.HeaderHandler, body *block.Body) []string
+	PrepareDBMiniblocks(headerData *data.HeaderData, miniBlocks []*block.MiniBlock) []*data.Miniblock
+	GetMiniblocksHashesHexEncoded(headerData *data.HeaderData) []string
 
 	SerializeBulkMiniBlocks(bulkMbs []*data.Miniblock, buffSlice *data.BufferSlice, index string, shardID uint32)
 }
@@ -95,9 +97,8 @@ type DBValidatorsHandler interface {
 // DBLogsAndEventsHandler defines the actions that a logs and events handler should do
 type DBLogsAndEventsHandler interface {
 	ExtractDataFromLogs(
-		logsAndEvents []*outport.LogData,
+		logsAndEvents []*transaction.LogData,
 		preparedResults *data.PreparedResults,
-		timestamp uint64,
 		shardID uint32,
 		numOfShards uint32,
 		timestampMs uint64,
@@ -122,6 +123,12 @@ type DBLogsAndEventsHandler interface {
 type OperationsHandler interface {
 	ProcessTransactionsAndSCRs(txs []*data.Transaction, scrs []*data.ScResult, isImportDB bool, shardID uint32) ([]*data.Transaction, []*data.ScResult)
 	SerializeSCRs(scrs []*data.ScResult, buffSlice *data.BufferSlice, index string, shardID uint32) error
+}
+
+// IndexCreatorHandler defines the actions that an index creator component should do
+type IndexCreatorHandler interface {
+	CreateIndexes() error
+	IsInterfaceNil() bool
 }
 
 // TemplatesAndPoliciesHandler defines the actions that a templates and policies handler should do

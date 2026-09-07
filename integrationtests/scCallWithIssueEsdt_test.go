@@ -194,7 +194,7 @@ func TestScCallIntraShardWithIssueESDT(t *testing.T) {
 		SmartContractResults: map[string]*outport.SCRInfo{
 			hex.EncodeToString(scrWithCallBackHash): scrInfoWithCallBack,
 		},
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: hex.EncodeToString(scrWithCallBackHash),
 				Log: &transaction.Log{

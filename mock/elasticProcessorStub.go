@@ -10,9 +10,9 @@ import (
 type ElasticProcessorStub struct {
 	SaveHeaderCalled                 func(outportBlockWithHeader *outport.OutportBlockWithHeader) error
 	RemoveHeaderCalled               func(header coreData.HeaderHandler) error
-	RemoveMiniblocksCalled           func(header coreData.HeaderHandler, body *block.Body) error
+	RemoveMiniblocksCalled           func(header coreData.HeaderHandler) error
 	RemoveTransactionsCalled         func(header coreData.HeaderHandler, body *block.Body) error
-	SaveMiniblocksCalled             func(header coreData.HeaderHandler, miniBlocks []*block.MiniBlock, timestampMs uint64) error
+	SaveMiniblocksCalled             func(outportBlockWithHeader *outport.OutportBlockWithHeader) error
 	SaveTransactionsCalled           func(outportBlockWithHeader *outport.OutportBlockWithHeader) error
 	SaveValidatorsRatingCalled       func(validatorsRating *outport.ValidatorsRating) error
 	SaveRoundsInfoCalled             func(infos *outport.RoundsInfo) error
@@ -47,9 +47,9 @@ func (eim *ElasticProcessorStub) RemoveHeader(header coreData.HeaderHandler) err
 }
 
 // RemoveMiniblocks -
-func (eim *ElasticProcessorStub) RemoveMiniblocks(header coreData.HeaderHandler, body *block.Body) error {
+func (eim *ElasticProcessorStub) RemoveMiniblocks(header coreData.HeaderHandler) error {
 	if eim.RemoveMiniblocksCalled != nil {
-		return eim.RemoveMiniblocksCalled(header, body)
+		return eim.RemoveMiniblocksCalled(header)
 	}
 	return nil
 }
@@ -63,9 +63,9 @@ func (eim *ElasticProcessorStub) RemoveTransactions(header coreData.HeaderHandle
 }
 
 // SaveMiniblocks -
-func (eim *ElasticProcessorStub) SaveMiniblocks(header coreData.HeaderHandler, miniBlocks []*block.MiniBlock, timestampMs uint64) error {
+func (eim *ElasticProcessorStub) SaveMiniblocks(outportBlockWithHeader *outport.OutportBlockWithHeader) error {
 	if eim.SaveMiniblocksCalled != nil {
-		return eim.SaveMiniblocksCalled(header, miniBlocks, timestampMs)
+		return eim.SaveMiniblocksCalled(outportBlockWithHeader)
 	}
 	return nil
 }

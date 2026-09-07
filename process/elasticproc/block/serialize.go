@@ -27,20 +27,32 @@ func (bp *blockProcessor) SerializeBlock(elasticBlock *data.Block, buffSlice *da
 	return buffSlice.PutData(meta, serializedData)
 }
 
+// SerializeExecutionResults will serialize execution results slice for database
+func (bp *blockProcessor) SerializeExecutionResults(executionResults []*data.ExecutionResult, buffSlice *data.BufferSlice, index string) error {
+	for _, result := range executionResults {
+		meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(result.Hash), "\n"))
+		serializedData, err := json.Marshal(result)
+		if err != nil {
+			return err
+		}
+
+		err = buffSlice.PutData(meta, serializedData)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // SerializeEpochInfoData will serialize information about current epoch
 func (bp *blockProcessor) SerializeEpochInfoData(header coreData.HeaderHandler, buffSlice *data.BufferSlice, index string) error {
 	if check.IfNil(header) {
 		return dataindexer.ErrNilHeaderHandler
 	}
 
-	metablock, ok := header.(*block.MetaBlock)
-	if !ok {
-		return fmt.Errorf("%w in blockProcessor.SerializeEpochInfoData", dataindexer.ErrHeaderTypeAssertion)
-	}
-
-	epochInfo := &data.EpochInfo{
-		AccumulatedFees: metablock.AccumulatedFeesInEpoch.String(),
-		DeveloperFees:   metablock.DevFeesInEpoch.String(),
+	epochInfo, err := getEpochInfoDataFromHeader(header)
+	if err != nil {
+		return err
 	}
 
 	id := header.GetEpoch()
@@ -51,4 +63,27 @@ func (bp *blockProcessor) SerializeEpochInfoData(header coreData.HeaderHandler, 
 	}
 
 	return buffSlice.PutData(meta, serializedData)
+}
+
+func getEpochInfoDataFromHeader(header coreData.HeaderHandler) (*data.EpochInfo, error) {
+	epochInfo := &data.EpochInfo{
+		AccumulatedFees: "0",
+		DeveloperFees:   "0",
+	}
+
+	switch meta := header.(type) {
+	case *block.MetaBlock:
+		epochInfo.AccumulatedFees = meta.AccumulatedFeesInEpoch.String()
+		epochInfo.DeveloperFees = meta.DevFeesInEpoch.String()
+	case *block.MetaBlockV3:
+		if check.IfNil(meta.LastExecutionResult) {
+			break
+		}
+		epochInfo.AccumulatedFees = meta.LastExecutionResult.ExecutionResult.AccumulatedFeesInEpoch.String()
+		epochInfo.DeveloperFees = meta.LastExecutionResult.ExecutionResult.DevFeesInEpoch.String()
+	default:
+		return nil, fmt.Errorf("%w in blockProcessor.SerializeEpochInfoData", dataindexer.ErrHeaderTypeAssertion)
+	}
+
+	return epochInfo, nil
 }

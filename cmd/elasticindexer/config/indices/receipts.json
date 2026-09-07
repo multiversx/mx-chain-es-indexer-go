@@ -1,0 +1,44 @@
+{
+  "index_patterns": [
+    "receipts-*"
+  ],
+  "template": {
+    "settings": {
+      "index.lifecycle.name": "receipts-policy",
+      "index.lifecycle.rollover_alias": "receipts",
+      "index.sort.field": [
+        "timestamp"
+      ],
+      "index.sort.order": [
+        "desc"
+      ],
+      "number_of_replicas": 1,
+      "number_of_shards": 5
+    },
+    "mappings": {
+      "properties": {
+        "data": {
+          "type": "keyword"
+        },
+        "sender": {
+          "type": "keyword"
+        },
+        "timestamp": {
+          "format": "epoch_second",
+          "type": "date"
+        },
+        "timestampMs": {
+          "type":   "date",
+          "format": "epoch_millis"
+        },
+        "txHash": {
+          "type": "keyword"
+        },
+        "value": {
+          "index": "false",
+          "type": "keyword"
+        }
+      }
+    }
+  }
+}

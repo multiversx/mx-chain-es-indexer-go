@@ -1,0 +1,58 @@
+{
+  "index_patterns": [
+    "events-*"
+  ],
+  "template": {
+    "settings": {
+      "number_of_replicas": 1,
+      "number_of_shards": 5,
+      "index.lifecycle.name": "events-policy",
+      "index.lifecycle.rollover_alias": "events"
+    },
+    "mappings": {
+      "properties": {
+        "txHash": {
+          "type":"keyword"
+        },
+        "originalTxHash": {
+          "type":"keyword"
+        },
+        "logAddress": {
+          "type": "keyword"
+        },
+        "address": {
+          "type": "keyword"
+        },
+        "identifier": {
+          "type": "keyword"
+        },
+        "data": {
+          "type": "text"
+        },
+        "additionalData": {
+          "type": "text"
+        },
+        "topics": {
+          "type": "text"
+        },
+        "order": {
+          "type": "long"
+        },
+        "txOrder": {
+          "type": "long"
+        },
+        "shardID": {
+          "type": "long"
+        },
+        "timestamp": {
+          "format": "epoch_second",
+          "type": "date"
+        },
+        "timestampMs": {
+          "type":   "date",
+          "format": "epoch_millis"
+        }
+      }
+    }
+  }
+}

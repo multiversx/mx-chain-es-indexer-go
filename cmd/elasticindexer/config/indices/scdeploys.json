@@ -1,0 +1,50 @@
+{
+  "index_patterns": [
+    "scdeploys-*"
+  ],
+  "template": {
+    "settings": {
+      "index.lifecycle.name": "scdeploys-policy",
+      "index.lifecycle.rollover_alias": "scdeploys",
+      "number_of_replicas": 1,
+      "number_of_shards": 5
+    },
+    "mappings": {
+      "properties": {
+        "deployTxHash": {
+          "type": "keyword"
+        },
+        "deployer": {
+          "type": "keyword"
+        },
+        "timestamp": {
+          "format": "epoch_second",
+          "type": "date"
+        },
+        "timestampMs": {
+          "type":   "date",
+          "format": "epoch_millis"
+        },
+        "upgrades": {
+          "properties": {
+            "timestamp": {
+              "format": "epoch_second",
+              "type": "date"
+            },
+            "timestampMs": {
+              "type":   "date",
+              "format": "epoch_millis"
+            },
+            "upgradeTxHash": {
+              "type": "keyword"
+            },
+            "upgrader": {
+              "type": "keyword"
+            }
+          },
+          "type": "nested"
+        }
+      }
+    }
+  }
+}

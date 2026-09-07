@@ -23,13 +23,14 @@ func CreateWsIndexer(
 	epochsCfg config.EnableEpochsConfig,
 	statusMetrics core.StatusMetricsHandler,
 	version string,
+	configPathStr string,
 ) (wsindexer.WSClient, error) {
 	wsMarshaller, err := factoryMarshaller.NewMarshalizer(clusterCfg.Config.WebSocket.DataMarshallerType)
 	if err != nil {
 		return nil, err
 	}
 
-	dataIndexer, err := createDataIndexer(cfg, clusterCfg, epochsCfg, wsMarshaller, statusMetrics, version)
+	dataIndexer, err := createDataIndexer(cfg, clusterCfg, epochsCfg, wsMarshaller, statusMetrics, version, configPathStr)
 	if err != nil {
 		return nil, err
 	}
@@ -64,6 +65,7 @@ func createDataIndexer(
 	wsMarshaller marshal.Marshalizer,
 	statusMetrics core.StatusMetricsHandler,
 	version string,
+	configPathStr string,
 ) (wsindexer.DataIndexer, error) {
 	marshaller, err := factoryMarshaller.NewMarshalizer(cfg.Config.Marshaller.Type)
 	if err != nil {
@@ -82,14 +84,19 @@ func createDataIndexer(
 		return nil, err
 	}
 
+	indicesWithPolicies := make([]string, 0)
+	if cfg.Config.Policies.Enabled {
+		indicesWithPolicies = prepareIndices(cfg.Config.Policies.IndicesWithPolicy, clusterCfg.Config.DisabledIndices)
+	}
+
 	return factory.NewIndexer(factory.ArgsIndexerFactory{
-		UseKibana:                clusterCfg.Config.ElasticCluster.UseKibana,
 		Denomination:             cfg.Config.Economics.Denomination,
 		BulkRequestMaxSize:       clusterCfg.Config.ElasticCluster.BulkRequestMaxSizeInBytes,
 		Url:                      clusterCfg.Config.ElasticCluster.URL,
 		UserName:                 clusterCfg.Config.ElasticCluster.UserName,
 		Password:                 clusterCfg.Config.ElasticCluster.Password,
 		EnabledIndexes:           prepareIndices(cfg.Config.AvailableIndices, clusterCfg.Config.DisabledIndices),
+		IndicesWithPolicy:        indicesWithPolicies,
 		Marshalizer:              marshaller,
 		Hasher:                   hasher,
 		AddressPubkeyConverter:   addressPubkeyConverter,
@@ -98,6 +105,9 @@ func createDataIndexer(
 		StatusMetrics:            statusMetrics,
 		Version:                  version,
 		EnableEpochsConfig:       enableEpochsCfg,
+		NumWritesInParallel:      clusterCfg.Config.ElasticCluster.NumWritesInParallel,
+		UseTemplatesFromFiles:    cfg.Config.UseTemplatesFromFiles,
+		ConfigPath:               configPathStr,
 	})
 }
 

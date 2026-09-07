@@ -94,17 +94,6 @@ func TestElasticDefaultErrorResponseHandler_AlreadyExistsShouldRetNil(t *testing
 	require.Nil(t, err)
 }
 
-func TestElasticDefaultErrorResponseHandler_StatusCodeOkShouldRetNil(t *testing.T) {
-	t.Parallel()
-
-	data := `{}`
-	resp := createMockEsapiResponseWithText(data)
-	resp.StatusCode = http.StatusOK
-	err := elasticDefaultErrorResponseHandler(resp)
-
-	require.Nil(t, err)
-}
-
 func TestElasticDefaultErrorResponseHandler_StatusCodeNotOkShouldErr(t *testing.T) {
 	t.Parallel()
 
@@ -141,16 +130,16 @@ func createMockEsapiResponseWithText(str string) *esapi.Response {
 	}
 }
 
-func TestExtractErrorFromBulkBodyResponseBytesUpdate(t *testing.T) {
-	responseBytes := []byte(`{"took":39,"errors":true,"items":[{"update":{"_index":"transactions-000001","_type":"_doc","_id":"76c11e808085df75b21ae3196b9a7b533a15a346ab79346d81795f5131ae66fa","status":409,"error":{"type":"version_conflict_engine_exception","reason":"[76c11e808085df75b21ae3196b9a7b533a15a346ab79346d81795f5131ae66fa]: version conflict, required seqNo [1904], primary term [1]. current document has seqNo [1975] and primary term [1]","index_uuid":"_mEW9HB_QiSbIvkbythJ7Q","shard":"2","index":"transactions-000001"}}}]}`)
+func TestExtractErrorFromBulkItemsUpdate(t *testing.T) {
+	itemsBytes := []byte(`[{"update":{"_index":"transactions-000001","_type":"_doc","_id":"76c11e808085df75b21ae3196b9a7b533a15a346ab79346d81795f5131ae66fa","status":409,"error":{"type":"version_conflict_engine_exception","reason":"[76c11e808085df75b21ae3196b9a7b533a15a346ab79346d81795f5131ae66fa]: version conflict, required seqNo [1904], primary term [1]. current document has seqNo [1975] and primary term [1]","index_uuid":"_mEW9HB_QiSbIvkbythJ7Q","shard":"2","index":"transactions-000001"}}}]`)
 
-	err := extractErrorFromBulkBodyResponseBytes(responseBytes)
+	err := extractErrorFromBulkItems(itemsBytes)
 	require.NotNil(t, err)
 }
 
-func TestExtractErrorFromBulkBodyResponseBytesIndex(t *testing.T) {
-	responseBytes := []byte(`{"took":39,"errors":true,"items":[{"index":{"_index":"transactions-000001","_type":"_doc","_id":"76c11e808085df75b21ae3196b9a7b533a15a346ab79346d81795f5131ae66fa","status":409,"error":{"type":"version_conflict_engine_exception","reason":"[76c11e808085df75b21ae3196b9a7b533a15a346ab79346d81795f5131ae66fa]: version conflict, required seqNo [1904], primary term [1]. current document has seqNo [1975] and primary term [1]","index_uuid":"_mEW9HB_QiSbIvkbythJ7Q","shard":"2","index":"transactions-000001"}}}]}`)
+func TestExtractErrorFromBulkItemsIndex(t *testing.T) {
+	itemsBytes := []byte(`[{"index":{"_index":"transactions-000001","_type":"_doc","_id":"76c11e808085df75b21ae3196b9a7b533a15a346ab79346d81795f5131ae66fa","status":409,"error":{"type":"version_conflict_engine_exception","reason":"[76c11e808085df75b21ae3196b9a7b533a15a346ab79346d81795f5131ae66fa]: version conflict, required seqNo [1904], primary term [1]. current document has seqNo [1975] and primary term [1]","index_uuid":"_mEW9HB_QiSbIvkbythJ7Q","shard":"2","index":"transactions-000001"}}}]`)
 
-	err := extractErrorFromBulkBodyResponseBytes(responseBytes)
+	err := extractErrorFromBulkItems(itemsBytes)
 	require.NotNil(t, err)
 }

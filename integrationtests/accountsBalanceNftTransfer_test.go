@@ -26,11 +26,10 @@ func createOutportBlockWithHeader(
 	coreAlteredAccounts map[string]*alteredAccount.AlteredAccount,
 	numOfShards uint32,
 ) *outport.OutportBlockWithHeader {
-	return &outport.OutportBlockWithHeader{
+	outportBlock := &outport.OutportBlockWithHeader{
 		OutportBlock: &outport.OutportBlock{
 			BlockData: &outport.BlockData{
-				Body:        body,
-				TimestampMs: header.GetTimeStamp() * 1000,
+				Body: body,
 			},
 			TransactionPool: pool,
 			AlteredAccounts: coreAlteredAccounts,
@@ -39,6 +38,23 @@ func createOutportBlockWithHeader(
 		},
 		Header: header,
 	}
+
+	if !header.IsHeaderV3() {
+		outportBlock.OutportBlock.BlockData.TimestampMs = header.GetTimeStamp() * 1000
+		return outportBlock
+	}
+
+	outportBlock.OutportBlock.BlockData.TimestampMs = header.GetTimeStamp()
+	outportBlock.OutportBlock.BlockData.Results = map[string]*outport.ExecutionResultData{}
+	for _, executionResult := range header.GetExecutionResultsHandlers() {
+		outportBlock.OutportBlock.BlockData.Results[hex.EncodeToString(executionResult.GetHeaderHash())] = &outport.ExecutionResultData{
+			HeaderNonce: executionResult.GetHeaderNonce(),
+			TimestampMs: header.GetTimeStamp(),
+			Body:        &dataBlock.Body{},
+		}
+	}
+
+	return outportBlock
 }
 
 func TestAccountBalanceNFTTransfer(t *testing.T) {
@@ -62,10 +78,11 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 	}
 
 	pool := &outport.TransactionPool{
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
+					Address: decodeAddress(addr),
 					Events: []*transaction.Event{
 						{
 							Address:    decodeAddress(addr),
@@ -82,6 +99,7 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 	coreAlteredAccounts := map[string]*alteredAccount.AlteredAccount{
 		addr: {
 			Address: addr,
+			Balance: "0",
 			Tokens: []*alteredAccount.AccountTokenData{
 				{
 					Identifier: "NFT-abcdef",
@@ -89,6 +107,7 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 					Balance:    "1000",
 				},
 			},
+			AdditionalData: &alteredAccount.AdditionalAccountData{},
 		},
 	}
 
@@ -111,13 +130,14 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 	}
 
 	pool = &outport.TransactionPool{
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
+					Address: decodeAddress(addr),
 					Events: []*transaction.Event{
 						{
-							Address:    []byte("test-address-balance-1"),
+							Address:    decodeAddress(addr),
 							Identifier: []byte(core.BuiltInFunctionESDTNFTTransfer),
 							Topics:     [][]byte{[]byte("NFT-abcdef"), big.NewInt(7440483).Bytes(), big.NewInt(1).Bytes(), decodeAddress(addrReceiver)},
 						},
@@ -134,6 +154,7 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 	coreAlteredAccounts = map[string]*alteredAccount.AlteredAccount{
 		addr: {
 			Address: addr,
+			Balance: "0",
 			Tokens: []*alteredAccount.AccountTokenData{
 				{
 					Identifier: "NFT-abcdef",
@@ -141,9 +162,11 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 					Balance:    "0",
 				},
 			},
+			AdditionalData: &alteredAccount.AdditionalAccountData{},
 		},
 		addrReceiver: {
 			Address: addrReceiver,
+			Balance: "0",
 			Tokens: []*alteredAccount.AccountTokenData{
 				{
 					Identifier: "NFT-abcdef",
@@ -151,6 +174,7 @@ func TestAccountBalanceNFTTransfer(t *testing.T) {
 					Balance:    "1000",
 				},
 			},
+			AdditionalData: &alteredAccount.AdditionalAccountData{},
 		},
 	}
 	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, coreAlteredAccounts, testNumOfShards))

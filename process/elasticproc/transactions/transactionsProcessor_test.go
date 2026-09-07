@@ -7,6 +7,7 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/pubkeyConverter"
+	coreData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/receipt"
@@ -182,7 +183,9 @@ func TestPrepareTransactionsForDatabase(t *testing.T) {
 		},
 	}
 
-	header := &block.Header{}
+	headerData := &data.HeaderData{
+		NumberOfShards: 3,
+	}
 
 	pool := &outport.TransactionPool{
 		Transactions: map[string]*outport.TxInfo{
@@ -211,7 +214,7 @@ func TestPrepareTransactionsForDatabase(t *testing.T) {
 
 	txDbProc, _ := NewTransactionsProcessor(createMockArgsTxsDBProc())
 
-	results := txDbProc.PrepareTransactionsForDatabase(mbs, header, pool, false, 3, 1234000)
+	results := txDbProc.PrepareTransactionsForDatabase(mbs, headerData, pool, false)
 	assert.Equal(t, 7, len(results.Transactions))
 
 }
@@ -253,7 +256,9 @@ func TestRelayedTransactions(t *testing.T) {
 		},
 	}
 
-	header := &block.Header{}
+	headerData := &data.HeaderData{
+		NumberOfShards: 3,
+	}
 
 	pool := &outport.TransactionPool{
 		Transactions: map[string]*outport.TxInfo{
@@ -267,7 +272,7 @@ func TestRelayedTransactions(t *testing.T) {
 
 	txDbProc, _ := NewTransactionsProcessor(createMockArgsTxsDBProc())
 
-	results := txDbProc.PrepareTransactionsForDatabase(mbs, header, pool, false, 3, 1234000)
+	results := txDbProc.PrepareTransactionsForDatabase(mbs, headerData, pool, false)
 	assert.Equal(t, 1, len(results.Transactions))
 	assert.Equal(t, 2, len(results.Transactions[0].SmartContractResults))
 	assert.Equal(t, transaction.TxStatusSuccess.String(), results.Transactions[0].Status)
@@ -364,7 +369,9 @@ func TestCheckGasUsedInvalidTransaction(t *testing.T) {
 			Type:     block.ReceiptBlock,
 		},
 	}
-	header := &block.Header{}
+	headerData := &data.HeaderData{
+		NumberOfShards: 3,
+	}
 
 	pool := &outport.TransactionPool{
 		InvalidTxs: map[string]*outport.TxInfo{
@@ -375,7 +382,7 @@ func TestCheckGasUsedInvalidTransaction(t *testing.T) {
 		},
 	}
 
-	results := txDbProc.PrepareTransactionsForDatabase(mbs, header, pool, false, 3, 1234000)
+	results := txDbProc.PrepareTransactionsForDatabase(mbs, headerData, pool, false)
 	require.Len(t, results.Transactions, 1)
 	require.Equal(t, tx1.Transaction.GetGasLimit(), results.Transactions[0].GasUsed)
 }
@@ -388,11 +395,12 @@ func TestGetRewardsTxsHashesHexEncoded(t *testing.T) {
 	res, _ := txDBProc.GetHexEncodedHashesForRemove(nil, nil)
 	require.Nil(t, res)
 
-	header := &block.Header{
-		ShardID: core.MetachainShardId,
-		MiniBlockHeaders: []block.MiniBlockHeader{
-			{},
-		},
+	mbsHeader := []coreData.MiniBlockHeaderHandler{
+		&block.MiniBlockHeader{},
+	}
+	header := &data.HeaderData{
+		ShardID:          core.MetachainShardId,
+		MiniBlockHeaders: mbsHeader,
 	}
 	body := &block.Body{
 		MiniBlocks: []*block.MiniBlock{
@@ -494,7 +502,9 @@ func TestTxsDatabaseProcessor_PrepareTransactionsForDatabaseInvalidTxWithSCR(t *
 		},
 	}
 
-	header := &block.Header{}
+	headerData := &data.HeaderData{
+		NumberOfShards: 3,
+	}
 
 	pool := &outport.TransactionPool{
 		InvalidTxs: map[string]*outport.TxInfo{
@@ -505,7 +515,7 @@ func TestTxsDatabaseProcessor_PrepareTransactionsForDatabaseInvalidTxWithSCR(t *
 		},
 	}
 
-	results := txDbProc.PrepareTransactionsForDatabase(mbs, header, pool, false, 3, 1234000)
+	results := txDbProc.PrepareTransactionsForDatabase(mbs, headerData, pool, false)
 	require.NotNil(t, results)
 	require.Len(t, results.Transactions, 1)
 	require.Len(t, results.ScResults, 1)
@@ -551,7 +561,9 @@ func TestTxsDatabaseProcessor_PrepareTransactionsForDatabaseESDTNFTTransfer(t *t
 		},
 	}
 
-	header := &block.Header{}
+	headerData := &data.HeaderData{
+		NumberOfShards: 3,
+	}
 
 	pool := &outport.TransactionPool{
 		Transactions: map[string]*outport.TxInfo{
@@ -562,7 +574,7 @@ func TestTxsDatabaseProcessor_PrepareTransactionsForDatabaseESDTNFTTransfer(t *t
 		},
 	}
 
-	results := txDbProc.PrepareTransactionsForDatabase(mbs, header, pool, false, 3, 1234000)
+	results := txDbProc.PrepareTransactionsForDatabase(mbs, headerData, pool, false)
 	require.NotNil(t, results)
 	require.Len(t, results.Transactions, 1)
 	require.Len(t, results.ScResults, 1)
@@ -599,8 +611,9 @@ func TestTxsDatabaseProcessor_IssueESDTTx(t *testing.T) {
 			Type:     block.SmartContractResultBlock,
 		},
 	}
-	header := &block.Header{
-		ShardID: core.MetachainShardId,
+	headerData := &data.HeaderData{
+		ShardID:        core.MetachainShardId,
+		NumberOfShards: 3,
 	}
 	pool := &outport.TransactionPool{
 		Transactions: map[string]*outport.TxInfo{
@@ -626,7 +639,7 @@ func TestTxsDatabaseProcessor_IssueESDTTx(t *testing.T) {
 		},
 	}
 
-	res := txDbProc.PrepareTransactionsForDatabase(mbs, header, pool, false, 3, 1234000)
+	res := txDbProc.PrepareTransactionsForDatabase(mbs, headerData, pool, false)
 	require.Equal(t, "success", res.Transactions[0].Status)
 	require.Equal(t, 2, len(res.ScResults))
 
@@ -649,7 +662,7 @@ func TestTxsDatabaseProcessor_IssueESDTTx(t *testing.T) {
 		},
 	}
 
-	res = txDbProc.PrepareTransactionsForDatabase(mbs, header, pool, false, 3, 1234000)
+	res = txDbProc.PrepareTransactionsForDatabase(mbs, headerData, pool, false)
 	require.Equal(t, "success", res.Transactions[0].Status)
 	require.Equal(t, 1, len(res.ScResults))
 }

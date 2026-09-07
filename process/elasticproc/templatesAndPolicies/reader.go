@@ -2,25 +2,52 @@ package templatesAndPolicies
 
 import (
 	"bytes"
+	"fmt"
+	"os"
+	"path"
+	"path/filepath"
 
 	indexer "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/multiversx/mx-chain-es-indexer-go/templates"
 	"github.com/multiversx/mx-chain-es-indexer-go/templates/indices"
 )
 
-type templatesAndPolicyReader struct{}
+const (
+	indicesFolder  = "indices"
+	policiesFolder = "policies"
+)
+
+type templatesAndPolicyReader struct {
+	useTemplatesFromFiles bool
+	configPath            string
+	availableIndices      []string
+	indicesWithPolicies   []string
+}
 
 // NewTemplatesAndPolicyReader will create a new instance of templatesAndPolicyReader
-func NewTemplatesAndPolicyReader() *templatesAndPolicyReader {
-	return new(templatesAndPolicyReader)
+func NewTemplatesAndPolicyReader(
+	useTemplatesFromFiles bool,
+	configPath string,
+	availableIndices []string,
+	indicesWithPolicies []string,
+) *templatesAndPolicyReader {
+	return &templatesAndPolicyReader{
+		useTemplatesFromFiles: useTemplatesFromFiles,
+		configPath:            configPath,
+		availableIndices:      availableIndices,
+		indicesWithPolicies:   indicesWithPolicies,
+	}
 }
 
 // GetElasticTemplatesAndPolicies will return templates and policies
 func (tr *templatesAndPolicyReader) GetElasticTemplatesAndPolicies() (map[string]*bytes.Buffer, map[string]*bytes.Buffer, error) {
+	if tr.useTemplatesFromFiles {
+		return tr.getElasticTemplatesAndPoliciesFromJsonFiles()
+	}
+
 	indexPolicies := make(map[string]*bytes.Buffer)
 	indexTemplates := make(map[string]*bytes.Buffer)
 
-	indexTemplates["opendistro"] = indices.OpenDistro.ToBuffer()
 	indexTemplates[indexer.TransactionsIndex] = indices.Transactions.ToBuffer()
 	indexTemplates[indexer.BlockIndex] = indices.Blocks.ToBuffer()
 	indexTemplates[indexer.MiniblocksIndex] = indices.Miniblocks.ToBuffer()
@@ -43,6 +70,7 @@ func (tr *templatesAndPolicyReader) GetElasticTemplatesAndPolicies() (map[string
 	indexTemplates[indexer.ESDTsIndex] = indices.ESDTs.ToBuffer()
 	indexTemplates[indexer.ValuesIndex] = indices.Values.ToBuffer()
 	indexTemplates[indexer.EventsIndex] = indices.Events.ToBuffer()
+	indexTemplates[indexer.ExecutionResultsIndex] = indices.ExecutionResults.ToBuffer()
 
 	return indexTemplates, indexPolicies, nil
 }
@@ -125,4 +153,53 @@ func (tr *templatesAndPolicyReader) GetTimestampMsMappings() ([]templates.ExtraM
 // GetExtraMappings will return an array of indices extra mappings
 func (tr *templatesAndPolicyReader) GetExtraMappings() ([]templates.ExtraMapping, error) {
 	return []templates.ExtraMapping{}, nil
+}
+
+func (tr *templatesAndPolicyReader) getElasticTemplatesAndPoliciesFromJsonFiles() (map[string]*bytes.Buffer, map[string]*bytes.Buffer, error) {
+	pathToMappings := path.Join(tr.configPath, indicesFolder)
+	indicesTemplateMap, err := tr.getElasticTemplatesFromJson(pathToMappings, tr.availableIndices)
+	if err != nil {
+		return nil, nil, fmt.Errorf("%w, cannot load templates", err)
+	}
+
+	pathToPolicies := path.Join(tr.configPath, policiesFolder)
+	indicesPolicyMap, err := tr.getElasticTemplatesFromJson(pathToPolicies, tr.indicesWithPolicies)
+	if err != nil {
+		return nil, nil, fmt.Errorf("%w, cannot load templates", err)
+	}
+
+	return indicesTemplateMap, indicesPolicyMap, nil
+}
+
+func (tr *templatesAndPolicyReader) getElasticTemplatesFromJson(filePath string, indices []string) (map[string]*bytes.Buffer, error) {
+	indexTemplates := make(map[string]*bytes.Buffer)
+	var err error
+
+	for _, index := range indices {
+		indexTemplates[index], err = getDataFromByIndex(filePath, index)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return indexTemplates, nil
+}
+
+func getDataFromByIndex(path string, index string) (*bytes.Buffer, error) {
+	indexTemplate := &bytes.Buffer{}
+
+	fileName := fmt.Sprintf("%s.json", index)
+	filePath := filepath.Join(path, fileName)
+	fileBytes, err := os.ReadFile(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("getDataFromByIndex: %w, path %s, error %s", err, filePath, err.Error())
+	}
+
+	indexTemplate.Grow(len(fileBytes))
+	_, err = indexTemplate.Write(fileBytes)
+	if err != nil {
+		return nil, fmt.Errorf("getDataFromByIndex: %w, path %s, error %s", err, filePath, err.Error())
+	}
+
+	return indexTemplate, nil
 }

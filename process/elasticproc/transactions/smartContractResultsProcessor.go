@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	coreData "github.com/multiversx/mx-chain-core-go/data"
 	"github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/hashing"
@@ -44,28 +43,28 @@ func newSmartContractResultsProcessor(
 
 func (proc *smartContractResultsProcessor) processSCRs(
 	miniBlocks []*block.MiniBlock,
-	header coreData.HeaderHandler,
+	headerData *indexerData.HeaderData,
 	scrs map[string]*outport.SCRInfo,
-	numOfShards uint32,
-	timestampMs uint64,
 ) []*indexerData.ScResult {
 	allSCRs := make([]*indexerData.ScResult, 0, len(scrs))
 
 	// a copy of the SCRS map is needed because proc.processSCRsFromMiniblock would remove items from the original map
 	workingSCRSMap := copySCRSMap(scrs)
-	for _, mb := range miniBlocks {
+	for idx, mb := range miniBlocks {
 		if mb.Type != block.SmartContractResultBlock {
 			continue
 		}
+		if isMiniblockProposed(idx, headerData) {
+			continue
+		}
 
-		indexerSCRs := proc.processSCRsFromMiniblock(header, mb, workingSCRSMap, numOfShards, timestampMs)
+		indexerSCRs := proc.processSCRsFromMiniblock(headerData, mb, workingSCRSMap)
 
 		allSCRs = append(allSCRs, indexerSCRs...)
 	}
 
-	selfShardID := header.GetShardID()
 	for scrHashHex, noMBScrInfo := range workingSCRSMap {
-		indexerScr := proc.prepareSmartContractResult(scrHashHex, nil, noMBScrInfo, header, selfShardID, selfShardID, numOfShards, timestampMs)
+		indexerScr := proc.prepareSmartContractResult(scrHashHex, nil, noMBScrInfo, headerData, headerData.ShardID, headerData.ShardID)
 
 		allSCRs = append(allSCRs, indexerScr)
 	}
@@ -73,12 +72,19 @@ func (proc *smartContractResultsProcessor) processSCRs(
 	return allSCRs
 }
 
+func isMiniblockProposed(mbIndex int, headerData *indexerData.HeaderData) bool {
+	if len(headerData.MiniBlockHeaders) <= mbIndex {
+		return false
+	}
+	mbHeader := headerData.MiniBlockHeaders[mbIndex]
+
+	return int32(block.Proposed) == mbHeader.GetConstructionState()
+}
+
 func (proc *smartContractResultsProcessor) processSCRsFromMiniblock(
-	header coreData.HeaderHandler,
+	headerData *indexerData.HeaderData,
 	mb *block.MiniBlock,
 	scrs map[string]*outport.SCRInfo,
-	numOfShards uint32,
-	timestampMs uint64,
 ) []*indexerData.ScResult {
 	mbHash, err := core.CalculateHash(proc.marshalizer, proc.hasher, mb)
 	if err != nil {
@@ -97,7 +103,7 @@ func (proc *smartContractResultsProcessor) processSCRsFromMiniblock(
 			continue
 		}
 
-		indexerSCR := proc.prepareSmartContractResult(hex.EncodeToString(scrHash), mbHash, scrInfo, header, mb.SenderShardID, mb.ReceiverShardID, numOfShards, timestampMs)
+		indexerSCR := proc.prepareSmartContractResult(hex.EncodeToString(scrHash), mbHash, scrInfo, headerData, mb.SenderShardID, mb.ReceiverShardID)
 		indexerSCRs = append(indexerSCRs, indexerSCR)
 
 		delete(scrs, scrHashHex)
@@ -110,11 +116,9 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 	scrHashHex string,
 	mbHash []byte,
 	scrInfo *outport.SCRInfo,
-	header coreData.HeaderHandler,
+	headerData *indexerData.HeaderData,
 	senderShard uint32,
 	receiverShard uint32,
-	numOfShards uint32,
-	timestampMs uint64,
 ) *indexerData.ScResult {
 	scr := scrInfo.SmartContractResult
 	hexEncodedMBHash := ""
@@ -136,7 +140,7 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 		originalSenderAddr = proc.pubKeyConverter.SilentEncode(scr.OriginalSender, log)
 	}
 
-	res := proc.dataFieldParser.Parse(scr.Data, scr.SndAddr, scr.RcvAddr, numOfShards, header.GetEpoch())
+	res := proc.dataFieldParser.Parse(scr.Data, scr.SndAddr, scr.RcvAddr, headerData.NumberOfShards, headerData.Epoch)
 
 	senderAddr := proc.pubKeyConverter.SilentEncode(scr.SndAddr, log)
 	receiverAddr := proc.pubKeyConverter.SilentEncode(scr.RcvAddr, log)
@@ -159,7 +163,7 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 		esdtValues = res.ESDTValues
 	}
 
-	isRelayed := res.IsRelayed && header.GetEpoch() < proc.relayedV1V2DisableEpoch
+	isRelayed := res.IsRelayed && headerData.Epoch < proc.relayedV1V2DisableEpoch
 
 	feeInfo := getFeeInfo(scrInfo)
 	return &indexerData.ScResult{
@@ -181,7 +185,7 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 		CallType:           strconv.Itoa(int(scr.CallType)),
 		CodeMetadata:       scr.CodeMetadata,
 		ReturnMessage:      string(scr.ReturnMessage),
-		Timestamp:          header.GetTimeStamp(),
+		Timestamp:          headerData.Timestamp,
 		SenderAddressBytes: scr.SndAddr,
 		SenderShard:        senderShard,
 		ReceiverShard:      receiverShard,
@@ -199,8 +203,8 @@ func (proc *smartContractResultsProcessor) prepareSmartContractResult(
 		GasRefunded:        feeInfo.GasRefunded,
 		ExecutionOrder:     int(scrInfo.ExecutionOrder),
 		UUID:               converters.GenerateBase64UUID(),
-		Epoch:              header.GetEpoch(),
-		TimestampMs:        timestampMs,
+		Epoch:              headerData.Epoch,
+		TimestampMs:        headerData.TimestampMs,
 	}
 }
 

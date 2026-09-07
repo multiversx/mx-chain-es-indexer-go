@@ -1,0 +1,46 @@
+{
+  "index_patterns": [
+    "accounts-*"
+  ],
+  "template": {
+    "settings": {
+      "index.lifecycle.name": "accounts-policy",
+      "index.lifecycle.rollover_alias": "accounts",
+      "number_of_replicas": 1,
+      "number_of_shards": 5
+    },
+    "mappings": {
+      "properties": {
+        "address": {
+          "type": "keyword"
+        },
+        "balance": {
+          "type": "keyword"
+        },
+        "balanceNum": {
+          "type": "double"
+        },
+        "nonce": {
+          "type": "double"
+        },
+        "shardID": {
+          "type": "long"
+        },
+        "timestamp": {
+          "format": "epoch_second",
+          "type": "date"
+        },
+        "timestampMs": {
+          "type":   "date",
+          "format": "epoch_millis"
+        },
+        "totalBalanceWithStake": {
+          "type": "keyword"
+        },
+        "totalBalanceWithStakeNum": {
+          "type": "double"
+        }
+      }
+    }
+  }
+}

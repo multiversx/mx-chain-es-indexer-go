@@ -1,0 +1,23 @@
+{
+ "index_patterns": [
+  "epochinfo-*"
+ ],
+ "template": {
+  "settings": {
+   "index.lifecycle.name": "epochinfo-policy",
+   "index.lifecycle.rollover_alias": "epochinfo",
+   "number_of_replicas": 1,
+   "number_of_shards": 5
+  },
+  "mappings": {
+   "properties": {
+    "accumulatedFees": {
+     "type": "keyword"
+    },
+    "developerFees": {
+     "type": "keyword"
+    }
+   }
+  }
+ }
+}

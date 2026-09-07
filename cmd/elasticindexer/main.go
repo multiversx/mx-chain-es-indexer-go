@@ -64,6 +64,7 @@ func main() {
 		logLevel,
 		logSaveFile,
 		disableAnsiColor,
+		configPath,
 	}
 	app.Authors = []cli.Author{
 		{
@@ -103,8 +104,9 @@ func startIndexer(ctx *cli.Context) error {
 		return fmt.Errorf("%w while loading the enable epochs config file", err)
 	}
 
+	configPathStr := ctx.GlobalString(configPath.Name)
 	statusMetrics := metrics.NewStatusMetrics()
-	wsHost, err := factory.CreateWsIndexer(cfg, clusterCfg, epochsCfg, statusMetrics, ctx.App.Version)
+	wsHost, err := factory.CreateWsIndexer(cfg, clusterCfg, epochsCfg, statusMetrics, ctx.App.Version, configPathStr)
 	if err != nil {
 		return fmt.Errorf("%w while creating the indexer", err)
 	}

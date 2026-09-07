@@ -110,12 +110,7 @@ func (di *dataIndexer) saveBlockData(outportBlock *outport.OutportBlock, header 
 			err, hex.EncodeToString(headerHash), headerNonce)
 	}
 
-	if len(outportBlock.BlockData.Body.MiniBlocks) == 0 {
-		return nil
-	}
-
-	miniBlocks := append(outportBlock.BlockData.Body.MiniBlocks, outportBlock.BlockData.IntraShardMiniBlocks...)
-	err = di.elasticProcessor.SaveMiniblocks(header, miniBlocks, outportBlock.BlockData.GetTimestampMs())
+	err = di.elasticProcessor.SaveMiniblocks(outportBlockWithHeader)
 	if err != nil {
 		return fmt.Errorf("%w when saving miniblocks, block hash %s, nonce %d",
 			err, hex.EncodeToString(headerHash), headerNonce)
@@ -147,7 +142,7 @@ func (di *dataIndexer) RevertIndexedBlock(blockData *outport.BlockData) error {
 		return err
 	}
 
-	err = di.elasticProcessor.RemoveMiniblocks(header, blockData.Body)
+	err = di.elasticProcessor.RemoveMiniblocks(header)
 	if err != nil {
 		return err
 	}

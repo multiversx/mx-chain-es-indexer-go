@@ -3,7 +3,12 @@ package config
 // Config will hold the whole config file's data
 type Config struct {
 	Config struct {
-		AvailableIndices []string `toml:"available-indices"`
+		AvailableIndices      []string `toml:"available-indices"`
+		UseTemplatesFromFiles bool     `toml:"use-templates-from-files"`
+		Policies              struct {
+			Enabled           bool     `toml:"enabled"`
+			IndicesWithPolicy []string `toml:"indices-with-policy"`
+		} `toml:"policies"`
 		AddressConverter struct {
 			Length int    `toml:"length"`
 			Type   string `toml:"type"`
@@ -45,11 +50,11 @@ type ClusterConfig struct {
 			AckTimeoutInSec    uint32 `toml:"acknowledge-timeout-in-seconds"`
 		} `toml:"web-socket"`
 		ElasticCluster struct {
-			UseKibana                 bool   `toml:"use-kibana"`
 			URL                       string `toml:"url"`
 			UserName                  string `toml:"username"`
 			Password                  string `toml:"password"`
 			BulkRequestMaxSizeInBytes int    `toml:"bulk-request-max-size-in-bytes"`
+			NumWritesInParallel       int    `toml:"num-writes-in-parallel"`
 		} `toml:"elastic-cluster"`
 	} `toml:"config"`
 }

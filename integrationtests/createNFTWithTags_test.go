@@ -49,7 +49,7 @@ func TestCreateNFTWithTags(t *testing.T) {
 	// CREATE A FIRST NFT WITH THE TAGS
 	address1 := "erd1v7e552pz9py4hv6raan0c4jflez3e6csdmzcgrncg0qrnk4tywvsqx0h5j"
 	pool := &outport.TransactionPool{
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
@@ -118,7 +118,7 @@ func TestCreateNFTWithTags(t *testing.T) {
 
 	// CREATE A SECOND NFT WITH THE SAME TAGS
 	pool = &outport.TransactionPool{
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{
@@ -168,7 +168,7 @@ func TestCreateNFTWithTags(t *testing.T) {
 	require.Nil(t, err)
 
 	pool = &outport.TransactionPool{
-		Logs: []*outport.LogData{
+		Logs: []*transaction.LogData{
 			{
 				TxHash: hex.EncodeToString([]byte("h1")),
 				Log: &transaction.Log{

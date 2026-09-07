@@ -1,0 +1,46 @@
+{
+  "index_patterns": [
+    "rounds-*"
+  ],
+  "template": {
+    "settings": {
+      "index.sort.field": [
+        "timestamp"
+      ],
+      "index.sort.order": [
+        "desc"
+      ],
+      "index.lifecycle.name": "rounds-policy",
+      "index.lifecycle.rollover_alias": "rounds",
+      "number_of_replicas": 1,
+      "number_of_shards": 5
+    },
+    "mappings": {
+      "properties": {
+        "blockWasProposed": {
+          "type": "boolean"
+        },
+        "epoch": {
+          "type": "long"
+        },
+        "round": {
+          "type": "long"
+        },
+        "shardId": {
+          "type": "long"
+        },
+        "signersIndexes": {
+          "type": "long"
+        },
+        "timestamp": {
+          "format": "epoch_second",
+          "type": "date"
+        },
+        "timestampMs": {
+          "type":   "date",
+          "format": "epoch_millis"
+        }
+      }
+    }
+  }
+}

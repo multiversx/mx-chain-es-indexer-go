@@ -86,7 +86,7 @@ func prepareDeleteAccountInfo(acct *data.AccountInfo, isESDT bool, index string)
 		id += fmt.Sprintf("-%s-%s", acct.TokenName, hexEncodedNonce)
 	}
 
-	meta := []byte(fmt.Sprintf(`{ "update" : {"_index":"%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(id), "\n"))
+	meta := []byte(fmt.Sprintf(`{ "update" : {"_index":"%s", "_id" : "%s", "retry_on_conflict":3 } }%s`, index, converters.JsonEscape(id), "\n"))
 
 	codeToExecute := `
 		if ('create' == ctx.op) {
@@ -128,7 +128,7 @@ func prepareSerializedAccountInfo(
 		return nil, nil, err
 	}
 
-	meta := []byte(fmt.Sprintf(`{ "update" : {"_index": "%s", "_id" : "%s" } }%s`, index, converters.JsonEscape(id), "\n"))
+	meta := []byte(fmt.Sprintf(`{ "update" : {"_index": "%s", "_id" : "%s", "retry_on_conflict":3 } }%s`, index, converters.JsonEscape(id), "\n"))
 	codeToExecute := `
 		if ('create' == ctx.op) {
 			ctx._source = params.account
