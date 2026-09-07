@@ -8,18 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestTemplatesAndPolicyReaderNoKibana_GetElasticTemplatesAndPolicies(t *testing.T) {
-	t.Parallel()
-
-	reader := NewTemplatesAndPolicyReader(false, "", nil, nil)
-
-	templates, policies, err := reader.GetElasticTemplatesAndPolicies()
-	require.Nil(t, err)
-	require.Len(t, policies, 0)
-	require.Len(t, templates, 23)
-}
-
-func TestTemplatesAndPolicyReader_GetTimestampMsMappings_EmptyReturnsAll(t *testing.T) {
+func TestTemplatesAndPolicyReader_GetTimestampMsMappings_EmptyReturnsEmpty(t *testing.T) {
 	t.Parallel()
 
 	for _, available := range [][]string{nil, {}} {
@@ -27,18 +16,47 @@ func TestTemplatesAndPolicyReader_GetTimestampMsMappings_EmptyReturnsAll(t *test
 
 		mappings, err := reader.GetTimestampMsMappings()
 		require.Nil(t, err)
-		require.Len(t, mappings, 17)
+		require.Empty(t, mappings)
+	}
+}
 
-		indexes := collectMappingIndexes(mappings)
-		require.Contains(t, indexes, indexer.TransactionsIndex)
-		require.Contains(t, indexes, indexer.ScResultsIndex)
-		require.Contains(t, indexes, indexer.LogsIndex)
-		require.Contains(t, indexes, indexer.OperationsIndex)
-		require.Contains(t, indexes, indexer.EventsIndex)
-		for _, m := range mappings {
-			require.NotNil(t, m.Mappings)
-			require.NotEmpty(t, m.Index)
-		}
+func TestTemplatesAndPolicyReader_GetTimestampMsMappings_ReturnsAllWhenAllProvided(t *testing.T) {
+	t.Parallel()
+
+	available := []string{
+		indexer.TransactionsIndex,
+		indexer.BlockIndex,
+		indexer.MiniblocksIndex,
+		indexer.RoundsIndex,
+		indexer.AccountsIndex,
+		indexer.AccountsESDTIndex,
+		indexer.AccountsHistoryIndex,
+		indexer.AccountsESDTHistoryIndex,
+		indexer.ReceiptsIndex,
+		indexer.ScResultsIndex,
+		indexer.LogsIndex,
+		indexer.OperationsIndex,
+		indexer.EventsIndex,
+		indexer.TokensIndex,
+		indexer.ESDTsIndex,
+		indexer.DelegatorsIndex,
+		indexer.SCDeploysIndex,
+	}
+	reader := NewTemplatesAndPolicyReader(false, "", available, nil)
+
+	mappings, err := reader.GetTimestampMsMappings()
+	require.Nil(t, err)
+	require.Len(t, mappings, 17)
+
+	indexes := collectMappingIndexes(mappings)
+	require.Contains(t, indexes, indexer.TransactionsIndex)
+	require.Contains(t, indexes, indexer.ScResultsIndex)
+	require.Contains(t, indexes, indexer.LogsIndex)
+	require.Contains(t, indexes, indexer.OperationsIndex)
+	require.Contains(t, indexes, indexer.EventsIndex)
+	for _, m := range mappings {
+		require.NotNil(t, m.Mappings)
+		require.NotEmpty(t, m.Index)
 	}
 }
 
