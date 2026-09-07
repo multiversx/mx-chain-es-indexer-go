@@ -74,12 +74,6 @@ func (tr *templatesAndPolicyReader) GetElasticTemplatesAndPolicies() (map[string
 		indexer.ExecutionResultsIndex:    indices.ExecutionResults.ToBuffer(),
 	}
 
-	// Empty availableIndices preserves the legacy behaviour (return everything).
-	// In production availableIndices is the already-filtered EnabledIndexes list.
-	if len(tr.availableIndices) == 0 {
-		return allTemplates, indexPolicies, nil
-	}
-
 	for _, index := range tr.availableIndices {
 		if template, ok := allTemplates[index]; ok {
 			indexTemplates[index] = template
@@ -161,10 +155,6 @@ func (tr *templatesAndPolicyReader) GetTimestampMsMappings() ([]templates.ExtraM
 			Index:    indexer.SCDeploysIndex,
 			Mappings: indices.DeploysTimestampMs.ToBuffer(),
 		},
-	}
-
-	if len(tr.availableIndices) == 0 {
-		return allMappings, nil
 	}
 
 	enabled := make(map[string]struct{}, len(tr.availableIndices))
