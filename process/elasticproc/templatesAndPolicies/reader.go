@@ -48,36 +48,44 @@ func (tr *templatesAndPolicyReader) GetElasticTemplatesAndPolicies() (map[string
 	indexPolicies := make(map[string]*bytes.Buffer)
 	indexTemplates := make(map[string]*bytes.Buffer)
 
-	indexTemplates[indexer.TransactionsIndex] = indices.Transactions.ToBuffer()
-	indexTemplates[indexer.BlockIndex] = indices.Blocks.ToBuffer()
-	indexTemplates[indexer.MiniblocksIndex] = indices.Miniblocks.ToBuffer()
-	indexTemplates[indexer.RatingIndex] = indices.Rating.ToBuffer()
-	indexTemplates[indexer.RoundsIndex] = indices.Rounds.ToBuffer()
-	indexTemplates[indexer.ValidatorsIndex] = indices.Validators.ToBuffer()
-	indexTemplates[indexer.AccountsIndex] = indices.Accounts.ToBuffer()
-	indexTemplates[indexer.AccountsHistoryIndex] = indices.AccountsHistory.ToBuffer()
-	indexTemplates[indexer.AccountsESDTIndex] = indices.AccountsESDT.ToBuffer()
-	indexTemplates[indexer.AccountsESDTHistoryIndex] = indices.AccountsESDTHistory.ToBuffer()
-	indexTemplates[indexer.EpochInfoIndex] = indices.EpochInfo.ToBuffer()
-	indexTemplates[indexer.ReceiptsIndex] = indices.Receipts.ToBuffer()
-	indexTemplates[indexer.ScResultsIndex] = indices.SCResults.ToBuffer()
-	indexTemplates[indexer.SCDeploysIndex] = indices.SCDeploys.ToBuffer()
-	indexTemplates[indexer.TokensIndex] = indices.Tokens.ToBuffer()
-	indexTemplates[indexer.TagsIndex] = indices.Tags.ToBuffer()
-	indexTemplates[indexer.LogsIndex] = indices.Logs.ToBuffer()
-	indexTemplates[indexer.DelegatorsIndex] = indices.Delegators.ToBuffer()
-	indexTemplates[indexer.OperationsIndex] = indices.Operations.ToBuffer()
-	indexTemplates[indexer.ESDTsIndex] = indices.ESDTs.ToBuffer()
-	indexTemplates[indexer.ValuesIndex] = indices.Values.ToBuffer()
-	indexTemplates[indexer.EventsIndex] = indices.Events.ToBuffer()
-	indexTemplates[indexer.ExecutionResultsIndex] = indices.ExecutionResults.ToBuffer()
+	allTemplates := map[string]*bytes.Buffer{
+		indexer.TransactionsIndex:        indices.Transactions.ToBuffer(),
+		indexer.BlockIndex:               indices.Blocks.ToBuffer(),
+		indexer.MiniblocksIndex:          indices.Miniblocks.ToBuffer(),
+		indexer.RatingIndex:              indices.Rating.ToBuffer(),
+		indexer.RoundsIndex:              indices.Rounds.ToBuffer(),
+		indexer.ValidatorsIndex:          indices.Validators.ToBuffer(),
+		indexer.AccountsIndex:            indices.Accounts.ToBuffer(),
+		indexer.AccountsHistoryIndex:     indices.AccountsHistory.ToBuffer(),
+		indexer.AccountsESDTIndex:        indices.AccountsESDT.ToBuffer(),
+		indexer.AccountsESDTHistoryIndex: indices.AccountsESDTHistory.ToBuffer(),
+		indexer.EpochInfoIndex:           indices.EpochInfo.ToBuffer(),
+		indexer.ReceiptsIndex:            indices.Receipts.ToBuffer(),
+		indexer.ScResultsIndex:           indices.SCResults.ToBuffer(),
+		indexer.SCDeploysIndex:           indices.SCDeploys.ToBuffer(),
+		indexer.TokensIndex:              indices.Tokens.ToBuffer(),
+		indexer.TagsIndex:                indices.Tags.ToBuffer(),
+		indexer.LogsIndex:                indices.Logs.ToBuffer(),
+		indexer.DelegatorsIndex:          indices.Delegators.ToBuffer(),
+		indexer.OperationsIndex:          indices.Operations.ToBuffer(),
+		indexer.ESDTsIndex:               indices.ESDTs.ToBuffer(),
+		indexer.ValuesIndex:              indices.Values.ToBuffer(),
+		indexer.EventsIndex:              indices.Events.ToBuffer(),
+		indexer.ExecutionResultsIndex:    indices.ExecutionResults.ToBuffer(),
+	}
+
+	for _, index := range tr.availableIndices {
+		if template, ok := allTemplates[index]; ok {
+			indexTemplates[index] = template
+		}
+	}
 
 	return indexTemplates, indexPolicies, nil
 }
 
-// GetTimestampMsMappings will return the timestampMs field mappings for all indices
+// GetTimestampMsMappings will return the timestampMs field mappings for the enabled indices
 func (tr *templatesAndPolicyReader) GetTimestampMsMappings() ([]templates.ExtraMapping, error) {
-	return []templates.ExtraMapping{
+	allMappings := []templates.ExtraMapping{
 		{
 			Index:    indexer.TransactionsIndex,
 			Mappings: indices.TimestampMs.ToBuffer(),
@@ -147,7 +155,21 @@ func (tr *templatesAndPolicyReader) GetTimestampMsMappings() ([]templates.ExtraM
 			Index:    indexer.SCDeploysIndex,
 			Mappings: indices.DeploysTimestampMs.ToBuffer(),
 		},
-	}, nil
+	}
+
+	enabled := make(map[string]struct{}, len(tr.availableIndices))
+	for _, index := range tr.availableIndices {
+		enabled[index] = struct{}{}
+	}
+
+	filtered := make([]templates.ExtraMapping, 0, len(allMappings))
+	for _, mapping := range allMappings {
+		if _, ok := enabled[mapping.Index]; ok {
+			filtered = append(filtered, mapping)
+		}
+	}
+
+	return filtered, nil
 }
 
 // GetExtraMappings will return an array of indices extra mappings

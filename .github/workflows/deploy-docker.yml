@@ -50,6 +50,4 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
-          provenance: mode=max
-          sbom: true
           labels: ${{ steps.meta.outputs.labels }}
