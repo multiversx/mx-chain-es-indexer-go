@@ -419,3 +419,37 @@ func TestPrepareExecutionResult_IntraShardMBTxNotFound(t *testing.T) {
 	require.Len(t, results.ExecutionResults[0].MiniBlocksDetails, 1)
 	require.Equal(t, []int{notFound}, results.ExecutionResults[0].MiniBlocksDetails[0].ExecutionOrderTxsIndices)
 }
+
+func TestPrepareExecutionResult_IntraShardMBWithoutTransactionPool(t *testing.T) {
+	t.Parallel()
+
+	bp, _ := NewBlockProcessor(&mock.HasherMock{}, &mock.MarshalizerMock{}, &mock.PubkeyConverterMock{})
+	executionResultHeaderHash := []byte("er-no-pool")
+	intraTxHash := []byte("intra-tx")
+	obh := &outport.OutportBlockWithHeader{
+		Header: &dataBlock.HeaderV3{
+			ExecutionResults: []*dataBlock.ExecutionResult{{
+				BaseExecutionResult: &dataBlock.BaseExecutionResult{HeaderHash: executionResultHeaderHash},
+				AccumulatedFees:     big.NewInt(0),
+				DeveloperFees:       big.NewInt(0),
+			}},
+		},
+		OutportBlock: &outport.OutportBlock{BlockData: &outport.BlockData{
+			Body: &dataBlock.Body{},
+			Results: map[string]*outport.ExecutionResultData{
+				hex.EncodeToString(executionResultHeaderHash): {
+					Body: &dataBlock.Body{},
+					IntraShardMiniBlocks: []*dataBlock.MiniBlock{
+						{Type: dataBlock.TxBlock, TxHashes: [][]byte{intraTxHash}},
+					},
+				},
+			},
+		}},
+	}
+
+	results, err := bp.PrepareBlockForDB(obh)
+	require.NoError(t, err)
+	require.Len(t, results.ExecutionResults, 1)
+	require.Len(t, results.ExecutionResults[0].MiniBlocksDetails, 1)
+	require.Equal(t, []int{notFound}, results.ExecutionResults[0].MiniBlocksDetails[0].ExecutionOrderTxsIndices)
+}

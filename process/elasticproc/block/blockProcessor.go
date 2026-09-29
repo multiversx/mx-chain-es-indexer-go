@@ -491,6 +491,10 @@ type executionOrderHandler interface {
 }
 
 func getExecutionOrderForTx(txHash []byte, mbType int32, pool *outport.TransactionPool) (uint32, bool) {
+	if pool == nil {
+		return 0, false
+	}
+
 	var tx executionOrderHandler
 	var found bool
 
