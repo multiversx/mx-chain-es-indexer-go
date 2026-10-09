@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 	"sync"
 
 	"github.com/multiversx/mx-chain-core-go/core"
@@ -445,7 +446,29 @@ func (ei *elasticProcessor) SaveTransactions(obh *outport.OutportBlockWithHeader
 		}
 	}
 
-	return ei.doBulkRequests("", buffers.Buffers(), headerData.ShardID)
+	err = ei.doBulkRequests("", buffers.Buffers(), headerData.ShardID)
+	if err != nil {
+		return err
+	}
+
+	return ei.indexShardRound(obh.Header.GetShardID(), obh.Header.GetRound())
+}
+
+func (ei *elasticProcessor) indexShardRound(shardID uint32, round uint64) error {
+	key := fmt.Sprintf("shard_%d", shardID)
+	value := &data.KeyValueObj{Key: key, Value: strconv.FormatUint(round, 10)}
+	serializedValue, err := json.Marshal(value)
+	if err != nil {
+		return err
+	}
+	meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s", "_id" : "%s" } }%s`, elasticIndexer.ValuesIndex, key, "\n"))
+	valueBuffer := data.NewBufferSlice(ei.bulkRequestMaxSize)
+	err = valueBuffer.PutData(meta, serializedValue)
+	if err != nil {
+		return err
+	}
+
+	return ei.doBulkRequests("", valueBuffer.Buffers(), shardID)
 }
 
 func (ei *elasticProcessor) prepareAndSaveTransactionsData(

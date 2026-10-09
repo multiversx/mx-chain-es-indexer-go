@@ -350,8 +350,10 @@ func TestElasticseachDatabaseSaveHeader_RequestError(t *testing.T) {
 func TestElasticseachSaveTransactions(t *testing.T) {
 	localErr := errors.New("localErr")
 	arguments := createMockElasticProcessorArgs()
+	bulkRequestCalls := 0
 	dbWriter := &mock.DatabaseWriterStub{
 		DoBulkRequestCalled: func(buff *bytes.Buffer, index string) error {
+			bulkRequestCalls++
 			return localErr
 		},
 	}
@@ -380,6 +382,39 @@ func TestElasticseachSaveTransactions(t *testing.T) {
 	err := elasticDatabase.SaveTransactions(outportBlock)
 	require.NotNil(t, err)
 	require.Equal(t, localErr.Error(), err.Error())
+	require.Equal(t, 1, bulkRequestCalls)
+}
+
+func TestElasticProcessor_SaveTransactionsIndexesHeaderRoundInValues(t *testing.T) {
+	var bulkRequests []string
+	dbWriter := &mock.DatabaseWriterStub{
+		DoBulkRequestCalled: func(buff *bytes.Buffer, _ string) error {
+			bulkRequests = append(bulkRequests, buff.String())
+			return nil
+		},
+	}
+	arguments := createMockElasticProcessorArgs()
+	arguments.TransactionsProc = &mock.DBTransactionProcessorStub{
+		PrepareTransactionsForDatabaseCalled: func(_ []*dataBlock.MiniBlock, _ *data.HeaderData, _ *outport.TransactionPool) *data.PreparedResults {
+			return &data.PreparedResults{ScResults: []*data.ScResult{{}}}
+		},
+		SerializeScResultsCalled: func(_ []*data.ScResult, buffers *data.BufferSlice, _ string) error {
+			return buffers.PutData([]byte("transaction-meta\n"), []byte("transaction-data"))
+		},
+	}
+	arguments.EnabledIndexes[dataindexer.ScResultsIndex] = struct{}{}
+	obh := createEmptyOutportBlockWithHeader()
+	obh.Header = &dataBlock.Header{ShardID: 2, Round: 42, Nonce: 17}
+
+	processor := newElasticsearchProcessor(dbWriter, arguments)
+	err := processor.SaveTransactions(obh)
+
+	require.NoError(t, err)
+	require.Len(t, bulkRequests, 2)
+	require.Contains(t, bulkRequests[0], "transaction-data")
+	require.NotContains(t, bulkRequests[0], `"_index":"values"`)
+	require.Contains(t, bulkRequests[1], `"_index":"values", "_id" : "shard_2"`)
+	require.Contains(t, bulkRequests[1], `{"key":"shard_2","value":"42"}`)
 }
 
 func TestElasticProcessor_SaveValidatorsRating(t *testing.T) {
@@ -555,8 +590,9 @@ func TestElasticProcessor_IndexEpochInfoData(t *testing.T) {
 	require.True(t, called)
 }
 
-func TestElasticProcessor_SaveTransactionNoDataShouldNotDoRequest(t *testing.T) {
+func TestElasticProcessor_SaveTransactionsIndexesRoundWhenNoTransactions(t *testing.T) {
 	called := false
+	var bulkRequest string
 	arguments := createMockElasticProcessorArgs()
 	arguments.TransactionsProc = &mock.DBTransactionProcessorStub{
 		PrepareTransactionsForDatabaseCalled: func(mbs []*dataBlock.MiniBlock, headerData *data.HeaderData, pool *outport.TransactionPool) *data.PreparedResults {
@@ -573,6 +609,7 @@ func TestElasticProcessor_SaveTransactionNoDataShouldNotDoRequest(t *testing.T) 
 	dbWriter := &mock.DatabaseWriterStub{
 		DoBulkRequestCalled: func(buff *bytes.Buffer, index string) error {
 			called = true
+			bulkRequest += buff.String()
 			return nil
 		},
 	}
@@ -580,9 +617,12 @@ func TestElasticProcessor_SaveTransactionNoDataShouldNotDoRequest(t *testing.T) 
 	elasticSearchProc := newElasticsearchProcessor(dbWriter, arguments)
 	elasticSearchProc.enabledIndexes[dataindexer.ScResultsIndex] = struct{}{}
 
-	err := elasticSearchProc.SaveTransactions(createEmptyOutportBlockWithHeader())
+	obh := createEmptyOutportBlockWithHeader()
+	obh.Header = &dataBlock.Header{ShardID: 4, Round: 83}
+	err := elasticSearchProc.SaveTransactions(obh)
 	require.Nil(t, err)
-	require.False(t, called)
+	require.True(t, called)
+	require.Contains(t, bulkRequest, `{"key":"shard_4","value":"83"}`)
 }
 
 func TestElasticProcessor_IndexAlteredAccounts(t *testing.T) {
