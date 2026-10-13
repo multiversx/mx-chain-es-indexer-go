@@ -194,22 +194,28 @@ func (ei *elasticProcessor) indexEpochInfoData(header coreData.HeaderHandler, bu
 
 // RemoveHeader will remove a block from elasticsearch server
 func (ei *elasticProcessor) RemoveHeader(header coreData.HeaderHandler) error {
-	headerHash, err := ei.blockProc.ComputeHeaderHash(header)
-	if err != nil {
-		return err
-	}
+	if ei.isIndexEnabled(elasticIndexer.BlockIndex) {
+		headerHash, err := ei.blockProc.ComputeHeaderHash(header)
+		if err != nil {
+			return err
+		}
 
-	ctxWithValue := context.WithValue(context.Background(), request.ContextKey, request.ExtendTopicWithShardID(request.RemoveTopic, header.GetShardID()))
-	err = ei.elasticClient.DoQueryRemove(
-		ctxWithValue,
-		elasticIndexer.BlockIndex,
-		converters.PrepareHashesForQueryRemove([]string{hex.EncodeToString(headerHash)}),
-	)
-	if err != nil {
-		return err
+		ctxWithValue := context.WithValue(context.Background(), request.ContextKey, request.ExtendTopicWithShardID(request.RemoveTopic, header.GetShardID()))
+		err = ei.elasticClient.DoQueryRemove(
+			ctxWithValue,
+			elasticIndexer.BlockIndex,
+			converters.PrepareHashesForQueryRemove([]string{hex.EncodeToString(headerHash)}),
+		)
+		if err != nil {
+			return err
+		}
 	}
 
 	if len(header.GetExecutionResultsHandlers()) == 0 {
+		return nil
+	}
+
+	if !ei.isIndexEnabled(elasticIndexer.ExecutionResultsIndex) {
 		return nil
 	}
 
@@ -218,6 +224,7 @@ func (ei *elasticProcessor) RemoveHeader(header coreData.HeaderHandler) error {
 		executionResultsHashes = append(executionResultsHashes, hex.EncodeToString(executonResult.GetHeaderHash()))
 	}
 
+	ctxWithValue := context.WithValue(context.Background(), request.ContextKey, request.ExtendTopicWithShardID(request.RemoveTopic, header.GetShardID()))
 	return ei.elasticClient.DoQueryRemove(
 		ctxWithValue,
 		elasticIndexer.ExecutionResultsIndex,
@@ -227,6 +234,10 @@ func (ei *elasticProcessor) RemoveHeader(header coreData.HeaderHandler) error {
 
 // RemoveMiniblocks will remove all miniblocks that are in header from elasticsearch server
 func (ei *elasticProcessor) RemoveMiniblocks(header coreData.HeaderHandler) error {
+	if !ei.isIndexEnabled(elasticIndexer.MiniblocksIndex) {
+		return nil
+	}
+
 	headerData := &data.HeaderData{
 		ShardID:          header.GetShardID(),
 		MiniBlockHeaders: header.GetMiniBlockHeaderHandlers(),
@@ -283,6 +294,10 @@ func (ei *elasticProcessor) RemoveTransactions(header coreData.HeaderHandler, bo
 }
 
 func (ei *elasticProcessor) updateDelegatorsInCaseOfRevert(header coreData.HeaderHandler, body *block.Body, timestampMs uint64) error {
+	if !ei.isIndexEnabled(elasticIndexer.DelegatorsIndex) {
+		return nil
+	}
+
 	// delegators index should be updated in case of revert only if the observer is in Metachain and the reverted block has miniblocks
 	isMeta := header.GetShardID() == core.MetachainShardId
 	hasMiniblocks := len(body.MiniBlocks) > 0
@@ -299,6 +314,9 @@ func (ei *elasticProcessor) updateDelegatorsInCaseOfRevert(header coreData.Heade
 
 func (ei *elasticProcessor) removeIfHashesNotEmpty(index string, hashes []string, shardID uint32) error {
 	if len(hashes) == 0 {
+		return nil
+	}
+	if !ei.isIndexEnabled(index) {
 		return nil
 	}
 
@@ -321,6 +339,10 @@ func (ei *elasticProcessor) RemoveAccountsESDT(shardID uint32, timestampMs uint6
 }
 
 func (ei *elasticProcessor) removeFromIndexByTimestampAndShardID(shardID uint32, index string, timestampMs uint64) error {
+	if !ei.isIndexEnabled(index) {
+		return nil
+	}
+
 	ctxWithValue := context.WithValue(context.Background(), request.ContextKey, request.ExtendTopicWithShardID(request.RemoveTopic, shardID))
 	query := fmt.Sprintf(`{"query": {"bool": {"must": [{"match": {"shardID": {"query": %d,"operator": "AND"}}},{"match": {"timestampMs": {"query": "%d","operator": "AND"}}}]}}}`, shardID, timestampMs)
 

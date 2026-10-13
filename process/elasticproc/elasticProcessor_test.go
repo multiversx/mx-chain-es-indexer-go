@@ -91,7 +91,7 @@ func createMockElasticProcessorArgs() *ArgElasticProcessor {
 		BlockProc:           bp,
 		LogsAndEventsProc:   lp,
 		OperationsProc:      op,
-		MappingsHandler:     templatesAndPolicies.NewTemplatesAndPolicyReader(false, "", nil, nil),
+		MappingsHandler:     templatesAndPolicies.NewTemplatesAndPolicyReader(false, "", []string{dataindexer.BlockIndex}, nil),
 		NumWritesInParallel: 1,
 	}
 }

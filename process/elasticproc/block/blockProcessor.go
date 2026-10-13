@@ -139,7 +139,8 @@ func (bp *blockProcessor) PrepareBlockForDB(obh *outport.OutportBlockWithHeader)
 	areProposedMBs := obh.Header.IsHeaderV3()
 	elasticBlock.MiniBlocksDetails = prepareMiniBlockDetails(obh.Header.GetMiniBlockHeaderHandlers(), obh.BlockData.Body, obh.TransactionPool, areProposedMBs)
 
-	appendBlockDetailsFromIntraShardMbs(elasticBlock, obh.BlockData.IntraShardMiniBlocks, obh.TransactionPool, len(obh.Header.GetMiniBlockHeaderHandlers()))
+	intraShardMbsDetails := getMbsDetailsFromIntraShardMB(obh.BlockData.IntraShardMiniBlocks, obh.TransactionPool, len(obh.Header.GetMiniBlockHeaderHandlers()))
+	elasticBlock.MiniBlocksDetails = append(elasticBlock.MiniBlocksDetails, intraShardMbsDetails...)
 
 	addInBlockLastExecutionResultData(elasticBlock, obh)
 	addProofs(elasticBlock, obh)
@@ -220,11 +221,15 @@ func (bp *blockProcessor) prepareExecutionResult(baseExecutionResult coreData.Ba
 		executionResult.AccumulatedFees = t.AccumulatedFees.String()
 		executionResult.DeveloperFees = t.DeveloperFees.String()
 		executionResult.TxCount = t.ExecutedTxCount
+		intraShardMbsDetails := getMbsDetailsFromIntraShardMB(executionResultData.IntraShardMiniBlocks, executionResultData.TransactionPool, len(t.GetMiniBlockHeadersHandlers()))
+		executionResult.MiniBlocksDetails = append(executionResult.MiniBlocksDetails, intraShardMbsDetails...)
 	case *nodeBlock.ExecutionResult:
 		executionResult.MiniBlocksDetails = prepareMiniBlockDetails(t.GetMiniBlockHeadersHandlers(), executionResultData.Body, executionResultData.TransactionPool, false)
 		executionResult.AccumulatedFees = t.AccumulatedFees.String()
 		executionResult.DeveloperFees = t.DeveloperFees.String()
 		executionResult.TxCount = t.ExecutedTxCount
+		intraShardMbsDetails := getMbsDetailsFromIntraShardMB(executionResultData.IntraShardMiniBlocks, executionResultData.TransactionPool, len(t.GetMiniBlockHeadersHandlers()))
+		executionResult.MiniBlocksDetails = append(executionResult.MiniBlocksDetails, intraShardMbsDetails...)
 	default:
 		return executionResult
 	}
@@ -418,13 +423,14 @@ func prepareMiniBlockDetails(mbHeaders []coreData.MiniBlockHeaderHandler, body *
 	return mbsDetails
 }
 
-func appendBlockDetailsFromIntraShardMbs(block *data.Block, intraShardMbs []*nodeBlock.MiniBlock, pool *outport.TransactionPool, offset int) {
+func getMbsDetailsFromIntraShardMB(intraShardMbs []*nodeBlock.MiniBlock, pool *outport.TransactionPool, offset int) []*data.MiniBlocksDetails {
+	mbDetails := make([]*data.MiniBlocksDetails, 0, len(intraShardMbs))
 	for idx, intraMB := range intraShardMbs {
 		if intraMB.Type == nodeBlock.PeerBlock || intraMB.Type == nodeBlock.ReceiptBlock {
 			continue
 		}
 
-		block.MiniBlocksDetails = append(block.MiniBlocksDetails, &data.MiniBlocksDetails{
+		mbDetails = append(mbDetails, &data.MiniBlocksDetails{
 			IndexFirstProcessedTx:    0,
 			IndexLastProcessedTx:     int32(len(intraMB.GetTxHashes()) - 1),
 			SenderShardID:            intraMB.GetSenderShardID(),
@@ -436,6 +442,8 @@ func appendBlockDetailsFromIntraShardMbs(block *data.Block, intraShardMbs []*nod
 			ExecutionOrderTxsIndices: extractExecutionOrderIntraShardMBUnsigned(intraMB, pool),
 		})
 	}
+
+	return mbDetails
 }
 
 func extractExecutionOrderIntraShardMBUnsigned(mb *nodeBlock.MiniBlock, pool *outport.TransactionPool) []int {
@@ -483,6 +491,10 @@ type executionOrderHandler interface {
 }
 
 func getExecutionOrderForTx(txHash []byte, mbType int32, pool *outport.TransactionPool) (uint32, bool) {
+	if pool == nil {
+		return 0, false
+	}
+
 	var tx executionOrderHandler
 	var found bool
 
