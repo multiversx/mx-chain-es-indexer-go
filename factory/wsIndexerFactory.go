@@ -24,13 +24,14 @@ func CreateWsIndexer(
 	statusMetrics core.StatusMetricsHandler,
 	version string,
 	configPathStr string,
+	importDBMode bool,
 ) (wsindexer.WSClient, error) {
 	wsMarshaller, err := factoryMarshaller.NewMarshalizer(clusterCfg.Config.WebSocket.DataMarshallerType)
 	if err != nil {
 		return nil, err
 	}
 
-	dataIndexer, err := createDataIndexer(cfg, clusterCfg, epochsCfg, wsMarshaller, statusMetrics, version, configPathStr)
+	dataIndexer, err := createDataIndexer(cfg, clusterCfg, epochsCfg, wsMarshaller, statusMetrics, version, configPathStr, importDBMode)
 	if err != nil {
 		return nil, err
 	}
@@ -66,6 +67,7 @@ func createDataIndexer(
 	statusMetrics core.StatusMetricsHandler,
 	version string,
 	configPathStr string,
+	importDBMode bool,
 ) (wsindexer.DataIndexer, error) {
 	marshaller, err := factoryMarshaller.NewMarshalizer(cfg.Config.Marshaller.Type)
 	if err != nil {
@@ -91,6 +93,7 @@ func createDataIndexer(
 
 	return factory.NewIndexer(factory.ArgsIndexerFactory{
 		Denomination:             cfg.Config.Economics.Denomination,
+		ImportDB:                 importDBMode,
 		BulkRequestMaxSize:       clusterCfg.Config.ElasticCluster.BulkRequestMaxSizeInBytes,
 		Url:                      clusterCfg.Config.ElasticCluster.URL,
 		UserName:                 clusterCfg.Config.ElasticCluster.UserName,

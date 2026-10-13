@@ -59,4 +59,8 @@ var (
 		Name:  "disable-ansi-color",
 		Usage: "Boolean option for disabling ANSI colors in the logging system.",
 	}
+	importDB = cli.BoolFlag{
+		Name:  "import-db",
+		Usage: "Enable database import mode.",
+	}
 )
