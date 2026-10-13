@@ -62,6 +62,7 @@ func main() {
 		logLevel,
 		logSaveFile,
 		disableAnsiColor,
+		importDB,
 		configPath,
 	}
 	app.Authors = []cli.Author{
@@ -103,13 +104,14 @@ func startIndexer(ctx *cli.Context) error {
 	}
 
 	configPathStr := ctx.GlobalString(configPath.Name)
+	importDBMode := ctx.GlobalBool(importDB.Name)
 	statusMetrics := metrics.NewStatusMetrics()
 
 	var indexerHandler factory.IndexerCloseHandler
 	if clusterCfg.Config.GRPCConfig.Enabled {
-		indexerHandler, err = factory.CreateGRPCIndexer(cfg, clusterCfg, epochsCfg, statusMetrics, ctx.App.Version, configPathStr)
+		indexerHandler, err = factory.CreateGRPCIndexer(cfg, clusterCfg, epochsCfg, statusMetrics, ctx.App.Version, configPathStr, importDBMode)
 	} else {
-		indexerHandler, err = factory.CreateWsIndexer(cfg, clusterCfg, epochsCfg, statusMetrics, ctx.App.Version, configPathStr)
+		indexerHandler, err = factory.CreateWsIndexer(cfg, clusterCfg, epochsCfg, statusMetrics, ctx.App.Version, configPathStr, importDBMode)
 
 	}
 	if err != nil {

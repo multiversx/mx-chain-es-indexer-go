@@ -24,13 +24,14 @@ func CreateGRPCIndexer(
 	statusMetrics core.StatusMetricsHandler,
 	version string,
 	configPathStr string,
+	importDBMode bool,
 ) (IndexerCloseHandler, error) {
-	headerMarshaller, err := factoryMarshaller.NewMarshalizer(clusterCfg.Config.WebSocket.DataMarshallerType)
+	headerMarshaller, err := factoryMarshaller.NewMarshalizer(clusterCfg.Config.GRPCConfig.DataMarshallerType)
 	if err != nil {
 		return nil, err
 	}
 
-	dataIndexer, err := createDataIndexer(cfg, clusterCfg, epochsCfg, headerMarshaller, statusMetrics, version, configPathStr)
+	dataIndexer, err := createDataIndexer(cfg, clusterCfg, epochsCfg, headerMarshaller, statusMetrics, version, configPathStr, importDBMode)
 	if err != nil {
 		return nil, err
 	}
