@@ -48,6 +48,17 @@ type ResponseScroll struct {
 	} `json:"hits"`
 }
 
+// ResponseBlocks is the structure for the blocks response
+type ResponseBlocks struct {
+	Docs []ResponseBlockDB `json:"docs"`
+}
+
+// ResponseBlockDB is the structure for the block response
+type ResponseBlockDB struct {
+	Found  bool  `json:"found"`
+	Source Block `json:"_source"`
+}
+
 // KeyValueObj is the dto for values index
 type KeyValueObj struct {
 	Key   string `json:"key"`

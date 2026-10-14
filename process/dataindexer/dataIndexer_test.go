@@ -171,6 +171,10 @@ func TestDataIndexer_RevertIndexedBlock(t *testing.T) {
 			countMap[3]++
 			return nil
 		},
+		RevertShardRoundCalled: func(_ coreData.HeaderHandler) error {
+			countMap[4]++
+			return nil
+		},
 	}
 	ei, _ := NewDataIndexer(arguments)
 
@@ -184,4 +188,5 @@ func TestDataIndexer_RevertIndexedBlock(t *testing.T) {
 	require.Equal(t, 1, countMap[1])
 	require.Equal(t, 1, countMap[2])
 	require.Equal(t, 1, countMap[3])
+	require.Equal(t, 1, countMap[4])
 }

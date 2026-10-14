@@ -47,14 +47,25 @@ func TestSaveTransactionsUpdatesShardRoundInValuesIndex(t *testing.T) {
 	esProc, err := CreateElasticProcessor(esClient)
 	require.NoError(t, err)
 
+	prevHash := []byte("block-100")
 	for _, round := range []uint64{100, 101} {
+		header := &dataBlock.Header{ShardID: 1, Round: round}
+		if round == 101 {
+			header.PrevHash = prevHash
+		}
 		obh := createOutportBlockWithHeader(
 			&dataBlock.Body{},
-			&dataBlock.Header{ShardID: 1, Round: round},
+			header,
 			&outport.TransactionPool{},
 			nil,
 			testNumOfShards,
 		)
+		if round == 100 {
+			obh.BlockData.HeaderHash = prevHash
+		}
+		err = esProc.SaveHeader(obh)
+		require.NoError(t, err)
+
 		err = esProc.SaveTransactions(obh)
 		require.NoError(t, err)
 
@@ -65,4 +76,14 @@ func TestSaveTransactionsUpdatesShardRoundInValuesIndex(t *testing.T) {
 		require.True(t, genericResponse.Docs[0].Found)
 		require.Equal(t, fmt.Sprintf(`{"key":"shard_1","value":"%d"}`, round), string(genericResponse.Docs[0].Source))
 	}
+
+	err = esProc.RevertShardRound(&dataBlock.Header{ShardID: 1, Round: 101, PrevHash: prevHash})
+	require.NoError(t, err)
+
+	genericResponse := &GenericResponse{}
+	err = esClient.DoMultiGet(context.Background(), []string{"shard_1"}, indexerData.ValuesIndex, true, genericResponse)
+	require.NoError(t, err)
+	require.Len(t, genericResponse.Docs, 1)
+	require.True(t, genericResponse.Docs[0].Found)
+	require.Equal(t, `{"key":"shard_1","value":"100"}`, string(genericResponse.Docs[0].Source))
 }

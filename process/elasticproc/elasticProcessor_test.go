@@ -643,6 +643,94 @@ func TestElasticProcessor_IndexShardRoundWhenValuesIndexDisabled(t *testing.T) {
 	require.False(t, bulkRequestCalled)
 }
 
+func TestElasticProcessor_RevertShardRound(t *testing.T) {
+	prevHash := []byte("prev-hash")
+	expectedPrevHashHex := hex.EncodeToString(prevHash)
+
+	t.Run("updates values index with previous block round", func(t *testing.T) {
+		var bulkRequest string
+		dbWriter := &mock.DatabaseWriterStub{
+			DoMultiGetCalled: func(ids []string, index string, withSource bool, response interface{}) error {
+				require.Equal(t, []string{expectedPrevHashHex}, ids)
+				require.Equal(t, dataindexer.BlockIndex, index)
+				require.True(t, withSource)
+
+				responseBlocks := response.(*data.ResponseBlocks)
+				responseBlocks.Docs = []data.ResponseBlockDB{
+					{
+						Found:  true,
+						Source: data.Block{Round: 100},
+					},
+				}
+				return nil
+			},
+			DoBulkRequestCalled: func(buff *bytes.Buffer, _ string) error {
+				bulkRequest += buff.String()
+				return nil
+			},
+		}
+
+		arguments := createMockElasticProcessorArgs()
+		arguments.EnabledIndexes[dataindexer.ValuesIndex] = struct{}{}
+		processor := newElasticsearchProcessor(dbWriter, arguments)
+
+		err := processor.RevertShardRound(&dataBlock.Header{
+			ShardID:  1,
+			Round:    101,
+			PrevHash: prevHash,
+		})
+		require.NoError(t, err)
+		require.Contains(t, bulkRequest, `"_index":"values", "_id" : "shard_1"`)
+		require.Contains(t, bulkRequest, `{"key":"shard_1","value":"100"}`)
+	})
+
+	t.Run("skips when values index is disabled", func(t *testing.T) {
+		multiGetCalled := false
+		dbWriter := &mock.DatabaseWriterStub{
+			DoMultiGetCalled: func(_ []string, _ string, _ bool, _ interface{}) error {
+				multiGetCalled = true
+				return nil
+			},
+		}
+
+		processor := newElasticsearchProcessor(dbWriter, createMockElasticProcessorArgs())
+		err := processor.RevertShardRound(&dataBlock.Header{
+			ShardID:  1,
+			Round:    101,
+			PrevHash: prevHash,
+		})
+		require.NoError(t, err)
+		require.False(t, multiGetCalled)
+	})
+
+	t.Run("skips when previous block is not found", func(t *testing.T) {
+		bulkRequestCalled := false
+		dbWriter := &mock.DatabaseWriterStub{
+			DoMultiGetCalled: func(_ []string, _ string, _ bool, response interface{}) error {
+				responseBlocks := response.(*data.ResponseBlocks)
+				responseBlocks.Docs = []data.ResponseBlockDB{{Found: false}}
+				return nil
+			},
+			DoBulkRequestCalled: func(_ *bytes.Buffer, _ string) error {
+				bulkRequestCalled = true
+				return nil
+			},
+		}
+
+		arguments := createMockElasticProcessorArgs()
+		arguments.EnabledIndexes[dataindexer.ValuesIndex] = struct{}{}
+		processor := newElasticsearchProcessor(dbWriter, arguments)
+
+		err := processor.RevertShardRound(&dataBlock.Header{
+			ShardID:  1,
+			Round:    101,
+			PrevHash: prevHash,
+		})
+		require.NoError(t, err)
+		require.False(t, bulkRequestCalled)
+	})
+}
+
 func TestElasticProcessor_IndexAlteredAccounts(t *testing.T) {
 	called := false
 	dbWriter := &mock.DatabaseWriterStub{

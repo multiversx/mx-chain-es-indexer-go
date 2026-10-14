@@ -19,6 +19,16 @@ type ElasticProcessorStub struct {
 	SaveShardValidatorsPubKeysCalled func(validators *outport.ValidatorsPubKeys) error
 	SaveAccountsCalled               func(accountsData *outport.Accounts) error
 	RemoveAccountsESDTCalled         func(shardID uint32, timestampMS uint64) error
+	RevertShardRoundCalled           func(header coreData.HeaderHandler) error
+}
+
+// RevertShardRound -
+func (eim *ElasticProcessorStub) RevertShardRound(header coreData.HeaderHandler) error {
+	if eim.RevertShardRoundCalled != nil {
+		return eim.RevertShardRoundCalled(header)
+	}
+
+	return nil
 }
 
 // RemoveAccountsESDT -

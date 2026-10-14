@@ -339,6 +339,32 @@ func (ei *elasticProcessor) RemoveAccountsESDT(shardID uint32, timestampMs uint6
 	return ei.removeFromIndexByTimestampAndShardID(shardID, elasticIndexer.AccountsESDTHistoryIndex, timestampMs)
 }
 
+// RevertShardRound will update the shard round in the values index to the previous block's round
+func (ei *elasticProcessor) RevertShardRound(header coreData.HeaderHandler) error {
+	if !ei.isIndexEnabled(elasticIndexer.ValuesIndex) || !ei.isIndexEnabled(elasticIndexer.BlockIndex) {
+		return nil
+	}
+
+	prevHashHex := hex.EncodeToString(header.GetPrevHash())
+	if prevHashHex == "" {
+		return nil
+	}
+
+	shardID := header.GetShardID()
+	ctxWithValue := context.WithValue(context.Background(), request.ContextKey, request.ExtendTopicWithShardID(request.GetTopic, shardID))
+	responseBlocks := &data.ResponseBlocks{}
+	err := ei.elasticClient.DoMultiGet(ctxWithValue, []string{prevHashHex}, elasticIndexer.BlockIndex, true, responseBlocks)
+	if err != nil {
+		return err
+	}
+
+	if len(responseBlocks.Docs) == 0 || !responseBlocks.Docs[0].Found {
+		return nil
+	}
+
+	return ei.indexShardRound(shardID, responseBlocks.Docs[0].Source.Round)
+}
+
 func (ei *elasticProcessor) removeFromIndexByTimestampAndShardID(shardID uint32, index string, timestampMs uint64) error {
 	if !ei.isIndexEnabled(index) {
 		return nil
