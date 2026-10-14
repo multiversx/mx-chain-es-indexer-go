@@ -62,6 +62,8 @@ func TestSaveTransactionsUpdatesShardRoundInValuesIndex(t *testing.T) {
 		)
 		if round == 100 {
 			obh.BlockData.HeaderHash = prevHash
+		} else {
+			obh.BlockData.HeaderHash = []byte("block-101")
 		}
 		err = esProc.SaveHeader(obh)
 		require.NoError(t, err)
