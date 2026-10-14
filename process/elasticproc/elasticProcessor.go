@@ -455,6 +455,10 @@ func (ei *elasticProcessor) SaveTransactions(obh *outport.OutportBlockWithHeader
 }
 
 func (ei *elasticProcessor) indexShardRound(shardID uint32, round uint64) error {
+	if !ei.isIndexEnabled(elasticIndexer.ValuesIndex) {
+		return nil
+	}
+
 	key := fmt.Sprintf("shard_%d", shardID)
 	value := &data.KeyValueObj{Key: key, Value: strconv.FormatUint(round, 10)}
 	serializedValue, err := json.Marshal(value)

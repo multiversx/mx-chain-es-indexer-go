@@ -394,6 +394,7 @@ func TestElasticProcessor_SaveTransactionsIndexesHeaderRoundInValues(t *testing.
 		},
 	}
 	arguments := createMockElasticProcessorArgs()
+	arguments.EnabledIndexes[dataindexer.ValuesIndex] = struct{}{}
 	arguments.TransactionsProc = &mock.DBTransactionProcessorStub{
 		PrepareTransactionsForDatabaseCalled: func(_ []*dataBlock.MiniBlock, _ *data.HeaderData, _ *outport.TransactionPool) *data.PreparedResults {
 			return &data.PreparedResults{ScResults: []*data.ScResult{{}}}
@@ -615,6 +616,7 @@ func TestElasticProcessor_SaveTransactionsIndexesRoundWhenNoTransactions(t *test
 	}
 
 	elasticSearchProc := newElasticsearchProcessor(dbWriter, arguments)
+	elasticSearchProc.enabledIndexes[dataindexer.ValuesIndex] = struct{}{}
 	elasticSearchProc.enabledIndexes[dataindexer.ScResultsIndex] = struct{}{}
 
 	obh := createEmptyOutportBlockWithHeader()
@@ -623,6 +625,22 @@ func TestElasticProcessor_SaveTransactionsIndexesRoundWhenNoTransactions(t *test
 	require.Nil(t, err)
 	require.True(t, called)
 	require.Contains(t, bulkRequest, `{"key":"shard_4","value":"83"}`)
+}
+
+func TestElasticProcessor_IndexShardRoundWhenValuesIndexDisabled(t *testing.T) {
+	bulkRequestCalled := false
+	dbWriter := &mock.DatabaseWriterStub{
+		DoBulkRequestCalled: func(_ *bytes.Buffer, _ string) error {
+			bulkRequestCalled = true
+			return nil
+		},
+	}
+	processor := newElasticsearchProcessor(dbWriter, createMockElasticProcessorArgs())
+
+	err := processor.indexShardRound(4, 83)
+
+	require.NoError(t, err)
+	require.False(t, bulkRequestCalled)
 }
 
 func TestElasticProcessor_IndexAlteredAccounts(t *testing.T) {
