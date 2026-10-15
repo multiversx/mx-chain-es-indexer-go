@@ -362,7 +362,7 @@ func (ei *elasticProcessor) RevertShardRound(header coreData.HeaderHandler) erro
 		return nil
 	}
 
-	return ei.indexShardRound(shardID, responseBlocks.Docs[0].Source.Round)
+	return ei.indexShardRound(shardID, responseBlocks.Docs[0].Source.Round, responseBlocks.Docs[0].Source.TimestampMs)
 }
 
 func (ei *elasticProcessor) removeFromIndexByTimestampAndShardID(shardID uint32, index string, timestampMs uint64) error {
@@ -477,16 +477,20 @@ func (ei *elasticProcessor) SaveTransactions(obh *outport.OutportBlockWithHeader
 		return err
 	}
 
-	return ei.indexShardRound(obh.Header.GetShardID(), obh.Header.GetRound())
+	return ei.indexShardRound(obh.Header.GetShardID(), obh.Header.GetRound(), obh.BlockData.TimestampMs)
 }
 
-func (ei *elasticProcessor) indexShardRound(shardID uint32, round uint64) error {
+func (ei *elasticProcessor) indexShardRound(shardID uint32, round uint64, timestampMs uint64) error {
 	if !ei.isIndexEnabled(elasticIndexer.ValuesIndex) {
 		return nil
 	}
 
 	key := fmt.Sprintf("shard_%d", shardID)
-	value := &data.KeyValueObj{Key: key, Value: strconv.FormatUint(round, 10)}
+	value := &data.KeyValueObj{
+		Key:         key,
+		Value:       strconv.FormatUint(round, 10),
+		TimestampMs: timestampMs,
+	}
 	serializedValue, err := json.Marshal(value)
 	if err != nil {
 		return err

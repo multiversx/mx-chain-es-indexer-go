@@ -49,7 +49,7 @@ func TestSaveTransactionsUpdatesShardRoundInValuesIndex(t *testing.T) {
 
 	prevHash := []byte("block-100")
 	for _, round := range []uint64{100, 101} {
-		header := &dataBlock.Header{ShardID: 1, Round: round}
+		header := &dataBlock.Header{ShardID: 1, Round: round, TimeStamp: round}
 		if round == 101 {
 			header.PrevHash = prevHash
 		}
@@ -76,7 +76,7 @@ func TestSaveTransactionsUpdatesShardRoundInValuesIndex(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, genericResponse.Docs, 1)
 		require.True(t, genericResponse.Docs[0].Found)
-		require.Equal(t, fmt.Sprintf(`{"key":"shard_1","value":"%d"}`, round), string(genericResponse.Docs[0].Source))
+		require.Equal(t, fmt.Sprintf(`{"key":"shard_1","value":"%d","timestampMs":%d}`, round, round*1000), string(genericResponse.Docs[0].Source))
 	}
 
 	err = esProc.RevertShardRound(&dataBlock.Header{ShardID: 1, Round: 101, PrevHash: prevHash})
@@ -87,5 +87,5 @@ func TestSaveTransactionsUpdatesShardRoundInValuesIndex(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, genericResponse.Docs, 1)
 	require.True(t, genericResponse.Docs[0].Found)
-	require.Equal(t, `{"key":"shard_1","value":"100"}`, string(genericResponse.Docs[0].Source))
+	require.Equal(t, `{"key":"shard_1","value":"100","timestampMs":100000}`, string(genericResponse.Docs[0].Source))
 }

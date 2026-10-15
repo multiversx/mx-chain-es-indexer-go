@@ -18,6 +18,10 @@ var Values = Object{
 				"value": Object{
 					"type": "keyword",
 				},
+				"timestampMs": Object{
+					"type":   "date",
+					"format": "epoch_millis",
+				},
 			},
 		},
 	},

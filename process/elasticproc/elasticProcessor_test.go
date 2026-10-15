@@ -406,6 +406,7 @@ func TestElasticProcessor_SaveTransactionsIndexesHeaderRoundInValues(t *testing.
 	arguments.EnabledIndexes[dataindexer.ScResultsIndex] = struct{}{}
 	obh := createEmptyOutportBlockWithHeader()
 	obh.Header = &dataBlock.Header{ShardID: 2, Round: 42, Nonce: 17}
+	obh.BlockData.TimestampMs = 123000
 
 	processor := newElasticsearchProcessor(dbWriter, arguments)
 	err := processor.SaveTransactions(obh)
@@ -415,7 +416,7 @@ func TestElasticProcessor_SaveTransactionsIndexesHeaderRoundInValues(t *testing.
 	require.Contains(t, bulkRequests[0], "transaction-data")
 	require.NotContains(t, bulkRequests[0], `"_index":"values"`)
 	require.Contains(t, bulkRequests[1], `"_index":"values", "_id" : "shard_2"`)
-	require.Contains(t, bulkRequests[1], `{"key":"shard_2","value":"42"}`)
+	require.Contains(t, bulkRequests[1], `{"key":"shard_2","value":"42","timestampMs":123000}`)
 }
 
 func TestElasticProcessor_SaveValidatorsRating(t *testing.T) {
@@ -637,7 +638,7 @@ func TestElasticProcessor_IndexShardRoundWhenValuesIndexDisabled(t *testing.T) {
 	}
 	processor := newElasticsearchProcessor(dbWriter, createMockElasticProcessorArgs())
 
-	err := processor.indexShardRound(4, 83)
+	err := processor.indexShardRound(4, 83, 0)
 
 	require.NoError(t, err)
 	require.False(t, bulkRequestCalled)
@@ -659,7 +660,7 @@ func TestElasticProcessor_RevertShardRound(t *testing.T) {
 				responseBlocks.Docs = []data.ResponseBlockDB{
 					{
 						Found:  true,
-						Source: data.Block{Round: 100},
+						Source: data.Block{Round: 100, TimestampMs: 12345},
 					},
 				}
 				return nil
@@ -681,7 +682,7 @@ func TestElasticProcessor_RevertShardRound(t *testing.T) {
 		})
 		require.NoError(t, err)
 		require.Contains(t, bulkRequest, `"_index":"values", "_id" : "shard_1"`)
-		require.Contains(t, bulkRequest, `{"key":"shard_1","value":"100"}`)
+		require.Contains(t, bulkRequest, `{"key":"shard_1","value":"100","timestampMs":12345}`)
 	})
 
 	t.Run("skips when values index is disabled", func(t *testing.T) {
