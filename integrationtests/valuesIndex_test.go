@@ -76,7 +76,7 @@ func TestSaveTransactionsUpdatesShardRoundInValuesIndex(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, genericResponse.Docs, 1)
 		require.True(t, genericResponse.Docs[0].Found)
-		require.Equal(t, fmt.Sprintf(`{"key":"shard_1","value":"%d","timestampMs":%d}`, round, round*1000), string(genericResponse.Docs[0].Source))
+		require.JSONEq(t, fmt.Sprintf(`{"key":"shard_1","value":"%d","timestampMs":%d}`, round, round*1000), string(genericResponse.Docs[0].Source))
 	}
 
 	err = esProc.RevertShardRound(&dataBlock.Header{ShardID: 1, Round: 101, PrevHash: prevHash})
@@ -87,5 +87,5 @@ func TestSaveTransactionsUpdatesShardRoundInValuesIndex(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, genericResponse.Docs, 1)
 	require.True(t, genericResponse.Docs[0].Found)
-	require.Equal(t, `{"key":"shard_1","value":"100","timestampMs":100000}`, string(genericResponse.Docs[0].Source))
+	require.JSONEq(t, `{"key":"shard_1","value":"100","timestampMs":100000}`, string(genericResponse.Docs[0].Source))
 }
