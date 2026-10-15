@@ -155,6 +155,10 @@ func (tr *templatesAndPolicyReader) GetTimestampMsMappings() ([]templates.ExtraM
 			Index:    indexer.SCDeploysIndex,
 			Mappings: indices.DeploysTimestampMs.ToBuffer(),
 		},
+		{
+			Index:    indexer.ValuesIndex,
+			Mappings: indices.TimestampMs.ToBuffer(),
+		},
 	}
 
 	enabled := make(map[string]struct{}, len(tr.availableIndices))

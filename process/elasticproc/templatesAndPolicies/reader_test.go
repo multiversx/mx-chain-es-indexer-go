@@ -41,12 +41,13 @@ func TestTemplatesAndPolicyReader_GetTimestampMsMappings_ReturnsAllWhenAllProvid
 		indexer.ESDTsIndex,
 		indexer.DelegatorsIndex,
 		indexer.SCDeploysIndex,
+		indexer.ValuesIndex,
 	}
 	reader := NewTemplatesAndPolicyReader(false, "", available, nil)
 
 	mappings, err := reader.GetTimestampMsMappings()
 	require.Nil(t, err)
-	require.Len(t, mappings, 17)
+	require.Len(t, mappings, 18)
 
 	indexes := collectMappingIndexes(mappings)
 	require.Contains(t, indexes, indexer.TransactionsIndex)
@@ -91,13 +92,12 @@ func TestTemplatesAndPolicyReader_GetTimestampMsMappings_FiltersDisabledIndices(
 func TestTemplatesAndPolicyReader_GetTimestampMsMappings_NoTimestampIndicesReturnsEmpty(t *testing.T) {
 	t.Parallel()
 
-	// rating, validators, epochinfo, tags, values and executionresults have no timestampMs mapping
+	// rating, validators, epochinfo, tags and executionresults have no timestampMs mapping
 	reader := NewTemplatesAndPolicyReader(false, "", []string{
 		indexer.RatingIndex,
 		indexer.ValidatorsIndex,
 		indexer.EpochInfoIndex,
 		indexer.TagsIndex,
-		indexer.ValuesIndex,
 		indexer.ExecutionResultsIndex,
 	}, nil)
 
