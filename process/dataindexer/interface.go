@@ -17,6 +17,7 @@ type ElasticProcessor interface {
 	RemoveMiniblocks(header coreData.HeaderHandler) error
 	RemoveTransactions(header coreData.HeaderHandler, body *block.Body, uint64 uint64) error
 	RemoveAccountsESDT(shardID uint32, timestampMS uint64) error
+	RevertShardRound(header coreData.HeaderHandler) error
 	SaveMiniblocks(outportBlockWithHeader *outport.OutportBlockWithHeader) error
 	SaveTransactions(outportBlockWithHeader *outport.OutportBlockWithHeader) error
 	SaveValidatorsRating(ratingData *outport.ValidatorsRating) error
