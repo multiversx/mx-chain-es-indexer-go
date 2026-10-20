@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"testing"
 
+	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-es-indexer-go/mock"
 	indexerData "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/factory"
@@ -36,4 +38,54 @@ func TestCheckVersionIsIndexer(t *testing.T) {
 	err = esClient.DoMultiGet(context.Background(), []string{"indexer-version"}, indexerData.ValuesIndex, true, genericResponse)
 	require.Nil(t, err)
 	require.Equal(t, fmt.Sprintf(`{"key":"indexer-version","value":"%s"}`, version), string(genericResponse.Docs[0].Source))
+}
+
+func TestSaveTransactionsUpdatesShardRoundInValuesIndex(t *testing.T) {
+	esClient, err := createESClient(esURL)
+	require.NoError(t, err)
+
+	esProc, err := CreateElasticProcessor(esClient)
+	require.NoError(t, err)
+
+	prevHash := []byte("block-100")
+	for _, round := range []uint64{100, 101} {
+		header := &dataBlock.Header{ShardID: 1, Round: round, TimeStamp: round}
+		if round == 101 {
+			header.PrevHash = prevHash
+		}
+		obh := createOutportBlockWithHeader(
+			&dataBlock.Body{},
+			header,
+			&outport.TransactionPool{},
+			nil,
+			testNumOfShards,
+		)
+		if round == 100 {
+			obh.BlockData.HeaderHash = prevHash
+		} else {
+			obh.BlockData.HeaderHash = []byte("block-101")
+		}
+		err = esProc.SaveHeader(obh)
+		require.NoError(t, err)
+
+		err = esProc.SaveTransactions(obh)
+		require.NoError(t, err)
+
+		genericResponse := &GenericResponse{}
+		err = esClient.DoMultiGet(context.Background(), []string{"shard_1"}, indexerData.ValuesIndex, true, genericResponse)
+		require.NoError(t, err)
+		require.Len(t, genericResponse.Docs, 1)
+		require.True(t, genericResponse.Docs[0].Found)
+		require.JSONEq(t, fmt.Sprintf(`{"key":"shard_1","value":"%d","timestampMs":%d}`, round, round*1000), string(genericResponse.Docs[0].Source))
+	}
+
+	err = esProc.RevertShardRound(&dataBlock.Header{ShardID: 1, Round: 101, PrevHash: prevHash})
+	require.NoError(t, err)
+
+	genericResponse := &GenericResponse{}
+	err = esClient.DoMultiGet(context.Background(), []string{"shard_1"}, indexerData.ValuesIndex, true, genericResponse)
+	require.NoError(t, err)
+	require.Len(t, genericResponse.Docs, 1)
+	require.True(t, genericResponse.Docs[0].Found)
+	require.JSONEq(t, `{"key":"shard_1","value":"100","timestampMs":100000}`, string(genericResponse.Docs[0].Source))
 }

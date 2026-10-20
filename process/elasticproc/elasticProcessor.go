@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 	"sync"
 
 	"github.com/multiversx/mx-chain-core-go/core"
@@ -338,6 +339,32 @@ func (ei *elasticProcessor) RemoveAccountsESDT(shardID uint32, timestampMs uint6
 	return ei.removeFromIndexByTimestampAndShardID(shardID, elasticIndexer.AccountsESDTHistoryIndex, timestampMs)
 }
 
+// RevertShardRound will update the shard round in the values index to the previous block's round
+func (ei *elasticProcessor) RevertShardRound(header coreData.HeaderHandler) error {
+	if !ei.isIndexEnabled(elasticIndexer.ValuesIndex) || !ei.isIndexEnabled(elasticIndexer.BlockIndex) {
+		return nil
+	}
+
+	prevHashHex := hex.EncodeToString(header.GetPrevHash())
+	if prevHashHex == "" {
+		return nil
+	}
+
+	shardID := header.GetShardID()
+	ctxWithValue := context.WithValue(context.Background(), request.ContextKey, request.ExtendTopicWithShardID(request.GetTopic, shardID))
+	responseBlocks := &data.ResponseBlocks{}
+	err := ei.elasticClient.DoMultiGet(ctxWithValue, []string{prevHashHex}, elasticIndexer.BlockIndex, true, responseBlocks)
+	if err != nil {
+		return err
+	}
+
+	if len(responseBlocks.Docs) == 0 || !responseBlocks.Docs[0].Found {
+		return nil
+	}
+
+	return ei.indexShardRound(shardID, responseBlocks.Docs[0].Source.Round, responseBlocks.Docs[0].Source.TimestampMs)
+}
+
 func (ei *elasticProcessor) removeFromIndexByTimestampAndShardID(shardID uint32, index string, timestampMs uint64) error {
 	if !ei.isIndexEnabled(index) {
 		return nil
@@ -445,7 +472,37 @@ func (ei *elasticProcessor) SaveTransactions(obh *outport.OutportBlockWithHeader
 		}
 	}
 
-	return ei.doBulkRequests("", buffers.Buffers(), headerData.ShardID)
+	err = ei.doBulkRequests("", buffers.Buffers(), headerData.ShardID)
+	if err != nil {
+		return err
+	}
+
+	return ei.indexShardRound(obh.Header.GetShardID(), obh.Header.GetRound(), obh.BlockData.TimestampMs)
+}
+
+func (ei *elasticProcessor) indexShardRound(shardID uint32, round uint64, timestampMs uint64) error {
+	if !ei.isIndexEnabled(elasticIndexer.ValuesIndex) {
+		return nil
+	}
+
+	key := fmt.Sprintf("shard_%d", shardID)
+	value := &data.KeyValueObj{
+		Key:         key,
+		Value:       strconv.FormatUint(round, 10),
+		TimestampMs: timestampMs,
+	}
+	serializedValue, err := json.Marshal(value)
+	if err != nil {
+		return err
+	}
+	meta := []byte(fmt.Sprintf(`{ "index" : { "_index":"%s", "_id" : "%s" } }%s`, elasticIndexer.ValuesIndex, key, "\n"))
+	valueBuffer := data.NewBufferSlice(ei.bulkRequestMaxSize)
+	err = valueBuffer.PutData(meta, serializedValue)
+	if err != nil {
+		return err
+	}
+
+	return ei.doBulkRequests("", valueBuffer.Buffers(), shardID)
 }
 
 func (ei *elasticProcessor) prepareAndSaveTransactionsData(
