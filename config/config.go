@@ -40,7 +40,12 @@ type Config struct {
 type ClusterConfig struct {
 	Config struct {
 		DisabledIndices []string `toml:"disabled-indices"`
-		WebSocket       struct {
+		GRPCConfig      struct {
+			Enabled            bool   `toml:"enabled"`
+			URL                string `toml:"url"`
+			DataMarshallerType string `toml:"data-marshaller-type"`
+		} `toml:"grpc"`
+		WebSocket struct {
 			URL                string `toml:"url"`
 			Mode               string `toml:"mode"`
 			DataMarshallerType string `toml:"data-marshaller-type"`

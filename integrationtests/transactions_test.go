@@ -77,3 +77,66 @@ func TestElasticIndexerSaveTransactions(t *testing.T) {
 		string(genericResponse.Docs[0].Source),
 	)
 }
+
+func TestElasticIndexerSaveInvalidTransaction(t *testing.T) {
+	setLogLevelDebug()
+
+	esClient, err := createESClient(esURL)
+	require.Nil(t, err)
+
+	esProc, err := CreateElasticProcessor(esClient)
+	require.Nil(t, err)
+
+	txHash := []byte("invalidTxHash")
+	header := &dataBlock.Header{
+		Round:     50,
+		TimeStamp: 5040,
+	}
+	body := &dataBlock.Body{
+		MiniBlocks: dataBlock.MiniBlockSlice{
+			{
+				Type:            dataBlock.InvalidBlock,
+				SenderShardID:   0,
+				ReceiverShardID: 0,
+				TxHashes:        [][]byte{txHash},
+			},
+		},
+	}
+	tx := &transaction.Transaction{
+		Nonce:    1,
+		SndAddr:  decodeAddress("erd1w7jyzuj6cv4ngw8luhlkakatjpmjh3ql95lmxphd3vssc4vpymks6k5th7"),
+		RcvAddr:  decodeAddress("erd1ahmy0yjhjg87n755yv99nzla22zzwfud55sa69gk3anyxyyucq9q2hgxww"),
+		GasLimit: 70000,
+		GasPrice: 1000000000,
+		Data:     []byte("transfer"),
+		Value:    big.NewInt(1234),
+	}
+
+	txInfo := &outport.TxInfo{
+		Transaction: tx,
+		FeeInfo: &outport.FeeInfo{
+			GasUsed:        62000,
+			Fee:            big.NewInt(62000000000000),
+			InitialPaidFee: big.NewInt(62080000000000),
+		},
+		ExecutionOrder: 0,
+	}
+
+	pool := &outport.TransactionPool{
+		InvalidTxs: map[string]*outport.TxInfo{
+			hex.EncodeToString(txHash): txInfo,
+		},
+	}
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
+	require.Nil(t, err)
+
+	ids := []string{hex.EncodeToString(txHash)}
+	genericResponse := &GenericResponse{}
+	err = esClient.DoMultiGet(context.Background(), ids, indexerData.TransactionsIndex, true, genericResponse)
+	require.Nil(t, err)
+
+	require.JSONEq(t,
+		readExpectedResult("./testdata/transactions/invalid-transfer.json"),
+		string(genericResponse.Docs[0].Source),
+	)
+}
