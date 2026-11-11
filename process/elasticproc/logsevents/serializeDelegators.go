@@ -109,9 +109,12 @@ func prepareSerializedDataForUnDelegate(delegator *data.Delegator, delegatorSeri
 		if ('create' == ctx.op) {
 			ctx._source = params.delegator
 		} else {
-			if (!ctx._source.containsKey('unDelegateInfo')) {
+			if (!ctx._source.containsKey('unDelegateInfo') || ctx._source.unDelegateInfo == null) {
 				ctx._source.unDelegateInfo = [params.unDelegate];
 			} else {
+				if (params.unDelegate.id != null && params.unDelegate.id != '') {
+					ctx._source.unDelegateInfo.removeIf(info -> info.id == params.unDelegate.id);
+				}
 				ctx._source.unDelegateInfo.add(params.unDelegate);
 			}
 

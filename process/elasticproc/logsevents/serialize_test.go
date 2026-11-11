@@ -57,7 +57,30 @@ func TestLogsAndEventsProcessor_SerializeSCDeploys(t *testing.T) {
 	require.Nil(t, err)
 
 	expectedRes := `{ "update" : { "_index":"scdeploys", "_id" : "scAddr" } }
-{"script": {"source": "if (!ctx._source.containsKey('upgrades')) {ctx._source.upgrades = [params.elem];} else {ctx._source.upgrades.add(params.elem);}","lang": "painless","params": {"elem": {"upgradeTxHash":"hash","upgrader":"creator","timestamp":123,"timestampMs":123000,"codeHash":null}}},"upsert": {"deployTxHash":"hash","deployer":"creator","currentOwner":"","initialCodeHash":null,"timestamp":123,"timestampMs":123000,"upgrades":[],"owners":[]}}
+{"script": {"source": "boolean hasTxHash = params.elem.upgradeTxHash != null && params.elem.upgradeTxHash != '';if (hasTxHash && ctx._source.deployTxHash == params.elem.upgradeTxHash) {return;}if (!ctx._source.containsKey('upgrades') || ctx._source.upgrades == null) {ctx._source.upgrades = [params.elem];} else {if (hasTxHash) {ctx._source.upgrades.removeIf(upgrade -> upgrade.upgradeTxHash == params.elem.upgradeTxHash);}ctx._source.upgrades.add(params.elem);}","lang": "painless","params": {"elem": {"upgradeTxHash":"hash","upgrader":"creator","timestamp":123,"timestampMs":123000,"codeHash":null}}},"upsert": {"deployTxHash":"hash","deployer":"creator","currentOwner":"","initialCodeHash":null,"timestamp":123,"timestampMs":123000,"upgrades":[],"owners":[]}}
+`
+	require.Equal(t, expectedRes, buffSlice.Buffers()[0].String())
+}
+
+func TestLogsAndEventsProcessor_SerializeChangeOwnerOperations(t *testing.T) {
+	t.Parallel()
+
+	changeOwnerOperations := map[string]*data.OwnerData{
+		"scAddr": {
+			TxHash:      "hash",
+			Address:     "newOwner",
+			Timestamp:   123,
+			TimestampMs: 123000,
+		},
+	}
+
+	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
+	err := (&logsAndEventsProcessor{}).SerializeChangeOwnerOperations(changeOwnerOperations, buffSlice, "scdeploys")
+	require.Nil(t, err)
+
+	// an owner change is identified by its transaction hash: the previous entry with the same hash is removed before the add
+	expectedRes := `{ "update" : { "_index":"scdeploys", "_id" : "scAddr" } }
+{"scripted_upsert": true, "script": {"source": "if ('create' == ctx.op) {return} else {ctx._source.currentOwner = params.ownerData.address;if (!ctx._source.containsKey('owners') || ctx._source.owners == null) {ctx._source.owners = [params.ownerData];} else {if (params.ownerData.txHash != null && params.ownerData.txHash != '') {ctx._source.owners.removeIf(owner -> owner.txHash == params.ownerData.txHash);}ctx._source.owners.add(params.ownerData);}}","lang": "painless","params": { "ownerData": {"txHash":"hash","address":"newOwner","timestamp":123,"timestampMs":123000} }},"upsert": {}}
 `
 	require.Equal(t, expectedRes, buffSlice.Buffers()[0].String())
 }
@@ -106,7 +129,7 @@ func TestSerializeTokens(t *testing.T) {
 	expectedRes := `{ "update" : { "_index":"tokens", "_id" : "TKN-01234" } }
 {"script": {"source": "if (ctx._source.containsKey('roles')) {HashMap roles = ctx._source.roles;ctx._source = params.token;ctx._source.roles = roles}","lang": "painless","params": {"token": {"name":"TokenName","ticker":"TKN","token":"TKN-01234","issuer":"erd123","currentOwner":"erd123","numDecimals":0,"type":"SemiFungibleESDT","timestamp":50000,"ownersHistory":[{"address":"erd123","timestamp":50000}]}}},"upsert": {"name":"TokenName","ticker":"TKN","token":"TKN-01234","issuer":"erd123","currentOwner":"erd123","numDecimals":0,"type":"SemiFungibleESDT","timestamp":50000,"ownersHistory":[{"address":"erd123","timestamp":50000}]}}
 { "update" : { "_index":"tokens", "_id" : "TKN2-51234" } }
-{"script": {"source": "if (!ctx._source.containsKey('ownersHistory')) {ctx._source.ownersHistory = [params.elem]} else {ctx._source.ownersHistory.add(params.elem)}ctx._source.currentOwner = params.owner","lang": "painless","params": {"elem": {"address":"abde123456","timestamp":60000}, "owner": "abde123456"}},"upsert": {"name":"Token2","ticker":"TKN2","token":"TKN2-51234","issuer":"erd1231213123","currentOwner":"abde123456","numDecimals":0,"type":"NonFungibleESDT","timestamp":60000,"ownersHistory":[{"address":"abde123456","timestamp":60000}]}}
+{"script": {"source": "if (!ctx._source.containsKey('ownersHistory') || ctx._source.ownersHistory == null) {ctx._source.ownersHistory = [params.elem];} else {ctx._source.ownersHistory.removeIf(owner -> owner.address == params.elem.address && owner.timestamp == params.elem.timestamp && owner.timestampMs == params.elem.timestampMs);ctx._source.ownersHistory.add(params.elem);}ctx._source.currentOwner = params.owner;","lang": "painless","params": {"elem": {"address":"abde123456","timestamp":60000}, "owner": "abde123456"}},"upsert": {"name":"Token2","ticker":"TKN2","token":"TKN2-51234","issuer":"erd1231213123","currentOwner":"abde123456","numDecimals":0,"type":"NonFungibleESDT","timestamp":60000,"ownersHistory":[{"address":"abde123456","timestamp":60000}]}}
 `
 	require.Equal(t, expectedRes, buffSlice.Buffers()[0].String())
 }
@@ -135,6 +158,44 @@ func TestLogsAndEventsProcessor_SerializeDelegators(t *testing.T) {
 
 	expectedRes := `{ "update" : { "_index":"delegators", "_id" : "/GeogJjDjtpxnceK9t6+BVBYWuuJHbjmsWK0/1BlH9c=" } }
 {"scripted_upsert": true, "script": {"source": "if ('create' == ctx.op) {ctx._source = params.delegator} else {ctx._source.activeStake = params.delegator.activeStake;ctx._source.activeStakeNum = params.delegator.activeStakeNum;ctx._source.timestamp = params.delegator.timestamp;ctx._source.timestampMs = params.delegator.timestampMs;}","lang": "painless","params": { "delegator": {"address":"addr1","contract":"contract1","timestamp":0,"activeStake":"100000000000000","activeStakeNum":0.1} }},"upsert": {}}
+`
+	require.Equal(t, expectedRes, buffSlice.Buffers()[0].String())
+}
+
+func TestLogsAndEventsProcessor_SerializeDelegatorsUnDelegate(t *testing.T) {
+	t.Parallel()
+
+	delegator1 := &data.Delegator{
+		Address:        "addr1",
+		Contract:       "contract1",
+		ActiveStake:    "100000000000000",
+		ActiveStakeNum: 0.1,
+		Timestamp:      123,
+		TimestampMs:    123000,
+		UnDelegateInfo: &data.UnDelegate{
+			Timestamp:   123,
+			TimestampMs: 123000,
+			ID:          "01",
+			Value:       "50000000000000",
+			ValueNum:    0.05,
+		},
+	}
+
+	delegators := map[string]*data.Delegator{
+		"key1": delegator1,
+	}
+
+	logsProc := &logsAndEventsProcessor{
+		hasher: &mock.HasherMock{},
+	}
+
+	buffSlice := data.NewBufferSlice(data.DefaultMaxBulkSize)
+	err := logsProc.SerializeDelegators(delegators, buffSlice, "delegators")
+	require.Nil(t, err)
+
+	// an unDelegate entry is identified by its id: the previous entry with the same id is removed before the add
+	expectedRes := `{ "update" : { "_index":"delegators", "_id" : "/GeogJjDjtpxnceK9t6+BVBYWuuJHbjmsWK0/1BlH9c=" } }
+{"scripted_upsert": true, "script": {"source": "if ('create' == ctx.op) {ctx._source = params.delegator} else {if (!ctx._source.containsKey('unDelegateInfo') || ctx._source.unDelegateInfo == null) {ctx._source.unDelegateInfo = [params.unDelegate];} else {if (params.unDelegate.id != null && params.unDelegate.id != '') {ctx._source.unDelegateInfo.removeIf(info -> info.id == params.unDelegate.id);}ctx._source.unDelegateInfo.add(params.unDelegate);}ctx._source.activeStake = params.delegator.activeStake;ctx._source.activeStakeNum = params.delegator.activeStakeNum;ctx._source.timestamp = params.delegator.timestamp;ctx._source.timestampMs = params.delegator.timestampMs;}","lang": "painless","params": { "delegator": {"address":"addr1","contract":"contract1","timestamp":123,"timestampMs":123000,"activeStake":"100000000000000","activeStakeNum":0.1}, "unDelegate": {"timestamp":123,"timestampMs":123000,"id":"01","value":"50000000000000","valueNum":0.05} }},"upsert": {}}
 `
 	require.Equal(t, expectedRes, buffSlice.Buffers()[0].String())
 }

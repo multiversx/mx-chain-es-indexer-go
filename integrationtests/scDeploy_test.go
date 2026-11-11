@@ -105,6 +105,18 @@ func TestTransactionWithSCDeploy(t *testing.T) {
 		string(genericResponse.Docs[0].Source),
 	)
 
+	// index the same block again: the deploy transaction should not be added as an upgrade
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
+	require.Nil(t, err)
+
+	err = esClient.DoMultiGet(context.Background(), ids, indexerData.SCDeploysIndex, true, genericResponse)
+	require.Nil(t, err)
+
+	require.JSONEq(t,
+		readExpectedResult("./testdata/scDeploy/deploy.json"),
+		string(genericResponse.Docs[0].Source),
+	)
+
 	// UPGRADE contract
 	header.TimeStamp = 6000
 	pool = &outport.TransactionPool{
@@ -137,6 +149,18 @@ func TestTransactionWithSCDeploy(t *testing.T) {
 		string(genericResponse.Docs[0].Source),
 	)
 
+	// index the same block again: the upgrade should be kept only once
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
+	require.Nil(t, err)
+
+	err = esClient.DoMultiGet(context.Background(), ids, indexerData.SCDeploysIndex, true, genericResponse)
+	require.Nil(t, err)
+
+	require.JSONEq(t,
+		readExpectedResult("./testdata/scDeploy/deploy-after-upgrade.json"),
+		string(genericResponse.Docs[0].Source),
+	)
+
 	// CHANGE owner first
 	header.TimeStamp = 7000
 	pool = &outport.TransactionPool{
@@ -161,6 +185,18 @@ func TestTransactionWithSCDeploy(t *testing.T) {
 	require.Nil(t, err)
 
 	ids = []string{"erd1qqqqqqqqqqqqqpgq4t2tqxpst9a6qttpak8cz8wvz6a0nses5qfqel6rhy"}
+	err = esClient.DoMultiGet(context.Background(), ids, indexerData.SCDeploysIndex, true, genericResponse)
+	require.Nil(t, err)
+
+	require.JSONEq(t,
+		readExpectedResult("./testdata/scDeploy/deploy-after-upgrade-and-change-owner.json"),
+		string(genericResponse.Docs[0].Source),
+	)
+
+	// index the same block again: the owner change should be kept only once
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
+	require.Nil(t, err)
+
 	err = esClient.DoMultiGet(context.Background(), ids, indexerData.SCDeploysIndex, true, genericResponse)
 	require.Nil(t, err)
 
