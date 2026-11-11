@@ -99,6 +99,14 @@ func TestDelegateUnDelegateAndWithdraw(t *testing.T) {
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/delegators/delegator-after-un-delegate-1.json"), string(genericResponse.Docs[0].Source))
 
+	// index the same block again: the unDelegate entry should be kept only once
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, pool, nil, testNumOfShards))
+	require.Nil(t, err)
+
+	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.DelegatorsIndex, true, genericResponse)
+	require.Nil(t, err)
+	require.JSONEq(t, readExpectedResult("./testdata/delegators/delegator-after-un-delegate-1.json"), string(genericResponse.Docs[0].Source))
+
 	// unDelegate 2
 	unDelegatedValue, _ = big.NewInt(0).SetString("25500000000000000000", 10)
 	totalDelegation, _ = big.NewInt(0).SetString("124500000000000000000", 10)

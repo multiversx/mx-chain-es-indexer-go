@@ -100,6 +100,38 @@ func TestEsdtPropertiesProcUpgradeProperties(t *testing.T) {
 	require.Equal(t, expected, tokenRolesAndProperties.GetAllTokensWithProperties())
 }
 
+func TestEsdtPropertiesProcUpgradePropertiesMalformedEventShouldNotPanic(t *testing.T) {
+	t.Parallel()
+
+	esdtPropProc := newEsdtPropertiesProcessor(&mock.PubkeyConverterMock{})
+
+	// the properties should be pairs of name and value: the last property of these events has no value
+	malformedTopics := [][][]byte{
+		{[]byte("MYTOKEN-abcd"), big.NewInt(0).Bytes(), []byte("canMint"), []byte("true"), []byte("canBurn")},
+		{[]byte("MYTOKEN-abcd"), big.NewInt(0).Bytes(), []byte("canMint"), []byte("true"), []byte("canBurn"), []byte("false"), []byte("canPause")},
+	}
+
+	for _, topics := range malformedTopics {
+		event := &transaction.Event{
+			Address:    []byte("addr"),
+			Identifier: []byte(upgradePropertiesEvent),
+			Topics:     topics,
+		}
+
+		tokenRolesAndProperties := tokeninfo.NewTokenRolesAndProperties()
+		require.NotPanics(t, func() {
+			res := esdtPropProc.processEvent(&argsProcessEvent{
+				event:                   event,
+				tokenRolesAndProperties: tokenRolesAndProperties,
+			})
+			require.True(t, res.processed)
+		})
+
+		// nothing is taken from a malformed event
+		require.Empty(t, tokenRolesAndProperties.GetAllTokensWithProperties())
+	}
+}
+
 func TestCheckRolesBytes(t *testing.T) {
 	t.Parallel()
 
