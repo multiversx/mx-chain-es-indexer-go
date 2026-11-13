@@ -18,8 +18,9 @@ import (
 	"github.com/multiversx/mx-chain-es-indexer-go/config"
 	indexerCore "github.com/multiversx/mx-chain-es-indexer-go/core"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
-	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc"
-	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/factory"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/dataprocessor/factory"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/outputs"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/outputs/elastic"
 	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
@@ -49,6 +50,8 @@ type ArgsIndexerFactory struct {
 	EnableEpochsConfig       config.EnableEpochsConfig
 	UseTemplatesFromFiles    bool
 	ConfigPath               string
+	// ExtraOutputs are optional: the prepared data is handed to them after it was saved in Elasticsearch
+	ExtraOutputs []outputs.OutputWithPolicy
 }
 
 // NewIndexer will create a new instance of Indexer
@@ -58,7 +61,7 @@ func NewIndexer(args ArgsIndexerFactory) (dataindexer.Indexer, error) {
 		return nil, err
 	}
 
-	elasticProcessor, err := createElasticProcessor(args)
+	dataProcessor, err := createDataProcessor(args)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +73,7 @@ func NewIndexer(args ArgsIndexerFactory) (dataindexer.Indexer, error) {
 
 	arguments := dataindexer.ArgDataIndexer{
 		HeaderMarshaller: args.HeaderMarshaller,
-		ElasticProcessor: elasticProcessor,
+		DataProcessor:    dataProcessor,
 		BlockContainer:   blockContainer,
 	}
 
@@ -84,13 +87,13 @@ func retryBackOff(attempt int) time.Duration {
 	return d
 }
 
-func createElasticProcessor(args ArgsIndexerFactory) (dataindexer.ElasticProcessor, error) {
+func createDataProcessor(args ArgsIndexerFactory) (dataindexer.DataProcessor, error) {
 	databaseClient, err := createElasticClient(args)
 	if err != nil {
 		return nil, err
 	}
 
-	argsElasticProcFac := factory.ArgElasticProcessorFactory{
+	argsDataProcFac := factory.ArgDataProcessorFactory{
 		Marshalizer:              args.Marshalizer,
 		Hasher:                   args.Hasher,
 		AddressPubkeyConverter:   args.AddressPubkeyConverter,
@@ -106,12 +109,13 @@ func createElasticProcessor(args ArgsIndexerFactory) (dataindexer.ElasticProcess
 		ConfigPath:               args.ConfigPath,
 		IndicesWithPolicy:        args.IndicesWithPolicy,
 		NumWritesInParallel:      args.NumWritesInParallel,
+		ExtraOutputs:             args.ExtraOutputs,
 	}
 
-	return factory.CreateElasticProcessor(argsElasticProcFac)
+	return factory.CreateDataProcessor(argsDataProcFac)
 }
 
-func createElasticClient(args ArgsIndexerFactory) (elasticproc.DatabaseClientHandler, error) {
+func createElasticClient(args ArgsIndexerFactory) (elastic.DatabaseClientHandler, error) {
 	argsEsClient := elasticsearch.Config{
 		Addresses:     []string{args.Url},
 		Username:      args.UserName,

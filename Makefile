@@ -17,7 +17,7 @@ long-tests:
 	go test -v ./integrationtests -tags integrationtests
 
 start-cluster-with-kibana:
-	@echo " > Starting Elasticsearch node and Kibana"
+	@echo " > Starting Elasticsearch node, Kibana and RabbitMQ"
 	docker-compose up -d
 
 stop-cluster:
@@ -32,6 +32,15 @@ integration-tests-open-search:
 	go test -v ./integrationtests -tags integrationtests
 	cd scripts && /bin/bash script.sh delete
 	cd scripts && /bin/bash script.sh stop_open_search
+
+integration-tests-rabbitmq:
+	@echo " > Running integration tests RabbitMQ"
+	cd scripts && /bin/bash script.sh start ${ES_VERSION}
+	cd scripts && /bin/bash script.sh start_rabbitmq ${RABBITMQ_VERSION}
+	go test -v ./integrationtests/rabbitmq -tags integrationtests
+	cd scripts && /bin/bash script.sh delete
+	cd scripts && /bin/bash script.sh stop
+	cd scripts && /bin/bash script.sh stop_rabbitmq
 
 INDEXER_IMAGE_NAME="elasticindexer"
 INDEXER_IMAGE_TAG="latest"

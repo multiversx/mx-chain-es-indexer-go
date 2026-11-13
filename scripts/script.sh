@@ -63,6 +63,37 @@ stop_open_search() {
   docker stop "${IMAGE_OPEN_SEARCH}"
 }
 
+RABBITMQ_CONTAINER_NAME=rabbitmq-container
+DEFAULT_RABBITMQ_VERSION=3.13
+
+start_rabbitmq() {
+  RABBITMQ_VERSION=$1
+  if [ -z "${RABBITMQ_VERSION}" ]; then
+    RABBITMQ_VERSION=${DEFAULT_RABBITMQ_VERSION}
+  fi
+
+  docker pull rabbitmq:${RABBITMQ_VERSION}
+
+  docker rm ${RABBITMQ_CONTAINER_NAME} 2> /dev/null
+  docker run -d --name "${RABBITMQ_CONTAINER_NAME}" -p 5672:5672 rabbitmq:${RABBITMQ_VERSION}
+
+  # Wait the RabbitMQ server to accept connections.
+  # The check has to run with the rabbitmq user: if it runs with the root user before the server is started,
+  # the erlang cookie file is created by root and the server cannot start
+  echo "Waiting RabbitMQ server to start..."
+  for _ in $(seq 1 60); do
+    if docker exec -u rabbitmq "${RABBITMQ_CONTAINER_NAME}" rabbitmq-diagnostics -q check_port_connectivity > /dev/null 2>&1; then
+      break
+    fi
+    sleep 1s
+  done
+  docker ps -a
+}
+
+stop_rabbitmq() {
+  docker stop "${RABBITMQ_CONTAINER_NAME}"
+}
+
 start_prometheus_and_grafana() {
  docker rm ${PROMETHEUS_CONTAINER_NAME} 2> /dev/null
  docker rm ${GRAFANA_CONTAINER_NAME} 2> /dev/null

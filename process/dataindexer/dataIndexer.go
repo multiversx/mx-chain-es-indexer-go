@@ -19,12 +19,12 @@ var log = logger.GetOrCreate("dataindexer")
 // ArgDataIndexer is a structure that is used to store all the components that are needed to create an indexer
 type ArgDataIndexer struct {
 	HeaderMarshaller marshal.Marshalizer
-	ElasticProcessor ElasticProcessor
+	DataProcessor    DataProcessor
 	BlockContainer   BlockContainerHandler
 }
 
 type dataIndexer struct {
-	elasticProcessor ElasticProcessor
+	dataProcessor    DataProcessor
 	headerMarshaller marshal.Marshalizer
 	blockContainer   BlockContainerHandler
 }
@@ -37,7 +37,7 @@ func NewDataIndexer(arguments ArgDataIndexer) (*dataIndexer, error) {
 	}
 
 	dataIndexerObj := &dataIndexer{
-		elasticProcessor: arguments.ElasticProcessor,
+		dataProcessor:    arguments.DataProcessor,
 		headerMarshaller: arguments.HeaderMarshaller,
 		blockContainer:   arguments.BlockContainer,
 	}
@@ -46,8 +46,8 @@ func NewDataIndexer(arguments ArgDataIndexer) (*dataIndexer, error) {
 }
 
 func checkIndexerArgs(arguments ArgDataIndexer) error {
-	if check.IfNil(arguments.ElasticProcessor) {
-		return ErrNilElasticProcessor
+	if check.IfNil(arguments.DataProcessor) {
+		return ErrNilDataProcessor
 	}
 	if check.IfNil(arguments.HeaderMarshaller) {
 		return ErrNilMarshalizer
@@ -78,6 +78,7 @@ func (di *dataIndexer) SaveBlock(outportBlock *outport.OutportBlock) error {
 	headerHash := outportBlock.BlockData.HeaderHash
 	shardID := header.GetShardID()
 	headerNonce := header.GetNonce()
+
 	startTime := time.Now()
 	defer func() {
 		log.Debug("di.SaveBlockData",
@@ -104,19 +105,19 @@ func (di *dataIndexer) saveBlockData(outportBlock *outport.OutportBlock, header 
 
 	headerHash := outportBlock.BlockData.HeaderHash
 	headerNonce := header.GetNonce()
-	err := di.elasticProcessor.SaveHeader(outportBlockWithHeader)
+	err := di.dataProcessor.SaveHeader(outportBlockWithHeader)
 	if err != nil {
 		return fmt.Errorf("%w when saving header block, hash %s, nonce %d",
 			err, hex.EncodeToString(headerHash), headerNonce)
 	}
 
-	err = di.elasticProcessor.SaveMiniblocks(outportBlockWithHeader)
+	err = di.dataProcessor.SaveMiniblocks(outportBlockWithHeader)
 	if err != nil {
 		return fmt.Errorf("%w when saving miniblocks, block hash %s, nonce %d",
 			err, hex.EncodeToString(headerHash), headerNonce)
 	}
 
-	err = di.elasticProcessor.SaveTransactions(outportBlockWithHeader)
+	err = di.dataProcessor.SaveTransactions(outportBlockWithHeader)
 	if err != nil {
 		return fmt.Errorf("%w when saving transactions, block hash %s, nonce %d",
 			err, hex.EncodeToString(headerHash), headerNonce)
@@ -125,9 +126,9 @@ func (di *dataIndexer) saveBlockData(outportBlock *outport.OutportBlock, header 
 	return nil
 }
 
-// Close will stop goroutine that index data in database
+// Close will close the data processor and all its outputs
 func (di *dataIndexer) Close() error {
-	return nil
+	return di.dataProcessor.Close()
 }
 
 // RevertIndexedBlock will remove from database block and miniblocks
@@ -137,47 +138,27 @@ func (di *dataIndexer) RevertIndexedBlock(blockData *outport.BlockData) error {
 		return err
 	}
 
-	err = di.elasticProcessor.RemoveHeader(header)
-	if err != nil {
-		return err
-	}
-
-	err = di.elasticProcessor.RemoveMiniblocks(header)
-	if err != nil {
-		return err
-	}
-
-	err = di.elasticProcessor.RemoveTransactions(header, blockData.Body, blockData.TimestampMs)
-	if err != nil {
-		return err
-	}
-
-	err = di.elasticProcessor.RemoveAccountsESDT(header.GetShardID(), blockData.TimestampMs)
-	if err != nil {
-		return err
-	}
-
-	return di.elasticProcessor.RevertShardRound(header)
+	return di.dataProcessor.RevertBlock(header, blockData)
 }
 
 // SaveRoundsInfo will save data about a slice of rounds in elasticsearch
 func (di *dataIndexer) SaveRoundsInfo(rounds *outport.RoundsInfo) error {
-	return di.elasticProcessor.SaveRoundsInfo(rounds)
+	return di.dataProcessor.SaveRoundsInfo(rounds)
 }
 
 // SaveValidatorsRating will save all validators rating info to elasticsearch
 func (di *dataIndexer) SaveValidatorsRating(ratingData *outport.ValidatorsRating) error {
-	return di.elasticProcessor.SaveValidatorsRating(ratingData)
+	return di.dataProcessor.SaveValidatorsRating(ratingData)
 }
 
 // SaveValidatorsPubKeys will save all validators public keys to elasticsearch
 func (di *dataIndexer) SaveValidatorsPubKeys(validatorsPubKeys *outport.ValidatorsPubKeys) error {
-	return di.elasticProcessor.SaveShardValidatorsPubKeys(validatorsPubKeys)
+	return di.dataProcessor.SaveShardValidatorsPubKeys(validatorsPubKeys)
 }
 
 // SaveAccounts will save the provided accounts
 func (di *dataIndexer) SaveAccounts(accounts *outport.Accounts) error {
-	return di.elasticProcessor.SaveAccounts(accounts)
+	return di.dataProcessor.SaveAccounts(accounts)
 }
 
 // FinalizedBlock returns nil
@@ -199,7 +180,7 @@ func (di *dataIndexer) RegisterHandler(_ func() error, _ string) error {
 func (di *dataIndexer) SetCurrentSettings(cfg outport.OutportConfig) error {
 	log.Debug("dataIndexer.SetCurrentSettings", "importDBMode", cfg.IsInImportDBMode)
 
-	return di.elasticProcessor.SetOutportConfig(cfg)
+	return di.dataProcessor.SetOutportConfig(cfg)
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

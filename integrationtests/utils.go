@@ -16,8 +16,8 @@ import (
 	"github.com/multiversx/mx-chain-es-indexer-go/config"
 	"github.com/multiversx/mx-chain-es-indexer-go/mock"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
-	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc"
-	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/factory"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/dataprocessor/factory"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/outputs/elastic"
 	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
@@ -33,7 +33,7 @@ func setLogLevelDebug() {
 }
 
 // nolint
-func createESClient(url string) (elasticproc.DatabaseClientHandler, error) {
+func createESClient(url string) (elastic.DatabaseClientHandler, error) {
 	return client.NewElasticClient(elasticsearch.Config{
 		Addresses: []string{url},
 		Logger:    &logging.CustomLogger{},
@@ -48,11 +48,22 @@ func decodeAddress(address string) []byte {
 	return decoded
 }
 
-// CreateElasticProcessor -
+// CreateElasticProcessor creates the data processor that has the Elasticsearch output as the only output
 func CreateElasticProcessor(
-	esClient elasticproc.DatabaseClientHandler,
-) (dataindexer.ElasticProcessor, error) {
-	args := factory.ArgElasticProcessorFactory{
+	esClient elastic.DatabaseClientHandler,
+) (dataindexer.DataProcessor, error) {
+	return factory.CreateDataProcessor(createDataProcessorArgs(esClient))
+}
+
+// CreateElasticOutput creates the Elasticsearch output, it should be used by the tests that need only a step of the revert
+func CreateElasticOutput(
+	esClient elastic.DatabaseClientHandler,
+) (elastic.OutputHandler, error) {
+	return factory.CreateElasticOutput(createDataProcessorArgs(esClient))
+}
+
+func createDataProcessorArgs(esClient elastic.DatabaseClientHandler) factory.ArgDataProcessorFactory {
+	return factory.ArgDataProcessorFactory{
 		Marshalizer:              &mock.MarshalizerMock{},
 		Hasher:                   &mock.HasherMock{},
 		AddressPubkeyConverter:   pubKeyConverter,
@@ -67,8 +78,6 @@ func CreateElasticProcessor(
 		},
 		NumWritesInParallel: 1,
 	}
-
-	return factory.CreateElasticProcessor(args)
 }
 
 // nolint

@@ -25,6 +25,10 @@ const (
 	UpdateTopic string = "req_update"
 	// ScrollTopic is the identifier for the scroll requests metrics
 	ScrollTopic string = "req_scroll"
+	// RabbitBlockTopic is the identifier for the metrics of the block messages published to RabbitMQ
+	RabbitBlockTopic string = "rabbit_block"
+	// RabbitRevertTopic is the identifier for the metrics of the revert messages published to RabbitMQ
+	RabbitRevertTopic string = "rabbit_revert"
 )
 
 // MetricsResponse defines the response for status metrics endpoint

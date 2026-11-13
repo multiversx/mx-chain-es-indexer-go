@@ -13,6 +13,7 @@ require (
 	github.com/multiversx/mx-chain-vm-common-go v1.7.1
 	github.com/prometheus/client_model v0.6.2
 	github.com/prometheus/common v0.70.0
+	github.com/rabbitmq/amqp091-go v1.16.0
 	github.com/stretchr/testify v1.11.1
 	github.com/tidwall/gjson v1.19.0
 	github.com/urfave/cli v1.22.17
