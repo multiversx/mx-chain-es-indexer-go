@@ -140,7 +140,10 @@ func TestDelegateUnDelegateAndWithdraw(t *testing.T) {
 
 	// revert unDelegate 2
 	header.TimeStamp = 5060
-	err = esProc.RemoveTransactions(header, body, 5060000)
+	esOutput, err := CreateElasticOutput(esClient)
+	require.Nil(t, err)
+
+	err = esOutput.RemoveTransactions(header, body, 5060000)
 	require.Nil(t, err)
 
 	time.Sleep(time.Second)

@@ -7,7 +7,7 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-es-indexer-go/data"
-	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/transactions"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/processors/transactions"
 )
 
 type responseSCRsBulk struct {

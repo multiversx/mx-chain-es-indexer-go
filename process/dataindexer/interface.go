@@ -10,21 +10,19 @@ import (
 	"github.com/multiversx/mx-chain-core-go/marshal"
 )
 
-// ElasticProcessor defines the interface for the elastic search indexer
-type ElasticProcessor interface {
+// DataProcessor defines the interface for the component that prepares the data received from the node
+// and hands it to the outputs (for example Elasticsearch or RabbitMQ)
+type DataProcessor interface {
 	SaveHeader(outportBlockWithHeader *outport.OutportBlockWithHeader) error
-	RemoveHeader(header coreData.HeaderHandler) error
-	RemoveMiniblocks(header coreData.HeaderHandler) error
-	RemoveTransactions(header coreData.HeaderHandler, body *block.Body, uint64 uint64) error
-	RemoveAccountsESDT(shardID uint32, timestampMS uint64) error
-	RevertShardRound(header coreData.HeaderHandler) error
 	SaveMiniblocks(outportBlockWithHeader *outport.OutportBlockWithHeader) error
 	SaveTransactions(outportBlockWithHeader *outport.OutportBlockWithHeader) error
+	RevertBlock(header coreData.HeaderHandler, blockData *outport.BlockData) error
 	SaveValidatorsRating(ratingData *outport.ValidatorsRating) error
 	SaveRoundsInfo(rounds *outport.RoundsInfo) error
 	SaveShardValidatorsPubKeys(validatorsPubKeys *outport.ValidatorsPubKeys) error
 	SaveAccounts(accounts *outport.Accounts) error
 	SetOutportConfig(cfg outport.OutportConfig) error
+	Close() error
 	IsInterfaceNil() bool
 }
 

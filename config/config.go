@@ -56,7 +56,27 @@ type ClusterConfig struct {
 			BulkRequestMaxSizeInBytes int    `toml:"bulk-request-max-size-in-bytes"`
 			NumWritesInParallel       int    `toml:"num-writes-in-parallel"`
 		} `toml:"elastic-cluster"`
+		RabbitMQ RabbitMQConfig `toml:"rabbitmq"`
 	} `toml:"config"`
+}
+
+// RabbitMQConfig holds the config for the RabbitMQ output: the operations and the events of every block are published
+// to an exchange and the reverted blocks are published to another exchange
+type RabbitMQConfig struct {
+	Enabled bool   `toml:"enabled"`
+	URL     string `toml:"url"`
+	// ContinueOnError should be false if a publish error should fail the block (the node will send the block again).
+	// If it is true, the error is only logged
+	ContinueOnError     bool                   `toml:"continue-on-error"`
+	PublishTimeoutInSec uint32                 `toml:"publish-timeout-in-seconds"`
+	BlocksExchange      RabbitMQExchangeConfig `toml:"blocks-exchange"`
+	RevertsExchange     RabbitMQExchangeConfig `toml:"reverts-exchange"`
+}
+
+// RabbitMQExchangeConfig holds the config of a RabbitMQ exchange
+type RabbitMQExchangeConfig struct {
+	Name string `toml:"name"`
+	Type string `toml:"type"`
 }
 
 // ApiRoutesConfig holds the configuration related to Rest API routes

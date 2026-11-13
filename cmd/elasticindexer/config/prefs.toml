@@ -23,3 +23,27 @@
         password = ""
         bulk-request-max-size-in-bytes = 4194304 # 4MB
         num-writes-in-parallel = 1
+
+    # RabbitMQ is an optional output: after a block is saved in Elasticsearch, its operations and events are published
+    # to the blocks exchange (one message for every block). When a block is reverted, a message is published to the reverts exchange.
+    # The exchanges are declared by the indexer, the queues and the bindings have to be declared by the consumers:
+    # a message published while no queue is bound to the exchange is lost.
+    [config.rabbitmq]
+        enabled = false
+        # The url used to connect to the RabbitMQ server: amqp://user:password@host:port/vhost
+        url = "amqp://guest:guest@localhost:5672"
+        # false: if a message cannot be published the block fails and the node will send it again
+        #        (needs `blocking-ack-on-error = true` in the web-socket config, otherwise the messages will be lost)
+        # true: the error is only logged and the indexing continues, the messages of the block are lost
+        continue-on-error = false
+        # The maximum time to wait for all the messages of a block to be published and confirmed by the server.
+        # It should be lower than the time the node waits for the acknowledgment of a block
+        publish-timeout-in-seconds = 10
+        # One message for every block: the shard id, the hash and the round of the block, its operations and its events
+        [config.rabbitmq.blocks-exchange]
+            name = "indexer_blocks"
+            type = "fanout"
+        # One message for every reverted block: the shard id, the hash and the round of the block and the hashes of its operations
+        [config.rabbitmq.reverts-exchange]
+            name = "indexer_reverts"
+            type = "fanout"

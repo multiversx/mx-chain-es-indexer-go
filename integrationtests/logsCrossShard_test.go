@@ -217,7 +217,10 @@ func TestIndexLogSourceShardAndAfterDestinationAndAgainSource(t *testing.T) {
 		},
 	}
 
-	err = esProc.RemoveTransactions(header, body, header.TimeStamp*1000)
+	esOutput, err := CreateElasticOutput(esClient)
+	require.Nil(t, err)
+
+	err = esOutput.RemoveTransactions(header, body, header.TimeStamp*1000)
 	require.Nil(t, err)
 
 	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.LogsIndex, true, genericResponse)

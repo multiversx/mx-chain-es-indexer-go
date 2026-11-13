@@ -142,6 +142,80 @@ rest-api-interface = ":8080"
 
 After the configuration file is set up, the `elasticindexer` instance can be launched.
 
+### RabbitMQ output
+
+The microservice can publish the operations and the events of every block to RabbitMQ. This output is optional and it is
+disabled by default. A block is published only after it was saved in Elasticsearch.
+
+It is configured in the `[config.rabbitmq]` section of the **_[prefs.toml](./cmd/elasticindexer/config/prefs.toml)_** file:
+
+```toml
+[config.rabbitmq]
+    enabled = true
+    url = "amqp://guest:guest@localhost:5672"
+    # false: if a message cannot be published the block fails and the node will send it again
+    # true: the error is only logged and the indexing continues, the messages of the block are lost
+    continue-on-error = false
+    publish-timeout-in-seconds = 10
+    [config.rabbitmq.blocks-exchange]
+        name = "indexer_blocks"
+        type = "fanout"
+    [config.rabbitmq.reverts-exchange]
+        name = "indexer_reverts"
+        type = "fanout"
+```
+
+The indexer declares the two exchanges (durable). The queues and the bindings have to be declared by the consumers: a message
+published while no queue is bound to an exchange is dropped by RabbitMQ.
+
+For local testing, `make start-cluster-with-kibana` (`docker-compose up -d`) also starts a RabbitMQ server: AMQP on the
+port `5672` (the default `url` from `prefs.toml`) and the management UI at `http://localhost:15672` (user `guest`, password `guest`).
+
+#### Messages
+
+The messages are JSON, persistent, and they are published with publisher confirms.
+
+**Blocks exchange** - one message for every executed block. If the block has no operations and no events, the message is
+published with empty lists. The `id` of the message (the AMQP `message-id` property) is the hash of the block.
+
+```json
+{
+  "shardID": 1,
+  "hash": "<the hash of the block>",
+  "round": 12345,
+  "operations": [
+    { "hash": "<the hash of the transaction>", "type": "normal", "...": "the fields of a document from the operations index" },
+    { "hash": "<the hash of the smart contract result>", "type": "unsigned", "...": "the fields of a document from the operations index" }
+  ],
+  "events": [
+    { "id": "<txHash>-<shardID>-<order>", "...": "the fields of a document from the events index" }
+  ]
+}
+```
+
+**Reverts exchange** - one message for every reverted block. The `id` of the message is `<the hash of the block>:revert`.
+
+```json
+{
+  "shardID": 1,
+  "hash": "<the hash of the block>",
+  "round": 12345,
+  "operations": ["<the hash of a transaction or of a smart contract result>"]
+}
+```
+
+#### What a consumer should know
+
+- A message can be received more than once (for example when the node sends a block again), the `id` of the message can be used to ignore the duplicates.
+- For a header that contains execution results, a message is published for every executed block, with the hash and the round of the executed block.
+  The block of such a header is not executed yet: its message is published later, when its execution result is received.
+- A cross-shard operation is published by the indexers of both shards: with the status `pending` from the source shard and with the final status from the destination shard.
+- The status and the fee of a transaction that are changed in a later block are not published again.
+- When a block is reverted, everything that was received for the hash of the block should be discarded. The list of hashes
+  from the revert message contains only the transactions and the smart contract results from the miniblocks of the block.
+- All the operations and the events of a block are in one message, so the maximum size of a message accepted by the
+  RabbitMQ server (`max_message_size`) has to be big enough for a full block.
+
 ### Contribution
 
 Contributions to the `mx-chain-es-indexer-go` module are welcomed. Whether you're interested in improving its features, 
