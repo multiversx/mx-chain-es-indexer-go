@@ -70,18 +70,21 @@ func NewOutput(args ArgsOutput) (*rabbitOutput, error) {
 
 // SaveTransactions publishes a message with the operations and the events of every executed block from the provided data.
 // A block without operations and without events is published too, with empty lists.
-// The block of a header v3 is not executed yet: it is published when its execution result is received
+// The block of a header v3 is not executed yet: it is not published, it will be published when its
+// execution result is received
 func (ro *rabbitOutput) SaveTransactions(block *data.PreparedBlock) error {
 	// the timeout is for all the messages of the block
 	ctx, cancel := context.WithTimeout(ro.ctx, ro.publishTimeout)
 	defer cancel()
 
 	for _, unit := range block.Units {
-		message := newBlockMessage(unit)
-		if !unit.Executed && message.isEmpty() {
+		if !unit.Executed {
+			// the block of a header v3 is not executed yet, it is published when its execution result
+			// is received
 			continue
 		}
 
+		message := newBlockMessage(unit)
 		body, err := json.Marshal(message)
 		if err != nil {
 			return err

@@ -149,19 +149,17 @@ func TestNewBlockMessage_NoOperationsAndNoEvents(t *testing.T) {
 		HeaderData: &data.HeaderData{ShardID: 1, Round: 50},
 	}
 	message := newBlockMessage(unit)
-	require.True(t, message.isEmpty())
 	messageBytes, err := json.Marshal(message)
 	require.Nil(t, err)
 	require.Equal(t, expectedMessage, string(messageBytes))
 
 	unit.Logs = &data.PreparedLogsResults{}
 	message = newBlockMessage(unit)
-	require.True(t, message.isEmpty())
 	messageBytes, err = json.Marshal(message)
 	require.Nil(t, err)
 	require.Equal(t, expectedMessage, string(messageBytes))
 
-	require.False(t, newBlockMessage(createBlockUnit()).isEmpty())
+	require.NotEmpty(t, newBlockMessage(createBlockUnit()).Operations)
 }
 
 func TestNewBlockMessage_OnlyEvents(t *testing.T) {

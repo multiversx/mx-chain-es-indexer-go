@@ -141,7 +141,7 @@ func (c *client) Publish(ctx context.Context, exchange string, messageID string,
 	c.mutPublish.Lock()
 	defer c.mutPublish.Unlock()
 
-	var lastErr error = ErrNotConnected
+	lastErr := ErrNotConnected
 	for {
 		if c.isClosed() {
 			return ErrClientClosed
@@ -270,6 +270,7 @@ func (c *client) connect() error {
 		return ErrClientClosed
 	}
 	c.state = state
+	c.reconnecting = false
 	close(c.connected)
 	c.mutState.Unlock()
 
@@ -344,12 +345,6 @@ func (c *client) startReconnecting() {
 }
 
 func (c *client) reconnect() {
-	defer func() {
-		c.mutState.Lock()
-		c.reconnecting = false
-		c.mutState.Unlock()
-	}()
-
 	for {
 		select {
 		case <-time.After(c.reconnectInterval):

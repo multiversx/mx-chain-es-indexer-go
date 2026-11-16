@@ -97,10 +97,6 @@ func newBlockMessage(unit *data.PreparedBlockUnit) *BlockMessage {
 	return message
 }
 
-func (bm *BlockMessage) isEmpty() bool {
-	return len(bm.Operations) == 0 && len(bm.Events) == 0
-}
-
 // applyStatusInfo returns a copy of the transaction that has the status changed by the logs of the same block.
 // In the indices this status is set with an update of the document, the prepared transaction does not have it
 func applyStatusInfo(tx *data.Transaction, statusInfo *outport.StatusInfo) *data.Transaction {

@@ -218,6 +218,53 @@ func TestRabbitOutput_SaveTransactionsBlockNotExecutedIsNotPublished(t *testing.
 	}
 	err := output.SaveTransactions(createPreparedBlock(headerUnit))
 	require.Nil(t, err)
+
+	// the block of a header v3 is not published even if it has operations
+	headerUnit.OperationsTxs = []*data.Transaction{{Hash: "txHash"}}
+	err = output.SaveTransactions(createPreparedBlock(headerUnit))
+	require.Nil(t, err)
+}
+
+func TestRabbitOutput_SaveTransactionsOnlyTheExecutedBlocksArePublished(t *testing.T) {
+	t.Parallel()
+
+	published := make([]string, 0)
+	args := createMockArgsOutput()
+	args.Client = &mock.RabbitClientStub{
+		PublishCalled: func(_ context.Context, _ string, messageID string, _ []byte) error {
+			published = append(published, messageID)
+			return nil
+		},
+	}
+	output, _ := NewOutput(args)
+
+	// a header v3 with two execution results: the block of the header is not published
+	headerUnit := &data.PreparedBlockUnit{
+		BlockHash:  []byte("header"),
+		Executed:   false,
+		HeaderData: &data.HeaderData{ShardID: 1, Round: 52},
+		Logs:       &data.PreparedLogsResults{},
+	}
+	firstExecuted := &data.PreparedBlockUnit{
+		BlockHash:  []byte("firstExecuted"),
+		Executed:   true,
+		HeaderData: &data.HeaderData{ShardID: 1, Round: 50},
+		Logs:       &data.PreparedLogsResults{},
+	}
+	secondExecuted := &data.PreparedBlockUnit{
+		BlockHash:  []byte("secondExecuted"),
+		Executed:   true,
+		HeaderData: &data.HeaderData{ShardID: 1, Round: 51},
+		Logs:       &data.PreparedLogsResults{},
+	}
+
+	err := output.SaveTransactions(createPreparedBlock(headerUnit, firstExecuted, secondExecuted))
+	require.Nil(t, err)
+
+	require.Equal(t, []string{
+		hex.EncodeToString(firstExecuted.BlockHash),
+		hex.EncodeToString(secondExecuted.BlockHash),
+	}, published)
 }
 
 func TestRabbitOutput_SaveTransactionsPublishError(t *testing.T) {

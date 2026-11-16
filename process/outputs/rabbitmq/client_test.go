@@ -43,6 +43,9 @@ type fakeChannel struct {
 	confirmErr     error
 	declareErr     error
 	publishHandler func(ctx context.Context, exchange string, msg amqp.Publishing) (amqpConfirmation, error)
+	// declareHandler is called when an exchange is declared, it can be used to close the connection
+	// while it is being established
+	declareHandler func()
 }
 
 func (fch *fakeChannel) Confirm(_ bool) error {
@@ -56,11 +59,16 @@ func (fch *fakeChannel) Confirm(_ bool) error {
 
 func (fch *fakeChannel) ExchangeDeclare(name, kind string) error {
 	fch.mut.Lock()
-	defer fch.mut.Unlock()
-
 	fch.declared = append(fch.declared, ExchangeConfig{Name: name, Type: kind})
+	declareErr := fch.declareErr
+	handler := fch.declareHandler
+	fch.mut.Unlock()
 
-	return fch.declareErr
+	if handler != nil {
+		handler()
+	}
+
+	return declareErr
 }
 
 func (fch *fakeChannel) Publish(ctx context.Context, exchange string, msg amqp.Publishing) (amqpConfirmation, error) {
@@ -412,6 +420,71 @@ func TestClient_ConnectionClosedByTheServerShouldReconnectInTheBackground(t *tes
 	require.Nil(t, err)
 	require.Equal(t, 0, firstConn.channel.numPublished())
 	require.Equal(t, 1, secondConn.channel.numPublished())
+}
+
+func TestClient_ConnectionLostRightAfterItWasEstablishedShouldReconnect(t *testing.T) {
+	t.Parallel()
+
+	firstConn := newFakeConnection()
+
+	// the server closes the second connection while it is being established
+	secondConn := newFakeConnection()
+	secondConn.channel.declareHandler = func() {
+		secondConn.closeWithError(&amqp.Error{Code: 320, Reason: "CONNECTION_FORCED"})
+	}
+
+	thirdConn := newFakeConnection()
+
+	dialer := &fakeDialer{connections: []*fakeConnection{firstConn, secondConn, thirdConn}}
+	c, _ := newClient(createMockArgsClient(), dialer.dial)
+	defer func() {
+		_ = c.Close()
+	}()
+
+	firstConn.closeWithError(&amqp.Error{Code: 320, Reason: "CONNECTION_FORCED"})
+
+	// the client connects again, the second connection dies right after it was established and the
+	// client has to connect once more
+	require.Eventually(t, func() bool {
+		return dialer.dials() >= 3
+	}, 5*time.Second, 5*time.Millisecond)
+
+	err := c.Publish(contextWithTimeout(t, 5*time.Second), "blocks", "id", []byte("body"))
+	require.Nil(t, err)
+	require.Equal(t, 1, thirdConn.channel.numPublished())
+}
+
+func TestClient_TheReconnectFlagMustBeClearedWhenTheConnectionIsEstablished(t *testing.T) {
+	t.Parallel()
+
+	dialer := &fakeDialer{connections: []*fakeConnection{newFakeConnection(), newFakeConnection()}}
+	c, _ := newClient(createMockArgsClient(), dialer.dial)
+	defer func() {
+		_ = c.Close()
+	}()
+
+	// a reconnect is in progress
+	c.mutState.Lock()
+	c.reconnecting = true
+	currentState := c.state
+	c.mutState.Unlock()
+
+	// the connection is lost while the reconnect is in progress: no new reconnect is started
+	// because the flag is still set
+	c.handleConnectionLost(currentState)
+
+	// the reconnect succeeds
+	err := c.connect()
+	require.Nil(t, err)
+
+	// the flag has to be cleared as soon as the connection is established. If it is not, a connection
+	// that is lost right after it was established would not start a new reconnect and the client
+	// would stay with no connection and with no goroutine that reconnects: every publish would
+	// wait for the timeout
+	c.mutState.Lock()
+	reconnecting := c.reconnecting
+	c.mutState.Unlock()
+	require.False(t, reconnecting)
 }
 
 func TestClient_PublishWithoutConnection(t *testing.T) {
