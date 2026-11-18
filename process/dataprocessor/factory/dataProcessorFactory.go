@@ -40,7 +40,7 @@ type ArgDataProcessorFactory struct {
 	EnableEpochsConfig       config.EnableEpochsConfig
 	UseTemplatesFromFiles    bool
 	ConfigPath               string
-	// ExtraOutputs are the outputs that receive the prepared data after it was saved in Elasticsearch
+	// ExtraOutputs are the outputs that receive the prepared data before it is saved in Elasticsearch
 	ExtraOutputs []outputs.OutputWithPolicy
 }
 
@@ -72,7 +72,7 @@ type processors struct {
 }
 
 // CreateDataProcessor will create a new instance of DataProcessor.
-// The Elasticsearch output is always the first output, followed by the provided extra outputs
+// The provided extra outputs are called first, the Elasticsearch output is always the last one
 func CreateDataProcessor(arguments ArgDataProcessorFactory) (dataindexer.DataProcessor, error) {
 	procs, err := createProcessors(arguments)
 	if err != nil {
@@ -85,12 +85,12 @@ func CreateDataProcessor(arguments ArgDataProcessorFactory) (dataindexer.DataPro
 	}
 
 	allOutputs := make([]outputs.OutputWithPolicy, 0, len(arguments.ExtraOutputs)+1)
+	allOutputs = append(allOutputs, arguments.ExtraOutputs...)
 	allOutputs = append(allOutputs, outputs.OutputWithPolicy{
 		Name:            elasticOutputName,
 		Output:          elasticOutput,
 		ContinueOnError: false,
 	})
-	allOutputs = append(allOutputs, arguments.ExtraOutputs...)
 
 	return dataprocessor.NewDataProcessor(dataprocessor.ArgDataProcessor{
 		TransactionsProc:  procs.transactionsProc,

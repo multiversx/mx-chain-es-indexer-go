@@ -50,7 +50,7 @@ type ArgsIndexerFactory struct {
 	EnableEpochsConfig       config.EnableEpochsConfig
 	UseTemplatesFromFiles    bool
 	ConfigPath               string
-	// ExtraOutputs are optional: the prepared data is handed to them after it was saved in Elasticsearch
+	// ExtraOutputs are optional: the prepared data is handed to them before it is saved in Elasticsearch
 	ExtraOutputs []outputs.OutputWithPolicy
 }
 

@@ -315,6 +315,52 @@ func TestDataProcessor_SaveTransactionsBlockWithoutHashIsAlwaysSaved(t *testing.
 	require.Equal(t, 3, calls)
 }
 
+func TestDataProcessor_PrepareRevertedBlockOfHeaderV3PreparesTheExecutionUnits(t *testing.T) {
+	t.Parallel()
+
+	args := createMockArgDataProcessor()
+	hashesByRound := map[uint64][]string{28: {"tx28"}, 29: {"tx29"}}
+	args.TransactionsProc = &transactionsHandlerStub{
+		GetHexEncodedHashesForRemoveCalled: func(headerData *data.HeaderData, _ *dataBlock.Body) ([]string, []string) {
+			return hashesByRound[headerData.Round], []string{"scr"}
+		},
+	}
+	dp, _ := NewDataProcessor(args)
+
+	header := &dataBlock.HeaderV3{
+		ShardID: 2,
+		Round:   30,
+		ExecutionResults: []*dataBlock.ExecutionResult{
+			{BaseExecutionResult: &dataBlock.BaseExecutionResult{HeaderHash: []byte("exec1"), HeaderRound: 28, HeaderEpoch: 6}},
+			// the data of this execution result was not received, so its block was not published
+			{BaseExecutionResult: &dataBlock.BaseExecutionResult{HeaderHash: []byte("missing"), HeaderRound: 29, HeaderEpoch: 6}},
+			{BaseExecutionResult: &dataBlock.BaseExecutionResult{HeaderHash: []byte("exec2"), HeaderRound: 29, HeaderEpoch: 7}},
+		},
+	}
+	blockData := &outport.BlockData{
+		HeaderHash:  []byte("header"),
+		Body:        &dataBlock.Body{},
+		TimestampMs: 30000,
+		Results: map[string]*outport.ExecutionResultData{
+			hex.EncodeToString([]byte("exec1")): {Body: &dataBlock.Body{}, TimestampMs: 28000},
+			hex.EncodeToString([]byte("exec2")): {Body: &dataBlock.Body{}, TimestampMs: 29000},
+		},
+	}
+
+	revertedBlock := dp.PrepareRevertedBlock(header, blockData)
+
+	require.Len(t, revertedBlock.ExecutionUnits, 2)
+	require.Equal(t, []byte("exec1"), revertedBlock.ExecutionUnits[0].BlockHash)
+	require.Equal(t, uint32(2), revertedBlock.ExecutionUnits[0].HeaderData.ShardID)
+	require.Equal(t, uint64(28), revertedBlock.ExecutionUnits[0].HeaderData.Round)
+	require.Equal(t, []string{"tx28"}, revertedBlock.ExecutionUnits[0].TxHashes)
+	require.Equal(t, []string{"scr"}, revertedBlock.ExecutionUnits[0].ScrHashes)
+
+	require.Equal(t, []byte("exec2"), revertedBlock.ExecutionUnits[1].BlockHash)
+	require.Equal(t, uint64(29), revertedBlock.ExecutionUnits[1].HeaderData.Round)
+	require.Equal(t, []string{"tx29"}, revertedBlock.ExecutionUnits[1].TxHashes)
+}
+
 func TestDataProcessor_RevertBlock(t *testing.T) {
 	t.Parallel()
 

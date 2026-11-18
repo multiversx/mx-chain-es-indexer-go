@@ -33,7 +33,7 @@
         # The url used to connect to the RabbitMQ server: amqp://user:password@host:port/vhost
         url = "amqp://guest:guest@localhost:5672"
         # false: if a message cannot be published the block fails and the node will send it again
-        #        (needs `blocking-ack-on-error = true` in the web-socket config, otherwise the messages will be lost)
+        #        (needs `blocking-ack-on-error = true` in the web-socket config, otherwise the block is lost, also in Elasticsearch)
         # true: the error is only logged and the indexing continues, the messages of the block are lost
         continue-on-error = false
         # The maximum time to wait for all the messages of a block to be published and confirmed by the server.

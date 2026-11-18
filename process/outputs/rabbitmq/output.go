@@ -99,12 +99,28 @@ func (ro *rabbitOutput) SaveTransactions(block *data.PreparedBlock) error {
 	return nil
 }
 
-// RevertBlock publishes a message with the hashes of the operations of the reverted block
+// RevertBlock publishes a message with the hashes of the operations of the reverted block, and a message for every
+// executed block from its execution results: these blocks were published with their own hashes
 func (ro *rabbitOutput) RevertBlock(revertedBlock *data.RevertedBlock) error {
 	ctx, cancel := context.WithTimeout(ro.ctx, ro.publishTimeout)
 	defer cancel()
 
-	message := newRevertMessage(revertedBlock)
+	err := ro.publishRevert(ctx, newRevertMessage(revertedBlock))
+	if err != nil {
+		return err
+	}
+
+	for _, unit := range revertedBlock.ExecutionUnits {
+		err = ro.publishRevert(ctx, newRevertUnitMessage(unit))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (ro *rabbitOutput) publishRevert(ctx context.Context, message *RevertMessage) error {
 	body, err := json.Marshal(message)
 	if err != nil {
 		return err

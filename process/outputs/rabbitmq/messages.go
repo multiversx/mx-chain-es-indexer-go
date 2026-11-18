@@ -149,16 +149,32 @@ func sortedSCRs(scrs []*data.ScResult) []*data.ScResult {
 }
 
 func newRevertMessage(revertedBlock *data.RevertedBlock) *RevertMessage {
-	operations := make([]string, 0, len(revertedBlock.TxHashes)+len(revertedBlock.ScrHashes))
-	operations = append(operations, revertedBlock.TxHashes...)
-	operations = append(operations, revertedBlock.ScrHashes...)
-
 	return &RevertMessage{
 		BlockInfo: BlockInfo{
 			ShardID: revertedBlock.Header.GetShardID(),
 			Hash:    hex.EncodeToString(revertedBlock.BlockData.HeaderHash),
 			Round:   revertedBlock.Header.GetRound(),
 		},
-		Operations: operations,
+		Operations: revertOperations(revertedBlock.TxHashes, revertedBlock.ScrHashes),
 	}
+}
+
+// newRevertUnitMessage creates the revert message for an executed block from the execution results of a reverted header.
+// It has the same hash as the message that was published for the executed block
+func newRevertUnitMessage(unit *data.RevertedBlockUnit) *RevertMessage {
+	return &RevertMessage{
+		BlockInfo: BlockInfo{
+			ShardID: unit.HeaderData.ShardID,
+			Hash:    hex.EncodeToString(unit.BlockHash),
+			Round:   unit.HeaderData.Round,
+		},
+		Operations: revertOperations(unit.TxHashes, unit.ScrHashes),
+	}
+}
+
+func revertOperations(txHashes []string, scrHashes []string) []string {
+	operations := make([]string, 0, len(txHashes)+len(scrHashes))
+	operations = append(operations, txHashes...)
+
+	return append(operations, scrHashes...)
 }

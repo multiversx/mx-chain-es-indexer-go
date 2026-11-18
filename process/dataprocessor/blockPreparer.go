@@ -108,9 +108,41 @@ func (dp *dataProcessor) PrepareRevertedBlock(header coreData.HeaderHandler, blo
 	txHashes, scrHashes := dp.transactionsProc.GetHexEncodedHashesForRemove(headerData, blockData.Body)
 
 	return &data.RevertedBlock{
-		Header:    header,
-		BlockData: blockData,
-		TxHashes:  txHashes,
-		ScrHashes: scrHashes,
+		Header:         header,
+		BlockData:      blockData,
+		TxHashes:       txHashes,
+		ScrHashes:      scrHashes,
+		ExecutionUnits: dp.prepareRevertedExecutionUnits(header, blockData),
 	}
+}
+
+// prepareRevertedExecutionUnits prepares the hashes of the executed blocks from the execution results of the header.
+// Only the execution results whose data was received are prepared: these are the blocks that were published
+func (dp *dataProcessor) prepareRevertedExecutionUnits(header coreData.HeaderHandler, blockData *outport.BlockData) []*data.RevertedBlockUnit {
+	executionResults := header.GetExecutionResultsHandlers()
+	units := make([]*data.RevertedBlockUnit, 0, len(executionResults))
+	for _, executionResult := range executionResults {
+		executionResultData, found := blockData.Results[hex.EncodeToString(executionResult.GetHeaderHash())]
+		if !found {
+			continue
+		}
+
+		headerData := &data.HeaderData{
+			Timestamp:        converters.MillisecondsToSeconds(executionResultData.TimestampMs),
+			TimestampMs:      executionResultData.TimestampMs,
+			Round:            executionResult.GetHeaderRound(),
+			ShardID:          header.GetShardID(),
+			Epoch:            executionResult.GetHeaderEpoch(),
+			MiniBlockHeaders: converters.GetMiniBlocksHeaderHandlersFromExecResult(executionResult),
+		}
+		txHashes, scrHashes := dp.transactionsProc.GetHexEncodedHashesForRemove(headerData, executionResultData.Body)
+		units = append(units, &data.RevertedBlockUnit{
+			BlockHash:  executionResult.GetHeaderHash(),
+			HeaderData: headerData,
+			TxHashes:   txHashes,
+			ScrHashes:  scrHashes,
+		})
+	}
+
+	return units
 }

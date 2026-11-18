@@ -35,4 +35,15 @@ type RevertedBlock struct {
 	// TxHashes and ScrHashes are the hex encoded hashes of the transactions and smart contract results of the block
 	TxHashes  []string
 	ScrHashes []string
+	// ExecutionUnits holds the executed blocks from the execution results of the header (header v3). Their data was
+	// published with their own hashes, so they have to be reverted with the same hashes
+	ExecutionUnits []*RevertedBlockUnit
+}
+
+// RevertedBlockUnit holds the hashes of the operations of an executed block from the execution results of a reverted header
+type RevertedBlockUnit struct {
+	BlockHash  []byte
+	HeaderData *HeaderData
+	TxHashes   []string
+	ScrHashes  []string
 }

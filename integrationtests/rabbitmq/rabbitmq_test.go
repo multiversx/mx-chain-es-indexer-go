@@ -562,6 +562,79 @@ func TestHeaderV3OneMessageForEveryExecutedBlock(t *testing.T) {
 	requireNoMessage(t, blocks)
 }
 
+func TestHeaderV3RevertPublishesTheExecutedBlocks(t *testing.T) {
+	suffix := randomSuffix(t)
+	blocksExchange := "it_blocks_" + suffix
+	revertsExchange := "it_reverts_" + suffix
+	deleteExchangesAtTheEnd(t, blocksExchange, revertsExchange)
+
+	esClient := createESClient(t)
+	dataProcessor := createDataProcessor(t, esClient, rabbitURL, blocksExchange, revertsExchange, false)
+	blocks := consume(t, blocksExchange)
+	reverts := consume(t, revertsExchange)
+
+	executed := createTestBlock(t, "executed-"+suffix, 200)
+	headerHash := []byte("header-" + suffix)
+	header := &dataBlock.HeaderV3{
+		ShardID:     2,
+		Round:       203,
+		TimestampMs: 1218000,
+		ExecutionResults: []*dataBlock.ExecutionResult{
+			{
+				BaseExecutionResult: &dataBlock.BaseExecutionResult{HeaderHash: executed.blockHash, HeaderNonce: 1, HeaderRound: 200},
+				// the miniblock headers of the execution result are needed to find its transactions when they are reverted
+				MiniBlockHeaders: executed.header.MiniBlockHeaders,
+				AccumulatedFees:  big.NewInt(0),
+				DeveloperFees:    big.NewInt(0),
+			},
+		},
+	}
+	blockData := &outport.BlockData{
+		HeaderHash:  headerHash,
+		Body:        &dataBlock.Body{},
+		TimestampMs: 1218000,
+		Results: map[string]*outport.ExecutionResultData{
+			hex.EncodeToString(executed.blockHash): {
+				HeaderNonce:     1,
+				TimestampMs:     1200000,
+				Body:            executed.body,
+				TransactionPool: executed.pool,
+			},
+		},
+	}
+	obh := &outport.OutportBlockWithHeader{
+		Header: header,
+		OutportBlock: &outport.OutportBlock{
+			BlockData:       blockData,
+			TransactionPool: &outport.TransactionPool{},
+			NumberOfShards:  testNumOfShards,
+			ShardID:         2,
+		},
+	}
+
+	require.Nil(t, dataProcessor.SaveTransactions(obh))
+	delivery := receive(t, blocks)
+	require.Equal(t, hex.EncodeToString(executed.blockHash), delivery.MessageId)
+
+	// ################ REVERT OF THE HEADER ##########################
+	require.Nil(t, dataProcessor.RevertBlock(header, blockData))
+
+	// the header itself is not executed, its revert has its own hash
+	delivery = receive(t, reverts)
+	require.Equal(t, hex.EncodeToString(headerHash)+":revert", delivery.MessageId)
+
+	// the executed block is reverted with the hash it was published with, and with its own operations
+	delivery = receive(t, reverts)
+	require.Equal(t, hex.EncodeToString(executed.blockHash)+":revert", delivery.MessageId)
+
+	revert := &revertMessage{}
+	require.Nil(t, json.Unmarshal(delivery.Body, revert))
+	require.Equal(t, uint32(2), revert.ShardID)
+	require.Equal(t, hex.EncodeToString(executed.blockHash), revert.Hash)
+	require.Equal(t, uint64(200), revert.Round)
+	require.Equal(t, []string{hex.EncodeToString(executed.txHash)}, revert.Operations)
+}
+
 func TestServerCannotBeReached(t *testing.T) {
 	suffix := randomSuffix(t)
 	// nothing listens on this port

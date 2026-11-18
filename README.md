@@ -145,7 +145,8 @@ After the configuration file is set up, the `elasticindexer` instance can be lau
 ### RabbitMQ output
 
 The microservice can publish the operations and the events of every block to RabbitMQ. This output is optional and it is
-disabled by default. A block is published only after it was saved in Elasticsearch.
+disabled by default. A block is published before it is saved in Elasticsearch: with `continue-on-error = false`, a block that
+cannot be published is not saved in Elasticsearch either.
 
 It is configured in the `[config.rabbitmq]` section of the **_[prefs.toml](./cmd/elasticindexer/config/prefs.toml)_** file:
 

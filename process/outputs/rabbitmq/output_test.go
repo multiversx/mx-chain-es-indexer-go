@@ -319,6 +319,43 @@ func TestRabbitOutput_RevertBlock(t *testing.T) {
 	require.JSONEq(t, `{"shardID":2,"hash":"`+blockHash+`","round":77,"operations":["tx1","scr1"]}`, string(published[0].body))
 }
 
+func TestRabbitOutput_RevertBlockPublishesTheExecutionUnits(t *testing.T) {
+	t.Parallel()
+
+	published := make([]publishedMessage, 0)
+	args := createMockArgsOutput()
+	args.Client = &mock.RabbitClientStub{
+		PublishCalled: func(_ context.Context, exchange string, messageID string, body []byte) error {
+			published = append(published, publishedMessage{exchange: exchange, messageID: messageID, body: body})
+			return nil
+		},
+	}
+	output, _ := NewOutput(args)
+
+	err := output.RevertBlock(&data.RevertedBlock{
+		Header:    &dataBlock.Header{ShardID: 2, Round: 77},
+		BlockData: &outport.BlockData{HeaderHash: []byte("headerHash")},
+		ExecutionUnits: []*data.RevertedBlockUnit{
+			{BlockHash: []byte("exec1"), HeaderData: &data.HeaderData{ShardID: 2, Round: 70}, TxHashes: []string{"tx1"}, ScrHashes: []string{"scr1"}},
+			{BlockHash: []byte("exec2"), HeaderData: &data.HeaderData{ShardID: 2, Round: 71}, TxHashes: []string{"tx2"}},
+		},
+	})
+	require.Nil(t, err)
+
+	// the header, followed by the executed blocks with the same hashes as the messages published for them
+	require.Len(t, published, 3)
+	require.Equal(t, hex.EncodeToString([]byte("headerHash"))+":revert", published[0].messageID)
+
+	exec1Hash := hex.EncodeToString([]byte("exec1"))
+	require.Equal(t, "reverts", published[1].exchange)
+	require.Equal(t, exec1Hash+":revert", published[1].messageID)
+	require.JSONEq(t, `{"shardID":2,"hash":"`+exec1Hash+`","round":70,"operations":["tx1","scr1"]}`, string(published[1].body))
+
+	exec2Hash := hex.EncodeToString([]byte("exec2"))
+	require.Equal(t, exec2Hash+":revert", published[2].messageID)
+	require.JSONEq(t, `{"shardID":2,"hash":"`+exec2Hash+`","round":71,"operations":["tx2"]}`, string(published[2].body))
+}
+
 func TestRabbitOutput_RevertBlockPublishError(t *testing.T) {
 	t.Parallel()
 

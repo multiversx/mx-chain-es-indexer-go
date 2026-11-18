@@ -1,8 +1,10 @@
 package factory
 
 import (
+	"bytes"
 	"testing"
 
+	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-es-indexer-go/mock"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
 	"github.com/multiversx/mx-chain-es-indexer-go/process/outputs"
@@ -63,6 +65,41 @@ func TestCreateDataProcessor_WithExtraOutputs(t *testing.T) {
 	err = dp.Close()
 	require.Nil(t, err)
 	require.True(t, closeCalled)
+}
+
+func TestCreateDataProcessor_ExtraOutputsAreCalledBeforeElasticsearch(t *testing.T) {
+	t.Parallel()
+
+	extraOutputCalled := false
+	elasticWrittenAfterExtraOutput := false
+	args := createMockArgDataProcessorFactory()
+	// the rounds info is written by one bulk request, the Elasticsearch output has no other dependencies for it
+	args.EnabledIndexes = []string{dataindexer.RoundsIndex}
+	args.DBClient = &mock.DatabaseWriterStub{
+		DoBulkRequestCalled: func(_ *bytes.Buffer, _ string) error {
+			elasticWrittenAfterExtraOutput = extraOutputCalled
+			return nil
+		},
+	}
+	args.ExtraOutputs = []outputs.OutputWithPolicy{
+		{
+			Name: "extra",
+			Output: &mock.OutputStub{
+				SaveRoundsInfoCalled: func(_ *outport.RoundsInfo) error {
+					extraOutputCalled = true
+					return nil
+				},
+			},
+		},
+	}
+
+	dp, err := CreateDataProcessor(args)
+	require.Nil(t, err)
+
+	err = dp.SaveRoundsInfo(&outport.RoundsInfo{})
+	require.Nil(t, err)
+	require.True(t, extraOutputCalled)
+	require.True(t, elasticWrittenAfterExtraOutput)
 }
 
 func TestCreateElasticOutput(t *testing.T) {

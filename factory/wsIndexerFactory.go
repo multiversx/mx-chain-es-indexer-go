@@ -148,7 +148,7 @@ func createDataIndexer(
 	})
 }
 
-// createExtraOutputs creates the outputs that receive the prepared data after it was saved in Elasticsearch
+// createExtraOutputs creates the outputs that receive the prepared data before it is saved in Elasticsearch
 func createExtraOutputs(clusterCfg config.ClusterConfig, statusMetrics core.StatusMetricsHandler) ([]outputs.OutputWithPolicy, error) {
 	rabbitCfg := clusterCfg.Config.RabbitMQ
 	if !rabbitCfg.Enabled {
@@ -157,7 +157,7 @@ func createExtraOutputs(clusterCfg config.ClusterConfig, statusMetrics core.Stat
 
 	if !rabbitCfg.ContinueOnError && !clusterCfg.Config.WebSocket.BlockingAckOnError {
 		log.Warn("RabbitMQ: a block cannot be sent again by the node because blocking-ack-on-error is false, " +
-			"if a message cannot be published it will be lost")
+			"if a message cannot be published the block is lost, also in Elasticsearch")
 	}
 
 	publishTimeout := time.Duration(rabbitCfg.PublishTimeoutInSec) * time.Second
