@@ -102,6 +102,13 @@ func (epp *esdtPropertiesProc) extractDataNFTCreateRoleTransfer(args *argsProces
 func (epp *esdtPropertiesProc) extractTokenProperties(args *argsProcessEvent) argOutputProcessEvent {
 	topics := args.event.GetTopics()
 	properties := topics[esdtPropertiesStartIndex:]
+	// the properties are pairs of name and value: an event with a missing value is malformed and is ignored
+	if len(properties)%propertyPairStep != 0 {
+		return argOutputProcessEvent{
+			processed: true,
+		}
+	}
+
 	propertiesMap := make(map[string]bool)
 	for i := 0; i < len(properties); i += propertyPairStep {
 		property := string(properties[i])

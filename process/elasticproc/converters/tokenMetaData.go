@@ -37,7 +37,7 @@ func PrepareTokenMetaData(tokenMetadata *alteredAccount.TokenMetaData) *data.Tok
 		Name:               TruncateFieldIfExceedsMaxLength(tokenMetadata.Name),
 		Creator:            tokenMetadata.Creator,
 		Royalties:          tokenMetadata.Royalties,
-		Hash:               tokenMetadata.Hash,
+		Hash:               truncateHash(tokenMetadata.Hash),
 		URIs:               uris,
 		Attributes:         []byte(attributes),
 		Tags:               TruncateSliceElementsIfExceedsMaxLength(tags),
@@ -45,6 +45,15 @@ func PrepareTokenMetaData(tokenMetadata *alteredAccount.TokenMetaData) *data.Tok
 		NonEmptyURIs:       nonEmptyURIs(tokenMetadata.URIs),
 		WhiteListedStorage: whiteListedStorage(tokenMetadata.URIs),
 	}
+}
+
+// the hash is indexed base64 encoded, in a keyword field, the same as the attributes and the URIs
+func truncateHash(hash []byte) []byte {
+	if len(hash) > data.MaxKeywordFieldLengthBeforeBase64Encoding {
+		return hash[:data.MaxKeywordFieldLengthBeforeBase64Encoding]
+	}
+
+	return hash
 }
 
 func nonEmptyURIs(uris [][]byte) bool {

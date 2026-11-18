@@ -1,6 +1,9 @@
 package converters
 
 import (
+	"encoding/base64"
+	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/data/alteredAccount"
@@ -37,6 +40,55 @@ func TestPrepareTokenMetaData(t *testing.T) {
 	})
 
 	require.Equal(t, expectedTokenMetaData, result)
+}
+
+func TestPrepareTokenMetaData_AllKeywordValuesShouldFitInTheIndex(t *testing.T) {
+	t.Parallel()
+
+	// a keyword value bigger than 32766 bytes is rejected by Elasticsearch and the whole bulk request fails
+	const maxKeywordLength = 32766
+
+	invalidUTF8 := strings.Repeat("\xff", 11000)
+	bigHash := []byte(strings.Repeat("h", 25000))
+	result := PrepareTokenMetaData(&alteredAccount.TokenMetaData{
+		Name:       invalidUTF8,
+		Creator:    "creator",
+		Hash:       bigHash,
+		URIs:       [][]byte{[]byte(strings.Repeat("u", 25000))},
+		Attributes: []byte("tags:" + invalidUTF8 + "," + invalidUTF8 + ";metadata:" + invalidUTF8),
+	})
+
+	require.Equal(t, data.MaxKeywordFieldLengthBeforeBase64Encoding, len(result.Hash))
+	require.Equal(t, bigHash[:data.MaxKeywordFieldLengthBeforeBase64Encoding], result.Hash)
+	require.Equal(t, data.MaxFieldLength, len(base64.StdEncoding.EncodeToString(result.Hash)))
+	require.Len(t, result.Tags, 2)
+
+	// check the values exactly as they are sent to the database
+	serialized, err := json.Marshal(result)
+	require.Nil(t, err)
+
+	decoded := make(map[string]interface{})
+	err = json.Unmarshal(serialized, &decoded)
+	require.Nil(t, err)
+
+	checkedValues := 0
+	var checkValue func(field string, value interface{})
+	checkValue = func(field string, value interface{}) {
+		switch v := value.(type) {
+		case string:
+			require.LessOrEqual(t, len(v), maxKeywordLength, "field %s", field)
+			checkedValues++
+		case []interface{}:
+			for _, element := range v {
+				checkValue(field, element)
+			}
+		}
+	}
+	for field, value := range decoded {
+		checkValue(field, value)
+	}
+	// name, creator, hash, 1 uri, 2 tags, attributes and metadata
+	require.Equal(t, 8, checkedValues)
 }
 
 func TestPrepareNFTUpdateData(t *testing.T) {

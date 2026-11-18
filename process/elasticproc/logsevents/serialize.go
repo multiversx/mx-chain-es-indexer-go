@@ -102,9 +102,12 @@ func (*logsAndEventsProcessor) SerializeChangeOwnerOperations(changeOwnerOperati
 			return
 		} else {
 			ctx._source.currentOwner = params.ownerData.address;
-			if (!ctx._source.containsKey('owners')) {
+			if (!ctx._source.containsKey('owners') || ctx._source.owners == null) {
 				ctx._source.owners = [params.ownerData];
 			} else {
+				if (params.ownerData.txHash != null && params.ownerData.txHash != '') {
+					ctx._source.owners.removeIf(owner -> owner.txHash == params.ownerData.txHash);
+				}
 				ctx._source.owners.add(params.ownerData);
 			}
 		}
@@ -165,10 +168,19 @@ func serializeDeploy(deployInfo *data.ScDeployInfo) ([]byte, error) {
 		return nil, errPrepareU
 	}
 
+	// the script has to give the same result if the same block is indexed more than once:
+	// the deploy transaction is never added as an upgrade and an upgrade is kept only once
 	codeToExecute := `
-		if (!ctx._source.containsKey('upgrades')) {
+		boolean hasTxHash = params.elem.upgradeTxHash != null && params.elem.upgradeTxHash != '';
+		if (hasTxHash && ctx._source.deployTxHash == params.elem.upgradeTxHash) {
+			return;
+		}
+		if (!ctx._source.containsKey('upgrades') || ctx._source.upgrades == null) {
 			ctx._source.upgrades = [params.elem];
 		} else {
+			if (hasTxHash) {
+				ctx._source.upgrades.removeIf(upgrade -> upgrade.upgradeTxHash == params.elem.upgradeTxHash);
+			}
 			ctx._source.upgrades.add(params.elem);
 		}
 `
@@ -264,13 +276,16 @@ func serializeTokenTransferOwnership(tokenData *data.TokenInfo, index string) ([
 		return nil, nil, err
 	}
 
+	// the owner data has no transaction hash, so an entry is identified by address and timestamp:
+	// if the same block is indexed more than once the entry is kept only once
 	codeToExecute := `
-		if (!ctx._source.containsKey('ownersHistory')) {
-			ctx._source.ownersHistory = [params.elem]
+		if (!ctx._source.containsKey('ownersHistory') || ctx._source.ownersHistory == null) {
+			ctx._source.ownersHistory = [params.elem];
 		} else {
-			ctx._source.ownersHistory.add(params.elem)
+			ctx._source.ownersHistory.removeIf(owner -> owner.address == params.elem.address && owner.timestamp == params.elem.timestamp && owner.timestampMs == params.elem.timestampMs);
+			ctx._source.ownersHistory.add(params.elem);
 		}
-		ctx._source.currentOwner = params.owner
+		ctx._source.currentOwner = params.owner;
 `
 	serializedDataStr := fmt.Sprintf(`{"script": {`+
 		`"source": "%s",`+
