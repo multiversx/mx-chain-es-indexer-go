@@ -11,7 +11,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-es-indexer-go/mock"
 	indexerData "github.com/multiversx/mx-chain-es-indexer-go/process/dataindexer"
-	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/factory"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/dataprocessor/factory"
 	"github.com/stretchr/testify/require"
 )
 
@@ -20,7 +20,7 @@ func TestCheckVersionIsIndexer(t *testing.T) {
 	require.Nil(t, err)
 
 	version := "v1.4.5"
-	args := factory.ArgElasticProcessorFactory{
+	args := factory.ArgDataProcessorFactory{
 		Marshalizer:              &mock.MarshalizerMock{},
 		Hasher:                   &mock.HasherMock{},
 		AddressPubkeyConverter:   pubKeyConverter,
@@ -31,7 +31,7 @@ func TestCheckVersionIsIndexer(t *testing.T) {
 		EnabledIndexes:           []string{indexerData.ValuesIndex},
 	}
 
-	_, err = factory.CreateElasticProcessor(args)
+	_, err = factory.CreateDataProcessor(args)
 	require.Nil(t, err)
 
 	genericResponse := &GenericResponse{}
@@ -79,7 +79,10 @@ func TestSaveTransactionsUpdatesShardRoundInValuesIndex(t *testing.T) {
 		require.JSONEq(t, fmt.Sprintf(`{"key":"shard_1","value":"%d","timestampMs":%d}`, round, round*1000), string(genericResponse.Docs[0].Source))
 	}
 
-	err = esProc.RevertShardRound(&dataBlock.Header{ShardID: 1, Round: 101, PrevHash: prevHash})
+	esOutput, err := CreateElasticOutput(esClient)
+	require.NoError(t, err)
+
+	err = esOutput.RevertShardRound(&dataBlock.Header{ShardID: 1, Round: 101, PrevHash: prevHash})
 	require.NoError(t, err)
 
 	genericResponse := &GenericResponse{}

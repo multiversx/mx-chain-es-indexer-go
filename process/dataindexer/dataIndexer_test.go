@@ -1,6 +1,7 @@
 package dataindexer
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
@@ -14,19 +15,19 @@ import (
 
 func NewDataIndexerArguments() ArgDataIndexer {
 	return ArgDataIndexer{
-		ElasticProcessor: &mock.ElasticProcessorStub{},
+		DataProcessor:    &mock.DataProcessorStub{},
 		HeaderMarshaller: &mock.MarshalizerMock{},
 		BlockContainer:   &mock.BlockContainerStub{},
 	}
 }
 
-func TestDataIndexer_NewIndexerWithNilElasticProcessorShouldErr(t *testing.T) {
+func TestDataIndexer_NewIndexerWithNilDataProcessorShouldErr(t *testing.T) {
 	arguments := NewDataIndexerArguments()
-	arguments.ElasticProcessor = nil
+	arguments.DataProcessor = nil
 	ei, err := NewDataIndexer(arguments)
 
 	require.Nil(t, ei)
-	require.Equal(t, ErrNilElasticProcessor, err)
+	require.Equal(t, ErrNilDataProcessor, err)
 }
 
 func TestDataIndexer_NewIndexerWithNilMarshalizerShouldErr(t *testing.T) {
@@ -57,7 +58,7 @@ func TestDataIndexer_SaveBlock(t *testing.T) {
 		},
 	}
 
-	arguments.ElasticProcessor = &mock.ElasticProcessorStub{
+	arguments.DataProcessor = &mock.DataProcessorStub{
 		SaveHeaderCalled: func(outportBlockWithHeader *outport.OutportBlockWithHeader) error {
 			countMap[0]++
 			return nil
@@ -93,7 +94,7 @@ func TestDataIndexer_SaveRoundInfo(t *testing.T) {
 	arguments := NewDataIndexerArguments()
 
 	arguments.HeaderMarshaller = &mock.MarshalizerMock{Fail: true}
-	arguments.ElasticProcessor = &mock.ElasticProcessorStub{
+	arguments.DataProcessor = &mock.DataProcessorStub{
 		SaveRoundsInfoCalled: func(infos *outport.RoundsInfo) error {
 			called = true
 			return nil
@@ -111,7 +112,7 @@ func TestDataIndexer_SaveValidatorsPubKeys(t *testing.T) {
 	called := false
 
 	arguments := NewDataIndexerArguments()
-	arguments.ElasticProcessor = &mock.ElasticProcessorStub{
+	arguments.DataProcessor = &mock.DataProcessorStub{
 		SaveShardValidatorsPubKeysCalled: func(validators *outport.ValidatorsPubKeys) error {
 			called = true
 			return nil
@@ -133,7 +134,7 @@ func TestDataIndexer_SaveValidatorsRating(t *testing.T) {
 	called := false
 
 	arguments := NewDataIndexerArguments()
-	arguments.ElasticProcessor = &mock.ElasticProcessorStub{
+	arguments.DataProcessor = &mock.DataProcessorStub{
 		SaveValidatorsRatingCalled: func(validatorsRating *outport.ValidatorsRating) error {
 			called = true
 			return nil
@@ -147,46 +148,48 @@ func TestDataIndexer_SaveValidatorsRating(t *testing.T) {
 }
 
 func TestDataIndexer_RevertIndexedBlock(t *testing.T) {
-	countMap := map[int]int{}
+	revertCalls := 0
+	blockData := &outport.BlockData{
+		HeaderType:  string(core.ShardHeaderV2),
+		Body:        &dataBlock.Body{MiniBlocks: []*dataBlock.MiniBlock{{}}},
+		HeaderBytes: []byte("{}"),
+		HeaderHash:  []byte("hash"),
+	}
 
 	arguments := NewDataIndexerArguments()
 	arguments.BlockContainer = &mock.BlockContainerStub{
 		GetCalled: func(headerType core.HeaderType) (dataBlock.EmptyBlockCreator, error) {
 			return dataBlock.NewEmptyHeaderV2Creator(), nil
 		}}
-	arguments.ElasticProcessor = &mock.ElasticProcessorStub{
-		RemoveHeaderCalled: func(header coreData.HeaderHandler) error {
-			countMap[0]++
-			return nil
-		},
-		RemoveMiniblocksCalled: func(header coreData.HeaderHandler) error {
-			countMap[1]++
-			return nil
-		},
-		RemoveTransactionsCalled: func(header coreData.HeaderHandler, body *dataBlock.Body) error {
-			countMap[2]++
-			return nil
-		},
-		RemoveAccountsESDTCalled: func(_ uint32, _ uint64) error {
-			countMap[3]++
-			return nil
-		},
-		RevertShardRoundCalled: func(_ coreData.HeaderHandler) error {
-			countMap[4]++
+	arguments.DataProcessor = &mock.DataProcessorStub{
+		RevertBlockCalled: func(header coreData.HeaderHandler, providedBlockData *outport.BlockData) error {
+			require.NotNil(t, header)
+			require.True(t, blockData == providedBlockData)
+			revertCalls++
 			return nil
 		},
 	}
 	ei, _ := NewDataIndexer(arguments)
 
-	err := ei.RevertIndexedBlock(&outport.BlockData{
-		HeaderType:  string(core.ShardHeaderV2),
-		Body:        &dataBlock.Body{MiniBlocks: []*dataBlock.MiniBlock{{}}},
-		HeaderBytes: []byte("{}"),
-	})
+	err := ei.RevertIndexedBlock(blockData)
 	require.Nil(t, err)
-	require.Equal(t, 1, countMap[0])
-	require.Equal(t, 1, countMap[1])
-	require.Equal(t, 1, countMap[2])
-	require.Equal(t, 1, countMap[3])
-	require.Equal(t, 1, countMap[4])
+	require.Equal(t, 1, revertCalls)
+}
+
+func TestDataIndexer_Close(t *testing.T) {
+	expectedErr := errors.New("close error")
+	closeCalls := 0
+
+	arguments := NewDataIndexerArguments()
+	arguments.DataProcessor = &mock.DataProcessorStub{
+		CloseCalled: func() error {
+			closeCalls++
+			return expectedErr
+		},
+	}
+	ei, _ := NewDataIndexer(arguments)
+
+	err := ei.Close()
+	require.Equal(t, expectedErr, err)
+	require.Equal(t, 1, closeCalls)
 }

@@ -26,6 +26,17 @@ services:
       - elasticsearch
     ports:
       - "5601:5601"
+  # needed only if the RabbitMQ output is enabled (`[config.rabbitmq]` from prefs.toml), the default user is guest/guest
+  rabbitmq:
+    container_name: rmq-container
+    image: rabbitmq:3.13-management
+    networks:
+      - es-net
+    ports:
+      # AMQP
+      - "5672:5672"
+      # management UI
+      - "15672:15672"
 networks:
   es-net:
     driver: bridge

@@ -11,8 +11,8 @@ var ErrNilPubkeyConverter = errors.New("nil pubkey converter")
 // ErrNegativeDenominationValue signals that a negative denomination value has been provided
 var ErrNegativeDenominationValue = errors.New("negative denomination value")
 
-// ErrNilElasticProcessor signals that an operation has been attempted to or with a nil elastic processor implementation
-var ErrNilElasticProcessor = errors.New("nil elastic processor")
+// ErrNilDataProcessor signals that an operation has been attempted to or with a nil data processor implementation
+var ErrNilDataProcessor = errors.New("nil data processor")
 
 // ErrEmptyEnabledIndexes signals that an empty slice of enables indexes has been provided
 var ErrEmptyEnabledIndexes = errors.New("empty enabled indexes slice")
@@ -44,8 +44,8 @@ var ErrHeaderTypeAssertion = errors.New("header type assertion failed")
 // ErrNilElasticBlock signals that a nil elastic block has been provided
 var ErrNilElasticBlock = errors.New("nil elastic block")
 
-// ErrNilElasticProcessorArguments signals that a nil arguments for elastic processor has been provided
-var ErrNilElasticProcessorArguments = errors.New("nil elastic processor arguments")
+// ErrNilElasticOutputArguments signals that a nil arguments for the elastic output has been provided
+var ErrNilElasticOutputArguments = errors.New("nil elastic output arguments")
 
 // ErrNilEnabledIndexesMap signals that a nil enabled indexes map has been provided
 var ErrNilEnabledIndexesMap = errors.New("nil enabled indexes map")

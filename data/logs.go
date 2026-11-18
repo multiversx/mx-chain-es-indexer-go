@@ -2,7 +2,7 @@ package data
 
 import (
 	"github.com/multiversx/mx-chain-core-go/data/outport"
-	"github.com/multiversx/mx-chain-es-indexer-go/process/elasticproc/tokeninfo"
+	"github.com/multiversx/mx-chain-es-indexer-go/process/processors/tokeninfo"
 )
 
 // Logs holds all the fields needed for a logs structure
