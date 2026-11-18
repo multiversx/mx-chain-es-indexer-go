@@ -113,7 +113,7 @@ func prepareSerializedDataForUnDelegate(delegator *data.Delegator, delegatorSeri
 				ctx._source.unDelegateInfo = [params.unDelegate];
 			} else {
 				if (params.unDelegate.id != null && params.unDelegate.id != '') {
-					ctx._source.unDelegateInfo.removeIf(info -> info.id == params.unDelegate.id);
+					ctx._source.unDelegateInfo.removeIf(info -> info.id == params.unDelegate.id && info.timestampMs == params.unDelegate.timestampMs && info.value == params.unDelegate.value);
 				}
 				ctx._source.unDelegateInfo.add(params.unDelegate);
 			}

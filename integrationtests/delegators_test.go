@@ -5,6 +5,7 @@ package integrationtests
 import (
 	"context"
 	"encoding/hex"
+	"encoding/json"
 	"math/big"
 	"testing"
 	"time"
@@ -176,4 +177,89 @@ func TestDelegateUnDelegateAndWithdraw(t *testing.T) {
 	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.DelegatorsIndex, true, genericResponse)
 	require.Nil(t, err)
 	require.JSONEq(t, readExpectedResult("./testdata/delegators/delegator-after-withdraw.json"), string(genericResponse.Docs[0].Source))
+}
+
+func TestUnDelegatesWithTheSameFundKeyAreKept(t *testing.T) {
+	esClient, err := createESClient(esURL)
+	require.Nil(t, err)
+
+	esProc, err := CreateElasticProcessor(esClient)
+	require.Nil(t, err)
+
+	body := &dataBlock.Body{
+		MiniBlocks: []*dataBlock.MiniBlock{
+			{},
+		},
+	}
+	header := &dataBlock.Header{
+		Round:     60,
+		TimeStamp: 6010,
+		ShardID:   core.MetachainShardId,
+	}
+
+	address1 := "erd1v7e552pz9py4hv6raan0c4jflez3e6csdmzcgrncg0qrnk4tywvsqx0h5j"
+	ids := []string{"9v/pLAXxUZJ4Oy1U+x5al/Xg5sebh1dYCRTeZwg/u68="}
+	bigValue := func(value string) *big.Int {
+		result, _ := big.NewInt(0).SetString(value, 10)
+		return result
+	}
+
+	// the fund key is the same for both undelegations, but they are two distinct operations of the delegator
+	fundKey := []byte("3")
+	totalDelegation := bigValue("100000000000000000000")
+	unDelegate := func(txHash string, value *big.Int) *outport.TransactionPool {
+		return &outport.TransactionPool{
+			Logs: []*transaction.LogData{
+				{
+					TxHash: hex.EncodeToString([]byte(txHash)),
+					Log: &transaction.Log{
+						Address: decodeAddress("erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqhllllsajxzat"),
+						Events: []*transaction.Event{
+							{
+								Address:    decodeAddress(address1),
+								Identifier: []byte("unDelegate"),
+								Topics:     [][]byte{value.Bytes(), totalDelegation.Bytes(), big.NewInt(10).Bytes(), totalDelegation.Bytes(), fundKey},
+							},
+						},
+					},
+				},
+			},
+		}
+	}
+
+	firstPool := unDelegate("u1", bigValue("50000000000000000000"))
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, firstPool, nil, testNumOfShards))
+	require.Nil(t, err)
+
+	header.TimeStamp = 6020
+	secondPool := unDelegate("u2", bigValue("25000000000000000000"))
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, secondPool, nil, testNumOfShards))
+	require.Nil(t, err)
+
+	// the same block is indexed again: its undelegation is still kept only once
+	err = esProc.SaveTransactions(createOutportBlockWithHeader(body, header, secondPool, nil, testNumOfShards))
+	require.Nil(t, err)
+
+	genericResponse := &GenericResponse{}
+	err = esClient.DoMultiGet(context.Background(), ids, indexerdata.DelegatorsIndex, true, genericResponse)
+	require.Nil(t, err)
+
+	type unDelegateEntry struct {
+		ID    string `json:"id"`
+		Value string `json:"value"`
+	}
+	type delegatorDocument struct {
+		UnDelegateInfo []unDelegateEntry `json:"unDelegateInfo"`
+	}
+	document := &delegatorDocument{}
+	require.Nil(t, json.Unmarshal(genericResponse.Docs[0].Source, document))
+
+	fundKeyHex := hex.EncodeToString(fundKey)
+	values := make([]string, 0)
+	for _, entry := range document.UnDelegateInfo {
+		if entry.ID == fundKeyHex {
+			values = append(values, entry.Value)
+		}
+	}
+	require.Equal(t, []string{"50000000000000000000", "25000000000000000000"}, values)
 }
